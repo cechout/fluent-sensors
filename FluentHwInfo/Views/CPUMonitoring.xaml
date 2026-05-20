@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="FluentHwInfo.Views.CPUMonitoring"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:FluentHwInfo.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource ControlElevationBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="{ThemeResource ControlCornerRadius}"
+                Padding="20"
+                VerticalAlignment="Top">
+
+            <Grid RowSpacing="16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="120" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Sensor"
+                           Style="{StaticResource Font_TextBlockOutputDisplay}"
+                           Grid.Row="0"
+                           Grid.Column="0" />
+                <TextBlock Text="Aktuell"
+                           Style="{StaticResource Font_TextBlockOutputDisplay}"
+                           Grid.Row="0"
+                           Grid.Column="1"
+                           HorizontalAlignment="Right" />
+                <TextBlock Text="Minimum"
+                           Style="{StaticResource Font_TextBlockOutputDisplay}"
+                           Grid.Row="0"
+                           Grid.Column="2"
+                           HorizontalAlignment="Right" />
+                <TextBlock Text="Maximum"
+                           Style="{StaticResource Font_TextBlockOutputDisplay}"
+                           Grid.Row="0"
+                           Grid.Column="3"
+                           HorizontalAlignment="Right" />
+                <TextBlock Text="Durchschnitt"
+                           Style="{StaticResource Font_TextBlockOutputDisplay}"
+                           Grid.Row="0"
+                           Grid.Column="4"
+                           HorizontalAlignment="Right" />
+
+                <Border Height="1"
+                        Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        Grid.Row="1"
+                        Grid.ColumnSpan="5"
+                        Margin="0,4,0,4" />
+
+                <TextBlock Text="CPU Package Power"
+                           Style="{StaticResource Font_ButtonText}"
+                           Grid.Row="2"
+                           Grid.Column="0"
+                           VerticalAlignment="Center" />
+                <TextBlock Text="32.5 W"
+                           Style="{StaticResource Font_ButtonText}"
+                           Grid.Row="2"
+                           Grid.Column="1"
+                           HorizontalAlignment="Right" />
+                <TextBlock Text="12.1 W"
+                           Style="{StaticResource Font_ButtonText}"
+                           Grid.Row="2"
+                           Grid.Column="2"
+                           HorizontalAlignment="Right" />
+                <TextBlock Text="95.0 W"
+                           Style="{StaticResource Font_ButtonText}"
+                           Grid.Row="2"
+                           Grid.Column="3"
+                           HorizontalAlignment="Right" />
+                <TextBlock Text="45.3 W"
+                           Style="{StaticResource Font_ButtonText}"
+                           Grid.Row="2"
+                           Grid.Column="4"
+                           HorizontalAlignment="Right" />
+
+                <TextBlock Text="GPU Package Power"
+                           Style="{StaticResource Font_ButtonText}"
+                           Grid.Row="3"
+                           Grid.Column="0"
+                           VerticalAlignment="Center" />
+                <TextBlock Text="15.0 W"
+                           Style="{StaticResource Font_ButtonText}"
+                           Grid.Row="3"
+                           Grid.Column="1"
+                           HorizontalAlignment="Right" />
+                <TextBlock Text="10.5 W"
+                           Style="{StaticResource Font_ButtonText}"
+                           Grid.Row="3"
+                           Grid.Column="2"
+                           HorizontalAlignment="Right" />
+                <TextBlock Text="115.0 W"
+                           Style="{StaticResource Font_ButtonText}"
+                           Grid.Row="3"
+                           Grid.Column="3"
+                           HorizontalAlignment="Right" />
+                <TextBlock Text="60.2 W"
+                           Style="{StaticResource Font_ButtonText}"
+                           Grid.Row="3"
+                           Grid.Column="4"
+                           HorizontalAlignment="Right" />
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Devices.Sensors;
 using LibreHardwareMonitor.Hardware;
 
 namespace FluentHwInfo.Services
@@ -10,7 +9,7 @@ namespace FluentHwInfo.Services
     public class HardwareMonitorService
     {
         private readonly Computer _computer;
-        private ISensor _cpuPackagePowerSensor;
+        private ISensor? _cpuPackagePowerSensor; // ? in case the sensor is not found
         private CancellationTokenSource _cts;
         public int UpdateIntervalMs { get; set; } = 500; // standardvalue = 500ms
 
@@ -53,7 +52,7 @@ namespace FluentHwInfo.Services
             if (cpu == null) return;
 
             // for my i9 12900k the sensor is called something like "CPU Power", and could contain also the word "Package"
-            _cpuPackagePowerSensor = cpu.Sensors.FirstOrDefault(s => s.SensorType == LibreHardwareMonitor.Hardware.SensorType.Power && s.Name.Contains("Package"));
+            _cpuPackagePowerSensor = cpu.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Power && s.Name.Contains("Package"));
         }
 
         public void StartMonitoring()
@@ -73,17 +72,14 @@ namespace FluentHwInfo.Services
         {
             while (!token.IsCancellationRequested)
             {
-                // very important: we need to tell the hardware to pull new values
-                _cpuPackagePowerSensor.Hardware.Update();
+                _cpuPackagePowerSensor?.Hardware.Update(); // tell the hardware to pull new values
 
-                if (_cpuPackagePowerSensor.Value.HasValue)
+                if (_cpuPackagePowerSensor != null && _cpuPackagePowerSensor.Value.HasValue)
                 {
-                    // fire event and pass the value
-                    CpuPowerUpdated?.Invoke(_cpuPackagePowerSensor.Value.Value);
+                    CpuPowerUpdated?.Invoke(_cpuPackagePowerSensor.Value.Value); // fire event and pass the value
                 }
 
-                // wait until the interval is over
-                await Task.Delay(UpdateIntervalMs, token);
+                await Task.Delay(UpdateIntervalMs, token); // wait until the interval is over
             }
         }
 

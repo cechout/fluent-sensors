@@ -14,6 +14,25 @@
     </Window.SystemBackdrop>
 
     <Grid>
+        <NavigationView x:Name="nvSample"
+                        PaneDisplayMode="Auto"
+                        SelectionChanged="nvSample_SelectionChanged">
 
+            <NavigationView.MenuItems>
+                <NavigationViewItem Icon="Home"
+                                    Content="CPU"
+                                    Tag="CPU" />
+                <NavigationViewItem Icon="DockRight"
+                                    Content="GPU"
+                                    Tag="GPU" />
+            </NavigationView.MenuItems>
+
+            <NavigationView.FooterMenuItems>
+                <!--settings tab is automatically included-->
+            </NavigationView.FooterMenuItems>
+
+            <Frame x:Name="contentFrame" />
+
+        </NavigationView>
     </Grid>
 </Window>

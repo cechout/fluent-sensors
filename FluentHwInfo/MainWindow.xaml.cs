@@ -1,3 +1,4 @@
+using FluentHwInfo.Views;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -13,19 +14,47 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace FluentHwInfo
 {
-    /// <summary>
-    /// An empty window that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class MainWindow : Window
     {
         public MainWindow()
         {
-            InitializeComponent();
+            this.InitializeComponent();
+
+            // das sorgt dafür, dass direkt beim start der app das erste item (Dashboard) 
+            // ausgewählt ist und der rahmen nicht leer bleibt.
+            nvSample.SelectedItem = nvSample.MenuItems[0];
+        }
+
+        // diese methode feuert jedes mal, wenn du links auf ein icon klickst
+        private void nvSample_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        {
+            // wir greifen uns das angeklickte item
+            if (args.SelectedItem is NavigationViewItem selectedItem)
+            {
+                // wir holen uns das stichwort (z.b. "DashboardPage")
+                string pageTag = selectedItem.Tag.ToString();
+
+                // je nach stichwort laden wir die passende seite in den frame
+                switch (pageTag)
+                {
+                    case "CPU":
+                        // typeof() sagt dem frame genau, welche klasse er laden soll
+                        contentFrame.Navigate(typeof(CPUMonitoring));
+                        break;
+
+                    case "GPU":
+
+                        // typeof() sagt dem frame genau, welche klasse er laden soll
+                        //contentFrame.Navigate(typeof(GPUMonitoring));
+                        break;
+
+                    case "Settings":
+                        // contentFrame.Navigate(typeof(SettingsPage)); // erst einkommentieren, wenn die page existiert
+                        break;
+                }
+            }
         }
     }
 }
