@@ -1,0 +1,42 @@
+------------------------------------------------------------------------------
+
+HardwareType.Cpu
+Sensors:
+
+Load: CPU Core #1 Thread #1 ... #14, CPU Total, CPU Core Max
+
+Temperature: Core Max, Core Average, P-Core #1 ... #6, E-Core #1 ... #8, CPU Package, P-Core #1 Distance to TjMax ... #6, E-Core #1 Distance to TjMax ... #8
+
+Clock: P-Core #1 ... #6, E-Core #1 ... #8, Bus Speed
+
+Power: CPU Package, CPU Cores, CPU Memory, CPU Platform
+
+Voltage: CPU Core, P-Core #1 ... #6, E-Core #1 ... #8
+
+------------------------------------------------------------------------------
+
+HardwareType.GpuNvidia
+Sensors:
+
+Temperature: GPU Core, GPU Hot Spot
+
+Clock: GPU Core, GPU Memory
+
+Load: GPU Core, GPU Memory Controller, GPU Video Engine, GPU Bus, D3D 3D, D3D Overlay, D3D Video Decode, D3D Copy, D3D Security, D3D Video Encode, D3D Optical Flow Accelerator 0, D3D VR, GPU Memory
+
+Voltage: GPU Core Voltage
+
+SmallData (VRAM): D3D Dedicated Memory Used, D3D Shared Memory Used, GPU Memory Total, GPU Memory Free, GPU Memory Used
+
+Power: GPU Package
+
+Throughput: GPU PCIe Rx, GPU PCIe Tx
+
+------------------------------------------------------------------------------
+
+HardwareType.GpuIntel
+Sensors:
+
+Power: GPU Power
+
+------------------------------------------------------------------------------

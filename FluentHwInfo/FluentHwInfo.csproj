@@ -12,6 +12,9 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
+
+	  <WindowsPackageType>None</WindowsPackageType>
+	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Views\CPUPage.xaml" />

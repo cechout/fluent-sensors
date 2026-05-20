@@ -23,13 +23,20 @@ namespace FluentHwInfo.Services
     public class HardwareMonitorService
     {
         private readonly Computer _computer;
+
+        // hardware components
         private IHardware? _cpuHardware;
         private IHardware? _gpuHardware;
+        private IHardware? _iGpuHardware;
 
         // cpu sensors
         private ISensor? _cpuPackagePowerSensor;
         private ISensor? _cpuIaPowerSensor;
-        private ISensor? _cpuGtPowerSensor;
+
+        private ISensor? _cpuLoadSensor;
+
+        // intel iris
+        private ISensor? _iGpuPowerSensor;
 
         // gpu sensors
         private ISensor? _gpuPowerSensor;
@@ -66,7 +73,7 @@ namespace FluentHwInfo.Services
                 IsCpuEnabled = true,
                 IsGpuEnabled = true, 
                 IsMemoryEnabled = false,
-                IsMotherboardEnabled = false,
+                IsMotherboardEnabled = true,
                 IsControllerEnabled = false,
                 IsNetworkEnabled = false,
                 IsStorageEnabled = false
@@ -78,26 +85,29 @@ namespace FluentHwInfo.Services
 
         private void InitSensors()
         {
-            // search cpu hardware and sensors
+            // CPU HARDWARE
             _cpuHardware = _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Cpu);
-
             if (_cpuHardware != null)
             {
-                _cpuPackagePowerSensor = _cpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Power && s.Name.Contains("Package"));
-                _cpuIaPowerSensor = _cpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Power && s.Name.Contains("IA Cores"));
-                _cpuGtPowerSensor = _cpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Power && s.Name.Contains("GT Cores"));
+                _cpuLoadSensor = _cpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Load && s.Name.Contains("CPU Total"));
+
+                _cpuPackagePowerSensor = _cpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Power && s.Name.Contains("CPU Package"));
+                _cpuIaPowerSensor = _cpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Power && s.Name.Contains("CPU Cores"));
             }
 
-            // search gpu hardware and sensors
-            _gpuHardware = _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuNvidia || h.HardwareType == HardwareType.GpuAmd);
+            // INTEL IRIS 
+            _iGpuHardware = _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel);
+            if (_cpuHardware != null)
+            {
+                _iGpuPowerSensor = _cpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Power && s.Name.Contains("GPU Power"));
+            }
 
+            // GPU HARDWARE
+            _gpuHardware = _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuNvidia || h.HardwareType == HardwareType.GpuAmd);
             if (_gpuHardware != null)
             {
                 _gpuPowerSensor = _gpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Power && s.Name.Contains("GPU Package"));
-
-                // vram is often classified as "small data" in lhm and not as "data", because it is not a constantly changing value like power or temperature,
-                // but rather changes in bigger steps. thats why we have to look for the sensor in a different way than the power sensors
-                _gpuVramUsedSensor = _gpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.SmallData && s.Name.Contains("Memory Used"));
+                _gpuVramUsedSensor = _gpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.SmallData && s.Name.Contains("GPU Memory Used"));
             }
         }
 
@@ -126,7 +136,7 @@ namespace FluentHwInfo.Services
 
                 if (_cpuPackagePowerSensor?.Value != null) CpuPackagePowerUpdated?.Invoke(_cpuPackagePowerSensor.Value.Value);
                 if (_cpuIaPowerSensor?.Value != null) CpuIaPowerUpdated?.Invoke(_cpuIaPowerSensor.Value.Value);
-                if (_cpuGtPowerSensor?.Value != null) CpuGtPowerUpdated?.Invoke(_cpuGtPowerSensor.Value.Value);
+                if (_iGpuPowerSensor?.Value != null) CpuGtPowerUpdated?.Invoke(_iGpuPowerSensor.Value.Value);
 
                 if (_gpuPowerSensor?.Value != null) GpuPowerUpdated?.Invoke(_gpuPowerSensor.Value.Value);
 

@@ -28,7 +28,7 @@ namespace FluentHwInfo.ViewModels
         // this are our 3 metric rows for the ListView
         private SensorRowViewModel _packageRow;
         private SensorRowViewModel _iaCoresRow;
-        private SensorRowViewModel _gtCoresRow;
+        private SensorRowViewModel _iGpuRow;
 
         public CPUViewModel()
         {
@@ -38,11 +38,11 @@ namespace FluentHwInfo.ViewModels
             // this replaces all the hardcoded <ListViewItem> from the XAML
             _packageRow = new SensorRowViewModel { Name = "CPU Package Power" };
             _iaCoresRow = new SensorRowViewModel { Name = "IA Cores Power" };
-            _gtCoresRow = new SensorRowViewModel { Name = "GT Cores Power" };
+            _iGpuRow = new SensorRowViewModel { Name = "iGPU Power" };
 
             SensorList.Add(_packageRow);
             SensorList.Add(_iaCoresRow);
-            SensorList.Add(_gtCoresRow);
+            SensorList.Add(_iGpuRow);
 
             // initialize the hardware monitor service
             _service = new HardwareMonitorService();
@@ -51,7 +51,7 @@ namespace FluentHwInfo.ViewModels
             // when the service fires, we simply forward the value (val) to the row
             _service.CpuPackagePowerUpdated += (val) => _packageRow.UpdateValue(val);
             _service.CpuIaPowerUpdated += (val) => _iaCoresRow.UpdateValue(val);
-            _service.CpuGtPowerUpdated += (val) => _gtCoresRow.UpdateValue(val);
+            _service.CpuGtPowerUpdated += (val) => _iGpuRow.UpdateValue(val);
 
             // 4. start monitoring
             _service.StartMonitoring();
