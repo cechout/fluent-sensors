@@ -32,12 +32,12 @@ namespace FluentHwInfo
             AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
 
             // set the start size of the whole app window
-            this.SetWindowSize(800, 600);
+            this.SetWindowSize(675, 400);
 
             // set the min size of whole app window
             var manager = WinUIEx.WindowManager.Get(this);
-            manager.MinWidth = 600;
-            manager.MinHeight = 450;
+            manager.MinWidth = 675;
+            manager.MinHeight = 400;
         }
 
         // this method is called whenever an item in the navigation view is clicked

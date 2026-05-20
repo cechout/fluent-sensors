@@ -31,4 +31,12 @@ public sealed partial class CPUPage : Page
         // create the viewmodel when the page is loaded
         ViewModel = new CPUViewModel();
     }
+
+    private void PinToWidget_Click(object sender, RoutedEventArgs e)
+    {
+        var widget = new WidgetWindow();
+        widget.Activate();
+        // Optional: MainWindow verstecken, damit nur das Widget bleibt
+        // App.MainWindow.Hide(); 
+    }
 }
