@@ -3,9 +3,11 @@
     x:Class="FluentHwInfo.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:FluentHwInfo"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:winex="using:WinUIEx"
     Title="FluentHwInfo"
     mc:Ignorable="d">
 
@@ -14,8 +16,26 @@
     </Window.SystemBackdrop>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  New Title Bar  -->
+        <TitleBar
+            Title="FluentHwInfo"
+            Grid.Row="0"
+            IsBackButtonVisible="False"
+            IsPaneToggleButtonVisible="False">
+
+            <TitleBar.IconSource>
+                <ImageIconSource ImageSource="/Assets/FluentHwInfo.ico" />
+            </TitleBar.IconSource>
+        </TitleBar>
+
         <NavigationView
             x:Name="MainNavigationView"
+            Grid.Row="1"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
             OpenPaneLength="150"
@@ -23,25 +43,14 @@
             SelectionChanged="MainNavigationView_SelectionChanged">
 
             <NavigationView.MenuItems>
-
-                <!--  CPU Item  -->
-                <NavigationViewItem Content="CPU" Tag="CPU">
+                <NavigationViewItem Content="Sensors" Tag="Sensors">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xF120;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-
-                <!--  GPU Item  -->
-                <NavigationViewItem Content="GPU" Tag="GPU">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xF120;" />
+                        <FontIcon Glyph="&#xE9D9;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
 
             <NavigationView.FooterMenuItems>
-
-                <!--  Settings Item  -->
                 <NavigationViewItem Content="Settings" Tag="Settings">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE713;" />

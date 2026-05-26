@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="FluentHwInfo.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <StackPanel
+            MaxWidth="1000"
+            Margin="24"
+            HorizontalAlignment="Stretch"
+            Spacing="4">
+
+            <TextBlock
+                Margin="0,0,0,12"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Text="Settings" />
+
+            <TextBlock
+                Margin="1,8,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="Appearance" />
+
+            <controls:SettingsCard
+                Description="Select your preferred color mode for the application"
+                Header="App Theme"
+                HeaderIcon="{ui:FontIcon Glyph=&#xE790;}">
+                <ComboBox
+                    x:Name="ThemeComboBox"
+                    Width="150"
+                    SelectedIndex="0"
+                    SelectionChanged="ThemeComboBox_SelectionChanged">
+                    <ComboBoxItem Content="System Default" Tag="Default" />
+                    <ComboBoxItem Content="Light" Tag="Light" />
+                    <ComboBoxItem Content="Dark" Tag="Dark" />
+                </ComboBox>
+            </controls:SettingsCard>
+
+            <TextBlock
+                Margin="1,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="Engine" />
+
+            <controls:SettingsCard
+                Description="How fast the hardware sensors should be polled"
+                Header="Update Interval"
+                HeaderIcon="{ui:FontIcon Glyph=&#xE916;}">
+                <ComboBox
+                    Width="150"
+                    SelectedIndex="0"
+                    SelectionChanged="IntervalComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Fast (500ms)" Tag="500" />
+                    <ComboBoxItem Content="Normal (1000ms)" Tag="1000" />
+                    <ComboBoxItem Content="Slow (2000ms)" Tag="2000" />
+                </ComboBox>
+            </controls:SettingsCard>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

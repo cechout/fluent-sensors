@@ -28,10 +28,16 @@ namespace FluentHwInfo
             this.InitializeComponent();
             MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0]; // this ensures that right at the start of the app, the first item in the navigation view is already selected
 
-            AppWindow.SetIcon("Assets/FluentHwInfo.ico");
+            //AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
+            AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
 
-            // set title bar color to system default 
-            AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
+            if (AppWindow.TitleBar.ExtendsContentIntoTitleBar)
+            {
+                AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Standard;
+                AppWindow.TitleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
+                AppWindow.TitleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
+
+            }
 
             // set the start size of the whole app window
             this.SetWindowSize(660, 400);
@@ -60,13 +66,13 @@ namespace FluentHwInfo
                 string pageTag = selectedItem.Tag.ToString(); // we pull the value of the tag of the selected item
                 switch (pageTag)
                 {
-                    case "CPU":
+                    case "Sensors":
                         // typeof() specifies the class that the frame should load
-                        contentFrame.Navigate(typeof(CPUPage));
+                        contentFrame.Navigate(typeof(SensorsPage));
                         break;
 
-                    case "GPU":
-                        //contentFrame.Navigate(typeof(GPUMonitoring)); 
+                    case "Settings":
+                        contentFrame.Navigate(typeof(SettingsPage)); 
                         break;
                 }
             }

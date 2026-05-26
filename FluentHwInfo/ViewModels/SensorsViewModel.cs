@@ -85,7 +85,8 @@ namespace FluentHwInfo.ViewModels
                         {
                             Id = data.Id,
                             // We don't need the HardwareName here anymore, because the Expander Header already shows it!
-                            Name = data.Name
+                            Name = data.Name,
+                            SensorType = data.SensorType,
                         };
 
                         newRow.UpdateValue(data.Value);

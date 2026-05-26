@@ -24,18 +24,39 @@ namespace FluentHwInfo.ViewModels
     // otherwise the UI would never know that it should update itself
     public class SensorRowViewModel : INotifyPropertyChanged
     {
-        private string _currentValue = "0.0 W";
-        private string _minimumValue = "0.0 W";
-        private string _maximumValue = "0.0 W";
-        private string _averageValue = "0.0 W";
+        private string _currentValue = "-";
+        private string _minimumValue = "-";
+        private string _maximumValue = "-";
+        private string _averageValue = "-";
 
         private double _min = double.MaxValue;
         private double _max = double.MinValue;
         private double _sum = 0;
         private int _count = 0;
 
+        // the internal storage for the unit (e.g., "W" or "°C")
+        private string _unit = "";
+
         public string Id { get; set; }
         public string Name { get; set; } = "Unknown Sensor";
+        public string SensorType
+        {
+            set
+            {
+                _unit = value switch
+                {
+                    "Temperature" => "°C",
+                    "Power" => "W",
+                    "Load" => "%",
+                    "Clock" => "MHz",
+                    "SmallData" => "MB",
+                    "Data" => "GB",
+                    "Voltage" => "V",
+                    "Fan" => "RPM",
+                    _ => "" // fallback, if LibreHardwareMonitor sends something exotic
+                };
+            }
+        }
         public string CurrentValue
         {
             get => _currentValue;
@@ -83,11 +104,11 @@ namespace FluentHwInfo.ViewModels
             _count++;
             double avg = _sum / _count;
 
-            // 2. build strings for the UI (the setters automatically fire the OnPropertyChanged event)
-            CurrentValue = $"{newValue:0.0} W";
-            MinimumValue = $"{_min:0.0} W";
-            MaximumValue = $"{_max:0.0} W";
-            AverageValue = $"{avg:0.0} W";
+            // 2. build strings for the UI with the dynamic unit
+            CurrentValue = $"{newValue:0.0} {_unit}";
+            MinimumValue = $"{_min:0.0} {_unit}";
+            MaximumValue = $"{_max:0.0} {_unit}";
+            AverageValue = $"{avg:0.0} {_unit}";
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
