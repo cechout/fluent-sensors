@@ -1,4 +1,6 @@
+using FluentHwInfo.ViewModels;
 using LiveChartsCore;
+using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.UI;
@@ -7,7 +9,6 @@ using Microsoft.UI.Xaml;
 using SkiaSharp;
 using System;
 using System.Collections.ObjectModel;
-using LiveChartsCore.Kernel.Sketches;
 
 namespace FluentHwInfo.Views
 {
@@ -15,59 +16,12 @@ namespace FluentHwInfo.Views
     {
         private AppWindow _appWindow;
 
-
-        // the raw data list that will be plotted by LiveCharts
-        public ObservableCollection<double?> CpuPowerData { get; set; }
-        private const int MaxDataPoints = 50;
-
-        // LiveCharts Fields
-        public ISeries[] Series { get; set; }
-        public ICartesianAxis[] XAxes { get; set; } = { new Axis { IsVisible = false } };
-        public ICartesianAxis[] YAxes { get; set; } = { new Axis { IsVisible = false } };
-        public LiveChartsCore.Measure.Margin ChartMargin { get; set; } = new LiveChartsCore.Measure.Margin(0);
+        // Expose the ViewModel so {x:Bind} in XAML can access it.
+        public WidgetViewModel ViewModel { get; }
 
         public WidgetWindow()
         {
-            CpuPowerData = new ObservableCollection<double?>(new double?[MaxDataPoints]);
-
-            // test
-            CpuPowerData[34] = 29.2;
-            CpuPowerData[35] = 35.2;
-            CpuPowerData[36] = 29.2;
-            CpuPowerData[37] = 27.2;
-            CpuPowerData[38] = 25.2;
-            CpuPowerData[39] = 45.2;
-            CpuPowerData[40] = 50.1;
-            CpuPowerData[41] = 62.5;
-            CpuPowerData[42] = 48.0;
-            CpuPowerData[43] = 55.3;
-            CpuPowerData[44] = 55.3;
-            CpuPowerData[45] = 25.3;
-            CpuPowerData[46] = 25.3;
-            CpuPowerData[47] = 35.3;
-            CpuPowerData[48] = 45.3;
-            CpuPowerData[49] = 35.3;
-
-            // custom gradient fill
-            var gradientFill = new LinearGradientPaint(
-                new[] { SKColors.DodgerBlue.WithAlpha(100), SKColors.DodgerBlue.WithAlpha(0) },
-                new SKPoint(0.5f, 0), // start: top middle
-                new SKPoint(0.5f, 1)  // end: bottom middle
-            );
-
-            // the LiveCharts ISeries definition
-            Series = new ISeries[]
-            {
-                new LineSeries<double?>
-                {
-                    Values = CpuPowerData,
-                    Fill = gradientFill, 
-                    GeometrySize = 1, // 0: no graph points, >=1: size of graph points
-                    LineSmoothness = 0.8, 
-                    Stroke = new SolidColorPaint(SKColors.DodgerBlue) { StrokeThickness = 2 },
-                    DataPadding = new LiveChartsCore.Drawing.LvcPoint(0, 0) // graph padding
-                }
-            };
+            ViewModel = new WidgetViewModel();
 
             this.InitializeComponent();
 
@@ -77,6 +31,15 @@ namespace FluentHwInfo.Views
             SetTitleBar(AppTitleBar); 
             _appWindow.SetPresenter(AppWindowPresenterKind.CompactOverlay);
             PositionWidgetTopRight(); // custom method to position window at top-right of the screen
+
+            // register the closed event to prevent memory leaks in the background service
+            this.Closed += WidgetWindow_Closed;
+        }
+
+        private void WidgetWindow_Closed(object sender, WindowEventArgs args)
+        {
+            // detach the event handlers from the static HardwareMonitorService
+            ViewModel.Cleanup();
         }
 
         private void PositionWidgetTopRight()
@@ -98,7 +61,6 @@ namespace FluentHwInfo.Views
 
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)
         {
-            // Here you would call/show your MainWindow again
             // App.MainWindow.Activate();
             this.Close();
         }

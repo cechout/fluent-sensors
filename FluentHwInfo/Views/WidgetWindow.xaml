@@ -7,6 +7,7 @@
     xmlns:local="using:FluentHwInfo.Views"
     xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewmodels="using:FluentHwInfo.ViewModels"
     Title="WidgetWindow"
     mc:Ignorable="d">
 
@@ -36,30 +37,45 @@
             Padding="16"
             Spacing="12">
 
-            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="CPU PACKAGE" />
-            <TextBlock
-                x:Name="CpuPowerValue"
-                FontSize="28"
-                FontWeight="SemiBold"
-                Text="45.2 W" />
+            <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
 
-            <Border
-                Padding="0,0,8,0"
-                BorderBrush="{ThemeResource ControlElevationBorderBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="viewmodels:WidgetSensorViewModel">
 
-                <lvc:CartesianChart
-                    Height="150"
-                    HorizontalAlignment="Stretch"
-                    Background="Transparent"
-                    DrawMargin="{x:Bind ChartMargin}"
-                    Series="{x:Bind Series}"
-                    TooltipPosition="Auto"
-                    XAxes="{x:Bind XAxes}"
-                    YAxes="{x:Bind YAxes}" />
-            </Border>
+                        <StackPanel Margin="0,0,0,24" Spacing="12">
 
+                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind SensorName, Mode=OneWay}" />
+
+                            <TextBlock
+                                FontSize="28"
+                                FontWeight="SemiBold"
+                                Text="{x:Bind CurrentValueText, Mode=OneWay}" />
+
+                            <Border
+                                Padding="0,0,0,0"
+                                Background="{ThemeResource ControlFillColorTertiaryBrush}"
+                                BorderBrush="{ThemeResource ControlElevationBorderBrush}"
+                                BorderThickness="0"
+                                CornerRadius="4">
+
+                                <lvc:CartesianChart
+                                    Height="80"
+                                    Margin="-6,0,-6,0"
+                                    HorizontalAlignment="Stretch"
+                                    AnimationsSpeed="00:00:00"
+                                    Background="Transparent"
+                                    DrawMargin="{x:Bind ChartMargin, Mode=OneWay}"
+                                    Series="{x:Bind Series, Mode=OneWay}"
+                                    TooltipPosition="Auto"
+                                    XAxes="{x:Bind XAxes, Mode=OneWay}"
+                                    YAxes="{x:Bind YAxes, Mode=OneWay}" />
+                            </Border>
+
+                        </StackPanel>
+
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <Button
                 HorizontalAlignment="Right"
