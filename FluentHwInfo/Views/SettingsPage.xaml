@@ -21,6 +21,7 @@
                 Style="{StaticResource SubtitleTextBlockStyle}"
                 Text="Settings" />
 
+            <!--  appearance settings  -->
             <TextBlock
                 Margin="1,8,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
@@ -41,6 +42,7 @@
                 </ComboBox>
             </controls:SettingsCard>
 
+            <!--  engine settings  -->
             <TextBlock
                 Margin="1,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
@@ -62,6 +64,79 @@
                 </ComboBox>
             </controls:SettingsCard>
 
+            <!--  widget settings  -->
+            <TextBlock
+                Margin="1,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="Widget Appearance" />
+
+            <controls:SettingsExpander
+                Description="Choose the transparency effect for the widget window."
+                Header="Background Material"
+                HeaderIcon="{ui:FontIcon Glyph=&#xE7B5;}">
+
+                <ComboBox
+                    x:Name="BackdropComboBox"
+                    Width="160"
+                    SelectionChanged="BackdropComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Desktop Acrylic" Tag="Acrylic" />
+                    <ComboBoxItem Content="System Mica" Tag="Mica" />
+                    <ComboBoxItem Content="Solid (No Blur)" Tag="None" />
+                </ComboBox>
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Description="Adjust the color transparency (Only works with Acrylic)." Header="Tint Opacity">
+                        <Slider
+                            x:Name="TintSlider"
+                            Width="200"
+                            Maximum="1"
+                            Minimum="0"
+                            StepFrequency="0.05"
+                            TickFrequency="0.1"
+                            ValueChanged="TintSlider_ValueChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Description="Adjust the brightness transparency (Only works with Acrylic)." Header="Luminosity Opacity">
+                        <Slider
+                            x:Name="LuminositySlider"
+                            Width="200"
+                            Maximum="1"
+                            Minimum="0"
+                            StepFrequency="0.05"
+                            TickFrequency="0.1"
+                            ValueChanged="LuminositySlider_ValueChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Description="Choose between the Windows accent color or a custom color." Header="Tint Color Source">
+                        <ComboBox
+                            x:Name="ColorSourceComboBox"
+                            Width="160"
+                            SelectionChanged="ColorSourceComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Windows Accent" Tag="Accent" />
+                            <ComboBoxItem Content="Custom Color" Tag="Custom" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard
+                        x:Name="CustomColorCard"
+                        Description="Select the exact color for the widget background."
+                        Header="Custom Tint Color"
+                        Visibility="Collapsed">
+
+                        <ColorPicker
+                            x:Name="TintPicker"
+                            ColorChanged="TintPicker_ColorChanged"
+                            ColorSpectrumShape="Ring"
+                            IsAlphaEnabled="False"
+                            IsAlphaSliderVisible="False"
+                            IsAlphaTextInputVisible="False"
+                            IsColorChannelTextInputVisible="False"
+                            IsColorSliderVisible="True"
+                            IsHexInputVisible="False"
+                            IsMoreButtonVisible="False" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
         </StackPanel>
     </ScrollViewer>
 </Page>

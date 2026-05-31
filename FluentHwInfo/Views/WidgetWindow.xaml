@@ -11,11 +11,7 @@
     Title="WidgetWindow"
     mc:Ignorable="d">
 
-    <Window.SystemBackdrop>
-        <MicaBackdrop />
-    </Window.SystemBackdrop>
-
-    <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid x:Name="RootGrid" Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -59,7 +55,7 @@
                                 CornerRadius="4">
 
                                 <lvc:CartesianChart
-                                    Height="80"
+                                    Height="160"
                                     Margin="-6,0,-6,0"
                                     HorizontalAlignment="Stretch"
                                     AnimationsSpeed="00:00:00"

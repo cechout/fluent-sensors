@@ -1,14 +1,20 @@
+using FluentHwInfo.Services;
 using FluentHwInfo.ViewModels;
 using LiveChartsCore;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.UI;
+using Microsoft.UI.Composition;
+using Microsoft.UI.Composition.SystemBackdrops;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using SkiaSharp;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using WinRT;
 
 namespace FluentHwInfo.Views
 {
@@ -19,11 +25,26 @@ namespace FluentHwInfo.Views
         // Expose the ViewModel so {x:Bind} in XAML can access it.
         public WidgetViewModel ViewModel { get; }
 
-        public WidgetWindow()
+        // system backdrop controllers and configuration
+        private DesktopAcrylicController _acrylicController;
+        private MicaController _micaController;
+        private SystemBackdropConfiguration _configurationSource;
+
+
+        public WidgetWindow(List<SensorRowViewModel> selectedSensors)
         {
-            ViewModel = new WidgetViewModel();
+            // pass the selected sensors down to the ViewModel layer
+            ViewModel = new WidgetViewModel(selectedSensors);
 
             this.InitializeComponent();
+
+            // start the backdrop engine with Desktop Acrylic
+            SetBackdrop("Acrylic");
+
+            // listen to the global settings
+            SettingsService.Instance.BackdropTypeChanged += OnBackdropTypeChanged;
+            SettingsService.Instance.OpacityChanged += OnOpacityChanged;
+            SettingsService.Instance.TintColorChanged += OnTintColorChanged;
 
             // custom window settings
             _appWindow = this.AppWindow;
@@ -36,10 +57,79 @@ namespace FluentHwInfo.Views
             this.Closed += WidgetWindow_Closed;
         }
 
+
+        // backdrop-related event handlers: whenever the user changes a setting in the settings page, the WidgetWindow receives
+        // an event and applies the new backdrop settings immediately
+        private void OnBackdropTypeChanged(string newType)
+        {
+            // since the event can come from another window, we make sure to run on the UI thread
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                SetBackdrop(newType);
+            });
+        }
+
+        private void OnOpacityChanged(float tintOpacity, float luminosityOpacity)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateAcrylicProperties();
+            });
+        }
+
+        private void OnTintColorChanged(bool useAccentColor, Windows.UI.Color customColor)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateAcrylicProperties();
+            });
+        }
+
+        // This method fixes the WinUI rendering bug by forcefully applying all values simultaneously.
+        private void UpdateAcrylicProperties()
+        {
+            if (_acrylicController != null)
+            {
+                // 1. Determine the correct color
+                Windows.UI.Color targetColor;
+                if (SettingsService.Instance.UseAccentColor)
+                {
+                    // Extract the live Windows 11 Accent Color from the application resources
+                    targetColor = (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"];
+                }
+                else
+                {
+                    targetColor = SettingsService.Instance.CustomTintColor;
+                }
+
+                // 2. Apply all properties in one batch
+                _acrylicController.TintColor = targetColor;
+                _acrylicController.TintOpacity = SettingsService.Instance.TintOpacity;
+                _acrylicController.LuminosityOpacity = SettingsService.Instance.LuminosityOpacity;
+
+                // 3. Optional fallback: Force the compositor to re-evaluate the configuration
+                if (_configurationSource != null)
+                {
+                    _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
+                }
+            }
+        }
+
+
         private void WidgetWindow_Closed(object sender, WindowEventArgs args)
         {
             // detach the event handlers from the static HardwareMonitorService
             ViewModel.Cleanup();
+
+            // dispose system backdrop controllers
+            // also from the official Microsoft documentation
+            _acrylicController?.Dispose();
+            _acrylicController = null;
+            _micaController?.Dispose();
+            _micaController = null;
+
+            this.Activated -= Window_Activated;
+            _configurationSource = null;
         }
 
         private void PositionWidgetTopRight()
@@ -48,7 +138,7 @@ namespace FluentHwInfo.Views
             var displayArea = DisplayArea.Primary;
             int screenWidth = displayArea.WorkArea.Width;
 
-            int widgetWidth = 1000;
+            int widgetWidth = 600;
             int widgetHeight = 600;
 
             // move the window to the right edge (with 10px margin)
@@ -63,6 +153,91 @@ namespace FluentHwInfo.Views
         {
             // App.MainWindow.Activate();
             this.Close();
+        }
+
+
+        // dynamically applies the chosen backdrop material to the WidgetWindow based on the user's selection in the settings page
+        // this code is mainly based on the official Microsoft documentation
+        public void SetBackdrop(string backdropType)
+        {
+            // Ensure the system dispatcher queue is ready
+            DispatcherQueue.EnsureSystemDispatcherQueue();
+
+            // 1. Initialize configuration if it doesn't exist yet
+            if (_configurationSource == null)
+            {
+                _configurationSource = new SystemBackdropConfiguration();
+                this.Activated += Window_Activated;
+                ((FrameworkElement)this.Content).ActualThemeChanged += Window_ThemeChanged;
+
+                _configurationSource.IsInputActive = true;
+                SetConfigurationSourceTheme();
+            }
+
+            // 2. Clean up any existing active controllers before applying a new one
+            _acrylicController?.Dispose();
+            _acrylicController = null;
+            _micaController?.Dispose();
+            _micaController = null;
+
+            // 3. Apply the requested backdrop
+            if (backdropType == "Acrylic" && DesktopAcrylicController.IsSupported())
+            {
+                _acrylicController = new DesktopAcrylicController();
+
+                // we give the Tint a hard color (e.g., Black), 
+                // so that the slider value is visually effective.
+                _acrylicController.TintColor = Microsoft.UI.Colors.LightGreen;
+
+                // (optional: If the window is in Light theme, use Microsoft.UI.Colors.White)
+
+                _acrylicController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
+                _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
+
+                // we push the current values from the service directly!
+                _acrylicController.TintOpacity = SettingsService.Instance.TintOpacity;
+                _acrylicController.LuminosityOpacity = SettingsService.Instance.LuminosityOpacity;
+            }
+            else if (backdropType == "Mica" && MicaController.IsSupported())
+            {
+                _micaController = new MicaController();
+                _micaController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
+                _micaController.SetSystemBackdropConfiguration(_configurationSource);
+            }
+            // If backdropType is "None", we just leave the controllers null (transparent/black background)
+        }
+
+        private void Window_Activated(object sender, WindowActivatedEventArgs args)
+        {
+            if (_configurationSource != null)
+            {
+                // usually, you would set IsInputActive based on whether the window is currently active or not, like this:
+                // _configurationSource.IsInputActive = args.WindowActivationState != WindowActivationState.Deactivated;
+
+                // but that has a big flaw: as soon as the user clicks outside of the widget, it becomes deactivated and the blur
+                // disappears, so instead:
+                // we force the engine to ALWAYS render the active blur
+                // no matter where the user clicks, the widget tells the graphics card: "I am active!"
+                _configurationSource.IsInputActive = true;
+            }
+        }
+
+        private void Window_ThemeChanged(FrameworkElement sender, object args)
+        {
+            SetConfigurationSourceTheme();
+        }
+
+        private void SetConfigurationSourceTheme()
+        {
+            if (_configurationSource != null && this.Content is FrameworkElement frameworkElement)
+            {
+                _configurationSource.Theme = frameworkElement.ActualTheme switch
+                {
+                    ElementTheme.Dark => SystemBackdropTheme.Dark,
+                    ElementTheme.Light => SystemBackdropTheme.Light,
+                    _ => SystemBackdropTheme.Default
+                };
+            }
         }
     }
 }
