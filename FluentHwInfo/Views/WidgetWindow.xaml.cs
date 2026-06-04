@@ -139,7 +139,7 @@ namespace FluentHwInfo.Views
             int screenWidth = displayArea.WorkArea.Width;
 
             int widgetWidth = 600;
-            int widgetHeight = 600;
+            int widgetHeight = 800;
 
             // move the window to the right edge (with 10px margin)
             _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(

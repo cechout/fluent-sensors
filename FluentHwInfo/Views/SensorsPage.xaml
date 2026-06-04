@@ -106,7 +106,7 @@
                                                         HorizontalAlignment="Left"
                                                         VerticalAlignment="Center"
                                                         FontSize="13"
-                                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
                                                         Text="{x:Bind Name, Mode=OneWay}" />
                                                     <TextBlock
                                                         Grid.Column="1"
@@ -114,7 +114,7 @@
                                                         VerticalAlignment="Center"
                                                         FontSize="13"
                                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
                                                         Text="{x:Bind CurrentValue, Mode=OneWay}" />
                                                     <TextBlock
                                                         Grid.Column="2"
@@ -122,7 +122,7 @@
                                                         VerticalAlignment="Center"
                                                         FontSize="13"
                                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
                                                         Text="{x:Bind MinimumValue, Mode=OneWay}" />
                                                     <TextBlock
                                                         Grid.Column="3"
@@ -130,7 +130,7 @@
                                                         VerticalAlignment="Center"
                                                         FontSize="13"
                                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
                                                         Text="{x:Bind MaximumValue, Mode=OneWay}" />
                                                     <TextBlock
                                                         Grid.Column="4"
@@ -138,7 +138,7 @@
                                                         VerticalAlignment="Center"
                                                         FontSize="13"
                                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
                                                         Text="{x:Bind AverageValue, Mode=OneWay}" />
                                                 </Grid>
                                             </DataTemplate>
