@@ -43,8 +43,8 @@ namespace FluentHwInfo.Views
 
             this.InitializeComponent();
 
-            // start the backdrop engine with Desktop Acrylic
-            SetBackdrop("Acrylic");
+            // Start the backdrop engine with the user's saved preference
+            SetBackdrop(SettingsService.Instance.BackdropType);
 
             // listen to the global settings
             SettingsService.Instance.BackdropTypeChanged += OnBackdropTypeChanged;
@@ -209,19 +209,10 @@ namespace FluentHwInfo.Views
             if (backdropType == "Acrylic" && DesktopAcrylicController.IsSupported())
             {
                 _acrylicController = new DesktopAcrylicController();
-
-                // we give the Tint a hard color (e.g., Black), 
-                // so that the slider value is visually effective.
-                _acrylicController.TintColor = Microsoft.UI.Colors.LightGreen;
-
-                // (optional: If the window is in Light theme, use Microsoft.UI.Colors.White)
-
                 _acrylicController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
                 _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
 
-                // we push the current values from the service directly!
-                _acrylicController.TintOpacity = SettingsService.Instance.TintOpacity;
-                _acrylicController.LuminosityOpacity = SettingsService.Instance.LuminosityOpacity;
+                UpdateAcrylicProperties();
             }
             else if (backdropType == "Mica" && MicaController.IsSupported())
             {

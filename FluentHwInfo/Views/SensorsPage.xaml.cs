@@ -14,7 +14,7 @@ namespace FluentHwInfo.Views
         public SensorsViewModel ViewModel { get; }
 
         // we remember the currently open widget window (spam protection)
-        private WidgetWindow _currentWidgetWindow = null;
+        private static WidgetWindow _currentWidgetWindow = null;
 
         public SensorsPage()
         {

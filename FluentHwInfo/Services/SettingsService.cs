@@ -15,7 +15,7 @@ namespace FluentHwInfo.Services
         public event Action<bool, Color> TintColorChanged;
 
         // the internal storage for the current values (with default values)
-        private string _backdropType = "Acrylic";
+        private string _backdropType = "Mica";
         private float _tintOpacity = 0.6f;
         private float _luminosityOpacity = 0.8f;
         private bool _useAccentColor = true;
