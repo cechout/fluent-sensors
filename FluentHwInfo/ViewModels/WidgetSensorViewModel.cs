@@ -16,7 +16,7 @@ namespace FluentHwInfo.ViewModels
     public class WidgetSensorViewModel : INotifyPropertyChanged
     {
         // fields
-        private const int MaxDataPoints = 80;
+        private const int MaxDataPoints = 50;
         public string SensorId { get; } // This is the unique hardware identifier (e.g., "/intelcpu/0/load/1")
         private string _sensorName = "not provided";
         public string SensorName

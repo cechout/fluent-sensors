@@ -46,7 +46,10 @@
             Click="BackToDashboard_Click"
             Style="{StaticResource SubtleButtonStyle}"
             ToolTipService.ToolTip="Back to Main Application">
-            <FontIcon FontSize="13" FontWeight="SemiLight" Glyph="&#xE944;" />
+            <FontIcon
+                FontSize="13"
+                FontWeight="SemiLight"
+                Glyph="&#xE944;" />
         </Button>
 
 
@@ -56,15 +59,21 @@
             VerticalScrollBarVisibility="Auto">
             <StackPanel
                 Grid.Row="1"
-                Padding="8,0,8,0"
+                Padding="8,0,8,6"
                 Spacing="0">
 
                 <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="viewmodels:WidgetSensorViewModel">
 
                             <StackPanel
-                                Height="145"
+                                Height="130"
                                 Margin="0,0,0,0"
                                 Background="Transparent"
                                 Spacing="4">

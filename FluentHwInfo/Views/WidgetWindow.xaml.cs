@@ -158,8 +158,8 @@ namespace FluentHwInfo.Views
             int screenHeight = displayArea.WorkArea.Height;
 
             // our XAML desired sizes (DIPs)
-            double desiredXamlWidth = 300; // width
-            double desiredXamlHeight = 40 + (sensorCount * 145); // height: titleBar (48?) + Padding(?) + (Sensors * 145) + Buffer(?)
+            double desiredXamlWidth = 350; // width
+            double desiredXamlHeight = 40 + (sensorCount * (130 + 8)); // height: titleBar (48?) + Padding(?) + (Sensors * 130) + Buffer(?)
 
             // convert to physical pixels for the GPU based on the dpi scale factor
             int physicalWidth = (int)(desiredXamlWidth * scaleFactor);
