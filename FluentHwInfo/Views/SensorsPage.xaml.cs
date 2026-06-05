@@ -25,22 +25,6 @@ namespace FluentHwInfo.Views
             ViewModel = SensorsViewModel.Instance;
         }
 
-        // event handler triggered whenever a user checks or unchecks an item in ANY of the generated ListViews
-        private void SensorsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // cast and update all newly checked items to true
-            foreach (SensorRowViewModel addedItem in e.AddedItems)
-            {
-                addedItem.IsSelected = true;
-            }
-
-            // cast and update all newly unchecked items to false
-            foreach (SensorRowViewModel removedItem in e.RemovedItems)
-            {
-                removedItem.IsSelected = false;
-            }
-        }
-
         private void PinToWidget_Click(object sender, RoutedEventArgs e)
         {
             // flatten the nested groups and filter for selected items
@@ -90,23 +74,6 @@ namespace FluentHwInfo.Views
             };
 
             _currentWidgetWindow.Activate();
-        }
-
-        // gets called, as soon as a ListView finishes loading 
-        private void SensorsListView_Loaded(object sender, RoutedEventArgs e)
-        {
-            if (sender is ListView listView)
-            {
-                // Gehe durch alle Items, die diese spezifische ListView anzeigt
-                foreach (var item in listView.Items)
-                {
-                    if (item is SensorRowViewModel sensor && sensor.IsSelected)
-                    {
-                        // Zwingt die ListView, den UI-Haken wieder reinzusetzen
-                        listView.SelectedItems.Add(sensor);
-                    }
-                }
-            }
         }
     }
 }

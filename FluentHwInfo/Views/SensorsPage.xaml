@@ -3,6 +3,7 @@
     x:Class="FluentHwInfo.Views.SensorsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:FluentHwInfo.Views"
     xmlns:local1="using:FluentHwInfo.ViewModels"
@@ -21,134 +22,120 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="local1:HardwareGroupViewModel">
 
-                        <!--  here is the overall padding for the whole expander content  -->
-                        <Expander
+                        <controls:SettingsExpander
                             Margin="0,16,0,0"
-                            Padding="0,0,0,0"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Stretch"
-                            ExpandDirection="Down"
-                            IsExpanded="False">
+                            Header="{x:Bind HardwareName, Mode=OneWay}"
+                            IsExpanded="False"
+                            ItemsSource="{x:Bind Sensors, Mode=OneWay}">
 
-                            <Expander.Header>
-                                <TextBlock
-                                    FontSize="15"
-                                    Style="{ThemeResource SubtitleTextBlockStyle}"
-                                    Text="{x:Bind HardwareName, Mode=OneWay}" />
-                            </Expander.Header>
+                            <ComboBox MinWidth="150" SelectedIndex="0">
+                                <ComboBoxItem>All Sensors</ComboBoxItem>
+                                <ComboBoxItem>Custom Selection</ComboBoxItem>
+                            </ComboBox>
 
-                            <Expander.Content>
-                                <StackPanel>
+                            <controls:SettingsExpander.ItemsHeader>
+                                <Grid Margin="48,12,24,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" MinWidth="140" />
+                                        <ColumnDefinition Width="*" MinWidth="65" />
+                                        <ColumnDefinition Width="*" MinWidth="65" />
+                                        <ColumnDefinition Width="*" MinWidth="65" />
+                                        <ColumnDefinition Width="*" MinWidth="65" />
+                                    </Grid.ColumnDefinitions>
 
-                                    <!--  ListView Header  -->
-                                    <!--  here the manual pixel padding for the custom ListView header can be set  -->
-                                    <Grid Margin="52,12,22,8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2*" MinWidth="140" />
-                                            <ColumnDefinition Width="*" MinWidth="65" />
-                                            <ColumnDefinition Width="*" MinWidth="65" />
-                                            <ColumnDefinition Width="*" MinWidth="65" />
-                                            <ColumnDefinition Width="*" MinWidth="65" />
-                                        </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                        Text="Sensor" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Right"
+                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                        Text="Current" />
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Right"
+                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                        Text="Min" />
+                                    <TextBlock
+                                        Grid.Column="3"
+                                        HorizontalAlignment="Right"
+                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                        Text="Max" />
+                                    <TextBlock
+                                        Grid.Column="4"
+                                        HorizontalAlignment="Right"
+                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                        Text="Avg" />
+                                </Grid>
+                            </controls:SettingsExpander.ItemsHeader>
 
-                                        <TextBlock
-                                            Grid.Column="0"
-                                            Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                            Text="Sensor" />
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            HorizontalAlignment="Right"
-                                            Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                            Text="Current" />
-                                        <TextBlock
-                                            Grid.Column="2"
-                                            HorizontalAlignment="Right"
-                                            Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                            Text="Min" />
-                                        <TextBlock
-                                            Grid.Column="3"
-                                            HorizontalAlignment="Right"
-                                            Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                            Text="Max" />
-                                        <TextBlock
-                                            Grid.Column="4"
-                                            HorizontalAlignment="Right"
-                                            Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                            Text="Avg" />
-                                    </Grid>
+                            <controls:SettingsExpander.ItemTemplate>
+                                <DataTemplate x:DataType="local1:SensorRowViewModel">
 
-                                    <!--  Dividing Border  -->
-                                    <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
-
-                                    <!--  The actual ListView with all the Sensors  -->
-                                    <ListView
-                                        Padding="2,2,2,4"
+                                    <controls:SettingsCard
+                                        MinHeight="0"
+                                        Padding="16,4,16,4"
                                         HorizontalContentAlignment="Stretch"
-                                        ItemsSource="{x:Bind Sensors, Mode=OneWay}"
-                                        Loaded="SensorsListView_Loaded"
-                                        SelectionChanged="SensorsListView_SelectionChanged"
-                                        SelectionMode="Multiple">
+                                        ContentAlignment="Vertical">
 
-                                        <ListView.ItemTemplate>
-                                            <DataTemplate x:DataType="local1:SensorRowViewModel">
+                                        <Grid HorizontalAlignment="Stretch">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*" MinWidth="140" />
+                                                <ColumnDefinition Width="*" MinWidth="65" />
+                                                <ColumnDefinition Width="*" MinWidth="65" />
+                                                <ColumnDefinition Width="*" MinWidth="65" />
+                                                <ColumnDefinition Width="*" MinWidth="65" />
+                                            </Grid.ColumnDefinitions>
 
-                                                <!--  here the padding inside a single sensor row can be set  -->
-                                                <Grid Padding="0,0,4,0">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="2*" MinWidth="140" />
-                                                        <ColumnDefinition Width="*" MinWidth="65" />
-                                                        <ColumnDefinition Width="*" MinWidth="65" />
-                                                        <ColumnDefinition Width="*" MinWidth="65" />
-                                                        <ColumnDefinition Width="*" MinWidth="65" />
-                                                    </Grid.ColumnDefinitions>
+                                            <CheckBox
+                                                Grid.Column="0"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Content="{x:Bind Name, Mode=OneWay}"
+                                                FontSize="13"
+                                                IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                Style="{ThemeResource BodyStrongTextBlockStyle}" />
 
-                                                    <TextBlock
-                                                        Grid.Column="0"
-                                                        HorizontalAlignment="Left"
-                                                        VerticalAlignment="Center"
-                                                        FontSize="13"
-                                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                                        Text="{x:Bind Name, Mode=OneWay}" />
-                                                    <TextBlock
-                                                        Grid.Column="1"
-                                                        HorizontalAlignment="Right"
-                                                        VerticalAlignment="Center"
-                                                        FontSize="13"
-                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                                        Text="{x:Bind CurrentValue, Mode=OneWay}" />
-                                                    <TextBlock
-                                                        Grid.Column="2"
-                                                        HorizontalAlignment="Right"
-                                                        VerticalAlignment="Center"
-                                                        FontSize="13"
-                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                                        Text="{x:Bind MinimumValue, Mode=OneWay}" />
-                                                    <TextBlock
-                                                        Grid.Column="3"
-                                                        HorizontalAlignment="Right"
-                                                        VerticalAlignment="Center"
-                                                        FontSize="13"
-                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                                        Text="{x:Bind MaximumValue, Mode=OneWay}" />
-                                                    <TextBlock
-                                                        Grid.Column="4"
-                                                        HorizontalAlignment="Right"
-                                                        VerticalAlignment="Center"
-                                                        FontSize="13"
-                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                                        Text="{x:Bind AverageValue, Mode=OneWay}" />
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ListView.ItemTemplate>
-                                    </ListView>
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                                Text="{x:Bind CurrentValue, Mode=OneWay}" />
+                                            <TextBlock
+                                                Grid.Column="2"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                                Text="{x:Bind MinimumValue, Mode=OneWay}" />
+                                            <TextBlock
+                                                Grid.Column="3"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                                Text="{x:Bind MaximumValue, Mode=OneWay}" />
+                                            <TextBlock
+                                                Grid.Column="4"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                                Text="{x:Bind AverageValue, Mode=OneWay}" />
+                                        </Grid>
 
-                                </StackPanel>
-                            </Expander.Content>
-                        </Expander>
+                                    </controls:SettingsCard>
+
+                                </DataTemplate>
+                            </controls:SettingsExpander.ItemTemplate>
+                        </controls:SettingsExpander>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
