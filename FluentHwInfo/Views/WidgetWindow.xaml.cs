@@ -43,10 +43,11 @@ namespace FluentHwInfo.Views
 
             this.InitializeComponent();
 
-            // Start the backdrop engine with the user's saved preference
             SetBackdrop(SettingsService.Instance.BackdropType);
+            ApplyTheme(SettingsService.Instance.AppTheme);
 
             // listen to the global settings
+            SettingsService.Instance.ThemeChanged += OnThemeChanged;
             SettingsService.Instance.BackdropTypeChanged += OnBackdropTypeChanged;
             SettingsService.Instance.OpacityChanged += OnOpacityChanged;
             SettingsService.Instance.TintColorChanged += OnTintColorChanged;
@@ -73,6 +74,27 @@ namespace FluentHwInfo.Views
 
         // backdrop-related event handlers: whenever the user changes a setting in the settings page, the WidgetWindow receives
         // an event and applies the new backdrop settings immediately
+        private void OnThemeChanged(string newTheme)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                ApplyTheme(newTheme);
+            });
+        }
+
+        private void ApplyTheme(string themeTag)
+        {
+            if (this.Content is FrameworkElement rootElement)
+            {
+                rootElement.RequestedTheme = themeTag switch
+                {
+                    "Light" => ElementTheme.Light,
+                    "Dark" => ElementTheme.Dark,
+                    _ => ElementTheme.Default
+                };
+            }
+        }
+
         private void OnBackdropTypeChanged(string newType)
         {
             // since the event can come from another window, we make sure to run on the UI thread
@@ -142,6 +164,12 @@ namespace FluentHwInfo.Views
 
         private void WidgetWindow_Closed(object sender, WindowEventArgs args)
         {
+            // we detach the event handlers from the settings service
+            SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
+            SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
+            SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
+            SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+
             // detach the event handlers from the static HardwareMonitorService
             ViewModel.Cleanup();
 

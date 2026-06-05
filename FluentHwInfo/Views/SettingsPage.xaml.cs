@@ -37,6 +37,8 @@ namespace FluentHwInfo.Views
             {
                 string themeTag = selectedItem.Tag?.ToString();
 
+                SettingsService.Instance.AppTheme = themeTag;
+
                 // we get the absolute root element of the current window
                 if (this.XamlRoot?.Content is FrameworkElement rootElement)
                 {
@@ -45,7 +47,7 @@ namespace FluentHwInfo.Views
                     {
                         "Light" => ElementTheme.Light,
                         "Dark" => ElementTheme.Dark,
-                        _ => ElementTheme.Default // System Default
+                        _ => ElementTheme.Default // system default
                     };
                 }
             }

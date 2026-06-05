@@ -198,7 +198,7 @@
                                         Padding="0,0,0,0"
                                         Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                         BorderBrush="{ThemeResource ControlElevationBorderBrush}"
-                                        BorderThickness="0"
+                                        BorderThickness="1"
                                         CornerRadius="4">
 
                                         <lvc:CartesianChart

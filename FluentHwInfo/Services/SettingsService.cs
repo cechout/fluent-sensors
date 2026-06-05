@@ -9,22 +9,36 @@ namespace FluentHwInfo.Services
         private static readonly SettingsService _instance = new SettingsService();
         public static SettingsService Instance => _instance;
 
-        // the events that fire when the user changes a setting
+        // events
+        public event Action<string> ThemeChanged;
         public event Action<string> BackdropTypeChanged;
         public event Action<float, float> OpacityChanged;
         public event Action<bool, Color> TintColorChanged;
 
-        // the internal storage for the current values (with default values)
+        // fields
+        private string _appTheme = "Default";
         private string _backdropType = "Mica";
-        private float _tintOpacity = 0.6f;
-        private float _luminosityOpacity = 0.8f;
+        private float _tintOpacity = 0.4f;
+        private float _luminosityOpacity = 0.2f;
         private bool _useAccentColor = true;
-        // Default color if custom is selected (e.g. Grey)
         private Color _customTintColor = Color.FromArgb(255, 128, 128, 128);
 
         private SettingsService() { }
 
-        // the properties: when a new value comes in, we immediately fire the event
+        // properties
+        public string AppTheme
+        {
+            get => _appTheme;
+            set
+            {
+                if (_appTheme != value)
+                {
+                    _appTheme = value;
+                    ThemeChanged?.Invoke(_appTheme);
+                }
+            }
+        }
+
         public string BackdropType
         {
             get => _backdropType;
