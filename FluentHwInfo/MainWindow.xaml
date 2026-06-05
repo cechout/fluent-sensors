@@ -40,7 +40,7 @@
             IsPaneOpen="False"
             IsSettingsVisible="False"
             OpenPaneLength="150"
-            PaneDisplayMode="Left"
+            PaneDisplayMode="LeftCompact"
             SelectionChanged="MainNavigationView_SelectionChanged">
 
             <NavigationView.MenuItems>

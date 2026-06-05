@@ -28,7 +28,7 @@
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Stretch"
                             ExpandDirection="Down"
-                            IsExpanded="True">
+                            IsExpanded="False">
 
                             <Expander.Header>
                                 <TextBlock

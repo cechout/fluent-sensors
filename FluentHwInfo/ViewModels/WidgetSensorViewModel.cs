@@ -16,7 +16,7 @@ namespace FluentHwInfo.ViewModels
     public class WidgetSensorViewModel : INotifyPropertyChanged
     {
         // fields
-        private const int MaxDataPoints = 50;
+        private const int MaxDataPoints = 100;
         public string SensorId { get; } // This is the unique hardware identifier (e.g., "/intelcpu/0/load/1")
         private string _sensorName = "not provided";
         public string SensorName
@@ -109,11 +109,12 @@ namespace FluentHwInfo.ViewModels
             CurrentValueText = "-"; // placeholder text until we have the first value
 
             // this raw data list will be plotted by LiveCharts
-            SensorData = new ObservableCollection<double?>(new double?[MaxDataPoints]);
+            // We use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
+            SensorData = new ObservableCollection<double?>(Enumerable.Repeat<double?>(0.0, MaxDataPoints));
 
             // custom gradient fill
             var gradientFill = new LinearGradientPaint(
-                new[] { SKColors.DodgerBlue.WithAlpha(70), SKColors.DodgerBlue.WithAlpha(0) },
+                new[] { SKColors.DodgerBlue.WithAlpha(70), SKColors.DodgerBlue.WithAlpha(70) },
                 new SKPoint(0.5f, 0),
                 new SKPoint(0.5f, 1)
             );
