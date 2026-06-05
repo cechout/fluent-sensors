@@ -95,6 +95,7 @@ namespace FluentHwInfo.Views
             this.DispatcherQueue.TryEnqueue(() =>
             {
                 UpdateAcrylicProperties();
+                UpdateSolidBackground();
             });
         }
 
@@ -125,6 +126,16 @@ namespace FluentHwInfo.Views
                 {
                     _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
                 }
+            }
+        }
+
+
+        private void UpdateSolidBackground()
+        {
+            // we intervene only, if "solid" is selected
+            if (SettingsService.Instance.BackdropType == "None")
+            {
+                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(SettingsService.Instance.CustomTintColor);
             }
         }
 
@@ -227,14 +238,24 @@ namespace FluentHwInfo.Views
                 _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
 
                 UpdateAcrylicProperties();
+
+                // we make the grid transparent, when "acrylic" is selected
+                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
             else if (backdropType == "Mica" && MicaController.IsSupported())
             {
                 _micaController = new MicaController();
                 _micaController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
                 _micaController.SetSystemBackdropConfiguration(_configurationSource);
+
+                // we make the grid transparent, when "acrylic" is selected
+                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
-            // If backdropType is "None", we just leave the controllers null (transparent/black background)
+            else 
+            {
+                // we color the grid with the solid color, when "none" is selected
+                UpdateSolidBackground();
+            }
         }
 
         private void Window_Activated(object sender, WindowActivatedEventArgs args)

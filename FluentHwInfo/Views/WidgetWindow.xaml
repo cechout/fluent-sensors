@@ -106,7 +106,6 @@
                                         <FontIcon
                                             FontSize="15"
                                             FontWeight="Normal"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Glyph="&#xE90C;" />
                                     </Button>
 
@@ -117,7 +116,6 @@
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Center"
                                         FontSize="13"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                         Style="{StaticResource BodyTextBlockStyle}"
                                         Text="{x:Bind ActualYMaxText, Mode=OneWay}" />
 
@@ -127,7 +125,6 @@
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Center"
                                         FontSize="13"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                         Style="{StaticResource BodyTextBlockStyle}"
                                         Text="{x:Bind SensorName, Mode=OneWay}" />
 
@@ -138,7 +135,6 @@
                                         HorizontalAlignment="Right"
                                         VerticalAlignment="Center"
                                         FontSize="13"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                         Style="{StaticResource BodyTextBlockStyle}"
                                         Text="{x:Bind CurrentValueText, Mode=OneWay}" />
                                 </Grid>
