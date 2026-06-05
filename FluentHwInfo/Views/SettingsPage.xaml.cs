@@ -7,6 +7,9 @@ namespace FluentHwInfo.Views
 {
     public sealed partial class SettingsPage : Page
     {
+        // this is our "Türsteher" to prevent infinite loops when synchronizing the two color pickers
+        private bool _isSyncingColor = false;
+
         public SettingsPage()
         {
             this.InitializeComponent();
@@ -14,6 +17,16 @@ namespace FluentHwInfo.Views
             // every time the page is created, call this new method to restore the last selected values in the combo boxes
             RestoreIntervalSelection();
             RestoreWidgetSettings();
+
+            // we register the same event handler for both color pickers, so that we can react to changes in either of them with the
+            // same logic
+            SolidColorPicker.RegisterPropertyChangedCallback(
+                CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
+                WidgetColorPicker_SelectedColorChanged);
+
+            AcrylicColorPicker.RegisterPropertyChangedCallback(
+                CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
+                WidgetColorPicker_SelectedColorChanged);
         }
 
 
@@ -53,7 +66,6 @@ namespace FluentHwInfo.Views
                 }
             }
         }
-
         private void RestoreIntervalSelection()
         {
             // we read the current interval value from the HardwareMonitorService instance
@@ -71,14 +83,63 @@ namespace FluentHwInfo.Views
             }
         }
 
+
         // widget combo box
+        private void BackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (BackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                // just save the selected backdrop type
+                SettingsService.Instance.BackdropType = tag;
+            }
+        }
+        private void ColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                // just save the selected color source
+                SettingsService.Instance.UseAccentColor = (tag == "Accent");
+
+                // visibility of the custom color card depends on whether the user selected "custom" or not
+                AcrylicCustomColorCard.Visibility = (tag == "Custom") ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+        private void TintSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            SettingsService.Instance.TintOpacity = (float)e.NewValue;
+        }
+
+        private void LuminositySlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            SettingsService.Instance.LuminosityOpacity = (float)e.NewValue;
+        }
+        private void WidgetColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
+        {
+            // if we are already syncing the color, it means this event was fired by ourselves when we updated the other picker
+            if (_isSyncingColor) return;
+
+            if (sender is CommunityToolkit.WinUI.Controls.ColorPickerButton colorPicker)
+            {
+                // activate doorman
+                _isSyncingColor = true;
+
+                // save colour
+                SettingsService.Instance.CustomTintColor = colorPicker.SelectedColor;
+
+                // update the other color picker to keep them in sync
+                if (sender == SolidColorPicker) AcrylicColorPicker.SelectedColor = colorPicker.SelectedColor;
+                if (sender == AcrylicColorPicker) SolidColorPicker.SelectedColor = colorPicker.SelectedColor;
+
+                // deactivate doorman 
+                _isSyncingColor = false;
+            }
+        }
         private void RestoreWidgetSettings()
         {
             ColorSourceComboBox.SelectedIndex = SettingsService.Instance.UseAccentColor ? 0 : 1;
-            CustomColorCard.Visibility = SettingsService.Instance.UseAccentColor ? Visibility.Collapsed : Visibility.Visible;
-            TintPicker.Color = SettingsService.Instance.CustomTintColor;
+            AcrylicCustomColorCard.Visibility = SettingsService.Instance.UseAccentColor ? Visibility.Collapsed : Visibility.Visible;
 
-            // restore combo box selection
+            // restore combo box selection 
             string currentBackdrop = SettingsService.Instance.BackdropType;
             foreach (ComboBoxItem item in BackdropComboBox.Items)
             {
@@ -89,55 +150,12 @@ namespace FluentHwInfo.Views
                 }
             }
 
-            // restore slider values
+            // restore slider values & color pickers
             TintSlider.Value = SettingsService.Instance.TintOpacity;
             LuminositySlider.Value = SettingsService.Instance.LuminosityOpacity;
-        }
 
-        private void BackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
-            {
-                if (selectedItem.Tag != null)
-                {
-                    // push the new value into the service. the service fires the event
-                    // the widget listens to the event and changes the background live
-                    SettingsService.Instance.BackdropType = selectedItem.Tag.ToString();
-                }
-            }
-        }
-
-        private void TintSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
-        {
-            // cast to (float) because the slider provides doubles by default,
-            // but our Windows API expects floats
-            SettingsService.Instance.TintOpacity = (float)e.NewValue;
-        }
-
-        private void LuminositySlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
-        {
-            SettingsService.Instance.LuminosityOpacity = (float)e.NewValue;
-        }
-
-        private void ColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
-            {
-                bool useAccent = (selectedItem.Tag?.ToString() == "Accent");
-
-                // Show or hide the ColorPicker based on selection
-                if (CustomColorCard != null)
-                {
-                    CustomColorCard.Visibility = useAccent ? Visibility.Collapsed : Visibility.Visible;
-                }
-
-                SettingsService.Instance.UseAccentColor = useAccent;
-            }
-        }
-
-        private void TintPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
-        {
-            SettingsService.Instance.CustomTintColor = args.NewColor;
+            SolidColorPicker.SelectedColor = SettingsService.Instance.CustomTintColor;
+            AcrylicColorPicker.SelectedColor = SettingsService.Instance.CustomTintColor;
         }
     }
 }

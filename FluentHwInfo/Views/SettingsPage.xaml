@@ -70,10 +70,11 @@
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Widget Appearance" />
 
-            <controls:SettingsExpander
+            <!--  general widget setting card  -->
+            <controls:SettingsCard
                 Description="Choose the transparency effect for the widget window."
                 Header="Background Material"
-                HeaderIcon="{ui:FontIcon Glyph=&#xE7B5;}">
+                HeaderIcon="{ui:FontIcon Glyph=&#xEF1F;}">
 
                 <ComboBox
                     x:Name="BackdropComboBox"
@@ -83,9 +84,31 @@
                     <ComboBoxItem Content="System Mica" Tag="Mica" />
                     <ComboBoxItem Content="Solid (No Blur)" Tag="None" />
                 </ComboBox>
+            </controls:SettingsCard>
+
+            <!--  solid settings card  -->
+            <controls:SettingsExpander
+                x:Name="SolidSettingsExpander"
+                Header="Solid Background Settings"
+                HeaderIcon="{ui:FontIcon Glyph=&#xE771;}"
+                IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="Adjust the color transparency (Only works with Acrylic)." Header="Tint Opacity">
+                    <controls:SettingsCard Description="Select the exact color for the widget background." Header="Background Color">
+                        <controls:ColorPickerButton x:Name="SolidColorPicker" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+            <!--  acrylic settings card  -->
+            <controls:SettingsExpander
+                x:Name="AcrylicSettingsExpander"
+                Header="Acrylic Settings"
+                HeaderIcon="{ui:FontIcon Glyph=&#xE771;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Description="Adjust the color transparency." Header="Tint Opacity">
                         <Slider
                             x:Name="TintSlider"
                             Width="200"
@@ -96,7 +119,7 @@
                             ValueChanged="TintSlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="Adjust the brightness transparency (Only works with Acrylic)." Header="Luminosity Opacity">
+                    <controls:SettingsCard Description="Adjust the brightness transparency." Header="Luminosity Opacity">
                         <Slider
                             x:Name="LuminositySlider"
                             Width="200"
@@ -118,25 +141,16 @@
                     </controls:SettingsCard>
 
                     <controls:SettingsCard
-                        x:Name="CustomColorCard"
-                        Description="Select the exact color for the widget background."
+                        x:Name="AcrylicCustomColorCard"
+                        Description="Select the custom tint color for the acrylic blur."
                         Header="Custom Tint Color"
-                        Visibility="Collapsed">
+                        Visibility="Visible">
 
-                        <ColorPicker
-                            x:Name="TintPicker"
-                            ColorChanged="TintPicker_ColorChanged"
-                            ColorSpectrumShape="Ring"
-                            IsAlphaEnabled="False"
-                            IsAlphaSliderVisible="False"
-                            IsAlphaTextInputVisible="False"
-                            IsColorChannelTextInputVisible="False"
-                            IsColorSliderVisible="True"
-                            IsHexInputVisible="False"
-                            IsMoreButtonVisible="False" />
+                        <controls:ColorPickerButton x:Name="AcrylicColorPicker" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
+
         </StackPanel>
     </ScrollViewer>
 </Page>

@@ -46,7 +46,7 @@
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Sensors" Tag="Sensors">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE9D9;" />
+                        <FontIcon Glyph="&#xECAA;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>

@@ -75,15 +75,5 @@ namespace FluentHwInfo.Views
 
             _currentWidgetWindow.Activate();
         }
-
-        // Update: ListViewItem nutzt das Tapped-Event statt Click
-        private void SensorRow_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
-        {
-            if (sender is ListViewItem item && item.DataContext is SensorRowViewModel sensor)
-            {
-                // Wir drehen den Checkbox-Wert butterweich um
-                sensor.IsSelected = !sensor.IsSelected;
-            }
-        }
     }
 }
