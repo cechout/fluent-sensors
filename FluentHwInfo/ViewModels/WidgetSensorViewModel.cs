@@ -16,9 +16,9 @@ namespace FluentHwInfo.ViewModels
     // INotifyPropertyChanged is important for the MVVM pattern, so that changes in the ViewModel are reflected in the UI
     public class WidgetSensorViewModel : INotifyPropertyChanged
     {
-        // fields
+        // general fields
         private const int MaxDataPoints = 100;
-        public string SensorId { get; } // This is the unique hardware identifier (e.g., "/intelcpu/0/load/1")
+        public string SensorId { get; } // this is the unique sensor identifier (e.g., "/intelcpu/0/load/1")
         private string _sensorName = "not provided";
         public string SensorName
         {
@@ -102,7 +102,6 @@ namespace FluentHwInfo.ViewModels
 
 
         // constructor
-        // takes the unique sensor ID and the display name as parameter, so we can display it in the UI
         public WidgetSensorViewModel(string sensorId, string sensorName)
         {
             SensorId = sensorId;
@@ -110,7 +109,7 @@ namespace FluentHwInfo.ViewModels
             CurrentValueText = "-"; // placeholder text until we have the first value
 
             // this raw data list will be plotted by LiveCharts
-            // We use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
+            // we use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
             SensorData = new ObservableCollection<double?>(Enumerable.Repeat<double?>(0.0, MaxDataPoints));
 
             // custom gradient fill
@@ -121,11 +120,11 @@ namespace FluentHwInfo.ViewModels
             );
 
             // the LiveCharts ISeries definition
-            var lineSeries = new LineSeries<double?>
+            var lineSeries = new StepLineSeries<double?>
             {
                 Values = SensorData,
                 GeometrySize = 0, // 0: no graph points, >=1: size of graph points
-                LineSmoothness = 0.4,
+                //LineSmoothness = 0.6,
                 DataPadding = new LvcPoint(0, 0) // graph padding
             };
             Series = new ISeries[] { lineSeries };
@@ -167,7 +166,7 @@ namespace FluentHwInfo.ViewModels
             SKColor baseColor = new SKColor(targetWinColor.R, targetWinColor.G, targetWinColor.B);
 
             // get the line series
-            if (Series[0] is LineSeries<double?> lineSeries)
+            if (Series[0] is StepLineSeries<double?> lineSeries)
             {
                 // 15 % alpha for the background (255 * 0.15 = ~38)
                 var gradientFill = new LinearGradientPaint(
@@ -185,7 +184,7 @@ namespace FluentHwInfo.ViewModels
             }
         }
 
-        // very important; so it does not fuck up again
+        // very important; so so our program does not fuck up again
         public void Cleanup()
         {
             SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
