@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -13,6 +13,7 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
 
+	  <ApplicationIcon>Assets\Icon\Icon.ico</ApplicationIcon>
 	  <WindowsPackageType>None</WindowsPackageType>
 	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
@@ -22,11 +23,11 @@
     <Content Remove="Assets\BadgeLogo.scale-150.png" />
     <Content Remove="Assets\BadgeLogo.scale-200.png" />
     <Content Remove="Assets\BadgeLogo.scale-400.png" />
-    <Content Remove="Assets\Icon\FluentHwInfo.ico" />
-    <Content Remove="Assets\Icon\FluentHwInfo.png" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Assets\IconDraft31.ico" />
+    <None Remove="Assets\Icon\Icon.ico" />
+    <None Remove="Assets\Icon\Icon.png" />
     <None Remove="Assets\SplashScreen.ico" />
     <None Remove="Views\SensorCardControl.xaml" />
     <None Remove="Views\SensorsPage.xaml" />
@@ -68,6 +69,14 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="Assets\Icon\Icon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\Icon\Icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\SensorCardControl.xaml">

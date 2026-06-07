@@ -31,7 +31,7 @@ LicenseFile=..\LICENSE.txt
 ;PrivilegesRequired=lowest
 OutputDir=.\Output
 OutputBaseFilename=FluentHwInfo_Installer
-SetupIconFile=..\FluentHwInfo\Assets\Icon\FluentHwInfo.ico
+SetupIconFile=..\FluentHwInfo\Assets\Icon\Icon.ico
 SolidCompression=yes
 WizardStyle=modern windows11
 

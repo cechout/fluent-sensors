@@ -29,7 +29,7 @@
             IsPaneToggleButtonVisible="False">
 
             <TitleBar.IconSource>
-                <ImageIconSource ImageSource="/Assets/Icon/FluentHwInfo.ico" />
+                <ImageIconSource ImageSource="/Assets/Icon/Icon.ico" />
             </TitleBar.IconSource>
         </TitleBar>
 

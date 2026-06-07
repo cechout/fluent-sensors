@@ -30,6 +30,7 @@ namespace FluentHwInfo
         public MainWindow()
         {
             this.InitializeComponent();
+            this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
 
             // instance management
             CurrentInstance = this;
