@@ -13,7 +13,7 @@ namespace FluentHwInfo.Views
         // so {x:Bind ViewModel.HardwareGroups} can find its target
         public SensorsViewModel ViewModel { get; }
 
-        // we remember the currently open widget window (spam protection)
+        // we remember the currently open widget window 
         private static WidgetWindow _currentWidgetWindow = null;
 
         public SensorsPage()
@@ -21,7 +21,7 @@ namespace FluentHwInfo.Views
             this.InitializeComponent();
 
             // change: we do not create a new ViewModel anymore
-            // we bind the UI simply to the immortal, central Singleton instance
+            // we bind the UI simply to the central singleton instance
             ViewModel = SensorsViewModel.Instance;
         }
 
@@ -56,7 +56,7 @@ namespace FluentHwInfo.Views
             if (selectedSensors.Count == 0) return;
 
             // if the window is already open, we force it to close
-            // the null-conditional operator (?.) only calls Close() if it is not null.
+            // the null-conditional operator (?.) only calls Close() if it is not null
             _currentWidgetWindow?.Close();
 
             // we rebuild build the window completely fresh with the new data in any case

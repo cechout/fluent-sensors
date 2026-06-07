@@ -21,18 +21,19 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  New Title Bar  -->
+        <!--  custom title bar  -->
         <TitleBar
-            Title="FluentHwInfo"
+            Title="Fluent HwInfo"
             Grid.Row="0"
             IsBackButtonVisible="False"
             IsPaneToggleButtonVisible="False">
 
             <TitleBar.IconSource>
-                <ImageIconSource ImageSource="/Assets/FluentHwInfo.ico" />
+                <ImageIconSource ImageSource="/Assets/Icon/FluentHwInfo.ico" />
             </TitleBar.IconSource>
         </TitleBar>
 
+        <!--  navigation bar  -->
         <NavigationView
             x:Name="MainNavigationView"
             Grid.Row="1"
@@ -43,6 +44,7 @@
             PaneDisplayMode="LeftCompact"
             SelectionChanged="MainNavigationView_SelectionChanged">
 
+            <!--  sensor page  -->
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Sensors" Tag="Sensors">
                     <NavigationViewItem.Icon>
@@ -51,6 +53,7 @@
                 </NavigationViewItem>
             </NavigationView.MenuItems>
 
+            <!--  settings page  -->
             <NavigationView.FooterMenuItems>
                 <NavigationViewItem Content="Settings" Tag="Settings">
                     <NavigationViewItem.Icon>

@@ -13,7 +13,6 @@ using FluentHwInfo.Services;
 
 namespace FluentHwInfo.ViewModels
 {
-    // INotifyPropertyChanged is important for the MVVM pattern, so that changes in the ViewModel are reflected in the UI
     public class WidgetSensorViewModel : INotifyPropertyChanged
     {
         // general fields
@@ -143,11 +142,51 @@ namespace FluentHwInfo.ViewModels
             SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
         }
 
-        private void OnGraphColorChanged(bool useAccent, Windows.UI.Color customColor)
+
+        // very important; so so our program does not fuck up again
+        public void Cleanup()
         {
-            UpdateGraphColor(useAccent, customColor);
+            SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
         }
 
+
+        // data processing
+        public void AddDataPoint(double newValue, string formattedValueText)
+        {
+            // update the current value text
+            CurrentValueText = formattedValueText;
+
+            // shift the graph by one tick
+            SensorData.RemoveAt(0);
+            SensorData.Add(newValue);
+
+            // update y-axis display value with each new data point
+            UpdateYMaxDisplay();
+        }
+
+
+        // methods to calculate or set stuff for ui
+        // calculates, what has to be displayed in the UI as the current max value
+        private void UpdateYMaxDisplay()
+        {
+            if (IsAutoScaled)
+            {
+                // finds the highest point in the graph; the ?? 0 handles the case where the list is still empty
+                double currentHighestPoint = SensorData.Max() ?? 0;
+                ActualYMaxText = $"{currentHighestPoint:0.0}";
+            }
+            else
+            {
+                // if manual, we simply show the raw number
+                ActualYMaxText = ManualYMax.ToString("0");
+            }
+        }
+        private void UpdateYAxisLimit()
+        {
+            // if auto is on, we pass null to LiveCharts
+            // if auto is off, we pass the manual value
+            _yAxis.MaxLimit = IsAutoScaled ? null : ManualYMax;
+        }
         private void UpdateGraphColor(bool useAccent, Windows.UI.Color customColor)
         {
             Windows.UI.Color targetWinColor;
@@ -184,75 +223,39 @@ namespace FluentHwInfo.ViewModels
             }
         }
 
-        // very important; so so our program does not fuck up again
-        public void Cleanup()
+
+        // service listener
+        private void OnGraphColorChanged(bool useAccent, Windows.UI.Color customColor)
         {
-            SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
+            UpdateGraphColor(useAccent, customColor);
         }
 
-        public void AddDataPoint(double newValue, string formattedValueText)
-        {
-            // update the text in the UI (e.g. "62.5 W")
-            CurrentValueText = formattedValueText;
-
-            // shift the graph by one tick
-            SensorData.RemoveAt(0);
-            SensorData.Add(newValue);
-
-            // always update the y-axis display value with each new data point
-            UpdateYMaxDisplay();
-        }
-
-        // calculates, what has to be displayed in the UI as the current max value
-        private void UpdateYMaxDisplay()
-        {
-            if (IsAutoScaled)
-            {
-                // finds the highest point in the graph; the ?? 0 handles the case where the list is still empty.
-                double currentHighestPoint = SensorData.Max() ?? 0;
-                ActualYMaxText = $"{currentHighestPoint:0.0}";
-            }
-            else
-            {
-                // if manual, we simply show the raw number
-                ActualYMaxText = ManualYMax.ToString("0");
-            }
-        }
-
-        // method to toggle panel visibility
+        
+        // user interaction
         public void ToggleControlPanel()
         {
             ControlPanelVisibility = ControlPanelVisibility == Visibility.Visible
                 ? Visibility.Collapsed
                 : Visibility.Visible;
         }
-
-        // methods for the 3 buttons in the panel to control the y-axis scaling
-        private void UpdateYAxisLimit()
-        {
-            // if Auto is on, we pass null to LiveCharts
-            // if Auto is off, we pass the manual value
-            _yAxis.MaxLimit = IsAutoScaled ? null : ManualYMax;
-        }
-
         public void IncreaseYMax()
         {
             IsAutoScaled = false; // automatically turns off the auto button in the ui
             ManualYMax += 10;
         }
-
         public void DecreaseYMax()
         {
             IsAutoScaled = false; // automatically turns off the auto button in the ui
 
-            // we prevent the y-axis from falling to 0 or into the negative range
+            // preventing the y-axis from falling to 0 or into the negative range
             if (ManualYMax > 10)
             {
                 ManualYMax -= 10;
             }
         }
 
-        // MVVM pattern: INotifyPropertyChanged implementation
+
+        // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

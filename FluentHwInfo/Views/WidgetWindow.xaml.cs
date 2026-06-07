@@ -22,9 +22,7 @@ namespace FluentHwInfo.Views
     public sealed partial class WidgetWindow : Window
     {
         private AppWindow _appWindow;
-
-        // Expose the ViewModel so {x:Bind} in XAML can access it.
-        public WidgetViewModel ViewModel { get; }
+        public WidgetViewModel ViewModel { get; } // expose the ViewModel so {x:Bind} in XAML can access it
 
         // system backdrop controllers and configuration
         private DesktopAcrylicController _acrylicController;
@@ -36,6 +34,7 @@ namespace FluentHwInfo.Views
         private static extern uint GetDpiForWindow(IntPtr hwnd);
 
 
+        // constructor accepts the list of selected sensors from SensorsPage.xaml.cs
         public WidgetWindow(List<SensorRowViewModel> selectedSensors)
         {
             // pass the selected sensors down to the ViewModel layer
@@ -72,129 +71,7 @@ namespace FluentHwInfo.Views
         }
 
 
-        // backdrop-related event handlers: whenever the user changes a setting in the settings page, the WidgetWindow receives
-        // an event and applies the new backdrop settings immediately
-        private void OnThemeChanged(string newTheme)
-        {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                ApplyTheme(newTheme);
-            });
-        }
-
-        private void ApplyTheme(string themeTag)
-        {
-            // 1. Die XAML-Inhalte umschalten
-            if (this.Content is FrameworkElement rootElement)
-            {
-                rootElement.RequestedTheme = themeTag switch
-                {
-                    "Light" => ElementTheme.Light,
-                    "Dark" => ElementTheme.Dark,
-                    _ => ElementTheme.Default
-                };
-            }
-
-            if (_appWindow != null && _appWindow.TitleBar != null)
-            {
-                _appWindow.TitleBar.PreferredTheme = themeTag switch
-                {
-                    "Light" => Microsoft.UI.Windowing.TitleBarTheme.Light,
-                    "Dark" => Microsoft.UI.Windowing.TitleBarTheme.Dark,
-                    _ => Microsoft.UI.Windowing.TitleBarTheme.UseDefaultAppMode
-                };
-            }
-        }
-
-        private void OnBackdropTypeChanged(string newType)
-        {
-            // since the event can come from another window, we make sure to run on the UI thread
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                SetBackdrop(newType);
-            });
-        }
-
-        private void OnOpacityChanged(float tintOpacity, float luminosityOpacity)
-        {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                UpdateAcrylicProperties();
-            });
-        }
-
-        private void OnTintColorChanged(bool useAccentColor, Windows.UI.Color customColor)
-        {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                UpdateAcrylicProperties();
-                UpdateSolidBackground();
-            });
-        }
-
-        // This method fixes the WinUI rendering bug by forcefully applying all values simultaneously.
-        private void UpdateAcrylicProperties()
-        {
-            if (_acrylicController != null)
-            {
-                // 1. Determine the correct color
-                Windows.UI.Color targetColor;
-                if (SettingsService.Instance.UseAccentColor)
-                {
-                    // Extract the live Windows 11 Accent Color from the application resources
-                    targetColor = (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"];
-                }
-                else
-                {
-                    targetColor = SettingsService.Instance.CustomTintColor;
-                }
-
-                // 2. Apply all properties in one batch
-                _acrylicController.TintColor = targetColor;
-                _acrylicController.TintOpacity = SettingsService.Instance.TintOpacity;
-                _acrylicController.LuminosityOpacity = SettingsService.Instance.LuminosityOpacity;
-
-                // 3. Optional fallback: Force the compositor to re-evaluate the configuration
-                //if (_configurationSource != null)
-                //{
-                //    _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
-                //}
-            }
-        }
-
-
-        private void UpdateSolidBackground()
-        {
-            // we intervene only, if "solid" is selected
-            if (SettingsService.Instance.BackdropType == "None")
-            {
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(SettingsService.Instance.CustomTintColor);
-            }
-        }
-
-
-        private void WidgetWindow_Closed(object sender, WindowEventArgs args)
-        {
-            // we detach the event handlers from the settings service
-            SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
-            SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
-            SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
-            SettingsService.Instance.ThemeChanged -= OnThemeChanged;
-
-            // detach the event handlers from the static HardwareMonitorService
-            ViewModel.Cleanup();
-
-            // dispose system backdrop controllers
-            // also from the official Microsoft documentation
-            _acrylicController?.Dispose();
-            _acrylicController = null;
-            _micaController?.Dispose();
-            _micaController = null;
-
-            this.Activated -= Window_Activated;
-            _configurationSource = null;
-        }
-
+        // general window settings
         private void PositionWidgetTopRight(int sensorCount)
         {
             // get window-handle and scale factor (DPI) 
@@ -209,7 +86,7 @@ namespace FluentHwInfo.Views
 
             // our XAML desired sizes (DIPs)
             double desiredXamlWidth = 310; // width
-            double desiredXamlHeight = 30 + (sensorCount * (104 + 8)); // height: titleBar (48?) + Padding(?) + (Sensors * 130) + Buffer(?)
+            double desiredXamlHeight = 30 + (sensorCount * (104 + 8)); // height: titleBar-height + x*(sensor-height + spacing)
 
             // convert to physical pixels for the GPU based on the dpi scale factor
             int physicalWidth = (int)(desiredXamlWidth * scaleFactor);
@@ -223,7 +100,43 @@ namespace FluentHwInfo.Views
                 physicalWidth,
                 physicalHeight));
         }
+        private void WidgetWindow_Closed(object sender, WindowEventArgs args)
+        {
+            // we detach the event handlers from the settings service
+            SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
+            SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
+            SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
+            SettingsService.Instance.ThemeChanged -= OnThemeChanged;
 
+            // detach the event handlers from the static HardwareMonitorService
+            ViewModel.Cleanup();
+
+            // dispose system backdrop controllers
+            // *also from the official Microsoft documentation
+            _acrylicController?.Dispose();
+            _acrylicController = null;
+            _micaController?.Dispose();
+            _micaController = null;
+
+            this.Activated -= Window_Activated;
+            _configurationSource = null;
+        }
+        private void Window_Activated(object sender, WindowActivatedEventArgs args)
+        {
+            if (_configurationSource != null)
+            {
+                // usually, you would set IsInputActive based on whether the window is currently active or not, like this:
+                // _configurationSource.IsInputActive = args.WindowActivationState != WindowActivationState.Deactivated;
+
+                // but that has a big flaw: as soon as the user clicks outside of the widget, it becomes deactivated and the blur
+                // disappears, so instead:
+                // we force the engine to just aleays render the active blur
+                _configurationSource.IsInputActive = true;
+            }
+        }
+
+
+        // user iteraction
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)
         {
             // check if the main window is still open; 
@@ -245,14 +158,103 @@ namespace FluentHwInfo.Views
         }
 
 
-        // dynamically applies the chosen backdrop material to the WidgetWindow based on the user's selection in the settings page
-        // this code is mainly based on the official Microsoft documentation
+        // settings event listeners and handlers
+        private void OnThemeChanged(string newTheme)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                ApplyTheme(newTheme);
+            });
+        }
+        private void OnBackdropTypeChanged(string newType)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                SetBackdrop(newType);
+            });
+        }
+        private void OnOpacityChanged(float tintOpacity, float luminosityOpacity)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateAcrylicProperties();
+            });
+        }
+        private void OnTintColorChanged(bool useAccentColor, Windows.UI.Color customColor)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateAcrylicProperties();
+                UpdateSolidBackground();
+            });
+        }
+
+        
+        // core logic for theme and material application
+        private void ApplyTheme(string themeTag)
+        {
+            if (this.Content is FrameworkElement rootElement)
+            {
+                rootElement.RequestedTheme = themeTag switch
+                {
+                    "Light" => ElementTheme.Light,
+                    "Dark" => ElementTheme.Dark,
+                    _ => ElementTheme.Default
+                };
+            }
+
+            if (_appWindow != null && _appWindow.TitleBar != null)
+            {
+                _appWindow.TitleBar.PreferredTheme = themeTag switch
+                {
+                    "Light" => Microsoft.UI.Windowing.TitleBarTheme.Light,
+                    "Dark" => Microsoft.UI.Windowing.TitleBarTheme.Dark,
+                    _ => Microsoft.UI.Windowing.TitleBarTheme.UseDefaultAppMode
+                };
+            }
+        }
+        
+        private void UpdateAcrylicProperties()
+        {
+            if (_acrylicController != null)
+            {
+                // determine the correct color
+                Windows.UI.Color targetColor;
+                if (SettingsService.Instance.UseAccentColor)
+                {
+                    // extract the live Windows 11 Accent color from the application resources
+                    targetColor = (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"];
+                }
+                else
+                {
+                    targetColor = SettingsService.Instance.CustomTintColor;
+                }
+
+                // apply all properties in one batch
+                _acrylicController.TintColor = targetColor;
+                _acrylicController.TintOpacity = SettingsService.Instance.TintOpacity;
+                _acrylicController.LuminosityOpacity = SettingsService.Instance.LuminosityOpacity;
+            }
+        }
+        private void UpdateSolidBackground()
+        {
+            // we intervene only, if "solid" is selected
+            if (SettingsService.Instance.BackdropType == "None")
+            {
+                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(SettingsService.Instance.CustomTintColor);
+            }
+        }
+
+
+        // system backdrop logic functions
+        // dynamically applies the chosen backdrop material to the WidgetWindow based on the users selection in the settings page
+        // *this code is mainly based on the official Microsoft documentation
         public void SetBackdrop(string backdropType)
         {
-            // Ensure the system dispatcher queue is ready
+            // ensure the system dispatcher queue is ready
             DispatcherQueue.EnsureSystemDispatcherQueue();
 
-            // 1. Initialize configuration if it doesn't exist yet
+            // initialize configuration if it doesnt exist yet
             if (_configurationSource == null)
             {
                 _configurationSource = new SystemBackdropConfiguration();
@@ -263,13 +265,13 @@ namespace FluentHwInfo.Views
                 SetConfigurationSourceTheme();
             }
 
-            // 2. Clean up any existing active controllers before applying a new one
+            // clean up any existing active controllers before applying a new one
             _acrylicController?.Dispose();
             _acrylicController = null;
             _micaController?.Dispose();
             _micaController = null;
 
-            // 3. Apply the requested backdrop
+            // apply the requested backdrop
             if (backdropType == "Acrylic" && DesktopAcrylicController.IsSupported())
             {
                 _acrylicController = new DesktopAcrylicController();
@@ -278,7 +280,7 @@ namespace FluentHwInfo.Views
 
                 UpdateAcrylicProperties();
 
-                // we make the grid transparent, when "acrylic" is selected
+                // make the grid transparent, when "acrylic" is selected
                 RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
             else if (backdropType == "Mica" && MicaController.IsSupported())
@@ -287,36 +289,19 @@ namespace FluentHwInfo.Views
                 _micaController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
                 _micaController.SetSystemBackdropConfiguration(_configurationSource);
 
-                // we make the grid transparent, when "acrylic" is selected
+                // make the grid transparent, when "acrylic" is selected
                 RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
-            else 
+            else
             {
-                // we color the grid with the solid color, when "none" is selected
+                // color the grid with the solid color, when "none" is selected
                 UpdateSolidBackground();
             }
         }
-
-        private void Window_Activated(object sender, WindowActivatedEventArgs args)
-        {
-            if (_configurationSource != null)
-            {
-                // usually, you would set IsInputActive based on whether the window is currently active or not, like this:
-                // _configurationSource.IsInputActive = args.WindowActivationState != WindowActivationState.Deactivated;
-
-                // but that has a big flaw: as soon as the user clicks outside of the widget, it becomes deactivated and the blur
-                // disappears, so instead:
-                // we force the engine to ALWAYS render the active blur
-                // no matter where the user clicks, the widget tells the graphics card: "I am active!"
-                _configurationSource.IsInputActive = true;
-            }
-        }
-
         private void Window_ThemeChanged(FrameworkElement sender, object args)
         {
             SetConfigurationSourceTheme();
         }
-
         private void SetConfigurationSourceTheme()
         {
             if (_configurationSource != null && this.Content is FrameworkElement frameworkElement)

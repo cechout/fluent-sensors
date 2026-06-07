@@ -23,9 +23,10 @@ namespace FluentHwInfo
 {
     public sealed partial class MainWindow : Window
     {
-        // we save here the current instance of the MainWindow class
-        public static MainWindow CurrentInstance { get; private set; }
+        public static MainWindow CurrentInstance { get; private set; } // we save here the current instance of the MainWindow class
 
+
+        // constructor
         public MainWindow()
         {
             this.InitializeComponent();
@@ -41,11 +42,9 @@ namespace FluentHwInfo
             // this ensures that right at the start of the app, the first item in the navigation view is already selected
             MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
 
-            // hiervon hängt alles ab!
-            //AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
-            AppWindow.TitleBar.PreferredTheme = TitleBarTheme.Light;
-
-
+            // AppWindow configuration
+            // theme 
+            AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
             AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
 
             if (AppWindow.TitleBar.ExtendsContentIntoTitleBar)
@@ -55,18 +54,16 @@ namespace FluentHwInfo
                 AppWindow.TitleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
 
             }
-
-            FluentHwInfo.Services.SettingsService.Instance.ThemeChanged += OnThemeChanged;
-            ApplyTitleBarTheme(FluentHwInfo.Services.SettingsService.Instance.AppTheme);
-
-            // set the start size of the whole app window
+            // size
             this.SetWindowSize(750, 450);
-
-            // set the min size of whole app window
             var manager = WinUIEx.WindowManager.Get(this);
             manager.MinWidth = 600;
             manager.MinHeight = 400;
+
+            FluentHwInfo.Services.SettingsService.Instance.ThemeChanged += OnThemeChanged;
+            ApplyTitleBarTheme(FluentHwInfo.Services.SettingsService.Instance.AppTheme);
         }
+
 
         private void OnThemeChanged(string newTheme)
         {

@@ -5,9 +5,10 @@ namespace FluentHwInfo.Services
 {
     public class SettingsService
     {
-        // the Singleton pattern (exactly as in HardwareMonitorService)
+        // SettingsService as a singleton
         private static readonly SettingsService _instance = new SettingsService();
         public static SettingsService Instance => _instance;
+        private SettingsService() { }
 
         // events
         public event Action<string> ThemeChanged;
@@ -18,17 +19,6 @@ namespace FluentHwInfo.Services
 
         // fields
         private string _appTheme = "Default";
-        private string _backdropType = "Mica";
-        private float _tintOpacity = 0.4f;
-        private float _luminosityOpacity = 0.2f;
-        private bool _useAccentColor = true;
-        private Color _customTintColor = Color.FromArgb(255, 128, 128, 128);
-        private bool _useGraphAccentColor = true;
-        private Windows.UI.Color _graphCustomColor = Microsoft.UI.Colors.LightBlue;
-
-        private SettingsService() { }
-
-        // properties
         public string AppTheme
         {
             get => _appTheme;
@@ -42,6 +32,7 @@ namespace FluentHwInfo.Services
             }
         }
 
+        private string _backdropType = "Mica";
         public string BackdropType
         {
             get => _backdropType;
@@ -55,6 +46,7 @@ namespace FluentHwInfo.Services
             }
         }
 
+        private float _tintOpacity = 0.4f;
         public float TintOpacity
         {
             get => _tintOpacity;
@@ -68,6 +60,7 @@ namespace FluentHwInfo.Services
             }
         }
 
+        private float _luminosityOpacity = 0.2f;
         public float LuminosityOpacity
         {
             get => _luminosityOpacity;
@@ -81,6 +74,7 @@ namespace FluentHwInfo.Services
             }
         }
 
+        private bool _useAccentColor = true;
         public bool UseAccentColor
         {
             get => _useAccentColor;
@@ -94,6 +88,7 @@ namespace FluentHwInfo.Services
             }
         }
 
+        private Color _customTintColor = Color.FromArgb(255, 128, 128, 128);
         public Color CustomTintColor
         {
             get => _customTintColor;
@@ -107,6 +102,7 @@ namespace FluentHwInfo.Services
             }
         }
 
+        private bool _useGraphAccentColor = true;
         public bool UseGraphAccentColor
         {
             get => _useGraphAccentColor;
@@ -115,12 +111,12 @@ namespace FluentHwInfo.Services
                 if (_useGraphAccentColor != value)
                 {
                     _useGraphAccentColor = value;
-                    // Event abfeuern!
                     GraphColorChanged?.Invoke(_useGraphAccentColor, _graphCustomColor);
                 }
             }
         }
 
+        private Windows.UI.Color _graphCustomColor = Microsoft.UI.Colors.LightBlue;
         public Windows.UI.Color GraphCustomColor
         {
             get => _graphCustomColor;
@@ -129,7 +125,6 @@ namespace FluentHwInfo.Services
                 if (_graphCustomColor != value)
                 {
                     _graphCustomColor = value;
-                    // Event abfeuern!
                     GraphColorChanged?.Invoke(_useGraphAccentColor, _graphCustomColor);
                 }
             }

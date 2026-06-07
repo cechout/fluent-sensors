@@ -83,6 +83,7 @@ namespace FluentHwInfo.Views
                     // we access the one HardwareMonitorService instance and change the interval at runtime
                     HardwareMonitorService.Instance.UpdateIntervalMs = newIntervalMs;
 
+                    // output to terminal?
                     //System.Diagnostics.Debug.WriteLine($"Polling-Intervall changed to: {newIntervalMs} ms");
                 }
             }
@@ -92,7 +93,7 @@ namespace FluentHwInfo.Views
             // we read the current interval value from the HardwareMonitorService instance
             int currentInterval = HardwareMonitorService.Instance.UpdateIntervalMs;
 
-            // we search through all the items in the IntervalComboBox and compare their Tag with the current interval value
+            // we search through all the items in the IntervalComboBox and compare their tag with the current interval value
             foreach (ComboBoxItem item in IntervalComboBox.Items)
             {
                 if (item.Tag?.ToString() == currentInterval.ToString())
@@ -110,7 +111,6 @@ namespace FluentHwInfo.Views
         {
             if (BackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
             {
-                // just save the selected backdrop type
                 SettingsService.Instance.BackdropType = tag;
             }
         }
@@ -118,7 +118,6 @@ namespace FluentHwInfo.Views
         {
             if (ColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
             {
-                // just save the selected color source
                 SettingsService.Instance.UseAccentColor = (tag == "Accent");
             }
         }

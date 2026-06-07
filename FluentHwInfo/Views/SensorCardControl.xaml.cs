@@ -24,7 +24,7 @@ namespace FluentHwInfo.Views
             set => SetValue(ViewModelProperty, value);
         }
 
-        // 1. Die Pointer-Events (Maus rein, raus, drücken, loslassen)
+        // pointer events (hover and pressed states)
         private void RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
             _isHovered = true;
@@ -34,7 +34,7 @@ namespace FluentHwInfo.Views
         private void RootGrid_PointerExited(object sender, PointerRoutedEventArgs e)
         {
             _isHovered = false;
-            _isPressed = false; // Sicherheits-Reset
+            _isPressed = false; 
             UpdateVisualState();
         }
 
@@ -50,23 +50,22 @@ namespace FluentHwInfo.Views
             UpdateVisualState();
         }
 
-        // 2. Der eigentliche Klick (Ersetzt die ToggleButton-Logik!)
+        // click event to toggle the sensor on/off
         private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
         {
             if (ViewModel != null)
             {
-                // Schaltet den Sensor ein/aus
                 ViewModel.IsSelected = !ViewModel.IsSelected;
                 UpdateVisualState();
             }
         }
 
-        // 3. Unsere eigene, kugelsichere State-Machine
+        // method to update the visual state of the card based on the current status (selected, hovered, pressed)
         private void UpdateVisualState()
         {
             if (ViewModel == null) return;
 
-            // Welchen Status hat der Sensor gerade?
+            // check status of the card (selected or not)
             bool isChecked = ViewModel.IsSelected;
 
             if (isChecked)

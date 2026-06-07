@@ -9,12 +9,13 @@ namespace FluentHwInfo.ViewModels
 {
     public class WidgetViewModel
     {
-        // this list contains all the sensors that the user has pinned
-        public ObservableCollection<WidgetSensorViewModel> PinnedSensors { get; set; }
-
+        // fields
+        public ObservableCollection<WidgetSensorViewModel> PinnedSensors { get; set; } // this list contains all the sensors that the user has pinned
         private readonly DispatcherQueue _dispatcherQueue;
 
-        public WidgetViewModel(List<SensorRowViewModel> selectedSensors) // Accept the injected list from the View layer
+
+        // constructor
+        public WidgetViewModel(List<SensorRowViewModel> selectedSensors) // accept the injected list from the View layer
         {
             PinnedSensors = new ObservableCollection<WidgetSensorViewModel>();
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
@@ -29,7 +30,20 @@ namespace FluentHwInfo.ViewModels
             }
         }
 
-        // Event handler invoked by the HardwareMonitorService at the configured polling interval
+
+        // unsubscribe from the global event when the view is closed
+        public void Cleanup()
+        {
+            HardwareMonitorService.Instance.HardwareDataUpdated -= OnHardwareDataUpdated;
+
+            foreach (var sensor in PinnedSensors)
+            {
+                sensor.Cleanup();
+            }
+        }
+
+
+        // event handler invoked by the HardwareMonitorService at the configured polling interval
         private void OnHardwareDataUpdated(List<SensorData> payload)
         {
             // The HardwareMonitorService executes on a background thread
@@ -40,7 +54,7 @@ namespace FluentHwInfo.ViewModels
                 // we go through all pinned sensors and try to find their real counterparts in the HardwareMonitorService's sensor list
                 foreach (var pinnedSensor in PinnedSensors)
                 {
-                    // Query the incoming payload list for the matching sensor ID
+                    // query the incoming payload list for the matching sensor ID
                     var realSensor = payload.FirstOrDefault(s => s.Id == pinnedSensor.SensorId);
 
                     if (realSensor != null)
@@ -55,7 +69,7 @@ namespace FluentHwInfo.ViewModels
             });
         }
 
-        // Helper method to append the correct physical unit to the UI text block.
+        // helper method to append the correct physical unit to the UI text block
         private string GetUnitString(string sensorType)
         {
             return sensorType switch
@@ -68,18 +82,6 @@ namespace FluentHwInfo.ViewModels
                 "SmallData" => "MB",
                 _ => ""
             };
-        }
-
-        // Unsubscribe from the global event when the view is closed
-        // Failing to detach this event handler will result in a memory leak
-        public void Cleanup()
-        {
-            HardwareMonitorService.Instance.HardwareDataUpdated -= OnHardwareDataUpdated;
-
-            foreach (var sensor in PinnedSensors)
-            {
-                sensor.Cleanup();
-            }
         }
     }
 }

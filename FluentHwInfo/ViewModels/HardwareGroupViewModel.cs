@@ -12,11 +12,9 @@ namespace FluentHwInfo.ViewModels
     /// </summary>
     public class HardwareGroupViewModel
     {
-        // binds to the text at the top of the Expander (Header)
-        public string HardwareName { get; set; } = "Hardware Name not provided";
-
-        // binds to the content of the Expander (the actual sensor rows)
-        public ObservableCollection<SensorRowViewModel> Sensors { get; set; }
+        // fields
+        public string HardwareName { get; set; } = "Hardware Name not provided"; // header of expander
+        public ObservableCollection<SensorRowViewModel> Sensors { get; set; } // content of expander
 
         public HardwareGroupViewModel()
         {

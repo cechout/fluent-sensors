@@ -27,14 +27,14 @@
 
             <Border
                 Width="34"
-                Height="4"
-                Margin="0,8,0,0"
+                Height="3"
+                Margin="0,6,0,0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 Background="{ThemeResource TextFillColorTertiaryBrush}"
                 CornerRadius="2" />
 
-            <!--  back to app button currently in title bar too  -->
+            <!--  back to main application button (currently in title bar too)  -->
             <Button
                 Width="32"
                 Height="22"
@@ -189,7 +189,7 @@
 
                                     </Grid>
 
-                                    <!--  the actual LiveChart graph  -->
+                                    <!--  LiveChart graph  -->
                                     <Border
                                         Grid.Column="1"
                                         Padding="0,0,0,0"
@@ -215,7 +215,7 @@
                                     </Border>
                                 </Grid>
 
-                                <!--  control buttons on position 2  -->
+                                <!--  control buttons on position 2 (probably not gonne need them)  -->
                                 <Grid
                                     Height="28"
                                     ColumnSpacing="4"

@@ -2,7 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using FluentHwInfo.Services;
-using Microsoft.UI.Dispatching; // important for winui3 threading
+using Microsoft.UI.Dispatching;
 
 namespace FluentHwInfo.ViewModels
 {
@@ -17,14 +17,9 @@ namespace FluentHwInfo.ViewModels
     /// </summary>
     public class SensorsViewModel
     {
-        // ObservableCollection is a smart list that automatically notifies the UI
-        // when you add, remove or change items in the list
-        // this list now holds GROUPS instead of single rows
+        // fields
         public ObservableCollection<HardwareGroupViewModel> HardwareGroups { get; set; }
-
-        // here we create the HardwareMonitorService object
-        private HardwareMonitorService _service;
-
+        private HardwareMonitorService _service; // create the HardwareMonitorService object
         // the problem:
         // as the HardwareDataUpdated event is triggered from the background thread, it is also recieved by the 
         // ViewModel here on the very same background thread. However, our ObservableCollection "SensorList" is directly
@@ -36,9 +31,7 @@ namespace FluentHwInfo.ViewModels
         // As a result, the UI thread ultimately updates the SensorList with the recieved package from the subscribed
         // HardwareMonitorService event, when it has time to do so
         private DispatcherQueue _dispatcherQueue;
-
-        // SensorsViewModel is now also a singleton
-        private static SensorsViewModel _instance;
+        private static SensorsViewModel _instance; // SensorsViewModel is a singleton
         public static SensorsViewModel Instance
         {
             get
@@ -51,62 +44,57 @@ namespace FluentHwInfo.ViewModels
             }
         }
 
+
+        // constructor
         private SensorsViewModel()
         {
-            // Initialize the new group list
-            HardwareGroups = new ObservableCollection<HardwareGroupViewModel>();
+            HardwareGroups = new ObservableCollection<HardwareGroupViewModel>(); // initialize the empty list of hardware groups
+            _dispatcherQueue = DispatcherQueue.GetForCurrentThread(); // grab the ui threads dispatcher queue at startup
 
-            // grabs the UI thread directly at startup
-            _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-
-            // we get the one singe instance of the HardwareMonitorService
-            _service = HardwareMonitorService.Instance;
-
-            // we subscribe to the one big master event from HardwareMonitorService
-            _service.HardwareDataUpdated += OnHardwareDataUpdated;
+            // HardwareMonitorService
+            _service = HardwareMonitorService.Instance; // get HardwareMonitorService instance
+            _service.HardwareDataUpdated += OnHardwareDataUpdated; // subscribe to the master event
 
             _service.StartMonitoring();
         }
 
+
         private void OnHardwareDataUpdated(List<SensorData> payload)
         {
-            // we safely push the UI updates onto the main thread
+            // safely push the UI updates onto the main thread
             _dispatcherQueue.TryEnqueue(() =>
             {
                 foreach (var data in payload)
                 {
-                    // 1. check if we already have a GROUP for this specific hardware (e.g. "Intel Core i9-12900H")
+                    // check if there is already a group for this specific hardware (e.g. "Intel Core i9-12900H")
                     var existingGroup = HardwareGroups.FirstOrDefault(g => g.HardwareName == data.HardwareName);
 
-                    // If the group doesn't exist yet, we dynamically create a new Expander group
+                    // if the group doesnt exist yet, we dynamically create a new expander group
                     if (existingGroup == null)
                     {
                         existingGroup = new HardwareGroupViewModel { HardwareName = data.HardwareName };
                         HardwareGroups.Add(existingGroup);
                     }
 
-                    // 2. check if we already have a row for this specific sensor ID INSIDE this group
+                    // check if we already have a row for this specific sensor ID inside this group
                     var existingRow = existingGroup.Sensors.FirstOrDefault(r => r.Id == data.Id);
 
                     if (existingRow != null)
                     {
-                        // 3a. Row already exists -> just update the value
+                        // row already exists -> just update the value
                         existingRow.UpdateValue(data.Value);
                     }
                     else
                     {
-                        // 3b. Row does not exist yet -> we dynamically create a new one
+                        // row does not exist yet -> we dynamically create a new one
                         var newRow = new SensorRowViewModel
                         {
                             Id = data.Id,
-                            // We don't need the HardwareName here anymore, because the Expander Header already shows it!
                             Name = data.Name,
                             SensorType = data.SensorType,
                         };
 
                         newRow.UpdateValue(data.Value);
-
-                        // Add to the group's internal list, the UI will now automatically render the new row inside the Expander
                         existingGroup.Sensors.Add(newRow);
                     }
                 }

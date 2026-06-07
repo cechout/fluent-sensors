@@ -7,19 +7,13 @@ using System.Threading.Tasks;
 
 namespace FluentHwInfo.Services
 {
-    /// <summary>
-    /// this is the record container for all the relevant data about one sensor
-    /// a record is like a struct in c, it behaves like a class but the objects are read only
-    /// so we can create new objects with new values but we cannot change the values of an existing object
-    /// we gonne send a list of these records everry iteration to the UI
-    /// it contains everything the ui needs to know about a sensor
-    /// </summary>
+    // record container for all the relevant data about one sensor
     public record SensorData(
-        string Id,           // e.g. "/intelcpu/0/load/1" -> this is gonne be the idenifier for the settings later
-        string Name,         // e.g. "CPU Package"
+        string Id, // e.g. "/intelcpu/0/load/1" 
+        string Name, // e.g. "CPU Package"
         string HardwareName, // e.g. "Intel Core i9-12900H"
-        string SensorType,   // e.g. "Power", "Temperature", "Load"
-        double Value         // the actual value of the sensor
+        string SensorType, // e.g. "Power", "Temperature", "Load"
+        double Value // the actual value of the sensor
     );
 
     /// <summary>
@@ -46,7 +40,7 @@ namespace FluentHwInfo.Services
         private readonly Computer _computer;
 
         // the dynamic list
-        // it contains all the sensors we want to monitor
+        // it contains all sensors we want to monitor
         // the manual way would be:
         // "private IHardware? _cpuHardware;" 
         // "private ISensor? _cpuPackagePowerSensor;" and so on
@@ -55,16 +49,6 @@ namespace FluentHwInfo.Services
         private CancellationTokenSource? _cts;
 
         public int UpdateIntervalMs { get; set; } = 500;
-        // full form would look like this:
-        // private int _updateIntervalMs = 500; // field
-        // public int GetUpdateIntervalMs() // property
-        // {
-        //     return _updateIntervalMs;
-        // }
-        // public void SetUpdateIntervalMs(int value)
-        // {
-        //     _updateIntervalMs = value;
-        // }
 
         // the master event
         // instead of having multiple events for each sensor, we can have one event that
@@ -79,9 +63,6 @@ namespace FluentHwInfo.Services
         private static readonly HardwareMonitorService _instance = new HardwareMonitorService();
         public static HardwareMonitorService Instance => _instance;
 
-        // now private constructor, we want to prevent the creation of multiple instances of this service, because
-        // because we want to change the update interval and stop the monitoring from the settings page, and if we have multiple instances, we would
-        // have problems to adress the instances
         private HardwareMonitorService()
         {
             _computer = new Computer
@@ -114,9 +95,6 @@ namespace FluentHwInfo.Services
         private void DiscoverSensors(IHardware hardware)
         {
             // pump all relevant sensors of this found hardware into our flat list
-            // "var sensor in hardware.Sensors" is the short form of
-            // "ISensor in hardware.Sensors", we don't need to write the type of the variable if it can
-            // be inferred from the right side of the assignment
             foreach (var sensor in hardware.Sensors)
             {
                 // we accepts only this explicit sensor types, all the other are not relevant for now
@@ -146,9 +124,8 @@ namespace FluentHwInfo.Services
 
             _cts = new CancellationTokenSource();
 
-            // TASK.RUN is the magical command 
-            // only this explicit command creates a new thread in the background, and puts explicitly the method
-            // LoopAsync on this new thread, so that it does not block the UI thread
+            // task.run() creates a new thread in the background, and puts explicitly the method
+            // LoopAsync on this new thread
             Task.Run(() => LoopAsync(_cts.Token));
         }
 
@@ -158,8 +135,6 @@ namespace FluentHwInfo.Services
             _cts = null;
         }
 
-        // "async Task" keyword does not create a new thread, it just allows us to use the "await" keyword inside
-        // the method
         private async Task LoopAsync(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
@@ -170,13 +145,13 @@ namespace FluentHwInfo.Services
                     hardware.Update();
                 }
 
-                // this is the exact list for our big event HardwareDataUpdated, we create a new list
-                // and every iteration and fill it with the current values of all the sensors we want to monitor
+                // this is the exact list for the big event HardwareDataUpdated, we create a new list
+                // and every iteration fill it with the current values of all the sensors we want to monitor
                 var payload = new List<SensorData>();
 
                 foreach (var sensor in _activeSensors)
                 {
-                    // some sensors might not have a value at the moment (e.g., if an HDD is sleeping)
+                    // some sensors might not have a value at the moment (maybe a hdd is still sleeping or smth)
                     if (sensor.Value.HasValue)
                     {
                         payload.Add(new SensorData(
@@ -189,8 +164,7 @@ namespace FluentHwInfo.Services
                     }
                 }
 
-                // we fire the event with the new list of sensor data, all the subscribers (e.g., the ViewModels)
-                // will receive this list and can do whatever they want with it (e.g., update the UI, ...)
+                // we fire the event with the new list of sensor data
                 HardwareDataUpdated?.Invoke(payload);
 
                 // await Task.Delay() does not freeze the thread in the same way as Thread.Sleep(), 

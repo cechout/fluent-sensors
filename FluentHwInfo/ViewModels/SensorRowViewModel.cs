@@ -24,24 +24,10 @@ namespace FluentHwInfo.ViewModels
     // otherwise the UI would never know that it should update itself
     public class SensorRowViewModel : INotifyPropertyChanged
     {
-        private string _currentValue = "-";
-        private string _minimumValue = "-";
-        private string _maximumValue = "-";
-        private string _averageValue = "-";
-
-        // tracks the ui selection state for the ListView checkbox
-        private bool _isSelected;
-
-        private double _min = double.MaxValue;
-        private double _max = double.MinValue;
-        private double _sum = 0;
-        private int _count = 0;
-
-        // the internal storage for the unit (e.g., "W" or "°C")
-        private string _unit = "";
-
+        // core configuration properties for the sensor row
         public string Id { get; set; }
         public string Name { get; set; } = "Unknown Sensor";
+        private string _unit = "";
         public string SensorType
         {
             set
@@ -60,44 +46,10 @@ namespace FluentHwInfo.ViewModels
                 };
             }
         }
-        public string CurrentValue
-        {
-            get => _currentValue;
-            set
-            {
-                _currentValue = value;
-                OnPropertyChanged();
-            }
-        }
-        public string MinimumValue
-        {
-            get => _minimumValue;
-            set
-            {
-                _minimumValue = value;
-                OnPropertyChanged();
-            }
-        }
-        public string MaximumValue
-        {
-            get => _maximumValue;
-            set
-            {
-                _maximumValue = value;
-                OnPropertyChanged();
-            }
-        }
-        public string AverageValue
-        {
-            get => _averageValue;
-            set
-            {
-                _averageValue = value;
-                OnPropertyChanged();
-            }
-        }
 
-        // tracks the ui selection state for the ListView checkbox
+
+        // item state
+        private bool _isSelected;
         public bool IsSelected
         {
             get => _isSelected;
@@ -111,9 +63,60 @@ namespace FluentHwInfo.ViewModels
             }
         }
 
+
+        // mathematical fields for internal calculations
+        private double _min = double.MaxValue;
+        private double _max = double.MinValue;
+        private double _sum = 0;
+        private int _count = 0;
+
+
+        // formatted string properties for the ui
+        private string _currentValue = "-";
+        public string CurrentValue
+        {
+            get => _currentValue;
+            set
+            {
+                _currentValue = value;
+                OnPropertyChanged();
+            }
+        }
+        private string _minimumValue = "-";
+        public string MinimumValue
+        {
+            get => _minimumValue;
+            set
+            {
+                _minimumValue = value;
+                OnPropertyChanged();
+            }
+        }
+        private string _maximumValue = "-";
+        public string MaximumValue
+        {
+            get => _maximumValue;
+            set
+            {
+                _maximumValue = value;
+                OnPropertyChanged();
+            }
+        }
+        private string _averageValue = "-";
+        public string AverageValue
+        {
+            get => _averageValue;
+            set
+            {
+                _averageValue = value;
+                OnPropertyChanged();
+            }
+        }
+
+        
+        // data processing
         public void UpdateValue(double newValue)
         {
-            // 1. mathematics
             if (newValue < _min) _min = newValue;
             if (newValue > _max) _max = newValue;
 
@@ -121,13 +124,15 @@ namespace FluentHwInfo.ViewModels
             _count++;
             double avg = _sum / _count;
 
-            // 2. build strings for the UI with the dynamic unit
+            // build strings for the UI with the dynamic unit
             CurrentValue = $"{newValue:0.0} {_unit}";
             MinimumValue = $"{_min:0.0} {_unit}";
             MaximumValue = $"{_max:0.0} {_unit}";
             AverageValue = $"{avg:0.0} {_unit}";
         }
 
+
+        // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {

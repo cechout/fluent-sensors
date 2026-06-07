@@ -92,6 +92,7 @@
                             <controls:SettingsExpander.ItemTemplate>
                                 <DataTemplate x:DataType="local1:SensorRowViewModel">
 
+                                    <!--  we do not set the margin here, because the SensorCardControl does it itself  -->
                                     <local:SensorCardControl Margin="0,0,0,0" ViewModel="{x:Bind}" />
 
                                 </DataTemplate>
@@ -116,13 +117,13 @@
                 Orientation="Horizontal"
                 Spacing="8">
 
-                <!--  Reset Min/Max Button  -->
+                <!--  reset min/max button  -->
                 <Button
                     HorizontalAlignment="Left"
                     VerticalAlignment="Bottom"
                     Content="Reset Min/Max" />
 
-                <!--  Pin to Widget Button  -->
+                <!--  pin to widget button  -->
                 <Button
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"

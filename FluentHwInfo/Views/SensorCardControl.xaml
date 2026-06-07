@@ -17,6 +17,7 @@
         PointerPressed="RootGrid_PointerPressed"
         PointerReleased="RootGrid_PointerReleased"
         Tapped="RootGrid_Tapped">
+        <!--  border to control color and height of spacing between each item  -->
         <Border
             x:Name="CardBackground"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -35,6 +36,7 @@
                 <ColumnDefinition Width="*" MinWidth="65" />
             </Grid.ColumnDefinitions>
 
+            <!--  checkbox with sensor name  -->
             <StackPanel
                 Grid.Column="0"
                 VerticalAlignment="Center"
@@ -52,6 +54,7 @@
                     Text="{x:Bind ViewModel.Name, Mode=OneWay}" />
             </StackPanel>
 
+            <!--  current value  -->
             <TextBlock
                 Grid.Column="1"
                 HorizontalAlignment="Right"
@@ -59,6 +62,8 @@
                 FontWeight="Normal"
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="{x:Bind ViewModel.CurrentValue, Mode=OneWay}" />
+
+            <!--  minimum value  -->
             <TextBlock
                 Grid.Column="2"
                 HorizontalAlignment="Right"
@@ -66,6 +71,8 @@
                 FontWeight="Normal"
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="{x:Bind ViewModel.MinimumValue, Mode=OneWay}" />
+
+            <!--  maximum value  -->
             <TextBlock
                 Grid.Column="3"
                 HorizontalAlignment="Right"
@@ -73,6 +80,8 @@
                 FontWeight="Normal"
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="{x:Bind ViewModel.MaximumValue, Mode=OneWay}" />
+
+            <!--  average value  -->
             <TextBlock
                 Grid.Column="4"
                 HorizontalAlignment="Right"
@@ -84,7 +93,6 @@
 
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="CardStates">
-
                 <VisualState x:Name="Normal">
                     <VisualState.Setters>
                         <Setter Target="CardBackground.Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />

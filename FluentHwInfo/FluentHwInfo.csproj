@@ -22,9 +22,10 @@
     <Content Remove="Assets\BadgeLogo.scale-150.png" />
     <Content Remove="Assets\BadgeLogo.scale-200.png" />
     <Content Remove="Assets\BadgeLogo.scale-400.png" />
+    <Content Remove="Assets\Icon\FluentHwInfo.ico" />
+    <Content Remove="Assets\Icon\FluentHwInfo.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Assets\FluentHwInfo.ico" />
     <None Remove="Assets\IconDraft31.ico" />
     <None Remove="Assets\SplashScreen.ico" />
     <None Remove="Views\SensorCardControl.xaml" />
@@ -67,11 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Update="Assets\FluentHwInfo.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\SensorCardControl.xaml">
