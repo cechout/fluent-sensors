@@ -1,5 +1,4 @@
-<img width="2560" height="810" alt="frame" src="https://github.com/user-attachments/assets/f32d7421-bc9b-4619-95ab-ee8088829a16" />
-
+<img width="2560" height="810" alt="frame2" src="https://github.com/user-attachments/assets/4609864d-065d-4cfe-bc28-a97d35664f65" />
 
 ###
 Reading hardware sensors often results in cluttered and old-looking interfaces. This project aims to change that. 
@@ -7,11 +6,12 @@ Reading hardware sensors often results in cluttered and old-looking interfaces. 
 FluentHwInfo is a hardware monitoring application built with **WinUI 3**. The goal is to display deep system diagnostics (like CPU, GPU, RAM, and thermals) in a clean, native Windows 11 user interface.
 
 ## ⚙️ Under the Hood
-The application is built with a focus on clean architecture and native Windows 11 integration.
+The app is built with a straightforward architecture and native Windows 11 integration in mind.
 
-* **The Interface (WinUI 3):** Built using the Windows App SDK to provide a native, modern user interface that strictly follows the Fluent Design system guidelines.
-* **The Architecture (MVVM):** Structured using the Model-View-ViewModel pattern to completely decouple the frontend UI from the background logic.
-* **The Engine (LibreHardwareMonitor):** The core hardware polling relies on the `LibreHardwareMonitorLib` package, which handles the heavy lifting of reading the low-level system sensors (CPU, GPU, Mainboard, Memory, Network, etc.).
+* **The Interface (WinUI 3):** Built with the Windows App SDK to get the standard Windows 11 Fluent Design look.
+* **The Architecture (MVVM):** Uses the Model-View-ViewModel pattern to keep the UI completely separate from the background code.
+* **The Engine (LibreHardwareMonitor):** Uses the `LibreHardwareMonitorLib` package to read system sensors (CPU, GPU, Memory, etc.). *Note: This library currently has some limitations and might struggle to read some sensors like the ones from the integrated graphics cards (iGPUs).*
+* **The Graphs (LiveCharts2 & SkiaSharp):** The visual sensor graphs are rendered using `LiveCharts2`, which runs on `SkiaSharp` to draw the graphs smoothly.
 
 
 ## 🛠️ How to Run
