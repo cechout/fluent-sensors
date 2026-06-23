@@ -1,3 +1,4 @@
+using FluentHwInfo.Services;
 using FluentHwInfo.Views;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
@@ -13,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI;
@@ -41,7 +43,8 @@ namespace FluentHwInfo
             };
 
             // this ensures that right at the start of the app, the first item in the navigation view is already selected
-            MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
+            // MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
+            // for now we just leave it unselected
 
             // AppWindow configuration
             // theme 
@@ -63,9 +66,68 @@ namespace FluentHwInfo
 
             FluentHwInfo.Services.SettingsService.Instance.ThemeChanged += OnThemeChanged;
             ApplyTitleBarTheme(FluentHwInfo.Services.SettingsService.Instance.AppTheme);
+
+            // add the loaded event handler to the content of the window
+            ((FrameworkElement)this.Content).Loaded += MainWindow_Loaded;
         }
 
 
+        // loading screen methods
+        //private void IconShadow_Loaded(object sender, RoutedEventArgs e)
+        //{
+        //    // Verbindet den werfenden Schatten mit der Leinwand am Boden
+        //    IconThemeShadow.Receivers.Add(ShadowReceiver);
+        //}
+
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // load the HardwareMonitorService singleton instance asynchronously
+            await StartHardwareServiceAsync();
+        }
+
+        private async Task StartHardwareServiceAsync()
+        {
+            var monitor = FluentHwInfo.Services.HardwareMonitorService.Instance;
+
+            // scan motherboard
+            LoadingStatusText.Text = "Initializing Motherboard...";
+            LoadingProgressBar.Value = 25;
+            await monitor.InitMotherboardAsync();
+             await Task.Delay(4000000);
+
+            // scan CPU
+            LoadingStatusText.Text = "Scanning CPU sensors...";
+            LoadingProgressBar.Value = 50;
+            await monitor.InitCpuAsync();
+            // await Task.Delay(400);
+
+            // scan GPU
+            LoadingStatusText.Text = "Scanning GPU parameters...";
+            LoadingProgressBar.Value = 75;
+            await monitor.InitGpuAsync();
+            // await Task.Delay(400);
+
+            // scan memory and storage
+            LoadingStatusText.Text = "Checking memory and storage...";
+            LoadingProgressBar.Value = 100;
+            await monitor.InitMemoryAndStorageAsync();
+            // await Task.Delay(400);
+
+            // no we start the HardwareMonitorService loop manually
+            monitor.StartMonitoring();
+            // await Task.Delay(400);
+
+            LoadingStatusText.Text = "Ready!";
+            await Task.Delay(400);
+
+            // show the main grid
+            SplashOverlay.Visibility = Visibility.Collapsed;
+            MainNavigationView.Visibility = Visibility.Visible;
+            MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
+        }
+
+
+        // theme change handling
         private void OnThemeChanged(string newTheme)
         {
             this.DispatcherQueue.TryEnqueue(() =>

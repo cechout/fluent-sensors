@@ -46,8 +46,8 @@ namespace FluentHwInfo.Services
         // "private ISensor? _cpuPackagePowerSensor;" and so on
         private readonly List<ISensor> _activeSensors = new();
 
+        private readonly object _sensorLock = new object();
         private CancellationTokenSource? _cts;
-
         public int UpdateIntervalMs { get; set; } = 500;
 
         // the master event
@@ -67,28 +67,134 @@ namespace FluentHwInfo.Services
         {
             _computer = new Computer
             {
-                IsCpuEnabled = true,
-                IsGpuEnabled = true,
-                IsMemoryEnabled = true,
-                IsStorageEnabled = true,
-                IsMotherboardEnabled = true,
+                // all hardware components are explicitly disabled here to prevent the UI thread from freezing 
+                // the actual initialization is deferred and chunked into the asynchronous pipeline methods (Init...Async) below
+                IsCpuEnabled = false,
+                IsGpuEnabled = false,
+                IsMemoryEnabled = false,
+                IsStorageEnabled = false,
+                IsMotherboardEnabled = false,
                 IsControllerEnabled = false,
                 IsNetworkEnabled = false,
 
             };
 
             _computer.Open();
-            InitAllSensors();
         }
 
+
+        // asynchronous initialization pipeline
+        // lhm heavily blocks the calling thread when enabling all the hardware components
+        // to prevent application freezes, these methods allow any consuming class or caller to trigger the 
+        // hardware discovery step-by-step on isolated background threads (via Task.Run)
+        public Task InitMotherboardAsync()
+        {
+            return Task.Run(() => { _computer.IsMotherboardEnabled = true; });
+        }
+        public Task InitCpuAsync()
+        {
+            return Task.Run(() => { _computer.IsCpuEnabled = true; });
+        }
+        public Task InitGpuAsync()
+        {
+            return Task.Run(() => { _computer.IsGpuEnabled = true; });
+        }
+        public Task InitMemoryAndStorageAsync()
+        {
+            return Task.Run(() =>
+            {
+                _computer.IsMemoryEnabled = true;
+                _computer.IsStorageEnabled = true;
+            });
+        }
+
+        // starts the background polling loop to read sensor values
+        // this method gets called from the outside (e.g. MainWindow); only after the asynchronous initialization pipeline has
+        // fully completed of course
+        public void StartMonitoring()
+        {
+            // prevent double execution
+            if (_cts != null) return;
+
+            InitAllSensors();
+            _cts = new CancellationTokenSource();
+
+            // task.run() creates a new thread in the background, and puts explicitly the method
+            // LoopAsync on this new thread
+            Task.Run(() => LoopAsync(_cts.Token));
+        }
+
+        public void StopMonitoring()
+        {
+            _cts?.Cancel();
+            _cts = null;
+        }
+
+        public void Cleanup()
+        {
+            StopMonitoring();
+            _computer.Close();
+        }
+
+
+        // private class methods
+        private async Task LoopAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                // update hardware (lhm fetches new values from the sensor)
+                foreach (var hardware in _computer.Hardware)
+                {
+                    hardware.Update();
+                }
+
+                // this is the exact list for the big event HardwareDataUpdated, we create a new list
+                // and every iteration fill it with the current values of all the sensors we want to monitor
+                var payload = new List<SensorData>();
+
+                lock (_sensorLock)
+                {
+                    foreach (var sensor in _activeSensors)
+                    {
+                        // some sensors might not have a value at the moment (maybe a hdd is still sleeping or smth)
+                        if (sensor.Value.HasValue)
+                        {
+                            payload.Add(new SensorData(
+                                Id: sensor.Identifier.ToString(),
+                                Name: sensor.Name,
+                                HardwareName: sensor.Hardware.Name,
+                                SensorType: sensor.SensorType.ToString(),
+                                Value: sensor.Value.Value
+                            ));
+                        }
+                    }
+                }
+
+                // we fire the event with the new list of sensor data
+                HardwareDataUpdated?.Invoke(payload);
+
+                // await Task.Delay() does not freeze the thread in the same way as Thread.Sleep(), 
+                // it saves the state of the method and returns the background thread to the windows thread pool
+                // for those few milliseconds, and after the delay, it grabs a free thread again from the windows
+                // thread pool and continues the execution of the method from where it left off
+                await Task.Delay(UpdateIntervalMs, token);
+            }
+        }
+
+        // goes through the discovered hardware tree and registers relevant sensors into the flat list
+        // this process is protected by _sensorLock to ensure thread-safety, preventing collection modification crashes if the
+        // background polling loop is preparing to run simultaneously
         private void InitAllSensors()
         {
-            _activeSensors.Clear();
-
-            // we just go though all the hardware components that lhm detects
-            foreach (var hardware in _computer.Hardware)
+            lock (_sensorLock)
             {
-                DiscoverSensors(hardware);
+                _activeSensors.Clear();
+
+                // we go through every sensor that lhm detects
+                foreach (var hardware in _computer.Hardware)
+                {
+                    DiscoverSensors(hardware);
+                }
             }
         }
 
@@ -116,70 +222,5 @@ namespace FluentHwInfo.Services
                 DiscoverSensors(subHardware);
             }
         }
-
-        public void StartMonitoring()
-        {
-            // prevent double execution
-            if (_cts != null) return;
-
-            _cts = new CancellationTokenSource();
-
-            // task.run() creates a new thread in the background, and puts explicitly the method
-            // LoopAsync on this new thread
-            Task.Run(() => LoopAsync(_cts.Token));
-        }
-
-        public void StopMonitoring()
-        {
-            _cts?.Cancel();
-            _cts = null;
-        }
-
-        private async Task LoopAsync(CancellationToken token)
-        {
-            while (!token.IsCancellationRequested)
-            {
-                // update hardware (lhm fetches new values from the sensor)
-                foreach (var hardware in _computer.Hardware)
-                {
-                    hardware.Update();
-                }
-
-                // this is the exact list for the big event HardwareDataUpdated, we create a new list
-                // and every iteration fill it with the current values of all the sensors we want to monitor
-                var payload = new List<SensorData>();
-
-                foreach (var sensor in _activeSensors)
-                {
-                    // some sensors might not have a value at the moment (maybe a hdd is still sleeping or smth)
-                    if (sensor.Value.HasValue)
-                    {
-                        payload.Add(new SensorData(
-                            Id: sensor.Identifier.ToString(),
-                            Name: sensor.Name,
-                            HardwareName: sensor.Hardware.Name,
-                            SensorType: sensor.SensorType.ToString(),
-                            Value: sensor.Value.Value
-                        ));
-                    }
-                }
-
-                // we fire the event with the new list of sensor data
-                HardwareDataUpdated?.Invoke(payload);
-
-                // await Task.Delay() does not freeze the thread in the same way as Thread.Sleep(), 
-                // it saves the state of the method and returns the background thread to the windows thread pool
-                // for those few milliseconds, and after the delay, it grabs a free thread again from the windows
-                // thread pool and continues the execution of the method from where it left off
-                await Task.Delay(UpdateIntervalMs, token);
-            }
-        }
-
-        public void Cleanup()
-        {
-            StopMonitoring();
-            _computer.Close();
-        }
-
     }
 }

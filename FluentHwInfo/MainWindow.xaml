@@ -80,14 +80,14 @@
             <StackPanel
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Spacing="20">
+                Spacing="16">
 
                 <!--  icon  -->
                 <Grid HorizontalAlignment="Center">
                     <Border x:Name="ShadowReceiver" />
                     <Image
-                        Width="100"
-                        Height="100"
+                        Width="80"
+                        Height="80"
                         Source="/Assets/Icon/Icon.png">
                         <ui:Effects.Shadow>
                             <ui:AttachedDropShadow
@@ -103,7 +103,7 @@
                 <ProgressBar
                     x:Name="LoadingProgressBar"
                     Width="200"
-                    Margin="0,10,0,0"
+                    Margin="0,32,0,0"
                     Maximum="100"
                     Minimum="0"
                     Value="0" />
@@ -112,7 +112,7 @@
                     x:Name="LoadingStatusText"
                     HorizontalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{ThemeResource BodyLargeStrongTextBlockStyle}"
+                    Style="{ThemeResource BodyStrongTextBlockStyle}"
                     Text="Starting Fluent HwInfo..." />
             </StackPanel>
         </Grid>
