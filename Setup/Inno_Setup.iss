@@ -33,7 +33,7 @@ OutputDir=.\Output
 OutputBaseFilename=FluentHwInfo_Installer
 SetupIconFile=..\FluentHwInfo\Assets\Icon\Icon.ico
 SolidCompression=yes
-WizardStyle=modern windows11
+WizardStyle=modern dynamic
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
