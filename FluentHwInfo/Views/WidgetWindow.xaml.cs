@@ -41,6 +41,7 @@ namespace FluentHwInfo.Views
             ViewModel = new WidgetViewModel(selectedSensors);
 
             this.InitializeComponent();
+            this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
 
             SetBackdrop(SettingsService.Instance.BackdropType);
             ApplyTheme(SettingsService.Instance.AppTheme);
@@ -58,9 +59,9 @@ namespace FluentHwInfo.Views
 
             var presenter = OverlappedPresenter.Create();
             presenter.IsAlwaysOnTop = true; // replaces the CompactOverlay behavior
-            presenter.IsMaximizable = false; // no fullscreen button
-            presenter.IsMinimizable = false;  // no minimized button
-            presenter.IsResizable = true; // but our boy is now resizable
+            presenter.IsMaximizable = false; 
+            presenter.IsMinimizable = true;  
+            presenter.IsResizable = true; 
             _appWindow.SetPresenter(presenter);
 
             // we pass the number of sensors to the method for auto-sizing
