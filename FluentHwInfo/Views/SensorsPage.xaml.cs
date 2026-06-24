@@ -2,8 +2,10 @@ using FluentHwInfo.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace FluentHwInfo.Views
 {
@@ -17,6 +19,8 @@ namespace FluentHwInfo.Views
         // we remember the currently open widget window 
         private static WidgetWindow _currentWidgetWindow = null;
 
+        private int _infoBarTicket = 0;
+
         public SensorsPage()
         {
             this.InitializeComponent();
@@ -26,7 +30,7 @@ namespace FluentHwInfo.Views
             ViewModel = SensorsViewModel.Instance;
         }
 
-        private void PinToWidget_Click(object sender, RoutedEventArgs e)
+        private async void PinToWidget_Click(object sender, RoutedEventArgs e)
         {
             // flatten the nested groups and filter for selected items
             // this is LINQ, which is a more concise way to write the same logic as the long form below
@@ -53,8 +57,24 @@ namespace FluentHwInfo.Views
             //    }
             //}
 
-            // prevent window creation if no sensors are selected
-            if (selectedSensors.Count == 0) return;
+            // show flyout when no sensor was selected
+            if (selectedSensors.Count == 0)
+            {
+                _infoBarTicket++;
+                int currentTicket = _infoBarTicket;
+
+                // show inforbar
+                AnimateInfoBar(0, true);
+
+                await Task.Delay(2000);
+
+                if (currentTicket == _infoBarTicket)
+                {
+                    // hide infobar
+                    AnimateInfoBar(100, false);
+                }
+                return;
+            }
 
             // if the window is already open, we force it to close
             // the null-conditional operator (?.) only calls Close() if it is not null
@@ -75,6 +95,26 @@ namespace FluentHwInfo.Views
             };
 
             _currentWidgetWindow.Activate();
+        }
+
+        // InfoBar animation
+        private void AnimateInfoBar(double targetY, bool isHitTestVisible)
+        {
+            NoSensorsInfoBar.IsHitTestVisible = isHitTestVisible;
+
+            var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
+
+            var animY = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+            {
+                To = targetY,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = new Microsoft.UI.Xaml.Media.Animation.CubicEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseOut }
+            };
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(animY, InfoBarTransform);
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(animY, "Y");
+
+            sb.Children.Add(animY);
+            sb.Begin();
         }
 
         private void ResetMinMax_Click(object sender, RoutedEventArgs e)

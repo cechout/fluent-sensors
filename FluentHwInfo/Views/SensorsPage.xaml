@@ -84,6 +84,25 @@
                                 </StackPanel>
                             </DataTemplate>
                         </Button.ContentTemplate>
+
+                        <!--<FlyoutBase.AttachedFlyout>
+                            <Flyout x:Name="NoSensorsFlyout" Placement="Bottom">
+                                <Flyout.FlyoutPresenterStyle>
+                                    <Style TargetType="FlyoutPresenter">
+                                        <Setter Property="Background" Value="{ThemeResource SystemFillColorCautionBackgroundBrush}" />
+                                        <Setter Property="Padding" Value="12,8" />
+                                        <Setter Property="CornerRadius" Value="8" />
+                                        <Setter Property="MinHeight" Value="0" />
+                                        <Setter Property="MinWidth" Value="0" />
+                                    </Style>
+                                </Flyout.FlyoutPresenterStyle>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon FontSize="14" Glyph="&#xE7BA;" />
+                                    <TextBlock FontSize="14" Text="No sensors selected" />
+                                </StackPanel>
+                            </Flyout>
+                        </FlyoutBase.AttachedFlyout>-->
                     </Button>
 
                 </StackPanel>
@@ -253,6 +272,24 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+
+
+        <InfoBar
+            x:Name="NoSensorsInfoBar"
+            Title="No sensors selected"
+            Grid.Row="2"
+            Margin="24"
+            VerticalAlignment="Bottom"
+            IsClosable="False"
+            IsHitTestVisible="False"
+            IsOpen="True"
+            Message="Please select at least one sensor to pin to the widget."
+            Severity="Warning">
+
+            <InfoBar.RenderTransform>
+                <TranslateTransform x:Name="InfoBarTransform" Y="100" />
+            </InfoBar.RenderTransform>
+        </InfoBar>
 
 
         <!--  bottom page border with control buttons  -->
