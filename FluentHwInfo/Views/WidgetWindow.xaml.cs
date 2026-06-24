@@ -23,6 +23,7 @@ namespace FluentHwInfo.Views
     {
         private AppWindow _appWindow;
         public WidgetViewModel ViewModel { get; } // expose the ViewModel so {x:Bind} in XAML can access it
+        public static WidgetWindow CurrentInstance { get; private set; }
 
         // system backdrop controllers and configuration
         private DesktopAcrylicController _acrylicController;
@@ -42,7 +43,8 @@ namespace FluentHwInfo.Views
 
             this.InitializeComponent();
             this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
-
+            CurrentInstance = this; 
+            
             SetBackdrop(SettingsService.Instance.BackdropType);
             ApplyTheme(SettingsService.Instance.AppTheme);
 
@@ -67,8 +69,8 @@ namespace FluentHwInfo.Views
             // we pass the number of sensors to the method for auto-sizing
             PositionWidgetTopRight(selectedSensors.Count);
 
-            // register the closed event to prevent memory leaks in the background service
             this.Closed += WidgetWindow_Closed;
+            _appWindow.Changed += AppWindow_Changed;
         }
 
 
@@ -121,6 +123,7 @@ namespace FluentHwInfo.Views
 
             this.Activated -= Window_Activated;
             _configurationSource = null;
+            CurrentInstance = null;
         }
         private void Window_Activated(object sender, WindowActivatedEventArgs args)
         {
@@ -189,8 +192,16 @@ namespace FluentHwInfo.Views
                 UpdateSolidBackground();
             });
         }
+        private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
+        {
+            // if widget window is closed, main window also has to check
+            if (args.DidPresenterChange && MainWindow.CurrentInstance != null)
+            {
+                MainWindow.CurrentInstance.CheckAndHideToTray();
+            }
+        }
 
-        
+
         // core logic for theme and material application
         private void ApplyTheme(string themeTag)
         {

@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:FluentHwInfo"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tb="using:H.NotifyIcon"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:ui1="using:Windows.UI.Composition"
     xmlns:winex="using:WinUIEx"
@@ -73,9 +74,6 @@
             x:Name="SplashOverlay"
             Grid.Row="1"
             Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
-
-
             <StackPanel
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
@@ -115,5 +113,23 @@
                     Text="Starting Fluent HwInfo..." />
             </StackPanel>
         </Grid>
+
+
+        <!--  taskbar icon  -->
+        <tb:TaskbarIcon
+            x:Name="TrayIcon"
+            DoubleClickCommand="{x:Bind ShowMainWindowCommand}"
+            IconSource="/Assets/Icon/Icon.ico"
+            ToolTipText="Fluent HwInfo"
+            Visibility="Visible">
+
+            <tb:TaskbarIcon.ContextFlyout>
+                <MenuFlyout>
+                    <MenuFlyoutItem Command="{x:Bind ShowMainWindowCommand}" Text="Sensor List" />
+                    <MenuFlyoutItem Command="{x:Bind OpenSettingsCommand}" Text="Settings" />
+                    <MenuFlyoutItem Command="{x:Bind ExitAppCommand}" Text="Exit App" />
+                </MenuFlyout>
+            </tb:TaskbarIcon.ContextFlyout>
+        </tb:TaskbarIcon>
     </Grid>
 </Window>

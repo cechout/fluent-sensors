@@ -26,6 +26,10 @@ namespace FluentHwInfo
     public sealed partial class MainWindow : Window
     {
         public static MainWindow CurrentInstance { get; private set; } // we save here the current instance of the MainWindow class
+        public XamlUICommand RestoreAppCommand { get; } = new XamlUICommand(); // restore
+        public XamlUICommand ShowMainWindowCommand { get; } = new XamlUICommand(); // restore + navigate to SensorPage
+        public XamlUICommand OpenSettingsCommand { get; } = new XamlUICommand(); // restore + navigate to SettingsPage
+        public XamlUICommand ExitAppCommand { get; } = new XamlUICommand();
 
 
         // constructor
@@ -66,9 +70,24 @@ namespace FluentHwInfo
 
             FluentHwInfo.Services.SettingsService.Instance.ThemeChanged += OnThemeChanged;
             ApplyTitleBarTheme(FluentHwInfo.Services.SettingsService.Instance.AppTheme);
+            ApplyTrayIconTheme(FluentHwInfo.Services.SettingsService.Instance.AppTheme);
 
-            // add the loaded event handler to the content of the window
             ((FrameworkElement)this.Content).Loaded += MainWindow_Loaded;
+            this.AppWindow.Changed += AppWindow_Changed;
+
+            // system tray commands wiring
+            RestoreAppCommand.ExecuteRequested += (s, e) => RestoreApp();
+            ShowMainWindowCommand.ExecuteRequested += (s, e) =>
+            {
+                RestoreApp();
+                MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0]; 
+            };
+            OpenSettingsCommand.ExecuteRequested += (s, e) =>
+            {
+                RestoreApp();
+                MainNavigationView.SelectedItem = MainNavigationView.FooterMenuItems[0]; 
+            };
+            ExitAppCommand.ExecuteRequested += (s, e) => Application.Current.Exit();
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -135,6 +154,7 @@ namespace FluentHwInfo
             this.DispatcherQueue.TryEnqueue(() =>
             {
                 ApplyTitleBarTheme(newTheme);
+                ApplyTrayIconTheme(newTheme);
             });
         }
 
@@ -147,6 +167,20 @@ namespace FluentHwInfo
                 _ => Microsoft.UI.Windowing.TitleBarTheme.UseDefaultAppMode
             };
         }
+
+        // theme switch does not work smh
+        private void ApplyTrayIconTheme(string themeTag)
+        {
+            var targetTheme = themeTag switch
+            {
+                "Light" => ElementTheme.Light,
+                "Dark" => ElementTheme.Dark,
+                _ => ElementTheme.Default
+            };
+
+            TrayIcon.RequestedTheme = targetTheme;
+        }
+
 
         // this method is called whenever an item in the navigation view is clicked
         private void MainNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -175,6 +209,74 @@ namespace FluentHwInfo
                         contentFrame.Navigate(typeof(SettingsPage)); 
                         break;
                 }
+            }
+        }
+
+
+        // system tray guard
+        private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
+        {
+            // if MainWindow is minimized, check if we have to go to tray
+            if (args.DidPresenterChange)
+            {
+                CheckAndHideToTray();
+            }
+        }
+
+        public void CheckAndHideToTray()
+        {
+            // check if user toggled the sys tray functionality
+            if (!SettingsService.Instance.MinimizeToTray) return;
+
+            // is MainWindow minimized?
+            bool isMainMinimized = this.AppWindow.Presenter is OverlappedPresenter opMain && opMain.State == OverlappedPresenterState.Minimized;
+
+            // is WidgetWindow minimized or not even open?
+            bool isWidgetMinimizedOrClosed = true;
+            if (Views.WidgetWindow.CurrentInstance != null)
+            {
+                var opWidget = Views.WidgetWindow.CurrentInstance.AppWindow.Presenter as OverlappedPresenter;
+                isWidgetMinimizedOrClosed = (opWidget != null && opWidget.State == OverlappedPresenterState.Minimized);
+            }
+
+            // if both true; put it in system tray
+            if (isMainMinimized && isWidgetMinimizedOrClosed)
+            {
+                this.Hide(); // WinUIEx: deletes the window from the taskbar
+                if (Views.WidgetWindow.CurrentInstance != null)
+                {
+                    Views.WidgetWindow.CurrentInstance.Hide(); // WidgetWindow too
+                }
+
+                // for now the system tray icon will be always there
+                //TrayIcon.Visibility = Visibility.Visible;
+            }
+        }
+
+        // system tray controller
+        private void RestoreApp()
+        {
+            // hide icon again
+            // for now the system tray icon will be always there
+            //TrayIcon.Visibility = Visibility.Collapsed;
+
+            // restore MainWindow
+            this.Show(); // WinUIEx: back to task bar
+            if (this.AppWindow.Presenter is OverlappedPresenter opMain)
+            {
+                opMain.Restore();
+            }
+            this.Activate();
+
+            // restore WidgetWindow if it was open
+            if (Views.WidgetWindow.CurrentInstance != null)
+            {
+                Views.WidgetWindow.CurrentInstance.Show();
+                if (Views.WidgetWindow.CurrentInstance.AppWindow.Presenter is OverlappedPresenter opWidget)
+                {
+                    opWidget.Restore();
+                }
+                Views.WidgetWindow.CurrentInstance.Activate();
             }
         }
     }

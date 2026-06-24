@@ -18,6 +18,7 @@ namespace FluentHwInfo.Views
             RestoreIntervalSelection();
             RestoreWidgetSettings();
             RestoreGraphDataPointsSelection();
+            RestoreMinimizeToTraySelection();
 
             // event listeners
             WidgetBackgroundColorPicker.RegisterPropertyChangedCallback(
@@ -73,6 +74,16 @@ namespace FluentHwInfo.Views
             }
         }
 
+        // behavior settings
+        private void MinimizeToTrayToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.MinimizeToTray = MinimizeToTrayToggle.IsOn;
+        }
+        private void RestoreMinimizeToTraySelection()
+        {
+            MinimizeToTrayToggle.IsOn = SettingsService.Instance.MinimizeToTray;
+        }
 
         // interval combo box
         private void IntervalComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -200,7 +211,6 @@ namespace FluentHwInfo.Views
                 }
             }
         }
-
         private void RestoreGraphDataPointsSelection()
         {
             int currentDataPoints = SettingsService.Instance.GraphDataPoints;

@@ -11,7 +11,6 @@
 
     <ScrollViewer>
         <StackPanel
-            MaxWidth="1000"
             Margin="24"
             HorizontalAlignment="Stretch"
             Spacing="4">
@@ -21,11 +20,12 @@
                 Style="{StaticResource SubtitleTextBlockStyle}"
                 Text="Settings" />
 
-            <!--  appearance settings  -->
+
+            <!--  general settings  -->
             <TextBlock
                 Margin="1,8,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="Appearance" />
+                Text="General Settings" />
 
             <controls:SettingsCard
                 Description="Select your preferred color mode for the application"
@@ -42,11 +42,6 @@
             </controls:SettingsCard>
 
             <!--  engine settings  -->
-            <TextBlock
-                Margin="1,20,0,6"
-                Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="Engine" />
-
             <controls:SettingsCard
                 Description="How fast the hardware sensors should be polled"
                 Header="Update Interval"
@@ -62,6 +57,19 @@
                     <ComboBoxItem Content="2000ms" Tag="2000" />
                 </ComboBox>
             </controls:SettingsCard>
+
+            <!--  behavior settings  -->
+            <controls:SettingsCard
+                Description="Hide the app to the system tray when all windows are minimized"
+                Header="Minimize to System Tray"
+                HeaderIcon="{ui:FontIcon Glyph=&#xE744;}">
+                <ToggleSwitch
+                    x:Name="MinimizeToTrayToggle"
+                    OffContent="Off"
+                    OnContent="On"
+                    Toggled="MinimizeToTrayToggle_Toggled" />
+            </controls:SettingsCard>
+
 
             <!--  widget settings  -->
             <TextBlock

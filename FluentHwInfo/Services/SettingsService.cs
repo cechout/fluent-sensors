@@ -17,6 +17,7 @@ namespace FluentHwInfo.Services
         public event Action<bool, Color> TintColorChanged;
         public event Action<bool, Windows.UI.Color> GraphColorChanged;
         public event Action<int> GraphDataPointsChanged;
+        public event Action<bool> MinimizeToTrayChanged;
 
         // fields
         private string _appTheme = "Default";
@@ -141,6 +142,20 @@ namespace FluentHwInfo.Services
                 {
                     _graphDataPoints = value;
                     GraphDataPointsChanged?.Invoke(_graphDataPoints);
+                }
+            }
+        }
+
+        private bool _minimizeToTray = true; 
+        public bool MinimizeToTray
+        {
+            get => _minimizeToTray;
+            set
+            {
+                if (_minimizeToTray != value)
+                {
+                    _minimizeToTray = value;
+                    MinimizeToTrayChanged?.Invoke(_minimizeToTray);
                 }
             }
         }
