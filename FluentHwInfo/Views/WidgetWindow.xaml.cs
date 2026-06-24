@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using WinRT;
 using System.Runtime.InteropServices;
+using WinUIEx;
 
 namespace FluentHwInfo.Views
 {
@@ -147,6 +148,7 @@ namespace FluentHwInfo.Views
             if (MainWindow.CurrentInstance != null)
             {
                 // if yes, just bring it to the front
+                MainWindow.CurrentInstance.Show();
                 MainWindow.CurrentInstance.Activate();
             }
             else

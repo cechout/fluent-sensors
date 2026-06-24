@@ -26,6 +26,7 @@ namespace FluentHwInfo
     public sealed partial class MainWindow : Window
     {
         public static MainWindow CurrentInstance { get; private set; } // we save here the current instance of the MainWindow class
+        private bool _isForceClosing = false;
         public XamlUICommand RestoreAppCommand { get; } = new XamlUICommand(); // restore
         public XamlUICommand ShowMainWindowCommand { get; } = new XamlUICommand(); // restore + navigate to SensorPage
         public XamlUICommand OpenSettingsCommand { get; } = new XamlUICommand(); // restore + navigate to SettingsPage
@@ -74,6 +75,7 @@ namespace FluentHwInfo
 
             ((FrameworkElement)this.Content).Loaded += MainWindow_Loaded;
             this.AppWindow.Changed += AppWindow_Changed;
+            this.AppWindow.Closing += AppWindow_Closing;
 
             // system tray commands wiring
             RestoreAppCommand.ExecuteRequested += (s, e) => RestoreApp();
@@ -87,7 +89,11 @@ namespace FluentHwInfo
                 RestoreApp();
                 MainNavigationView.SelectedItem = MainNavigationView.FooterMenuItems[0]; 
             };
-            ExitAppCommand.ExecuteRequested += (s, e) => Application.Current.Exit();
+            ExitAppCommand.ExecuteRequested += (s, e) =>
+            {
+                _isForceClosing = true;
+                Application.Current.Exit();
+            };
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -228,19 +234,17 @@ namespace FluentHwInfo
             // check if user toggled the sys tray functionality
             if (!SettingsService.Instance.MinimizeToTray) return;
 
-            // is MainWindow minimized?
-            bool isMainMinimized = this.AppWindow.Presenter is OverlappedPresenter opMain && opMain.State == OverlappedPresenterState.Minimized;
-
-            // is WidgetWindow minimized or not even open?
-            bool isWidgetMinimizedOrClosed = true;
+            // check status of both windows
+            bool isMainReady = !this.AppWindow.IsVisible || (this.AppWindow.Presenter is OverlappedPresenter opMain && opMain.State == OverlappedPresenterState.Minimized);
+            bool isWidgetReady = true;
             if (Views.WidgetWindow.CurrentInstance != null)
             {
                 var opWidget = Views.WidgetWindow.CurrentInstance.AppWindow.Presenter as OverlappedPresenter;
-                isWidgetMinimizedOrClosed = (opWidget != null && opWidget.State == OverlappedPresenterState.Minimized);
+                isWidgetReady = !Views.WidgetWindow.CurrentInstance.AppWindow.IsVisible || (opWidget != null && opWidget.State == OverlappedPresenterState.Minimized);
             }
 
             // if both true; put it in system tray
-            if (isMainMinimized && isWidgetMinimizedOrClosed)
+            if (isMainReady && isWidgetReady)
             {
                 this.Hide(); // WinUIEx: deletes the window from the taskbar
                 if (Views.WidgetWindow.CurrentInstance != null)
@@ -250,6 +254,18 @@ namespace FluentHwInfo
 
                 // for now the system tray icon will be always there
                 //TrayIcon.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+        {
+            if (_isForceClosing) return; // if user explicitely clicks "exit app"; kill window
+
+            if (SettingsService.Instance.MinimizeToTray)
+            {
+                args.Cancel = true; 
+                this.Hide();        
+                CheckAndHideToTray();
             }
         }
 
