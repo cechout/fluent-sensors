@@ -64,7 +64,13 @@ namespace FluentHwInfo
 
             }
             // size
-            this.SetWindowSize(700, 700);
+            this.SetWindowSize(690, 650);
+
+            this.CenterOnScreen();
+            var currentPos = this.AppWindow.Position;
+            // yea idk; might change this in future
+            this.AppWindow.Move(new Windows.Graphics.PointInt32(currentPos.X - 400, currentPos.Y - 100));
+
             var manager = WinUIEx.WindowManager.Get(this);
             manager.MinWidth = 600;
             manager.MinHeight = 400;
