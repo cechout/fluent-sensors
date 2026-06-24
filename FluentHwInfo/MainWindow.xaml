@@ -43,9 +43,8 @@
             IsPaneOpen="False"
             IsSettingsVisible="False"
             OpenPaneLength="150"
-            PaneDisplayMode="LeftCompact"
-            SelectionChanged="MainNavigationView_SelectionChanged"
-            Visibility="Collapsed">
+            PaneDisplayMode="Left"
+            SelectionChanged="MainNavigationView_SelectionChanged">
 
             <!--  sensor page  -->
             <NavigationView.MenuItems>

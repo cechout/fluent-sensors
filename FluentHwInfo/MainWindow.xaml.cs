@@ -59,7 +59,7 @@ namespace FluentHwInfo
 
             }
             // size
-            this.SetWindowSize(700, 600);
+            this.SetWindowSize(700, 700);
             var manager = WinUIEx.WindowManager.Get(this);
             manager.MinWidth = 600;
             manager.MinHeight = 400;
@@ -70,14 +70,6 @@ namespace FluentHwInfo
             // add the loaded event handler to the content of the window
             ((FrameworkElement)this.Content).Loaded += MainWindow_Loaded;
         }
-
-
-        // loading screen methods
-        //private void IconShadow_Loaded(object sender, RoutedEventArgs e)
-        //{
-        //    // Verbindet den werfenden Schatten mit der Leinwand am Boden
-        //    IconThemeShadow.Receivers.Add(ShadowReceiver);
-        //}
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -122,8 +114,17 @@ namespace FluentHwInfo
             await Task.Delay(500);
 
             // show the main grid
-            SplashOverlay.Visibility = Visibility.Collapsed;
+            
             MainNavigationView.Visibility = Visibility.Visible;
+
+            // manually close navigation pane
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                MainNavigationView.IsPaneOpen = false;
+            });
+            await Task.Delay(200);
+
+            SplashOverlay.Visibility = Visibility.Collapsed;
             MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
         }
 
