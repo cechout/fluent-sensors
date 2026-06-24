@@ -132,6 +132,20 @@ namespace FluentHwInfo.ViewModels
         }
 
 
+        // resets method
+        public void ResetMinMax()
+        {
+            _min = double.MaxValue;
+            _max = double.MinValue;
+            _sum = 0;
+            _count = 0;
+
+            MinimumValue = "-";
+            MaximumValue = "-";
+            AverageValue = "-";
+        }
+
+
         // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)

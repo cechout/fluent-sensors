@@ -76,5 +76,17 @@ namespace FluentHwInfo.Views
 
             _currentWidgetWindow.Activate();
         }
+
+        private void ResetMinMax_Click(object sender, RoutedEventArgs e)
+        {
+            // we iterate through all nested groups and all sensors
+            foreach (var group in ViewModel.HardwareGroups)
+            {
+                foreach (var sensor in group.Sensors)
+                {
+                    sensor.ResetMinMax();
+                }
+            }
+        }
     }
 }

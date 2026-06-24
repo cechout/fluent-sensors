@@ -50,6 +50,7 @@
                         Height="36"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Bottom"
+                        Click="ResetMinMax_Click"
                         Content="Reset Min/Max"
                         Style="{ThemeResource SubtleButtonStyle}">
                         <Button.ContentTemplate>
