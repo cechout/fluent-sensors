@@ -1,16 +1,21 @@
 using LiveChartsCore;
 using LiveChartsCore.Drawing;
+using LiveChartsCore.Kernel;
 using LiveChartsCore.Kernel.Sketches;
+using LiveChartsCore.Measure;
+using LiveChartsCore.Painting;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.Painting.Effects;
+using LiveChartsCore.SkiaSharpView.VisualElements;
+using LiveChartsCore.VisualElements;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using SkiaSharp;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace FluentHwInfo.Views
 {
@@ -29,6 +34,10 @@ namespace FluentHwInfo.Views
         // LiveCharts fields
         private readonly Axis _yAxis;
         private readonly StepLineSeries<double?> _lineSeries;
+        // hover indicators; nested Visual subclasses since Visual is abstract in the new API
+        private readonly DataCircleVisual _hoverCircle;
+        private readonly DataLabelVisual _hoverLabel;
+        private bool _isPointerOverChart = false;
 
 
         // constructor
@@ -70,6 +79,28 @@ namespace FluentHwInfo.Views
                     CrosshairSnapEnabled = false
                 }
             };
+
+            _hoverCircle = new DataCircleVisual
+            {
+                Diameter = 8,
+                Fill = new SolidColorPaint(SKColors.Transparent),
+                Stroke = new SolidColorPaint(SKColors.Transparent) { StrokeThickness = 0 }
+            };
+
+            _hoverLabel = new DataLabelVisual
+            {
+                Text = "",
+                TextSize = 10,
+                Paint = new SolidColorPaint(SKColors.Transparent),
+                BackgroundColor = LvcColor.Empty,
+                Padding = new LiveChartsCore.Drawing.Padding(4, 2),
+                PixelOffset = new LvcPoint(10, -14)
+            };
+
+            Chart.VisualElements = new ChartElement[] { _hoverCircle, _hoverLabel };
+
+            Chart.PointerMoved += OnChartPointerMoved;
+            Chart.PointerExited += OnChartPointerExited;
 
             // initial visuals and threshold state
             ApplyStroke();
@@ -479,6 +510,140 @@ namespace FluentHwInfo.Views
         }
 
 
-        
+        // updates hover circle + label position and value whenever the pointer moves over the chart
+        private void OnChartPointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            if (Values is null || Values.Count == 0) return;
+
+            var position = e.GetCurrentPoint(Chart).Position;
+            var dataPoint = Chart.ScalePixelsToData(new LvcPointD(position.X, position.Y));
+
+            // step-line semantics: the visible value at any x is the last actual data point at or before it
+            int index = (int)System.Math.Floor(dataPoint.X);
+            if (index < 0 || index >= Values.Count) return;
+
+            var value = Values[index];
+            if (value is null) return;
+
+            // reveal the hover elements now that we have a valid position
+            if (!_isPointerOverChart)
+            {
+                _isPointerOverChart = true;
+                ShowHoverElements(true);
+            }
+
+            _hoverCircle.DataX = dataPoint.X;
+            _hoverCircle.DataY = value.Value;
+
+            _hoverLabel.DataX = dataPoint.X;
+            _hoverLabel.DataY = value.Value;
+            _hoverLabel.Text = value.Value.ToString("0.0");
+
+            Chart.CoreCanvas.Invalidate();
+        }
+
+        // hides the hover circle and label when the pointer leaves the chart area
+        private void OnChartPointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            _isPointerOverChart = false;
+            ShowHoverElements(false);
+            Chart.CoreCanvas.Invalidate();
+        }
+
+        // toggles visibility of the hover circle + label by swapping between transparent and colored paints
+        private void ShowHoverElements(bool visible)
+        {
+            var accent = new SKColor(AccentColor.R, AccentColor.G, AccentColor.B);
+
+            if (visible)
+            {
+                _hoverCircle.Fill = new SolidColorPaint(accent);
+                _hoverCircle.Stroke = new SolidColorPaint(SKColors.White.WithAlpha(220)) { StrokeThickness = 1 };
+
+                _hoverLabel.Paint = new SolidColorPaint(SKColors.White);
+                _hoverLabel.BackgroundColor = new LvcColor(accent.Red, accent.Green, accent.Blue, 220);
+            }
+            else
+            {
+                _hoverCircle.Fill = new SolidColorPaint(SKColors.Transparent);
+                _hoverCircle.Stroke = new SolidColorPaint(SKColors.Transparent) { StrokeThickness = 0 };
+
+                _hoverLabel.Paint = new SolidColorPaint(SKColors.Transparent);
+                _hoverLabel.BackgroundColor = LvcColor.Empty;
+            }
+        }
+
+
+
+
+        // ===== Custom Visual subclasses =====
+
+        // draws a filled circle centered on a data-space coordinate (DataX, DataY in chart values)
+        private sealed class DataCircleVisual : Visual
+        {
+            private readonly CircleGeometry _circle = new();
+
+            // position in data coordinates; set from outside, converted to pixels in Measure()
+            public double DataX { get; set; }
+            public double DataY { get; set; }
+            public float Diameter { get => _circle.Width; set { _circle.Width = value; _circle.Height = value; } }
+
+            // pass-through paints; keep the "swap paints to show/hide" pattern from before
+            public Paint? Fill { get => _circle.Fill; set => _circle.Fill = value; }
+            public Paint? Stroke { get => _circle.Stroke; set => _circle.Stroke = value; }
+
+            protected override CircleGeometry DrawnElement => _circle;
+
+            protected override void Measure(Chart chart)
+            {
+                if (chart is not CartesianChartEngine cc) return;
+                if (cc.XAxes.Length == 0 || cc.YAxes.Length == 0) return;
+
+                // build the scalers ourselves; internally LiveCharts does the exact same thing
+                var xScaler = new Scaler(cc.DrawMarginLocation, cc.DrawMarginSize, cc.XAxes[0]);
+                var yScaler = new Scaler(cc.DrawMarginLocation, cc.DrawMarginSize, cc.YAxes[0]);
+
+                var px = xScaler.ToPixels(DataX);
+                var py = yScaler.ToPixels(DataY);
+
+                _circle.X = px - _circle.Width / 2f;
+                _circle.Y = py - _circle.Height / 2f;
+            }
+        }
+
+        // draws a text label anchored at a data-space coordinate, offset by a fixed pixel amount
+        private sealed class DataLabelVisual : Visual
+        {
+            private readonly LabelGeometry _label = new();
+
+            public double DataX { get; set; }
+            public double DataY { get; set; }
+            public LvcPoint PixelOffset { get; set; }
+
+            // pass-through label properties
+            public string Text { get => _label.Text; set => _label.Text = value; }
+            public double TextSize { get => _label.TextSize; set => _label.TextSize = (float)value; }
+            public Paint? Paint { get => _label.Paint; set => _label.Paint = value; }
+            public LvcColor BackgroundColor { get => _label.Background; set => _label.Background = value; }
+            public LiveChartsCore.Drawing.Padding Padding { get => _label.Padding; set => _label.Padding = value; }
+
+            protected override LabelGeometry DrawnElement => _label;
+
+            protected override void Measure(Chart chart)
+            {
+                if (chart is not CartesianChartEngine cc) return;
+                if (cc.XAxes.Length == 0 || cc.YAxes.Length == 0) return;
+
+                // build the scalers ourselves; internally LiveCharts does the exact same thing
+                var xScaler = new Scaler(cc.DrawMarginLocation, cc.DrawMarginSize, cc.XAxes[0]);
+                var yScaler = new Scaler(cc.DrawMarginLocation, cc.DrawMarginSize, cc.YAxes[0]);
+
+                var px = xScaler.ToPixels(DataX);
+                var py = yScaler.ToPixels(DataY);
+
+                _label.X = px + PixelOffset.X;
+                _label.Y = py + PixelOffset.Y;
+            }
+        }
     }
 }

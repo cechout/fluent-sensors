@@ -32,6 +32,29 @@
                 TooltipPosition="Hidden"
                 XAxes="{Binding XAxes, ElementName=Root}"
                 YAxes="{Binding YAxes, ElementName=Root}" />
+
+            <Canvas
+                x:Name="HoverCanvas"
+                Height="80"
+                Margin="-3,0,-3,-2"
+                HorizontalAlignment="Stretch"
+                IsHitTestVisible="False">
+
+                <Ellipse
+                    x:Name="HoverCircle"
+                    Width="8"
+                    Height="8"
+                    StrokeThickness="1"
+                    Visibility="Collapsed" />
+
+                <Border
+                    x:Name="HoverLabelBorder"
+                    Padding="4,2"
+                    CornerRadius="3"
+                    Visibility="Collapsed">
+                    <TextBlock x:Name="HoverLabelText" FontSize="10" />
+                </Border>
+            </Canvas>
         </Grid>
     </Border>
 </UserControl>
