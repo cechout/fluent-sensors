@@ -320,6 +320,7 @@
                                         Grid.Column="1"
                                         AccentColor="{x:Bind GraphColor, Mode=OneWay}"
                                         IsAutoScaled="{x:Bind IsAutoScaled, Mode=OneWay}"
+                                        LabelFollowsPointer="True"
                                         ManualYMax="{x:Bind ManualYMax, Mode=OneWay}"
                                         ThresholdColor="{x:Bind ThresholdColor, Mode=OneWay}"
                                         ThresholdDirection="{x:Bind ThresholdDirection, Mode=OneWay}"

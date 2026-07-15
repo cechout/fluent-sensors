@@ -270,8 +270,21 @@ namespace FluentHwInfo.Views
         }
 
 
-        // color calculation
+        // DependencyProperty: LabelFollowsPointer
+        public bool LabelFollowsPointer
+        {
+            get => (bool)GetValue(LabelFollowsPointerProperty);
+            set => SetValue(LabelFollowsPointerProperty, value);
+        }
+        public static readonly DependencyProperty LabelFollowsPointerProperty =
+            DependencyProperty.Register(
+                nameof(LabelFollowsPointer),
+                typeof(bool),
+                typeof(Graph),
+                new PropertyMetadata(false));
 
+
+        // color calculation
         // rebuilds the colors of the graph line (Stroke) and the area under it (Fill)
         // called whenever anything changes that affects color: values, accent color, threshold, y-range
         private void ApplyStroke()
@@ -537,8 +550,10 @@ namespace FluentHwInfo.Views
             Canvas.SetLeft(HoverCircle, position.X - HoverCircle.Width / 2);
             Canvas.SetTop(HoverCircle, valuePixels.Y - HoverCircle.Height / 2);
 
+            // pick which Y coordinate the label follows, based on LabelFollowsPointer
+            double labelY = LabelFollowsPointer ? position.Y : valuePixels.Y;
             Canvas.SetLeft(HoverLabelBorder, position.X + 10);
-            Canvas.SetTop(HoverLabelBorder, valuePixels.Y - 14);
+            Canvas.SetTop(HoverLabelBorder, labelY - 14);
             HoverLabelText.Text = value.Value.ToString("0.0");
         }
 
@@ -568,10 +583,5 @@ namespace FluentHwInfo.Views
             HoverLabelText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
             HoverLabelBorder.Visibility = Visibility.Visible;
         }
-
-
-
-
-        
     }
 }
