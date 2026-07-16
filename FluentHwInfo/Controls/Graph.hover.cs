@@ -59,6 +59,11 @@ namespace FluentHwInfo.Controls
                 ShowHoverElements();
             }
 
+            bool isAlarm = ThresholdValue is not null && (ThresholdDirection == ThresholdDirection.Above
+                ? value.Value > ThresholdValue.Value
+                : value.Value < ThresholdValue.Value);
+            ApplyHoverColor(isAlarm);
+
             var valuePixels = Chart.ScaleDataToPixels(new LvcPointD(dataPoint.X, value.Value));
 
             // circle sits exactly on the step at the cursors x-position
@@ -94,18 +99,23 @@ namespace FluentHwInfo.Controls
             CurrentValueLabelBorder.Visibility = Visibility.Collapsed;
         }
 
-        // colors the hover circle + label to match the current accent color, then reveals them
         private void ShowHoverElements()
         {
-            var accent = AccentColor;
-
-            HoverCircle.Fill = new SolidColorBrush(accent);
-            HoverCircle.Stroke = new SolidColorBrush(Windows.UI.Color.FromArgb(220, 255, 255, 255));
             HoverCircle.Visibility = Visibility.Visible;
-
-            CurrentValueLabelBorder.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(220, accent.R, accent.G, accent.B));
-            CurrentValueLabelText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
             CurrentValueLabelBorder.Visibility = Visibility.Visible;
+        }
+
+        // colors the hover circle + label: threshold color if the hovered value sits inside
+        // an alarm zone, accent color otherwise
+        private void ApplyHoverColor(bool isAlarm)
+        {
+            var color = isAlarm ? ThresholdColor : AccentColor;
+
+            HoverCircle.Fill = new SolidColorBrush(color);
+            HoverCircle.Stroke = new SolidColorBrush(Windows.UI.Color.FromArgb(220, 255, 255, 255));
+
+            CurrentValueLabelBorder.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(220, color.R, color.G, color.B));
+            CurrentValueLabelText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
         }
     }
 }

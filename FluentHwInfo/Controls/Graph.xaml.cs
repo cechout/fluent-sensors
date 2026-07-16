@@ -142,6 +142,11 @@ namespace FluentHwInfo.Controls
             ApplyStroke();
             RebuildSections();
 
+            if (_isPointerOverChart)
+            {
+                UpdateHoverAtPointer();
+            }
+
             if (ThresholdValue is not null && ThresholdValueLabelBorder.Visibility == Visibility.Visible)
             {
                 PositionThresholdLabel();
