@@ -21,116 +21,91 @@
 
         <!--  header: control buttons  -->
         <!--  (border has background: {ThemeResource SolidBackgroundFillColorTertiaryBrush})  -->
+        <!--  (also: controlbar has automatic right padding, thats why here only padding 10 on the right)  -->
         <Border
             Grid.Row="0"
-            Padding="12,8,16,8"
+            Padding="16,0,10,1"
             Background="Transparent"
             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
             BorderThickness="0,0,0,1">
 
-            <Grid>
+            <Grid x:Name="SensorListHeaderGrid" SizeChanged="SensorListHeaderGrid_SizeChanged">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
                 <TextBlock
+                    x:Name="SensorListTitleText"
                     Grid.Column="0"
-                    Margin="8,0,0,0"
+                    Margin="6,0,0,0"
                     VerticalAlignment="Center"
                     Style="{ThemeResource BodyStrongTextBlockStyle}"
                     Text="Sensor List" />
 
-                <StackPanel
+                <CommandBar
+                    x:Name="SensorListCommandBar"
                     Grid.Column="1"
                     HorizontalAlignment="Right"
-                    Orientation="Horizontal"
-                    Spacing="0">
+                    VerticalAlignment="Bottom"
+                    Background="Transparent"
+                    DefaultLabelPosition="Right"
+                    IsDynamicOverflowEnabled="False"
+                    IsOpen="False"
+                    Loaded="SensorListCommandBar_Loaded">
 
-                    <!--  reset min max button  -->
-                    <Button
-                        Height="36"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Bottom"
-                        Click="ResetMinMax_Click"
-                        Content="Reset Values"
-                        Style="{ThemeResource SubtleButtonStyle}">
-                        <Button.ContentTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon FontSize="15" Glyph="&#xE72C;" />
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="{Binding}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </Button.ContentTemplate>
-                    </Button>
+                    <CommandBar.Resources>
+                        <SolidColorBrush x:Key="CommandBarBackground" Color="Transparent" />
+                        <SolidColorBrush x:Key="CommandBarBackgroundOpen" Color="Transparent" />
+                        <SolidColorBrush x:Key="CommandBarBorderBrushOpen" Color="Transparent" />
+
+                        <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
+                    </CommandBar.Resources>
 
                     <!--  pin to widget button  -->
-                    <Button
-                        Height="36"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Bottom"
+                    <AppBarButton
+                        x:Name="PinToWidgetButton"
                         Click="PinToWidget_Click"
-                        Content="Pin to Widget"
-                        Style="{ThemeResource SubtleButtonStyle}">
-                        <Button.ContentTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon FontSize="16" Glyph="&#xE93A;" />
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="{Binding}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </Button.ContentTemplate>
-                    </Button>
+                        Label="Pin to Widget">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE93A;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarSeparator x:Name="ButtonSeparator" />
+
+                    <!--  reset min max button  -->
+                    <AppBarButton
+                        x:Name="ResetValuesButton"
+                        Click="ResetMinMax_Click"
+                        Label="Reset Values">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE72C;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
 
                     <!--  hide sensors button  -->
-                    <Button
-                        Height="36"
-                        VerticalAlignment="Bottom"
+                    <AppBarButton
+                        x:Name="HideSensorsButton"
                         Click="HideSensors_Click"
-                        Content="Hide Sensor(s)"
-                        Style="{ThemeResource SubtleButtonStyle}">
-                        <Button.ContentTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon FontSize="15" Glyph="&#xED1A;" />
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="{Binding}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </Button.ContentTemplate>
-                    </Button>
+                        Label="Hide Sensor(s)">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xED1A;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
 
                     <!--  show hidden sensors button  -->
-                    <Button
-                        Height="36"
-                        VerticalAlignment="Bottom"
+                    <AppBarButton
+                        x:Name="ShowHiddenSensorsButton"
                         Click="ShowHiddenSensors_Click"
-                        Content="Show Hidden Sensors"
                         IsEnabled="{x:Bind ViewModel.HasHiddenSensors, Mode=OneWay}"
-                        Style="{ThemeResource SubtleButtonStyle}">
-                        <Button.ContentTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon FontSize="15" Glyph="&#xE890;" />
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="{Binding}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </Button.ContentTemplate>
-                    </Button>
+                        Label="Show Hidden Sensors">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8A7;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+                </CommandBar>
 
-                </StackPanel>
             </Grid>
         </Border>
 

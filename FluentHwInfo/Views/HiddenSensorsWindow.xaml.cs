@@ -96,6 +96,7 @@ namespace FluentHwInfo.Views
         private void RestoreSelected_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.RestoreSelectedHiddenSensors();
+            this.Close();
         }
 
 

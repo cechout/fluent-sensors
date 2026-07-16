@@ -18,6 +18,14 @@ namespace FluentHwInfo.Views
         private int _infoBarTicket = 0;
         private HiddenSensorsWindow _currentHiddenSensorsWindow;
 
+        // for control button prority ordering and overflow handling
+        private ICommandBarElement[] _commandBarPriorityOrder;
+        private readonly Dictionary<ICommandBarElement, double> _commandBarButtonWidths = new();
+        private bool _commandBarWidthsCached = false;
+        private const double OverflowButtonReservedWidth = 48;
+        private const double HeaderSpacingBuffer = 64;
+        private int _commandBarOverflowStartIndex = -1; // -1 means "not computed yet" so the very first call always applies once
+
 
         // constructor
         public SensorsPage()
@@ -173,6 +181,101 @@ namespace FluentHwInfo.Views
         private void SettingsExpander_Loaded(object sender, RoutedEventArgs e)
         {
             SettingsExpanderRepaintFix.Attach((SettingsExpander)sender);
+        }
+
+
+        // overflow handling for the command bar
+        // runs once when the command bar is first ready
+        // sets the fixed priority order and takes the initial width measurement
+        private void SensorListCommandBar_Loaded(object sender, RoutedEventArgs e)
+        {
+            _commandBarPriorityOrder = new ICommandBarElement[]
+            {
+                PinToWidgetButton,
+                ButtonSeparator,
+                ResetValuesButton,
+                HideSensorsButton,
+                ShowHiddenSensorsButton
+            };
+
+            _commandBarOverflowStartIndex = -1;
+            CacheCommandBarButtonWidths();
+            UpdateCommandBarOverflow();
+        }
+        // recalculates the overflow split whenever the header changes size
+        private void SensorListHeaderGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (_commandBarWidthsCached)
+            {
+                UpdateCommandBarOverflow();
+            }
+        }
+        // measures every button once while its still fully visible with its label
+        // (so we know later how much space each one actually needs)
+        private void CacheCommandBarButtonWidths()
+        {
+            foreach (var element in _commandBarPriorityOrder)
+            {
+                if (element is FrameworkElement frameworkElement)
+                {
+                    _commandBarButtonWidths[element] = frameworkElement.ActualWidth;
+                }
+            }
+
+            _commandBarWidthsCached = true;
+        }
+        // Fills the command bar strictly in priority order; the first button that doesn't
+        // fit anymore, and everything after it, goes into the overflow menu.
+        // Only touches PrimaryCommands/SecondaryCommands when the split actually changes,
+        // otherwise every resize tick would rebuild the buttons and cause label flicker.
+        private void UpdateCommandBarOverflow()
+        {
+            double availableWidth = SensorListHeaderGrid.ActualWidth - SensorListTitleText.ActualWidth - HeaderSpacingBuffer;
+            double totalWidth = _commandBarPriorityOrder.Sum(button => _commandBarButtonWidths[button]);
+
+            double budget = totalWidth <= availableWidth
+                ? availableWidth
+                : availableWidth - OverflowButtonReservedWidth;
+
+            double runningWidth = 0;
+            int overflowStartIndex = _commandBarPriorityOrder.Length;
+
+            for (int i = 0; i < _commandBarPriorityOrder.Length; i++)
+            {
+                double buttonWidth = _commandBarButtonWidths[_commandBarPriorityOrder[i]];
+
+                if (runningWidth + buttonWidth > budget)
+                {
+                    overflowStartIndex = i;
+                    break;
+                }
+
+                runningWidth += buttonWidth;
+            }
+
+            // nothing changed since the last check: skip rebuilding
+            // (stops flickering when resizing)
+            if (overflowStartIndex == _commandBarOverflowStartIndex)
+            {
+                return;
+            }
+
+            _commandBarOverflowStartIndex = overflowStartIndex;
+
+            SensorListCommandBar.PrimaryCommands.Clear();
+            SensorListCommandBar.SecondaryCommands.Clear();
+
+            for (int i = 0; i < _commandBarPriorityOrder.Length; i++)
+            {
+                if (i < overflowStartIndex)
+                {
+                    SensorListCommandBar.PrimaryCommands.Add(_commandBarPriorityOrder[i]);
+                }
+                else
+                {
+                    SensorListCommandBar.SecondaryCommands.Add(_commandBarPriorityOrder[i]);
+                }
+            }
         }
     }
 }
