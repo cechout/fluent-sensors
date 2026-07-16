@@ -45,6 +45,8 @@ namespace FluentHwInfo.Controls
         // actual threshold/scale changes, not on routine data ticks
         private void ShowThresholdLabelBriefly()
         {
+            if (!_isLoaded) return; // Chart isn't measured yet; Graph_Loaded will call this again once it is
+
             if (ThresholdValue is null)
             {
                 _thresholdLabelTimer.Stop();

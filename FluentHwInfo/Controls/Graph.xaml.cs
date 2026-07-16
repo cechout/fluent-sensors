@@ -38,6 +38,7 @@ namespace FluentHwInfo.Controls
         private bool _isPointerOverChart = false;
         private Windows.Foundation.Point _lastPointerPosition;
         private readonly DispatcherTimer _thresholdLabelTimer;
+        private bool _isLoaded;
 
 
         // constructor
@@ -89,10 +90,21 @@ namespace FluentHwInfo.Controls
 
             Chart.PointerMoved += OnChartPointerMoved;
             Chart.PointerExited += OnChartPointerExited;
+            Chart.UpdateStarted += Chart_UpdateStarted;
 
             // initial visuals and threshold state
             ApplyStroke();
             RebuildSections();
+        }
+
+
+        // LiveCharts only builds its internal scale/draw context on the first real measure pass;
+        // UpdateStarted fires once that has happened (Loaded fires too early, before the chart is actually ready)
+        private void Chart_UpdateStarted(LiveChartsCore.Kernel.Sketches.IChartView chart)
+        {
+            Chart.UpdateStarted -= Chart_UpdateStarted;
+            _isLoaded = true;
+            ShowThresholdLabelBriefly();
         }
 
 
@@ -284,6 +296,7 @@ namespace FluentHwInfo.Controls
             {
                 g.RebuildSections();
                 g.ApplyStroke();
+                g.ShowThresholdLabelBriefly();
             }
         }
 
