@@ -252,11 +252,12 @@
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
 
-                                        <Button
+                                        <ToggleButton
                                             Grid.Row="0"
                                             Padding="0"
                                             HorizontalAlignment="Stretch"
                                             VerticalAlignment="Stretch"
+                                            IsChecked="{x:Bind IsAboveDirection, Mode=TwoWay}"
                                             ToolTipService.ToolTip="Mark Above Threshold">
                                             <FontIcon
                                                 FontSize="12"
@@ -266,7 +267,7 @@
                                                     <RotateTransform Angle="-90" />
                                                 </FontIcon.RenderTransform>
                                             </FontIcon>
-                                        </Button>
+                                        </ToggleButton>
 
                                         <Button
                                             Grid.Row="1"
@@ -299,11 +300,12 @@
                                             </Button.Flyout>
                                         </Button>
 
-                                        <Button
+                                        <ToggleButton
                                             Grid.Row="2"
                                             Padding="0"
                                             HorizontalAlignment="Stretch"
                                             VerticalAlignment="Stretch"
+                                            IsChecked="{x:Bind IsBelowDirection, Mode=TwoWay}"
                                             ToolTipService.ToolTip="Mark Under Threshold">
                                             <FontIcon
                                                 FontSize="12"
@@ -313,7 +315,7 @@
                                                     <RotateTransform Angle="90" />
                                                 </FontIcon.RenderTransform>
                                             </FontIcon>
-                                        </Button>
+                                        </ToggleButton>
                                     </Grid>
 
                                     <!--  LiveChart graph  -->

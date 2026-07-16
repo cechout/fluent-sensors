@@ -118,7 +118,14 @@ namespace FluentHwInfo.ViewModels
         public ThresholdDirection ThresholdDirection
         {
             get => _thresholdDirection;
-            set { _thresholdDirection = value; OnPropertyChanged(); }
+            set
+            {
+                if (_thresholdDirection == value) return;
+                _thresholdDirection = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsAboveDirection));
+                OnPropertyChanged(nameof(IsBelowDirection));
+            }
         }
         public SolidColorBrush ThresholdColorBrush
         {
@@ -127,6 +134,39 @@ namespace FluentHwInfo.ViewModels
                 var c = ThresholdColor;
                 const byte swatchAlpha = 200; // 255 = fully opaque
                 return new SolidColorBrush(Windows.UI.Color.FromArgb(swatchAlpha, c.R, c.G, c.B));
+            }
+        }
+        public bool IsAboveDirection
+        {
+            get => ThresholdDirection == ThresholdDirection.Above;
+            set
+            {
+                if (value)
+                {
+                    IsThresholdEnabled = true; // checking a direction implies the user wants the threshold active
+                    ThresholdDirection = ThresholdDirection.Above;
+                }
+                else
+                {
+                    // force the toggle back to checked; direction is radio-like, not a real off-state
+                    OnPropertyChanged(nameof(IsAboveDirection));
+                }
+            }
+        }
+        public bool IsBelowDirection
+        {
+            get => ThresholdDirection == ThresholdDirection.Below;
+            set
+            {
+                if (value)
+                {
+                    IsThresholdEnabled = true;
+                    ThresholdDirection = ThresholdDirection.Below;
+                }
+                else
+                {
+                    OnPropertyChanged(nameof(IsBelowDirection));
+                }
             }
         }
         private Windows.UI.Color _thresholdColor = Windows.UI.Color.FromArgb(255, 220, 50, 50);
@@ -140,6 +180,15 @@ namespace FluentHwInfo.ViewModels
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ThresholdColorBrush));
             }
+        }
+        public Microsoft.UI.Xaml.Media.Brush AboveDirectionBrush => GetDirectionBrush(ThresholdDirection.Above);
+        public Microsoft.UI.Xaml.Media.Brush BelowDirectionBrush => GetDirectionBrush(ThresholdDirection.Below);
+
+        private Microsoft.UI.Xaml.Media.Brush GetDirectionBrush(ThresholdDirection buttonDirection)
+        {
+            bool isActive = ThresholdDirection == buttonDirection;
+            string resourceKey = isActive ? "AccentFillColorDefaultBrush" : "ControlFillColorDefaultBrush";
+            return (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[resourceKey];
         }
 
         // single visibility state for all control panels; toggled together, shown together
