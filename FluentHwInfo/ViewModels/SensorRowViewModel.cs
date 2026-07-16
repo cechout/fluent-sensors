@@ -1,31 +1,29 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
+using FluentHwInfo.Controls;
+using FluentHwInfo.Models;
+using FluentHwInfo.Services;
 
 namespace FluentHwInfo.ViewModels
 {
-    /// <summary>
-    /// Serves as the granular DataContext directly bound to a single UI row, representing the smallest nested scope in the 
-    /// ViewModel hierarchy.
-    /// Acts as a pure "Child-ViewModel" which is entirely managed by its parent (HardwareGroupViewModel).
-    /// 
-    /// Responsibilities:
-    /// - Stores the current, minimum, maximum, and average values as formatted, bindable strings for the XAML UI.
-    /// - Calculates the statistical values (Min, Max, Avg) internally whenever a new raw double value is passed via the 
-    ///   UpdateValue(double) method.
-    /// - Implements INotifyPropertyChanged to automatically trigger UI redraws when values change.
-    /// 
-    /// Architecture Constraints:
-    /// This class is strictly decoupled from hardware services. It does NOT pull data itself. Instead, it passively waits for 
-    /// the Parent-ViewModel to push raw data into it.
-    /// </summary>
-
-    // SensorRowViewModel inherits from INotifyPropertyChanged
-    // INotifyPropertyChanged is mandatory for the UI to react to changes in the data,
-    // otherwise the UI would never know that it should update itself
     public class SensorRowViewModel : INotifyPropertyChanged
     {
         // core configuration properties for the sensor row
-        public string Id { get; set; }
+        private string _id;
+        public string Id
+        {
+            get => _id;
+            set
+            {
+                if (_id == value) return; // Id is set once via object initializer; guards against double-subscribing
+                _id = value;
+                OnPropertyChanged();
+                SubscribeToThreshold();
+            }
+        }
         public string Name { get; set; } = "Unknown Sensor";
         private string _unit = "";
         public string SensorType
@@ -47,7 +45,6 @@ namespace FluentHwInfo.ViewModels
             }
         }
 
-
         // item state
         private bool _isSelected;
         public bool IsSelected
@@ -63,13 +60,18 @@ namespace FluentHwInfo.ViewModels
             }
         }
 
-
         // mathematical fields for internal calculations
         private double _min = double.MaxValue;
         private double _max = double.MinValue;
         private double _sum = 0;
         private int _count = 0;
 
+        // threshold tracking
+        private bool _isSubscribedToThreshold;
+        private DispatcherQueue _dispatcherQueue;
+        private SensorThreshold _threshold;
+        private double _currentRaw;
+        private double _avg;
 
         // formatted string properties for the ui
         private string _currentValue = "-";
@@ -113,7 +115,34 @@ namespace FluentHwInfo.ViewModels
             }
         }
 
-        
+        // text color properties
+        private Brush _currentValueColor = DefaultTextBrush;
+        public Brush CurrentValueColor
+        {
+            get => _currentValueColor;
+            set { _currentValueColor = value; OnPropertyChanged(); }
+        }
+        private Brush _minimumValueColor = DefaultTextBrush;
+        public Brush MinimumValueColor
+        {
+            get => _minimumValueColor;
+            set { _minimumValueColor = value; OnPropertyChanged(); }
+        }
+        private Brush _maximumValueColor = DefaultTextBrush;
+        public Brush MaximumValueColor
+        {
+            get => _maximumValueColor;
+            set { _maximumValueColor = value; OnPropertyChanged(); }
+        }
+        private Brush _averageValueColor = DefaultTextBrush;
+        public Brush AverageValueColor
+        {
+            get => _averageValueColor;
+            set { _averageValueColor = value; OnPropertyChanged(); }
+        }
+        private static Brush DefaultTextBrush => (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
+
+
         // data processing
         public void UpdateValue(double newValue)
         {
@@ -122,13 +151,16 @@ namespace FluentHwInfo.ViewModels
 
             _sum += newValue;
             _count++;
-            double avg = _sum / _count;
+            _currentRaw = newValue; 
+            _avg = _sum / _count;
 
             // build strings for the UI with the dynamic unit
             CurrentValue = $"{newValue:0.0} {_unit}";
             MinimumValue = $"{_min:0.0} {_unit}";
             MaximumValue = $"{_max:0.0} {_unit}";
-            AverageValue = $"{avg:0.0} {_unit}";
+            AverageValue = $"{_avg:0.0} {_unit}";
+
+            RecalculateColors();
         }
 
 
@@ -143,6 +175,58 @@ namespace FluentHwInfo.ViewModels
             MinimumValue = "-";
             MaximumValue = "-";
             AverageValue = "-";
+
+            MinimumValueColor = DefaultTextBrush;
+            MaximumValueColor = DefaultTextBrush;
+            AverageValueColor = DefaultTextBrush;
+        }
+
+
+        // threshold handling
+        private void SubscribeToThreshold()
+        {
+            if (string.IsNullOrEmpty(_id) || _isSubscribedToThreshold) return;
+
+            // captures the UI thread this row was created on, so threshold updates can be marshalled back here safely
+            _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+            _isSubscribedToThreshold = true;
+
+            ThresholdService.Instance.ThresholdChanged += OnThresholdChanged;
+            ApplyThreshold(ThresholdService.Instance.GetThreshold(_id));
+        }
+
+        private void OnThresholdChanged(string sensorId, SensorThreshold threshold)
+        {
+            if (sensorId != _id) return;
+            _dispatcherQueue.TryEnqueue(() => ApplyThreshold(threshold));
+        }
+
+        private void ApplyThreshold(SensorThreshold threshold)
+        {
+            _threshold = threshold;
+            RecalculateColors();
+        }
+
+        private void RecalculateColors()
+        {
+            if (_count == 0) return; // no values received yet, nothing to color
+
+            CurrentValueColor = EvaluateColor(_currentRaw);
+            MinimumValueColor = EvaluateColor(_min);
+            MaximumValueColor = EvaluateColor(_max);
+            AverageValueColor = EvaluateColor(_avg);
+        }
+
+        private Brush EvaluateColor(double value)
+        {
+            if (_threshold == null || !_threshold.IsEnabled)
+                return DefaultTextBrush;
+
+            bool isBreached = _threshold.Direction == ThresholdDirection.Above
+                ? value > _threshold.Value
+                : value < _threshold.Value;
+
+            return isBreached ? new SolidColorBrush(_threshold.Color) : DefaultTextBrush;
         }
 
 

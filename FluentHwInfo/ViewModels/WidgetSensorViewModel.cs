@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using FluentHwInfo.Controls;
+using FluentHwInfo.Models;
 
 namespace FluentHwInfo.ViewModels
 {
@@ -21,13 +22,14 @@ namespace FluentHwInfo.ViewModels
     {
         // general fields
         public ObservableCollection<double?> SensorData { get; private set; }
-        public string SensorId { get; } // this is the unique sensor identifier (e.g., "/intelcpu/0/load/1")
+        public string SensorId { get; } 
         private string _sensorName = "not provided";
         public string SensorName
         {
             get => _sensorName;
             set { _sensorName = value; OnPropertyChanged(); }
         }
+        private double _currentRaw;
         private string _currentValueText = "-";
         public string CurrentValueText
         {
@@ -96,6 +98,8 @@ namespace FluentHwInfo.ViewModels
                     _isThresholdEnabled = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ThresholdValue));
+                    PushThresholdToService();
+                    RecalculateColor();
                 }
             }
         }
@@ -110,6 +114,8 @@ namespace FluentHwInfo.ViewModels
                     _manualThreshold = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ThresholdValue));
+                    PushThresholdToService();
+                    RecalculateColor();
                 }
             }
         }
@@ -125,6 +131,8 @@ namespace FluentHwInfo.ViewModels
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsAboveDirection));
                 OnPropertyChanged(nameof(IsBelowDirection));
+                PushThresholdToService();
+                RecalculateColor();
             }
         }
         public SolidColorBrush ThresholdColorBrush
@@ -179,17 +187,26 @@ namespace FluentHwInfo.ViewModels
                 _thresholdColor = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ThresholdColorBrush));
+                PushThresholdToService();
+                RecalculateColor();
             }
         }
         public Microsoft.UI.Xaml.Media.Brush AboveDirectionBrush => GetDirectionBrush(ThresholdDirection.Above);
         public Microsoft.UI.Xaml.Media.Brush BelowDirectionBrush => GetDirectionBrush(ThresholdDirection.Below);
-
         private Microsoft.UI.Xaml.Media.Brush GetDirectionBrush(ThresholdDirection buttonDirection)
         {
             bool isActive = ThresholdDirection == buttonDirection;
             string resourceKey = isActive ? "AccentFillColorDefaultBrush" : "ControlFillColorDefaultBrush";
             return (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[resourceKey];
         }
+        private Brush _currentValueColor = DefaultTextBrush;
+        public Brush CurrentValueColor
+        {
+            get => _currentValueColor;
+            set { _currentValueColor = value; OnPropertyChanged(); }
+        }
+
+        private static Brush DefaultTextBrush => (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
 
         // single visibility state for all control panels; toggled together, shown together
         private Visibility _controlPanelVisibility = Visibility.Collapsed;
@@ -213,6 +230,7 @@ namespace FluentHwInfo.ViewModels
             SensorId = sensorId;
             SensorName = sensorName;
             CurrentValueText = "-"; // placeholder text until we have the first value
+            CurrentValueColor = DefaultTextBrush;
 
             // this raw data list will be plotted by LiveCharts
             // we use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
@@ -221,6 +239,16 @@ namespace FluentHwInfo.ViewModels
             GraphColor = ResolveGraphColor( SettingsService.Instance.UseGraphAccentColor, SettingsService.Instance.GraphCustomColor);
             SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
             SettingsService.Instance.GraphDataPointsChanged += OnGraphDataPointsChanged;
+
+            // restore this sensors threshold if one was already configured (e.g. previously pinned)
+            var existingThreshold = ThresholdService.Instance.GetThreshold(SensorId);
+            if (existingThreshold != null)
+            {
+                _isThresholdEnabled = existingThreshold.IsEnabled;
+                _manualThreshold = existingThreshold.Value;
+                _thresholdDirection = existingThreshold.Direction;
+                _thresholdColor = existingThreshold.Color;
+            }
         }
 
 
@@ -230,11 +258,39 @@ namespace FluentHwInfo.ViewModels
             SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
             SettingsService.Instance.GraphDataPointsChanged -= OnGraphDataPointsChanged;
         }
+        // pushes the full threshold snapshot to the shared service so MainWindow can pick it up
+        private void PushThresholdToService()
+        {
+            ThresholdService.Instance.SetThreshold(SensorId, new SensorThreshold
+            {
+                IsEnabled = _isThresholdEnabled,
+                Value = _manualThreshold,
+                Direction = _thresholdDirection,
+                Color = _thresholdColor
+            });
+        }
+        // re-evaluates the current values color against this sensors own threshold config
+        private void RecalculateColor()
+        {
+            if (!_isThresholdEnabled)
+            {
+                CurrentValueColor = DefaultTextBrush;
+                return;
+            }
+
+            bool isBreached = _thresholdDirection == ThresholdDirection.Above
+                ? _currentRaw > _manualThreshold
+                : _currentRaw < _manualThreshold;
+
+            CurrentValueColor = isBreached ? new SolidColorBrush(_thresholdColor) : DefaultTextBrush;
+        }
 
 
         // data processing
         public void AddDataPoint(double newValue, string formattedValueText)
         {
+            _currentRaw = newValue;
+
             // update the current value text
             CurrentValueText = formattedValueText;
 
@@ -242,8 +298,8 @@ namespace FluentHwInfo.ViewModels
             SensorData.RemoveAt(0);
             SensorData.Add(newValue);
 
-            // update y-axis display value with each new data point
             UpdateYMaxDisplay();
+            RecalculateColor();
         }
 
 

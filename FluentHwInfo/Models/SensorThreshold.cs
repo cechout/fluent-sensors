@@ -2,8 +2,8 @@
 
 namespace FluentHwInfo.Models
 {
-    // Snapshot of one sensors threshold configuration
-    // Shared between MainWindow and WidgetWindow
+    // snapshot of one sensors threshold configuration
+    // shared between MainWindow and WidgetWindow
     public class SensorThreshold
     {
         public bool IsEnabled { get; set; }

@@ -7,15 +7,6 @@ using System.Threading.Tasks;
 
 namespace FluentHwInfo.ViewModels
 {
-    /// <summary>
-    /// Serves as the top-level DataContext directly bound to the entire SensorsPage UI, acting as the outermost container in the 
-    /// ViewModel hierarchy.
-    /// 
-    /// Responsibilities:
-    /// - Initializes the HardwareMonitorService and listens to the master payload event.
-    /// - Dynamically generates or updates nested HardwareGroupViewModels based on incoming data.
-    /// - Uses the DispatcherQueue to safely marshal background telemetry data onto the UI thread.
-    /// </summary>
     public class SensorsViewModel
     {
         // fields

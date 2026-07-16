@@ -135,6 +135,7 @@
                                         Padding="0,0,6,0"
                                         HorizontalAlignment="Right"
                                         VerticalAlignment="Center"
+                                        Foreground="{x:Bind CurrentValueColor, Mode=OneWay}"
                                         Style="{StaticResource CaptionTextBlockStyle}"
                                         Text="{x:Bind CurrentValueText, Mode=OneWay}" />
                                 </Grid>
