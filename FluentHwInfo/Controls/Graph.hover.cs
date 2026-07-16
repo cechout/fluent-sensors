@@ -61,14 +61,24 @@ namespace FluentHwInfo.Controls
 
             var valuePixels = Chart.ScaleDataToPixels(new LvcPointD(dataPoint.X, value.Value));
 
+            // circle sits exactly on the step at the cursors x-position
             Canvas.SetLeft(HoverCircle, position.X - HoverCircle.Width / 2);
             Canvas.SetTop(HoverCircle, valuePixels.Y - HoverCircle.Height / 2);
 
             // pick which Y coordinate the label follows, based on LabelFollowsPointer
             double labelY = LabelFollowsPointer ? position.Y : valuePixels.Y;
-            Canvas.SetLeft(HoverLabelBorder, position.X + 10);
-            Canvas.SetTop(HoverLabelBorder, labelY - 14);
-            HoverLabelText.Text = value.Value.ToString("0.0");
+            CurrentValueLabelText.Text = value.Value.ToString("0.0");
+
+            double approxHoverLabelWidth = CurrentValueLabelBorder.Width;
+            const double hoverLabelGap = 6; // horizontal gap between pointer and label
+
+            bool flipLeft = position.X + hoverLabelGap + approxHoverLabelWidth > Chart.ActualWidth;
+            double labelX = flipLeft
+                ? position.X - hoverLabelGap - approxHoverLabelWidth
+                : position.X + hoverLabelGap;
+
+            Canvas.SetLeft(CurrentValueLabelBorder, labelX);
+            Canvas.SetTop(CurrentValueLabelBorder, labelY - 14);
         }
 
         // hides the hover circle and label when the pointer leaves the chart area or lands on invalid data
@@ -81,7 +91,7 @@ namespace FluentHwInfo.Controls
         {
             _isPointerOverChart = false;
             HoverCircle.Visibility = Visibility.Collapsed;
-            HoverLabelBorder.Visibility = Visibility.Collapsed;
+            CurrentValueLabelBorder.Visibility = Visibility.Collapsed;
         }
 
         // colors the hover circle + label to match the current accent color, then reveals them
@@ -93,9 +103,9 @@ namespace FluentHwInfo.Controls
             HoverCircle.Stroke = new SolidColorBrush(Windows.UI.Color.FromArgb(220, 255, 255, 255));
             HoverCircle.Visibility = Visibility.Visible;
 
-            HoverLabelBorder.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(220, accent.R, accent.G, accent.B));
-            HoverLabelText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
-            HoverLabelBorder.Visibility = Visibility.Visible;
+            CurrentValueLabelBorder.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(220, accent.R, accent.G, accent.B));
+            CurrentValueLabelText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
+            CurrentValueLabelBorder.Visibility = Visibility.Visible;
         }
     }
 }

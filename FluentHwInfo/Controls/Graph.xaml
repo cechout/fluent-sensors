@@ -48,19 +48,29 @@
                     Visibility="Collapsed" />
 
                 <Border
-                    x:Name="HoverLabelBorder"
+                    x:Name="CurrentValueLabelBorder"
+                    Width="32"
                     Padding="4,2"
                     CornerRadius="3"
                     Visibility="Collapsed">
-                    <TextBlock x:Name="HoverLabelText" FontSize="10" />
+                    <TextBlock
+                        x:Name="CurrentValueLabelText"
+                        HorizontalAlignment="Center"
+                        FontSize="10"
+                        TextAlignment="Center" />
                 </Border>
 
                 <Border
-                    x:Name="ThresholdLabelBorder"
+                    x:Name="ThresholdValueLabelBorder"
+                    Width="32"
                     Padding="4,2"
                     CornerRadius="3"
                     Visibility="Collapsed">
-                    <TextBlock x:Name="ThresholdLabelText" FontSize="10" />
+                    <TextBlock
+                        x:Name="ThresholdValueLabelText"
+                        HorizontalAlignment="Center"
+                        FontSize="10"
+                        TextAlignment="Center" />
                 </Border>
             </Canvas>
         </Grid>

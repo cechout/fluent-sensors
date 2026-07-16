@@ -19,34 +19,44 @@ namespace FluentHwInfo.Controls
     // rebuilds line/area colors and threshold sections whenever values, accent color, threshold, or y-range change
     public sealed partial class Graph
     {
-        // shows the thresholds numeric value just above its line
-        private void ShowThresholdLabelBriefly()
+        // pure positioning; called both when the label should (re)appear and on every data
+        // tick while it's already visible, so auto-scaling keeps it glued to the line
+        private void PositionThresholdLabel()
         {
-            if (ThresholdValue is null)
-            {
-                _thresholdLabelTimer.Stop();
-                ThresholdLabelBorder.Visibility = Visibility.Collapsed;
-                return;
-            }
+            if (ThresholdValue is null) return;
 
             var linePixels = Chart.ScaleDataToPixels(new LvcPointD(0, ThresholdValue.Value));
 
             const double approxLabelHeight = 18; // approx rendered height of ThresholdLabelBorder
-            const double lineGap = 3; // actual visual gap between the line and the labels near edge
+            const double lineGap = 3; // actual visual gap between the line and the label's near edge
 
             bool drawBelow = linePixels.Y < (approxLabelHeight + lineGap);
             double labelY = drawBelow
                 ? linePixels.Y + lineGap
                 : linePixels.Y - approxLabelHeight - lineGap;
 
-            Canvas.SetLeft(ThresholdLabelBorder, 6);
-            Canvas.SetTop(ThresholdLabelBorder, labelY);
+            Canvas.SetLeft(ThresholdValueLabelBorder, 6);
+            Canvas.SetTop(ThresholdValueLabelBorder, labelY);
 
-            ThresholdLabelBorder.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(220, ThresholdColor.R, ThresholdColor.G, ThresholdColor.B));
-            ThresholdLabelText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
-            ThresholdLabelText.Text = ThresholdValue.Value.ToString("0.0");
+            ThresholdValueLabelText.Text = ThresholdValue.Value.ToString("0.0");
+        }
 
-            ThresholdLabelBorder.Visibility = Visibility.Visible;
+        // shows the label (with colors) and (re)starts the auto-hide timer; call this on
+        // actual threshold/scale changes, not on routine data ticks
+        private void ShowThresholdLabelBriefly()
+        {
+            if (ThresholdValue is null)
+            {
+                _thresholdLabelTimer.Stop();
+                ThresholdValueLabelBorder.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            PositionThresholdLabel();
+
+            ThresholdValueLabelBorder.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(220, ThresholdColor.R, ThresholdColor.G, ThresholdColor.B));
+            ThresholdValueLabelText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
+            ThresholdValueLabelBorder.Visibility = Visibility.Visible;
 
             _thresholdLabelTimer.Stop();
             if (!ThresholdLabelAlwaysVisible)

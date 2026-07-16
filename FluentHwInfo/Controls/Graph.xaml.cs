@@ -84,7 +84,7 @@ namespace FluentHwInfo.Controls
             _thresholdLabelTimer.Tick += (s, e) =>
             {
                 _thresholdLabelTimer.Stop();
-                ThresholdLabelBorder.Visibility = Visibility.Collapsed;
+                ThresholdValueLabelBorder.Visibility = Visibility.Collapsed;
             };
 
             Chart.PointerMoved += OnChartPointerMoved;
@@ -142,9 +142,9 @@ namespace FluentHwInfo.Controls
             ApplyStroke();
             RebuildSections();
 
-            if (_isPointerOverChart)
+            if (ThresholdValue is not null && ThresholdValueLabelBorder.Visibility == Visibility.Visible)
             {
-                UpdateHoverAtPointer();
+                PositionThresholdLabel();
             }
         }
 
@@ -207,6 +207,7 @@ namespace FluentHwInfo.Controls
                 g._yAxis.MaxLimit = g.IsAutoScaled ? (double?)null : g.ManualYMax;
                 g.ApplyStroke(); // y-range change moves the thresholds relative position
                 g.RebuildSections();
+                g.ShowThresholdLabelBriefly();
             }
         }
 
