@@ -28,6 +28,23 @@ namespace FluentHwInfo.ViewModels
         }
 
 
+        // adds a newly discovered sensor into the correct list based on its persisted hidden state, and notifies bound UI
+        // immediately so the "Show Hidden Sensors" button reflects it without waiting for a manual hide/restore action
+        public void AddDiscoveredSensor(SensorRowViewModel sensor, bool isHidden)
+        {
+            if (isHidden)
+            {
+                HiddenSensors.Add(sensor);
+                OnPropertyChanged(nameof(HasHiddenSensors));
+                OnPropertyChanged(nameof(HiddenPanelVisibility));
+            }
+            else
+            {
+                Sensors.Add(sensor);
+            }
+        }
+
+
         // moves every currently checked sensor from the main list into the hidden list
         public void HideSelectedSensors()
         {
@@ -37,6 +54,7 @@ namespace FluentHwInfo.ViewModels
             {
                 sensor.IsSelected = false;
                 sensor.IsHidden = true;
+                SensorStateService.Instance.SetHidden(sensor.Id, true);
 
                 if (SettingsService.Instance.HideSensorsCompletely)
                 {
@@ -65,6 +83,7 @@ namespace FluentHwInfo.ViewModels
             OnPropertyChanged(nameof(HiddenPanelVisibility));
         }
 
+
         // moves every currently checked sensor from the hidden list back into the main list
         public void RestoreSelectedHiddenSensors()
         {
@@ -76,6 +95,7 @@ namespace FluentHwInfo.ViewModels
                 sensor.IsHidden = false;
                 sensor.IsDisabled = false;
                 sensor.ResetMinMax();
+                SensorStateService.Instance.SetHidden(sensor.Id, false);
 
                 HiddenSensors.Remove(sensor);
 

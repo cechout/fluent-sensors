@@ -1,5 +1,6 @@
 ﻿using System;
 using Windows.UI;
+using FluentHwInfo.Models;
 
 namespace FluentHwInfo.Services
 {
@@ -31,6 +32,7 @@ namespace FluentHwInfo.Services
                 {
                     _appTheme = value;
                     ThemeChanged?.Invoke(_appTheme);
+                    SaveDebounced();
                 }
             }
         }
@@ -45,6 +47,7 @@ namespace FluentHwInfo.Services
                 {
                     _backdropType = value;
                     BackdropTypeChanged?.Invoke(_backdropType);
+                    SaveDebounced();
                 }
             }
         }
@@ -59,6 +62,7 @@ namespace FluentHwInfo.Services
                 {
                     _tintOpacity = value;
                     OpacityChanged?.Invoke(_tintOpacity, _luminosityOpacity);
+                    SaveDebounced();
                 }
             }
         }
@@ -73,6 +77,7 @@ namespace FluentHwInfo.Services
                 {
                     _luminosityOpacity = value;
                     OpacityChanged?.Invoke(_tintOpacity, _luminosityOpacity);
+                    SaveDebounced();
                 }
             }
         }
@@ -87,6 +92,7 @@ namespace FluentHwInfo.Services
                 {
                     _useAccentColor = value;
                     TintColorChanged?.Invoke(_useAccentColor, _customTintColor);
+                    SaveDebounced();
                 }
             }
         }
@@ -101,6 +107,7 @@ namespace FluentHwInfo.Services
                 {
                     _customTintColor = value;
                     TintColorChanged?.Invoke(_useAccentColor, _customTintColor);
+                    SaveDebounced();
                 }
             }
         }
@@ -115,6 +122,7 @@ namespace FluentHwInfo.Services
                 {
                     _useGraphAccentColor = value;
                     GraphColorChanged?.Invoke(_useGraphAccentColor, _graphCustomColor);
+                    SaveDebounced();
                 }
             }
         }
@@ -129,6 +137,7 @@ namespace FluentHwInfo.Services
                 {
                     _graphCustomColor = value;
                     GraphColorChanged?.Invoke(_useGraphAccentColor, _graphCustomColor);
+                    SaveDebounced();
                 }
             }
         }
@@ -143,11 +152,12 @@ namespace FluentHwInfo.Services
                 {
                     _graphDataPoints = value;
                     GraphDataPointsChanged?.Invoke(_graphDataPoints);
+                    SaveDebounced();
                 }
             }
         }
 
-        private bool _minimizeToTray = true; 
+        private bool _minimizeToTray = true;
         public bool MinimizeToTray
         {
             get => _minimizeToTray;
@@ -157,6 +167,7 @@ namespace FluentHwInfo.Services
                 {
                     _minimizeToTray = value;
                     MinimizeToTrayChanged?.Invoke(_minimizeToTray);
+                    SaveDebounced();
                 }
             }
         }
@@ -171,8 +182,58 @@ namespace FluentHwInfo.Services
                 {
                     _hideSensorsCompletely = value;
                     HideSensorsCompletelyChanged?.Invoke(_hideSensorsCompletely);
+                    SaveDebounced();
                 }
             }
+        }
+
+
+        // persistence:
+        // writes every property straight to its backing field, skipping change events and the save trigger; used only
+        // once at startup, before any window or listener exists yet
+        public void LoadFromData(AppSettingsData data)
+        {
+            _appTheme = data.AppTheme;
+            _backdropType = data.BackdropType;
+            _tintOpacity = data.TintOpacity;
+            _luminosityOpacity = data.LuminosityOpacity;
+            _useAccentColor = data.UseAccentColor;
+            _customTintColor = data.CustomTintColor;
+            _useGraphAccentColor = data.UseGraphAccentColor;
+            _graphCustomColor = data.GraphCustomColor;
+            _graphDataPoints = data.GraphDataPoints;
+            _minimizeToTray = data.MinimizeToTray;
+            _hideSensorsCompletely = data.HideSensorsCompletely;
+
+            // lives on HardwareMonitorService at runtime, not here, but shares this settings file
+            HardwareMonitorService.Instance.UpdateIntervalMs = data.UpdateIntervalMs;
+        }
+
+        // snapshots the current live values into a plain serializable object for disk saving
+        private AppSettingsData ToData()
+        {
+            return new AppSettingsData
+            {
+                AppTheme = _appTheme,
+                BackdropType = _backdropType,
+                TintOpacity = _tintOpacity,
+                LuminosityOpacity = _luminosityOpacity,
+                UseAccentColor = _useAccentColor,
+                CustomTintColor = _customTintColor,
+                UseGraphAccentColor = _useGraphAccentColor,
+                GraphCustomColor = _graphCustomColor,
+                GraphDataPoints = _graphDataPoints,
+                MinimizeToTray = _minimizeToTray,
+                HideSensorsCompletely = _hideSensorsCompletely,
+                UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
+            };
+        }
+
+        // called by every setter above; public so code that changes UpdateIntervalMs directly on HardwareMonitorService
+        // (which has no change event of its own) can trigger a save too
+        public void SaveDebounced()
+        {
+            PersistenceService.Instance.SaveSettingsDebounced(ToData());
         }
     }
 }

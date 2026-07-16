@@ -30,6 +30,7 @@ namespace FluentHwInfo.Services
         {
             _states[sensorId] = state;
             StateChanged?.Invoke(sensorId, state);
+            PersistenceService.Instance.SaveSensorStatesDebounced(_states);
         }
         // convenience helper for the hide/restore flow: flips just the hidden flag without touching that sensors
         // threshold or Y-axis config
@@ -41,10 +42,9 @@ namespace FluentHwInfo.Services
         }
 
 
-        // Persistence 
+        // persistence 
         // returns the live dictionary directly; PersistenceService only reads it when its debounce timer fires, so no
         // snapshot copy is needed here
-        public Dictionary<string, SensorState> GetAllForSaving() => _states;
         public void LoadFromDisk(Dictionary<string, SensorState> loaded)
         {
             _states.Clear();
