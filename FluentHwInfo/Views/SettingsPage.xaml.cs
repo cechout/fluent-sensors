@@ -88,15 +88,15 @@ namespace FluentHwInfo.Views
         // interval combo box
         private void IntervalComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (_isLoading) return;
+
             if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 if (selectedItem.Tag != null && int.TryParse(selectedItem.Tag.ToString(), out int newIntervalMs))
                 {
                     // we access the one HardwareMonitorService instance and change the interval at runtime
                     HardwareMonitorService.Instance.UpdateIntervalMs = newIntervalMs;
-
-                    // output to terminal?
-                    //System.Diagnostics.Debug.WriteLine($"Polling-Intervall changed to: {newIntervalMs} ms");
+                    SettingsService.Instance.SaveDebounced();
                 }
             }
         }
