@@ -21,21 +21,24 @@ using Windows.UI;
 using Windows.UI.ApplicationSettings;
 using WinUIEx;
 using System.Runtime.InteropServices;
+using WindowState = FluentHwInfo.Models.WindowState;
+using FluentHwInfo.ViewModels;
 
 namespace FluentHwInfo
 {
     public sealed partial class MainWindow : Window
     {
         // win32 api imports
-        [DllImport("user32.dll", EntryPoint = "GetWindowLong")]
-        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-        [DllImport("user32.dll", EntryPoint = "SetWindowLong")]
-        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+        [LibraryImport("user32.dll", EntryPoint = "GetWindowLong")]
+        private static partial int GetWindowLong(IntPtr hWnd, int nIndex);
+        [LibraryImport("user32.dll", EntryPoint = "SetWindowLong")]
+        private static partial int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_TOOLWINDOW = 0x00000080;
         private const int WS_EX_NOACTIVATE = 0x08000000;
-        [DllImport("user32.dll")]
-        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
         private const uint SWP_NOMOVE = 0x0002;
         private const uint SWP_NOSIZE = 0x0001;
@@ -45,7 +48,8 @@ namespace FluentHwInfo
 
 
         // properties and fields
-        public static MainWindow CurrentInstance { get; private set; } 
+        public static MainWindow CurrentInstance { get; private set; }
+        private const string WindowKey = "Main"; // key under which this windows state is saved
         private bool _isForceClosing = false;
         private bool _isHardwareServiceLoaded = false;
         private bool _isDashboardClosed = false;
@@ -74,17 +78,30 @@ namespace FluentHwInfo
                 AppWindow.TitleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
 
             }
-            // size
-            this.SetWindowSize(690, 650);
-            // position
-            this.CenterOnScreen();
-            var currentPos = this.AppWindow.Position;
-            // yea idk; might change this in future
-            this.AppWindow.Move(new Windows.Graphics.PointInt32(currentPos.X - 400, currentPos.Y - 100));
-            // size
             var manager = WinUIEx.WindowManager.Get(this);
             manager.MinWidth = 600;
             manager.MinHeight = 400;
+
+            // size and position: restore the last saved rect, or fall back to the original defaults
+            var savedState = WindowStateService.Instance.GetState(WindowKey);
+            if (savedState != null)
+            {
+                this.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
+                savedState.X, savedState.Y, savedState.Width, savedState.Height));
+                
+                if (savedState.IsMaximized && this.AppWindow.Presenter is OverlappedPresenter presenter)
+                {
+                    presenter.Maximize();
+                }
+            }
+            else
+            {
+                this.SetWindowSize(690, 650);
+                this.CenterOnScreen();
+                var currentPos = this.AppWindow.Position;
+                // yea idk; might change this in future
+                this.AppWindow.Move(new Windows.Graphics.PointInt32(currentPos.X - 400, currentPos.Y - 100));
+             }
 
             // theming
             FluentHwInfo.Services.SettingsService.Instance.ThemeChanged += OnThemeChanged;
@@ -116,6 +133,8 @@ namespace FluentHwInfo
             ExitAppCommand.ExecuteRequested += (s, e) =>
             {
                 _isForceClosing = true;
+                SaveWindowState();
+                PersistenceService.Instance.FlushAll();
                 Application.Current.Exit();
             };
         }
@@ -177,6 +196,9 @@ namespace FluentHwInfo
 
             SplashOverlay.Visibility = Visibility.Collapsed;
             MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
+
+            // re-open the widget window with its previously pinned sensors, if it was still open when the app last closed
+            TryRestoreWidgetWindow();
         }
 
 
@@ -247,6 +269,13 @@ namespace FluentHwInfo
             {
                 CheckAndHideToTray();
             }
+
+            // capture position/size for persistence whenever the window moves, resizes, or its maximized/minimized state
+            // changes
+            if (args.DidPositionChange || args.DidSizeChange || args.DidPresenterChange)
+            {
+                SaveWindowState();
+            }
         }
         public void CheckAndHideToTray()
         {
@@ -303,6 +332,13 @@ namespace FluentHwInfo
                 CheckAndHideToTray();
                 EvaluateFullExit();
             }
+            else
+            {
+                // MinimizeToTray is off: the window is actually about to close for real, capture its final rect and
+                // write everything to disk before the process ends
+                SaveWindowState();
+                PersistenceService.Instance.FlushAll();
+            }
         }
         public void OpenDashboard()
         {
@@ -348,8 +384,63 @@ namespace FluentHwInfo
             if (_isDashboardClosed && Views.WidgetWindow.CurrentInstance == null)
             {
                 _isForceClosing = true;
+                PersistenceService.Instance.FlushAll();
                 Application.Current.Exit();
             }
+        }
+
+
+        // captures the current position/size and writes it (debounced) to the window state store
+        // skipped while minimized or hidden in the tray, since those transient rects would overwrite a perfectly good
+        // saved state with garbage
+        private void SaveWindowState()
+        {
+            var presenter = this.AppWindow.Presenter as OverlappedPresenter;
+            bool isMinimized = presenter != null && presenter.State == OverlappedPresenterState.Minimized;
+            if (isMinimized || !this.AppWindow.IsVisible) return;
+
+            bool isMaximized = presenter != null && presenter.State == OverlappedPresenterState.Maximized;
+
+            // while maximized, keep the last known "restored" rect instead of overwriting it with
+            // the maximized bounds, so un-maximizing later returns to the right size
+            var existing = WindowStateService.Instance.GetState(WindowKey) ?? new WindowState();
+            var newState = new WindowState
+            {
+                X = isMaximized ? existing.X : this.AppWindow.Position.X,
+                Y = isMaximized ? existing.Y : this.AppWindow.Position.Y,
+                Width = isMaximized ? existing.Width : this.AppWindow.Size.Width,
+                Height = isMaximized ? existing.Height : this.AppWindow.Size.Height,
+                IsMaximized = isMaximized
+            };
+
+            WindowStateService.Instance.SetState(WindowKey, newState);
+        }
+
+        // re-creates the widget window with whichever previously pinned sensors still exist on
+        // this system, but only if it was actually open when the app last closed
+        private void TryRestoreWidgetWindow()
+        {
+            var widgetState = WindowStateService.Instance.GetState("Widget");
+            if (widgetState == null || !widgetState.WasOpen || widgetState.PinnedSensorIds.Count == 0) return;
+
+            var pinnedSensors = FindSensorRowsByIds(widgetState.PinnedSensorIds);
+            if (pinnedSensors.Count == 0) return; // none of them exist on this system anymore
+
+            var widgetWindow = new Views.WidgetWindow(pinnedSensors);
+            widgetWindow.Activate();
+        }
+
+        // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, preserving the original
+        // pin order rather than whatever order the hardware groups produce
+        private List<SensorRowViewModel> FindSensorRowsByIds(List<string> ids)
+        {
+            var allSensors = SensorsViewModel.Instance.HardwareGroups
+                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors));
+
+            return ids
+                .Select(id => allSensors.FirstOrDefault(s => s.Id == id))
+                .Where(s => s != null)
+                .ToList();
         }
     }
 }

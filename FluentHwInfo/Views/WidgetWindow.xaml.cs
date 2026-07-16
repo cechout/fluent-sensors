@@ -17,12 +17,15 @@ using System.Collections.ObjectModel;
 using WinRT;
 using System.Runtime.InteropServices;
 using WinUIEx;
+using WindowState = FluentHwInfo.Models.WindowState;
+using System.Linq;
 
 namespace FluentHwInfo.Views
 {
     public sealed partial class WidgetWindow : Window
     {
         private AppWindow _appWindow;
+        private const string WindowKey = "Widget"; // key under which this windows state is saved
         public WidgetViewModel ViewModel { get; } // expose the ViewModel so {x:Bind} in XAML can access it
         public static WidgetWindow CurrentInstance { get; private set; }
 
@@ -56,8 +59,22 @@ namespace FluentHwInfo.Views
             presenter.IsResizable = true;
             _appWindow.SetPresenter(presenter);
 
-            // window size and position
-            PositionWidgetTopRight(selectedSensors.Count); // we pass the number of sensors to the method for auto-sizing
+            // window size and position: restore the last saved rect if the widget was open before,
+            // otherwise fall back to the original top-right auto-positioning
+            var savedState = WindowStateService.Instance.GetState(WindowKey);
+            if (savedState != null && savedState.WasOpen)
+            {
+                _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(
+                savedState.X, savedState.Y, savedState.Width, savedState.Height));
+            }
+            else
+            {
+                PositionWidgetTopRight(selectedSensors.Count); // we pass the number of sensors to the method for auto-sizing
+            }
+            
+            // remember this window as open and which sensors are pinned, so it can auto-reopen with the same sensors on
+            // next launch
+            SaveWindowState(selectedSensors);
 
             // theming
             SetBackdrop(SettingsService.Instance.BackdropType);
@@ -103,8 +120,32 @@ namespace FluentHwInfo.Views
                 physicalWidth,
                 physicalHeight));
         }
+        // writes the current rect (debounced) to the window state store
+        // pinnedSensors is only passed when the pin selection actually changed (construction); on plain move/resize or close,
+        // passing null keeps whatever IDs were already saved
+        private void SaveWindowState(List<SensorRowViewModel> pinnedSensors = null, bool wasOpen = true)
+        {
+            var state = WindowStateService.Instance.GetState(WindowKey) ?? new WindowState();
+
+            state.X = _appWindow.Position.X;
+            state.Y = _appWindow.Position.Y;
+            state.Width = _appWindow.Size.Width;
+            state.Height = _appWindow.Size.Height;
+            state.WasOpen = wasOpen;
+
+            if (pinnedSensors != null)
+            {
+                state.PinnedSensorIds = pinnedSensors.Select(s => s.Id).ToList();
+            }
+
+            WindowStateService.Instance.SetState(WindowKey, state);
+        }
         private void WidgetWindow_Closed(object sender, WindowEventArgs args)
         {
+            // mark the widget as closed so it wont auto-reopen on the next launch; keep the last rect and pinned sensors
+            // around in case it's simply re-pinned later this session
+            SaveWindowState(pinnedSensors: null, wasOpen: false);
+
             // we detach the event handlers from the settings service
             SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
             SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
@@ -201,6 +242,12 @@ namespace FluentHwInfo.Views
             {
                 // notify the main window to re-evaluate the system tray state
                 MainWindow.CurrentInstance.CheckAndHideToTray();
+            }
+
+            // capture position/size for persistence whenever the window moves or resizes
+            if ((args.DidPositionChange || args.DidSizeChange) && this.AppWindow.IsVisible)
+            {
+                SaveWindowState();
             }
         }
 

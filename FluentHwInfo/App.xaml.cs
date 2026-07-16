@@ -28,7 +28,8 @@ namespace FluentHwInfo
             // load all persisted state from disk before any window or service falls back to defaults
             SettingsService.Instance.LoadFromData(PersistenceService.Instance.LoadSettings());
             SensorStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorStates());
-            
+            WindowStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadWindowStates());
+
             _window = new MainWindow();
             _window.Activate();
         }
