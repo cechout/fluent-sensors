@@ -3,7 +3,8 @@
     x:Class="FluentHwInfo.Views.WidgetWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:controls="using:FluentHwInfo.Controls"
+    xmlns:ctcontrols="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:FluentHwInfo.Views"
     xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
@@ -282,7 +283,7 @@
 
                                             <Button.Flyout>
                                                 <Flyout Placement="Bottom" ShouldConstrainToRootBounds="False">
-                                                    <controls:ColorPicker
+                                                    <ctcontrols:ColorPicker
                                                         Width="160"
                                                         Height="260"
                                                         ColorSpectrumShape="Box"
@@ -316,7 +317,7 @@
                                     </Grid>
 
                                     <!--  LiveChart graph  -->
-                                    <local:Graph
+                                    <controls:Graph
                                         Grid.Column="1"
                                         AccentColor="{x:Bind GraphColor, Mode=OneWay}"
                                         IsAutoScaled="{x:Bind IsAutoScaled, Mode=OneWay}"
@@ -324,6 +325,7 @@
                                         ManualYMax="{x:Bind ManualYMax, Mode=OneWay}"
                                         ThresholdColor="{x:Bind ThresholdColor, Mode=OneWay}"
                                         ThresholdDirection="{x:Bind ThresholdDirection, Mode=OneWay}"
+                                        ThresholdLabelAlwaysVisible="True"
                                         ThresholdValue="{x:Bind ThresholdValue, Mode=OneWay}"
                                         Values="{x:Bind SensorData, Mode=OneWay}" />
                                 </Grid>

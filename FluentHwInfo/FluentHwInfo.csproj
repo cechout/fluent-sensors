@@ -34,7 +34,7 @@
     <None Remove="Assets\Icon\Icon.ico" />
     <None Remove="Assets\Icon\Icon.png" />
     <None Remove="Assets\SplashScreen.ico" />
-    <None Remove="Views\Graph.xaml" />
+    <None Remove="Controls\Graph.xaml" />
     <None Remove="Views\SensorCardControl.xaml" />
     <None Remove="Views\SensorsPage.xaml" />
     <None Remove="Views\SettingsPage.xaml" />
@@ -86,7 +86,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Views\Graph.xaml">
+    <Page Update="Controls\Graph.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

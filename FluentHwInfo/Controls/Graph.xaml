@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <UserControl
-    x:Class="FluentHwInfo.Views.Graph"
+    x:Class="FluentHwInfo.Controls.Graph"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="using:FluentHwInfo.Views"
+    xmlns:local="using:FluentHwInfo.Controls"
     xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="Root"
@@ -53,6 +53,14 @@
                     CornerRadius="3"
                     Visibility="Collapsed">
                     <TextBlock x:Name="HoverLabelText" FontSize="10" />
+                </Border>
+
+                <Border
+                    x:Name="ThresholdLabelBorder"
+                    Padding="4,2"
+                    CornerRadius="3"
+                    Visibility="Collapsed">
+                    <TextBlock x:Name="ThresholdLabelText" FontSize="10" />
                 </Border>
             </Canvas>
         </Grid>
