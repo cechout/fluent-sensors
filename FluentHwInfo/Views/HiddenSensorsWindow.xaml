@@ -47,6 +47,7 @@
                             Header="{x:Bind HardwareName, Mode=OneWay}"
                             IsExpanded="True"
                             ItemsSource="{x:Bind HiddenSensors, Mode=OneWay}"
+                            Loaded="SettingsExpander_Loaded"
                             Visibility="{x:Bind HiddenPanelVisibility, Mode=OneWay}">
 
                             <!--  items header  -->

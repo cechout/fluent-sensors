@@ -54,6 +54,10 @@ namespace FluentHwInfo.Views
             if (e.OldValue is SensorRowViewModel oldVm) oldVm.PropertyChanged -= card.ViewModel_PropertyChanged;
             if (e.NewValue is SensorRowViewModel newVm) newVm.PropertyChanged += card.ViewModel_PropertyChanged;
 
+            // ItemsRepeater may have recycled this instance from a different row - drop any stale hover/press state and snap directly into the new row's state
+            card._isHovered = false;
+            card._isPressed = false;
+            card.UpdateVisualState(useTransitions: false);
             card.UpdateDisplayState();
         }
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -62,6 +66,37 @@ namespace FluentHwInfo.Views
             {
                 UpdateDisplayState();
             }
+        }
+
+
+        // constructor
+        public SensorCardControl()
+        {
+            this.InitializeComponent();
+
+            this.Loaded += OnLoaded;
+            this.Unloaded += OnUnloaded;
+        }
+
+
+        // container was just added to the visual tree, either fresh or recycled from another item
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            _isHovered = false;
+            _isPressed = false;
+
+            // skip transitions on the initial state - fast collapse/expand cycles otherwise interrupt animations mid-flight and leave the card visually blank
+            UpdateVisualState(useTransitions: false);
+            UpdateDisplayState();
+        }
+
+        // container is being pulled out of the visual tree by the ItemsRepeater, if the pointer was over the card at that
+        // moment, PointerExited never fires, so drop the hover/press flags manually or they will be stuck true when this
+        // instance gets recycled to a different sensor row
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            _isHovered = false;
+            _isPressed = false;
         }
 
 
@@ -102,24 +137,23 @@ namespace FluentHwInfo.Views
 
 
         // method to update the visual state of the card based on the current status (selected, hovered, pressed)
-        private void UpdateVisualState()
+        private void UpdateVisualState(bool useTransitions = true)
         {
             if (ViewModel == null) return;
 
-            // check status of the card (selected or not)
             bool isChecked = ViewModel.IsSelected;
 
             if (isChecked)
             {
-                if (_isPressed) VisualStateManager.GoToState(this, "CheckedPressed", true);
-                else if (_isHovered) VisualStateManager.GoToState(this, "CheckedHover", true);
-                else VisualStateManager.GoToState(this, "Checked", true);
+                if (_isPressed) VisualStateManager.GoToState(this, "CheckedPressed", useTransitions);
+                else if (_isHovered) VisualStateManager.GoToState(this, "CheckedHover", useTransitions);
+                else VisualStateManager.GoToState(this, "Checked", useTransitions);
             }
             else
             {
-                if (_isPressed) VisualStateManager.GoToState(this, "Pressed", true);
-                else if (_isHovered) VisualStateManager.GoToState(this, "Hover", true);
-                else VisualStateManager.GoToState(this, "Normal", true);
+                if (_isPressed) VisualStateManager.GoToState(this, "Pressed", useTransitions);
+                else if (_isHovered) VisualStateManager.GoToState(this, "Hover", useTransitions);
+                else VisualStateManager.GoToState(this, "Normal", useTransitions);
             }
         }
 
@@ -150,18 +184,6 @@ namespace FluentHwInfo.Views
             }
 
             VisualStateManager.GoToState(this, ViewModel?.IsDisabled == true ? "Disabled" : "FullDetails", true);
-        }
-
-        public SensorCardControl()
-        {
-            this.InitializeComponent();
-
-            // force the card to start immediately in the correct visual state
-            this.Loaded += (s, e) =>
-            {
-                UpdateVisualState();
-                UpdateDisplayState();
-            };
         }
     }
 }

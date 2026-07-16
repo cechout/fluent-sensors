@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentHwInfo.Helpers;
+using CommunityToolkit.WinUI.Controls;
 
 namespace FluentHwInfo.Views
 {
@@ -164,6 +166,13 @@ namespace FluentHwInfo.Views
             };
 
             _currentHiddenSensorsWindow.Activate();
+        }
+
+
+        // helper method to fix the rendering of the items
+        private void SettingsExpander_Loaded(object sender, RoutedEventArgs e)
+        {
+            SettingsExpanderRepaintFix.Attach((SettingsExpander)sender);
         }
     }
 }

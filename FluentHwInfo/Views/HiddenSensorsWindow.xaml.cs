@@ -7,6 +7,8 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using System.Runtime.InteropServices;
 using WinRT;
+using FluentHwInfo.Helpers;
+using CommunityToolkit.WinUI.Controls;
 
 namespace FluentHwInfo.Views
 {
@@ -169,6 +171,13 @@ namespace FluentHwInfo.Views
                     _ => SystemBackdropTheme.Default
                 };
             }
+        }
+
+
+        // helper method to fix rendering of items
+        private void SettingsExpander_Loaded(object sender, RoutedEventArgs e)
+        {
+            SettingsExpanderRepaintFix.Attach((SettingsExpander)sender);
         }
     }
 }

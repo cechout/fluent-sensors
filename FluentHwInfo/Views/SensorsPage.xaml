@@ -209,7 +209,8 @@
                             Margin="0,16,0,0"
                             Header="{x:Bind HardwareName, Mode=OneWay}"
                             IsExpanded="False"
-                            ItemsSource="{x:Bind Sensors, Mode=OneWay}">
+                            ItemsSource="{x:Bind Sensors, Mode=OneWay}"
+                            Loaded="SettingsExpander_Loaded">
 
                             <!--<ComboBox MinWidth="150" SelectedIndex="0">
                             <ComboBoxItem>All Sensors</ComboBoxItem>
