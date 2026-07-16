@@ -80,8 +80,11 @@ namespace FluentHwInfo.ViewModels
 
                     if (existingRow != null)
                     {
-                        // row already exists -> just update the value
-                        existingRow.UpdateValue(data.Value);
+                        // hidden and disabled sensors never show live values anywhere, so skip updating them entirely
+                        if (!existingRow.IsHidden)
+                        {
+                            existingRow.UpdateValue(data.Value);
+                        }
                     }
                     else
                     {

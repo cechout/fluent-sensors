@@ -50,11 +50,26 @@
             Padding="16,2,16,2"
             HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" MinWidth="140" />
-                <ColumnDefinition Width="*" MinWidth="65" />
-                <ColumnDefinition Width="*" MinWidth="65" />
-                <ColumnDefinition Width="*" MinWidth="65" />
-                <ColumnDefinition Width="*" MinWidth="65" />
+                <ColumnDefinition
+                    x:Name="NameColumn"
+                    Width="2*"
+                    MinWidth="140" />
+                <ColumnDefinition
+                    x:Name="CurrentColumn"
+                    Width="*"
+                    MinWidth="65" />
+                <ColumnDefinition
+                    x:Name="MinimumColumn"
+                    Width="*"
+                    MinWidth="65" />
+                <ColumnDefinition
+                    x:Name="MaximumColumn"
+                    Width="*"
+                    MinWidth="65" />
+                <ColumnDefinition
+                    x:Name="AverageColumn"
+                    Width="*"
+                    MinWidth="65" />
             </Grid.ColumnDefinitions>
 
             <!--  checkbox with sensor name  -->
@@ -77,6 +92,7 @@
 
             <!--  current value  -->
             <TextBlock
+                x:Name="CurrentValueText"
                 Grid.Column="1"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
@@ -87,6 +103,7 @@
 
             <!--  minimum value  -->
             <TextBlock
+                x:Name="MinimumValueText"
                 Grid.Column="2"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
@@ -97,6 +114,7 @@
 
             <!--  maximum value  -->
             <TextBlock
+                x:Name="MaximumValueText"
                 Grid.Column="3"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
@@ -107,6 +125,7 @@
 
             <!--  average value  -->
             <TextBlock
+                x:Name="AverageValueText"
                 Grid.Column="4"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
@@ -116,6 +135,8 @@
                 Text="{x:Bind ViewModel.AverageValue, Mode=OneWay}" />
         </Grid>
 
+
+        <!--  custom visual states  -->
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="CardStates">
 
@@ -156,6 +177,22 @@
                     <VisualState.Setters>
                         <Setter Target="CardBackground.Background" Value="{ThemeResource ControlFillColorDefaultBrush}" />
                         <Setter Target="CardContent.Opacity" Value="0.7" />
+                    </VisualState.Setters>
+                </VisualState>
+
+            </VisualStateGroup>
+
+
+            <!--  independent from CardStates  -->
+            <!--  controls whether the card is fully live, frozen/disabled, or name-only (hidden window)  -->
+            <!--  column collapsing for name-only happens in code-behind, not here  -->
+            <VisualStateGroup x:Name="DisplayStates">
+                <VisualState x:Name="FullDetails" />
+
+                <!--  sensor is disabled but not fully hidden, values are frozen, card ignores clicks/hover  -->
+                <VisualState x:Name="Disabled">
+                    <VisualState.Setters>
+                        <Setter Target="CardContent.Opacity" Value="0.5" />
                     </VisualState.Setters>
                 </VisualState>
 

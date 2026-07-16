@@ -62,7 +62,7 @@ namespace FluentHwInfo.Views
             uint dpi = GetDpiForWindow(hwnd);
             double scaleFactor = dpi / 96.0; // 96 is the Windows standard for 100% I guess
 
-            double desiredXamlWidth = 380;
+            double desiredXamlWidth = 340;
             double desiredXamlHeight = 500;
 
             int physicalWidth = (int)(desiredXamlWidth * scaleFactor);

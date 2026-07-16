@@ -21,7 +21,7 @@
         <Grid
             x:Name="CustomTitleBar"
             Grid.Row="0"
-            Height="40"
+            Height="28"
             Background="Transparent">
 
             <TextBlock
@@ -50,7 +50,7 @@
                             Visibility="{x:Bind HiddenPanelVisibility, Mode=OneWay}">
 
                             <!--  items header  -->
-                            <controls:SettingsExpander.ItemsHeader>
+                            <!--<controls:SettingsExpander.ItemsHeader>
                                 <controls:SettingsCard
                                     MinHeight="0"
                                     Padding="16,12,16,8"
@@ -102,12 +102,11 @@
                                     </Grid>
 
                                 </controls:SettingsCard>
-                            </controls:SettingsExpander.ItemsHeader>
+                            </controls:SettingsExpander.ItemsHeader>-->
 
                             <!--  items  -->
-                            <controls:SettingsExpander.ItemTemplate>
+                            <!--<controls:SettingsExpander.ItemTemplate>
                                 <DataTemplate x:DataType="local1:SensorRowViewModel">
-
                                     <controls:SettingsCard
                                         MinHeight="0"
                                         Margin="0"
@@ -119,14 +118,25 @@
                                         ContentAlignment="Vertical"
                                         CornerRadius="0">
 
-                                        <local:SensorCardControl HorizontalAlignment="Stretch" ViewModel="{x:Bind}" />
-
+                                        <local:SensorCardControl
+                                            HorizontalAlignment="Stretch"
+                                            IsCompact="True"
+                                            ViewModel="{x:Bind}" />
                                     </controls:SettingsCard>
+                                </DataTemplate>
+                            </controls:SettingsExpander.ItemTemplate>-->
 
+                            <!--  items  -->
+                            <controls:SettingsExpander.ItemTemplate>
+                                <DataTemplate x:DataType="local1:SensorRowViewModel">
+                                    <local:SensorCardControl
+                                        HorizontalAlignment="Stretch"
+                                        IsCompact="True"
+                                        ViewModel="{x:Bind}" />
                                 </DataTemplate>
                             </controls:SettingsExpander.ItemTemplate>
-                        </controls:SettingsExpander>
 
+                        </controls:SettingsExpander>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -136,6 +146,7 @@
         <Border
             Grid.Row="2"
             Padding="16,12,16,12"
+            Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0,1,0,0">
 

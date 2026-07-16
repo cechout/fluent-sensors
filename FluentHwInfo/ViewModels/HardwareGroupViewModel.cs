@@ -75,6 +75,7 @@ namespace FluentHwInfo.ViewModels
                 sensor.IsSelected = false;
                 sensor.IsHidden = false;
                 sensor.IsDisabled = false;
+                sensor.ResetMinMax();
 
                 HiddenSensors.Remove(sensor);
 
