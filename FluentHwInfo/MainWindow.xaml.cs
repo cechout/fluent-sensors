@@ -399,6 +399,20 @@ namespace FluentHwInfo
                 Application.Current.Exit();
             }
         }
+        // controlled tear-down for scenarios that bypass the normal closing paths (e.g. settings reset -> app restart);
+        // mirrors ExitAppCommands sequence but deliberately skips SaveWindowState so a fresh window-state reset does not
+        // get immediately overwritten by a final position save on the way out
+        public void ForceExit()
+        {
+            _isForceClosing = true;
+
+            // stop the polling loop before the XAML tree unloads, otherwise HardwareDataUpdated keeps firing into disposed
+            // bindings and crashes with COMException 0x8000FFFF at TextBlock.set_Text
+            FluentHwInfo.Services.HardwareMonitorService.Instance.StopMonitoring();
+
+            PersistenceService.Instance.FlushAll();
+            Application.Current.Exit();
+        }
 
 
         // captures the current position/size and writes it (debounced) to the window state store

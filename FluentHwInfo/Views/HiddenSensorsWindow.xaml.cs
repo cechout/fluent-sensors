@@ -16,23 +16,27 @@ namespace FluentHwInfo.Views
 {
     public sealed partial class HiddenSensorsWindow : Window
     {
+        // import the Windows-API to calculate the screen scaling (100%, 125%, 150% etc.)
+        [DllImport("user32.dll")]
+        private static extern uint GetDpiForWindow(nint hwnd);
+
+        // window fields
         private AppWindow _appWindow;
         private const string WindowKey = "HiddenSensors"; // key under which this windows state is saved
-        public static HiddenSensorsWindow CurrentInstance { get; private set; }
-        public HardwareGroupViewModel HardwareGroup { get; } // the group this window shows the hidden sensors for
-        public string WindowTitleText { get; }
-        public SensorsViewModel ViewModel => SensorsViewModel.Instance;
 
         // system backdrop controller and configuration (Mica only)
         private MicaController _micaController;
         private SystemBackdropConfiguration _configurationSource;
 
-        // import the Windows-API to calculate the screen scaling (100%, 125%, 150% etc.)
-        [DllImport("user32.dll")]
-        private static extern uint GetDpiForWindow(nint hwnd);
+        // public binding surface
+        public static HiddenSensorsWindow CurrentInstance { get; private set; }
+        public HardwareGroupViewModel HardwareGroup { get; } // the group this window shows the hidden sensors for
+        public string WindowTitleText { get; }
+        public SensorsViewModel ViewModel => SensorsViewModel.Instance;
 
-
-        // constructor accepts the hardware group whose hidden sensors this window displays
+        
+        // constructor
+        // accepts the hardware group whose hidden sensors this window displays
         public HiddenSensorsWindow()
         {
             this.InitializeComponent();
@@ -79,7 +83,133 @@ namespace FluentHwInfo.Views
         }
 
 
-        // general window settings
+        // lifecycle event handlers
+        private void HiddenSensorsWindow_Closed(object sender, WindowEventArgs args)
+        {
+            SaveWindowState();
+
+            SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+            _appWindow.Changed -= AppWindow_Changed;
+
+            _micaController?.Dispose();
+            _micaController = null;
+
+            this.Activated -= Window_Activated;
+            _configurationSource = null;
+            CurrentInstance = null;
+        }
+        private void Window_Activated(object sender, WindowActivatedEventArgs args)
+        {
+            if (_configurationSource != null)
+            {
+                // force the engine to always render the active blur, same reasoning as in WidgetWindow
+                _configurationSource.IsInputActive = true;
+            }
+        }
+        private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
+        {
+            // capture position/size for persistence whenever the window moves or resizes
+            if ((args.DidPositionChange || args.DidSizeChange) && this.AppWindow.IsVisible)
+            {
+                SaveWindowState();
+            }
+        }
+        // expands the first group that actually has hidden sensors 
+        private void RootGrid_Loaded(object sender, RoutedEventArgs e)
+        {
+            RootGrid.Loaded -= RootGrid_Loaded; // only ever needed once per window instance
+
+            var firstGroupWithHidden = ViewModel.HardwareGroups.FirstOrDefault(g => g.HasHiddenSensors);
+            if (firstGroupWithHidden != null)
+            {
+                firstGroupWithHidden.IsExpanded = true;
+            }
+        }
+
+
+        // user interaction
+        private void RestoreSelected_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.RestoreSelectedHiddenSensors();
+            this.Close();
+        }
+
+
+        // settings event listeners and handlers
+        private void OnThemeChanged(string newTheme)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                ApplyTheme(newTheme);
+            });
+        }
+
+
+        // core logic for theme and material application
+        private void ApplyTheme(string themeTag)
+        {
+            if (this.Content is FrameworkElement rootElement)
+            {
+                rootElement.RequestedTheme = themeTag switch
+                {
+                    "Light" => ElementTheme.Light,
+                    "Dark" => ElementTheme.Dark,
+                    _ => ElementTheme.Default
+                };
+            }
+
+            if (_appWindow != null && _appWindow.TitleBar != null)
+            {
+                _appWindow.TitleBar.PreferredTheme = themeTag switch
+                {
+                    "Light" => Microsoft.UI.Windowing.TitleBarTheme.Light,
+                    "Dark" => Microsoft.UI.Windowing.TitleBarTheme.Dark,
+                    _ => Microsoft.UI.Windowing.TitleBarTheme.UseDefaultAppMode
+                };
+            }
+        }
+        // applies Mica if the OS supports it; Windows itself disables the blur when the user turns off
+        // transparency effects in the system settings, so no extra check for that is needed here
+        private void SetBackdrop()
+        {
+            DispatcherQueue.EnsureSystemDispatcherQueue();
+
+            _configurationSource = new SystemBackdropConfiguration();
+            this.Activated += Window_Activated;
+            ((FrameworkElement)this.Content).ActualThemeChanged += Window_ThemeChanged;
+            _configurationSource.IsInputActive = true;
+            SetConfigurationSourceTheme();
+
+            if (MicaController.IsSupported())
+            {
+                _micaController = new MicaController();
+                _micaController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
+                _micaController.SetSystemBackdropConfiguration(_configurationSource);
+
+                // make the grid transparent so the Mica material shows through
+                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            }
+            // if Mica isn't supported, RootGrid keeps its themed fallback background set in XAML
+        }
+        private void Window_ThemeChanged(FrameworkElement sender, object args)
+        {
+            SetConfigurationSourceTheme();
+        }
+        private void SetConfigurationSourceTheme()
+        {
+            if (_configurationSource != null && this.Content is FrameworkElement frameworkElement)
+            {
+                _configurationSource.Theme = frameworkElement.ActualTheme switch
+                {
+                    ElementTheme.Dark => SystemBackdropTheme.Dark,
+                    ElementTheme.Light => SystemBackdropTheme.Light,
+                    _ => SystemBackdropTheme.Default
+                };
+            }
+        }
+
+
+        // private calculation and helper methods
         // sets a fixed default size for the window; position is left to Windows own default placement
         private void SetWindowSize()
         {
@@ -135,132 +265,6 @@ namespace FluentHwInfo.Views
 
             WindowStateService.Instance.SetState(WindowKey, state);
         }
-        // expands the first group that actually has hidden sensors 
-        private void RootGrid_Loaded(object sender, RoutedEventArgs e)
-        {
-            RootGrid.Loaded -= RootGrid_Loaded; // only ever needed once per window instance
-
-            var firstGroupWithHidden = ViewModel.HardwareGroups.FirstOrDefault(g => g.HasHiddenSensors);
-            if (firstGroupWithHidden != null)
-            {
-                firstGroupWithHidden.IsExpanded = true;
-            }
-        }
-        private void HiddenSensorsWindow_Closed(object sender, WindowEventArgs args)
-        {
-            SaveWindowState();
-
-            SettingsService.Instance.ThemeChanged -= OnThemeChanged;
-            _appWindow.Changed -= AppWindow_Changed;
-
-            _micaController?.Dispose();
-            _micaController = null;
-
-            this.Activated -= Window_Activated;
-            _configurationSource = null;
-            CurrentInstance = null;
-        }
-        private void Window_Activated(object sender, WindowActivatedEventArgs args)
-        {
-            if (_configurationSource != null)
-            {
-                // force the engine to always render the active blur, same reasoning as in WidgetWindow
-                _configurationSource.IsInputActive = true;
-            }
-        }
-        private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
-        {
-            // capture position/size for persistence whenever the window moves or resizes
-            if ((args.DidPositionChange || args.DidSizeChange) && this.AppWindow.IsVisible)
-            {
-                SaveWindowState();
-            }
-        }
-
-
-        // user interaction
-        private void RestoreSelected_Click(object sender, RoutedEventArgs e)
-        {
-            ViewModel.RestoreSelectedHiddenSensors();
-            this.Close();
-        }
-
-
-        // settings event listeners and handlers
-        private void OnThemeChanged(string newTheme)
-        {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                ApplyTheme(newTheme);
-            });
-        }
-
-
-        // core logic for theme and material application
-        private void ApplyTheme(string themeTag)
-        {
-            if (this.Content is FrameworkElement rootElement)
-            {
-                rootElement.RequestedTheme = themeTag switch
-                {
-                    "Light" => ElementTheme.Light,
-                    "Dark" => ElementTheme.Dark,
-                    _ => ElementTheme.Default
-                };
-            }
-
-            if (_appWindow != null && _appWindow.TitleBar != null)
-            {
-                _appWindow.TitleBar.PreferredTheme = themeTag switch
-                {
-                    "Light" => Microsoft.UI.Windowing.TitleBarTheme.Light,
-                    "Dark" => Microsoft.UI.Windowing.TitleBarTheme.Dark,
-                    _ => Microsoft.UI.Windowing.TitleBarTheme.UseDefaultAppMode
-                };
-            }
-        }
-
-        // applies Mica if the OS supports it; Windows itself disables the blur when the user turns off
-        // transparency effects in the system settings, so no extra check for that is needed here
-        private void SetBackdrop()
-        {
-            DispatcherQueue.EnsureSystemDispatcherQueue();
-
-            _configurationSource = new SystemBackdropConfiguration();
-            this.Activated += Window_Activated;
-            ((FrameworkElement)this.Content).ActualThemeChanged += Window_ThemeChanged;
-            _configurationSource.IsInputActive = true;
-            SetConfigurationSourceTheme();
-
-            if (MicaController.IsSupported())
-            {
-                _micaController = new MicaController();
-                _micaController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
-                _micaController.SetSystemBackdropConfiguration(_configurationSource);
-
-                // make the grid transparent so the Mica material shows through
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-            }
-            // if Mica isn't supported, RootGrid keeps its themed fallback background set in XAML
-        }
-        private void Window_ThemeChanged(FrameworkElement sender, object args)
-        {
-            SetConfigurationSourceTheme();
-        }
-        private void SetConfigurationSourceTheme()
-        {
-            if (_configurationSource != null && this.Content is FrameworkElement frameworkElement)
-            {
-                _configurationSource.Theme = frameworkElement.ActualTheme switch
-                {
-                    ElementTheme.Dark => SystemBackdropTheme.Dark,
-                    ElementTheme.Light => SystemBackdropTheme.Light,
-                    _ => SystemBackdropTheme.Default
-                };
-            }
-        }
-
-
         // helper method to fix rendering of items
         private void SettingsExpander_Loaded(object sender, RoutedEventArgs e)
         {

@@ -81,6 +81,33 @@ namespace FluentHwInfo.Services
         }
 
 
+        // public binding surface: reset
+        // wipes a state file from disk and clears any pending debounced save for it, so nothing gets re-written after the
+        // reset; caller is expected to restart the app right after, so the in-memory state gets rebuilt from defaults on
+        // the next startup load
+        public void ResetSettings()
+        {
+            _settingsTimer?.Dispose();
+            _settingsTimer = null;
+            _pendingSettings = null;
+            DeleteFile(SettingsPath);
+        }
+        public void ResetWindowStates()
+        {
+            _windowStateTimer?.Dispose();
+            _windowStateTimer = null;
+            _pendingWindowStates = null;
+            DeleteFile(WindowStatePath);
+        }
+        public void ResetSensorStates()
+        {
+            _sensorStateTimer?.Dispose();
+            _sensorStateTimer = null;
+            _pendingSensorStates = null;
+            DeleteFile(SensorStatePath);
+        }
+
+
         // private helpers 
         private void ResetTimer(ref Timer timer, Action save)
         {
@@ -117,6 +144,17 @@ namespace FluentHwInfo.Services
             catch (Exception)
             {
                 // best-effort persistence; a failed save should never crash the app
+            }
+        }
+        private void DeleteFile(string path)
+        {
+            try
+            {
+                if (File.Exists(path)) File.Delete(path);
+            }
+            catch
+            {
+                // best-effort; the app is about to restart anyway, so a stale file just means the next reset attempt handles it
             }
         }
     }

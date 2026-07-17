@@ -176,6 +176,34 @@
             </controls:SettingsCard>
 
 
+            <!--  reset settings  -->
+            <TextBlock
+                Margin="1,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="Reset" />
+
+            <controls:SettingsExpander
+                Description="Restore individual persisted state files to their defaults. The app will restart after confirmation."
+                Header="Reset to Defaults"
+                HeaderIcon="{ui:FontIcon Glyph=&#xE777;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Description="Theme, backdrop, update interval, graph appearance, tray behavior." Header="General Settings">
+                        <Button Click="ResetGeneralSettings_Click" Content="Reset" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Description="Saved position and size of the dashboard and widget windows." Header="Window Positions">
+                        <Button Click="ResetWindowStates_Click" Content="Reset" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Description="Per-sensor visibility, thresholds, graph scaling, and pinned selection." Header="Sensor States">
+                        <Button Click="ResetSensorStates_Click" Content="Reset" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+
             <!--  about section  -->
             <TextBlock
                 Margin="1,20,0,6"

@@ -294,13 +294,11 @@
                                             CornerRadius="0">
 
                                             <local:SensorCardControl HorizontalAlignment="Stretch" ViewModel="{x:Bind}" />
-
                                         </controls:SettingsCard>
-
                                     </DataTemplate>
                                 </controls:SettingsExpander.ItemTemplate>
-                            </controls:SettingsExpander>
 
+                            </controls:SettingsExpander>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -316,59 +314,13 @@
                 IsClosable="False"
                 IsHitTestVisible="False"
                 IsOpen="True"
-                Message="Please select at least one sensor to pin to the widget."
+                Message="Please select at least one sensor."
                 Severity="Warning">
 
                 <InfoBar.RenderTransform>
                     <TranslateTransform x:Name="InfoBarTransform" Y="120" />
                 </InfoBar.RenderTransform>
             </InfoBar>
-
-
-            <!--  bottom page border with control buttons  -->
-            <!--  ControlFillColorTertiaryBrush  -->
-            <!--  SolidBackgroundFillColorTertiaryBrush  -->
-            <!--  SolidBackgroundFillColorQuarternaryBrush  -->
-            <!--<Border
-            Grid.Row="3"
-            Padding="12,12,16,12"
-            Background="{ThemeResource SolidBackgroundFillColorQuarternaryBrush}"
-            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0">
-
-            <StackPanel
-                HorizontalAlignment="Right"
-                Orientation="Horizontal"
-                Spacing="8">
-
-            -->
-            <!--  reset min/max button  -->
-            <!--
-                <Button
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Bottom"
-                    Content="Reset Min/Max" />
-
-            -->
-            <!--  pin to widget button  -->
-            <!--
-                <Button
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Click="PinToWidget_Click"
-                    Content="Pin to Widget"
-                    Style="{ThemeResource AccentButtonStyle}">
-                    <Button.ContentTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontSize="16" Glyph="&#xE93A;" />
-                                <TextBlock VerticalAlignment="Center" Text="{Binding}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </Button.ContentTemplate>
-                </Button>
-            </StackPanel>
-        </Border>-->
         </Grid>
     </ScrollViewer>
 </Page>

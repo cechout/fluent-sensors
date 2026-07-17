@@ -2,6 +2,8 @@ using FluentHwInfo.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace FluentHwInfo.Views
 {
@@ -9,6 +11,8 @@ namespace FluentHwInfo.Views
     {
         private bool _isLoading = true;
 
+
+        // constructor
         public SettingsPage()
         {
             this.InitializeComponent();
@@ -74,6 +78,7 @@ namespace FluentHwInfo.Views
             }
         }
 
+
         // behavior settings
         private void MinimizeToTrayToggle_Toggled(object sender, RoutedEventArgs e)
         {
@@ -84,6 +89,7 @@ namespace FluentHwInfo.Views
         {
             MinimizeToTrayToggle.IsOn = SettingsService.Instance.MinimizeToTray;
         }
+
 
         // interval combo box
         private void IntervalComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -137,7 +143,6 @@ namespace FluentHwInfo.Views
         {
             SettingsService.Instance.TintOpacity = (float)e.NewValue;
         }
-
         private void LuminositySlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             SettingsService.Instance.LuminosityOpacity = (float)e.NewValue;
@@ -162,7 +167,6 @@ namespace FluentHwInfo.Views
                 SettingsService.Instance.UseGraphAccentColor = (tag == "Accent");
             }
         }
-
         private void GraphColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
         {
             if (_isLoading) return;
@@ -198,6 +202,7 @@ namespace FluentHwInfo.Views
             GraphColorPicker.SelectedColor = SettingsService.Instance.GraphCustomColor;
         }
 
+
         // graph data points combo box
         private void GraphDataPointsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -223,6 +228,60 @@ namespace FluentHwInfo.Views
                     break;
                 }
             }
+        }
+
+
+        // reset handlers
+        private async void ResetGeneralSettings_Click(object sender, RoutedEventArgs e)
+        {
+            if (await ConfirmReset("General Settings"))
+            {
+                PersistenceService.Instance.ResetSettings();
+                RestartApp();
+            }
+        }
+        private async void ResetWindowStates_Click(object sender, RoutedEventArgs e)
+        {
+            if (await ConfirmReset("Window Positions"))
+            {
+                PersistenceService.Instance.ResetWindowStates();
+                RestartApp();
+            }
+        }
+        private async void ResetSensorStates_Click(object sender, RoutedEventArgs e)
+        {
+            if (await ConfirmReset("Sensor States"))
+            {
+                PersistenceService.Instance.ResetSensorStates();
+                RestartApp();
+            }
+        }
+        private async Task<bool> ConfirmReset(string what)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = $"Reset {what}?",
+                Content = "This will restore the default values and restart the app. This action cannot be undone.",
+                PrimaryButtonText = "Reset",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = this.XamlRoot
+            };
+            return await dialog.ShowAsync() == ContentDialogResult.Primary;
+        }
+        private void RestartApp()
+        {
+            // launch a fresh instance first; it will read the wiped state files and rebuild from defaults during its normal
+            // startup load
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = Environment.ProcessPath,
+                UseShellExecute = true
+            });
+
+            // then hand the current instance off to MainWindows controlled tear-down (stops polling, sets the force-close
+            // flag so AppWindow_Closing does not cancel, skips SaveWindowState)
+            FluentHwInfo.MainWindow.CurrentInstance?.ForceExit();
         }
     }
 }
