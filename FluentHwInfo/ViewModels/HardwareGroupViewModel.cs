@@ -55,6 +55,7 @@ namespace FluentHwInfo.ViewModels
                 sensor.IsSelected = false;
                 sensor.IsHidden = true;
                 SensorStateService.Instance.SetHidden(sensor.Id, true);
+                HardwareMonitorService.Instance.AddExcludedSensor(sensor.Id); // stop the backend from broadcasting values for this sensor
 
                 if (SettingsService.Instance.HideSensorsCompletely)
                 {
@@ -96,6 +97,7 @@ namespace FluentHwInfo.ViewModels
                 sensor.IsDisabled = false;
                 sensor.ResetMinMax();
                 SensorStateService.Instance.SetHidden(sensor.Id, false);
+                HardwareMonitorService.Instance.RemoveExcludedSensor(sensor.Id); // let the backend broadcast values for this sensor again
 
                 HiddenSensors.Remove(sensor);
 

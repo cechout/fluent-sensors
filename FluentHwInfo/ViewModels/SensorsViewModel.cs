@@ -101,7 +101,17 @@ namespace FluentHwInfo.ViewModels
                             IsHidden = isHidden,
                         };
 
-                        newRow.UpdateValue(data.Value);
+                        if (isHidden)
+                        {
+                            // sensor was hidden before app was closed: block the backend from sending further values right away,
+                            // so no CPU cycles are wasted on a sensor the user does not want to see
+                            HardwareMonitorService.Instance.AddExcludedSensor(data.Id);
+                        }
+                        else
+                        {
+                            newRow.UpdateValue(data.Value);
+                        }
+
                         existingGroup.AddDiscoveredSensor(newRow, isHidden);
                     }
                 }

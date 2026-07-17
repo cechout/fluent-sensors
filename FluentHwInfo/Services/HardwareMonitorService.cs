@@ -63,7 +63,10 @@ namespace FluentHwInfo.Services
         // background and updates the sensor values
         private static readonly HardwareMonitorService _instance = new HardwareMonitorService();
         public static HardwareMonitorService Instance => _instance;
+        private readonly HashSet<string> _excludedSensorIds = new();
 
+
+        // constructor
         private HardwareMonitorService()
         {
             _computer = new Computer
@@ -147,6 +150,36 @@ namespace FluentHwInfo.Services
         }
 
 
+        // exclusion API
+        // the service stays blind about the meaning of "excluded" (hidden, disabled, whatever); it just skips these ids
+        public void AddExcludedSensor(string sensorId)
+        {
+            lock (_sensorLock)
+            {
+                _excludedSensorIds.Add(sensorId);
+            }
+        }
+        public void RemoveExcludedSensor(string sensorId)
+        {
+            lock (_sensorLock)
+            {
+                _excludedSensorIds.Remove(sensorId);
+            }
+        }
+        // bulk sync for startup, replaces the current exclusion set in one shot
+        public void SetExcludedSensors(IEnumerable<string> sensorIds)
+        {
+            lock (_sensorLock)
+            {
+                _excludedSensorIds.Clear();
+                foreach (var id in sensorIds)
+                {
+                    _excludedSensorIds.Add(id);
+                }
+            }
+        }
+
+
         // private class methods
         private async Task LoopAsync(CancellationToken token)
         {
@@ -166,11 +199,17 @@ namespace FluentHwInfo.Services
                 {
                     foreach (var sensor in _activeSensors)
                     {
+                        string id = sensor.Identifier.ToString();
+
+                        // skip sensors that were excluded by the user (e.g. hidden in the UI); no payload entry means no
+                        // UI update and no widget graph update for this tick
+                        if (_excludedSensorIds.Contains(id)) continue;
+
                         // some sensors might not have a value at the moment (maybe a hdd is still sleeping or smth)
                         if (sensor.Value.HasValue)
                         {
                             payload.Add(new SensorData(
-                                Id: sensor.Identifier.ToString(),
+                                Id: id,
                                 Name: sensor.Name,
                                 HardwareName: sensor.Hardware.Name,
                                 SensorType: sensor.SensorType.ToString(),
