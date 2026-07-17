@@ -338,6 +338,8 @@ namespace FluentHwInfo
             }
             else
             {
+                FluentHwInfo.Services.HardwareMonitorService.Instance.StopMonitoring();
+
                 // MinimizeToTray is off: the window is actually about to close for real, capture its final rect and
                 // write everything to disk before the process ends
                 SaveWindowState();
