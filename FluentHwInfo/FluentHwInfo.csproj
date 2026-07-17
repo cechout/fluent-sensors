@@ -18,6 +18,7 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
 
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	  <ApplicationIcon>Assets\Icon\Icon.ico</ApplicationIcon>
 	  <WindowsPackageType>None</WindowsPackageType>
 	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>

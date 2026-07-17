@@ -29,9 +29,9 @@ namespace FluentHwInfo
     public sealed partial class MainWindow : Window
     {
         // win32 api imports
-        [LibraryImport("user32.dll", EntryPoint = "GetWindowLong")]
+        [LibraryImport("user32.dll", EntryPoint = "GetWindowLongW")]
         private static partial int GetWindowLong(IntPtr hWnd, int nIndex);
-        [LibraryImport("user32.dll", EntryPoint = "SetWindowLong")]
+        [LibraryImport("user32.dll", EntryPoint = "SetWindowLongW")]
         private static partial int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_TOOLWINDOW = 0x00000080;
@@ -134,6 +134,10 @@ namespace FluentHwInfo
             {
                 _isForceClosing = true;
                 SaveWindowState();
+
+                // same as EvaluateFullExit: stop the polling loop before tearing down the UI
+                FluentHwInfo.Services.HardwareMonitorService.Instance.StopMonitoring();
+
                 PersistenceService.Instance.FlushAll();
                 Application.Current.Exit();
             };
@@ -384,6 +388,11 @@ namespace FluentHwInfo
             if (_isDashboardClosed && Views.WidgetWindow.CurrentInstance == null)
             {
                 _isForceClosing = true;
+
+                // stop the background polling loop first, so no more sensor updates can hit UI elements while the XAML
+                // tree is being torn down below
+                FluentHwInfo.Services.HardwareMonitorService.Instance.StopMonitoring();
+
                 PersistenceService.Instance.FlushAll();
                 Application.Current.Exit();
             }

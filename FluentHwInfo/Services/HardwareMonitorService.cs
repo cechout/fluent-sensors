@@ -48,6 +48,7 @@ namespace FluentHwInfo.Services
 
         private readonly object _sensorLock = new object();
         private CancellationTokenSource? _cts;
+        private Task? _loopTask;
         public int UpdateIntervalMs { get; set; } = 500;
 
         // the master event
@@ -121,13 +122,22 @@ namespace FluentHwInfo.Services
 
             // task.run() creates a new thread in the background, and puts explicitly the method
             // LoopAsync on this new thread
-            Task.Run(() => LoopAsync(_cts.Token));
+            // we keep the reference so StopMonitoring can actually wait for the loop to finish, not just ask it to stop
+            _loopTask = Task.Run(() => LoopAsync(_cts.Token));
         }
 
         public void StopMonitoring()
         {
-            _cts?.Cancel();
+            if (_cts == null) return;
+
+            _cts.Cancel();
+
+            // block until the loop has fully exited (including a possibly already in-flight update), so once this method
+            // returns, callers can be 100% sure HardwareDataUpdated will never fire again
+            _loopTask?.Wait(2000);
+
             _cts = null;
+            _loopTask = null;
         }
 
         public void Cleanup()
@@ -170,6 +180,9 @@ namespace FluentHwInfo.Services
                     }
                 }
 
+                // extra guard: skip the broadcast entirely if a shutdown was requested while we were building the payload above
+                if (token.IsCancellationRequested) break;
+
                 // we fire the event with the new list of sensor data
                 HardwareDataUpdated?.Invoke(payload);
 
@@ -177,7 +190,16 @@ namespace FluentHwInfo.Services
                 // it saves the state of the method and returns the background thread to the windows thread pool
                 // for those few milliseconds, and after the delay, it grabs a free thread again from the windows
                 // thread pool and continues the execution of the method from where it left off
-                await Task.Delay(UpdateIntervalMs, token);
+                try
+                {
+                    await Task.Delay(UpdateIntervalMs, token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // StopMonitoring cancelled the token while we were waiting; exit the loop cleanly here so the
+                    // task completes normally instead of ending up in the Canceled state
+                    break;
+                }
             }
         }
 

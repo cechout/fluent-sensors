@@ -286,14 +286,12 @@
                                             <Button.Flyout>
                                                 <Flyout Placement="Bottom" ShouldConstrainToRootBounds="False">
                                                     <ctcontrols:ColorPicker
-                                                        Width="160"
-                                                        Height="260"
                                                         ColorSpectrumShape="Box"
                                                         IsAlphaEnabled="False"
                                                         IsAlphaSliderVisible="False"
                                                         IsAlphaTextInputVisible="False"
                                                         IsColorChannelTextInputVisible="True"
-                                                        IsColorPaletteVisible="False"
+                                                        IsColorPaletteVisible="True"
                                                         IsColorSliderVisible="False"
                                                         IsColorSpectrumVisible="True"
                                                         Color="{x:Bind ThresholdColor, Mode=TwoWay}" />

@@ -6,9 +6,9 @@ namespace FluentHwInfo.Models
     // shared between MainWindow and WidgetWindow
     public class SensorThreshold
     {
-        public bool IsEnabled { get; set; }
-        public double Value { get; set; }
-        public ThresholdDirection Direction { get; set; }
-        public Windows.UI.Color Color { get; set; }
+        public bool IsEnabled { get; set; } = false;
+        public double Value { get; set; } = 50;
+        public ThresholdDirection Direction { get; set; } = ThresholdDirection.Above;
+        public Windows.UI.Color Color { get; set; } = Windows.UI.Color.FromArgb(255, 220, 50, 50);
     }
 }
