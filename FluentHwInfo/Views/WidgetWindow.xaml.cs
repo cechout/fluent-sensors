@@ -59,19 +59,26 @@ namespace FluentHwInfo.Views
             presenter.IsResizable = true;
             _appWindow.SetPresenter(presenter);
 
-            // window size and position: restore the last saved rect if the widget was open before,
-            // otherwise fall back to the original top-right auto-positioning
+            // window size and position:
+            // restore the last saved X/Y/Width if one exists; this covers both the auto-reopen-on-launch case and manually
+            // re-pinning sensors while the app is running
+            // Height is always recalculated from the current sensor count, since it depends on how many sensors are pinned
+            // right now, not on what was pinned when the position was last saved
+            // PositionWidgetTopRight is only the fallback for the very first time the widget is ever created, when there is
+            // no saved state yet; it will later also be reused as the target for explicit "pin to corner" buttons
+            double scaleFactor = GetScaleFactor();
             var savedState = WindowStateService.Instance.GetState(WindowKey);
-            if (savedState != null && savedState.WasOpen)
+            if (savedState != null)
             {
+                int height = CalculateWidgetHeight(selectedSensors.Count, scaleFactor);
                 _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(
-                savedState.X, savedState.Y, savedState.Width, savedState.Height));
+                    savedState.X, savedState.Y, savedState.Width, height));
             }
             else
             {
-                PositionWidgetTopRight(selectedSensors.Count); // we pass the number of sensors to the method for auto-sizing
+                PositionWidgetTopRight(selectedSensors.Count);
             }
-            
+
             // remember this window as open and which sensors are pinned, so it can auto-reopen with the same sensors on
             // next launch
             SaveWindowState(selectedSensors);
@@ -94,29 +101,21 @@ namespace FluentHwInfo.Views
         // general window settings
         private void PositionWidgetTopRight(int sensorCount)
         {
-            // get window-handle and scale factor (DPI) 
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-            uint dpi = GetDpiForWindow(hwnd);
-            double scaleFactor = dpi / 96.0; // 96 is the Windows standard for 100% I guess
+            double scaleFactor = GetScaleFactor();
 
             // get display size (already in physical pixels)
             var displayArea = DisplayArea.Primary;
             int screenWidth = displayArea.WorkArea.Width;
-            int screenHeight = displayArea.WorkArea.Height;
 
-            // our XAML desired sizes (DIPs)
-            double desiredXamlWidth = 310; // width
-            double desiredXamlHeight = 31 + (sensorCount * (104 + 8)); // height: titleBar-height + x*(sensor-height + spacing)
-
-            // convert to physical pixels for the GPU based on the dpi scale factor
+            // our XAML desired width (DIPs), converted to physical pixels for the GPU
+            double desiredXamlWidth = 310;
             int physicalWidth = (int)(desiredXamlWidth * scaleFactor);
-            int physicalHeight = (int)(desiredXamlHeight * scaleFactor);
-            physicalHeight = Math.Min(physicalHeight, screenHeight - 40); // height should not be taller than the screen
+            int physicalHeight = CalculateWidgetHeight(sensorCount, scaleFactor);
 
             // move and resize the window
             _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(
                 screenWidth - physicalWidth - 10, // 10px margin from the right edge
-                10,                               // 10px margin from the top edge
+                10, // 10px margin from the top edge
                 physicalWidth,
                 physicalHeight));
         }
@@ -249,6 +248,25 @@ namespace FluentHwInfo.Views
             {
                 SaveWindowState();
             }
+        }
+
+
+        // converts the screen DPI to a scale factor
+        // (100% = 1.0, 125% = 1.25, etc.)
+        private double GetScaleFactor()
+        {
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            uint dpi = GetDpiForWindow(hwnd);
+            return dpi / 96.0; // 96 is the Windows standard for 100% I guess
+        }
+        // calculates the widgets physical pixel height based on how many sensors are pinned
+        private int CalculateWidgetHeight(int sensorCount, double scaleFactor)
+        {
+            double desiredXamlHeight = 31 + (sensorCount * (104 + 8)); // titleBar-height + x*(sensor-height + spacing)
+            int physicalHeight = (int)(desiredXamlHeight * scaleFactor);
+
+            int screenHeight = DisplayArea.Primary.WorkArea.Height;
+            return Math.Min(physicalHeight, screenHeight - 40); // height should not be taller than the screen
         }
 
 

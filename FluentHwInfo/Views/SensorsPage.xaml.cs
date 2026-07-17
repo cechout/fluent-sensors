@@ -14,7 +14,6 @@ namespace FluentHwInfo.Views
     public sealed partial class SensorsPage : Page
     {
         public SensorsViewModel ViewModel { get; }
-        private static WidgetWindow _currentWidgetWindow = null; // we remember the currently open widget window 
         private int _infoBarTicket = 0;
         private HiddenSensorsWindow _currentHiddenSensorsWindow;
 
@@ -82,25 +81,17 @@ namespace FluentHwInfo.Views
                 return;
             }
 
-            // if the window is already open, we force it to close
-            // the null-conditional operator (?.) only calls Close() if it is not null
-            _currentWidgetWindow?.Close();
+            // if a widget is already open, whether pinned earlier this session or auto-restored on app
+            // launch, we force it to close
+            // WidgetWindow.CurrentInstance is the single source of truth for this, it sets and clears itself in the
+            // WidgetWindow constructor/Closed handler
+            WidgetWindow.CurrentInstance?.Close();
 
-            // we rebuild build the window completely fresh with the new data in any case
-            _currentWidgetWindow = new WidgetWindow(selectedSensors);
+            // we rebuild the window completely fresh with the new data in any case
+            var widgetWindow = new WidgetWindow(selectedSensors);
             // the journey of selectedSensors: SensorsPage (View) -> WidgetWindow (View) -> WidgetViewModel (ViewModel)
 
-            // we let the new WidgetWindow instance register a closed event handler to itself
-            // why do we do this? because if the user manually closes the widget window, this _currentWidgetWindow variable
-            // would still point to the old (now closed) window
-            // it the user would then click on "Pin to Widget" again, the app would think the old window is still open and
-            // would try to close it again, which would throw an exception because the old window is already closed
-            _currentWidgetWindow.Closed += (s, args) =>
-            {
-                _currentWidgetWindow = null;
-            };
-
-            _currentWidgetWindow.Activate();
+            widgetWindow.Activate();
         }
         // InfoBar animation
         private void AnimateInfoBar(double targetY, bool isHitTestVisible)
