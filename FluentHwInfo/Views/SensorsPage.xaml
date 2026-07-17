@@ -10,295 +10,303 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <ScrollViewer
+        x:Name="RootScrollViewer"
+        HorizontalScrollBarVisibility="Auto"
+        HorizontalScrollMode="Auto"
+        SizeChanged="RootScrollViewer_SizeChanged"
+        VerticalScrollBarVisibility="Disabled"
+        VerticalScrollMode="Disabled">
+
+        <Grid x:Name="RootGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
 
-        <!--  header: control buttons  -->
-        <!--  (border has background: {ThemeResource SolidBackgroundFillColorTertiaryBrush})  -->
-        <!--  (also: controlbar has automatic right padding, thats why here only padding 10 on the right)  -->
-        <Border
-            Grid.Row="0"
-            Padding="16,0,10,1"
-            Background="Transparent"
-            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="0,0,0,1">
+            <!--  header: control buttons  -->
+            <!--  (border has background: {ThemeResource SolidBackgroundFillColorTertiaryBrush})  -->
+            <!--  (also: controlbar has automatic right padding, thats why here only padding 10 on the right)  -->
+            <Border
+                Grid.Row="0"
+                Padding="16,0,10,1"
+                Background="Transparent"
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1">
 
-            <Grid x:Name="SensorListHeaderGrid" SizeChanged="SensorListHeaderGrid_SizeChanged">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <TextBlock
-                    x:Name="SensorListTitleText"
-                    Grid.Column="0"
-                    Margin="6,0,0,0"
-                    VerticalAlignment="Center"
-                    Style="{ThemeResource BodyStrongTextBlockStyle}"
-                    Text="Sensor List" />
-
-                <CommandBar
-                    x:Name="SensorListCommandBar"
-                    Grid.Column="1"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Background="Transparent"
-                    DefaultLabelPosition="Right"
-                    IsDynamicOverflowEnabled="False"
-                    IsOpen="False"
-                    Loaded="SensorListCommandBar_Loaded">
-
-                    <CommandBar.Resources>
-                        <SolidColorBrush x:Key="CommandBarBackground" Color="Transparent" />
-                        <SolidColorBrush x:Key="CommandBarBackgroundOpen" Color="Transparent" />
-                        <SolidColorBrush x:Key="CommandBarBorderBrushOpen" Color="Transparent" />
-
-                        <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
-                    </CommandBar.Resources>
-
-                    <!--  pin to widget button  -->
-                    <AppBarButton
-                        x:Name="PinToWidgetButton"
-                        Click="PinToWidget_Click"
-                        Label="Pin to Widget">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE718;" />
-                        </AppBarButton.Icon>
-                    </AppBarButton>
-
-                    <AppBarSeparator x:Name="ButtonSeparator" />
-
-                    <!--  reset min max button  -->
-                    <AppBarButton
-                        x:Name="ResetValuesButton"
-                        Click="ResetMinMax_Click"
-                        Label="Reset Values">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE72C;" />
-                        </AppBarButton.Icon>
-                    </AppBarButton>
-
-                    <!--  hide sensors button  -->
-                    <AppBarButton
-                        x:Name="HideSensorsButton"
-                        Click="HideSensors_Click"
-                        Label="Hide Sensor(s)">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xED1A;" />
-                        </AppBarButton.Icon>
-                    </AppBarButton>
-
-                    <!--  show hidden sensors button  -->
-                    <AppBarButton
-                        x:Name="ShowHiddenSensorsButton"
-                        Click="ShowHiddenSensors_Click"
-                        IsEnabled="{x:Bind ViewModel.HasHiddenSensors, Mode=OneWay}"
-                        Label="Show Hidden Sensors">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE8A7;" />
-                        </AppBarButton.Icon>
-                    </AppBarButton>
-                </CommandBar>
-
-            </Grid>
-        </Border>
-
-        <!--  header: items header labels  -->
-        <!--  (border has background: {ThemeResource SolidBackgroundFillColorTertiaryBrush})  -->
-        <Border Grid.Row="1" Background="Transparent">
-            <Grid HorizontalAlignment="Stretch">
-
-                <Grid Margin="32,12,32,12" HorizontalAlignment="Stretch">
+                <Grid x:Name="SensorListHeaderGrid" SizeChanged="SensorListHeaderGrid_SizeChanged">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*" MinWidth="140" />
-                        <ColumnDefinition Width="*" MinWidth="65" />
-                        <ColumnDefinition Width="*" MinWidth="65" />
-                        <ColumnDefinition Width="*" MinWidth="65" />
-                        <ColumnDefinition Width="*" MinWidth="65" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
                     <TextBlock
+                        x:Name="SensorListTitleText"
                         Grid.Column="0"
-                        Margin="36,0,0,0"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="Sensor" />
-                    <TextBlock
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                        Text="Sensor List" />
+
+                    <CommandBar
+                        x:Name="SensorListCommandBar"
                         Grid.Column="1"
                         HorizontalAlignment="Right"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="Current" />
-                    <TextBlock
-                        Grid.Column="2"
-                        HorizontalAlignment="Right"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="Min" />
-                    <TextBlock
-                        Grid.Column="3"
-                        HorizontalAlignment="Right"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="Max" />
-                    <TextBlock
-                        Grid.Column="4"
-                        HorizontalAlignment="Right"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="Avg" />
+                        VerticalAlignment="Bottom"
+                        Background="Transparent"
+                        DefaultLabelPosition="Right"
+                        IsDynamicOverflowEnabled="False"
+                        IsOpen="False"
+                        Loaded="SensorListCommandBar_Loaded">
+
+                        <CommandBar.Resources>
+                            <SolidColorBrush x:Key="CommandBarBackground" Color="Transparent" />
+                            <SolidColorBrush x:Key="CommandBarBackgroundOpen" Color="Transparent" />
+                            <SolidColorBrush x:Key="CommandBarBorderBrushOpen" Color="Transparent" />
+
+                            <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
+                        </CommandBar.Resources>
+
+                        <!--  pin to widget button  -->
+                        <AppBarButton
+                            x:Name="PinToWidgetButton"
+                            Click="PinToWidget_Click"
+                            Label="Pin to Widget">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE718;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+
+                        <AppBarSeparator x:Name="ButtonSeparator" />
+
+                        <!--  reset min max button  -->
+                        <AppBarButton
+                            x:Name="ResetValuesButton"
+                            Click="ResetMinMax_Click"
+                            Label="Reset Values">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE72C;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+
+                        <!--  hide sensors button  -->
+                        <AppBarButton
+                            x:Name="HideSensorsButton"
+                            Click="HideSensors_Click"
+                            Label="Hide Sensor(s)">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xED1A;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+
+                        <!--  show hidden sensors button  -->
+                        <AppBarButton
+                            x:Name="ShowHiddenSensorsButton"
+                            Click="ShowHiddenSensors_Click"
+                            IsEnabled="{x:Bind ViewModel.HasHiddenSensors, Mode=OneWay}"
+                            Label="Show Hidden Sensors">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE8A7;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+                    </CommandBar>
+
                 </Grid>
+            </Border>
 
-                <Border
-                    Height="1"
-                    Margin="0,0,0,0"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Bottom"
-                    Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+            <!--  header: items header labels  -->
+            <!--  (border has background: {ThemeResource SolidBackgroundFillColorTertiaryBrush})  -->
+            <Border Grid.Row="1" Background="Transparent">
+                <Grid HorizontalAlignment="Stretch">
 
-            </Grid>
-        </Border>
+                    <Grid Margin="32,12,32,12" HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" MinWidth="140" />
+                            <ColumnDefinition Width="*" MinWidth="65" />
+                            <ColumnDefinition Width="*" MinWidth="65" />
+                            <ColumnDefinition Width="*" MinWidth="65" />
+                            <ColumnDefinition Width="*" MinWidth="65" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            Grid.Column="0"
+                            Margin="36,0,0,0"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Sensor" />
+                        <TextBlock
+                            Grid.Column="1"
+                            HorizontalAlignment="Right"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Current" />
+                        <TextBlock
+                            Grid.Column="2"
+                            HorizontalAlignment="Right"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Min" />
+                        <TextBlock
+                            Grid.Column="3"
+                            HorizontalAlignment="Right"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Max" />
+                        <TextBlock
+                            Grid.Column="4"
+                            HorizontalAlignment="Right"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Avg" />
+                    </Grid>
+
+                    <Border
+                        Height="1"
+                        Margin="0,0,0,0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Bottom"
+                        Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                </Grid>
+            </Border>
 
 
-        <!--  content: scrollviewer with all the cards of different hardware groups  -->
-        <ScrollViewer
-            x:Name="MainScrollViewer"
-            Grid.Row="2"
-            Padding="16,0,16,0">
+            <!--  content: scrollviewer with all the cards of different hardware groups  -->
+            <ScrollViewer
+                x:Name="MainScrollViewer"
+                Grid.Row="2"
+                Padding="16,0,16,0">
 
-            <ItemsControl
-                x:Name="HardwareItemsControl"
-                Margin="0,0,0,16"
-                ItemsSource="{x:Bind ViewModel.HardwareGroups, Mode=OneWay}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="local1:HardwareGroupViewModel">
+                <ItemsControl
+                    x:Name="HardwareItemsControl"
+                    Margin="0,0,0,16"
+                    ItemsSource="{x:Bind ViewModel.HardwareGroups, Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="local1:HardwareGroupViewModel">
 
-                        <!--  settings expander (containing all the sensors for one hardware group)  -->
-                        <controls:SettingsExpander
-                            Margin="0,16,0,0"
-                            Header="{x:Bind HardwareName, Mode=OneWay}"
-                            IsExpanded="False"
-                            ItemsSource="{x:Bind Sensors, Mode=OneWay}"
-                            Loaded="SettingsExpander_Loaded">
+                            <!--  settings expander (containing all the sensors for one hardware group)  -->
+                            <controls:SettingsExpander
+                                Margin="0,16,0,0"
+                                Header="{x:Bind HardwareName, Mode=OneWay}"
+                                IsExpanded="False"
+                                ItemsSource="{x:Bind Sensors, Mode=OneWay}"
+                                Loaded="SettingsExpander_Loaded">
 
-                            <!--<ComboBox MinWidth="150" SelectedIndex="0">
+                                <!--<ComboBox MinWidth="150" SelectedIndex="0">
                             <ComboBoxItem>All Sensors</ComboBoxItem>
                             <ComboBoxItem>Custom Selection</ComboBoxItem>
                             </ComboBox>-->
 
-                            <!--  column labels  -->
-                            <controls:SettingsExpander.ItemsHeader>
-                                <controls:SettingsCard
-                                    MinHeight="0"
-                                    Padding="16,12,16,8"
-                                    HorizontalContentAlignment="Stretch"
-                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                    BorderThickness="0"
-                                    ContentAlignment="Vertical"
-                                    CornerRadius="0">
-
-                                    <Grid HorizontalAlignment="Stretch">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2*" MinWidth="140" />
-                                            <ColumnDefinition Width="*" MinWidth="65" />
-                                            <ColumnDefinition Width="*" MinWidth="65" />
-                                            <ColumnDefinition Width="*" MinWidth="65" />
-                                            <ColumnDefinition Width="*" MinWidth="65" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock
-                                            Grid.Column="0"
-                                            Margin="36,0,0,0"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                            Text="Sensor" />
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            HorizontalAlignment="Right"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                            Text="Current" />
-                                        <TextBlock
-                                            Grid.Column="2"
-                                            HorizontalAlignment="Right"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                            Text="Min" />
-                                        <TextBlock
-                                            Grid.Column="3"
-                                            HorizontalAlignment="Right"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                            Text="Max" />
-                                        <TextBlock
-                                            Grid.Column="4"
-                                            HorizontalAlignment="Right"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                            Text="Avg" />
-                                    </Grid>
-
-                                </controls:SettingsCard>
-                            </controls:SettingsExpander.ItemsHeader>
-
-                            <!--  items  -->
-                            <controls:SettingsExpander.ItemTemplate>
-                                <DataTemplate x:DataType="local1:SensorRowViewModel">
-
+                                <!--  column labels  -->
+                                <controls:SettingsExpander.ItemsHeader>
                                     <controls:SettingsCard
                                         MinHeight="0"
-                                        Margin="0"
-                                        Padding="0"
-                                        HorizontalAlignment="Stretch"
+                                        Padding="16,12,16,8"
                                         HorizontalContentAlignment="Stretch"
-                                        Background="Transparent"
+                                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                         BorderThickness="0"
                                         ContentAlignment="Vertical"
                                         CornerRadius="0">
 
-                                        <local:SensorCardControl HorizontalAlignment="Stretch" ViewModel="{x:Bind}" />
+                                        <Grid HorizontalAlignment="Stretch">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*" MinWidth="140" />
+                                                <ColumnDefinition Width="*" MinWidth="65" />
+                                                <ColumnDefinition Width="*" MinWidth="65" />
+                                                <ColumnDefinition Width="*" MinWidth="65" />
+                                                <ColumnDefinition Width="*" MinWidth="65" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock
+                                                Grid.Column="0"
+                                                Margin="36,0,0,0"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Sensor" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                HorizontalAlignment="Right"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Current" />
+                                            <TextBlock
+                                                Grid.Column="2"
+                                                HorizontalAlignment="Right"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Min" />
+                                            <TextBlock
+                                                Grid.Column="3"
+                                                HorizontalAlignment="Right"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Max" />
+                                            <TextBlock
+                                                Grid.Column="4"
+                                                HorizontalAlignment="Right"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Avg" />
+                                        </Grid>
 
                                     </controls:SettingsCard>
+                                </controls:SettingsExpander.ItemsHeader>
 
-                                </DataTemplate>
-                            </controls:SettingsExpander.ItemTemplate>
-                        </controls:SettingsExpander>
+                                <!--  items  -->
+                                <controls:SettingsExpander.ItemTemplate>
+                                    <DataTemplate x:DataType="local1:SensorRowViewModel">
 
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+                                        <controls:SettingsCard
+                                            MinHeight="0"
+                                            Margin="0"
+                                            Padding="0"
+                                            HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Stretch"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            ContentAlignment="Vertical"
+                                            CornerRadius="0">
+
+                                            <local:SensorCardControl HorizontalAlignment="Stretch" ViewModel="{x:Bind}" />
+
+                                        </controls:SettingsCard>
+
+                                    </DataTemplate>
+                                </controls:SettingsExpander.ItemTemplate>
+                            </controls:SettingsExpander>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
 
 
-        <InfoBar
-            x:Name="NoSensorsInfoBar"
-            Title="No sensors selected"
-            Grid.Row="2"
-            Margin="24"
-            VerticalAlignment="Bottom"
-            IsClosable="False"
-            IsHitTestVisible="False"
-            IsOpen="True"
-            Message="Please select at least one sensor to pin to the widget."
-            Severity="Warning">
+            <InfoBar
+                x:Name="NoSensorsInfoBar"
+                Title="No sensors selected"
+                Grid.Row="2"
+                Margin="24"
+                VerticalAlignment="Bottom"
+                IsClosable="False"
+                IsHitTestVisible="False"
+                IsOpen="True"
+                Message="Please select at least one sensor to pin to the widget."
+                Severity="Warning">
 
-            <InfoBar.RenderTransform>
-                <TranslateTransform x:Name="InfoBarTransform" Y="100" />
-            </InfoBar.RenderTransform>
-        </InfoBar>
+                <InfoBar.RenderTransform>
+                    <TranslateTransform x:Name="InfoBarTransform" Y="120" />
+                </InfoBar.RenderTransform>
+            </InfoBar>
 
 
-        <!--  bottom page border with control buttons  -->
-        <!--  ControlFillColorTertiaryBrush  -->
-        <!--  SolidBackgroundFillColorTertiaryBrush  -->
-        <!--  SolidBackgroundFillColorQuarternaryBrush  -->
-        <!--<Border
+            <!--  bottom page border with control buttons  -->
+            <!--  ControlFillColorTertiaryBrush  -->
+            <!--  SolidBackgroundFillColorTertiaryBrush  -->
+            <!--  SolidBackgroundFillColorQuarternaryBrush  -->
+            <!--<Border
             Grid.Row="3"
             Padding="12,12,16,12"
             Background="{ThemeResource SolidBackgroundFillColorQuarternaryBrush}"
@@ -310,17 +318,17 @@
                 Orientation="Horizontal"
                 Spacing="8">
 
-        -->
-        <!--  reset min/max button  -->
-        <!--
+            -->
+            <!--  reset min/max button  -->
+            <!--
                 <Button
                     HorizontalAlignment="Left"
                     VerticalAlignment="Bottom"
                     Content="Reset Min/Max" />
 
-        -->
-        <!--  pin to widget button  -->
-        <!--
+            -->
+            <!--  pin to widget button  -->
+            <!--
                 <Button
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
@@ -338,5 +346,6 @@
                 </Button>
             </StackPanel>
         </Border>-->
-    </Grid>
+        </Grid>
+    </ScrollViewer>
 </Page>

@@ -16,6 +16,7 @@ namespace FluentHwInfo.Views
         public SensorsViewModel ViewModel { get; }
         private int _infoBarTicket = 0;
         private HiddenSensorsWindow _currentHiddenSensorsWindow;
+        private const double SensorsPageMinContentWidth = 520;
 
         // for control button prority ordering and overflow handling
         private ICommandBarElement[] _commandBarPriorityOrder;
@@ -112,7 +113,6 @@ namespace FluentHwInfo.Views
             sb.Children.Add(animY);
             sb.Begin();
         }
-
         private void ResetMinMax_Click(object sender, RoutedEventArgs e)
         {
             // we iterate through all nested groups and all sensors
@@ -124,7 +124,6 @@ namespace FluentHwInfo.Views
                 }
             }
         }
-
         private async void HideSensors_Click(object sender, RoutedEventArgs e)
         {
             // check across all groups whether anything is selected at all
@@ -151,7 +150,6 @@ namespace FluentHwInfo.Views
 
             ViewModel.HideSelectedSensors();
         }
-
         private void ShowHiddenSensors_Click(object sender, RoutedEventArgs e)
         {
             // if a window is already open, force it to close and rebuild fresh, same pattern as the widget window
@@ -172,6 +170,14 @@ namespace FluentHwInfo.Views
         private void SettingsExpander_Loaded(object sender, RoutedEventArgs e)
         {
             SettingsExpanderRepaintFix.Attach((SettingsExpander)sender);
+        }
+        private void RootScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // a ScrollViewer measures its content with infinite width while horizontal scrolling is on, and * columns
+            // collapse to their minimum with infinite width
+            // feeding the grid the real viewport width lets the * columns stretch again, once the viewport drops below our
+            // floor, the grid stays wider than the viewport and the horizontal scrollbar shows up on its own
+            RootGrid.Width = Math.Max(e.NewSize.Width, SensorsPageMinContentWidth);
         }
 
 

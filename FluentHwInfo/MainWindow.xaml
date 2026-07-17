@@ -73,9 +73,11 @@
         <Grid
             x:Name="SplashOverlay"
             Grid.Row="1"
+            HorizontalAlignment="Stretch"
             Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
             <StackPanel
-                HorizontalAlignment="Center"
+                HorizontalAlignment="Stretch"
                 VerticalAlignment="Center"
                 Spacing="16">
 
@@ -88,10 +90,10 @@
                         Source="/Assets/Icon/Icon.png">
                         <ui:Effects.Shadow>
                             <ui:AttachedDropShadow
-                                BlurRadius="12"
+                                BlurRadius="11"
                                 CastTo="{x:Bind ShadowReceiver}"
-                                Opacity="0.3"
-                                Offset="0,4,0"
+                                Opacity="0.22"
+                                Offset="0,3,0"
                                 Color="Black" />
                         </ui:Effects.Shadow>
                     </Image>
