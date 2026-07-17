@@ -68,7 +68,7 @@ namespace FluentHwInfo.Views
             // no saved state yet; it will later also be reused as the target for explicit "pin to corner" buttons
             double scaleFactor = GetScaleFactor();
             var savedState = WindowStateService.Instance.GetState(WindowKey);
-            if (savedState != null)
+            if (savedState != null && IsPositionOnScreen(savedState.X, savedState.Y, savedState.Width, savedState.Height))
             {
                 int height = CalculateWidgetHeight(selectedSensors.Count, scaleFactor);
                 _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(
@@ -126,10 +126,17 @@ namespace FluentHwInfo.Views
         {
             var state = WindowStateService.Instance.GetState(WindowKey) ?? new WindowState();
 
-            state.X = _appWindow.Position.X;
-            state.Y = _appWindow.Position.Y;
-            state.Width = _appWindow.Size.Width;
-            state.Height = _appWindow.Size.Height;
+            // while minimized, Windows reports the windows position as the (-32000, -32000) sentinel value; keep the last
+            // known real rect instead of overwriting it with that garbage
+            bool isMinimized = this.AppWindow.Presenter is OverlappedPresenter presenter &&
+                                presenter.State == OverlappedPresenterState.Minimized;
+            if (!isMinimized)
+            {
+                state.X = _appWindow.Position.X;
+                state.Y = _appWindow.Position.Y;
+                state.Width = _appWindow.Size.Width;
+                state.Height = _appWindow.Size.Height;
+            }
             state.WasOpen = wasOpen;
 
             if (pinnedSensors != null)
@@ -267,6 +274,29 @@ namespace FluentHwInfo.Views
 
             int screenHeight = DisplayArea.Primary.WorkArea.Height;
             return Math.Min(physicalHeight, screenHeight - 40); // height should not be taller than the screen
+        }
+        // checks whether the given rect would actually be visible on any currently connected monitor; a saved position can
+        // become stale if the monitor it was on gets disconnected, or the display arrangement changes
+        private bool IsPositionOnScreen(int x, int y, int width, int height)
+        {
+            var rect = new Windows.Graphics.RectInt32(x, y, width, height);
+
+            // indexed loop instead of foreach: iterating DisplayArea.FindAll() with foreach throws an InvalidCastException
+            // due to a WinRT interop bug in its enumerator; indexer access avoids it
+            var displayAreas = DisplayArea.FindAll();
+            for (int i = 0; i < displayAreas.Count; i++)
+            {
+                if (RectsOverlap(rect, displayAreas[i].WorkArea))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        private bool RectsOverlap(Windows.Graphics.RectInt32 a, Windows.Graphics.RectInt32 b)
+        {
+            return a.X < b.X + b.Width && a.X + a.Width > b.X &&
+                   a.Y < b.Y + b.Height && a.Y + a.Height > b.Y;
         }
 
 

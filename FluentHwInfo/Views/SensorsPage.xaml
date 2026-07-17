@@ -68,7 +68,7 @@
                         Click="PinToWidget_Click"
                         Label="Pin to Widget">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE93A;" />
+                            <FontIcon Glyph="&#xE718;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
