@@ -15,7 +15,6 @@ namespace FluentHwInfo.Views
     {
         public SensorsViewModel ViewModel { get; }
         private int _infoBarTicket = 0;
-        private HiddenSensorsWindow _currentHiddenSensorsWindow;
         private const double SensorsPageMinContentWidth = 520;
 
         // for control button prority ordering and overflow handling
@@ -152,17 +151,15 @@ namespace FluentHwInfo.Views
         }
         private void ShowHiddenSensors_Click(object sender, RoutedEventArgs e)
         {
-            // if a window is already open, force it to close and rebuild fresh, same pattern as the widget window
-            _currentHiddenSensorsWindow?.Close();
-
-            _currentHiddenSensorsWindow = new HiddenSensorsWindow();
-
-            _currentHiddenSensorsWindow.Closed += (s, args) =>
+            // if the window is already open, just bring it to the front instead of rebuilding it
+            if (HiddenSensorsWindow.CurrentInstance != null)
             {
-                _currentHiddenSensorsWindow = null;
-            };
+                HiddenSensorsWindow.CurrentInstance.Activate();
+                return;
+            }
 
-            _currentHiddenSensorsWindow.Activate();
+            var hiddenSensorsWindow = new HiddenSensorsWindow();
+            hiddenSensorsWindow.Activate();
         }
         private void SelectPinned_Click(object sender, RoutedEventArgs e)
         {

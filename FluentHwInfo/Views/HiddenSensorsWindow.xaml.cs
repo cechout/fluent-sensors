@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml;
 using System.Runtime.InteropServices;
 using WinRT;
 using FluentHwInfo.Helpers;
+using FluentHwInfo.Models;
 using CommunityToolkit.WinUI.Controls;
 using System.Linq;
 
@@ -16,6 +17,8 @@ namespace FluentHwInfo.Views
     public sealed partial class HiddenSensorsWindow : Window
     {
         private AppWindow _appWindow;
+        private const string WindowKey = "HiddenSensors"; // key under which this windows state is saved
+        public static HiddenSensorsWindow CurrentInstance { get; private set; }
         public HardwareGroupViewModel HardwareGroup { get; } // the group this window shows the hidden sensors for
         public string WindowTitleText { get; }
         public SensorsViewModel ViewModel => SensorsViewModel.Instance;
@@ -34,6 +37,7 @@ namespace FluentHwInfo.Views
         {
             this.InitializeComponent();
             this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
+            CurrentInstance = this;
 
             // window configuration
             _appWindow = this.AppWindow;
@@ -51,7 +55,18 @@ namespace FluentHwInfo.Views
 
             _appWindow.SetPresenter(presenter);
 
-            SetWindowSize();
+            // restore the last saved position/size if one exists and is still on screen, otherwise fall back to the
+            // fixed default size with Windows own default placement
+            var savedState = WindowStateService.Instance.GetState(WindowKey);
+            if (savedState != null && IsPositionOnScreen(savedState.X, savedState.Y, savedState.Width, savedState.Height))
+            {
+                _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(
+                    savedState.X, savedState.Y, savedState.Width, savedState.Height));
+            }
+            else
+            {
+                SetWindowSize();
+            }
 
             // theming
             SetBackdrop();
@@ -59,6 +74,7 @@ namespace FluentHwInfo.Views
 
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
             this.Closed += HiddenSensorsWindow_Closed;
+            _appWindow.Changed += AppWindow_Changed;
             RootGrid.Loaded += RootGrid_Loaded;
         }
 
@@ -84,6 +100,41 @@ namespace FluentHwInfo.Views
             uint dpi = GetDpiForWindow(hwnd);
             return dpi / 96.0;
         }
+        // checks whether the given rect would actually be visible on any currently connected monitor; a saved position can
+        // become stale if the monitor it was on gets disconnected, or the display arrangement changes
+        private bool IsPositionOnScreen(int x, int y, int width, int height)
+        {
+            var rect = new Windows.Graphics.RectInt32(x, y, width, height);
+
+            // indexed loop instead of foreach: iterating DisplayArea.FindAll() with foreach throws an InvalidCastException
+            // due to a WinRT interop bug in its enumerator; indexer access avoids it
+            var displayAreas = DisplayArea.FindAll();
+            for (int i = 0; i < displayAreas.Count; i++)
+            {
+                if (RectsOverlap(rect, displayAreas[i].WorkArea))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        private bool RectsOverlap(Windows.Graphics.RectInt32 a, Windows.Graphics.RectInt32 b)
+        {
+            return a.X < b.X + b.Width && a.X + a.Width > b.X &&
+                   a.Y < b.Y + b.Height && a.Y + a.Height > b.Y;
+        }
+        // writes the current rect to the window state store
+        private void SaveWindowState()
+        {
+            var state = WindowStateService.Instance.GetState(WindowKey) ?? new WindowState();
+
+            state.X = _appWindow.Position.X;
+            state.Y = _appWindow.Position.Y;
+            state.Width = _appWindow.Size.Width;
+            state.Height = _appWindow.Size.Height;
+
+            WindowStateService.Instance.SetState(WindowKey, state);
+        }
         // expands the first group that actually has hidden sensors 
         private void RootGrid_Loaded(object sender, RoutedEventArgs e)
         {
@@ -97,13 +148,17 @@ namespace FluentHwInfo.Views
         }
         private void HiddenSensorsWindow_Closed(object sender, WindowEventArgs args)
         {
+            SaveWindowState();
+
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+            _appWindow.Changed -= AppWindow_Changed;
 
             _micaController?.Dispose();
             _micaController = null;
 
             this.Activated -= Window_Activated;
             _configurationSource = null;
+            CurrentInstance = null;
         }
         private void Window_Activated(object sender, WindowActivatedEventArgs args)
         {
@@ -111,6 +166,14 @@ namespace FluentHwInfo.Views
             {
                 // force the engine to always render the active blur, same reasoning as in WidgetWindow
                 _configurationSource.IsInputActive = true;
+            }
+        }
+        private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
+        {
+            // capture position/size for persistence whenever the window moves or resizes
+            if ((args.DidPositionChange || args.DidSizeChange) && this.AppWindow.IsVisible)
+            {
+                SaveWindowState();
             }
         }
 
