@@ -235,5 +235,14 @@ namespace FluentHwInfo.Services
         {
             PersistenceService.Instance.SaveSettingsDebounced(ToData());
         }
+
+        // forces the current in-memory values to be queued for an immediate write, bypassing the "only save on change" guard
+        // in every property setter above
+        // used by Export so a backup always reflects the live session state, even if settings.json was deleted (e.g. by a
+        // previous reset) and nothing has changed since
+        public void SaveImmediate()
+        {
+            PersistenceService.Instance.SaveSettingsDebounced(ToData());
+        }
     }
 }

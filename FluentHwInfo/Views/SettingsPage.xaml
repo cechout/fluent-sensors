@@ -188,6 +188,11 @@
                 HeaderIcon="{ui:FontIcon Glyph=&#xE777;}"
                 IsExpanded="False">
 
+                <Button
+                    Click="ResetAllSettings_Click"
+                    Content="Reset All"
+                    Style="{StaticResource AccentButtonStyle}" />
+
                 <controls:SettingsExpander.Items>
                     <controls:SettingsCard Description="Theme, backdrop, update interval, graph appearance, tray behavior." Header="General Settings">
                         <Button Click="ResetGeneralSettings_Click" Content="Reset" />
@@ -202,6 +207,27 @@
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
+
+
+            <!--  backup and restore  -->
+            <TextBlock
+                Margin="1,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="Backup &amp; Restore" />
+
+            <controls:SettingsCard
+                Description="Save all current settings, window positions, and sensor states to a single file."
+                Header="Export Settings"
+                HeaderIcon="{ui:FontIcon Glyph=&#xE74E;}">
+                <Button Click="ExportSettings_Click" Content="Export" />
+            </controls:SettingsCard>
+
+            <controls:SettingsCard
+                Description="Restore settings from a previously exported file. This overwrites all current settings and restarts the app."
+                Header="Import Settings"
+                HeaderIcon="{ui:FontIcon Glyph=&#xE8B5;}">
+                <Button Click="ImportSettings_Click" Content="Import" />
+            </controls:SettingsCard>
 
 
             <!--  about section  -->
@@ -261,33 +287,6 @@
                     </controls:SettingsCard>
 
                 </controls:SettingsExpander.Items>
-
-                <!--<controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="Microsoft UI framework and tools" Header="Windows App SDK">
-                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/microsoft/WindowsAppSDK" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard Description="UI Controls, Extensions &amp; Settings UI" Header="Windows Community Toolkit">
-                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/CommunityToolkit/WindowsCommunityToolkit" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard Description="WinUI 3 extension library for window management" Header="WinUIEx">
-                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/dotMorten/WinUIEx" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard Description="Interactive charts and data visualization" Header="LiveCharts2">
-                        <HyperlinkButton Content="Website" NavigateUri="https://livecharts.dev/" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard Description="Open source hardware monitoring API" Header="LibreHardwareMonitor">
-                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard Description="System Tray integration for WinUI" Header="H.NotifyIcon">
-                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/HavenDV/H.NotifyIcon" />
-                    </controls:SettingsCard>
-
-                </controls:SettingsExpander.Items>-->
             </controls:SettingsExpander>
 
         </StackPanel>

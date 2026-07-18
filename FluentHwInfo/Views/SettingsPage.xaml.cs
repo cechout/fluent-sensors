@@ -4,6 +4,9 @@ using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using Windows.Storage.Pickers;
+using System.IO;
 
 namespace FluentHwInfo.Views
 {
@@ -232,6 +235,14 @@ namespace FluentHwInfo.Views
 
 
         // reset handlers
+        private async void ResetAllSettings_Click(object sender, RoutedEventArgs e)
+        {
+            if (await ConfirmReset("All Settings"))
+            {
+                PersistenceService.Instance.ResetAll();
+                RestartApp();
+            }
+        }
         private async void ResetGeneralSettings_Click(object sender, RoutedEventArgs e)
         {
             if (await ConfirmReset("General Settings"))
@@ -256,13 +267,17 @@ namespace FluentHwInfo.Views
                 RestartApp();
             }
         }
-        private async Task<bool> ConfirmReset(string what)
+        private Task<bool> ConfirmReset(string what)
+        {
+            return ConfirmAction($"Reset {what}?", "This will restore the default values and restart the app. This action cannot be undone.");
+        }
+        private async Task<bool> ConfirmAction(string title, string message, string confirmText = "Reset")
         {
             var dialog = new ContentDialog
             {
-                Title = $"Reset {what}?",
-                Content = "This will restore the default values and restart the app. This action cannot be undone.",
-                PrimaryButtonText = "Reset",
+                Title = title,
+                Content = message,
+                PrimaryButtonText = confirmText,
                 CloseButtonText = "Cancel",
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = this.XamlRoot
@@ -271,17 +286,77 @@ namespace FluentHwInfo.Views
         }
         private void RestartApp()
         {
-            // launch a fresh instance first; it will read the wiped state files and rebuild from defaults during its normal
-            // startup load
             Process.Start(new ProcessStartInfo
             {
                 FileName = Environment.ProcessPath,
                 UseShellExecute = true
             });
 
-            // then hand the current instance off to MainWindows controlled tear-down (stops polling, sets the force-close
-            // flag so AppWindow_Closing does not cancel, skips SaveWindowState)
             FluentHwInfo.MainWindow.CurrentInstance?.ForceExit();
+        }
+
+
+        // backup and restore handlers
+        private async void ExportSettings_Click(object sender, RoutedEventArgs e)
+        {
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(FluentHwInfo.MainWindow.CurrentInstance);
+            string suggestedName = $"FluentHwInfo-Backup-{DateTime.Now:yyyy-MM-dd}.zip";
+
+            string path = Win32FileDialogHelper.PickSaveFile(hwnd, "Export Settings", suggestedName, "Backup File", "zip");
+            if (path == null) return; // user cancelled
+
+            try
+            {
+                // ensure settings.json reflects the live state even if it was never re-written to disk this session
+                SettingsService.Instance.SaveImmediate();
+                PersistenceService.Instance.ExportBackup(path);
+                await ShowInfoDialog("Export Successful", "Your settings have been exported.");
+            }
+            catch
+            {
+                await ShowInfoDialog("Export Failed", "The settings could not be exported.");
+            }
+        }
+        private async void ImportSettings_Click(object sender, RoutedEventArgs e)
+        {
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(FluentHwInfo.MainWindow.CurrentInstance);
+
+            string path = Win32FileDialogHelper.PickOpenFile(hwnd, "Import Settings", "Backup File", "zip");
+            if (path == null) return; // user cancelled
+
+            bool confirmed = await ConfirmAction(
+                "Import Settings?",
+                "This will overwrite all current settings, window positions, and sensor states, then restart the app.",
+                "Import");
+            if (!confirmed) return;
+
+            bool success = PersistenceService.Instance.ImportBackup(path);
+            if (success)
+            {
+                // reload every in-memory singleton from the freshly imported files immediately; otherwise, even with the
+                // AppWindow_Changed guard above, any other future code path that saves during shutdown would still be working
+                // with stale pre-import data
+                SettingsService.Instance.LoadFromData(PersistenceService.Instance.LoadSettings());
+                WindowStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadWindowStates());
+                SensorStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorStates());
+
+                RestartApp();
+            }
+            else
+            {
+                await ShowInfoDialog("Import Failed", "The selected file is not a valid FluentHwInfo backup.");
+            }
+        }
+        private async Task ShowInfoDialog(string title, string message)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = title,
+                Content = message,
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            };
+            await dialog.ShowAsync();
         }
     }
 }

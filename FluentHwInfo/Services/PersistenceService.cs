@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using FluentHwInfo.Models;
+using System.IO.Compression;
 
 namespace FluentHwInfo.Services
 {
@@ -106,6 +107,84 @@ namespace FluentHwInfo.Services
             _pendingSensorStates = null;
             DeleteFile(SensorStatePath);
         }
+        public void ResetAll()
+        {
+            ResetSettings();
+            ResetWindowStates();
+            ResetSensorStates();
+        }
+
+
+        // public binding surface: backup
+        // bundles the three raw json files into one zip; flushes any pending debounced writes first so the export always
+        // reflects the latest in-memory state, not a stale version still waiting on its debounce timer
+        public void ExportBackup(string destinationZipPath)
+        {
+            FlushAll();
+
+            if (File.Exists(destinationZipPath)) File.Delete(destinationZipPath);
+
+            using var zip = ZipFile.Open(destinationZipPath, ZipArchiveMode.Create);
+            AddFileIfExists(zip, SettingsPath, "settings.json");
+            AddFileIfExists(zip, WindowStatePath, "window-state.json");
+            AddFileIfExists(zip, SensorStatePath, "sensors.json");
+        }
+
+        // all-or-nothing: every entry in the zip must be one of the three known files and must deserialize into its
+        // expected type before anything on disk gets touched; returns false without changing any state if validation fails
+        // at any point
+        public bool ImportBackup(string sourceZipPath)
+        {
+            try
+            {
+                using var zip = ZipFile.OpenRead(sourceZipPath);
+
+                foreach (var entry in zip.Entries)
+                {
+                    using var stream = entry.Open();
+                    using var reader = new StreamReader(stream);
+                    string json = reader.ReadToEnd();
+
+                    bool isValid = entry.Name switch
+                    {
+                        "settings.json" => TryDeserialize<AppSettingsData>(json),
+                        "window-state.json" => TryDeserialize<Dictionary<string, WindowState>>(json),
+                        "sensors.json" => TryDeserialize<Dictionary<string, SensorState>>(json),
+                        _ => false // unknown entry: not a valid backup file
+                    };
+                    if (!isValid) return false;
+                }
+
+                // validation passed: stop pending debounced saves so nothing overwrites what we are about to extract
+                _settingsTimer?.Dispose(); _settingsTimer = null; _pendingSettings = null;
+                _windowStateTimer?.Dispose(); _windowStateTimer = null; _pendingWindowStates = null;
+                _sensorStateTimer?.Dispose(); _sensorStateTimer = null; _pendingSensorStates = null;
+
+                DeleteFile(SettingsPath);
+                DeleteFile(WindowStatePath);
+                DeleteFile(SensorStatePath);
+
+                Directory.CreateDirectory(_rootFolder);
+                foreach (var entry in zip.Entries)
+                {
+                    string destPath = entry.Name switch
+                    {
+                        "settings.json" => SettingsPath,
+                        "window-state.json" => WindowStatePath,
+                        "sensors.json" => SensorStatePath,
+                        _ => null
+                    };
+                    if (destPath != null) entry.ExtractToFile(destPath, overwrite: true);
+                }
+
+                return true;
+            }
+            catch
+            {
+                // corrupt zip, unreadable entry, or anything else unexpected: treat the whole import as failed
+                return false;
+            }
+        }
 
 
         // private helpers 
@@ -155,6 +234,21 @@ namespace FluentHwInfo.Services
             catch
             {
                 // best-effort; the app is about to restart anyway, so a stale file just means the next reset attempt handles it
+            }
+        }
+        private void AddFileIfExists(ZipArchive zip, string sourcePath, string entryName)
+        {
+            if (File.Exists(sourcePath)) zip.CreateEntryFromFile(sourcePath, entryName);
+        }
+        private bool TryDeserialize<T>(string json) where T : class
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<T>(json, _jsonOptions) != null;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

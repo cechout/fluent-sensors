@@ -54,11 +54,18 @@ namespace FluentHwInfo.Views
             if (e.OldValue is SensorRowViewModel oldVm) oldVm.PropertyChanged -= card.ViewModel_PropertyChanged;
             if (e.NewValue is SensorRowViewModel newVm) newVm.PropertyChanged += card.ViewModel_PropertyChanged;
 
-            // ItemsRepeater may have recycled this instance from a different row - drop any stale hover/press state and snap directly into the new row's state
             card._isHovered = false;
             card._isPressed = false;
-            card.UpdateVisualState(useTransitions: false);
-            card.UpdateDisplayState();
+
+            // guard: this callback can fire while ItemsRepeater is still materializing the control, before it's attached
+            // to a live XamlRoot. Calling VisualStateManager.GoToState that early can fail to resolve this control's own
+            // ThemeDictionaries resources and throw - unhandled, that crashed the whole process. OnLoaded (below) already
+            // applies the same state once the control is actually ready, so skipping here just defers it safely.
+            if (card.IsLoaded)
+            {
+                card.UpdateVisualState(useTransitions: false);
+                card.UpdateDisplayState();
+            }
         }
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {

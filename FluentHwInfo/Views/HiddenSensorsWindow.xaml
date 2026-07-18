@@ -80,49 +80,62 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="local1:HardwareGroupViewModel">
 
+                        <!--  settings expander (containing all the sensors for one hardware group)  -->
                         <controls:SettingsExpander
                             Margin="0,16,0,0"
                             Header="{x:Bind HardwareName, Mode=OneWay}"
                             IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
-                            ItemsSource="{x:Bind HiddenSensors, Mode=OneWay}"
-                            Loaded="SettingsExpander_Loaded"
                             Visibility="{x:Bind HiddenPanelVisibility, Mode=OneWay}">
 
-                            <!--  column labels  -->
+                            <!--  header  -->
                             <controls:SettingsExpander.ItemsHeader>
-                                <Border Padding="16,12,16,8" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                                <StackPanel>
+                                    <Border Padding="16,12,16,8" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                                        <Grid HorizontalAlignment="Stretch">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" MinWidth="140" />
+                                                <ColumnDefinition Width="40" />
+                                            </Grid.ColumnDefinitions>
 
-                                    <Grid HorizontalAlignment="Stretch">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" MinWidth="140" />
-                                            <ColumnDefinition Width="40" />
-                                        </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                Grid.Column="0"
+                                                Margin="36,0,0,0"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Sensor" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                HorizontalAlignment="Right"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Unit" />
+                                        </Grid>
+                                    </Border>
 
-                                        <TextBlock
-                                            Grid.Column="0"
-                                            Margin="36,0,0,0"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                            Text="Sensor" />
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            HorizontalAlignment="Right"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                            Text="Unit" />
-                                    </Grid>
-                                </Border>
+                                    <!--  items  -->
+                                    <!--
+                                        note: SettingsExpander.Items/ItemsSource is intentionally left unset here
+                                        communityToolkits SettingsExpander applies an internal style with
+                                        TargetType="SettingsCard" to every item it materializes that way; a non-SettingsCard
+                                        item throws a native exception that WinUI escalates to a fatal crash of the entire
+                                        process (invisible with a debugger attached)
+                                        see SensorsPage.xaml for the alternative fix wrapping each item in an actual
+                                        SettingsCard
+                                        workaround here: a plain ItemsControl nested inside ItemsHeader instead, which never
+                                        goes through SettingsExpanders own item-styling logic
+                                    -->
+                                    <ItemsControl ItemsSource="{x:Bind HiddenSensors, Mode=OneWay}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="local1:SensorRowViewModel">
+                                                <local:SensorCardControl
+                                                    HorizontalAlignment="Stretch"
+                                                    IsCompact="True"
+                                                    ViewModel="{x:Bind}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
                             </controls:SettingsExpander.ItemsHeader>
-
-                            <!--  items  -->
-                            <controls:SettingsExpander.ItemTemplate>
-                                <DataTemplate x:DataType="local1:SensorRowViewModel">
-                                    <local:SensorCardControl
-                                        HorizontalAlignment="Stretch"
-                                        IsCompact="True"
-                                        ViewModel="{x:Bind}" />
-                                </DataTemplate>
-                            </controls:SettingsExpander.ItemTemplate>
 
                         </controls:SettingsExpander>
                     </DataTemplate>

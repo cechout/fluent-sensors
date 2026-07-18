@@ -1,3 +1,6 @@
+using CommunityToolkit.WinUI.Controls;
+using FluentHwInfo.Helpers;
+using FluentHwInfo.Services;
 using FluentHwInfo.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -6,8 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FluentHwInfo.Helpers;
-using CommunityToolkit.WinUI.Controls;
 
 namespace FluentHwInfo.Views
 {
@@ -151,7 +152,6 @@ namespace FluentHwInfo.Views
         }
         private void ShowHiddenSensors_Click(object sender, RoutedEventArgs e)
         {
-            // if the window is already open, just bring it to the front instead of rebuilding it
             if (HiddenSensorsWindow.CurrentInstance != null)
             {
                 HiddenSensorsWindow.CurrentInstance.Activate();

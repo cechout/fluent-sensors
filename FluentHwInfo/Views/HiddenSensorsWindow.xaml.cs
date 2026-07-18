@@ -34,7 +34,7 @@ namespace FluentHwInfo.Views
         public string WindowTitleText { get; }
         public SensorsViewModel ViewModel => SensorsViewModel.Instance;
 
-        
+
         // constructor
         // accepts the hardware group whose hidden sensors this window displays
         public HiddenSensorsWindow()
@@ -119,11 +119,19 @@ namespace FluentHwInfo.Views
         {
             RootGrid.Loaded -= RootGrid_Loaded; // only ever needed once per window instance
 
-            var firstGroupWithHidden = ViewModel.HardwareGroups.FirstOrDefault(g => g.HasHiddenSensors);
-            if (firstGroupWithHidden != null)
+            // deferred to the next dispatcher cycle:
+            // setting IsExpanded here synchronously, while the ItemsControl below is still building the SettingsExpander
+            // -/Itemsrepeater tree for the very first time, can re-enter XAMLs layout pass while its already running
+            // XAML sometimes treats that as fatal (reentrancy fail-fast) instead of a normal exception; queuing it lets the
+            // current layout pass finish first
+            this.DispatcherQueue.TryEnqueue(() =>
             {
-                firstGroupWithHidden.IsExpanded = true;
-            }
+                var firstGroupWithHidden = ViewModel.HardwareGroups.FirstOrDefault(g => g.HasHiddenSensors);
+                if (firstGroupWithHidden != null)
+                {
+                    firstGroupWithHidden.IsExpanded = true;
+                }
+            });
         }
 
 

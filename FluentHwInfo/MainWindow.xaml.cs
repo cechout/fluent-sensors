@@ -1,4 +1,5 @@
 using FluentHwInfo.Services;
+using FluentHwInfo.ViewModels;
 using FluentHwInfo.Views;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
@@ -11,8 +12,10 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -20,9 +23,7 @@ using Windows.Foundation.Collections;
 using Windows.UI;
 using Windows.UI.ApplicationSettings;
 using WinUIEx;
-using System.Runtime.InteropServices;
 using WindowState = FluentHwInfo.Models.WindowState;
-using FluentHwInfo.ViewModels;
 
 namespace FluentHwInfo
 {
@@ -107,6 +108,7 @@ namespace FluentHwInfo
             FluentHwInfo.Services.SettingsService.Instance.ThemeChanged += OnThemeChanged;
             ApplyTitleBarTheme(FluentHwInfo.Services.SettingsService.Instance.AppTheme);
             ApplyTrayIconTheme(FluentHwInfo.Services.SettingsService.Instance.AppTheme);
+            ApplyTheme(FluentHwInfo.Services.SettingsService.Instance.AppTheme);
 
             // event routing
             this.Closed += (s, args) =>
@@ -213,6 +215,7 @@ namespace FluentHwInfo
             {
                 ApplyTitleBarTheme(newTheme);
                 ApplyTrayIconTheme(newTheme);
+                ApplyTheme(newTheme);
             });
         }
         private void ApplyTitleBarTheme(string themeTag)
@@ -234,6 +237,18 @@ namespace FluentHwInfo
             };
 
             TrayIcon.RequestedTheme = targetTheme;
+        }
+        private void ApplyTheme(string themeTag)
+        {
+            if (this.Content is FrameworkElement rootElement)
+            {
+                rootElement.RequestedTheme = themeTag switch
+                {
+                    "Light" => ElementTheme.Light,
+                    "Dark" => ElementTheme.Dark,
+                    _ => ElementTheme.Default
+                };
+            }
         }
 
 
@@ -268,14 +283,15 @@ namespace FluentHwInfo
         // windows state and system tray logic
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
-            // triggers every time the window minimizes or restores
+            // during a forced shutdown (settings reset/import -> restart), any write here would use in-memory state that
+            // is stale relative to whatever was just written to disk, and would silently overwrite it; the app is about to
+            // die anyway, nothing here needs to be saved
+            if (_isForceClosing) return;
+
             if (args.DidPresenterChange)
             {
                 CheckAndHideToTray();
             }
-
-            // capture position/size for persistence whenever the window moves, resizes, or its maximized/minimized state
-            // changes
             if (args.DidPositionChange || args.DidSizeChange || args.DidPresenterChange)
             {
                 SaveWindowState();
@@ -406,12 +422,14 @@ namespace FluentHwInfo
         {
             _isForceClosing = true;
 
-            // stop the polling loop before the XAML tree unloads, otherwise HardwareDataUpdated keeps firing into disposed
-            // bindings and crashes with COMException 0x8000FFFF at TextBlock.set_Text
-            FluentHwInfo.Services.HardwareMonitorService.Instance.StopMonitoring();
-
+            // deliberately no HardwareMonitorService.Cleanup() here anymore:
+            // Computer.Close() can wedge a background thread inside a blocking WinRing0 driver call, which TerminateProcess
+            // then cannot fully tear down
+            // that was the actual cause of the unreliable auto-restart, not something upstream of Kill() itself. flush persisted
+            // state (plain file I/O, no driver involved) and hard-kill; any stray driver handle gets released by the OS once the
+            // process is gone
             PersistenceService.Instance.FlushAll();
-            Application.Current.Exit();
+            Process.GetCurrentProcess().Kill();
         }
 
 

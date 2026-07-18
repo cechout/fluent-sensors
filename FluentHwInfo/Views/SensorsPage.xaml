@@ -218,11 +218,6 @@
                                 ItemsSource="{x:Bind Sensors, Mode=OneWay}"
                                 Loaded="SettingsExpander_Loaded">
 
-                                <!--<ComboBox MinWidth="150" SelectedIndex="0">
-                            <ComboBoxItem>All Sensors</ComboBoxItem>
-                            <ComboBoxItem>Custom Selection</ComboBoxItem>
-                            </ComboBox>-->
-
                                 <!--  column labels  -->
                                 <controls:SettingsExpander.ItemsHeader>
                                     <controls:SettingsCard
