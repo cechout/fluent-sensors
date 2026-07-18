@@ -6,9 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
-using FluentHwInfo.Helpers;
 using FluentHwInfo.Features.Widget;
+using FluentHwInfo.Common;
 
 
 namespace FluentHwInfo.Features.Sensors

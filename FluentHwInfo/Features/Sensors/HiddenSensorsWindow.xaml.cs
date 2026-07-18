@@ -7,10 +7,9 @@ using System.Runtime.InteropServices;
 using WinRT;
 using CommunityToolkit.WinUI.Controls;
 using System.Linq;
-
-using FluentHwInfo.Helpers;
 using FluentHwInfo.Persistence.Models;
 using FluentHwInfo.Persistence.Services;
+using FluentHwInfo.Common;
 
 
 namespace FluentHwInfo.Features.Sensors

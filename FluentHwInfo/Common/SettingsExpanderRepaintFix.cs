@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 
-namespace FluentHwInfo.Helpers
+namespace FluentHwInfo.Common
 {
     // WinUI bug: a SettingsExpander's internal ItemsRepeater stops rendering after repeated collapse/expand (or show/hide)
     // cycles and stays blank until something else forces a layout pass
