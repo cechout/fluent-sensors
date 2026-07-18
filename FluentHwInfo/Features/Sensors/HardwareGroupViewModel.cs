@@ -12,7 +12,8 @@ namespace FluentHwInfo.Features.Sensors
 {
     public class HardwareGroupViewModel : INotifyPropertyChanged
     {
-        // fields
+        // === fields ===
+
         public string HardwareName { get; set; } = "Hardware Name not provided"; // header of expander
         public ObservableCollection<SensorRowViewModel> Sensors { get; set; } // content of expander
         public ObservableCollection<SensorRowViewModel> HiddenSensors { get; set; } // sensors hidden from the main list
@@ -37,7 +38,8 @@ namespace FluentHwInfo.Features.Sensors
         }
 
 
-        // constructor
+        // === constructor ===
+
         public HardwareGroupViewModel()
         {
             // initializes the empty lists for this specific hardware

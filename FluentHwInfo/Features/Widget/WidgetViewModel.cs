@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using FluentHwInfo.Common;
 using FluentHwInfo.Features.Sensors;
 using FluentHwInfo.Core;
 
@@ -11,15 +12,16 @@ namespace FluentHwInfo.Features.Widget
 {
     public class WidgetViewModel
     {
-        // fields
-        public ObservableCollection<WidgetSensorViewModel> PinnedSensors { get; set; } // this list contains all the sensors that the user has pinned
+        // === fields ===
+
         private readonly DispatcherQueue _dispatcherQueue;
 
 
-        // constructor
+        // === constructor ===
+
         public WidgetViewModel(List<SensorRowViewModel> selectedSensors) // accept the injected list from the View layer
         {
-            PinnedSensors = new ObservableCollection<WidgetSensorViewModel>();
+            PinnedSensors = new ObservableCollection<SensorGraphViewModel>();
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
             // subscribe to the HardwareDataUpdated event of the HardwareMonitorService
@@ -28,22 +30,18 @@ namespace FluentHwInfo.Features.Widget
             // Dynamically instantiate chart components based on the precise hardware IDs
             foreach (var sensor in selectedSensors)
             {
-                PinnedSensors.Add(new WidgetSensorViewModel(sensor.Id, sensor.Name));
+                PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name));
             }
         }
 
 
-        // unsubscribe from the global event when the view is closed
-        public void Cleanup()
-        {
-            HardwareMonitorService.Instance.HardwareDataUpdated -= OnHardwareDataUpdated;
+        // === bindable properties ===
 
-            foreach (var sensor in PinnedSensors)
-            {
-                sensor.Cleanup();
-            }
-        }
+        // this list contains all the sensors that the user has pinned
+        public ObservableCollection<SensorGraphViewModel> PinnedSensors { get; set; }
 
+
+        // === event handlers ===
 
         // event handler invoked by the HardwareMonitorService at the configured polling interval
         private void OnHardwareDataUpdated(List<SensorData> payload)
@@ -84,6 +82,20 @@ namespace FluentHwInfo.Features.Widget
                 "SmallData" => "MB",
                 _ => ""
             };
+        }
+
+
+        // === public methods ===
+
+        // unsubscribe from the global event when the view is closed
+        public void Cleanup()
+        {
+            HardwareMonitorService.Instance.HardwareDataUpdated -= OnHardwareDataUpdated;
+
+            foreach (var sensor in PinnedSensors)
+            {
+                sensor.Cleanup();
+            }
         }
     }
 }

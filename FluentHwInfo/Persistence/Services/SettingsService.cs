@@ -9,22 +9,20 @@ namespace FluentHwInfo.Persistence.Services
 {
     public class SettingsService
     {
-        // SettingsService as a singleton
+        // === singleton instance ===
+
         private static readonly SettingsService _instance = new SettingsService();
         public static SettingsService Instance => _instance;
+
+
+        // === constructor ===
+
         private SettingsService() { }
 
-        // events
-        public event Action<string> ThemeChanged;
-        public event Action<string> BackdropTypeChanged;
-        public event Action<float, float> OpacityChanged;
-        public event Action<bool, Color> TintColorChanged;
-        public event Action<bool, Windows.UI.Color> GraphColorChanged;
-        public event Action<int> GraphDataPointsChanged;
-        public event Action<bool> MinimizeToTrayChanged;
-        public event Action<bool> HideSensorsCompletelyChanged;
 
-        // fields
+        // === public api ===
+
+        // properties
         private string _appTheme = "Default";
         public string AppTheme
         {
@@ -190,8 +188,7 @@ namespace FluentHwInfo.Persistence.Services
             }
         }
 
-
-        // persistence:
+        // persistence
         // writes every property straight to its backing field, skipping change events and the save trigger; used only
         // once at startup, before any window or listener exists yet
         public void LoadFromData(AppSettingsData data)
@@ -247,5 +244,17 @@ namespace FluentHwInfo.Persistence.Services
         {
             PersistenceService.Instance.SaveSettingsDebounced(ToData());
         }
+
+
+        // === events ===
+
+        public event Action<string> ThemeChanged;
+        public event Action<string> BackdropTypeChanged;
+        public event Action<float, float> OpacityChanged;
+        public event Action<bool, Color> TintColorChanged;
+        public event Action<bool, Windows.UI.Color> GraphColorChanged;
+        public event Action<int> GraphDataPointsChanged;
+        public event Action<bool> MinimizeToTrayChanged;
+        public event Action<bool> HideSensorsCompletelyChanged;
     }
 }

@@ -1,15 +1,12 @@
 using LiveChartsCore;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel.Sketches;
-using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.Painting.Effects;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 
@@ -32,7 +29,7 @@ namespace FluentHwInfo.Controls
     // Graph.Hover.cs: pointer hover interaction
     public sealed partial class Graph : UserControl
     {
-        // fields
+        // === fields ===
         private readonly Axis _yAxis;
         private readonly StepLineSeries<double?> _lineSeries;
         private bool _isPointerOverChart = false;
@@ -41,7 +38,7 @@ namespace FluentHwInfo.Controls
         private bool _isLoaded;
 
 
-        // constructor
+        // === constructor ===
         public Graph()
         {
             InitializeComponent();
@@ -108,7 +105,7 @@ namespace FluentHwInfo.Controls
         }
 
 
-        // LiveCharts binding surfaces exposed to XAML
+        // === LiveCharts binding surfaces exposed to XAML ===
         // (consumed directly by <lvc:CartesianChart> in Graph.xaml)
         public ISeries[] Series { get; }
         public ICartesianAxis[] XAxes { get; }
@@ -117,12 +114,15 @@ namespace FluentHwInfo.Controls
         public LiveChartsCore.Measure.Margin ChartMargin { get; } = new LiveChartsCore.Measure.Margin(0);
 
 
+        // === DependencyProperties ===
+
         // DependencyProperty: Values 
         public ObservableCollection<double?> Values
         {
             get => (ObservableCollection<double?>)GetValue(ValuesProperty);
             set => SetValue(ValuesProperty, value);
         }
+
         public static readonly DependencyProperty ValuesProperty =
             DependencyProperty.Register(
                 nameof(Values),
@@ -148,6 +148,7 @@ namespace FluentHwInfo.Controls
                 g.ApplyStroke();
             }
         }
+
         // runs every time a data point is added or removed (i.e. every AddDataPoint call)
         private void OnValuesCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
@@ -164,7 +165,6 @@ namespace FluentHwInfo.Controls
                 PositionThresholdLabel();
             }
         }
-
 
         // DependencyProperty: AccentColor
         public Windows.UI.Color AccentColor
@@ -187,13 +187,13 @@ namespace FluentHwInfo.Controls
             }
         }
 
-
         // DependencyProperty: IsAutoScaled
         public bool IsAutoScaled
         {
             get => (bool)GetValue(IsAutoScaledProperty);
             set => SetValue(IsAutoScaledProperty, value);
         }
+
         public static readonly DependencyProperty IsAutoScaledProperty =
             DependencyProperty.Register(
                 nameof(IsAutoScaled),
@@ -201,13 +201,13 @@ namespace FluentHwInfo.Controls
                 typeof(Graph),
                 new PropertyMetadata(true, OnScaleChanged));
 
-
         // DependencyProperty: ManualYMax
         public double ManualYMax
         {
             get => (double)GetValue(ManualYMaxProperty);
             set => SetValue(ManualYMaxProperty, value);
         }
+
         public static readonly DependencyProperty ManualYMaxProperty =
             DependencyProperty.Register(
                 nameof(ManualYMax),
@@ -228,13 +228,13 @@ namespace FluentHwInfo.Controls
             }
         }
 
-
         // DependencyProperty: ThresholdValue 
         public double? ThresholdValue
         {
             get => (double?)GetValue(ThresholdValueProperty);
             set => SetValue(ThresholdValueProperty, value);
         }
+
         public static readonly DependencyProperty ThresholdValueProperty =
             DependencyProperty.Register(
                 nameof(ThresholdValue),
@@ -280,6 +280,7 @@ namespace FluentHwInfo.Controls
                 SetValue(ThresholdColorProperty, value);
             }
         }
+
         public static readonly DependencyProperty ThresholdColorProperty =
             DependencyProperty.Register(
                 nameof(ThresholdColor),
@@ -307,6 +308,7 @@ namespace FluentHwInfo.Controls
             get => (bool)GetValue(ThresholdLabelAlwaysVisibleProperty);
             set => SetValue(ThresholdLabelAlwaysVisibleProperty, value);
         }
+
         public static readonly DependencyProperty ThresholdLabelAlwaysVisibleProperty =
             DependencyProperty.Register(
                 nameof(ThresholdLabelAlwaysVisible),
@@ -326,6 +328,7 @@ namespace FluentHwInfo.Controls
             get => (bool)GetValue(LabelFollowsPointerProperty);
             set => SetValue(LabelFollowsPointerProperty, value);
         }
+
         public static readonly DependencyProperty LabelFollowsPointerProperty =
             DependencyProperty.Register(
                 nameof(LabelFollowsPointer),

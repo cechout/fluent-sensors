@@ -12,10 +12,12 @@ namespace FluentHwInfo.Features.Settings
 {
     public sealed partial class SettingsPage : Page
     {
+        // flag to prevent event handlers from firing during initialization
         private bool _isLoading = true;
 
 
-        // constructor
+        // === constructor ===
+
         public SettingsPage()
         {
             this.InitializeComponent();
@@ -23,9 +25,12 @@ namespace FluentHwInfo.Features.Settings
             // restore the previous user selections
             RestoreThemeSelection();
             RestoreIntervalSelection();
-            RestoreWidgetSettings();
-            RestoreGraphDataPointsSelection();
             RestoreMinimizeToTraySelection();
+
+            RestoreBackgroundMaterialSettings();
+            RestoreGraphColorSettings();
+            RestoreGraphDataPointsSelection();
+
 
             // event listeners
             WidgetBackgroundColorPicker.RegisterPropertyChangedCallback(
@@ -40,7 +45,9 @@ namespace FluentHwInfo.Features.Settings
         }
 
 
-        // theme combo box
+        // === general settings ===
+
+        // theme
         private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -64,6 +71,7 @@ namespace FluentHwInfo.Features.Settings
                 }
             }
         }
+
         private void RestoreThemeSelection()
         {
             // we read the current theme value from the SettingsService
@@ -81,20 +89,7 @@ namespace FluentHwInfo.Features.Settings
             }
         }
 
-
-        // behavior settings
-        private void MinimizeToTrayToggle_Toggled(object sender, RoutedEventArgs e)
-        {
-            if (_isLoading) return;
-            SettingsService.Instance.MinimizeToTray = MinimizeToTrayToggle.IsOn;
-        }
-        private void RestoreMinimizeToTraySelection()
-        {
-            MinimizeToTrayToggle.IsOn = SettingsService.Instance.MinimizeToTray;
-        }
-
-
-        // interval combo box
+        // update interval
         private void IntervalComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -109,6 +104,7 @@ namespace FluentHwInfo.Features.Settings
                 }
             }
         }
+
         private void RestoreIntervalSelection()
         {
             // we read the current interval value from the HardwareMonitorService instance
@@ -126,8 +122,22 @@ namespace FluentHwInfo.Features.Settings
             }
         }
 
+        // minimize to tray
+        private void MinimizeToTrayToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.MinimizeToTray = MinimizeToTrayToggle.IsOn;
+        }
 
-        // widget combo box
+        private void RestoreMinimizeToTraySelection()
+        {
+            MinimizeToTrayToggle.IsOn = SettingsService.Instance.MinimizeToTray;
+        }
+
+
+        // === widget appearance settings ===
+        
+        // background material
         private void BackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (BackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
@@ -135,21 +145,25 @@ namespace FluentHwInfo.Features.Settings
                 SettingsService.Instance.BackdropType = tag;
             }
         }
-        private void ColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+
+        private void BackgroundColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            if (BackgroundColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
             {
                 SettingsService.Instance.UseAccentColor = (tag == "Accent");
             }
         }
+
         private void TintSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             SettingsService.Instance.TintOpacity = (float)e.NewValue;
         }
+
         private void LuminositySlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             SettingsService.Instance.LuminosityOpacity = (float)e.NewValue;
         }
+
         private void WidgetBackgroundColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
         {
             if (_isLoading) return;
@@ -158,11 +172,32 @@ namespace FluentHwInfo.Features.Settings
             {
                 // if user manually picks a color, we switch the source to "custom"
                 SettingsService.Instance.UseAccentColor = false;
-                ColorSourceComboBox.SelectedIndex = 1;
+                BackgroundColorSourceComboBox.SelectedIndex = 1;
 
                 SettingsService.Instance.CustomTintColor = colorPicker.SelectedColor;
             }
         }
+
+        private void RestoreBackgroundMaterialSettings()
+        {
+            BackgroundColorSourceComboBox.SelectedIndex = SettingsService.Instance.UseAccentColor ? 0 : 1;
+
+            string currentBackdrop = SettingsService.Instance.BackdropType;
+            foreach (ComboBoxItem item in BackdropComboBox.Items)
+            {
+                if (item.Tag?.ToString() == currentBackdrop)
+                {
+                    BackdropComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
+            TintSlider.Value = SettingsService.Instance.TintOpacity;
+            LuminositySlider.Value = SettingsService.Instance.LuminosityOpacity;
+            WidgetBackgroundColorPicker.SelectedColor = SettingsService.Instance.CustomTintColor;
+        }
+
+        // Graph
         private void GraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (GraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
@@ -183,30 +218,7 @@ namespace FluentHwInfo.Features.Settings
                 SettingsService.Instance.GraphCustomColor = colorPicker.SelectedColor;
             }
         }
-        private void RestoreWidgetSettings()
-        {
-            ColorSourceComboBox.SelectedIndex = SettingsService.Instance.UseAccentColor ? 0 : 1;
 
-            string currentBackdrop = SettingsService.Instance.BackdropType;
-            foreach (ComboBoxItem item in BackdropComboBox.Items)
-            {
-                if (item.Tag?.ToString() == currentBackdrop)
-                {
-                    BackdropComboBox.SelectedItem = item;
-                    break;
-                }
-            }
-
-            TintSlider.Value = SettingsService.Instance.TintOpacity;
-            LuminositySlider.Value = SettingsService.Instance.LuminosityOpacity;
-            WidgetBackgroundColorPicker.SelectedColor = SettingsService.Instance.CustomTintColor;
-
-            GraphColorSourceComboBox.SelectedIndex = SettingsService.Instance.UseGraphAccentColor ? 0 : 1;
-            GraphColorPicker.SelectedColor = SettingsService.Instance.GraphCustomColor;
-        }
-
-
-        // graph data points combo box
         private void GraphDataPointsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -219,6 +231,13 @@ namespace FluentHwInfo.Features.Settings
                 }
             }
         }
+
+        private void RestoreGraphColorSettings()
+        {
+            GraphColorSourceComboBox.SelectedIndex = SettingsService.Instance.UseGraphAccentColor ? 0 : 1;
+            GraphColorPicker.SelectedColor = SettingsService.Instance.GraphCustomColor;
+        }
+
         private void RestoreGraphDataPointsSelection()
         {
             int currentDataPoints = SettingsService.Instance.GraphDataPoints;
@@ -234,69 +253,9 @@ namespace FluentHwInfo.Features.Settings
         }
 
 
-        // reset handlers
-        private async void ResetAllSettings_Click(object sender, RoutedEventArgs e)
-        {
-            if (await ConfirmReset("All Settings"))
-            {
-                PersistenceService.Instance.ResetAll();
-                RestartApp();
-            }
-        }
-        private async void ResetGeneralSettings_Click(object sender, RoutedEventArgs e)
-        {
-            if (await ConfirmReset("General Settings"))
-            {
-                PersistenceService.Instance.ResetSettings();
-                RestartApp();
-            }
-        }
-        private async void ResetWindowStates_Click(object sender, RoutedEventArgs e)
-        {
-            if (await ConfirmReset("Window Positions"))
-            {
-                PersistenceService.Instance.ResetWindowStates();
-                RestartApp();
-            }
-        }
-        private async void ResetSensorStates_Click(object sender, RoutedEventArgs e)
-        {
-            if (await ConfirmReset("Sensor States"))
-            {
-                PersistenceService.Instance.ResetSensorStates();
-                RestartApp();
-            }
-        }
-        private Task<bool> ConfirmReset(string what)
-        {
-            return ConfirmAction($"Reset {what}?", "This will restore the default values and restart the app. This action cannot be undone.");
-        }
-        private async Task<bool> ConfirmAction(string title, string message, string confirmText = "Reset")
-        {
-            var dialog = new ContentDialog
-            {
-                Title = title,
-                Content = message,
-                PrimaryButtonText = confirmText,
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Close,
-                XamlRoot = this.XamlRoot
-            };
-            return await dialog.ShowAsync() == ContentDialogResult.Primary;
-        }
-        private void RestartApp()
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = Environment.ProcessPath,
-                UseShellExecute = true
-            });
+        // === backup and restore settings ===
 
-            FluentHwInfo.MainWindow.CurrentInstance?.ForceExit();
-        }
-
-
-        // backup and restore handlers
+        // export and import
         private async void ExportSettings_Click(object sender, RoutedEventArgs e)
         {
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(FluentHwInfo.MainWindow.CurrentInstance);
@@ -317,6 +276,7 @@ namespace FluentHwInfo.Features.Settings
                 await ShowInfoDialog("Export Failed", "The settings could not be exported.");
             }
         }
+
         private async void ImportSettings_Click(object sender, RoutedEventArgs e)
         {
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(FluentHwInfo.MainWindow.CurrentInstance);
@@ -347,6 +307,7 @@ namespace FluentHwInfo.Features.Settings
                 await ShowInfoDialog("Import Failed", "The selected file is not a valid FluentHwInfo backup.");
             }
         }
+
         private async Task ShowInfoDialog(string title, string message)
         {
             var dialog = new ContentDialog
@@ -357,6 +318,73 @@ namespace FluentHwInfo.Features.Settings
                 XamlRoot = this.XamlRoot
             };
             await dialog.ShowAsync();
+        }
+
+        // reset
+        private async void ResetAllSettings_Click(object sender, RoutedEventArgs e)
+        {
+            if (await ConfirmReset("All Settings"))
+            {
+                PersistenceService.Instance.ResetAll();
+                RestartApp();
+            }
+        }
+
+        private async void ResetGeneralSettings_Click(object sender, RoutedEventArgs e)
+        {
+            if (await ConfirmReset("General Settings"))
+            {
+                PersistenceService.Instance.ResetSettings();
+                RestartApp();
+            }
+        }
+
+        private async void ResetWindowStates_Click(object sender, RoutedEventArgs e)
+        {
+            if (await ConfirmReset("Window Positions"))
+            {
+                PersistenceService.Instance.ResetWindowStates();
+                RestartApp();
+            }
+        }
+
+        private async void ResetSensorStates_Click(object sender, RoutedEventArgs e)
+        {
+            if (await ConfirmReset("Sensor States"))
+            {
+                PersistenceService.Instance.ResetSensorStates();
+                RestartApp();
+            }
+        }
+
+        private Task<bool> ConfirmReset(string what)
+        {
+            return ConfirmAction($"Reset {what}?", "This will restore the default values and restart the app. This action cannot be undone.");
+        }
+
+        private async Task<bool> ConfirmAction(string title, string message, string confirmText = "Reset")
+        {
+            var dialog = new ContentDialog
+            {
+                Title = title,
+                Content = message,
+                PrimaryButtonText = confirmText,
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = this.XamlRoot
+            };
+            return await dialog.ShowAsync() == ContentDialogResult.Primary;
+        }
+
+        private void RestartApp()
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = Environment.ProcessPath,
+                UseShellExecute = true
+            });
+
+            FluentHwInfo.MainWindow.CurrentInstance?.ForceExit();
         }
     }
 }

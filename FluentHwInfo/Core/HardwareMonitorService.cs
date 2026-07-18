@@ -16,30 +16,14 @@ namespace FluentHwInfo.Core
         double Value // the actual value of the sensor
     );
 
-    /// <summary>
-    /// Acts as the dedicated backend engine for reading raw physical hardware metrics, utilizing the 
-    /// LibreHardwareMonitorLib
-    /// 
-    /// Responsibilities:
-    /// - Initializes hardware access dynamically across all major core components including CPU, GPUs (dedicated and 
-    ///   integrated), Memory, and Storage devices
-    /// - Performs recursive hardware and sub-hardware discovery to build a flat, optimized list of active telemetry 
-    ///   sensors
-    /// - Runs an isolated, asynchronous polling loop governed by a CancellationTokenSource to continuously refresh 
-    ///   sensor values at a configurable interval without blocking the UI thread
-    /// - Packages all active sensor metrics into a unified, lightweight, and immutable data payload (SensorData records)
-    ///   and broadcasts it via a single master event
-    /// 
-    /// Architecture Constraints:
-    /// Adheres strictly to the Single Responsibility Principle. This class has absolute zero knowledge of ViewModels, 
-    /// UI elements, data persistence, or string formatting. It exclusively handles hardware communication and 
-    /// blind data broadcasting
-    /// </summary>
+
     public class HardwareMonitorService
     {
+        // === fields ===
+
         private readonly Computer _computer;
 
-        // the dynamic list
+        // the dynamic list:
         // it contains all sensors we want to monitor
         // the manual way would be:
         // "private IHardware? _cpuHardware;" 
@@ -49,24 +33,19 @@ namespace FluentHwInfo.Core
         private readonly object _sensorLock = new object();
         private CancellationTokenSource? _cts;
         private Task? _loopTask;
-        public int UpdateIntervalMs { get; set; } = 500;
-
-        // the master event
-        // instead of having multiple events for each sensor, we can have one event that
-        // sends a list of all the sensor data at once
-        // the manual way would be:
-        // "public event Action<double>? CpuPackagePowerUpdated;"
-        // "public event Action<double>? CpuIaPowerUpdated;" and so on
-        public event Action<List<SensorData>>? HardwareDataUpdated;
-
-        // now we make this class a singleton, because we want to have only one instance of this service that runs in the
-        // background and updates the sensor values
-        private static readonly HardwareMonitorService _instance = new HardwareMonitorService();
-        public static HardwareMonitorService Instance => _instance;
         private readonly HashSet<string> _excludedSensorIds = new();
 
 
-        // constructor
+        // === singleton instance ===
+
+        // this class is a singleton, because we want to have only one instance of this service that runs in the
+        // background and updates the sensor values
+        private static readonly HardwareMonitorService _instance = new HardwareMonitorService();
+        public static HardwareMonitorService Instance => _instance;
+
+
+        // === constructor ===
+
         private HardwareMonitorService()
         {
             _computer = new Computer
@@ -87,7 +66,11 @@ namespace FluentHwInfo.Core
         }
 
 
-        // asynchronous initialization pipeline
+        // === public api ===
+
+        public int UpdateIntervalMs { get; set; } = 500;
+
+        // asynchronous initialization pipeline:
         // lhm heavily blocks the calling thread when enabling all the hardware components
         // to prevent application freezes, these methods allow any consuming class or caller to trigger the 
         // hardware discovery step-by-step on isolated background threads (via Task.Run)
@@ -95,14 +78,17 @@ namespace FluentHwInfo.Core
         {
             return Task.Run(() => { _computer.IsMotherboardEnabled = true; });
         }
+
         public Task InitCpuAsync()
         {
             return Task.Run(() => { _computer.IsCpuEnabled = true; });
         }
+
         public Task InitGpuAsync()
         {
             return Task.Run(() => { _computer.IsGpuEnabled = true; });
         }
+
         public Task InitMemoryAndStorageAsync()
         {
             return Task.Run(() =>
@@ -112,6 +98,7 @@ namespace FluentHwInfo.Core
             });
         }
 
+        // monitoring control:
         // starts the background polling loop to read sensor values
         // this method gets called from the outside (e.g. MainWindow); only after the asynchronous initialization pipeline has
         // fully completed of course
@@ -149,8 +136,7 @@ namespace FluentHwInfo.Core
             _computer.Close();
         }
 
-
-        // exclusion API
+        // exclusion API:
         // the service stays blind about the meaning of "excluded" (hidden, disabled, whatever); it just skips these ids
         public void AddExcludedSensor(string sensorId)
         {
@@ -159,6 +145,7 @@ namespace FluentHwInfo.Core
                 _excludedSensorIds.Add(sensorId);
             }
         }
+
         public void RemoveExcludedSensor(string sensorId)
         {
             lock (_sensorLock)
@@ -166,6 +153,7 @@ namespace FluentHwInfo.Core
                 _excludedSensorIds.Remove(sensorId);
             }
         }
+
         // bulk sync for startup, replaces the current exclusion set in one shot
         public void SetExcludedSensors(IEnumerable<string> sensorIds)
         {
@@ -180,7 +168,20 @@ namespace FluentHwInfo.Core
         }
 
 
-        // private class methods
+        // === events ===
+
+        // the master event:
+        // instead of having multiple events for each sensor, we can have one event that
+        // sends a list of all the sensor data at once
+        // the manual way would be:
+        // "public event Action<double>? CpuPackagePowerUpdated;"
+        // "public event Action<double>? CpuIaPowerUpdated;" and so on
+        public event Action<List<SensorData>>? HardwareDataUpdated;
+
+
+        // === private helpers ===
+
+        // polling loop
         private async Task LoopAsync(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
@@ -242,6 +243,7 @@ namespace FluentHwInfo.Core
             }
         }
 
+        // sensor discovery:
         // goes through the discovered hardware tree and registers relevant sensors into the flat list
         // this process is protected by _sensorLock to ensure thread-safety, preventing collection modification crashes if the
         // background polling loop is preparing to run simultaneously

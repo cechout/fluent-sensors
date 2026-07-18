@@ -1,21 +1,16 @@
-﻿using LiveChartsCore;
-using LiveChartsCore.Drawing;
-using LiveChartsCore.Kernel.Sketches;
-using LiveChartsCore.Measure;
+﻿using LiveChartsCore.Drawing;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
-using LiveChartsCore.SkiaSharpView.Painting.Effects;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 
 namespace FluentHwInfo.Controls
 {
-    // Graph: color and section calculation
+    // === Graph: color and section calculation ===
     // rebuilds line/area colors and threshold sections whenever values, accent color, threshold, or y-range change
     public sealed partial class Graph
     {

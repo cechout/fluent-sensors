@@ -5,9 +5,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhCommon="using:FluentHwInfo.Common"
     xmlns:fhControls="using:FluentHwInfo.Controls"
-    xmlns:fhWidget="using:FluentHwInfo.Features.Widget"
-    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="WidgetWindow"
     mc:Ignorable="d">
@@ -71,7 +70,7 @@
                     </ItemsControl.ItemsPanel>
 
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="fhWidget:WidgetSensorViewModel">
+                        <DataTemplate x:DataType="fhCommon:SensorGraphViewModel">
 
                             <StackPanel
                                 Height="104"

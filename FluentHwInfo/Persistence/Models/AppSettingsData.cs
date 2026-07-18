@@ -20,8 +20,8 @@ namespace FluentHwInfo.Persistence.Models
         public bool MinimizeToTray { get; set; } = true;
         public bool HideSensorsCompletely { get; set; } = true;
 
-        // lives on HardwareMonitorService at runtime, but conceptually belongs with the rest
-        // of the app settings for persistence purposes
+        // lives on HardwareMonitorService at runtime, but conceptually belongs with the rest of the app settings for
+        // persistence purposes
         public int UpdateIntervalMs { get; set; } = 500;
     }
 }

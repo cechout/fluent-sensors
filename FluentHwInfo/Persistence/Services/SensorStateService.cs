@@ -10,30 +10,36 @@ namespace FluentHwInfo.Persistence.Services
     // threshold, and widget graph Y-axis scaling
     public class SensorStateService
     {
-        // fields
-        public static SensorStateService Instance { get; } = new SensorStateService();
+        // === fields ===
+
         private readonly Dictionary<string, SensorState> _states = new();
 
 
-        // constructor
+        // === singleton instance ===
+
+        public static SensorStateService Instance { get; } = new SensorStateService();
+
+
+        // === constructor ===
+
         private SensorStateService() { }
 
 
-        // Public binding surface
-        // fires whenever any part of a sensors state changes, so every open view for that sensor can refresh; can fire
-        // from any thread, subscribers must marshal to their own UI thread
-        public event Action<string, SensorState> StateChanged;
+        // === public api ===
+
         // returns a fresh default state if none has been configured yet; never null
         public SensorState GetState(string sensorId)
         {
             return _states.TryGetValue(sensorId, out var state) ? state : new SensorState();
         }
+
         public void SetState(string sensorId, SensorState state)
         {
             _states[sensorId] = state;
             StateChanged?.Invoke(sensorId, state);
             PersistenceService.Instance.SaveSensorStatesDebounced(_states);
         }
+
         // convenience helper for the hide/restore flow: flips just the hidden flag without touching that sensors
         // threshold or Y-axis config
         public void SetHidden(string sensorId, bool isHidden)
@@ -42,6 +48,7 @@ namespace FluentHwInfo.Persistence.Services
             state.IsHidden = isHidden;
             SetState(sensorId, state);
         }
+
         // convenience helper for checkbox selection: flips just the selected flag without touching that
         // sensors hidden state, threshold, or Y-axis config
         public void SetSelected(string sensorId, bool isSelected)
@@ -51,8 +58,7 @@ namespace FluentHwInfo.Persistence.Services
             SetState(sensorId, state);
         }
 
-
-        // persistence 
+        // persistence
         // returns the live dictionary directly; PersistenceService only reads it when its debounce timer fires, so no
         // snapshot copy is needed here
         public void LoadFromDisk(Dictionary<string, SensorState> loaded)
@@ -63,5 +69,12 @@ namespace FluentHwInfo.Persistence.Services
                 _states[kvp.Key] = kvp.Value;
             }
         }
+
+
+        // === events ===
+
+        // fires whenever any part of a sensors state changes, so every open view for that sensor can refresh; can fire
+        // from any thread, subscribers must marshal to their own UI thread
+        public event Action<string, SensorState> StateChanged;
     }
 }

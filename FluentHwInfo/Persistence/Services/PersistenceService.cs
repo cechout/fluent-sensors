@@ -16,8 +16,8 @@ namespace FluentHwInfo.Persistence.Services
     // data back
     public class PersistenceService
     {
-        // fields
-        public static PersistenceService Instance { get; } = new PersistenceService();
+        // === fields ===
+
         private readonly string _rootFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FluentHwInfo");
         private string SettingsPath => Path.Combine(_rootFolder, "settings.json");
@@ -41,35 +41,43 @@ namespace FluentHwInfo.Persistence.Services
         private Dictionary<string, SensorState> _pendingSensorStates;
 
 
-        // constructor
+        // === singleton instance ===
+
+        public static PersistenceService Instance { get; } = new PersistenceService();
+
+
+        // === constructor ===
+
         private PersistenceService() { }
 
 
-        // public binding surface: load
+        // === public API ===
+
+        // load
         public AppSettingsData LoadSettings() => LoadFile<AppSettingsData>(SettingsPath) ?? new AppSettingsData();
         public Dictionary<string, WindowState> LoadWindowStates() => LoadFile<Dictionary<string, WindowState>>(WindowStatePath) ?? new();
         public Dictionary<string, SensorState> LoadSensorStates() => LoadFile<Dictionary<string, SensorState>>(SensorStatePath) ?? new();
 
-
-        // public binding surface: debounced save
+        // debounced save
         public void SaveSettingsDebounced(AppSettingsData data)
         {
             _pendingSettings = data;
             ResetTimer(ref _settingsTimer, () => SaveFile(SettingsPath, _pendingSettings));
         }
+
         public void SaveWindowStatesDebounced(Dictionary<string, WindowState> data)
         {
             _pendingWindowStates = data;
             ResetTimer(ref _windowStateTimer, () => SaveFile(WindowStatePath, _pendingWindowStates));
         }
+
         public void SaveSensorStatesDebounced(Dictionary<string, SensorState> data)
         {
             _pendingSensorStates = data;
             ResetTimer(ref _sensorStateTimer, () => SaveFile(SensorStatePath, _pendingSensorStates));
         }
 
-
-        // public binding surface: immediate save
+        // immediate save:
         // called on app exit, so the last pending change isnt lost to a debounce timer that never gets to fire because
         // the process is already gone
         public void FlushAll()
@@ -83,8 +91,7 @@ namespace FluentHwInfo.Persistence.Services
             if (_pendingSensorStates != null) SaveFile(SensorStatePath, _pendingSensorStates);
         }
 
-
-        // public binding surface: reset
+        // reset:
         // wipes a state file from disk and clears any pending debounced save for it, so nothing gets re-written after the
         // reset; caller is expected to restart the app right after, so the in-memory state gets rebuilt from defaults on
         // the next startup load
@@ -95,6 +102,7 @@ namespace FluentHwInfo.Persistence.Services
             _pendingSettings = null;
             DeleteFile(SettingsPath);
         }
+
         public void ResetWindowStates()
         {
             _windowStateTimer?.Dispose();
@@ -102,6 +110,7 @@ namespace FluentHwInfo.Persistence.Services
             _pendingWindowStates = null;
             DeleteFile(WindowStatePath);
         }
+
         public void ResetSensorStates()
         {
             _sensorStateTimer?.Dispose();
@@ -109,6 +118,7 @@ namespace FluentHwInfo.Persistence.Services
             _pendingSensorStates = null;
             DeleteFile(SensorStatePath);
         }
+
         public void ResetAll()
         {
             ResetSettings();
@@ -116,8 +126,7 @@ namespace FluentHwInfo.Persistence.Services
             ResetSensorStates();
         }
 
-
-        // public binding surface: backup
+        // backup:
         // bundles the three raw json files into one zip; flushes any pending debounced writes first so the export always
         // reflects the latest in-memory state, not a stale version still waiting on its debounce timer
         public void ExportBackup(string destinationZipPath)
@@ -189,12 +198,14 @@ namespace FluentHwInfo.Persistence.Services
         }
 
 
-        // private helpers 
+        // === private helpers ===
+
         private void ResetTimer(ref Timer timer, Action save)
         {
             timer?.Dispose();
             timer = new Timer(_ => save(), null, DebounceMs, Timeout.Infinite);
         }
+
         private T LoadFile<T>(string path) where T : class
         {
             if (!File.Exists(path)) return null;
@@ -214,6 +225,7 @@ namespace FluentHwInfo.Persistence.Services
                 return null;
             }
         }
+
         private void SaveFile<T>(string path, T data)
         {
             try
@@ -227,6 +239,7 @@ namespace FluentHwInfo.Persistence.Services
                 // best-effort persistence; a failed save should never crash the app
             }
         }
+
         private void DeleteFile(string path)
         {
             try
@@ -238,10 +251,12 @@ namespace FluentHwInfo.Persistence.Services
                 // best-effort; the app is about to restart anyway, so a stale file just means the next reset attempt handles it
             }
         }
+
         private void AddFileIfExists(ZipArchive zip, string sourcePath, string entryName)
         {
             if (File.Exists(sourcePath)) zip.CreateEntryFromFile(sourcePath, entryName);
         }
+
         private bool TryDeserialize<T>(string json) where T : class
         {
             try

@@ -21,7 +21,8 @@ namespace FluentHwInfo
 {
     public sealed partial class MainWindow : Window
     {
-        // win32 api imports
+        // === win32 api imports ===
+
         [LibraryImport("user32.dll", EntryPoint = "GetWindowLongW")]
         private static partial int GetWindowLong(IntPtr hWnd, int nIndex);
         [LibraryImport("user32.dll", EntryPoint = "SetWindowLongW")]
@@ -37,10 +38,11 @@ namespace FluentHwInfo
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_NOZORDER = 0x0004;
         private const uint SWP_NOACTIVATE = 0x0010;
-        private const uint SWP_FRAMECHANGED = 0x0020; 
+        private const uint SWP_FRAMECHANGED = 0x0020;
 
 
-        // properties and fields
+        // === fields ===
+
         public static MainWindow CurrentInstance { get; private set; }
         private const string WindowKey = "Main"; // key under which this windows state is saved
         private bool _isForceClosing = false;
@@ -52,7 +54,8 @@ namespace FluentHwInfo
         public XamlUICommand ExitAppCommand { get; } = new XamlUICommand();
 
 
-        // constructor
+        // === constructor ===
+
         public MainWindow()
         {
             // initialization
@@ -61,8 +64,7 @@ namespace FluentHwInfo
             CurrentInstance = this;
 
             // AppWindow configuration
-            // theme 
-            AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
+            // titlebar 
             AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
             if (AppWindow.TitleBar.ExtendsContentIntoTitleBar)
             {
@@ -81,7 +83,7 @@ namespace FluentHwInfo
             {
                 this.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
                 savedState.X, savedState.Y, savedState.Width, savedState.Height));
-                
+
                 if (savedState.IsMaximized && this.AppWindow.Presenter is OverlappedPresenter presenter)
                 {
                     presenter.Maximize();
@@ -94,7 +96,7 @@ namespace FluentHwInfo
                 var currentPos = this.AppWindow.Position;
                 // yea idk; might change this in future
                 this.AppWindow.Move(new Windows.Graphics.PointInt32(currentPos.X - 400, currentPos.Y - 100));
-             }
+            }
 
             // theming
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
@@ -102,7 +104,7 @@ namespace FluentHwInfo
             ApplyTrayIconTheme(SettingsService.Instance.AppTheme);
             ApplyTheme(SettingsService.Instance.AppTheme);
 
-            // event routing
+            // window lifecycle events
             this.Closed += (s, args) =>
             {
                 SettingsService.Instance.ThemeChanged -= OnThemeChanged;
@@ -117,12 +119,12 @@ namespace FluentHwInfo
             ShowMainWindowCommand.ExecuteRequested += (s, e) =>
             {
                 RestoreApp();
-                MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0]; 
+                MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
             };
             OpenSettingsCommand.ExecuteRequested += (s, e) =>
             {
                 RestoreApp();
-                MainNavigationView.SelectedItem = MainNavigationView.FooterMenuItems[0]; 
+                MainNavigationView.SelectedItem = MainNavigationView.FooterMenuItems[0];
             };
             ExitAppCommand.ExecuteRequested += (s, e) =>
             {
@@ -138,7 +140,8 @@ namespace FluentHwInfo
         }
 
 
-        // lifecycle and initialization methods
+        // === lifecycle and initialization ===
+
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             if (_isHardwareServiceLoaded) return;
@@ -146,6 +149,7 @@ namespace FluentHwInfo
 
             await StartHardwareServiceAsync(); // load the HardwareMonitorService singleton instance asynchronously
         }
+
         private async Task StartHardwareServiceAsync()
         {
             var monitor = HardwareMonitorService.Instance;
@@ -199,8 +203,36 @@ namespace FluentHwInfo
             TryRestoreWidgetWindow();
         }
 
+        // re-creates the widget window with whichever previously pinned sensors still exist on
+        // this system, but only if it was actually open when the app last closed
+        private void TryRestoreWidgetWindow()
+        {
+            var widgetState = WindowStateService.Instance.GetState("Widget");
+            if (widgetState == null || !widgetState.WasOpen || widgetState.PinnedSensorIds.Count == 0) return;
 
-        // theme change handling
+            var pinnedSensors = FindSensorRowsByIds(widgetState.PinnedSensorIds);
+            if (pinnedSensors.Count == 0) return; // none of them exist on this system anymore
+
+            var widgetWindow = new WidgetWindow(pinnedSensors);
+            widgetWindow.Activate();
+        }
+
+        // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, preserving the original
+        // pin order rather than whatever order the hardware groups produce
+        private List<SensorRowViewModel> FindSensorRowsByIds(List<string> ids)
+        {
+            var allSensors = SensorsViewModel.Instance.HardwareGroups
+                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors));
+
+            return ids
+                .Select(id => allSensors.FirstOrDefault(s => s.Id == id))
+                .Where(s => s != null)
+                .ToList();
+        }
+
+
+        // === theme handling ===
+
         private void OnThemeChanged(string newTheme)
         {
             this.DispatcherQueue.TryEnqueue(() =>
@@ -210,6 +242,7 @@ namespace FluentHwInfo
                 ApplyTheme(newTheme);
             });
         }
+
         private void ApplyTitleBarTheme(string themeTag)
         {
             AppWindow.TitleBar.PreferredTheme = themeTag switch
@@ -219,6 +252,7 @@ namespace FluentHwInfo
                 _ => Microsoft.UI.Windowing.TitleBarTheme.UseDefaultAppMode
             };
         }
+
         private void ApplyTrayIconTheme(string themeTag) // theme switch does not work smh
         {
             var targetTheme = themeTag switch
@@ -230,6 +264,7 @@ namespace FluentHwInfo
 
             TrayIcon.RequestedTheme = targetTheme;
         }
+
         private void ApplyTheme(string themeTag)
         {
             if (this.Content is FrameworkElement rootElement)
@@ -244,7 +279,8 @@ namespace FluentHwInfo
         }
 
 
-        // navigation
+        // === navigation ===
+
         private void MainNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             // checks if native settings item got clicked
@@ -265,14 +301,15 @@ namespace FluentHwInfo
                         break;
 
                     case "Settings":
-                        contentFrame.Navigate(typeof(SettingsPage)); 
+                        contentFrame.Navigate(typeof(SettingsPage));
                         break;
                 }
             }
         }
 
 
-        // windows state and system tray logic
+        // === window state and system tray ===
+
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
             // during a forced shutdown (settings reset/import -> restart), any write here would use in-memory state that
@@ -289,6 +326,7 @@ namespace FluentHwInfo
                 SaveWindowState();
             }
         }
+
         public void CheckAndHideToTray()
         {
             // check if user toggled the system tray functionality
@@ -321,10 +359,11 @@ namespace FluentHwInfo
                 }
             }
         }
+
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
             // if user clicks "exit app" in the tray menu, actually kill the process
-            if (_isForceClosing) return; 
+            if (_isForceClosing) return;
 
             if (SettingsService.Instance.MinimizeToTray)
             {
@@ -354,6 +393,7 @@ namespace FluentHwInfo
                 PersistenceService.Instance.FlushAll();
             }
         }
+
         public void OpenDashboard()
         {
             // release the lock
@@ -371,6 +411,7 @@ namespace FluentHwInfo
             }
             this.Activate();
         }
+
         private void RestoreApp()
         {
             // triggered by system tray double click
@@ -391,6 +432,7 @@ namespace FluentHwInfo
                 WidgetWindow.CurrentInstance.Activate();
             }
         }
+
         public void EvaluateFullExit()
         {
             // if the dashboard is closed and no widget is pinned anymore, nothing is left running;
@@ -407,6 +449,7 @@ namespace FluentHwInfo
                 Application.Current.Exit();
             }
         }
+
         // controlled tear-down for scenarios that bypass the normal closing paths (e.g. settings reset -> app restart);
         // mirrors ExitAppCommands sequence but deliberately skips SaveWindowState so a fresh window-state reset does not
         // get immediately overwritten by a final position save on the way out
@@ -423,7 +466,6 @@ namespace FluentHwInfo
             PersistenceService.Instance.FlushAll();
             Process.GetCurrentProcess().Kill();
         }
-
 
         // captures the current position/size and writes it (debounced) to the window state store
         // skipped while minimized or hidden in the tray, since those transient rects would overwrite a perfectly good
@@ -449,33 +491,6 @@ namespace FluentHwInfo
             };
 
             WindowStateService.Instance.SetState(WindowKey, newState);
-        }
-
-        // re-creates the widget window with whichever previously pinned sensors still exist on
-        // this system, but only if it was actually open when the app last closed
-        private void TryRestoreWidgetWindow()
-        {
-            var widgetState = WindowStateService.Instance.GetState("Widget");
-            if (widgetState == null || !widgetState.WasOpen || widgetState.PinnedSensorIds.Count == 0) return;
-
-            var pinnedSensors = FindSensorRowsByIds(widgetState.PinnedSensorIds);
-            if (pinnedSensors.Count == 0) return; // none of them exist on this system anymore
-
-            var widgetWindow = new WidgetWindow(pinnedSensors);
-            widgetWindow.Activate();
-        }
-
-        // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, preserving the original
-        // pin order rather than whatever order the hardware groups produce
-        private List<SensorRowViewModel> FindSensorRowsByIds(List<string> ids)
-        {
-            var allSensors = SensorsViewModel.Instance.HardwareGroups
-                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors));
-
-            return ids
-                .Select(id => allSensors.FirstOrDefault(s => s.Id == id))
-                .Where(s => s != null)
-                .ToList();
         }
     }
 }

@@ -8,9 +8,24 @@ namespace FluentHwInfo.Controls
 {
     public sealed partial class SensorCardControl : UserControl
     {
-        // mouse tracker fields
+        // === fields ===
+
         private bool _isHovered = false;
         private bool _isPressed = false;
+
+
+        // === constructor ===
+
+        public SensorCardControl()
+        {
+            this.InitializeComponent();
+
+            this.Loaded += OnLoaded;
+            this.Unloaded += OnUnloaded;
+        }
+
+
+        // === dependency properties ===
 
         public static readonly DependencyProperty ViewModelProperty =
             DependencyProperty.Register(
@@ -23,6 +38,42 @@ namespace FluentHwInfo.Controls
         {
             get => (SensorRowViewModel)GetValue(ViewModelProperty);
             set => SetValue(ViewModelProperty, value);
+        }
+
+        // re-subscribes to the new ViewModels PropertyChanged so the card reacts if IsDisabled flips while its on screen
+        private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not SensorCardControl card) return;
+
+            if (e.OldValue is SensorRowViewModel oldVm) oldVm.PropertyChanged -= card.ViewModel_PropertyChanged;
+            if (e.NewValue is SensorRowViewModel newVm) newVm.PropertyChanged += card.ViewModel_PropertyChanged;
+
+            card._isHovered = false;
+            card._isPressed = false;
+
+            // guard: this callback can fire while ItemsRepeater is still materializing the control, before it's attached
+            // to a live XamlRoot. Calling VisualStateManager.GoToState that early can fail to resolve this control's own
+            // ThemeDictionaries resources and throw - unhandled, that crashed the whole process. OnLoaded (below) already
+            // applies the same state once the control is actually ready, so skipping here just defers it safely.
+            if (card.IsLoaded)
+            {
+                card.UpdateVisualState(useTransitions: false);
+                card.UpdateDisplayState();
+            }
+        }
+
+        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SensorRowViewModel.IsDisabled))
+            {
+                UpdateDisplayState();
+            }
+            // covers external selection changes (e.g. SelectPinnedSensors / DeselectAllSensors), since those bypass
+            // RootGrid_Tapped and never trigger UpdateVisualState on their own
+            else if (e.PropertyName == nameof(SensorRowViewModel.IsSelected))
+            {
+                UpdateVisualState();
+            }
         }
 
         // true for cards in the hidden sensors window
@@ -46,51 +97,7 @@ namespace FluentHwInfo.Controls
         }
 
 
-        // re-subscribes to the new ViewModels PropertyChanged so the card reacts if IsDisabled flips while its on screen
-        private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is not SensorCardControl card) return;
-
-            if (e.OldValue is SensorRowViewModel oldVm) oldVm.PropertyChanged -= card.ViewModel_PropertyChanged;
-            if (e.NewValue is SensorRowViewModel newVm) newVm.PropertyChanged += card.ViewModel_PropertyChanged;
-
-            card._isHovered = false;
-            card._isPressed = false;
-
-            // guard: this callback can fire while ItemsRepeater is still materializing the control, before it's attached
-            // to a live XamlRoot. Calling VisualStateManager.GoToState that early can fail to resolve this control's own
-            // ThemeDictionaries resources and throw - unhandled, that crashed the whole process. OnLoaded (below) already
-            // applies the same state once the control is actually ready, so skipping here just defers it safely.
-            if (card.IsLoaded)
-            {
-                card.UpdateVisualState(useTransitions: false);
-                card.UpdateDisplayState();
-            }
-        }
-        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(SensorRowViewModel.IsDisabled))
-            {
-                UpdateDisplayState();
-            }
-            // covers external selection changes (e.g. SelectPinnedSensors / DeselectAllSensors), since those bypass
-            // RootGrid_Tapped and never trigger UpdateVisualState on their own
-            else if (e.PropertyName == nameof(SensorRowViewModel.IsSelected))
-            {
-                UpdateVisualState();
-            }
-        }
-
-
-        // constructor
-        public SensorCardControl()
-        {
-            this.InitializeComponent();
-
-            this.Loaded += OnLoaded;
-            this.Unloaded += OnUnloaded;
-        }
-
+        // === lifecycle events ===
 
         // container was just added to the visual tree, either fresh or recycled from another item
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -113,26 +120,29 @@ namespace FluentHwInfo.Controls
         }
 
 
-        // pointer events
-        // (disabled cards just ignore hover/press)
+        // === pointer events ===
+
         private void RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
             if (ViewModel?.IsDisabled == true) return;
             _isHovered = true;
             UpdateVisualState();
         }
+
         private void RootGrid_PointerExited(object sender, PointerRoutedEventArgs e)
         {
             _isHovered = false;
             _isPressed = false;
             UpdateVisualState();
         }
+
         private void RootGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             if (ViewModel?.IsDisabled == true) return;
             _isPressed = true;
             UpdateVisualState();
         }
+
         private void RootGrid_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
             _isPressed = false;
@@ -148,6 +158,8 @@ namespace FluentHwInfo.Controls
             UpdateVisualState();
         }
 
+
+        // === private helpers ===
 
         // method to update the visual state of the card based on the current status (selected, hovered, pressed)
         private void UpdateVisualState(bool useTransitions = true)
@@ -169,7 +181,6 @@ namespace FluentHwInfo.Controls
                 else VisualStateManager.GoToState(this, "Normal", useTransitions);
             }
         }
-
 
         // decides between full details, disabled (dimmed/frozen), or name-only (hidden window)
         private void UpdateDisplayState()

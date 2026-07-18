@@ -10,20 +10,56 @@ using FluentHwInfo.Persistence.Models;
 using FluentHwInfo.Persistence.Services;
 
 
-namespace FluentHwInfo.Features.Widget
+namespace FluentHwInfo.Common
 {
-    public class WidgetSensorViewModel : INotifyPropertyChanged
+    public class SensorGraphViewModel : INotifyPropertyChanged
     {
-        // general fields
+        // === fields ===
+
+        private double _currentRaw;
+
+
+        // === constructor ===
+
+        public SensorGraphViewModel(string sensorId, string sensorName)
+        {
+            SensorId = sensorId;
+            SensorName = sensorName;
+            CurrentValueText = "-"; // placeholder text until we have the first value
+            CurrentValueColor = DefaultTextBrush;
+
+            // this raw data list will be plotted by LiveCharts
+            // we use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
+            SensorData = new ObservableCollection<double?>(Enumerable.Repeat<double?>(0.0, SettingsService.Instance.GraphDataPoints));
+
+            GraphColor = ResolveGraphColor(SettingsService.Instance.UseGraphAccentColor, SettingsService.Instance.GraphCustomColor);
+            SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
+            SettingsService.Instance.GraphDataPointsChanged += OnGraphDataPointsChanged;
+
+            // restore this sensors full state if it was already configured before (e.g. previously pinned, or loaded from
+            // disk at startup)
+            var existingState = SensorStateService.Instance.GetState(SensorId);
+            _isThresholdEnabled = existingState.Threshold.IsEnabled;
+            _manualThreshold = existingState.Threshold.Value;
+            _thresholdDirection = existingState.Threshold.Direction;
+            _thresholdColor = existingState.Threshold.Color;
+            _isAutoScaled = existingState.IsAutoScaled;
+            _manualYMax = existingState.ManualYMax;
+            UpdateYMaxDisplay();
+        }
+
+
+        // === bindable properties ===
+
+        // general
         public ObservableCollection<double?> SensorData { get; private set; }
-        public string SensorId { get; } 
+        public string SensorId { get; }
         private string _sensorName = "not provided";
         public string SensorName
         {
             get => _sensorName;
             set { _sensorName = value; OnPropertyChanged(); }
         }
-        private double _currentRaw;
         private string _currentValueText = "-";
         public string CurrentValueText
         {
@@ -37,7 +73,7 @@ namespace FluentHwInfo.Features.Widget
             private set { _graphColor = value; OnPropertyChanged(); }
         }
 
-        // y-axis fields
+        // y-axis
         private bool _isAutoScaled = true;
         public bool IsAutoScaled
         {
@@ -80,7 +116,7 @@ namespace FluentHwInfo.Features.Widget
             }
         }
 
-        // threshold configuration 
+        // threshold configuration
         private bool _isThresholdEnabled = false;
         public bool IsThresholdEnabled
         {
@@ -127,15 +163,6 @@ namespace FluentHwInfo.Features.Widget
                 OnPropertyChanged(nameof(IsBelowDirection));
                 PushStateToService();
                 RecalculateColor();
-            }
-        }
-        public SolidColorBrush ThresholdColorBrush
-        {
-            get
-            {
-                var c = ThresholdColor;
-                const byte swatchAlpha = 200; // 255 = fully opaque
-                return new SolidColorBrush(Windows.UI.Color.FromArgb(swatchAlpha, c.R, c.G, c.B));
             }
         }
         public bool IsAboveDirection
@@ -185,6 +212,15 @@ namespace FluentHwInfo.Features.Widget
                 RecalculateColor();
             }
         }
+        public SolidColorBrush ThresholdColorBrush
+        {
+            get
+            {
+                var c = ThresholdColor;
+                const byte swatchAlpha = 200; // 255 = fully opaque
+                return new SolidColorBrush(Windows.UI.Color.FromArgb(swatchAlpha, c.R, c.G, c.B));
+            }
+        }
         public Microsoft.UI.Xaml.Media.Brush AboveDirectionBrush => GetDirectionBrush(ThresholdDirection.Above);
         public Microsoft.UI.Xaml.Media.Brush BelowDirectionBrush => GetDirectionBrush(ThresholdDirection.Below);
         private Microsoft.UI.Xaml.Media.Brush GetDirectionBrush(ThresholdDirection buttonDirection)
@@ -199,8 +235,23 @@ namespace FluentHwInfo.Features.Widget
             get => _currentValueColor;
             set { _currentValueColor = value; OnPropertyChanged(); }
         }
-
         private static Brush DefaultTextBrush => (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
+        // pushes the full state snapshot (threshold + Y-axis) to the shared service, so
+        // MainWindow can pick up threshold changes and disk persistence stays up to date
+        private void PushStateToService()
+        {
+            var state = SensorStateService.Instance.GetState(SensorId);
+            state.Threshold = new SensorThreshold
+            {
+                IsEnabled = _isThresholdEnabled,
+                Value = _manualThreshold,
+                Direction = _thresholdDirection,
+                Color = _thresholdColor
+            };
+            state.IsAutoScaled = _isAutoScaled;
+            state.ManualYMax = _manualYMax;
+            SensorStateService.Instance.SetState(SensorId, state);
+        }
 
         // single visibility state for all control panels; toggled together, shown together
         private Visibility _controlPanelVisibility = Visibility.Collapsed;
@@ -218,125 +269,13 @@ namespace FluentHwInfo.Features.Widget
         }
 
 
-        // constructor
-        public WidgetSensorViewModel(string sensorId, string sensorName)
-        {
-            SensorId = sensorId;
-            SensorName = sensorName;
-            CurrentValueText = "-"; // placeholder text until we have the first value
-            CurrentValueColor = DefaultTextBrush;
+        // === event handlers ===
 
-            // this raw data list will be plotted by LiveCharts
-            // we use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
-            SensorData = new ObservableCollection<double?>(Enumerable.Repeat<double?>(0.0, SettingsService.Instance.GraphDataPoints));
-
-            GraphColor = ResolveGraphColor( SettingsService.Instance.UseGraphAccentColor, SettingsService.Instance.GraphCustomColor);
-            SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
-            SettingsService.Instance.GraphDataPointsChanged += OnGraphDataPointsChanged;
-
-            // restore this sensors full state if it was already configured before (e.g. previously pinned, or loaded from
-            // disk at startup)
-            var existingState = SensorStateService.Instance.GetState(SensorId);
-            _isThresholdEnabled = existingState.Threshold.IsEnabled;
-            _manualThreshold = existingState.Threshold.Value;
-            _thresholdDirection = existingState.Threshold.Direction;
-            _thresholdColor = existingState.Threshold.Color;
-            _isAutoScaled = existingState.IsAutoScaled;
-            _manualYMax = existingState.ManualYMax;
-            UpdateYMaxDisplay();
-        }
-
-
-        // very important; so so our program does not fuck up again
-        public void Cleanup()
-        {
-            SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
-            SettingsService.Instance.GraphDataPointsChanged -= OnGraphDataPointsChanged;
-        }
-        // pushes the full threshold snapshot to the shared service so MainWindow can pick it up
-        // pushes the full state snapshot (threshold + Y-axis) to the shared service, so
-        // MainWindow can pick up threshold changes and disk persistence stays up to date
-        private void PushStateToService()
-        {
-            var state = SensorStateService.Instance.GetState(SensorId);
-            state.Threshold = new SensorThreshold
-            {
-                IsEnabled = _isThresholdEnabled,
-                Value = _manualThreshold,
-                Direction = _thresholdDirection,
-                Color = _thresholdColor
-            };
-            state.IsAutoScaled = _isAutoScaled;
-            state.ManualYMax = _manualYMax;
-            SensorStateService.Instance.SetState(SensorId, state);
-        }
-        // re-evaluates the current values color against this sensors own threshold config
-        private void RecalculateColor()
-        {
-            if (!_isThresholdEnabled)
-            {
-                CurrentValueColor = DefaultTextBrush;
-                return;
-            }
-
-            bool isBreached = _thresholdDirection == ThresholdDirection.Above
-                ? _currentRaw > _manualThreshold
-                : _currentRaw < _manualThreshold;
-
-            CurrentValueColor = isBreached ? new SolidColorBrush(_thresholdColor) : DefaultTextBrush;
-        }
-
-
-        // data processing
-        public void AddDataPoint(double newValue, string formattedValueText)
-        {
-            _currentRaw = newValue;
-
-            // update the current value text
-            CurrentValueText = formattedValueText;
-
-            // shift the graph by one tick
-            SensorData.RemoveAt(0);
-            SensorData.Add(newValue);
-
-            UpdateYMaxDisplay();
-            RecalculateColor();
-        }
-
-
-        // calculates, what has to be displayed in the UI as the current max value
-        private void UpdateYMaxDisplay()
-        {
-            if (IsAutoScaled)
-            {
-                // finds the highest point in the graph; the ?? 0 handles the case where the list is still empty
-                double currentHighestPoint = SensorData.Max() ?? 0;
-                ActualYMaxText = $"{currentHighestPoint:0.0}";
-            }
-            else
-            {
-                // if manual, we simply show the raw number
-                ActualYMaxText = ManualYMax.ToString("0");
-            }
-        }
-
-
-        // resolves the current accent-color setting to a concrete Color value
-        private static Windows.UI.Color ResolveGraphColor(bool useAccent, Windows.UI.Color customColor)
-        {
-            if (useAccent)
-            {
-                return (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"];
-            }
-            return customColor;
-        }
-
-
-        // service listener
         private void OnGraphColorChanged(bool useAccent, Windows.UI.Color customColor)
         {
             GraphColor = ResolveGraphColor(useAccent, customColor);
         }
+
         private void OnGraphDataPointsChanged(int newCount)
         {
             int currentCount = SensorData.Count;
@@ -362,6 +301,32 @@ namespace FluentHwInfo.Features.Widget
         }
 
 
+        // === public methods ===
+
+        // unsubscribes from SettingsService events; without this, disposed sensor rows would still react to
+        // graph color / data point changes after being removed
+        public void Cleanup()
+        {
+            SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
+            SettingsService.Instance.GraphDataPointsChanged -= OnGraphDataPointsChanged;
+        }
+
+        // data processing
+        public void AddDataPoint(double newValue, string formattedValueText)
+        {
+            _currentRaw = newValue;
+
+            // update the current value text
+            CurrentValueText = formattedValueText;
+
+            // shift the graph by one tick
+            SensorData.RemoveAt(0);
+            SensorData.Add(newValue);
+
+            UpdateYMaxDisplay();
+            RecalculateColor();
+        }
+
         // user interaction
         // pane toggle button
         public void ToggleControlPanel()
@@ -370,12 +335,14 @@ namespace FluentHwInfo.Features.Widget
                 ? Visibility.Collapsed
                 : Visibility.Visible;
         }
+
         // control buttons
         public void IncreaseYMax()
         {
             IsAutoScaled = false; // automatically turns off the auto button in the ui
             ManualYMax += 10;
         }
+
         public void DecreaseYMax()
         {
             IsAutoScaled = false; // automatically turns off the auto button in the ui
@@ -386,12 +353,14 @@ namespace FluentHwInfo.Features.Widget
                 ManualYMax -= 10;
             }
         }
+
         // threshold buttons
         public void IncreaseThreshold()
         {
             IsThresholdEnabled = true;  // auto-enable when the user adjusts the value
             ManualThreshold += 5;
         }
+
         public void DecreaseThreshold()
         {
             IsThresholdEnabled = true;  // auto-enable when the user adjusts the value
@@ -404,7 +373,53 @@ namespace FluentHwInfo.Features.Widget
         }
 
 
-        // INotifyPropertyChanged implementation
+        // === private helpers ===
+
+        // re-evaluates the current values color against this sensors own threshold config
+        private void RecalculateColor()
+        {
+            if (!_isThresholdEnabled)
+            {
+                CurrentValueColor = DefaultTextBrush;
+                return;
+            }
+
+            bool isBreached = _thresholdDirection == ThresholdDirection.Above
+                ? _currentRaw > _manualThreshold
+                : _currentRaw < _manualThreshold;
+
+            CurrentValueColor = isBreached ? new SolidColorBrush(_thresholdColor) : DefaultTextBrush;
+        }
+
+        // calculates, what has to be displayed in the UI as the current max value
+        private void UpdateYMaxDisplay()
+        {
+            if (IsAutoScaled)
+            {
+                // finds the highest point in the graph; the ?? 0 handles the case where the list is still empty
+                double currentHighestPoint = SensorData.Max() ?? 0;
+                ActualYMaxText = $"{currentHighestPoint:0.0}";
+            }
+            else
+            {
+                // if manual, we simply show the raw number
+                ActualYMaxText = ManualYMax.ToString("0");
+            }
+        }
+
+        // resolves the current accent-color setting to a concrete Color value
+        private static Windows.UI.Color ResolveGraphColor(bool useAccent, Windows.UI.Color customColor)
+        {
+            if (useAccent)
+            {
+                return (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"];
+            }
+            return customColor;
+        }
+
+
+        // === INotifyPropertyChanged implementation ===
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

@@ -15,23 +15,17 @@ namespace FluentHwInfo.Features.Sensors
 {
     public class SensorsViewModel : INotifyPropertyChanged
     {
-        // fields
-        public ObservableCollection<HardwareGroupViewModel> HardwareGroups { get; set; }
-        private HardwareMonitorService _service; // create the HardwareMonitorService object
-        // the problem:
-        // as the HardwareDataUpdated event is triggered from the background thread, it is also recieved by the 
-        // ViewModel here on the very same background thread. However, our ObservableCollection "SensorList" is directly
-        // bound to the UI, which means it can be only updated from the main ui thread
-        // any write access outside the main ui thread imemediately results in a cross thread exeption and crashes
-        // the solution:
-        // the dispatcher queue acts as a secure mailbox to the ui thread. It recieves the data packet from the background
-        // thread and safely enqueues it onto the main ui thread, which then processes the update
-        // As a result, the UI thread ultimately updates the SensorList with the recieved package from the subscribed
-        // HardwareMonitorService event, when it has time to do so
+        // === fields ===
+        
+        private HardwareMonitorService _service; 
         private DispatcherQueue _dispatcherQueue;
         private TaskCompletionSource<bool> _initialLoadTcs = new TaskCompletionSource<bool>();
         public Task WaitForInitialLoadAsync() => _initialLoadTcs.Task; // MainWindow waits on this
-        private static SensorsViewModel _instance; // SensorsViewModel is a singleton
+
+
+        // === singleton instance ===
+
+        private static SensorsViewModel _instance; 
         public static SensorsViewModel Instance
         {
             get
@@ -44,10 +38,28 @@ namespace FluentHwInfo.Features.Sensors
             }
         }
 
-        // hidden sensors
-        public bool HasHiddenSensors => HardwareGroups.Any(g => g.HasHiddenSensors);
 
-        // true whenever a WidgetWindow is currently open; drives the enabled-state of the "Select Pinned" button
+        // === constructor ===
+
+        private SensorsViewModel()
+        {
+            HardwareGroups = new ObservableCollection<HardwareGroupViewModel>(); // initialize the empty list of hardware groups
+            _dispatcherQueue = DispatcherQueue.GetForCurrentThread(); // grab the ui threads dispatcher queue at startup
+
+            // HardwareMonitorService
+            _service = HardwareMonitorService.Instance; // get HardwareMonitorService instance
+            _service.HardwareDataUpdated += OnHardwareDataUpdated; // subscribe to the master event
+
+            // covers the case where a widget auto-reopened (saved state) before this VM was constructed
+            IsWidgetOpen = WidgetWindow.CurrentInstance != null;
+            WidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
+        }
+
+
+        // === bindable properties ===
+
+        public ObservableCollection<HardwareGroupViewModel> HardwareGroups { get; set; }
+        public bool HasHiddenSensors => HardwareGroups.Any(g => g.HasHiddenSensors);
         private bool _isWidgetOpen;
         public bool IsWidgetOpen
         {
@@ -63,21 +75,7 @@ namespace FluentHwInfo.Features.Sensors
         }
 
 
-        // constructor
-        private SensorsViewModel()
-        {
-            HardwareGroups = new ObservableCollection<HardwareGroupViewModel>(); // initialize the empty list of hardware groups
-            _dispatcherQueue = DispatcherQueue.GetForCurrentThread(); // grab the ui threads dispatcher queue at startup
-
-            // HardwareMonitorService
-            _service = HardwareMonitorService.Instance; // get HardwareMonitorService instance
-            _service.HardwareDataUpdated += OnHardwareDataUpdated; // subscribe to the master event
-
-            // covers the case where a widget auto-reopened (saved state) before this VM was constructed
-            IsWidgetOpen = WidgetWindow.CurrentInstance != null;
-            WidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
-        }
-
+        // === event handlers ===
 
         private void OnHardwareDataUpdated(List<SensorData> payload)
         {
@@ -150,7 +148,6 @@ namespace FluentHwInfo.Features.Sensors
             });
         }
 
-
         // relays a groups hidden-state change into our own aggregated properties
         private void Group_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -159,11 +156,16 @@ namespace FluentHwInfo.Features.Sensors
                 OnPropertyChanged(nameof(HasHiddenSensors));
             }
         }
+
         // keeps IsWidgetOpen in sync whenever the widget window opens or closes
         private void OnWidgetStateChanged()
         {
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
         }
+
+
+        // === public methods ===
+
         // hides every currently selected sensor, across all hardware groups at once
         public void HideSelectedSensors()
         {
@@ -180,6 +182,7 @@ namespace FluentHwInfo.Features.Sensors
                 group.RestoreSelectedHiddenSensors();
             }
         }
+
         // sets the checkbox exactly on the sensors currently pinned to the active widget window
         // all other visible sensors get deselected so the checkbox state mirrors the widget contents 1:1
         public void SelectPinnedSensors()
@@ -199,6 +202,7 @@ namespace FluentHwInfo.Features.Sensors
                 }
             }
         }
+
         // clears every checkbox in the main sensor list
         // hidden sensors are untouched because they live in their own window with their own selection scope
         public void DeselectAllSensors()
@@ -213,7 +217,8 @@ namespace FluentHwInfo.Features.Sensors
         }
 
 
-        // INotifyPropertyChanged implementation
+        // === INotifyPropertyChanged implementation ===
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

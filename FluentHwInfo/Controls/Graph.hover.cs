@@ -1,21 +1,12 @@
-﻿using LiveChartsCore;
-using LiveChartsCore.Drawing;
-using LiveChartsCore.Kernel.Sketches;
-using LiveChartsCore.Measure;
-using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.Painting;
-using LiveChartsCore.SkiaSharpView.Painting.Effects;
+﻿using LiveChartsCore.Drawing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using SkiaSharp;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 
 namespace FluentHwInfo.Controls
 {
-    // Graph: pointer hover interaction
+    // === Graph: pointer hover interaction ===
     // shows a circle + value label on the chart at the pointer position
     public sealed partial class Graph
     {

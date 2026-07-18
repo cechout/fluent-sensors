@@ -9,27 +9,34 @@ namespace FluentHwInfo.Persistence.Services
     // same dumb-store pattern as SensorStateService
     public class WindowStateService
     {
-        // fields
-        public static WindowStateService Instance { get; } = new WindowStateService();
+        // === fields ===
+
         private readonly Dictionary<string, WindowState> _states = new();
 
 
-        // constructor
+        // === singleton instance ===
+
+        public static WindowStateService Instance { get; } = new WindowStateService();
+
+
+        // === constructor ===
+
         private WindowStateService() { }
 
 
-        // public binding surface 
+        // === public api ===
+
         // returns null if this window has never been positioned/saved before
         public WindowState GetState(string windowKey)
         {
             return _states.TryGetValue(windowKey, out var state) ? state : null;
         }
+
         public void SetState(string windowKey, WindowState state)
         {
             _states[windowKey] = state;
             PersistenceService.Instance.SaveWindowStatesDebounced(_states);
         }
-
 
         // persistence
         public void LoadFromDisk(Dictionary<string, WindowState> loaded)

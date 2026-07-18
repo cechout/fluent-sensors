@@ -15,11 +15,14 @@ namespace FluentHwInfo.Features.Sensors
 {
     public sealed partial class SensorsPage : Page
     {
+        // === fields ===
+
+        // general fields
         public SensorsViewModel ViewModel { get; }
         private int _infoBarTicket = 0;
         private const double SensorsPageMinContentWidth = 520;
 
-        // for control button prority ordering and overflow handling
+        // command bar overflow handling fields
         private ICommandBarElement[] _commandBarPriorityOrder;
         private readonly Dictionary<ICommandBarElement, double> _commandBarButtonWidths = new();
         private bool _commandBarWidthsCached = false;
@@ -28,15 +31,17 @@ namespace FluentHwInfo.Features.Sensors
         private int _commandBarOverflowStartIndex = -1; // -1 means "not computed yet" so the very first call always applies once
 
 
-        // constructor
+        // === constructor ===
+
         public SensorsPage()
         {
             this.InitializeComponent();
-            ViewModel = SensorsViewModel.Instance; // we bind the UI simply to the central singleton instance
+            ViewModel = SensorsViewModel.Instance; 
         }
 
 
-        // user interaction
+        // === user interaction ===
+
         private async void PinToWidget_Click(object sender, RoutedEventArgs e)
         {
             // flatten the nested groups and filter for selected items
@@ -95,25 +100,7 @@ namespace FluentHwInfo.Features.Sensors
 
             widgetWindow.Activate();
         }
-        // InfoBar animation
-        private void AnimateInfoBar(double targetY, bool isHitTestVisible)
-        {
-            NoSensorsInfoBar.IsHitTestVisible = isHitTestVisible;
 
-            var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
-
-            var animY = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
-            {
-                To = targetY,
-                Duration = TimeSpan.FromMilliseconds(300),
-                EasingFunction = new Microsoft.UI.Xaml.Media.Animation.CubicEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseOut }
-            };
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(animY, InfoBarTransform);
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(animY, "Y");
-
-            sb.Children.Add(animY);
-            sb.Begin();
-        }
         private void ResetMinMax_Click(object sender, RoutedEventArgs e)
         {
             // we iterate through all nested groups and all sensors
@@ -125,6 +112,7 @@ namespace FluentHwInfo.Features.Sensors
                 }
             }
         }
+
         private async void HideSensors_Click(object sender, RoutedEventArgs e)
         {
             // check across all groups whether anything is selected at all
@@ -151,6 +139,7 @@ namespace FluentHwInfo.Features.Sensors
 
             ViewModel.HideSelectedSensors();
         }
+
         private void ShowHiddenSensors_Click(object sender, RoutedEventArgs e)
         {
             if (HiddenSensorsWindow.CurrentInstance != null)
@@ -162,15 +151,39 @@ namespace FluentHwInfo.Features.Sensors
             var hiddenSensorsWindow = new HiddenSensorsWindow();
             hiddenSensorsWindow.Activate();
         }
+
         private void SelectPinned_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.SelectPinnedSensors();
         }
+
         private void DeselectAll_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.DeselectAllSensors();
         }
 
+        // InfoBar animation
+        private void AnimateInfoBar(double targetY, bool isHitTestVisible)
+        {
+            NoSensorsInfoBar.IsHitTestVisible = isHitTestVisible;
+
+            var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
+
+            var animY = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+            {
+                To = targetY,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = new Microsoft.UI.Xaml.Media.Animation.CubicEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseOut }
+            };
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(animY, InfoBarTransform);
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(animY, "Y");
+
+            sb.Children.Add(animY);
+            sb.Begin();
+        }
+
+
+        // === layout and rendering workarounds ===
 
         // helper method to fix the rendering of the items
         private void SettingsExpander_Loaded(object sender, RoutedEventArgs e)
@@ -187,7 +200,8 @@ namespace FluentHwInfo.Features.Sensors
         }
 
 
-        // overflow handling for the command bar
+        // === command bar overflow handling ===
+
         // runs once when the command bar is first ready
         // sets the fixed priority order and takes the initial width measurement
         private void SensorListCommandBar_Loaded(object sender, RoutedEventArgs e)
@@ -208,6 +222,7 @@ namespace FluentHwInfo.Features.Sensors
             CacheCommandBarButtonWidths();
             UpdateCommandBarOverflow();
         }
+
         // recalculates the overflow split whenever the header changes size
         private void SensorListHeaderGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -216,6 +231,7 @@ namespace FluentHwInfo.Features.Sensors
                 UpdateCommandBarOverflow();
             }
         }
+
         // measures every button once while its still fully visible with its label
         // (so we know later how much space each one actually needs)
         private void CacheCommandBarButtonWidths()
@@ -230,6 +246,7 @@ namespace FluentHwInfo.Features.Sensors
 
             _commandBarWidthsCached = true;
         }
+
         // Fills the command bar strictly in priority order; the first button that doesn't
         // fit anymore, and everything after it, goes into the overflow menu.
         // Only touches PrimaryCommands/SecondaryCommands when the split actually changes,

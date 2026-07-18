@@ -17,13 +17,15 @@ namespace FluentHwInfo.Features.Sensors
 {
     public sealed partial class HiddenSensorsWindow : Window
     {
-        // import the Windows-API to calculate the screen scaling (100%, 125%, 150% etc.)
+        // === fields ===
+
+        // import the Windows-API to calculate the screen scaling 
         [DllImport("user32.dll")]
         private static extern uint GetDpiForWindow(nint hwnd);
 
         // window fields
         private AppWindow _appWindow;
-        private const string WindowKey = "HiddenSensors"; // key under which this windows state is saved
+        private const string WindowKey = "HiddenSensors"; 
 
         // system backdrop controller and configuration (Mica only)
         private MicaController _micaController;
@@ -31,12 +33,13 @@ namespace FluentHwInfo.Features.Sensors
 
         // public binding surface
         public static HiddenSensorsWindow CurrentInstance { get; private set; }
-        public HardwareGroupViewModel HardwareGroup { get; } // the group this window shows the hidden sensors for
+        public HardwareGroupViewModel HardwareGroup { get; } 
         public string WindowTitleText { get; }
         public SensorsViewModel ViewModel => SensorsViewModel.Instance;
 
 
-        // constructor
+        // === constructor ===
+
         // accepts the hardware group whose hidden sensors this window displays
         public HiddenSensorsWindow()
         {
@@ -84,7 +87,7 @@ namespace FluentHwInfo.Features.Sensors
         }
 
 
-        // lifecycle event handlers
+        // === lifecycle event handlers ===
         private void HiddenSensorsWindow_Closed(object sender, WindowEventArgs args)
         {
             SaveWindowState();
@@ -99,6 +102,7 @@ namespace FluentHwInfo.Features.Sensors
             _configurationSource = null;
             CurrentInstance = null;
         }
+
         private void Window_Activated(object sender, WindowActivatedEventArgs args)
         {
             if (_configurationSource != null)
@@ -107,6 +111,7 @@ namespace FluentHwInfo.Features.Sensors
                 _configurationSource.IsInputActive = true;
             }
         }
+
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
             // capture position/size for persistence whenever the window moves or resizes
@@ -115,6 +120,7 @@ namespace FluentHwInfo.Features.Sensors
                 SaveWindowState();
             }
         }
+
         // expands the first group that actually has hidden sensors 
         private void RootGrid_Loaded(object sender, RoutedEventArgs e)
         {
@@ -136,7 +142,8 @@ namespace FluentHwInfo.Features.Sensors
         }
 
 
-        // user interaction
+        // === user interaction ===
+
         private void RestoreSelected_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.RestoreSelectedHiddenSensors();
@@ -144,7 +151,8 @@ namespace FluentHwInfo.Features.Sensors
         }
 
 
-        // settings event listeners and handlers
+        // === settings event listeners and handlers ===
+
         private void OnThemeChanged(string newTheme)
         {
             this.DispatcherQueue.TryEnqueue(() =>
@@ -154,7 +162,8 @@ namespace FluentHwInfo.Features.Sensors
         }
 
 
-        // core logic for theme and material application
+        // === core logic for theme and material application ===
+
         private void ApplyTheme(string themeTag)
         {
             if (this.Content is FrameworkElement rootElement)
@@ -177,6 +186,7 @@ namespace FluentHwInfo.Features.Sensors
                 };
             }
         }
+
         // applies Mica if the OS supports it; Windows itself disables the blur when the user turns off
         // transparency effects in the system settings, so no extra check for that is needed here
         private void SetBackdrop()
@@ -198,12 +208,14 @@ namespace FluentHwInfo.Features.Sensors
                 // make the grid transparent so the Mica material shows through
                 RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
-            // if Mica isn't supported, RootGrid keeps its themed fallback background set in XAML
+            // if Mica isnt supported, RootGrid keeps its themed fallback background set in XAML
         }
+
         private void Window_ThemeChanged(FrameworkElement sender, object args)
         {
             SetConfigurationSourceTheme();
         }
+
         private void SetConfigurationSourceTheme()
         {
             if (_configurationSource != null && this.Content is FrameworkElement frameworkElement)
@@ -218,7 +230,8 @@ namespace FluentHwInfo.Features.Sensors
         }
 
 
-        // private calculation and helper methods
+        // === private helper methods ===
+
         // sets a fixed default size for the window; position is left to Windows own default placement
         private void SetWindowSize()
         {
@@ -232,6 +245,7 @@ namespace FluentHwInfo.Features.Sensors
 
             _appWindow.Resize(new Windows.Graphics.SizeInt32(physicalWidth, physicalHeight));
         }
+
         // converts the screen DPI to a scale factor (100% = 1.0, 125% = 1.25, etc.), same helper as in WidgetWindow
         private double GetScaleFactor()
         {
@@ -239,6 +253,7 @@ namespace FluentHwInfo.Features.Sensors
             uint dpi = GetDpiForWindow(hwnd);
             return dpi / 96.0;
         }
+
         // checks whether the given rect would actually be visible on any currently connected monitor; a saved position can
         // become stale if the monitor it was on gets disconnected, or the display arrangement changes
         private bool IsPositionOnScreen(int x, int y, int width, int height)
@@ -257,11 +272,13 @@ namespace FluentHwInfo.Features.Sensors
             }
             return false;
         }
+
         private bool RectsOverlap(Windows.Graphics.RectInt32 a, Windows.Graphics.RectInt32 b)
         {
             return a.X < b.X + b.Width && a.X + a.Width > b.X &&
                    a.Y < b.Y + b.Height && a.Y + a.Height > b.Y;
         }
+
         // writes the current rect to the window state store
         private void SaveWindowState()
         {
@@ -274,6 +291,7 @@ namespace FluentHwInfo.Features.Sensors
 
             WindowStateService.Instance.SetState(WindowKey, state);
         }
+
         // helper method to fix rendering of items
         private void SettingsExpander_Loaded(object sender, RoutedEventArgs e)
         {

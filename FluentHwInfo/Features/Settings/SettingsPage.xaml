@@ -90,7 +90,7 @@
                     SelectionChanged="BackdropComboBox_SelectionChanged">
                     <ComboBoxItem Content="Desktop Acrylic" Tag="Acrylic" />
                     <ComboBoxItem Content="System Mica" Tag="Mica" />
-                    <ComboBoxItem Content="Solid (No Blur)" Tag="None" />
+                    <ComboBoxItem Content="Solid" Tag="None" />
                 </ComboBox>
 
                 <controls:SettingsExpander.Items>
@@ -116,12 +116,12 @@
                             ValueChanged="LuminositySlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="Accent or custom color (Acrylic and Mica)" Header="Background Color Source">
+                    <controls:SettingsCard Description="Accent or custom color (Acrylic and Solid)" Header="Background Color Source">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
-                                x:Name="ColorSourceComboBox"
+                                x:Name="BackgroundColorSourceComboBox"
                                 Width="160"
-                                SelectionChanged="ColorSourceComboBox_SelectionChanged">
+                                SelectionChanged="BackgroundColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
                             </ComboBox>
@@ -146,7 +146,7 @@
                             <ComboBox
                                 x:Name="GraphColorSourceComboBox"
                                 Width="160"
-                                SelectionChanged="ColorSourceComboBox_SelectionChanged">
+                                SelectionChanged="GraphColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
                             </ComboBox>

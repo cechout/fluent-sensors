@@ -13,6 +13,24 @@ namespace FluentHwInfo.Features.Sensors
 {
     public class SensorRowViewModel : INotifyPropertyChanged
     {
+        // === fields ===
+
+        // mathematical fields for internal calculations
+        private double _min = double.MaxValue;
+        private double _max = double.MinValue;
+        private double _sum = 0;
+        private int _count = 0;
+
+        // threshold tracking
+        private bool _isSubscribedToThreshold;
+        private DispatcherQueue _dispatcherQueue;
+        private SensorThreshold _threshold;
+        private double _currentRaw;
+        private double _avg;
+
+
+        // === bindable properties ===
+
         // core configuration properties for the sensor row
         private string _id;
         public string Id
@@ -96,19 +114,6 @@ namespace FluentHwInfo.Features.Sensors
             }
         }
 
-        // mathematical fields for internal calculations
-        private double _min = double.MaxValue;
-        private double _max = double.MinValue;
-        private double _sum = 0;
-        private int _count = 0;
-
-        // threshold tracking
-        private bool _isSubscribedToThreshold;
-        private DispatcherQueue _dispatcherQueue;
-        private SensorThreshold _threshold;
-        private double _currentRaw;
-        private double _avg;
-
         // formatted string properties for the ui
         private string _currentValue = "-";
         public string CurrentValue
@@ -152,6 +157,7 @@ namespace FluentHwInfo.Features.Sensors
         }
 
         // text color properties
+        private static Brush DefaultTextBrush => (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
         private Brush _currentValueColor = DefaultTextBrush;
         public Brush CurrentValueColor
         {
@@ -176,10 +182,10 @@ namespace FluentHwInfo.Features.Sensors
             get => _averageValueColor;
             set { _averageValueColor = value; OnPropertyChanged(); }
         }
-        private static Brush DefaultTextBrush => (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
 
 
-        // data processing
+        // === public methods ===
+
         public void UpdateValue(double newValue)
         {
             if (newValue < _min) _min = newValue;
@@ -199,7 +205,6 @@ namespace FluentHwInfo.Features.Sensors
             RecalculateColors();
         }
 
-
         // resets method
         public void ResetMinMax()
         {
@@ -217,6 +222,8 @@ namespace FluentHwInfo.Features.Sensors
             AverageValueColor = DefaultTextBrush;
         }
 
+
+        // === private helpers ===
 
         // threshold handling
         private void SubscribeToThreshold()
@@ -243,6 +250,7 @@ namespace FluentHwInfo.Features.Sensors
             RecalculateColors();
         }
 
+        // color evaluation
         private void RecalculateColors()
         {
             if (_count == 0) return; // no values received yet, nothing to color
@@ -266,7 +274,8 @@ namespace FluentHwInfo.Features.Sensors
         }
 
 
-        // INotifyPropertyChanged implementation
+        // === INotifyPropertyChanged implementation ===
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
