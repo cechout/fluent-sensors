@@ -18,8 +18,17 @@ namespace FluentHwInfo.Features.Widget
 {
     public sealed partial class WidgetWindow : Window
     {
+        // === win32 api imports ===
+
+        // import the Windows-API to calculate the screen scaling (100%, 125%, 150% etc.)
+        [DllImport("user32.dll")]
+        private static extern uint GetDpiForWindow(IntPtr hwnd);
+
+
+        // === fields ===
+
         private AppWindow _appWindow;
-        private const string WindowKey = "Widget"; // key under which this windows state is saved
+        private const string WindowKey = "Widget"; 
         public WidgetViewModel ViewModel { get; }
         public static WidgetWindow CurrentInstance { get; private set; }
         public static event Action WidgetStateChanged;
@@ -29,12 +38,9 @@ namespace FluentHwInfo.Features.Widget
         private MicaController _micaController;
         private SystemBackdropConfiguration _configurationSource;
 
-        // import the Windows-API to calculate the screen scaling (100%, 125%, 150% etc.)
-        [DllImport("user32.dll")]
-        private static extern uint GetDpiForWindow(IntPtr hwnd);
 
+        // === constructor ===
 
-        // constructor
         // accepts the list of selected sensors from SensorsPage.xaml.cs
         public WidgetWindow(List<SensorRowViewModel> selectedSensors)
         {
@@ -73,7 +79,7 @@ namespace FluentHwInfo.Features.Widget
             }
             else
             {
-                PositionWidgetTopRight(selectedSensors.Count);
+                ResizeWidgetToFitSensors(selectedSensors.Count);
             }
 
             // remember this window as open and which sensors are pinned, so it can auto-reopen with the same sensors on
@@ -95,54 +101,8 @@ namespace FluentHwInfo.Features.Widget
         }
 
 
-        // general window settings
-        private void PositionWidgetTopRight(int sensorCount)
-        {
-            double scaleFactor = GetScaleFactor();
+        // === lifecycle ===
 
-            // get display size (already in physical pixels)
-            var displayArea = DisplayArea.Primary;
-            int screenWidth = displayArea.WorkArea.Width;
-
-            // our XAML desired width (DIPs), converted to physical pixels for the GPU
-            double desiredXamlWidth = 310;
-            int physicalWidth = (int)(desiredXamlWidth * scaleFactor);
-            int physicalHeight = CalculateWidgetHeight(sensorCount, scaleFactor);
-
-            // move and resize the window
-            _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(
-                screenWidth - physicalWidth - 10, // 10px margin from the right edge
-                10, // 10px margin from the top edge
-                physicalWidth,
-                physicalHeight));
-        }
-        // writes the current rect (debounced) to the window state store
-        // pinnedSensors is only passed when the pin selection actually changed (construction); on plain move/resize or close,
-        // passing null keeps whatever IDs were already saved
-        private void SaveWindowState(List<SensorRowViewModel> pinnedSensors = null, bool wasOpen = true)
-        {
-            var state = WindowStateService.Instance.GetState(WindowKey) ?? new WindowState();
-
-            // while minimized, Windows reports the windows position as the (-32000, -32000) sentinel value; keep the last
-            // known real rect instead of overwriting it with that garbage
-            bool isMinimized = this.AppWindow.Presenter is OverlappedPresenter presenter &&
-                                presenter.State == OverlappedPresenterState.Minimized;
-            if (!isMinimized)
-            {
-                state.X = _appWindow.Position.X;
-                state.Y = _appWindow.Position.Y;
-                state.Width = _appWindow.Size.Width;
-                state.Height = _appWindow.Size.Height;
-            }
-            state.WasOpen = wasOpen;
-
-            if (pinnedSensors != null)
-            {
-                state.PinnedSensorIds = pinnedSensors.Select(s => s.Id).ToList();
-            }
-
-            WindowStateService.Instance.SetState(WindowKey, state);
-        }
         private void WidgetWindow_Closed(object sender, WindowEventArgs args)
         {
             // mark the widget as closed so it wont auto-reopen on the next launch; keep the last rect and pinned sensors
@@ -172,8 +132,8 @@ namespace FluentHwInfo.Features.Widget
 
             // if the dashboard was already closed too, there is nothing left to keep the app alive for
             MainWindow.CurrentInstance?.EvaluateFullExit();
-
         }
+
         private void Window_Activated(object sender, WindowActivatedEventArgs args)
         {
             if (_configurationSource != null)
@@ -189,7 +149,8 @@ namespace FluentHwInfo.Features.Widget
         }
 
 
-        // user iteraction
+        // === user interaction ===
+
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)
         {
             // check if the main window instance exists in memory
@@ -209,7 +170,8 @@ namespace FluentHwInfo.Features.Widget
         }
 
 
-        // settings event listeners and handlers
+        // === settings event listeners and handlers ===
+
         private void OnThemeChanged(string newTheme)
         {
             this.DispatcherQueue.TryEnqueue(() =>
@@ -217,6 +179,7 @@ namespace FluentHwInfo.Features.Widget
                 ApplyTheme(newTheme);
             });
         }
+
         private void OnBackdropTypeChanged(string newType)
         {
             this.DispatcherQueue.TryEnqueue(() =>
@@ -224,6 +187,7 @@ namespace FluentHwInfo.Features.Widget
                 SetBackdrop(newType);
             });
         }
+
         private void OnOpacityChanged(float tintOpacity, float luminosityOpacity)
         {
             this.DispatcherQueue.TryEnqueue(() =>
@@ -231,6 +195,7 @@ namespace FluentHwInfo.Features.Widget
                 UpdateAcrylicProperties();
             });
         }
+
         private void OnTintColorChanged(bool useAccentColor, Windows.UI.Color customColor)
         {
             this.DispatcherQueue.TryEnqueue(() =>
@@ -239,6 +204,7 @@ namespace FluentHwInfo.Features.Widget
                 UpdateSolidBackground();
             });
         }
+
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
             // triggers when the widget window minimizes or restores
@@ -256,6 +222,8 @@ namespace FluentHwInfo.Features.Widget
         }
 
 
+        // === window sizing and positioning ===
+
         // converts the screen DPI to a scale factor
         // (100% = 1.0, 125% = 1.25, etc.)
         private double GetScaleFactor()
@@ -264,6 +232,7 @@ namespace FluentHwInfo.Features.Widget
             uint dpi = GetDpiForWindow(hwnd);
             return dpi / 96.0; // 96 is the Windows standard for 100% I guess
         }
+
         // calculates the widgets physical pixel height based on how many sensors are pinned
         private int CalculateWidgetHeight(int sensorCount, double scaleFactor)
         {
@@ -273,6 +242,7 @@ namespace FluentHwInfo.Features.Widget
             int screenHeight = DisplayArea.Primary.WorkArea.Height;
             return Math.Min(physicalHeight, screenHeight - 40); // height should not be taller than the screen
         }
+
         // checks whether the given rect would actually be visible on any currently connected monitor; a saved position can
         // become stale if the monitor it was on gets disconnected, or the display arrangement changes
         private bool IsPositionOnScreen(int x, int y, int width, int height)
@@ -291,14 +261,78 @@ namespace FluentHwInfo.Features.Widget
             }
             return false;
         }
+
         private bool RectsOverlap(Windows.Graphics.RectInt32 a, Windows.Graphics.RectInt32 b)
         {
             return a.X < b.X + b.Width && a.X + a.Width > b.X &&
                    a.Y < b.Y + b.Height && a.Y + a.Height > b.Y;
         }
 
+        // resizes the window to fit the pinned sensor count, without forcing a specific screen position;
+        // used as the fallback when there is no valid saved position (first launch, or the saved monitor is gone)
+        private void ResizeWidgetToFitSensors(int sensorCount)
+        {
+            double scaleFactor = GetScaleFactor();
+            int physicalHeight = CalculateWidgetHeight(sensorCount, scaleFactor);
 
-        // core logic for theme and material application
+            double desiredXamlWidth = 310;
+            int physicalWidth = (int)(desiredXamlWidth * scaleFactor);
+
+            _appWindow.Resize(new Windows.Graphics.SizeInt32(physicalWidth, physicalHeight));
+        }
+
+        private void PositionWidgetTopRight(int sensorCount)
+        {
+            double scaleFactor = GetScaleFactor();
+
+            // get display size (already in physical pixels)
+            var displayArea = DisplayArea.Primary;
+            int screenWidth = displayArea.WorkArea.Width;
+
+            // our XAML desired width (DIPs), converted to physical pixels for the GPU
+            double desiredXamlWidth = 310;
+            int physicalWidth = (int)(desiredXamlWidth * scaleFactor);
+            int physicalHeight = CalculateWidgetHeight(sensorCount, scaleFactor);
+
+            // move and resize the window
+            _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(
+                screenWidth - physicalWidth - 10, // 10px margin from the right edge
+                10, // 10px margin from the top edge
+                physicalWidth,
+                physicalHeight));
+        }
+
+        // writes the current rect (debounced) to the window state store
+        // pinnedSensors is only passed when the pin selection actually changed (construction); on plain move/resize or close,
+        // passing null keeps whatever IDs were already saved
+        private void SaveWindowState(List<SensorRowViewModel> pinnedSensors = null, bool wasOpen = true)
+        {
+            var state = WindowStateService.Instance.GetState(WindowKey) ?? new WindowState();
+
+            // while minimized, Windows reports the windows position as the (-32000, -32000) sentinel value; keep the last
+            // known real rect instead of overwriting it with that garbage
+            bool isMinimized = this.AppWindow.Presenter is OverlappedPresenter presenter &&
+                                presenter.State == OverlappedPresenterState.Minimized;
+            if (!isMinimized)
+            {
+                state.X = _appWindow.Position.X;
+                state.Y = _appWindow.Position.Y;
+                state.Width = _appWindow.Size.Width;
+                state.Height = _appWindow.Size.Height;
+            }
+            state.WasOpen = wasOpen;
+
+            if (pinnedSensors != null)
+            {
+                state.PinnedSensorIds = pinnedSensors.Select(s => s.Id).ToList();
+            }
+
+            WindowStateService.Instance.SetState(WindowKey, state);
+        }
+
+
+        // === theme and backdrop application ===
+
         private void ApplyTheme(string themeTag)
         {
             if (this.Content is FrameworkElement rootElement)
@@ -321,6 +355,7 @@ namespace FluentHwInfo.Features.Widget
                 };
             }
         }
+
         private void UpdateAcrylicProperties()
         {
             if (_acrylicController != null)
@@ -343,17 +378,22 @@ namespace FluentHwInfo.Features.Widget
                 _acrylicController.LuminosityOpacity = SettingsService.Instance.LuminosityOpacity;
             }
         }
+
         private void UpdateSolidBackground()
         {
             // we intervene only, if "solid" is selected
             if (SettingsService.Instance.BackdropType == "None")
             {
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(SettingsService.Instance.CustomTintColor);
+                // mirrors UpdateAcrylicProperties' color resolution; without this, the solid background always used
+                // CustomTintColor regardless of the Accent/Custom source setting
+                Windows.UI.Color targetColor = SettingsService.Instance.UseAccentColor
+                    ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
+                    : SettingsService.Instance.CustomTintColor;
+
+                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(targetColor);
             }
         }
 
-
-        // system backdrop logic functions
         // dynamically applies the chosen backdrop material to the WidgetWindow based on the users selection in the settings page
         // *this code is mainly based on the official Microsoft documentation
         public void SetBackdrop(string backdropType)
@@ -405,10 +445,12 @@ namespace FluentHwInfo.Features.Widget
                 UpdateSolidBackground();
             }
         }
+
         private void Window_ThemeChanged(FrameworkElement sender, object args)
         {
             SetConfigurationSourceTheme();
         }
+
         private void SetConfigurationSourceTheme()
         {
             if (_configurationSource != null && this.Content is FrameworkElement frameworkElement)
