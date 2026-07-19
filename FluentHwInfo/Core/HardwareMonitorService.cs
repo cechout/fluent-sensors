@@ -272,7 +272,9 @@ namespace FluentHwInfo.Core
                     sensor.SensorType == SensorType.Temperature ||
                     sensor.SensorType == SensorType.Clock ||
                     sensor.SensorType == SensorType.Data ||
-                    sensor.SensorType == SensorType.SmallData)
+                    sensor.SensorType == SensorType.SmallData ||
+                    sensor.SensorType == SensorType.Fan ||
+                    sensor.SensorType == SensorType.Voltage)
                 {
                     _activeSensors.Add(sensor);
                 }

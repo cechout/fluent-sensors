@@ -47,10 +47,13 @@ namespace FluentHwInfo.Features.Sensors
         public string Name { get; set; } = "Unknown Sensor";
         public int SortOrder { get; set; } // original creation order
         public string Unit { get; private set; } = "";
+        private string _sensorType = "";
         public string SensorType
         {
+            get => _sensorType;
             set
             {
+                _sensorType = value;
                 Unit = value switch
                 {
                     "Temperature" => "°C",

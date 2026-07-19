@@ -30,7 +30,7 @@ namespace FluentHwInfo.Features.Widget
             // Dynamically instantiate chart components based on the precise hardware IDs
             foreach (var sensor in selectedSensors)
             {
-                PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name));
+                PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType));
             }
         }
 
@@ -80,6 +80,8 @@ namespace FluentHwInfo.Features.Widget
                 "Clock" => "MHz",
                 "Data" => "GB",
                 "SmallData" => "MB",
+                "Fan" => "RPM",
+                "Voltage" => "V",
                 _ => ""
             };
         }

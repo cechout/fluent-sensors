@@ -17,11 +17,13 @@ namespace FluentHwInfo.Common
         // === fields ===
 
         private double _currentRaw;
+        private readonly double _thresholdStep;
+        private readonly double _yMaxStep;
 
 
         // === constructor ===
 
-        public SensorGraphViewModel(string sensorId, string sensorName)
+        public SensorGraphViewModel(string sensorId, string sensorName, string sensorType)
         {
             SensorId = sensorId;
             SensorName = sensorName;
@@ -36,15 +38,22 @@ namespace FluentHwInfo.Common
             SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
             SettingsService.Instance.GraphDataPointsChanged += OnGraphDataPointsChanged;
 
+            // per-sensor-type starting values - a clock sensor needs a much higher threshold/step than a load percentage
+            var profile = SensorTypeProfiles.GetProfile(sensorType);
+            _thresholdStep = profile.ThresholdStep;
+            _yMaxStep = profile.YMaxStep;
+
             // restore this sensors full state if it was already configured before (e.g. previously pinned, or loaded from
-            // disk at startup)
+            // disk at startup); a null Value/ManualYMax means the user never touched it yet, so we fall back to this
+            // sensor types default instead of a generic one
             var existingState = SensorStateService.Instance.GetState(SensorId);
             _isThresholdEnabled = existingState.Threshold.IsEnabled;
-            _manualThreshold = existingState.Threshold.Value;
+            _manualThreshold = existingState.Threshold.Value ?? profile.ThresholdDefault;
             _thresholdDirection = existingState.Threshold.Direction;
             _thresholdColor = existingState.Threshold.Color;
             _isAutoScaled = existingState.IsAutoScaled;
-            _manualYMax = existingState.ManualYMax;
+            _manualYMax = existingState.ManualYMax ?? profile.YMaxDefault;
+
             UpdateYMaxDisplay();
         }
 
@@ -340,7 +349,7 @@ namespace FluentHwInfo.Common
         public void IncreaseYMax()
         {
             IsAutoScaled = false; // automatically turns off the auto button in the ui
-            ManualYMax += 10;
+            ManualYMax += _yMaxStep;
         }
 
         public void DecreaseYMax()
@@ -348,9 +357,9 @@ namespace FluentHwInfo.Common
             IsAutoScaled = false; // automatically turns off the auto button in the ui
 
             // preventing the y-axis from falling to 0 or into the negative range
-            if (ManualYMax > 10)
+            if (ManualYMax > _yMaxStep)
             {
-                ManualYMax -= 10;
+                ManualYMax -= _yMaxStep;
             }
         }
 
@@ -358,7 +367,7 @@ namespace FluentHwInfo.Common
         public void IncreaseThreshold()
         {
             IsThresholdEnabled = true;  // auto-enable when the user adjusts the value
-            ManualThreshold += 5;
+            ManualThreshold += _thresholdStep;
         }
 
         public void DecreaseThreshold()
@@ -366,9 +375,9 @@ namespace FluentHwInfo.Common
             IsThresholdEnabled = true;  // auto-enable when the user adjusts the value
 
             // preventing the threshold from falling to 0 or into the negative range
-            if (ManualThreshold > 5)
+            if (ManualThreshold > _thresholdStep)
             {
-                ManualThreshold -= 5;
+                ManualThreshold -= _thresholdStep;
             }
         }
 
