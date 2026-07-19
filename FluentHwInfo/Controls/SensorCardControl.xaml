@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhCommon="using:FluentHwInfo.Common"
     xmlns:fhControls="using:FluentHwInfo.Controls"
     xmlns:fhSensors="using:FluentHwInfo.Features.Sensors"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -14,6 +15,8 @@
 
     <UserControl.Resources>
         <ResourceDictionary>
+            <fhCommon:NullToUnsetValueConverter x:Key="NullToUnsetValueConverter" />
+
             <ResourceDictionary.ThemeDictionaries>
 
                 <ResourceDictionary x:Key="Default">
@@ -49,7 +52,9 @@
         <Grid
             x:Name="CardContent"
             Padding="16,2,16,2"
-            HorizontalAlignment="Stretch">
+            HorizontalAlignment="Stretch"
+            DataContext="{x:Bind ViewModel, Mode=OneWay}">
+
             <Grid.ColumnDefinitions>
                 <ColumnDefinition
                     x:Name="NameColumn"

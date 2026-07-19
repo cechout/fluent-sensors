@@ -1,9 +1,10 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Microsoft.UI.Dispatching;
+﻿using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
+using FluentHwInfo.Common;
 using FluentHwInfo.Controls;
 using FluentHwInfo.Persistence.Models;
 using FluentHwInfo.Persistence.Services;
@@ -27,6 +28,22 @@ namespace FluentHwInfo.Features.Sensors
         private SensorThreshold _threshold;
         private double _currentRaw;
         private double _avg;
+
+
+        // === constructor ===
+
+        public SensorRowViewModel()
+        {
+            SettingsService.Instance.ThemeChanged += OnThemeChanged;
+        }
+
+        private void OnThemeChanged(string newTheme)
+        {
+            if (_dispatcherQueue != null)
+                _dispatcherQueue.TryEnqueue(RecalculateColors);
+            else
+                RecalculateColors();
+        }
 
 
         // === bindable properties ===
@@ -160,26 +177,25 @@ namespace FluentHwInfo.Features.Sensors
         }
 
         // text color properties
-        private static Brush DefaultTextBrush => (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
-        private Brush _currentValueColor = DefaultTextBrush;
+        private Brush _currentValueColor = DefaultTextColor.Resolve();
         public Brush CurrentValueColor
         {
             get => _currentValueColor;
             set { _currentValueColor = value; OnPropertyChanged(); }
         }
-        private Brush _minimumValueColor = DefaultTextBrush;
+        private Brush _minimumValueColor = DefaultTextColor.Resolve();
         public Brush MinimumValueColor
         {
             get => _minimumValueColor;
             set { _minimumValueColor = value; OnPropertyChanged(); }
         }
-        private Brush _maximumValueColor = DefaultTextBrush;
+        private Brush _maximumValueColor = DefaultTextColor.Resolve();
         public Brush MaximumValueColor
         {
             get => _maximumValueColor;
             set { _maximumValueColor = value; OnPropertyChanged(); }
         }
-        private Brush _averageValueColor = DefaultTextBrush;
+        private Brush _averageValueColor = DefaultTextColor.Resolve();
         public Brush AverageValueColor
         {
             get => _averageValueColor;
@@ -220,9 +236,9 @@ namespace FluentHwInfo.Features.Sensors
             MaximumValue = "-";
             AverageValue = "-";
 
-            MinimumValueColor = DefaultTextBrush;
-            MaximumValueColor = DefaultTextBrush;
-            AverageValueColor = DefaultTextBrush;
+            MinimumValueColor = DefaultTextColor.Resolve();
+            MaximumValueColor = DefaultTextColor.Resolve();
+            AverageValueColor = DefaultTextColor.Resolve();
         }
 
 
@@ -267,13 +283,13 @@ namespace FluentHwInfo.Features.Sensors
         private Brush EvaluateColor(double value)
         {
             if (_threshold == null || !_threshold.IsEnabled)
-                return DefaultTextBrush;
+                return DefaultTextColor.Resolve();
 
             bool isBreached = _threshold.Direction == ThresholdDirection.Above
                 ? value > _threshold.Value
                 : value < _threshold.Value;
 
-            return isBreached ? new SolidColorBrush(_threshold.Color) : DefaultTextBrush;
+            return isBreached ? new SolidColorBrush(_threshold.Color) : DefaultTextColor.Resolve();
         }
 
 

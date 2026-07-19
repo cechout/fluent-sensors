@@ -98,6 +98,11 @@ namespace FluentHwInfo.Core
             });
         }
 
+        public Task InitControllerAsync()
+        {
+            return Task.Run(() => { _computer.IsControllerEnabled = true; });
+        }
+
         // monitoring control:
         // starts the background polling loop to read sensor values
         // this method gets called from the outside (e.g. MainWindow); only after the asynchronous initialization pipeline has

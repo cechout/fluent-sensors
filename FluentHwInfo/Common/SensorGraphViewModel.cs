@@ -28,7 +28,7 @@ namespace FluentHwInfo.Common
             SensorId = sensorId;
             SensorName = sensorName;
             CurrentValueText = "-"; // placeholder text until we have the first value
-            CurrentValueColor = DefaultTextBrush;
+            CurrentValueColor = DefaultTextColor.Resolve();
 
             // this raw data list will be plotted by LiveCharts
             // we use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
@@ -37,6 +37,7 @@ namespace FluentHwInfo.Common
             GraphColor = ResolveGraphColor(SettingsService.Instance.UseGraphAccentColor, SettingsService.Instance.GraphCustomColor);
             SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
             SettingsService.Instance.GraphDataPointsChanged += OnGraphDataPointsChanged;
+            SettingsService.Instance.ThemeChanged += OnThemeChanged;
 
             // per-sensor-type starting values - a clock sensor needs a much higher threshold/step than a load percentage
             var profile = SensorTypeProfiles.GetProfile(sensorType);
@@ -238,13 +239,13 @@ namespace FluentHwInfo.Common
             string resourceKey = isActive ? "AccentFillColorDefaultBrush" : "ControlFillColorDefaultBrush";
             return (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[resourceKey];
         }
-        private Brush _currentValueColor = DefaultTextBrush;
+        private Brush _currentValueColor;
         public Brush CurrentValueColor
         {
             get => _currentValueColor;
             set { _currentValueColor = value; OnPropertyChanged(); }
         }
-        private static Brush DefaultTextBrush => (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
+
         // pushes the full state snapshot (threshold + Y-axis) to the shared service, so
         // MainWindow can pick up threshold changes and disk persistence stays up to date
         private void PushStateToService()
@@ -279,6 +280,11 @@ namespace FluentHwInfo.Common
 
 
         // === event handlers ===
+
+        private void OnThemeChanged(string newTheme)
+        {
+            RecalculateColor();
+        }
 
         private void OnGraphColorChanged(bool useAccent, Windows.UI.Color customColor)
         {
@@ -318,6 +324,7 @@ namespace FluentHwInfo.Common
         {
             SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
             SettingsService.Instance.GraphDataPointsChanged -= OnGraphDataPointsChanged;
+            SettingsService.Instance.ThemeChanged -= OnThemeChanged;
         }
 
         // data processing
@@ -389,7 +396,7 @@ namespace FluentHwInfo.Common
         {
             if (!_isThresholdEnabled)
             {
-                CurrentValueColor = DefaultTextBrush;
+                CurrentValueColor = DefaultTextColor.Resolve();
                 return;
             }
 
@@ -397,7 +404,7 @@ namespace FluentHwInfo.Common
                 ? _currentRaw > _manualThreshold
                 : _currentRaw < _manualThreshold;
 
-            CurrentValueColor = isBreached ? new SolidColorBrush(_thresholdColor) : DefaultTextBrush;
+            CurrentValueColor = isBreached ? new SolidColorBrush(_thresholdColor) : DefaultTextColor.Resolve();
         }
 
         // calculates, what has to be displayed in the UI as the current max value
