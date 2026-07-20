@@ -5,10 +5,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-using FluentSensors.Controls;
-using FluentSensors.Persistence.Models;
-using FluentSensors.Persistence.Services;
 using FluentSensors.Common;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Controls.SensorGraph
@@ -18,7 +16,6 @@ namespace FluentSensors.Controls.SensorGraph
         // === fields ===
 
         private double _currentRaw;
-        private readonly double _thresholdStep;
         private readonly double _yMaxStep;
 
 
@@ -40,19 +37,18 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.GraphDataPointsChanged += OnGraphDataPointsChanged;
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
 
-            // per-sensor-type starting values - a clock sensor needs a much higher threshold/step than a load percentage
+            // owns this sensors threshold config; shared logic/state lives there, this VM only reacts to it for coloring
+            Threshold = new ThresholdEditorViewModel(sensorId, sensorType);
+            Threshold.PropertyChanged += OnThresholdPropertyChanged;
+
+            // per-sensor-type starting values for the y-axis; a clock sensor needs a much higher scale than a load percentage
             var profile = SensorTypeProfiles.GetProfile(sensorType);
-            _thresholdStep = profile.ThresholdStep;
             _yMaxStep = profile.YMaxStep;
 
-            // restore this sensors full state if it was already configured before (e.g. previously pinned, or loaded from
-            // disk at startup); a null Value/ManualYMax means the user never touched it yet, so we fall back to this
+            // restore this sensors Y-axis state if it was already configured before (e.g. previously pinned, or loaded
+            // from disk at startup); a null ManualYMax means the user never touched it yet, so we fall back to this
             // sensor types default instead of a generic one
             var existingState = SensorStateService.Instance.GetState(SensorId);
-            _isThresholdEnabled = existingState.Threshold.IsEnabled;
-            _manualThreshold = existingState.Threshold.Value ?? profile.ThresholdDefault;
-            _thresholdDirection = existingState.Threshold.Direction;
-            _thresholdColor = existingState.Threshold.Color;
             _isAutoScaled = existingState.IsAutoScaled;
             _manualYMax = existingState.ManualYMax ?? profile.YMaxDefault;
 
@@ -84,6 +80,9 @@ namespace FluentSensors.Controls.SensorGraph
             private set { _graphColor = value; OnPropertyChanged(); }
         }
 
+        // threshold - owned by the shared editor, exposed so views can bind e.g. Threshold.Value, Threshold.IsEnabled
+        public ThresholdEditorViewModel Threshold { get; }
+
         // y-axis
         private bool _isAutoScaled = true;
         public bool IsAutoScaled
@@ -96,6 +95,7 @@ namespace FluentSensors.Controls.SensorGraph
                     _isAutoScaled = value;
                     OnPropertyChanged();
                     UpdateYMaxDisplay();
+                    PushYAxisStateToService();
                 }
             }
         }
@@ -110,6 +110,7 @@ namespace FluentSensors.Controls.SensorGraph
                     _manualYMax = value;
                     OnPropertyChanged();
                     UpdateYMaxDisplay();
+                    PushYAxisStateToService();
                 }
             }
         }
@@ -127,119 +128,6 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        // threshold configuration
-        private bool _isThresholdEnabled = false;
-        public bool IsThresholdEnabled
-        {
-            get => _isThresholdEnabled;
-            set
-            {
-                if (_isThresholdEnabled != value)
-                {
-                    _isThresholdEnabled = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(ThresholdValue));
-                    PushStateToService();
-                    RecalculateColor();
-                }
-            }
-        }
-        private double _manualThreshold = 50;
-        public double ManualThreshold
-        {
-            get => _manualThreshold;
-            set
-            {
-                if (_manualThreshold != value)
-                {
-                    _manualThreshold = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(ThresholdValue));
-                    PushStateToService();
-                    RecalculateColor();
-                }
-            }
-        }
-        public double? ThresholdValue => IsThresholdEnabled ? _manualThreshold : (double?)null;
-        private ThresholdDirection _thresholdDirection = ThresholdDirection.Above;
-        public ThresholdDirection ThresholdDirection
-        {
-            get => _thresholdDirection;
-            set
-            {
-                if (_thresholdDirection == value) return;
-                _thresholdDirection = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(IsAboveDirection));
-                OnPropertyChanged(nameof(IsBelowDirection));
-                PushStateToService();
-                RecalculateColor();
-            }
-        }
-        public bool IsAboveDirection
-        {
-            get => ThresholdDirection == ThresholdDirection.Above;
-            set
-            {
-                if (value)
-                {
-                    IsThresholdEnabled = true; // checking a direction implies the user wants the threshold active
-                    ThresholdDirection = ThresholdDirection.Above;
-                }
-                else
-                {
-                    // force the toggle back to checked; direction is radio-like, not a real off-state
-                    OnPropertyChanged(nameof(IsAboveDirection));
-                }
-            }
-        }
-        public bool IsBelowDirection
-        {
-            get => ThresholdDirection == ThresholdDirection.Below;
-            set
-            {
-                if (value)
-                {
-                    IsThresholdEnabled = true;
-                    ThresholdDirection = ThresholdDirection.Below;
-                }
-                else
-                {
-                    OnPropertyChanged(nameof(IsBelowDirection));
-                }
-            }
-        }
-        private Windows.UI.Color _thresholdColor = Windows.UI.Color.FromArgb(255, 220, 50, 50);
-        public Windows.UI.Color ThresholdColor
-        {
-            get => _thresholdColor;
-            set
-            {
-                if (_thresholdColor == value) return;
-                _thresholdColor = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(ThresholdColorBrush));
-                PushStateToService();
-                RecalculateColor();
-            }
-        }
-        public SolidColorBrush ThresholdColorBrush
-        {
-            get
-            {
-                var c = ThresholdColor;
-                const byte swatchAlpha = 200; // 255 = fully opaque
-                return new SolidColorBrush(Windows.UI.Color.FromArgb(swatchAlpha, c.R, c.G, c.B));
-            }
-        }
-        public Microsoft.UI.Xaml.Media.Brush AboveDirectionBrush => GetDirectionBrush(ThresholdDirection.Above);
-        public Microsoft.UI.Xaml.Media.Brush BelowDirectionBrush => GetDirectionBrush(ThresholdDirection.Below);
-        private Microsoft.UI.Xaml.Media.Brush GetDirectionBrush(ThresholdDirection buttonDirection)
-        {
-            bool isActive = ThresholdDirection == buttonDirection;
-            string resourceKey = isActive ? "AccentFillColorDefaultBrush" : "ControlFillColorDefaultBrush";
-            return (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[resourceKey];
-        }
         private Brush _currentValueColor;
         public Brush CurrentValueColor
         {
@@ -247,18 +135,10 @@ namespace FluentSensors.Controls.SensorGraph
             set { _currentValueColor = value; OnPropertyChanged(); }
         }
 
-        // pushes the full state snapshot (threshold + Y-axis) to the shared service, so
-        // MainWindow can pick up threshold changes and disk persistence stays up to date
-        private void PushStateToService()
+        // pushes only the Y-axis part of the state snapshot; Threshold manages and persists its own slice independently
+        private void PushYAxisStateToService()
         {
             var state = SensorStateService.Instance.GetState(SensorId);
-            state.Threshold = new SensorThreshold
-            {
-                IsEnabled = _isThresholdEnabled,
-                Value = _manualThreshold,
-                Direction = _thresholdDirection,
-                Color = _thresholdColor
-            };
             state.IsAutoScaled = _isAutoScaled;
             state.ManualYMax = _manualYMax;
             SensorStateService.Instance.SetState(SensorId, state);
@@ -285,6 +165,18 @@ namespace FluentSensors.Controls.SensorGraph
         private void OnThemeChanged(string newTheme)
         {
             RecalculateColor();
+        }
+
+        // the current values color depends on the threshold, so any relevant change there needs a recolor
+        private void OnThresholdPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ThresholdEditorViewModel.IsEnabled) ||
+                e.PropertyName == nameof(ThresholdEditorViewModel.Value) ||
+                e.PropertyName == nameof(ThresholdEditorViewModel.Direction) ||
+                e.PropertyName == nameof(ThresholdEditorViewModel.Color))
+            {
+                RecalculateColor();
+            }
         }
 
         private void OnGraphColorChanged(bool useAccent, Windows.UI.Color customColor)
@@ -319,13 +211,15 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === public methods ===
 
-        // unsubscribes from SettingsService events; without this, disposed sensor rows would still react to
-        // graph color / data point changes after being removed
+        // unsubscribes from SettingsService events and the threshold editor; without this, disposed sensor rows would
+        // still react to graph color / data point / threshold changes after being removed
         public void Cleanup()
         {
             SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
             SettingsService.Instance.GraphDataPointsChanged -= OnGraphDataPointsChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+            Threshold.PropertyChanged -= OnThresholdPropertyChanged;
+            Threshold.Cleanup();
         }
 
         // data processing
@@ -371,41 +265,15 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        // threshold buttons
-        public void IncreaseThreshold()
-        {
-            IsThresholdEnabled = true;  // auto-enable when the user adjusts the value
-            ManualThreshold += _thresholdStep;
-        }
-
-        public void DecreaseThreshold()
-        {
-            IsThresholdEnabled = true;  // auto-enable when the user adjusts the value
-
-            // preventing the threshold from falling to 0 or into the negative range
-            if (ManualThreshold > _thresholdStep)
-            {
-                ManualThreshold -= _thresholdStep;
-            }
-        }
-
 
         // === private helpers ===
 
         // re-evaluates the current values color against this sensors own threshold config
         private void RecalculateColor()
         {
-            if (!_isThresholdEnabled)
-            {
-                CurrentValueColor = DefaultTextColor.Resolve();
-                return;
-            }
-
-            bool isBreached = _thresholdDirection == ThresholdDirection.Above
-                ? _currentRaw > _manualThreshold
-                : _currentRaw < _manualThreshold;
-
-            CurrentValueColor = isBreached ? new SolidColorBrush(_thresholdColor) : DefaultTextColor.Resolve();
+            CurrentValueColor = Threshold.IsBreached(_currentRaw)
+                ? new SolidColorBrush(Threshold.Color)
+                : DefaultTextColor.Resolve();
         }
 
         // calculates, what has to be displayed in the UI as the current max value

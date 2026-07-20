@@ -161,7 +161,7 @@
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
 
-                                        <Button
+                                        <RepeatButton
                                             Grid.Row="0"
                                             Padding="0"
                                             HorizontalAlignment="Stretch"
@@ -169,9 +169,9 @@
                                             Click="{x:Bind IncreaseYMax}"
                                             ToolTipService.ToolTip="Increase Y-Axis">
                                             <FontIcon FontSize="12" Glyph="&#xE70E;" />
-                                        </Button>
+                                        </RepeatButton>
 
-                                        <Button
+                                        <RepeatButton
                                             Grid.Row="1"
                                             Padding="0"
                                             HorizontalAlignment="Stretch"
@@ -179,7 +179,7 @@
                                             Click="{x:Bind DecreaseYMax}"
                                             ToolTipService.ToolTip="Decrease Y-Axis">
                                             <FontIcon FontSize="12" Glyph="&#xE70D;" />
-                                        </Button>
+                                        </RepeatButton>
 
                                         <ToggleButton
                                             Grid.Row="2"
@@ -206,25 +206,25 @@
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
 
-                                        <Button
+                                        <RepeatButton
                                             Grid.Row="0"
                                             Padding="0"
                                             HorizontalAlignment="Stretch"
                                             VerticalAlignment="Stretch"
-                                            Click="{x:Bind IncreaseThreshold}"
+                                            Click="{x:Bind Threshold.Increase}"
                                             ToolTipService.ToolTip="Increase Threshold">
                                             <FontIcon FontSize="12" Glyph="&#xE70E;" />
-                                        </Button>
+                                        </RepeatButton>
 
-                                        <Button
+                                        <RepeatButton
                                             Grid.Row="1"
                                             Padding="0"
                                             HorizontalAlignment="Stretch"
                                             VerticalAlignment="Stretch"
-                                            Click="{x:Bind DecreaseThreshold}"
+                                            Click="{x:Bind Threshold.Decrease}"
                                             ToolTipService.ToolTip="Decrease Threshold">
                                             <FontIcon FontSize="12" Glyph="&#xE70D;" />
-                                        </Button>
+                                        </RepeatButton>
 
                                         <ToggleButton
                                             Grid.Row="2"
@@ -234,7 +234,7 @@
                                             Content="T"
                                             FontSize="12"
                                             FontWeight="Normal"
-                                            IsChecked="{x:Bind IsThresholdEnabled, Mode=TwoWay}"
+                                            IsChecked="{x:Bind Threshold.IsEnabled, Mode=TwoWay}"
                                             ToolTipService.ToolTip="Toggle Threshold-Line" />
                                     </Grid>
 
@@ -256,7 +256,7 @@
                                             Padding="0"
                                             HorizontalAlignment="Stretch"
                                             VerticalAlignment="Stretch"
-                                            IsChecked="{x:Bind IsAboveDirection, Mode=TwoWay}"
+                                            IsChecked="{x:Bind Threshold.IsAboveDirection, Mode=TwoWay}"
                                             ToolTipService.ToolTip="Mark Above Threshold">
                                             <FontIcon
                                                 FontSize="12"
@@ -276,7 +276,7 @@
                                             HorizontalContentAlignment="Stretch"
                                             VerticalContentAlignment="Stretch">
                                             <Border
-                                                Background="{x:Bind ThresholdColorBrush, Mode=OneWay}"
+                                                Background="{x:Bind Threshold.ColorBrush, Mode=OneWay}"
                                                 BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="3" />
@@ -292,7 +292,7 @@
                                                         IsColorPaletteVisible="True"
                                                         IsColorSliderVisible="False"
                                                         IsColorSpectrumVisible="True"
-                                                        Color="{x:Bind ThresholdColor, Mode=TwoWay}" />
+                                                        Color="{x:Bind Threshold.Color, Mode=TwoWay}" />
                                                 </Flyout>
                                             </Button.Flyout>
                                         </Button>
@@ -302,7 +302,7 @@
                                             Padding="0"
                                             HorizontalAlignment="Stretch"
                                             VerticalAlignment="Stretch"
-                                            IsChecked="{x:Bind IsBelowDirection, Mode=TwoWay}"
+                                            IsChecked="{x:Bind Threshold.IsBelowDirection, Mode=TwoWay}"
                                             ToolTipService.ToolTip="Mark Under Threshold">
                                             <FontIcon
                                                 FontSize="12"
@@ -322,10 +322,10 @@
                                         IsAutoScaled="{x:Bind IsAutoScaled, Mode=OneWay}"
                                         LabelFollowsPointer="True"
                                         ManualYMax="{x:Bind ManualYMax, Mode=OneWay}"
-                                        ThresholdColor="{x:Bind ThresholdColor, Mode=OneWay}"
-                                        ThresholdDirection="{x:Bind ThresholdDirection, Mode=OneWay}"
+                                        ThresholdColor="{x:Bind Threshold.Color, Mode=OneWay}"
+                                        ThresholdDirection="{x:Bind Threshold.Direction, Mode=OneWay}"
                                         ThresholdLabelAlwaysVisible="True"
-                                        ThresholdValue="{x:Bind ThresholdValue, Mode=OneWay}"
+                                        ThresholdValue="{x:Bind Threshold.EffectiveValue, Mode=OneWay}"
                                         Values="{x:Bind SensorData, Mode=OneWay}" />
                                 </Grid>
 

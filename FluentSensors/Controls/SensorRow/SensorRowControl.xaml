@@ -3,6 +3,7 @@
     x:Class="FluentSensors.Controls.SensorRow.SensorRowControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhCommon="using:FluentSensors.Common"
     xmlns:fhSensors="using:FluentSensors.Features.Sensors"
@@ -17,13 +18,25 @@
             <ResourceDictionary.ThemeDictionaries>
 
                 <ResourceDictionary x:Key="Default">
+
+                    <!--  whole row  -->
                     <SolidColorBrush x:Key="CustomCheckedBackgroundBrush" Color="#19FFFFFF" />
                     <SolidColorBrush x:Key="CustomCheckedHoverBrush" Color="#14FFFFFF" />
+
+                    <!--  threshold  -->
+                    <SolidColorBrush x:Key="ThresholdIndicatorHoverBrush" Color="#13FFFFFF" />
+                    <SolidColorBrush x:Key="ThresholdIndicatorPressedBrush" Color="#0CFFFFFF" />
                 </ResourceDictionary>
 
                 <ResourceDictionary x:Key="Light">
+
+                    <!--  whole row  -->
                     <SolidColorBrush x:Key="CustomCheckedBackgroundBrush" Color="#FFF8F8F8" />
                     <SolidColorBrush x:Key="CustomCheckedHoverBrush" Color="#FFFAFAFA" />
+
+                    <!--  threshold  -->
+                    <SolidColorBrush x:Key="ThresholdIndicatorHoverBrush" Color="#FFEFEFEF" />
+                    <SolidColorBrush x:Key="ThresholdIndicatorPressedBrush" Color="#FFF3F3F3" />
                 </ResourceDictionary>
 
             </ResourceDictionary.ThemeDictionaries>
@@ -55,23 +68,27 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition
                     x:Name="NameColumn"
-                    Width="2*"
+                    Width="5*"
                     MinWidth="140" />
                 <ColumnDefinition
+                    x:Name="ThresholdColumn"
+                    Width="36"
+                    MinWidth="36" />
+                <ColumnDefinition
                     x:Name="CurrentColumn"
-                    Width="*"
+                    Width="2*"
                     MinWidth="65" />
                 <ColumnDefinition
                     x:Name="MinimumColumn"
-                    Width="*"
+                    Width="2*"
                     MinWidth="65" />
                 <ColumnDefinition
                     x:Name="MaximumColumn"
-                    Width="*"
+                    Width="2*"
                     MinWidth="65" />
                 <ColumnDefinition
                     x:Name="AverageColumn"
-                    Width="*"
+                    Width="2*"
                     MinWidth="65" />
                 <ColumnDefinition
                     x:Name="UnitColumn"
@@ -97,10 +114,204 @@
                     Text="{x:Bind ViewModel.Name, Mode=OneWay}" />
             </StackPanel>
 
+            <!--  threshold indicator/button  -->
+            <!--  opens the threshold config flyout on click  -->
+            <Border
+                x:Name="ThresholdIndicatorBorder"
+                Grid.Column="1"
+                Width="34"
+                Padding="5,2"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="{x:Bind ViewModel.ThresholdIndicatorBrush, Mode=OneWay}"
+                CornerRadius="3"
+                Opacity="0.95"
+                PointerEntered="ThresholdIndicatorBorder_PointerEntered"
+                PointerExited="ThresholdIndicatorBorder_PointerExited"
+                PointerPressed="ThresholdIndicatorBorder_PointerPressed"
+                PointerReleased="ThresholdIndicatorBorder_PointerReleased"
+                Tapped="ThresholdIndicatorBorder_Tapped">
+
+                <FlyoutBase.AttachedFlyout>
+                    <Flyout
+                        x:Name="ThresholdFlyout"
+                        Placement="Bottom"
+                        ShouldConstrainToRootBounds="False">
+
+                        <Flyout.FlyoutPresenterStyle>
+                            <Style TargetType="FlyoutPresenter">
+                                <Setter Property="Padding" Value="0,0,0,0" />
+                                <Setter Property="CornerRadius" Value="8" />
+                            </Style>
+                        </Flyout.FlyoutPresenterStyle>
+
+                        <StackPanel
+                            Width="105"
+                            Padding="4"
+                            Spacing="8">
+
+                            <!--  title row with close button  -->
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Margin="4,3,10,0"
+                                    VerticalAlignment="Center"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Threshold Config" />
+
+                                <Button
+                                    x:Name="ThresholdCloseButton"
+                                    Grid.Column="0"
+                                    Width="28"
+                                    Height="28"
+                                    Padding="0"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Click="ThresholdCloseButton_Click"
+                                    Style="{StaticResource SubtleButtonStyle}">
+                                    <FontIcon FontSize="12" Glyph="&#xE711;" />
+                                </Button>
+                            </Grid>
+
+                            <Grid Height="90" ColumnSpacing="3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!--  increase / decrease / toggle  -->
+                                <Grid Grid.Column="0" RowSpacing="3">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <RepeatButton
+                                        Grid.Row="0"
+                                        Padding="0"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch"
+                                        Click="{x:Bind ViewModel.Threshold.Increase}"
+                                        ToolTipService.ToolTip="Increase Threshold">
+                                        <FontIcon FontSize="12" Glyph="&#xE70E;" />
+                                    </RepeatButton>
+
+                                    <RepeatButton
+                                        Grid.Row="1"
+                                        Padding="0"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch"
+                                        Click="{x:Bind ViewModel.Threshold.Decrease}"
+                                        ToolTipService.ToolTip="Decrease Threshold">
+                                        <FontIcon FontSize="12" Glyph="&#xE70D;" />
+                                    </RepeatButton>
+
+                                    <ToggleButton
+                                        Grid.Row="2"
+                                        Padding="0"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch"
+                                        Content="T"
+                                        FontSize="12"
+                                        FontWeight="Normal"
+                                        IsChecked="{x:Bind ViewModel.Threshold.IsEnabled, Mode=TwoWay}"
+                                        ToolTipService.ToolTip="Toggle Threshold-Line" />
+                                </Grid>
+
+                                <!--  direction + color  -->
+                                <Grid Grid.Column="1" RowSpacing="3">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <ToggleButton
+                                        Grid.Row="0"
+                                        Padding="0"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch"
+                                        IsChecked="{x:Bind ViewModel.Threshold.IsAboveDirection, Mode=TwoWay}"
+                                        ToolTipService.ToolTip="Mark Above Threshold">
+                                        <FontIcon
+                                            FontSize="12"
+                                            Glyph="&#xEDE1;"
+                                            RenderTransformOrigin="0.5,0.5">
+                                            <FontIcon.RenderTransform>
+                                                <RotateTransform Angle="-90" />
+                                            </FontIcon.RenderTransform>
+                                        </FontIcon>
+                                    </ToggleButton>
+
+                                    <Button
+                                        Grid.Row="1"
+                                        Padding="0"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch"
+                                        HorizontalContentAlignment="Stretch"
+                                        VerticalContentAlignment="Stretch">
+                                        <Border
+                                            Background="{x:Bind ViewModel.Threshold.ColorBrush, Mode=OneWay}"
+                                            BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="3" />
+
+                                        <Button.Flyout>
+                                            <Flyout Placement="Bottom" ShouldConstrainToRootBounds="False">
+                                                <controls:ColorPicker
+                                                    ColorSpectrumShape="Box"
+                                                    IsAlphaEnabled="False"
+                                                    IsAlphaSliderVisible="False"
+                                                    IsAlphaTextInputVisible="False"
+                                                    IsColorChannelTextInputVisible="True"
+                                                    IsColorPaletteVisible="True"
+                                                    IsColorSliderVisible="True"
+                                                    IsColorSpectrumVisible="True"
+                                                    Color="{x:Bind ViewModel.Threshold.Color, Mode=TwoWay}" />
+                                            </Flyout>
+                                        </Button.Flyout>
+                                    </Button>
+
+                                    <ToggleButton
+                                        Grid.Row="2"
+                                        Padding="0"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch"
+                                        IsChecked="{x:Bind ViewModel.Threshold.IsBelowDirection, Mode=TwoWay}"
+                                        ToolTipService.ToolTip="Mark Under Threshold">
+                                        <FontIcon
+                                            FontSize="12"
+                                            Glyph="&#xEDE1;"
+                                            RenderTransformOrigin="0.5,0.5">
+                                            <FontIcon.RenderTransform>
+                                                <RotateTransform Angle="90" />
+                                            </FontIcon.RenderTransform>
+                                        </FontIcon>
+                                    </ToggleButton>
+                                </Grid>
+                            </Grid>
+                        </StackPanel>
+                    </Flyout>
+                </FlyoutBase.AttachedFlyout>
+
+                <TextBlock
+                    Margin="0,0,0,1"
+                    HorizontalAlignment="Center"
+                    FontSize="10"
+                    Text="{x:Bind ViewModel.ThresholdIndicatorText, Mode=OneWay}"
+                    TextAlignment="Center" />
+            </Border>
+
             <!--  current value  -->
             <TextBlock
                 x:Name="CurrentValueText"
-                Grid.Column="1"
+                Grid.Column="2"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
                 FontWeight="Normal"
@@ -111,7 +322,7 @@
             <!--  minimum value  -->
             <TextBlock
                 x:Name="MinimumValueText"
-                Grid.Column="2"
+                Grid.Column="3"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
                 FontWeight="Normal"
@@ -122,7 +333,7 @@
             <!--  maximum value  -->
             <TextBlock
                 x:Name="MaximumValueText"
-                Grid.Column="3"
+                Grid.Column="4"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
                 FontWeight="Normal"
@@ -133,7 +344,7 @@
             <!--  average value  -->
             <TextBlock
                 x:Name="AverageValueText"
-                Grid.Column="4"
+                Grid.Column="5"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
                 FontWeight="Normal"
@@ -141,10 +352,11 @@
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="{x:Bind ViewModel.AverageValue, Mode=OneWay}" />
 
-            <!--  unit, only visible in compact mode (to disambiguate sensors that share the exact same name)  -->
+            <!--  unit, only visible in compact mode  -->
+            <!--  (to disambiguate sensors that share the exact same name)  -->
             <TextBlock
                 x:Name="UnitText"
-                Grid.Column="5"
+                Grid.Column="6"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -154,11 +366,11 @@
         </Grid>
 
 
-        <!--  custom visual states  -->
+        <!--  custom visual states for SensorRowControl  -->
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="CardStates">
 
-                <!--  normal state  -->
+                <!--  normal states for whole row  -->
                 <VisualState x:Name="Normal">
                     <VisualState.Setters>
                         <Setter Target="CardBackground.Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
@@ -178,7 +390,7 @@
                     </VisualState.Setters>
                 </VisualState>
 
-                <!--  checked state  -->
+                <!--  checked states for whole row  -->
                 <VisualState x:Name="Checked">
                     <VisualState.Setters>
                         <Setter Target="CardBackground.Background" Value="{ThemeResource CustomCheckedBackgroundBrush}" />
@@ -201,9 +413,8 @@
             </VisualStateGroup>
 
 
-            <!--  independent from CardStates  -->
+            <!--  display states  -->
             <!--  controls whether the card is fully live, frozen/disabled, or name-only (hidden window)  -->
-            <!--  column collapsing for name-only happens in code-behind, not here  -->
             <VisualStateGroup x:Name="DisplayStates">
                 <VisualState x:Name="FullDetails" />
 
@@ -215,6 +426,35 @@
                 </VisualState>
 
             </VisualStateGroup>
+
+
+            <!--  threshold label states  -->
+            <VisualStateGroup x:Name="ThresholdIndicatorStates">
+                <VisualState x:Name="IndicatorNormal" />
+
+                <!--  (only when no threshold is configured yet)  -->
+                <VisualState x:Name="IndicatorHover">
+                    <VisualState.Setters>
+                        <Setter Target="ThresholdIndicatorBorder.Background" Value="{ThemeResource ThresholdIndicatorHoverBrush}" />
+                    </VisualState.Setters>
+                </VisualState>
+
+                <!--  (only when no threshold is configured yet)  -->
+                <VisualState x:Name="IndicatorPressedUnconfigured">
+                    <VisualState.Setters>
+                        <Setter Target="ThresholdIndicatorBorder.Background" Value="{ThemeResource ThresholdIndicatorPressedBrush}" />
+                        <Setter Target="ThresholdIndicatorBorder.Opacity" Value="1.0" />
+                    </VisualState.Setters>
+                </VisualState>
+
+                <!--  pressed while a threshold color is already set  -->
+                <VisualState x:Name="IndicatorPressedConfigured">
+                    <VisualState.Setters>
+                        <Setter Target="ThresholdIndicatorBorder.Opacity" Value="0.6" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+
         </VisualStateManager.VisualStateGroups>
     </Grid>
 </UserControl>

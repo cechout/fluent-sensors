@@ -17,8 +17,8 @@ namespace FluentSensors.Features.Sensors
     public class SensorsViewModel : INotifyPropertyChanged
     {
         // === fields ===
-        
-        private HardwareMonitorService _service; 
+
+        private HardwareMonitorService _service;
         private DispatcherQueue _dispatcherQueue;
         private TaskCompletionSource<bool> _initialLoadTcs = new TaskCompletionSource<bool>();
         public Task WaitForInitialLoadAsync() => _initialLoadTcs.Task; // MainWindow waits on this
@@ -26,7 +26,7 @@ namespace FluentSensors.Features.Sensors
 
         // === singleton instance ===
 
-        private static SensorsViewModel _instance; 
+        private static SensorsViewModel _instance;
         public static SensorsViewModel Instance
         {
             get
@@ -115,11 +115,16 @@ namespace FluentSensors.Features.Sensors
                         // previous run (e.g. it was hidden or selected before closing)
                         var persistedState = SensorStateService.Instance.GetState(data.Id);
                         bool isHidden = persistedState.IsHidden;
+
+                        // SensorType must be set before Id:
+                        // setting Id triggers this rows ThresholdEditorViewModel creation, which reads SensorType to resolve
+                        // the correct per-type threshold profile
+                        // if Id came first, the editor would always fall back to the generic Default profile
                         var newRow = new SensorRowViewModel
                         {
+                            SensorType = data.SensorType,
                             Id = data.Id,
                             Name = data.Name,
-                            SensorType = data.SensorType,
                             SortOrder = existingGroup.Sensors.Count + existingGroup.HiddenSensors.Count,
                             IsHidden = isHidden,
                             IsSelected = persistedState.IsSelected,

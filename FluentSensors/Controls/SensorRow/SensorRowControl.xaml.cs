@@ -2,8 +2,7 @@ using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-
-using FluentSensors.Common;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 
 namespace FluentSensors.Controls.SensorRow
@@ -14,6 +13,8 @@ namespace FluentSensors.Controls.SensorRow
 
         private bool _isHovered = false;
         private bool _isPressed = false;
+        private bool _isThresholdIndicatorHovered = false;
+        private bool _isThresholdIndicatorPressed = false;
 
 
         // === constructor ===
@@ -106,8 +107,11 @@ namespace FluentSensors.Controls.SensorRow
         {
             _isHovered = false;
             _isPressed = false;
+            _isThresholdIndicatorHovered = false;
+            _isThresholdIndicatorPressed = false;
 
-            // skip transitions on the initial state - fast collapse/expand cycles otherwise interrupt animations mid-flight and leave the card visually blank
+            // skip transitions on the initial state
+            // (fast collapse/expand cycles otherwise interrupt animations mid-flight and leave the card visually blank sometimes)
             UpdateVisualState(useTransitions: false);
             UpdateDisplayState();
         }
@@ -122,8 +126,9 @@ namespace FluentSensors.Controls.SensorRow
         }
 
 
-        // === pointer events ===
+        // === event handlers ===
 
+        // pointer events
         private void RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
             if (ViewModel?.IsDisabled == true) return;
@@ -151,7 +156,7 @@ namespace FluentSensors.Controls.SensorRow
             UpdateVisualState();
         }
 
-        // click event to toggle the sensor on/off - disabled cards can't be selected
+        // click event to toggle the sensor on/off - disabled cards cant be selected
         private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
         {
             if (ViewModel == null || ViewModel.IsDisabled) return;
@@ -160,10 +165,50 @@ namespace FluentSensors.Controls.SensorRow
             UpdateVisualState();
         }
 
+        // threshold badge
+        // (press state via opacity only, no VSM)
+        private void ThresholdIndicatorBorder_PointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            _isThresholdIndicatorHovered = true;
+            UpdateThresholdIndicatorVisualState();
+        }
+
+        private void ThresholdIndicatorBorder_PointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            _isThresholdIndicatorHovered = false;
+            _isThresholdIndicatorPressed = false;
+            UpdateThresholdIndicatorVisualState();
+        }
+
+        private void ThresholdIndicatorBorder_PointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            _isThresholdIndicatorPressed = true;
+            UpdateThresholdIndicatorVisualState();
+            e.Handled = true;
+        }
+
+        private void ThresholdIndicatorBorder_PointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            _isThresholdIndicatorPressed = false;
+            UpdateThresholdIndicatorVisualState();
+            e.Handled = true;
+        }
+
+        private void ThresholdIndicatorBorder_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            e.Handled = true;
+            FlyoutBase.ShowAttachedFlyout(ThresholdIndicatorBorder);
+        }
+
+        private void ThresholdCloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            ThresholdFlyout.Hide();
+        }
+
 
         // === private helpers ===
 
-        // method to update the visual state of the card based on the current status (selected, hovered, pressed)
+        // decides between normal / hover / pressed / checked-variants for the whole card, based on selection state
         private void UpdateVisualState(bool useTransitions = true)
         {
             if (ViewModel == null) return;
@@ -184,22 +229,39 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // decides between full details, disabled (dimmed/frozen), or name-only (hidden window)
+        // decides between normal / hover / pressed for the threshold badge
+        // (hover-gray only applies when no threshold is configured yet, since a configured threshold already communicates
+        // state via its own background color)
+        private void UpdateThresholdIndicatorVisualState()
+        {
+            bool isConfigured = ViewModel?.Threshold?.IsEnabled == true;
+
+            if (_isThresholdIndicatorPressed) { VisualStateManager.GoToState(this, isConfigured ? "IndicatorPressedConfigured" : "IndicatorPressedUnconfigured", true); }
+            else if (_isThresholdIndicatorHovered && !isConfigured) { VisualStateManager.GoToState(this, "IndicatorHover", true); }
+            else { VisualStateManager.GoToState(this, "IndicatorNormal", true); }
+        }
+
+        // decides between full details, disabled (dimmed/frozen), or name-only (in HiddenSensorsWindow)
+        // (column collapsing for name-only happens here in code-behind rather than via VSM, since it involves width changes,
+        // not just setters)
         private void UpdateDisplayState()
         {
             if (IsCompact)
             {
                 CurrentValueText.Visibility = Visibility.Collapsed;
+                ThresholdIndicatorBorder.Visibility = Visibility.Collapsed;
                 MinimumValueText.Visibility = Visibility.Collapsed;
                 MaximumValueText.Visibility = Visibility.Collapsed;
                 AverageValueText.Visibility = Visibility.Collapsed;
 
                 CurrentColumn.MinWidth = 0;
+                ThresholdColumn.MinWidth = 0;
                 MinimumColumn.MinWidth = 0;
                 MaximumColumn.MinWidth = 0;
                 AverageColumn.MinWidth = 0;
 
                 CurrentColumn.Width = new GridLength(0);
+                ThresholdColumn.Width = new GridLength(0);
                 MinimumColumn.Width = new GridLength(0);
                 MaximumColumn.Width = new GridLength(0);
                 AverageColumn.Width = new GridLength(0);

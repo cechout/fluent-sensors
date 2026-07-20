@@ -13,6 +13,6 @@ namespace FluentSensors.Persistence.Models
         // gets resolved against a per-sensor-type default (see SensorTypeProfiles) the first time its actually needed
         public double? Value { get; set; } = null;
         public ThresholdDirection Direction { get; set; } = ThresholdDirection.Above;
-        public Windows.UI.Color Color { get; set; } = Windows.UI.Color.FromArgb(255, 220, 50, 50);
+        public Windows.UI.Color Color { get; set; } = Windows.UI.Color.FromArgb(255, 231, 72, 86);
     }
 }

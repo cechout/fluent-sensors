@@ -1,10 +1,10 @@
 ﻿using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 using FluentSensors.Common;
-using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
 
 
@@ -19,13 +19,9 @@ namespace FluentSensors.Controls.SensorRow
         private double _max = double.MinValue;
         private double _sum = 0;
         private int _count = 0;
-
-        // threshold tracking
-        private bool _isSubscribedToThreshold;
-        private DispatcherQueue _dispatcherQueue;
-        private SensorThreshold _threshold;
         private double _currentRaw;
         private double _avg;
+        private DispatcherQueue _dispatcherQueue;
 
 
         // === constructor ===
@@ -56,7 +52,7 @@ namespace FluentSensors.Controls.SensorRow
                 if (_id == value) return; // Id is set once via object initializer; guards against double-subscribing
                 _id = value;
                 OnPropertyChanged();
-                SubscribeToThreshold();
+                InitializeThreshold();
             }
         }
         public string Name { get; set; } = "Unknown Sensor";
@@ -82,6 +78,23 @@ namespace FluentSensors.Controls.SensorRow
                     _ => "" // fallback, if LibreHardwareMonitor sends something exotic
                 };
             }
+        }
+
+        // threshold, owned by the shared editor; created once Id is set (see InitializeThreshold), null before that
+        public ThresholdEditorViewModel Threshold { get; private set; }
+
+        // threshold indicator (small badge in SensorRowControl)
+        private string _thresholdIndicatorText = "-";
+        public string ThresholdIndicatorText
+        {
+            get => _thresholdIndicatorText;
+            set { _thresholdIndicatorText = value; OnPropertyChanged(); }
+        }
+        private Brush _thresholdIndicatorBrush = new SolidColorBrush(Colors.Transparent);
+        public Brush ThresholdIndicatorBrush
+        {
+            get => _thresholdIndicatorBrush;
+            set { _thresholdIndicatorBrush = value; OnPropertyChanged(); }
         }
 
         // item state
@@ -222,7 +235,7 @@ namespace FluentSensors.Controls.SensorRow
             RecalculateColors();
         }
 
-        // resets method
+        // reset stats method
         public void ResetMinMax()
         {
             _min = double.MaxValue;
@@ -239,32 +252,43 @@ namespace FluentSensors.Controls.SensorRow
             AverageValueColor = DefaultTextColor.Resolve();
         }
 
+        // unsubscribes from SettingsService and the threshold editor; must be called once this row is permanently
+        // removed (not just moved to the hidden list), or it keeps reacting to theme/threshold changes after disposal
+        public void Cleanup()
+        {
+            SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+            Threshold?.Cleanup();
+            if (Threshold != null) Threshold.PropertyChanged -= OnThresholdPropertyChanged;
+        }
+
 
         // === private helpers ===
 
-        // threshold handling
-        private void SubscribeToThreshold()
+        // creates this rows threshold editor once both Id and SensorType are known; SensorType must be set before Id in
+        // the object initializer (SensorsViewModel), otherwise the editor would fall back to the generic default profile
+        private void InitializeThreshold()
         {
-            if (string.IsNullOrEmpty(_id) || _isSubscribedToThreshold) return;
+            if (string.IsNullOrEmpty(_id) || Threshold != null) return;
 
-            // captures the UI thread this row was created on, so threshold updates can be marshalled back here safely
+            // captures the UI thread this row was created on, so theme changes can be marshalled back here safely
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-            _isSubscribedToThreshold = true;
 
-            SensorStateService.Instance.StateChanged += OnStateChanged;
-            ApplyThreshold(SensorStateService.Instance.GetState(_id).Threshold);
-        }
-
-        private void OnStateChanged(string sensorId, SensorState state)
-        {
-            if (sensorId != _id) return;
-            _dispatcherQueue.TryEnqueue(() => ApplyThreshold(state.Threshold));
-        }
-
-        private void ApplyThreshold(SensorThreshold threshold)
-        {
-            _threshold = threshold;
+            Threshold = new ThresholdEditorViewModel(_id, _sensorType);
+            Threshold.PropertyChanged += OnThresholdPropertyChanged;
             RecalculateColors();
+            UpdateThresholdIndicator();
+        }
+
+        private void OnThresholdPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ThresholdEditorViewModel.IsEnabled) ||
+                e.PropertyName == nameof(ThresholdEditorViewModel.Value) ||
+                e.PropertyName == nameof(ThresholdEditorViewModel.Direction) ||
+                e.PropertyName == nameof(ThresholdEditorViewModel.Color))
+            {
+                RecalculateColors();
+                UpdateThresholdIndicator();
+            }
         }
 
         // color evaluation
@@ -280,14 +304,25 @@ namespace FluentSensors.Controls.SensorRow
 
         private Brush EvaluateColor(double value)
         {
-            if (_threshold == null || !_threshold.IsEnabled)
+            if (Threshold == null || !Threshold.IsBreached(value))
                 return DefaultTextColor.Resolve();
 
-            bool isBreached = _threshold.Direction == ThresholdDirection.Above
-                ? value > _threshold.Value
-                : value < _threshold.Value;
+            return new SolidColorBrush(Threshold.Color);
+        }
 
-            return isBreached ? new SolidColorBrush(_threshold.Color) : DefaultTextColor.Resolve();
+        // updates the small threshold badge shown in the new column
+        private void UpdateThresholdIndicator()
+        {
+            if (Threshold != null && Threshold.IsEnabled)
+            {
+                ThresholdIndicatorText = $"{Threshold.Value:0}";
+                ThresholdIndicatorBrush = Threshold.ColorBrush;
+            }
+            else
+            {
+                ThresholdIndicatorText = "--";
+                ThresholdIndicatorBrush = new SolidColorBrush(Colors.Transparent);
+            }
         }
 
 

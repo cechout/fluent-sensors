@@ -152,11 +152,12 @@
 
                     <Grid Margin="32,12,32,12" HorizontalAlignment="Stretch">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*" MinWidth="140" />
-                            <ColumnDefinition Width="*" MinWidth="65" />
-                            <ColumnDefinition Width="*" MinWidth="65" />
-                            <ColumnDefinition Width="*" MinWidth="65" />
-                            <ColumnDefinition Width="*" MinWidth="65" />
+                            <ColumnDefinition Width="5*" MinWidth="140" />
+                            <ColumnDefinition Width="36" />
+                            <ColumnDefinition Width="2*" MinWidth="65" />
+                            <ColumnDefinition Width="2*" MinWidth="65" />
+                            <ColumnDefinition Width="2*" MinWidth="65" />
+                            <ColumnDefinition Width="2*" MinWidth="65" />
                         </Grid.ColumnDefinitions>
 
                         <TextBlock
@@ -167,24 +168,36 @@
                             Text="Sensor" />
                         <TextBlock
                             Grid.Column="1"
-                            HorizontalAlignment="Right"
+                            HorizontalAlignment="Center"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Current" />
+                            Text="T" />
+                        <!--<FontIcon
+                            Grid.Column="1"
+                            HorizontalAlignment="Center"
+                            FontSize="12"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Glyph="&#xE7C1;" />-->
                         <TextBlock
                             Grid.Column="2"
                             HorizontalAlignment="Right"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Min" />
+                            Text="Current" />
                         <TextBlock
                             Grid.Column="3"
                             HorizontalAlignment="Right"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Max" />
+                            Text="Min" />
                         <TextBlock
                             Grid.Column="4"
+                            HorizontalAlignment="Right"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Max" />
+                        <TextBlock
+                            Grid.Column="5"
                             HorizontalAlignment="Right"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
@@ -236,11 +249,12 @@
 
                                         <Grid HorizontalAlignment="Stretch">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="2*" MinWidth="140" />
-                                                <ColumnDefinition Width="*" MinWidth="65" />
-                                                <ColumnDefinition Width="*" MinWidth="65" />
-                                                <ColumnDefinition Width="*" MinWidth="65" />
-                                                <ColumnDefinition Width="*" MinWidth="65" />
+                                                <ColumnDefinition Width="5*" MinWidth="140" />
+                                                <ColumnDefinition Width="36" />
+                                                <ColumnDefinition Width="2*" MinWidth="65" />
+                                                <ColumnDefinition Width="2*" MinWidth="65" />
+                                                <ColumnDefinition Width="2*" MinWidth="65" />
+                                                <ColumnDefinition Width="2*" MinWidth="65" />
                                             </Grid.ColumnDefinitions>
 
                                             <TextBlock
@@ -251,24 +265,30 @@
                                                 Text="Sensor" />
                                             <TextBlock
                                                 Grid.Column="1"
-                                                HorizontalAlignment="Right"
+                                                HorizontalAlignment="Center"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Current" />
+                                                Text="T" />
                                             <TextBlock
                                                 Grid.Column="2"
                                                 HorizontalAlignment="Right"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Min" />
+                                                Text="Current" />
                                             <TextBlock
                                                 Grid.Column="3"
                                                 HorizontalAlignment="Right"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Max" />
+                                                Text="Min" />
                                             <TextBlock
                                                 Grid.Column="4"
+                                                HorizontalAlignment="Right"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Max" />
+                                            <TextBlock
+                                                Grid.Column="5"
                                                 HorizontalAlignment="Right"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
