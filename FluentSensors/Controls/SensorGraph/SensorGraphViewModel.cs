@@ -8,9 +8,10 @@ using System.Runtime.CompilerServices;
 using FluentSensors.Controls;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
+using FluentSensors.Common;
 
 
-namespace FluentSensors.Common
+namespace FluentSensors.Controls.SensorGraph
 {
     public class SensorGraphViewModel : INotifyPropertyChanged
     {

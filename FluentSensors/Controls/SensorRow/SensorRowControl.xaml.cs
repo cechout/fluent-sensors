@@ -6,9 +6,9 @@ using Microsoft.UI.Xaml.Input;
 using FluentSensors.Common;
 
 
-namespace FluentSensors.Controls
+namespace FluentSensors.Controls.SensorRow
 {
-    public sealed partial class SensorCardControl : UserControl
+    public sealed partial class SensorRowControl : UserControl
     {
         // === fields ===
 
@@ -18,7 +18,7 @@ namespace FluentSensors.Controls
 
         // === constructor ===
 
-        public SensorCardControl()
+        public SensorRowControl()
         {
             this.InitializeComponent();
 
@@ -33,7 +33,7 @@ namespace FluentSensors.Controls
             DependencyProperty.Register(
                 nameof(ViewModel),
                 typeof(SensorRowViewModel),
-                typeof(SensorCardControl),
+                typeof(SensorRowControl),
                 new PropertyMetadata(null, OnViewModelChanged));
 
         public SensorRowViewModel ViewModel
@@ -45,7 +45,7 @@ namespace FluentSensors.Controls
         // re-subscribes to the new ViewModels PropertyChanged so the card reacts if IsDisabled flips while its on screen
         private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is not SensorCardControl card) return;
+            if (d is not SensorRowControl card) return;
 
             if (e.OldValue is SensorRowViewModel oldVm) oldVm.PropertyChanged -= card.ViewModel_PropertyChanged;
             if (e.NewValue is SensorRowViewModel newVm) newVm.PropertyChanged += card.ViewModel_PropertyChanged;
@@ -84,7 +84,7 @@ namespace FluentSensors.Controls
             DependencyProperty.Register(
                 nameof(IsCompact),
                 typeof(bool),
-                typeof(SensorCardControl),
+                typeof(SensorRowControl),
                 new PropertyMetadata(false, OnIsCompactChanged));
 
         public bool IsCompact
@@ -95,7 +95,7 @@ namespace FluentSensors.Controls
 
         private static void OnIsCompactChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is SensorCardControl card) card.UpdateDisplayState();
+            if (d is SensorRowControl card) card.UpdateDisplayState();
         }
 
 

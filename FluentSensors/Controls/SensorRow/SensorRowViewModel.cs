@@ -1,14 +1,14 @@
-﻿using FluentSensors.Controls;
-using FluentSensors.Persistence.Models;
-using FluentSensors.Persistence.Services;
-using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+using FluentSensors.Common;
+using FluentSensors.Persistence.Models;
+using FluentSensors.Persistence.Services;
 
-namespace FluentSensors.Common
+
+namespace FluentSensors.Controls.SensorRow
 {
     public class SensorRowViewModel : INotifyPropertyChanged
     {

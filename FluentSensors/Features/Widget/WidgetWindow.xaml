@@ -5,8 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:fhCommon="using:FluentSensors.Common"
-    xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhControls="using:FluentSensors.Controls.SensorGraph"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Fluent Sensors"
     mc:Ignorable="d">
@@ -70,7 +69,7 @@
                     </ItemsControl.ItemsPanel>
 
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="fhCommon:SensorGraphViewModel">
+                        <DataTemplate x:DataType="fhControls:SensorGraphViewModel">
 
                             <StackPanel
                                 Height="104"
@@ -317,7 +316,7 @@
                                     </Grid>
 
                                     <!--  LiveChart graph  -->
-                                    <fhControls:Graph
+                                    <fhControls:SensorGraphControl
                                         Grid.Column="1"
                                         AccentColor="{x:Bind GraphColor, Mode=OneWay}"
                                         IsAutoScaled="{x:Bind IsAutoScaled, Mode=OneWay}"

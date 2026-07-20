@@ -7,13 +7,16 @@ using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
 using System.Collections.Generic;
 
+using FluentSensors.Common;
 
-namespace FluentSensors.Controls
+
+namespace FluentSensors.Controls.SensorGraph
 {
-    // === Graph: color and section calculation ===
+    // === color and section calculation ===
     // rebuilds line/area colors and threshold sections whenever values, accent color, threshold, or y-range change
-    public sealed partial class Graph
+    public sealed partial class SensorGraphControl
     {
+        // threshold label positioning
         // pure positioning; called both when the label should (re)appear and on every data
         // tick while it's already visible, so auto-scaling keeps it glued to the line
         private void PositionThresholdLabel()
@@ -40,7 +43,7 @@ namespace FluentSensors.Controls
         // actual threshold/scale changes, not on routine data ticks
         private void ShowThresholdLabelBriefly()
         {
-            if (!_isLoaded) return; // Chart isn't measured yet; Graph_Loaded will call this again once it is
+            if (!_isLoaded) return; // Chart isnt measured yet; Graph_Loaded will call this again once it is
 
             if (ThresholdValue is null)
             {
@@ -61,7 +64,6 @@ namespace FluentSensors.Controls
                 _thresholdLabelTimer.Start();
             }
         }
-
 
         // color calculation
         // rebuilds the colors of the graph line (Stroke) and the area under it (Fill)
@@ -146,7 +148,7 @@ namespace FluentSensors.Controls
             foreach (var (start, end) in runs)
             {
                 // shift the area to be removed
-                // bevore: start-0.5 and end+0.5
+                // before: start-0.5 and end+0.5
                 // now:    start+0.0 and end+1.0
                 float startRatio = (float)System.Math.Clamp((start + 0.0) / lastIndex, 0.0, 1.0);
                 float endRatio = (float)System.Math.Clamp((end + 1.0) / lastIndex, 0.0, 1.0);
@@ -174,7 +176,7 @@ namespace FluentSensors.Controls
                 stopList.ToArray());
         }
 
-
+        // section building
         // draws the horizontal threshold line, plus one full-height red box per alarm zone
         private void RebuildSections()
         {
@@ -226,7 +228,7 @@ namespace FluentSensors.Controls
             if (Chart != null) Chart.Sections = Sections;
         }
 
-
+        // shared calculation helpers
         // returns the current highest value on the y-axis:
         // the fixed ManualYMax value, or the highest visible data point when auto-scaled
         private double ComputeCurrentYMax()

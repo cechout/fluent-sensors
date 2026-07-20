@@ -10,12 +10,12 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WinUIEx;
 
-using FluentSensors.Common;
 using FluentSensors.Core;
 using FluentSensors.Features.Settings;
 using FluentSensors.Features.Widget;
 using FluentSensors.Features.Sensors;
 using FluentSensors.Persistence.Services;
+using FluentSensors.Controls.SensorRow;
 
 
 namespace FluentSensors

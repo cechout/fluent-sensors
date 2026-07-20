@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-using FluentSensors.Common;
+using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
+using FluentSensors.Controls.SensorGraph;
 
 
 namespace FluentSensors.Features.Widget

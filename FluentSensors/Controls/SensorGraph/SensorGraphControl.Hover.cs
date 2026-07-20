@@ -4,12 +4,14 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Windows.Foundation;
 
+using FluentSensors.Common;
 
-namespace FluentSensors.Controls
+
+namespace FluentSensors.Controls.SensorGraph
 {
-    // === Graph: pointer hover interaction ===
+    // === pointer hover interaction ===
     // shows a circle + value label on the chart at the pointer position
-    public sealed partial class Graph
+    public sealed partial class SensorGraphControl
     {
         // updates hover circle + label position and value whenever the pointer moves over the chart
         private void OnChartPointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)

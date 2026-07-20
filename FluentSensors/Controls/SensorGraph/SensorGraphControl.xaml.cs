@@ -9,27 +9,23 @@ using Microsoft.UI.Xaml.Controls;
 using SkiaSharp;
 using System.Collections.ObjectModel;
 
+using FluentSensors.Common;
 
-namespace FluentSensors.Controls
+
+namespace FluentSensors.Controls.SensorGraph
 {
-    // side of the threshold that gets colored differently
-    public enum ThresholdDirection
-    {
-        Above, // values greater than threshold are colored
-        Below // values less than threshold are colored
-    }
-
-
     // self-contained graph control that owns all LiveCharts internals
-    // consumers only bind Values, AccentColor, ManualYMax, IsAutoScaled, ThresholdValue
+    // consumers only bind Values, AccentColor, ManualYMax, IsAutoScaled, ThresholdValue, ThresholdDirection,
+    // ThresholdColor, ThresholdLabelAlwaysVisible, LabelFollowsPointer
 
     // split across 3 files:
-    // Graph.xaml.cs (this file): fields, constructor, bindings, all DependencyProperties
-    // Graph.Rendering.cs: color / section calculation (ApplyStroke, RebuildSections, ...)
-    // Graph.Hover.cs: pointer hover interaction
-    public sealed partial class Graph : UserControl
+    // SensorGraphControl.xaml.cs (this file): fields, constructor, bindings, all DependencyProperties
+    // SensorGraphControl.Rendering.cs: color / section calculation (ApplyStroke, RebuildSections, ...)
+    // SensorGraphControl.Hover.cs: pointer hover interaction
+    public sealed partial class SensorGraphControl : UserControl
     {
         // === fields ===
+
         private readonly Axis _yAxis;
         private readonly StepLineSeries<double?> _lineSeries;
         private bool _isPointerOverChart = false;
@@ -39,7 +35,8 @@ namespace FluentSensors.Controls
 
 
         // === constructor ===
-        public Graph()
+
+        public SensorGraphControl()
         {
             InitializeComponent();
 
@@ -69,13 +66,13 @@ namespace FluentSensors.Controls
             };
             XAxes = new ICartesianAxis[]
             {
-                new Axis
-                {
-                    IsVisible = false,
-                    CrosshairPaint = crosshairPaint,
-                    CrosshairLabelsPaint = null,
-                    CrosshairSnapEnabled = false
-                }
+            new Axis
+            {
+                IsVisible = false,
+                CrosshairPaint = crosshairPaint,
+                CrosshairLabelsPaint = null,
+                CrosshairSnapEnabled = false
+            }
             };
 
             _thresholdLabelTimer = new DispatcherTimer { Interval = System.TimeSpan.FromSeconds(2) };
@@ -94,7 +91,6 @@ namespace FluentSensors.Controls
             RebuildSections();
         }
 
-
         // LiveCharts only builds its internal scale/draw context on the first real measure pass;
         // UpdateStarted fires once that has happened (Loaded fires too early, before the chart is actually ready)
         private void Chart_UpdateStarted(LiveChartsCore.Kernel.Sketches.IChartView chart)
@@ -105,8 +101,9 @@ namespace FluentSensors.Controls
         }
 
 
-        // === LiveCharts binding surfaces exposed to XAML ===
-        // (consumed directly by <lvc:CartesianChart> in Graph.xaml)
+        // === livecharts binding surfaces ===
+
+        // (consumed directly by <lvc:CartesianChart> in SensorGraphControl.xaml)
         public ISeries[] Series { get; }
         public ICartesianAxis[] XAxes { get; }
         public ICartesianAxis[] YAxes { get; }
@@ -114,7 +111,7 @@ namespace FluentSensors.Controls
         public LiveChartsCore.Measure.Margin ChartMargin { get; } = new LiveChartsCore.Measure.Margin(0);
 
 
-        // === DependencyProperties ===
+        // === dependency properties ===
 
         // DependencyProperty: Values 
         public ObservableCollection<double?> Values
@@ -127,12 +124,12 @@ namespace FluentSensors.Controls
             DependencyProperty.Register(
                 nameof(Values),
                 typeof(ObservableCollection<double?>),
-                typeof(Graph),
+                typeof(SensorGraphControl),
                 new PropertyMetadata(null, OnValuesChanged));
 
         private static void OnValuesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is not Graph g) return;
+            if (d is not SensorGraphControl g) return;
 
             // stop listening to the previous Values list (the one before this change)
             if (e.OldValue is ObservableCollection<double?> oldValues)
@@ -176,12 +173,12 @@ namespace FluentSensors.Controls
             DependencyProperty.Register(
                 nameof(AccentColor),
                 typeof(Windows.UI.Color),
-                typeof(Graph),
+                typeof(SensorGraphControl),
                 new PropertyMetadata(Windows.UI.Color.FromArgb(255, 0, 120, 212), OnAccentColorChanged));
 
         private static void OnAccentColorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is Graph g && e.NewValue is Windows.UI.Color c)
+            if (d is SensorGraphControl g && e.NewValue is Windows.UI.Color c)
             {
                 g.ApplyStroke();
             }
@@ -198,7 +195,7 @@ namespace FluentSensors.Controls
             DependencyProperty.Register(
                 nameof(IsAutoScaled),
                 typeof(bool),
-                typeof(Graph),
+                typeof(SensorGraphControl),
                 new PropertyMetadata(true, OnScaleChanged));
 
         // DependencyProperty: ManualYMax
@@ -212,14 +209,14 @@ namespace FluentSensors.Controls
             DependencyProperty.Register(
                 nameof(ManualYMax),
                 typeof(double),
-                typeof(Graph),
+                typeof(SensorGraphControl),
                 new PropertyMetadata(100.0, OnScaleChanged));
 
         // IsAutoScaled and ManualYMax both control the same thing: the y-axis maximum
         // so either one changing needs to update the axis and recolor the graph
         private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is Graph g)
+            if (d is SensorGraphControl g)
             {
                 g._yAxis.MaxLimit = g.IsAutoScaled ? (double?)null : g.ManualYMax;
                 g.ApplyStroke(); // y-range change moves the thresholds relative position
@@ -239,19 +236,18 @@ namespace FluentSensors.Controls
             DependencyProperty.Register(
                 nameof(ThresholdValue),
                 typeof(double?),
-                typeof(Graph),
+                typeof(SensorGraphControl),
                 new PropertyMetadata(null, OnThresholdChanged));
 
         private static void OnThresholdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is Graph g)
+            if (d is SensorGraphControl g)
             {
                 g.RebuildSections();
                 g.ApplyStroke();
                 g.ShowThresholdLabelBriefly();
             }
         }
-
 
         // DependencyProperty: ThresholdDirection
         public ThresholdDirection ThresholdDirection
@@ -263,9 +259,8 @@ namespace FluentSensors.Controls
             DependencyProperty.Register(
                 nameof(ThresholdDirection),
                 typeof(ThresholdDirection),
-                typeof(Graph),
+                typeof(SensorGraphControl),
                 new PropertyMetadata(ThresholdDirection.Above, OnThresholdVisualsChanged));
-
 
         // DependencyProperty: ThresholdColor
         public Windows.UI.Color ThresholdColor
@@ -285,7 +280,7 @@ namespace FluentSensors.Controls
             DependencyProperty.Register(
                 nameof(ThresholdColor),
                 typeof(Windows.UI.Color),
-                typeof(Graph),
+                typeof(SensorGraphControl),
                 new PropertyMetadata(Windows.UI.Color.FromArgb(255, 220, 50, 50), OnThresholdVisualsChanged));
 
         // shared callback for ThresholdDirection and ThresholdColor: both need a full repaint
@@ -293,14 +288,13 @@ namespace FluentSensors.Controls
         {
             if (Equals(e.OldValue, e.NewValue)) return; // skip if nothing actually changed 
 
-            if (d is Graph g)
+            if (d is SensorGraphControl g)
             {
                 g.RebuildSections();
                 g.ApplyStroke();
                 g.ShowThresholdLabelBriefly();
             }
         }
-
 
         // DependencyProperty: ThresholdLabelAlwaysVisible
         public bool ThresholdLabelAlwaysVisible
@@ -313,14 +307,13 @@ namespace FluentSensors.Controls
             DependencyProperty.Register(
                 nameof(ThresholdLabelAlwaysVisible),
                 typeof(bool),
-                typeof(Graph),
+                typeof(SensorGraphControl),
                 new PropertyMetadata(false, OnThresholdLabelAlwaysVisibleChanged));
 
         private static void OnThresholdLabelAlwaysVisibleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is Graph g) g.ShowThresholdLabelBriefly();
+            if (d is SensorGraphControl g) g.ShowThresholdLabelBriefly();
         }
-
 
         // DependencyProperty: LabelFollowsPointer
         public bool LabelFollowsPointer
@@ -333,7 +326,7 @@ namespace FluentSensors.Controls
             DependencyProperty.Register(
                 nameof(LabelFollowsPointer),
                 typeof(bool),
-                typeof(Graph),
+                typeof(SensorGraphControl),
                 new PropertyMetadata(false));
     }
 }

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Core;
-using FluentSensors.Common;
+using FluentSensors.Controls.SensorRow;
 
 
 namespace FluentSensors.Features.Sensors

@@ -1,4 +1,4 @@
-﻿using FluentSensors.Controls;
+﻿using FluentSensors.Common;
 
 
 namespace FluentSensors.Persistence.Models

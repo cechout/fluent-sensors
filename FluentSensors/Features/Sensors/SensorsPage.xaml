@@ -6,7 +6,7 @@
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhCommon="using:FluentSensors.Common"
-    xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhControls="using:FluentSensors.Controls.SensorRow"
     xmlns:fhSensors="using:FluentSensors.Features.Sensors"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -280,7 +280,7 @@
 
                                 <!--  items  -->
                                 <controls:SettingsExpander.ItemTemplate>
-                                    <DataTemplate x:DataType="fhCommon:SensorRowViewModel">
+                                    <DataTemplate x:DataType="fhControls:SensorRowViewModel">
 
                                         <controls:SettingsCard
                                             MinHeight="0"
@@ -293,7 +293,7 @@
                                             ContentAlignment="Vertical"
                                             CornerRadius="0">
 
-                                            <fhControls:SensorCardControl HorizontalAlignment="Stretch" ViewModel="{x:Bind}" />
+                                            <fhControls:SensorRowControl HorizontalAlignment="Stretch" ViewModel="{x:Bind}" />
                                         </controls:SettingsCard>
                                     </DataTemplate>
                                 </controls:SettingsExpander.ItemTemplate>

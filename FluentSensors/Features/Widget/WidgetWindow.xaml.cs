@@ -11,8 +11,7 @@ using System.Linq;
 
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
-using FluentSensors.Features.Sensors;
-using FluentSensors.Common;
+using FluentSensors.Controls.SensorRow;
 
 
 namespace FluentSensors.Features.Widget
