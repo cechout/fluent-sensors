@@ -81,25 +81,26 @@
                             </AppBarButton.Icon>
                         </AppBarButton>
 
+                        <!--  hide sensors button  -->
+                        <AppBarButton
+                            x:Name="HideSensorsButton"
+                            Click="HideSensors_Click"
+                            Label="Hide"
+                            ToolTipService.ToolTip="Hides and stops monitoring the selected sensors">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xED1A;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+
                         <AppBarSeparator x:Name="ButtonSeparator" />
 
                         <!--  reset min max button  -->
                         <AppBarButton
                             x:Name="ResetValuesButton"
                             Click="ResetMinMax_Click"
-                            Label="Reset Values">
+                            Label="Reset Stats">
                             <AppBarButton.Icon>
                                 <FontIcon Glyph="&#xE72C;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
-
-                        <!--  hide sensors button  -->
-                        <AppBarButton
-                            x:Name="HideSensorsButton"
-                            Click="HideSensors_Click"
-                            Label="Hide Sensor(s)">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xED1A;" />
                             </AppBarButton.Icon>
                         </AppBarButton>
 
@@ -108,15 +109,16 @@
                             x:Name="ShowHiddenSensorsButton"
                             Click="ShowHiddenSensors_Click"
                             IsEnabled="{x:Bind ViewModel.HasHiddenSensors, Mode=OneWay}"
-                            Label="Show Hidden Sensors">
+                            Label="Hidden Sensors">
                             <AppBarButton.Icon>
                                 <FontIcon Glyph="&#xE8A7;" />
                             </AppBarButton.Icon>
                         </AppBarButton>
 
-                        <AppBarSeparator x:Name="ButtonSeparator2" />
+                        <!--<AppBarSeparator x:Name="ButtonSeparator2" />-->
 
                         <!--  Select Pinned Sensors button  -->
+                        <!--
                         <AppBarButton
                             x:Name="SelectPinnedButton"
                             Click="SelectPinned_Click"
@@ -127,7 +129,9 @@
                             </AppBarButton.Icon>
                         </AppBarButton>
 
+                        -->
                         <!--  Unselect All Sensors button  -->
+                        <!--
                         <AppBarButton
                             x:Name="DeselectAllButton"
                             Click="DeselectAll_Click"
@@ -135,7 +139,7 @@
                             <AppBarButton.Icon>
                                 <FontIcon Glyph="&#xE8E6;" />
                             </AppBarButton.Icon>
-                        </AppBarButton>
+                        </AppBarButton>-->
                     </CommandBar>
 
                 </Grid>
@@ -301,22 +305,91 @@
             </ScrollViewer>
 
 
-            <InfoBar
-                x:Name="NoSensorsInfoBar"
-                Title="No sensors selected"
+            <!--  content area with clipped InfoBar overlay  -->
+            <Grid
+                x:Name="InfoBarHost"
                 Grid.Row="2"
-                Margin="24"
-                VerticalAlignment="Bottom"
-                IsClosable="False"
-                IsHitTestVisible="False"
-                IsOpen="True"
-                Message="Please select at least one sensor."
-                Severity="Warning">
+                Grid.RowSpan="2"
+                Loaded="InfoBarHost_Loaded">
 
-                <InfoBar.RenderTransform>
-                    <TranslateTransform x:Name="InfoBarTransform" Y="120" />
-                </InfoBar.RenderTransform>
-            </InfoBar>
+                <InfoBar
+                    x:Name="NoSensorsInfoBar"
+                    Title="No sensors selected"
+                    Margin="24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    IsClosable="False"
+                    IsHitTestVisible="False"
+                    IsOpen="True"
+                    Message="Please select at least one sensor"
+                    Severity="Warning">
+
+                    <InfoBar.RenderTransform>
+                        <TranslateTransform x:Name="InfoBarTransform" Y="100" />
+                    </InfoBar.RenderTransform>
+                </InfoBar>
+            </Grid>
+
+
+            <!--  bottom: control buttons  -->
+            <!--  (border has background: {ThemeResource SolidBackgroundFillColorTertiaryBrush})  -->
+            <Border
+                x:Name="BottomBar"
+                Grid.Row="3"
+                Padding="16,0,10,1"
+                Background="Transparent"
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <CommandBar
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Background="Transparent"
+                        DefaultLabelPosition="Right"
+                        IsDynamicOverflowEnabled="False"
+                        IsOpen="False">
+
+                        <CommandBar.Resources>
+                            <SolidColorBrush x:Key="CommandBarBackground" Color="Transparent" />
+                            <SolidColorBrush x:Key="CommandBarBackgroundOpen" Color="Transparent" />
+                            <SolidColorBrush x:Key="CommandBarBorderBrushOpen" Color="Transparent" />
+
+                            <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
+                        </CommandBar.Resources>
+
+                        <!--  Select Pinned Sensors button  -->
+                        <AppBarButton
+                            x:Name="SelectPinnedButton"
+                            Click="SelectPinned_Click"
+                            IsEnabled="{x:Bind ViewModel.IsWidgetOpen, Mode=OneWay}"
+                            Label="Select Pinned">
+                            <AppBarButton.Icon>
+                                <!--<FontIcon Glyph="&#xE73A;" />-->
+                                <FontIcon Glyph="&#xEA52;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+
+                        <!--  Unselect All Sensors button  -->
+                        <AppBarButton
+                            x:Name="DeselectAllButton"
+                            Click="DeselectAll_Click"
+                            Label="Deselect All">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE8E6;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+                    </CommandBar>
+
+                </Grid>
+            </Border>
+
         </Grid>
     </ScrollViewer>
 </Page>

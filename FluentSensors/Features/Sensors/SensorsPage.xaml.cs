@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
+
 using FluentSensors.Features.Widget;
 using FluentSensors.Common;
 
@@ -26,7 +28,7 @@ namespace FluentSensors.Features.Sensors
         private readonly Dictionary<ICommandBarElement, double> _commandBarButtonWidths = new();
         private bool _commandBarWidthsCached = false;
         private const double OverflowButtonReservedWidth = 48;
-        private const double HeaderSpacingBuffer = 64;
+        private const double HeaderSpacingBuffer = 100;
         private int _commandBarOverflowStartIndex = -1; // -1 means "not computed yet" so the very first call always applies once
 
 
@@ -75,7 +77,7 @@ namespace FluentSensors.Features.Sensors
                 int currentTicket = _infoBarTicket;
 
                 // show inforbar
-                AnimateInfoBar(0, true);
+                AnimateInfoBar(-40, true);
 
                 await Task.Delay(2000);
 
@@ -125,7 +127,7 @@ namespace FluentSensors.Features.Sensors
                 _infoBarTicket++;
                 int currentTicket = _infoBarTicket;
 
-                AnimateInfoBar(0, true);
+                AnimateInfoBar(-40, true);
 
                 await Task.Delay(2000);
 
@@ -198,6 +200,30 @@ namespace FluentSensors.Features.Sensors
             RootGrid.Width = Math.Max(e.NewSize.Width, SensorsPageMinContentWidth);
         }
 
+        // inforbar clipping
+        private void InfoBarHost_Loaded(object sender, RoutedEventArgs e)
+        {
+            UpdateInfoBarClip();
+
+            InfoBarHost.SizeChanged += (_, _) => UpdateInfoBarClip();
+            BottomBar.SizeChanged += (_, _) => UpdateInfoBarClip();
+        }
+
+        // Clips the InfoBar host to the area above the bottom bar,
+        // so the InfoBar can never render into the bottom bar's row —
+        // regardless of the bottom bar's own transparency.
+        private void UpdateInfoBarClip()
+        {
+            double visibleHeight = InfoBarHost.ActualHeight - BottomBar.ActualHeight;
+            if (visibleHeight < 0)
+                visibleHeight = 0;
+
+            InfoBarHost.Clip = new RectangleGeometry
+            {
+                Rect = new Rect(0, 0, InfoBarHost.ActualWidth, visibleHeight)
+            };
+        }
+
 
         // === command bar overflow handling ===
 
@@ -208,13 +234,14 @@ namespace FluentSensors.Features.Sensors
             _commandBarPriorityOrder = new ICommandBarElement[]
             {
                 PinToWidgetButton,
+                HideSensorsButton,
                 ButtonSeparator,
                 ResetValuesButton,
-                HideSensorsButton,
                 ShowHiddenSensorsButton,
-                ButtonSeparator2,
-                SelectPinnedButton,
-                DeselectAllButton
+
+                //ButtonSeparator2,
+                //SelectPinnedButton,
+                //DeselectAllButton
             };
 
             _commandBarOverflowStartIndex = -1;
