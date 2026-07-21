@@ -9,6 +9,7 @@
     xmlns:fhControls="using:FluentSensors.Controls.SensorRow"
     xmlns:fhSensors="using:FluentSensors.Features.Sensors"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    NavigationCacheMode="Required"
     mc:Ignorable="d">
 
     <ScrollViewer

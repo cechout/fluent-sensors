@@ -61,6 +61,7 @@ namespace FluentSensors
         {
             // initialization
             this.InitializeComponent();
+            SetupDebugGcTrigger();
             this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
             CurrentInstance = this;
 
@@ -138,6 +139,26 @@ namespace FluentSensors
                 PersistenceService.Instance.FlushAll();
                 Application.Current.Exit();
             };
+        }
+
+
+        // TEMPORARY DEBUG HELPER - forces a real GC to distinguish actual leaks from
+        // objects that are simply not yet collected; remove after diagnosis is done
+        private void SetupDebugGcTrigger()
+        {
+            var accelerator = new Microsoft.UI.Xaml.Input.KeyboardAccelerator
+            {
+                Key = Windows.System.VirtualKey.G,
+                Modifiers = Windows.System.VirtualKeyModifiers.Control | Windows.System.VirtualKeyModifiers.Shift
+            };
+            accelerator.Invoked += (s, e) =>
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                e.Handled = true;
+            };
+            this.Content.KeyboardAccelerators.Add(accelerator);
         }
 
 

@@ -32,6 +32,9 @@ namespace FluentSensors.Features.Sensors
         private const double HeaderSpacingBuffer = 100;
         private int _commandBarOverflowStartIndex = -1; // -1 means "not computed yet" so the very first call always applies once
 
+        // info bar
+        private bool _infoBarClipHandlersAttached = false;
+
 
         // === constructor ===
 
@@ -146,7 +149,7 @@ namespace FluentSensors.Features.Sensors
         {
             if (HiddenSensorsWindow.CurrentInstance != null)
             {
-                HiddenSensorsWindow.CurrentInstance.Activate();
+                HiddenSensorsWindow.CurrentInstance.ShowAndActivate();
                 return;
             }
 
@@ -205,6 +208,13 @@ namespace FluentSensors.Features.Sensors
         private void InfoBarHost_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateInfoBarClip();
+
+            // with NavigationCacheMode="Required" this Page instance is reused across navigations, and Loaded fires again
+            // every time the Frame reattaches it
+            // without this guard, each reattachment would pile on another SizeChanged subscription, running UpdateInfoBarClip
+            // once more per resize with every navigation cycle
+            if (_infoBarClipHandlersAttached) return;
+            _infoBarClipHandlersAttached = true;
 
             InfoBarHost.SizeChanged += (_, _) => UpdateInfoBarClip();
             BottomBar.SizeChanged += (_, _) => UpdateInfoBarClip();

@@ -3,6 +3,7 @@ using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 
 
 namespace FluentSensors.Common
@@ -17,25 +18,33 @@ namespace FluentSensors.Common
         // call this once from the SettingsExpander's own Loaded event
         public static void Attach(SettingsExpander expander)
         {
-            expander.Expanded += (s, e) => Refresh(expander);
+            // named handler instead of an inline lambda so it can actually be removed again in Unloaded below
+            EventHandler expandedHandler = (s, e) => Refresh(expander);
+            expander.Expanded += expandedHandler;
 
-            // Visibility has no built-in changed event in WinUI, RegisterPropertyChangedCallback is the standard workaround
-            expander.RegisterPropertyChangedCallback(UIElement.VisibilityProperty, (s, dp) =>
+            // Visibility has no built-in changed event in WinUI, RegisterPropertyChangedCallback is the standard
+            // workaround; the returned token is required to unregister it again
+            long visibilityToken = expander.RegisterPropertyChangedCallback(UIElement.VisibilityProperty, (s, dp) =>
             {
                 if (expander.Visibility == Visibility.Visible) Refresh(expander);
             });
+
+            // both registrations above are stored on the expander itself and capture the expander back - without
+            // removing them here, every Loaded cycle (i.e. every reopen that recreates this control) adds another
+            // permanent, unremovable subscription that keeps the control and its whole visual tree alive
+            expander.Unloaded += (s, e) =>
+            {
+                expander.Expanded -= expandedHandler;
+                expander.UnregisterPropertyChangedCallback(UIElement.VisibilityProperty, visibilityToken);
+            };
         }
 
         private static void Refresh(SettingsExpander expander)
         {
-            // a still-Collapsed expander never gets its template applied, so PART_ItemsRepeater
-            // might not exist yet on the very first Loaded, look it up lazily here instead of only once
             var repeater = expander.Tag as ItemsRepeater ?? expander.FindDescendant("PART_ItemsRepeater") as ItemsRepeater;
             if (repeater == null) return;
 
-            expander.Tag = repeater; // cache it, the template is definitely applied by now
-
-            // low priority so this runs after the current layout/animation pass, not in the middle of it
+            expander.Tag = repeater;
             expander.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => repeater.InvalidateMeasure());
         }
     }

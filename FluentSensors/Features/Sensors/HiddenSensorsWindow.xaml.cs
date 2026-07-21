@@ -48,8 +48,8 @@ namespace FluentSensors.Features.Sensors
 
             // window configuration
             _appWindow = this.AppWindow;
-            ExtendsContentIntoTitleBar = true;
-            SetTitleBar(CustomTitleBar);
+            ExtendsContentIntoTitleBar = true; 
+            SetTitleBar(CustomTitleBar); 
             var presenter = OverlappedPresenter.Create();
             presenter.IsAlwaysOnTop = false;
             presenter.IsMaximizable = false;
@@ -62,7 +62,7 @@ namespace FluentSensors.Features.Sensors
 
             _appWindow.SetPresenter(presenter);
 
-            // restore the last saved position/size if one exists and is still on screen, otherwise fall back to the
+            // restore the last saved position + size if one exists and is still on screen, otherwise fall back to the
             // fixed default size with Windows own default placement
             var savedState = WindowStateService.Instance.GetState(WindowKey);
             if (savedState != null && IsPositionOnScreen(savedState.X, savedState.Y, savedState.Width, savedState.Height))
@@ -81,18 +81,44 @@ namespace FluentSensors.Features.Sensors
 
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
             this.Closed += HiddenSensorsWindow_Closed;
+            _appWindow.Closing += AppWindow_Closing;
             _appWindow.Changed += AppWindow_Changed;
             RootGrid.Loaded += RootGrid_Loaded;
         }
 
 
+        // re-shows a previously hidden instance instead of creating a new one
+        public void ShowAndActivate()
+        {
+            _appWindow.Show();
+            this.Activate();
+        }
+
+
         // === lifecycle event handlers ===
+
+        // WinUI 3 never releases secondary Window objects back to the GC/OS after a real close - confirmed,
+        // still-open platform bug (microsoft/microsoft-ui-xaml#9063), reproducible even with empty content.
+        // Workaround: never actually close this window during normal app runtime - hide it and keep the single
+        // instance alive for the app's lifetime instead, reused on the next open. This caps the leak at one
+        // instance total instead of it growing unbounded with every open/close cycle.
+        private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+        {
+            args.Cancel = true;
+            SaveWindowState();
+            _appWindow.Hide();
+        }
+
         private void HiddenSensorsWindow_Closed(object sender, WindowEventArgs args)
         {
             SaveWindowState();
 
+            // explicitly unbind from SensorsViewModel.Instance.HardwareGroups
+            HardwareGroupsItemsControl.ItemsSource = null; 
+
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             _appWindow.Changed -= AppWindow_Changed;
+            ((FrameworkElement)this.Content).ActualThemeChanged -= Window_ThemeChanged; // self-cycle within the window itself
 
             _micaController?.Dispose();
             _micaController = null;

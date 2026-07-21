@@ -15,6 +15,7 @@ namespace FluentSensors.Controls.SensorRow
         private bool _isPressed = false;
         private bool _isThresholdIndicatorHovered = false;
         private bool _isThresholdIndicatorPressed = false;
+        private bool _isSubscribed = false;
 
 
         // === constructor ===
@@ -48,16 +49,26 @@ namespace FluentSensors.Controls.SensorRow
         {
             if (d is not SensorRowControl card) return;
 
-            if (e.OldValue is SensorRowViewModel oldVm) oldVm.PropertyChanged -= card.ViewModel_PropertyChanged;
-            if (e.NewValue is SensorRowViewModel newVm) newVm.PropertyChanged += card.ViewModel_PropertyChanged;
+            if (e.OldValue is SensorRowViewModel oldVm)
+            {
+                oldVm.PropertyChanged -= card.ViewModel_PropertyChanged;
+                card._isSubscribed = false;
+            }
+            if (e.NewValue is SensorRowViewModel newVm)
+            {
+                newVm.PropertyChanged += card.ViewModel_PropertyChanged;
+                card._isSubscribed = true;
+            }
 
             card._isHovered = false;
             card._isPressed = false;
 
-            // guard: this callback can fire while ItemsRepeater is still materializing the control, before it's attached
-            // to a live XamlRoot. Calling VisualStateManager.GoToState that early can fail to resolve this control's own
-            // ThemeDictionaries resources and throw - unhandled, that crashed the whole process. OnLoaded (below) already
-            // applies the same state once the control is actually ready, so skipping here just defers it safely.
+            // guard: this callback can fire while ItemsRepeater is still materializing the control, before its attached
+            // to a live XamlRoot
+            // Calling VisualStateManager.GoToState that early can fail to resolve this controls own
+            // ThemeDictionaries resources and throw unhandled, that crashed the whole process
+            // OnLoaded (below) already applies the same state once the control is actually ready, so skipping here just
+            // defers it safely
             if (card.IsLoaded)
             {
                 card.UpdateVisualState(useTransitions: false);
@@ -110,6 +121,15 @@ namespace FluentSensors.Controls.SensorRow
             _isThresholdIndicatorHovered = false;
             _isThresholdIndicatorPressed = false;
 
+            // re-attach everything that Unloaded detached; the control can come back after a recycle with the same ViewModel,
+            // in which case OnViewModelChanged never fires again and would leave the card dead
+            if (ViewModel != null && !_isSubscribed)
+            {
+                ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+                _isSubscribed = true;
+            }
+            this.Bindings.Update(); 
+
             // skip transitions on the initial state
             // (fast collapse/expand cycles otherwise interrupt animations mid-flight and leave the card visually blank sometimes)
             UpdateVisualState(useTransitions: false);
@@ -123,6 +143,17 @@ namespace FluentSensors.Controls.SensorRow
         {
             _isHovered = false;
             _isPressed = false;
+
+            // memory leak fix: the ViewModel belongs to the SensorsViewModel singleton and outlives this control by far.
+            // Both the manual handler below and the compiled x:Bind bindings register on the ViewModels PropertyChanged and
+            // hold a strong reference back to this control - without detaching them here, every control ever created stays
+            // reachable from the singleton, keeping its entire native visual tree alive
+            if (ViewModel != null && _isSubscribed)
+            {
+                ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+                _isSubscribed = false;
+            }
+            this.Bindings.StopTracking(); 
         }
 
 
@@ -202,7 +233,7 @@ namespace FluentSensors.Controls.SensorRow
 
         private void ThresholdCloseButton_Click(object sender, RoutedEventArgs e)
         {
-            ThresholdFlyout.Hide();
+            ThresholdFlyout.Hide(); 
         }
 
 

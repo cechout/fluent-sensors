@@ -150,7 +150,6 @@
                             Padding="4"
                             Spacing="8">
 
-                            <!--  title row with close button  -->
                             <Grid ColumnSpacing="4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -184,7 +183,6 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <!--  increase / decrease / toggle  -->
                                 <Grid Grid.Column="0" RowSpacing="3">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*" />
@@ -224,7 +222,6 @@
                                         ToolTipService.ToolTip="Toggle Threshold-Line" />
                                 </Grid>
 
-                                <!--  direction + color  -->
                                 <Grid Grid.Column="1" RowSpacing="3">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*" />

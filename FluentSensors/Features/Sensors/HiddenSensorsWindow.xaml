@@ -19,7 +19,6 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-
         <!--  custom title bar  -->
         <Grid
             x:Name="CustomTitleBar"
@@ -33,7 +32,6 @@
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="Hidden Sensors" />
         </Grid>
-
 
         <!--  header: items header labels  -->
         <Border Grid.Row="1" Background="Transparent">
@@ -77,7 +75,10 @@
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto">
 
-            <ItemsControl Margin="0,0,0,16" ItemsSource="{x:Bind ViewModel.HardwareGroups, Mode=OneWay}">
+            <ItemsControl
+                x:Name="HardwareGroupsItemsControl"
+                Margin="0,0,0,16"
+                ItemsSource="{x:Bind ViewModel.HardwareGroups, Mode=OneWay}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="fhSensors:HardwareGroupViewModel">
 
@@ -143,7 +144,6 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
-
 
         <!--  bottom bar with the restore action  -->
         <Border
