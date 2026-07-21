@@ -283,10 +283,10 @@ namespace FluentSensors.Features.Sensors
             _commandBarWidthsCached = true;
         }
 
-        // Fills the command bar strictly in priority order; the first button that doesn't
-        // fit anymore, and everything after it, goes into the overflow menu.
-        // Only touches PrimaryCommands/SecondaryCommands when the split actually changes,
-        // otherwise every resize tick would rebuild the buttons and cause label flicker.
+        // fills the command bar strictly in priority order; the first button that does not fit anymore, and everything
+        // after it, goes into the overflow menu
+        // only touches PrimaryCommands/SecondaryCommands when the split actually changes, otherwise every resize tick
+        // would rebuild the buttons and cause label flicker
         private void UpdateCommandBarOverflow()
         {
             double availableWidth = SensorListHeaderGrid.ActualWidth - SensorListTitleText.ActualWidth - HeaderSpacingBuffer;

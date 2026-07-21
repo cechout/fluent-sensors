@@ -51,7 +51,8 @@ namespace FluentSensors.Core
             _computer = new Computer
             {
                 // all hardware components are explicitly disabled here to prevent the UI thread from freezing 
-                // the actual initialization is deferred and chunked into the asynchronous pipeline methods (Init...Async) below
+                // the actual initialization is deferred and chunked into the asynchronous pipeline methods (Init...Async)
+                // below
                 IsCpuEnabled = false,
                 IsGpuEnabled = false,
                 IsMemoryEnabled = false,

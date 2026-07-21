@@ -6,11 +6,22 @@ namespace FluentSensors.Persistence.Services
 {
     // drop-in replacement for the WinRT FileSavePicker/FileOpenPicker (Windows.Storage.Pickers), which crash with
     // COMException 0x80004005 when the calling process runs elevated
-    // since this app always needs admin rights for LibreHardwareMonitor, the WinRT pickers can never be used here; These
-    // classic Win32 COM dialogs run in-process instead of going through a broker, so process elevation does not affect them
+    // confirmed as expected behavior, not a bug, Microsofts own docs state these APIs "are not designed to be used in an
+    // elevated app": https://learn.microsoft.com/en-us/uwp/api/windows.storage.pickers.filesavepicker
+    // matching crash reports: https://github.com/microsoft/WindowsAppSDK/issues/2504,
+    // https://github.com/microsoft/WindowsAppSDK/issues/2731
+    //
+    // since this app always needs admin rights for LibreHardwareMonitor, the WinRT pickers can never be used here
+    // these classic Win32 COM dialogs (IFileSaveDialog/IFileOpenDialog) run in-process instead of going through a broker, so
+    // process elevation does not affect them
+    // this is also Microsofts own recommended fallback for elevated apps, just hand-rolled here via ComImport instead of the
+    // CsWin32 source generator they suggest
     public static class Win32FileDialogHelper
     {
         // === public api ===
+
+        // thin synchronous wrappers around the native dialogs; both return the picked path, or null if the user
+        // cancelled or the dialog failed, and release the COM object again immediately after use
 
         // returns the picked file path, or null if the user cancelled (or the dialog failed)
         public static string PickSaveFile(IntPtr ownerHwnd, string title, string suggestedFileName, string filterName, string filterExtension)
@@ -64,8 +75,11 @@ namespace FluentSensors.Persistence.Services
 
         // === com interop declarations ===
 
-        // minimal subset of shobjidl_core.h; just enough surface for a single-file save/open dialog, not a
-        // general-purpose wrapper (no multi-select, no folder picking, no custom places)
+        // manual COM interop instead of the CsWin32 source generator Microsofts docs suggest, to keep this
+        // self-contained
+        // minimal subset of shobjidl_core.h; just enough surface for a single-file save/open dialog, not a general-purpose
+        // wrapper (no multi-select, no folder picking, no custom places)
+
         [ComImport, Guid("42f85136-db7e-439c-85f1-e4075d135fc8"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         private interface IFileDialog
         {

@@ -43,8 +43,8 @@ namespace FluentSensors.Features.Widget
 
         // === public methods ===
 
-        // clears out sensors that are no longer selected and adds newly selected ones, while leaving still-pinned sensors
-        // completely untouched so their graph history and Y-axis settings survive the re-pin instead of resetting
+        // clears out sensors that are no longer selected, adds newly selected ones, and reorders the result to exactly match
+        // selectedSensors order
         public void Reconfigure(List<SensorRowViewModel> selectedSensors)
         {
             var newIds = new HashSet<string>(selectedSensors.Select(s => s.Id));
@@ -68,6 +68,27 @@ namespace FluentSensors.Features.Widget
                     PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType));
                 }
             }
+
+            // reorder to match selectedSensors exactly, moving existing items into place instead of recreating them
+            for (int targetIndex = 0; targetIndex < selectedSensors.Count; targetIndex++)
+            {
+                string id = selectedSensors[targetIndex].Id;
+
+                int currentIndex = -1;
+                for (int j = targetIndex; j < PinnedSensors.Count; j++)
+                {
+                    if (PinnedSensors[j].SensorId == id)
+                    {
+                        currentIndex = j;
+                        break;
+                    }
+                }
+
+                if (currentIndex != -1 && currentIndex != targetIndex)
+                {
+                    PinnedSensors.Move(currentIndex, targetIndex);
+                }
+            }
         }
 
 
@@ -76,9 +97,8 @@ namespace FluentSensors.Features.Widget
         // event handler invoked by the HardwareMonitorService at the configured polling interval
         private void OnHardwareDataUpdated(List<SensorData> payload)
         {
-            // The HardwareMonitorService executes on a background thread
-            // UI updates must be marshaled back to the main UI thread via DispatcherQueue
-            // to prevent System.UnauthorizedAccessException
+            // The HardwareMonitorService executes on a background thread UI updates must be marshaled back to the main UI
+            // thread via DispatcherQueue to prevent System.UnauthorizedAccessException
             _dispatcherQueue.TryEnqueue(() =>
             {
                 // we go through all pinned sensors and try to find their real counterparts in the HardwareMonitorService's sensor list

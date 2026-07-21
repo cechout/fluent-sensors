@@ -97,11 +97,13 @@ namespace FluentSensors.Features.Sensors
 
         // === lifecycle event handlers ===
 
-        // WinUI 3 never releases secondary Window objects back to the GC/OS after a real close - confirmed,
-        // still-open platform bug (microsoft/microsoft-ui-xaml#9063), reproducible even with empty content.
-        // Workaround: never actually close this window during normal app runtime - hide it and keep the single
-        // instance alive for the app's lifetime instead, reused on the next open. This caps the leak at one
-        // instance total instead of it growing unbounded with every open/close cycle.
+        // --- memory leak: HiddenSensorsWindow never released after close ---
+        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
+        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
+        // fix: never actually close this window during normal app runtime; hide it and keep the single instance  alive for
+        // the apps lifetime instead, reused on the next open
+        // this caps the leak at one instance total instead of it growing unbounded with every open/close cycle
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
             args.Cancel = true;
@@ -151,11 +153,13 @@ namespace FluentSensors.Features.Sensors
         {
             RootGrid.Loaded -= RootGrid_Loaded; // only ever needed once per window instance
 
-            // deferred to the next dispatcher cycle:
-            // setting IsExpanded here synchronously, while the ItemsControl below is still building the SettingsExpander
-            // -/Itemsrepeater tree for the very first time, can re-enter XAMLs layout pass while its already running
-            // XAML sometimes treats that as fatal (reentrancy fail-fast) instead of a normal exception; queuing it lets the
-            // current layout pass finish first
+            // safety net, not a confirmed active bug:
+            // setting IsExpanded synchronously here, while the ItemsControl above is still building the SettingsExpander/
+            // ItemsRepeater tree for the very first time, can re-enter XAMLs layout pass while its already running; XAML
+            // sometimes treats that as fatal (reentrancy fail-fast) instead of a normal exception
+            // deferring to the next dispatcher cycle lets the current layout pass finish first; unclear whether this is still
+            // reachable now that the ItemsSource crash above is worked around separately; kept anyway, costs nothing and
+            // the crash mode was severe when it happened
             this.DispatcherQueue.TryEnqueue(() =>
             {
                 var firstGroupWithHidden = ViewModel.HardwareGroups.FirstOrDefault(g => g.HasHiddenSensors);

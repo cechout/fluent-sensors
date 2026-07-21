@@ -8,11 +8,12 @@ using System;
 
 namespace FluentSensors.Common
 {
-    // WinUI bug: a SettingsExpander's internal ItemsRepeater stops rendering after repeated collapse/expand (or show/hide)
+    // --- workaround: SettingsExpander content goes blank after collapse/expand ---
+    // problem: a SettingsExpanders internal ItemsRepeater stops rendering after repeated collapse/expand (or show/hide)
     // cycles and stays blank until something else forces a layout pass
-    // see https://github.com/microsoft/microsoft-ui-xaml/issues/9337
-    // this forces that pass manually right when its needed, instead of waiting for the user to accidentally trigger one
-    // by scrolling or resizing the window
+    // confirmed upstream: https://github.com/microsoft/microsoft-ui-xaml/issues/9337
+    // fix: force that layout pass manually right when its needed, instead of waiting for the user to accidentally trigger
+    // one by scrolling or resizing the window
     public static class SettingsExpanderRepaintFix
     {
         // call this once from the SettingsExpander's own Loaded event

@@ -6,19 +6,20 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Common
 {
-    // resolves the app's default text color for the currently selected app theme.
+    // resolves the apps default text color for the currently selected app theme
     //
-    // Application.Current.Resources["TextFillColorPrimaryBrush"] ignores a window's RequestedTheme
-    // override and resolves against the OS theme instead. Application.Current.Resources.ThemeDictionaries
-    // also does not reliably expose WinUI's built-in Fluent brushes from C# (confirmed: throws
-    // KeyNotFoundException even after walking every MergedDictionary). And even routing through XAML's
-    // own Style-Setter ThemeResource fallback (via DependencyProperty.UnsetValue) still didn't react to
-    // theme switches correctly for text inside this DataTemplate.
-    //
-    // instead of depending on any resource dictionary lookup, this hardcodes the two literal Fluent 2
-    // design token values for TextFillColorPrimary and picks between them based on the app's own theme
-    // setting - nothing here can be affected by OS theme, RequestedTheme propagation timing, or how deep
-    // an element sits inside a DataTemplate
+    // --- workaround: theme brush lookup from code-behind ---
+    // problem: resolving theme resources via Application.Current.Resources[...] from C# always returns the light-theme
+    // value and ignores a windows RequestedTheme override entirely; it resolves against the
+    // OS theme instead, and does not react to theme changes at runtime
+    // confirmed upstream: https://github.com/microsoft/microsoft-ui-xaml/issues/7663
+    // same root cause also broke two other attempts:
+    // walking Application.Current.Resources.ThemeDictionaries directly (throws KeyNotFoundException even after checking
+    // every MergedDictionary), and routing through XAMLs own Style-Setter ThemeResource fallback via
+    // DependencyProperty.UnsetValue (still didn't react to theme switches for text inside this DataTemplate)
+    // fix: do not look up the resource at all; hardcode the two literal Fluent 2 design token values for TextFillColorPrimary
+    // and pick between them based on the apps own theme setting; nothing here can
+    // be affected by OS theme, RequestedTheme propagation timing, or how deep an element sits inside a DataTemplate
     public static class DefaultTextColor
     {
         private static readonly Windows.UI.Color LightColor = Windows.UI.Color.FromArgb(0xE4, 0x00, 0x00, 0x00);

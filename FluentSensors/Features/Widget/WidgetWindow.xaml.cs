@@ -185,12 +185,14 @@ namespace FluentSensors.Features.Widget
             }
         }
 
-        // WinUI 3 never releases secondary Window objects after a real close - confirmed platform bug (see
-        // _retainedInstance)
-        // Workaround: hide instead of actually closing, and keep this instance around for reuse the next time a sensor set
-        // gets pinned
-        // Deliberately does NOT dispose backdrop controllers, unsubscribe SettingsService events, or call ViewModel.Cleanup()
-        // here; the window stays alive, just hidden, so those stay valid for reuse
+        // --- memory leak: WidgetWindow never released after close ---
+        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
+        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
+        // fix: hide instead of actually closing, and keep this instance around (_retainedInstance) for reuse the next time
+        // a sensor set gets pinned
+        // same approach as HiddenSensorsWindow; deliberately does NOT dispose backdrop controllers, unsubscribe SettingsService
+        // events, or call ViewModel.Cleanup() here; the window stays alive, just hidden, so those stay valid for reuse
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
             args.Cancel = true;
@@ -474,8 +476,10 @@ namespace FluentSensors.Features.Widget
             }
         }
 
-        // dynamically applies the chosen backdrop material to the WidgetWindow based on the users selection in the settings page
-        // *this code is mainly based on the official Microsoft documentation
+        // dynamically applies the chosen backdrop material to the WidgetWindow based on the users selection in the settings
+        // page
+        // setup follows the official Microsoft guide for system backdrops in XAML apps:
+        // https://learn.microsoft.com/en-us/windows/apps/develop/ui/system-backdrops
         public void SetBackdrop(string backdropType)
         {
             // ensure the system dispatcher queue is ready

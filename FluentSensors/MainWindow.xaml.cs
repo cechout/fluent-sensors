@@ -24,6 +24,14 @@ namespace FluentSensors
     {
         // === win32 api imports ===
 
+        // workaround: hiding a window in WinUI 3
+        // problem: this.Hide() alone does not remove the window from Alt+Tab or the taskbar switcher reliably; the official
+        // AppWindow.IsShownInSwitchers API was tried first and failed the same way; no public issue
+        // found that documents this exact behavior
+        // fix: manually apply WS_EX_TOOLWINDOW (removes it from Alt+Tab) and WS_EX_NOACTIVATE (prevents Windows from auto-
+        // focusing it) via SetWindowLongW, then SetWindowPos with SWP_FRAMECHANGED to apply the new styles
+        // own solution found through trial and error, see usage in AppWindow_Closing/OpenDashboard
+
         [LibraryImport("user32.dll", EntryPoint = "GetWindowLongW")]
         private static partial int GetWindowLong(IntPtr hWnd, int nIndex);
         [LibraryImport("user32.dll", EntryPoint = "SetWindowLongW")]
@@ -61,7 +69,6 @@ namespace FluentSensors
         {
             // initialization
             this.InitializeComponent();
-            SetupDebugGcTrigger();
             this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
             CurrentInstance = this;
 
@@ -137,29 +144,12 @@ namespace FluentSensors
                 HardwareMonitorService.Instance.StopMonitoring();
 
                 PersistenceService.Instance.FlushAll();
+
+                // a window is still open/active at this point, so the normal Exit() lifecycle works fine here; see
+                // ForceExit() for the one case where it does not
                 Application.Current.Exit();
             };
-        }
-
-
-        // TEMPORARY DEBUG HELPER - forces a real GC to distinguish actual leaks from
-        // objects that are simply not yet collected; remove after diagnosis is done
-        private void SetupDebugGcTrigger()
-        {
-            var accelerator = new Microsoft.UI.Xaml.Input.KeyboardAccelerator
-            {
-                Key = Windows.System.VirtualKey.G,
-                Modifiers = Windows.System.VirtualKeyModifiers.Control | Windows.System.VirtualKeyModifiers.Shift
-            };
-            accelerator.Invoked += (s, e) =>
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-                e.Handled = true;
-            };
-            this.Content.KeyboardAccelerators.Add(accelerator);
-        }
+        }   
 
 
         // === lifecycle and initialization ===
@@ -396,9 +386,7 @@ namespace FluentSensors
                 args.Cancel = true;
                 _isDashboardClosed = true;
 
-                // Win32 iron shield; makes the window invisible to the OS window manager
-                // WS_EX_TOOLWINDOW hides it from Alt+Tab
-                // WS_EX_NOACTIVATE prevents Windows from auto-focusing it
+                // applies the Win32 shield, see workaround comment on the P/Invoke declarations above
                 var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
                 int exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
                 SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
@@ -475,19 +463,33 @@ namespace FluentSensors
             }
         }
 
-        // controlled tear-down for scenarios that bypass the normal closing paths (e.g. settings reset -> app restart);
-        // mirrors ExitAppCommands sequence but deliberately skips SaveWindowState so a fresh window-state reset does not
-        // get immediately overwritten by a final position save on the way out
+        // controlled tear-down for scenarios that bypass the normal closing paths (e.g. settings reset -> app restart)
+
+        // --- workaround: second instance survives an automatic restart ---
+        // problem: Application.Current.Exit() does not reliably terminate the process in every scenario; documented upstream
+        // for the case where Exit() is called while no window is open/activated
+        // (https://github.com/microsoft/microsoft-ui-xaml/issues/5931)
+        // our repro is not identical to that thread, but the settings-import restart hits this in the same state, no active
+        // window left, and produced the same result: two full instances running
+        // fix: hard-kill the process instead of Exit(); only needed for this one restart path
         public void ForceExit()
         {
             _isForceClosing = true;
 
-            // deliberately no HardwareMonitorService.Cleanup() here anymore:
-            // Computer.Close() can wedge a background thread inside a blocking WinRing0 driver call, which TerminateProcess
-            // then cannot fully tear down
-            // that was the actual cause of the unreliable auto-restart, not something upstream of Kill() itself. flush persisted
-            // state (plain file I/O, no driver involved) and hard-kill; any stray driver handle gets released by the OS once the
-            // process is gone
+            // --- workaround: Kill() never reached ---
+            // problem: HardwareMonitorService.Cleanup() -> Computer.Close() can hang indefinitely; it unloads the WinRing0
+            // kernel driver via the SCM while the restarted process races for the same driver handle
+            // no public issue found for this exact case, likely specific to LibreHardwareMonitorLib + elevated process
+            // fix: skip Cleanup() entirely on this path; found by moving Kill() to the first line of ForceExit and
+            // confirming the hang disappeared; the OS releases the driver handle once the process is gone
+            //
+            // flush must happen before Kill(): a hard kill skips finalizers and any Closing/Exit handlers, so this
+            // is the last point in-memory state can reach disk
+            // running elevated (required for the hardware driver) is what forces this whole detour - a non-elevated app could
+            // just rely on Exit() and normal teardown
+            //
+            // deliberately no SaveWindowState() here: a fresh window-state reset should not get immediately overwritten by
+            // a final position save on the way out
             PersistenceService.Instance.FlushAll();
             Process.GetCurrentProcess().Kill();
         }

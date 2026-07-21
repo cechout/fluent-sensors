@@ -80,7 +80,7 @@ namespace FluentSensors.Controls.SensorGraph
             private set { _graphColor = value; OnPropertyChanged(); }
         }
 
-        // threshold - owned by the shared editor, exposed so views can bind e.g. Threshold.Value, Threshold.IsEnabled
+        // threshold: owned by the shared editor, exposed so views can bind e.g. Threshold.Value, Threshold.IsEnabled
         public ThresholdEditorViewModel Threshold { get; }
 
         // y-axis

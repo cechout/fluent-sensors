@@ -63,12 +63,14 @@ namespace FluentSensors.Controls.SensorRow
             card._isHovered = false;
             card._isPressed = false;
 
-            // guard: this callback can fire while ItemsRepeater is still materializing the control, before its attached
+            // --- workaround: GoToState crash during ItemsRepeater materialization ---
+            // problem: this callback can fire while ItemsRepeater is still materializing the control, before its attached
             // to a live XamlRoot
-            // Calling VisualStateManager.GoToState that early can fail to resolve this controls own
-            // ThemeDictionaries resources and throw unhandled, that crashed the whole process
-            // OnLoaded (below) already applies the same state once the control is actually ready, so skipping here just
-            // defers it safely
+            // calling VisualStateManager.GoToState that early fails to resolve this controls own ThemeDictionaries resources
+            // and throws unhandled, which crashes the whole process
+            // own finding through debugging, no public report found describing this exact combination
+            // fix: skip the call here if the control isnt loaded yet. OnLoaded (below) already applies the same state once
+            // the control is actually ready, so skipping here just defers it safely
             if (card.IsLoaded)
             {
                 card.UpdateVisualState(useTransitions: false);

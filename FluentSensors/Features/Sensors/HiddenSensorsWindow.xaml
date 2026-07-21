@@ -116,15 +116,17 @@
 
                                     <!--  items  -->
                                     <!--
-                                        note: SettingsExpander.Items/ItemsSource is intentionally left unset here
-                                        communityToolkits SettingsExpander applies an internal style with
-                                        TargetType="SettingsCard" to every item it materializes that way; a non-SettingsCard
-                                        item throws a native exception that WinUI escalates to a fatal crash of the entire
-                                        process (invisible with a debugger attached)
-                                        see SensorsPage.xaml for the alternative fix wrapping each item in an actual
-                                        SettingsCard
-                                        workaround here: a plain ItemsControl nested inside ItemsHeader instead, which never
-                                        goes through SettingsExpanders own item-styling logic
+                                        workaround: SettingsExpander items crash via ItemsSource
+                                        problem: SettingsExpander.Items/ItemsSource is intentionally left unset here
+                                        Community Toolkits SettingsExpander applies an internal style with
+                                        TargetType="SettingsCard" to every item it materializes that way; a non-SettingsCard item
+                                        throws a native exception that WinUI escalates to a fatal crash of the entire process
+                                        (invisible even with a debugger attached)
+                                        own finding, no public issue found describing this exact combination
+                                        fix: a plain ItemsControl nested inside ItemsHeader instead, which never goes through
+                                        SettingsExpanders own item-styling logic
+                                        see SensorsPage.xaml for the alternative fix used there: wrapping each item in an actual
+                                        SettingsCard instead of avoiding ItemsSource entirely
                                     -->
                                     <ItemsControl ItemsSource="{x:Bind HiddenSensors, Mode=OneWay}">
                                         <ItemsControl.ItemTemplate>

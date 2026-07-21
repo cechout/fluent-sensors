@@ -232,7 +232,7 @@
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     IsTextSelectionEnabled="True"
-                    Text="Version 0.2.1" />
+                    Text="Version 0.3.0" />
 
                 <controls:SettingsExpander.Items>
                     <controls:SettingsCard Header="Developer Profile">
