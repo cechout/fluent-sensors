@@ -32,6 +32,7 @@ namespace FluentSensors.Features.Widget
         public WidgetViewModel ViewModel { get; }
         public static WidgetWindow CurrentInstance { get; private set; }
         public static event Action WidgetStateChanged;
+        private static WidgetWindow _retainedInstance;
 
         // system backdrop controllers and configuration
         private DesktopAcrylicController _acrylicController;
@@ -98,6 +99,42 @@ namespace FluentSensors.Features.Widget
 
             this.Closed += WidgetWindow_Closed;
             _appWindow.Changed += AppWindow_Changed;
+            _appWindow.Closing += AppWindow_Closing;
+        }
+
+
+        // === public methods ===
+
+        // shows the widget with the given sensors, reusing the previously hidden window instance if one exists instead of
+        // creating a new one every time (see _retainedInstance)
+        public static void ShowWithSensors(List<SensorRowViewModel> selectedSensors)
+        {
+            // widget is already open and visible: swap its content and resize in place, no need to touch visibility at all
+            if (CurrentInstance != null)
+            {
+                CurrentInstance.ReconfigureFor(selectedSensors);
+                CurrentInstance.Activate();
+                return;
+            }
+
+            // widget was previously hidden (closed via the X button): reuse that native window instead of creating a new one
+            if (_retainedInstance != null)
+            {
+                var window = _retainedInstance;
+                _retainedInstance = null;
+
+                window.ReconfigureFor(selectedSensors);
+                CurrentInstance = window;
+                WidgetStateChanged?.Invoke();
+
+                window._appWindow.Show();
+                window.Activate();
+                return;
+            }
+
+            // no widget has been created this session yet: build a fresh native window
+            var newWindow = new WidgetWindow(selectedSensors);
+            newWindow.Activate();
         }
 
 
@@ -146,6 +183,27 @@ namespace FluentSensors.Features.Widget
                 // we force the engine to just aleays render the active blur
                 _configurationSource.IsInputActive = true;
             }
+        }
+
+        // WinUI 3 never releases secondary Window objects after a real close - confirmed platform bug (see
+        // _retainedInstance)
+        // Workaround: hide instead of actually closing, and keep this instance around for reuse the next time a sensor set
+        // gets pinned
+        // Deliberately does NOT dispose backdrop controllers, unsubscribe SettingsService events, or call ViewModel.Cleanup()
+        // here; the window stays alive, just hidden, so those stay valid for reuse
+        private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+        {
+            args.Cancel = true;
+
+            SaveWindowState(pinnedSensors: null, wasOpen: false);
+            CurrentInstance = null;
+            _retainedInstance = this;
+            WidgetStateChanged?.Invoke();
+
+            _appWindow.Hide();
+
+            // if the dashboard was already closed too, there is nothing left to keep the app alive for
+            MainWindow.CurrentInstance?.EvaluateFullExit();
         }
 
 
@@ -300,6 +358,28 @@ namespace FluentSensors.Features.Widget
                 10, // 10px margin from the top edge
                 physicalWidth,
                 physicalHeight));
+        }
+
+        // rebuilds the widgets content and resizes the window for a newly selected sensor set, reusing the existing native
+        // window instead of tearing it down and creating a new one
+        private void ReconfigureFor(List<SensorRowViewModel> selectedSensors)
+        {
+            ViewModel.Reconfigure(selectedSensors);
+
+            double scaleFactor = GetScaleFactor();
+            var savedState = WindowStateService.Instance.GetState(WindowKey);
+            if (savedState != null && IsPositionOnScreen(savedState.X, savedState.Y, savedState.Width, savedState.Height))
+            {
+                int height = CalculateWidgetHeight(selectedSensors.Count, scaleFactor);
+                _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(
+                    savedState.X, savedState.Y, savedState.Width, height));
+            }
+            else
+            {
+                ResizeWidgetToFitSensors(selectedSensors.Count);
+            }
+
+            SaveWindowState(selectedSensors);
         }
 
         // writes the current rect (debounced) to the window state store

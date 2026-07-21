@@ -41,6 +41,36 @@ namespace FluentSensors.Features.Widget
         public ObservableCollection<SensorGraphViewModel> PinnedSensors { get; set; }
 
 
+        // === public methods ===
+
+        // clears out sensors that are no longer selected and adds newly selected ones, while leaving still-pinned sensors
+        // completely untouched so their graph history and Y-axis settings survive the re-pin instead of resetting
+        public void Reconfigure(List<SensorRowViewModel> selectedSensors)
+        {
+            var newIds = new HashSet<string>(selectedSensors.Select(s => s.Id));
+
+            // remove sensors that are no longer part of the selection
+            for (int i = PinnedSensors.Count - 1; i >= 0; i--)
+            {
+                if (!newIds.Contains(PinnedSensors[i].SensorId))
+                {
+                    PinnedSensors[i].Cleanup();
+                    PinnedSensors.RemoveAt(i);
+                }
+            }
+
+            // add newly selected sensors that are not pinned yet; already-pinned sensors are deliberately left alone
+            var existingIds = new HashSet<string>(PinnedSensors.Select(s => s.SensorId));
+            foreach (var sensor in selectedSensors)
+            {
+                if (!existingIds.Contains(sensor.Id))
+                {
+                    PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType));
+                }
+            }
+        }
+
+
         // === event handlers ===
 
         // event handler invoked by the HardwareMonitorService at the configured polling interval

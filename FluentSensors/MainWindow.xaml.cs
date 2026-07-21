@@ -240,8 +240,7 @@ namespace FluentSensors
             var pinnedSensors = FindSensorRowsByIds(widgetState.PinnedSensorIds);
             if (pinnedSensors.Count == 0) return; // none of them exist on this system anymore
 
-            var widgetWindow = new WidgetWindow(pinnedSensors);
-            widgetWindow.Activate();
+            WidgetWindow.ShowWithSensors(pinnedSensors);
         }
 
         // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, preserving the original
@@ -319,11 +318,10 @@ namespace FluentSensors
 
             if (args.SelectedItem is NavigationViewItem selectedItem)
             {
-                string pageTag = selectedItem.Tag.ToString(); // we pull the value of the tag of the selected item
+                string pageTag = selectedItem.Tag.ToString(); 
                 switch (pageTag)
                 {
                     case "Sensors":
-                        // typeof() specifies the class that the frame should load
                         contentFrame.Navigate(typeof(SensorsPage));
                         break;
 

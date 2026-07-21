@@ -93,17 +93,10 @@ namespace FluentSensors.Features.Sensors
                 return;
             }
 
-            // if a widget is already open, whether pinned earlier this session or auto-restored on app
-            // launch, we force it to close
-            // WidgetWindow.CurrentInstance is the single source of truth for this, it sets and clears itself in the
-            // WidgetWindow constructor/Closed handler
-            WidgetWindow.CurrentInstance?.Close();
-
-            // we rebuild the window completely fresh with the new data in any case
-            var widgetWindow = new WidgetWindow(selectedSensors);
+            // reuses the existing widget window if one is open or was previously hidden, only creates a fresh native window if
+            // none exists yet at all (see WidgetWindow._retainedInstance)
             // the journey of selectedSensors: SensorsPage (View) -> WidgetWindow (View) -> WidgetViewModel (ViewModel)
-
-            widgetWindow.Activate();
+            WidgetWindow.ShowWithSensors(selectedSensors);
         }
 
         private void ResetMinMax_Click(object sender, RoutedEventArgs e)
