@@ -259,7 +259,7 @@ namespace FluentSensors.Features.Settings
         private async void ExportSettings_Click(object sender, RoutedEventArgs e)
         {
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(FluentSensors.MainWindow.CurrentInstance);
-            string suggestedName = $"FluentHwInfo-Backup-{DateTime.Now:yyyy-MM-dd}.zip";
+            string suggestedName = $"FluentSensors-Backup-{DateTime.Now:yyyy-MM-dd}.zip";
 
             string path = Win32FileDialogHelper.PickSaveFile(hwnd, "Export Settings", suggestedName, "Backup File", "zip");
             if (path == null) return; // user cancelled
@@ -286,7 +286,7 @@ namespace FluentSensors.Features.Settings
 
             bool confirmed = await ConfirmAction(
                 "Import Settings?",
-                "This will overwrite all current settings, window positions, and sensor states, then restart the app.",
+                "This will overwrite all current settings, window states, and sensor states, then restart the app.",
                 "Import");
             if (!confirmed) return;
 
@@ -304,7 +304,7 @@ namespace FluentSensors.Features.Settings
             }
             else
             {
-                await ShowInfoDialog("Import Failed", "The selected file is not a valid FluentHwInfo backup.");
+                await ShowInfoDialog("Import Failed", "The selected file is not a valid FluentSensors backup.");
             }
         }
 
@@ -341,7 +341,7 @@ namespace FluentSensors.Features.Settings
 
         private async void ResetWindowStates_Click(object sender, RoutedEventArgs e)
         {
-            if (await ConfirmReset("Window Positions"))
+            if (await ConfirmReset("Window States"))
             {
                 PersistenceService.Instance.ResetWindowStates();
                 RestartApp();
