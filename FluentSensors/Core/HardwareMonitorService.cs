@@ -197,18 +197,6 @@ namespace FluentSensors.Core
         // polling loop
         private async Task LoopAsync(CancellationToken token)
         {
-            // TEMP
-            System.Diagnostics.Debug.WriteLine("=== Active (Up) .NET NetworkInterfaces + IP check ===");
-            foreach (var nic in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
-            {
-                if (nic.OperationalStatus != System.Net.NetworkInformation.OperationalStatus.Up) continue;
-
-                int addressCount = nic.GetIPProperties().UnicastAddresses.Count;
-                System.Diagnostics.Debug.WriteLine(
-                    $"[.NET] Name='{nic.Name}' | UnicastAddresses={addressCount} | Type={nic.NetworkInterfaceType}");
-            }
-
-
             while (!token.IsCancellationRequested)
             {
                 // update hardware (lhm fetches new values from the sensor)
@@ -216,6 +204,50 @@ namespace FluentSensors.Core
                 {
                     hardware.Update();
                 }
+
+
+                //// TEMP
+                //System.Diagnostics.Debug.WriteLine("=== Sensor Dump ===");
+                //foreach (var hardware in _computer.Hardware)
+                //{
+                //    foreach (var sensor in hardware.Sensors)
+                //    {
+                //        System.Diagnostics.Debug.WriteLine(
+                //            $"[{hardware.HardwareType}] {hardware.Name} | {sensor.Name} | Type={sensor.SensorType} | Value={sensor.Value}");
+                //    }
+                //    foreach (var sub in hardware.SubHardware)
+                //    {
+                //        sub.Update();
+                //        foreach (var sensor in sub.Sensors)
+                //        {
+                //            System.Diagnostics.Debug.WriteLine(
+                //                $"[{sub.HardwareType}] {sub.Name} (sub of {hardware.Name}) | {sensor.Name} | Type={sensor.SensorType} | Value={sensor.Value}");
+                //        }
+                //    }
+                //}
+
+                //// TEMP
+                //System.Diagnostics.Debug.WriteLine("=== Storage Dump ===");
+                //foreach (var hardware in _computer.Hardware)
+                //{
+                //    if (hardware.HardwareType != HardwareType.Storage) continue;
+
+                //    System.Diagnostics.Debug.WriteLine($"--- Hardware: '{hardware.Name}' ---");
+                //    foreach (var sensor in hardware.Sensors)
+                //    {
+                //        System.Diagnostics.Debug.WriteLine($"  Sensor: '{sensor.Name}' | Type={sensor.SensorType} | Value={sensor.Value}");
+                //    }
+                //    foreach (var sub in hardware.SubHardware)
+                //    {
+                //        sub.Update();
+                //        System.Diagnostics.Debug.WriteLine($"  --- SubHardware: '{sub.Name}' ---");
+                //        foreach (var sensor in sub.Sensors)
+                //        {
+                //            System.Diagnostics.Debug.WriteLine($"    Sensor: '{sensor.Name}' | Type={sensor.SensorType} | Value={sensor.Value}");
+                //        }
+                //    }
+                //}
+
 
                 // snapshot of currently "up" network adapters, keyed by NetworkInterface.Name
                 // (matches LHM's Hardware.Name 1:1)
@@ -252,27 +284,35 @@ namespace FluentSensors.Core
                             continue;
                         }
 
-                        // some sensors might not have a value at the moment (maybe a hdd is still sleeping or smth)
-                        if (sensor.Value.HasValue)
+                        if (sensor.Value.HasValue) // some sensors might not have a value at the moment
                         {
                             double value = sensor.Value.Value;
 
-                            // some sensors (e.g. "Network Utilization" on adapters with no known link speed) report NaN or
-                            // Infinity instead of leaving Value unset
+                            // some sensors report NaN/Infinity instead of leaving Value unset; never broadcast garbage values
                             if (double.IsNaN(value) || double.IsInfinity(value))
                             {
                                 continue;
                             }
 
+                            // LHM reports throughput in raw bytes/s; normalized to MB/s here so every consumer sees a sane unit
                             if (sensor.SensorType == SensorType.Throughput)
                             {
                                 value /= 1_048_576.0; // bytes/s -> MB/s
                             }
 
+                            // some NVMe controllers report a name padded with non-printable control characters instead of a real
+                            // string; IsNullOrWhiteSpace does not catch those, so they get stripped out first
+                            string cleanedName = new string(sensor.Hardware.Name.Where(c => !char.IsControl(c)).ToArray()).Trim();
+
+                            // falls back to hardware type + LHMs internal identifier so the UI never shows a blank group name
+                            string hardwareName = string.IsNullOrWhiteSpace(cleanedName)
+                                ? $"{sensor.Hardware.HardwareType} ({sensor.Hardware.Identifier})"
+                                : cleanedName;
+
                             payload.Add(new SensorData(
                                 Id: id,
                                 Name: sensor.Name,
-                                HardwareName: sensor.Hardware.Name,
+                                HardwareName: hardwareName,
                                 HardwareType: sensor.Hardware.HardwareType.ToString(),
                                 SensorType: sensor.SensorType.ToString(),
                                 Value: value
