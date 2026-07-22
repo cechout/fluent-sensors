@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "Fluent Sensors"
-#define MyAppVersion "0.3.0"
+#define MyAppVersion "0.3.1"
 #define MyAppPublisher "Daniel Čech"
 #define MyAppExeName "FluentSensors.exe"
 
