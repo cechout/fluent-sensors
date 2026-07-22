@@ -137,17 +137,19 @@ namespace FluentSensors
             };
             ExitAppCommand.ExecuteRequested += (s, e) =>
             {
+                // routes through the same hard-kill path as ForceExit() instead of Application.Current.Exit():
+                // WidgetWindow.AppWindow_Closing unconditionally cancels its own close and hides + retains itself (by design,
+                // for the retained-instance memory-leak workaround), with no _isForceClosing-style guard of
+                // its own
+                // Exit() trying to tear down both windows at once; MainWindows Closing permits a real close here,
+                // WidgetWindows never does; combined with Exit()s already-documented unreliability is what produced the ~50% hang,
+                // with either window unpredictably left behind
+                // A hard kill sidesteps the whole Closing/Closed choreography instead of patching every window class to cooperate
+                // with it
                 _isForceClosing = true;
                 SaveWindowState();
-
-                // same as EvaluateFullExit: stop the polling loop before tearing down the UI
-                HardwareMonitorService.Instance.StopMonitoring();
-
                 PersistenceService.Instance.FlushAll();
-
-                // a window is still open/active at this point, so the normal Exit() lifecycle works fine here; see
-                // ForceExit() for the one case where it does not
-                Application.Current.Exit();
+                Process.GetCurrentProcess().Kill();
             };
         }   
 
