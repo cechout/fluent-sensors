@@ -74,6 +74,7 @@ namespace FluentSensors.Controls.SensorRow
                     "SmallData" => "MB",
                     "Data" => "GB",
                     "Voltage" => "V",
+                    "Throughput" => "MB/s",
                     "Fan" => "RPM",
                     _ => "" // fallback, if LibreHardwareMonitor sends something exotic
                 };

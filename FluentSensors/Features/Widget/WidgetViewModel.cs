@@ -132,6 +132,7 @@ namespace FluentSensors.Features.Widget
                 "SmallData" => "MB",
                 "Fan" => "RPM",
                 "Voltage" => "V",
+                "Throughput" => "MB/s",
                 _ => ""
             };
         }

@@ -69,6 +69,16 @@
             YMaxStep = 0.1
         };
 
+        // disk/network throughput, normalized to MB/s at the source (HardwareMonitorService); tuned for typical
+        // SSD/NVMe write bursts, idle traffic will just sit near 0
+        private static readonly SensorTypeProfile Throughput = new()
+        {
+            ThresholdDefault = 50,
+            ThresholdStep = 10,
+            YMaxDefault = 100,
+            YMaxStep = 25
+        };
+
         // sensorType is the raw LibreHardwareMonitor SensorType.ToString() value (e.g. "Clock", "Load")
         public static SensorTypeProfile GetProfile(string sensorType)
         {
@@ -79,6 +89,7 @@
                 "SmallData" => SmallData,
                 "Fan" => Fan,
                 "Voltage" => Voltage,
+                "Throughput" => Throughput,
                 _ => Default
             };
         }

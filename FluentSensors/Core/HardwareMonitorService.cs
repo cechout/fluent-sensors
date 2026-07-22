@@ -12,6 +12,7 @@ namespace FluentSensors.Core
         string Id, // e.g. "/intelcpu/0/load/1" 
         string Name, // e.g. "CPU Package"
         string HardwareName, // e.g. "Intel Core i9-12900H"
+        string HardwareType, // e.g. "Cpu", "GpuNvidia", "Memory"
         string SensorType, // e.g. "Power", "Temperature", "Load"
         double Value // the actual value of the sensor
     );
@@ -104,6 +105,11 @@ namespace FluentSensors.Core
             return Task.Run(() => { _computer.IsControllerEnabled = true; });
         }
 
+        public Task InitNetworkAsync()
+        {
+            return Task.Run(() => { _computer.IsNetworkEnabled = true; });
+        }
+
         // monitoring control:
         // starts the background polling loop to read sensor values
         // this method gets called from the outside (e.g. MainWindow); only after the asynchronous initialization pipeline has
@@ -190,8 +196,26 @@ namespace FluentSensors.Core
         // polling loop
         private async Task LoopAsync(CancellationToken token)
         {
+            // TEMP
             while (!token.IsCancellationRequested)
             {
+                System.Diagnostics.Debug.WriteLine("=== LHM Network Hardware ===");
+                foreach (var hw in _computer.Hardware)
+                {
+                    if (hw.HardwareType == HardwareType.Network)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[LHM] Name='{hw.Name}'");
+                    }
+                }
+                System.Diagnostics.Debug.WriteLine("=== .NET NetworkInterfaces ===");
+                foreach (var nic in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[.NET] Name='{nic.Name}' | Description='{nic.Description}' | Status={nic.OperationalStatus} | Type={nic.NetworkInterfaceType}");
+                }
+
+
+
                 // update hardware (lhm fetches new values from the sensor)
                 foreach (var hardware in _computer.Hardware)
                 {
@@ -215,12 +239,27 @@ namespace FluentSensors.Core
                         // some sensors might not have a value at the moment (maybe a hdd is still sleeping or smth)
                         if (sensor.Value.HasValue)
                         {
+                            double value = sensor.Value.Value;
+
+                            if (double.IsNaN(value) || double.IsInfinity(value))
+                            {
+                                continue;
+                            }
+
+                            if (sensor.SensorType == SensorType.Throughput)
+                            {
+                                // scale throughput values from b/s to mb/s
+                                double rawValue = value;
+                                value /= 1_048_576.0; 
+                            }
+
                             payload.Add(new SensorData(
                                 Id: id,
                                 Name: sensor.Name,
                                 HardwareName: sensor.Hardware.Name,
+                                HardwareType: sensor.Hardware.HardwareType.ToString(),
                                 SensorType: sensor.SensorType.ToString(),
-                                Value: sensor.Value.Value
+                                Value: value
                             ));
                         }
                     }
@@ -280,7 +319,8 @@ namespace FluentSensors.Core
                     sensor.SensorType == SensorType.Data ||
                     sensor.SensorType == SensorType.SmallData ||
                     sensor.SensorType == SensorType.Fan ||
-                    sensor.SensorType == SensorType.Voltage)
+                    sensor.SensorType == SensorType.Voltage ||
+                    sensor.SensorType == SensorType.Throughput) 
                 {
                     _activeSensors.Add(sensor);
                 }

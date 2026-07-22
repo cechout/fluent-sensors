@@ -170,29 +170,33 @@ namespace FluentSensors
 
             // scan motherboard
             LoadingStatusText.Text = "Initializing motherboard...";
-            LoadingProgressBar.Value = 20;
+            LoadingProgressBar.Value = 15;
             await monitor.InitMotherboardAsync();
-            // await Task.Delay(4000000);
 
             // scan CPU
             LoadingStatusText.Text = "Scanning CPU...";
-            LoadingProgressBar.Value = 40;
+            LoadingProgressBar.Value = 30;
             await monitor.InitCpuAsync();
 
             // scan GPU
             LoadingStatusText.Text = "Scanning GPU...";
-            LoadingProgressBar.Value = 60;
+            LoadingProgressBar.Value = 45;
             await monitor.InitGpuAsync();
 
             // scan memory and storage
             LoadingStatusText.Text = "Checking memory and storage...";
-            LoadingProgressBar.Value = 80;
+            LoadingProgressBar.Value = 60;
             await monitor.InitMemoryAndStorageAsync();
 
             // scan dedicated fan/aio controllers (e.g. Aquacomputer, Corsair Commander, NZXT Kraken)
             LoadingStatusText.Text = "Scanning controllers...";
-            LoadingProgressBar.Value = 100;
+            LoadingProgressBar.Value = 75;
             await monitor.InitControllerAsync();
+
+            // scan network adapters (Wi-Fi, Ethernet, and any virtual adapters Windows reports)
+            LoadingStatusText.Text = "Scanning network adapters...";
+            LoadingProgressBar.Value = 100;
+            await monitor.InitNetworkAsync();
 
             // no we start the HardwareMonitorService loop manually
             monitor.StartMonitoring();
