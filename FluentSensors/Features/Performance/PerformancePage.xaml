@@ -278,7 +278,11 @@
                 <!--  overall CPU load: single graph  -->
                 <fhGraph:SensorPanelControl
                     Grid.Row="1"
+                    GraphDataPointsOverride="110"
+                    IsAutoScaledOverride="False"
+                    ManualYMaxOverride="100"
                     Mode="Performance"
+                    ThresholdLabelAlwaysVisible="False"
                     ViewModel="{x:Bind ViewModel.Cpu.TotalLoad, Mode=OneWay}"
                     Visibility="{x:Bind ShowIfFalse(ViewModel.Cpu.IsShowingAllThreads), Mode=OneWay}" />
 
@@ -297,7 +301,11 @@
                         <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
                             <fhGraph:SensorPanelControl
                                 Margin="2"
+                                GraphDataPointsOverride="50"
+                                IsAutoScaledOverride="False"
+                                ManualYMaxOverride="100"
                                 Mode="Performance"
+                                ThresholdLabelAlwaysVisible="False"
                                 ViewModel="{x:Bind}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

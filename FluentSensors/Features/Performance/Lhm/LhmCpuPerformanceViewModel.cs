@@ -17,9 +17,6 @@ namespace FluentSensors.Features.Performance.Lhm
         // === fields ===
 
         private readonly DispatcherQueue _dispatcherQueue;
-        private const int TotalLoadDataPoints = 110;
-        private const int CoreDataPoints = 50;
-
 
 
         // === constructor ===
@@ -79,7 +76,7 @@ namespace FluentSensors.Features.Performance.Lhm
                     {
                         if (TotalLoad == null)
                         {
-                            TotalLoad = new SensorGraphViewModel(data.Id, data.Name, data.SensorType, TotalLoadDataPoints);
+                            TotalLoad = new SensorGraphViewModel(data.Id, data.Name, data.SensorType);
                         }
                         TotalLoad.AddDataPoint(data.Value, SensorUnitFormatter.Format(data.Value, data.SensorType));
                     }
@@ -89,7 +86,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
                         if (core == null)
                         {
-                            core = new SensorGraphViewModel(data.Id, data.Name, data.SensorType, CoreDataPoints);
+                            core = new SensorGraphViewModel(data.Id, data.Name, data.SensorType);
                             Cores.Add(core);
                         }
 

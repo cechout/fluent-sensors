@@ -17,7 +17,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         private double _currentRaw;
         private readonly double _yMaxStep;
-        private readonly int? _dataPointsOverride;
+        private int? _dataPointsOverride;
 
 
         // === constructor ===
@@ -104,7 +104,7 @@ namespace FluentSensors.Controls.SensorGraph
                 }
             }
         }
-        private double _manualYMax = 100; // initial value for manual y-axis max
+        private double _manualYMax = 100; 
         public double ManualYMax
         {
             get => _manualYMax;
@@ -193,27 +193,7 @@ namespace FluentSensors.Controls.SensorGraph
         {
             // instances with a fixed override never resize with the global setting
             if (_dataPointsOverride.HasValue) return;
-
-            int currentCount = SensorData.Count;
-
-            if (newCount > currentCount)
-            {
-                // the list got bigger -> add blank points (0.0) to the left (beginning of the list)
-                int pointsToAdd = newCount - currentCount;
-                for (int i = 0; i < pointsToAdd; i++)
-                {
-                    SensorData.Insert(0, 0.0);
-                }
-            }
-            else if (newCount < currentCount)
-            {
-                // the list got smaller -> remove the oldest points on the left
-                int pointsToRemove = currentCount - newCount;
-                for (int i = 0; i < pointsToRemove; i++)
-                {
-                    SensorData.RemoveAt(0);
-                }
-            }
+            ResizeSensorData(newCount);
         }
 
 
@@ -246,6 +226,35 @@ namespace FluentSensors.Controls.SensorGraph
             RecalculateColor();
         }
 
+        // applies view-specific configuration that intentionally does NOT persist to SensorStateService:
+        // used by consumers like the Performance page that need this graphs data point count / Y-axis behavior fixed and
+        // decoupled from whatever is (or isnt) configured for this sensor elsewhere (e.g. pinned in
+        // the Widget)
+        // passing null for any parameter leaves that aspect on its normal (persisted / globally
+        // configured) behavior
+        public void ApplyViewOverrides(int? dataPoints, bool? isAutoScaled, double? manualYMax)
+        {
+            if (dataPoints.HasValue && dataPoints.Value != SensorData.Count)
+            {
+                _dataPointsOverride = dataPoints; // also stops OnGraphDataPointsChanged from resizing this instance later
+                ResizeSensorData(dataPoints.Value);
+            }
+
+            if (isAutoScaled.HasValue && _isAutoScaled != isAutoScaled.Value)
+            {
+                _isAutoScaled = isAutoScaled.Value;
+                OnPropertyChanged(nameof(IsAutoScaled));
+            }
+
+            if (manualYMax.HasValue && _manualYMax != manualYMax.Value)
+            {
+                _manualYMax = manualYMax.Value;
+                OnPropertyChanged(nameof(ManualYMax));
+            }
+
+            UpdateYMaxDisplay();
+        }
+
         // user interaction
         // pane toggle button
         public void ToggleControlPanel()
@@ -275,6 +284,32 @@ namespace FluentSensors.Controls.SensorGraph
 
 
         // === private helpers ===
+
+        // shared point-count resize logic, used both when the global GraphDataPoints setting changes (see
+        // OnGraphDataPointsChanged) and when a per-instance override is applied from the view (see ApplyViewOverrides)
+        private void ResizeSensorData(int newCount)
+        {
+            int currentCount = SensorData.Count;
+
+            if (newCount > currentCount)
+            {
+                // the list got bigger -> add blank points (0.0) to the left (beginning of the list)
+                int pointsToAdd = newCount - currentCount;
+                for (int i = 0; i < pointsToAdd; i++)
+                {
+                    SensorData.Insert(0, 0.0);
+                }
+            }
+            else if (newCount < currentCount)
+            {
+                // the list got smaller -> remove the oldest points on the left
+                int pointsToRemove = currentCount - newCount;
+                for (int i = 0; i < pointsToRemove; i++)
+                {
+                    SensorData.RemoveAt(0);
+                }
+            }
+        }
 
         // re-evaluates the current values color against this sensors own threshold config
         private void RecalculateColor()

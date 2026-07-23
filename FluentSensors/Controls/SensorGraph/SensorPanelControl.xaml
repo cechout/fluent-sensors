@@ -281,7 +281,7 @@
                 Tapped="GraphControl_Tapped"
                 ThresholdColor="{x:Bind ViewModel.Threshold.Color, Mode=OneWay}"
                 ThresholdDirection="{x:Bind ViewModel.Threshold.Direction, Mode=OneWay}"
-                ThresholdLabelAlwaysVisible="True"
+                ThresholdLabelAlwaysVisible="{x:Bind ThresholdLabelAlwaysVisible, Mode=OneWay}"
                 ThresholdValue="{x:Bind ViewModel.Threshold.EffectiveValue, Mode=OneWay}"
                 Values="{x:Bind ViewModel.SensorData, Mode=OneWay}" />
         </Grid>
