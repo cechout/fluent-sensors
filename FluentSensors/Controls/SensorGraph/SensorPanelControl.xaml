@@ -12,88 +12,91 @@
 
     <Grid Background="Transparent" RowSpacing="3">
         <Grid.RowDefinitions>
-            <RowDefinition Height="{Binding TitleRowHeight, ElementName=Root}" />
-            <RowDefinition Height="{Binding StatusHeaderRowHeight, ElementName=Root}" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  title row: collapses completely in Widget mode (TitleRowHeight becomes 0)  -->
-        <TextBlock
-            Grid.Row="0"
-            Margin="0,0,0,3"
-            VerticalAlignment="Center"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
-            TextTrimming="CharacterEllipsis" />
+        <!--  label row: title (Performance/Minimal) and status header (Widget) overlap here, mutually exclusive  -->
+        <Grid Grid.Row="0">
 
-        <!--  status header with sensor name and current value; Widget only, see GetStatusHeaderVisibility  -->
-        <Grid
-            Grid.Row="1"
-            Padding="0,0,0,0"
-            HorizontalAlignment="Stretch"
-            Background="Transparent"
-            ColumnSpacing="0"
-            Visibility="{x:Bind GetStatusHeaderVisibility(Mode), Mode=OneWay}">
-
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="36" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <!--  toggle panel button  -->
-            <Button
-                Grid.Column="0"
-                Width="32"
-                Padding="0"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Stretch"
-                Click="{x:Bind ViewModel.ToggleControlPanel}"
-                Style="{StaticResource SubtleButtonStyle}"
-                ToolTipService.ToolTip="Toggle Panel"
-                Visibility="Visible">
-
-                <FontIcon
-                    FontSize="14"
-                    FontWeight="Normal"
-                    Glyph="&#xE90C;" />
-            </Button>
-
-            <!--  current max y-axis value  -->
+            <!--  only title  -->
+            <!--  (compact mode)  -->
             <TextBlock
-                Grid.Column="1"
-                Margin="1,0,10,0"
+                Margin="4,0,0,0"
+                VerticalAlignment="Center"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap"
+                Visibility="{x:Bind GetTitleVisibility(Mode), Mode=OneWay}" />
+
+            <!--  status header with sensor name and current value  -->
+            <!--  (standard mode)  -->
+            <Grid
                 Padding="0,0,0,0"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.ActualYMaxText, Mode=OneWay}" />
+                HorizontalAlignment="Stretch"
+                Background="Transparent"
+                ColumnSpacing="0"
+                Visibility="{x:Bind GetStatusHeaderVisibility(Mode), Mode=OneWay}">
 
-            <!--
-                sensor name; only reached here in Widget mode, since the header itself is collapsed for
-                Performance/Minimal - no separate visibility binding needed
-            -->
-            <TextBlock
-                Grid.Column="2"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.SensorName, Mode=OneWay}" />
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="36" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-            <!--  current value  -->
-            <TextBlock
-                Grid.Column="2"
-                Padding="0,0,6,0"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Center"
-                Foreground="{x:Bind ViewModel.CurrentValueColor, Mode=OneWay}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}" />
+                <!--  toggle panel button  -->
+                <Button
+                    Grid.Column="0"
+                    Width="32"
+                    Padding="0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Stretch"
+                    Click="{x:Bind ViewModel.ToggleControlPanel}"
+                    Style="{StaticResource SubtleButtonStyle}"
+                    ToolTipService.ToolTip="Toggle Panel"
+                    Visibility="Visible">
+
+                    <FontIcon
+                        FontSize="14"
+                        FontWeight="Normal"
+                        Glyph="&#xE90C;" />
+                </Button>
+
+                <!--  current max y-axis value  -->
+                <TextBlock
+                    Grid.Column="1"
+                    Margin="1,0,10,0"
+                    Padding="0,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind ViewModel.ActualYMaxText, Mode=OneWay}" />
+
+                <!--  sensor name  -->
+                <TextBlock
+                    Grid.Column="2"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind ViewModel.SensorName, Mode=OneWay}" />
+
+                <!--  current value  -->
+                <TextBlock
+                    Grid.Column="2"
+                    Padding="0,0,6,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Foreground="{x:Bind ViewModel.CurrentValueColor, Mode=OneWay}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}" />
+            </Grid>
         </Grid>
 
 
-        <!--  left: control buttons, right: LiveChart graph  -->
-        <Grid Grid.Row="2" ColumnSpacing="0">
+        <!--  graph  -->
+        <!--  (left + right: control buttons, middle: LiveChart graph)  -->
+        <Grid Grid.Row="1" ColumnSpacing="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -101,7 +104,8 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!--  Y-axis control buttons; Widget only, see GetYAxisControlsVisibility  -->
+            <!--  Y-axis control buttons  -->
+            <!--  (standard mode)  -->
             <Grid
                 Grid.Column="0"
                 Width="36"
@@ -146,7 +150,8 @@
                     ToolTipService.ToolTip="Auto-Scale" />
             </Grid>
 
-            <!--  threshold buttons; Widget + Performance, see GetThresholdControlsVisibility  -->
+            <!--  threshold buttons 1  -->
+            <!--  (standard + compact mode)  -->
             <Grid
                 Grid.Column="2"
                 Width="36"
@@ -191,7 +196,8 @@
                     ToolTipService.ToolTip="Toggle Threshold-Line" />
             </Grid>
 
-            <!--  threshold buttons 2; Widget + Performance, see GetThresholdControlsVisibility  -->
+            <!--  threshold buttons 2  -->
+            <!--  (standard + compact mode)  -->
             <Grid
                 Grid.Column="3"
                 Width="36"
@@ -268,10 +274,9 @@
                 </ToggleButton>
             </Grid>
 
-            <!--
-                LiveChart graph; always visible in all three modes. Tapped toggles the panel in Performance
-                mode only, see GraphControl_Tapped
-            -->
+            <!--  LiveChart graph  -->
+            <!--  (always visible)  -->
+            <!--  tapped toggles the panel in compact mode  -->
             <fhGraph:SensorGraphControl
                 Grid.Column="1"
                 AccentColor="{x:Bind ViewModel.GraphColor, Mode=OneWay}"

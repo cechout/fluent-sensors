@@ -32,6 +32,15 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === bindable properties ===
 
+        // the CPU's product name (e.g. "12th Gen Intel Core i9-12900H"), captured once from the first matching
+        // payload entry; used by PerformanceViewModel to populate the CPU nav item's DisplayName
+        private string _hardwareName;
+        public string HardwareName
+        {
+            get => _hardwareName;
+            private set { _hardwareName = value; OnPropertyChanged(); }
+        }
+
         // overall CPU load; created lazily once the first "CPU Total" sample arrives
         private SensorGraphViewModel _totalLoad;
         public SensorGraphViewModel TotalLoad
@@ -66,11 +75,14 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             _dispatcherQueue.TryEnqueue(() =>
             {
-                int cpuLoadCount = payload.Count(d => d.HardwareType == "Cpu" && d.SensorType == "Load");
-
                 foreach (var data in payload)
                 {
                     if (data.HardwareType != "Cpu" || data.SensorType != "Load") continue;
+
+                    if (HardwareName == null)
+                    {
+                        HardwareName = data.HardwareName;
+                    }
 
                     if (data.Name == "CPU Total")
                     {

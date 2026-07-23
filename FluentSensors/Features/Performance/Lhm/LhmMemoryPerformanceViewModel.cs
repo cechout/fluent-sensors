@@ -28,6 +28,15 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === bindable properties ===
 
+        // LHM's raw hardware name for this group (currently always "Total Memory"); captured once, used by
+        // PerformanceViewModel to populate the RAM nav item's DisplayName
+        private string _hardwareName;
+        public string HardwareName
+        {
+            get => _hardwareName;
+            private set { _hardwareName = value; OnPropertyChanged(); }
+        }
+
         private SensorGraphViewModel _used;
         public SensorGraphViewModel Used
         {
@@ -53,6 +62,11 @@ namespace FluentSensors.Features.Performance.Lhm
                 {
                     // "Virtual Memory" is the commit charge (incl. page file), we only want the physical RAM group
                     if (data.HardwareType != "Memory" || data.HardwareName != "Total Memory") continue;
+
+                    if (HardwareName == null)
+                    {
+                        HardwareName = data.HardwareName;
+                    }
 
                     string formatted = SensorUnitFormatter.Format(data.Value, data.SensorType);
 

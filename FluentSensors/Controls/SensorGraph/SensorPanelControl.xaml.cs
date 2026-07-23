@@ -133,10 +133,12 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === bindable helper surfaces ===
 
-        // classic Binding + ElementName target (not x:Bind): RowDefinition.Height does not support x:Bind reliably across
-        // WinUI versions, same reasoning as SensorGraphControls own Series/XAxes/YAxes
-        public GridLength TitleRowHeight => Mode == SensorPanelMode.Standard ? new GridLength(0) : new GridLength(20);
-        public GridLength StatusHeaderRowHeight => Mode == SensorPanelMode.Standard ? new GridLength(20) : new GridLength(0);
+        // title is shown in Performance and Minimal (Widget shows the status header instead, which already
+        // contains the sensor name)
+        private Visibility GetTitleVisibility(SensorPanelMode mode)
+        {
+            return mode == SensorPanelMode.Standard ? Visibility.Collapsed : Visibility.Visible;
+        }
 
         private Visibility GetStatusHeaderVisibility(SensorPanelMode mode)
         {
