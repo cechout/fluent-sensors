@@ -18,7 +18,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         private readonly DispatcherQueue _dispatcherQueue;
         private const int TotalLoadDataPoints = 110;
-        private const int CoreDataPoints = 60;
+        private const int CoreDataPoints = 50;
 
 
 
