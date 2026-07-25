@@ -217,6 +217,12 @@
 
 
             <!--  content: scrollviewer with all the cards of different hardware groups  -->
+            <!--  cpu: &#xE950; or &#xEEA1;  -->
+            <!--  ram: &#xE964;  -->
+            <!--  gpu: &#xF211;  -->
+            <!--  ethernet: &#xE839;  -->
+            <!--  wifi: &#xE701;  -->
+            <!--  drive: &#xEDA2;  -->
             <ScrollViewer
                 x:Name="MainScrollViewer"
                 Grid.Row="2"
@@ -232,10 +238,15 @@
                             <!--  settings expander (containing all the sensors for one hardware group)  -->
                             <controls:SettingsExpander
                                 Margin="0,16,0,0"
-                                Header="{x:Bind HardwareName, Mode=OneWay}"
+                                Description="{x:Bind HardwareName, Mode=OneWay}"
+                                Header="{x:Bind GroupLabel, Mode=OneWay}"
                                 IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
                                 ItemsSource="{x:Bind Sensors, Mode=OneWay}"
                                 Loaded="SettingsExpander_Loaded">
+
+                                <controls:SettingsExpander.HeaderIcon>
+                                    <FontIcon Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
+                                </controls:SettingsExpander.HeaderIcon>
 
                                 <!--  column labels  -->
                                 <controls:SettingsExpander.ItemsHeader>

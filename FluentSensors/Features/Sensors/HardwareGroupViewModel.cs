@@ -15,7 +15,9 @@ namespace FluentSensors.Features.Sensors
     {
         // === fields ===
 
-        public string HardwareName { get; set; } = "Hardware Name not provided"; // header of expander
+        public string HardwareName { get; set; } = "Hardware Name not provided"; // description of expander 
+        public string GroupLabel { get; set; } = "Hardware"; // header of expander 
+        public string IconGlyph { get; set; } = ""; // header icon glyph, resolved via HardwareGroupInfo
         public ObservableCollection<SensorRowViewModel> Sensors { get; set; } // content of expander
         public ObservableCollection<SensorRowViewModel> HiddenSensors { get; set; } // sensors hidden from the main list
 

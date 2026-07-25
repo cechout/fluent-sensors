@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+using FluentSensors.Common;
 using FluentSensors.Features.Performance.Lhm;
 
 namespace FluentSensors.Features.Performance
@@ -37,11 +38,14 @@ namespace FluentSensors.Features.Performance
 
             NavItems = new ObservableCollection<PerformanceNavItemViewModel>();
 
-            // Cpu and Ram always exist exactly once, regardless of hardware discovery timing; DisplayName
-            // starts null and fills in once the underlying view model learns its HardwareName from the first
+            // Cpu and Ram always exist exactly once, regardless of hardware discovery timing; labels come from the same
+            // shared HardwareGroupInfo lookup SensorsPage uses, so both pages agree on naming
+            // DisplayName starts null and fills in once the underlying view model learns its HardwareName from the first
             // matching payload entry (see the PropertyChanged subscriptions below)
-            var cpuNavItem = new PerformanceNavItemViewModel(PerformanceNavItemKind.Cpu, "CPU", Cpu.HardwareName, Cpu);
-            var ramNavItem = new PerformanceNavItemViewModel(PerformanceNavItemKind.Ram, "RAM", Memory.HardwareName, Memory);
+            var cpuNavItem = new PerformanceNavItemViewModel(
+                HardwareGroupKind.Cpu, HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Label, Cpu.HardwareName, Cpu);
+            var ramNavItem = new PerformanceNavItemViewModel(
+                HardwareGroupKind.Ram, HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).Label, Memory.HardwareName, Memory);
             NavItems.Add(cpuNavItem);
             NavItems.Add(ramNavItem);
 
@@ -60,18 +64,18 @@ namespace FluentSensors.Features.Performance
                 }
             };
 
-            // Gpu/Storage/Network instances are only known once discovered at runtime, so their nav entries are
-            // added reactively as those collections grow. Only Add is handled - this matches the existing
-            // behavior of the underlying Lhm*PerformanceViewModel collections themselves, which also never
-            // remove a once-discovered instance
+            // Gpu/Storage/Network instances are only known once discovered at runtime, so their nav entries are added
+            // reactively as those collections grow
+            // Only Add is handled; this matches the existing behavior of the underlying Lhm*PerformanceViewModel collections
+            // themselves, which also never remove a once-discovered instance
             Gpu.Gpus.CollectionChanged += (s, e) => OnHardwareCollectionChanged(
-                e, PerformanceNavItemKind.Gpu, "GPU", item => ((LhmGpuInstanceViewModel)item).HardwareName);
+                e, HardwareGroupKind.Gpu, item => ((LhmGpuInstanceViewModel)item).HardwareName);
 
             Storage.Drives.CollectionChanged += (s, e) => OnHardwareCollectionChanged(
-                e, PerformanceNavItemKind.Storage, "Storage", item => ((LhmStorageInstanceViewModel)item).HardwareName);
+                e, HardwareGroupKind.Storage, item => ((LhmStorageInstanceViewModel)item).HardwareName);
 
             Network.Adapters.CollectionChanged += (s, e) => OnHardwareCollectionChanged(
-                e, PerformanceNavItemKind.Network, "Network", item => ((LhmNetworkInstanceViewModel)item).HardwareName);
+                e, HardwareGroupKind.Network, item => ((LhmNetworkInstanceViewModel)item).HardwareName);
 
             SelectedItem = cpuNavItem;
         }
@@ -107,10 +111,12 @@ namespace FluentSensors.Features.Performance
 
         // === private helpers ===
 
-        private void OnHardwareCollectionChanged(NotifyCollectionChangedEventArgs e, PerformanceNavItemKind kind,
-            string groupLabel, Func<object, string> getHardwareName)
+        private void OnHardwareCollectionChanged(NotifyCollectionChangedEventArgs e, HardwareGroupKind kind,
+            Func<object, string> getHardwareName)
         {
             if (e.Action != NotifyCollectionChangedAction.Add) return;
+
+            string groupLabel = HardwareGroupInfo.GetProfile(kind).Label;
 
             foreach (var newItem in e.NewItems)
             {

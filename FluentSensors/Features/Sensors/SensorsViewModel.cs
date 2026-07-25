@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
+using FluentSensors.Common;
 using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Core;
@@ -91,7 +92,17 @@ namespace FluentSensors.Features.Sensors
                     // if the group doesnt exist yet, we dynamically create a new expander group
                     if (existingGroup == null)
                     {
-                        existingGroup = new HardwareGroupViewModel { HardwareName = data.HardwareName };
+                        // GroupLabel/IconGlyph come from the same shared lookup the Performance page uses, so both pages show
+                        // identical labels/icons for the same kind of hardware
+                        var kind = HardwareGroupInfo.GetKind(data.HardwareType);
+                        var profile = HardwareGroupInfo.GetProfile(kind);
+
+                        existingGroup = new HardwareGroupViewModel
+                        {
+                            HardwareName = data.HardwareName,
+                            GroupLabel = profile.Label,
+                            IconGlyph = profile.IconGlyph
+                        };
                         existingGroup.PropertyChanged += Group_PropertyChanged;
                         HardwareGroups.Add(existingGroup);
                     }
