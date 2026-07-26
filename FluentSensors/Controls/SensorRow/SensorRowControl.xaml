@@ -101,7 +101,7 @@
                 Grid.Column="0"
                 VerticalAlignment="Center"
                 Orientation="Horizontal"
-                Spacing="8">
+                Spacing="10">
 
                 <CheckBox
                     MinWidth="0"

@@ -45,7 +45,7 @@
 
                     <TextBlock
                         Grid.Column="0"
-                        Margin="36,0,0,0"
+                        Margin="38,0,0,0"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{ThemeResource CaptionTextBlockStyle}"
                         Text="Sensor" />
@@ -85,9 +85,18 @@
                         <!--  settings expander (containing all the sensors for one hardware group)  -->
                         <controls:SettingsExpander
                             Margin="0,16,0,0"
-                            Header="{x:Bind HardwareName, Mode=OneWay}"
+                            Description="{x:Bind HardwareName, Mode=OneWay}"
+                            Header="{x:Bind GroupLabel, Mode=OneWay}"
                             IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
                             Visibility="{x:Bind HiddenPanelVisibility, Mode=OneWay}">
+
+                            <controls:SettingsExpander.Resources>
+                                <x:Double x:Key="SettingsCardWrapNoIconThreshold">0</x:Double>
+                            </controls:SettingsExpander.Resources>
+
+                            <controls:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
+                            </controls:SettingsExpander.HeaderIcon>
 
                             <!--  header  -->
                             <controls:SettingsExpander.ItemsHeader>
@@ -101,7 +110,7 @@
 
                                             <TextBlock
                                                 Grid.Column="0"
-                                                Margin="36,0,0,0"
+                                                Margin="38,0,0,0"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                                 Text="Sensor" />

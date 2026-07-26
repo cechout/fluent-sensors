@@ -244,6 +244,10 @@
                                 ItemsSource="{x:Bind Sensors, Mode=OneWay}"
                                 Loaded="SettingsExpander_Loaded">
 
+                                <controls:SettingsExpander.Resources>
+                                    <Thickness x:Key="SettingsCardHeaderIconMargin">2,0,16,0</Thickness>
+                                </controls:SettingsExpander.Resources>
+
                                 <controls:SettingsExpander.HeaderIcon>
                                     <FontIcon Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
                                 </controls:SettingsExpander.HeaderIcon>
@@ -271,7 +275,7 @@
 
                                             <TextBlock
                                                 Grid.Column="0"
-                                                Margin="36,0,0,0"
+                                                Margin="38,0,0,0"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                                 Text="Sensor" />
