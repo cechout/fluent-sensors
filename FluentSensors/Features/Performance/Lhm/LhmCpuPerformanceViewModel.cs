@@ -1,11 +1,8 @@
-﻿using Microsoft.UI.Dispatching;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-
-using FluentSensors.Common;
+using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core;
 
@@ -14,26 +11,28 @@ namespace FluentSensors.Features.Performance.Lhm
 {
     public class LhmCpuPerformanceViewModel : INotifyPropertyChanged
     {
-        // === fields ===
-
-        private readonly DispatcherQueue _dispatcherQueue;
-
-
         // === constructor ===
 
         public LhmCpuPerformanceViewModel()
         {
             Cores = new ObservableCollection<SensorGraphViewModel>();
-            _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
-            HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
+            var tree = LhmHardwareTreeService.Instance;
+
+            // process whatever the tree already discovered before we subscribed, then track further Cpu instances live
+            // (in practice there is exactly one, but this stays correct for a theoretical multi-socket system too)
+            foreach (var instance in tree.HardwareGroups)
+            {
+                if (instance.Kind == HardwareGroupKind.Cpu) AttachToInstance(instance);
+            }
+            tree.HardwareGroups.CollectionChanged += OnTreeHardwareGroupsChanged;
         }
 
 
         // === bindable properties ===
 
-        // the CPU's product name (e.g. "12th Gen Intel Core i9-12900H"), captured once from the first matching
-        // payload entry; used by PerformanceViewModel to populate the CPU nav item's DisplayName
+        // the CPUs product name (e.g. "12th Gen Intel Core i9-12900H"), captured once from the first matching
+        // instance; used by PerformanceViewModel to populate the CPU nav items DisplayName
         private string _hardwareName;
         public string HardwareName
         {
@@ -41,7 +40,7 @@ namespace FluentSensors.Features.Performance.Lhm
             private set { _hardwareName = value; OnPropertyChanged(); }
         }
 
-        // overall CPU load; created lazily once the first "CPU Total" sample arrives
+        // overall CPU load; created lazily once the first "CPU Total" sensor is discovered
         private SensorGraphViewModel _totalLoad;
         public SensorGraphViewModel TotalLoad
         {
@@ -71,41 +70,68 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === event handlers ===
 
-        private void OnHardwareDataUpdated(List<SensorData> payload)
+        private void OnTreeHardwareGroupsChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            _dispatcherQueue.TryEnqueue(() =>
+            if (e.Action != NotifyCollectionChangedAction.Add) return;
+
+            foreach (LhmHardwareInstance instance in e.NewItems)
             {
-                foreach (var data in payload)
-                {
-                    if (data.HardwareType != "Cpu" || data.SensorType != "Load") continue;
+                if (instance.Kind == HardwareGroupKind.Cpu) AttachToInstance(instance);
+            }
+        }
 
-                    if (HardwareName == null)
-                    {
-                        HardwareName = data.HardwareName;
-                    }
 
-                    if (data.Name == "CPU Total")
-                    {
-                        if (TotalLoad == null)
-                        {
-                            TotalLoad = new SensorGraphViewModel(data.Id, data.Name, data.SensorType);
-                        }
-                        TotalLoad.AddDataPoint(data.Value, SensorUnitFormatter.Format(data.Value, data.SensorType));
-                    }
-                    else if (data.Name.StartsWith("CPU Core #"))
-                    {
-                        var core = Cores.FirstOrDefault(c => c.SensorId == data.Id);
+        // === private helpers ===
 
-                        if (core == null)
-                        {
-                            core = new SensorGraphViewModel(data.Id, data.Name, data.SensorType);
-                            Cores.Add(core);
-                        }
+        private void AttachToInstance(LhmHardwareInstance instance)
+        {
+            if (HardwareName == null) HardwareName = instance.HardwareName;
 
-                        core.AddDataPoint(data.Value, SensorUnitFormatter.Format(data.Value, data.SensorType));
-                    }
-                }
-            });
+            foreach (var entry in instance.Sensors)
+            {
+                OnSensorDiscovered(entry);
+            }
+            instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(e);
+        }
+
+        private void OnInstanceSensorsChanged(NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action != NotifyCollectionChangedAction.Add) return;
+
+            foreach (LhmSensorEntry entry in e.NewItems)
+            {
+                OnSensorDiscovered(entry);
+            }
+        }
+
+        private void OnSensorDiscovered(LhmSensorEntry entry)
+        {
+            if (entry.SensorType != "Load") return;
+
+            if (entry.Name == "CPU Total")
+            {
+                TotalLoad = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                PushDataPoint(TotalLoad, entry);
+                entry.PropertyChanged += (s, e) => OnEntryValueChanged(TotalLoad, entry, e);
+            }
+            else if (entry.Name.StartsWith("CPU Core #"))
+            {
+                var core = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                Cores.Add(core);
+                PushDataPoint(core, entry);
+                entry.PropertyChanged += (s, e) => OnEntryValueChanged(core, entry, e);
+            }
+        }
+
+        private static void OnEntryValueChanged(SensorGraphViewModel graph, LhmSensorEntry entry, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(LhmSensorEntry.Value)) return;
+            PushDataPoint(graph, entry);
+        }
+
+        private static void PushDataPoint(SensorGraphViewModel graph, LhmSensorEntry entry)
+        {
+            graph.AddDataPoint(entry.Value, SensorUnitFormatter.Format(entry.Value, entry.SensorType));
         }
 
 

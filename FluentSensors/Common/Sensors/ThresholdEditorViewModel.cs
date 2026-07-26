@@ -8,7 +8,7 @@ using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
 
 
-namespace FluentSensors.Common
+namespace FluentSensors.Common.Sensors
 {
     // owns one sensors threshold configuration (enabled, value, direction, color) and keeps it in sync with
     // SensorStateService, shared between SensorRowControl (SensorsPage) and SensorGraphControl (WidgetWindow) so editing

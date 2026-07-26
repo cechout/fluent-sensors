@@ -1,7 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-
-using FluentSensors.Common;
+using FluentSensors.Common.Sensors;
 
 namespace FluentSensors.Features.Performance
 {

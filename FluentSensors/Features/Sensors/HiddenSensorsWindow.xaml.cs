@@ -9,7 +9,7 @@ using CommunityToolkit.WinUI.Controls;
 using System.Linq;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
-using FluentSensors.Common;
+using FluentSensors.Common.UI;
 
 
 namespace FluentSensors.Features.Sensors

@@ -3,8 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-
-using FluentSensors.Common;
+using FluentSensors.Common.Sensors;
 using FluentSensors.Features.Performance.Lhm;
 
 namespace FluentSensors.Features.Performance
@@ -64,18 +63,9 @@ namespace FluentSensors.Features.Performance
                 }
             };
 
-            // Gpu/Storage/Network instances are only known once discovered at runtime, so their nav entries are added
-            // reactively as those collections grow
-            // Only Add is handled; this matches the existing behavior of the underlying Lhm*PerformanceViewModel collections
-            // themselves, which also never remove a once-discovered instance
-            Gpu.Gpus.CollectionChanged += (s, e) => OnHardwareCollectionChanged(
-                e, HardwareGroupKind.Gpu, item => ((LhmGpuInstanceViewModel)item).HardwareName);
-
-            Storage.Drives.CollectionChanged += (s, e) => OnHardwareCollectionChanged(
-                e, HardwareGroupKind.Storage, item => ((LhmStorageInstanceViewModel)item).HardwareName);
-
-            Network.Adapters.CollectionChanged += (s, e) => OnHardwareCollectionChanged(
-                e, HardwareGroupKind.Network, item => ((LhmNetworkInstanceViewModel)item).HardwareName);
+            AttachExistingAndFuture(Gpu.Gpus, HardwareGroupKind.Gpu, item => ((LhmGpuInstanceViewModel)item).HardwareName);
+            AttachExistingAndFuture(Storage.Drives, HardwareGroupKind.Storage, item => ((LhmStorageInstanceViewModel)item).HardwareName);
+            AttachExistingAndFuture(Network.Adapters, HardwareGroupKind.Network, item => ((LhmNetworkInstanceViewModel)item).HardwareName);
 
             SelectedItem = cpuNavItem;
         }
@@ -122,6 +112,21 @@ namespace FluentSensors.Features.Performance
             {
                 NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, getHardwareName(newItem), newItem));
             }
+        }
+
+        // processes hardware instances discovered before this ViewModel existed (likely, since LhmHardwareTreeService
+        // runs from app start and PerformancePage is only visited later), then keeps listening for future ones
+        private void AttachExistingAndFuture(System.Collections.IEnumerable collection, HardwareGroupKind kind,
+            Func<object, string> getHardwareName)
+        {
+            string groupLabel = HardwareGroupInfo.GetProfile(kind).Label;
+
+            foreach (var item in collection)
+            {
+                NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, getHardwareName(item), item));
+            }
+
+            ((INotifyCollectionChanged)collection).CollectionChanged += (s, e) => OnHardwareCollectionChanged(e, kind, getHardwareName);
         }
 
 

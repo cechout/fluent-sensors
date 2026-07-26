@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 
 using FluentSensors.Features.Widget;
-using FluentSensors.Common;
+using FluentSensors.Common.UI;
 
 
 namespace FluentSensors.Features.Sensors

@@ -1,4 +1,4 @@
-﻿namespace FluentSensors.Common
+﻿namespace FluentSensors.Common.Sensors
 {
     // starting values for threshold and y-axis controls, tuned per LibreHardwareMonitor sensor type a "%"-based sensor
     // and a "MHz"-based sensor need vastly different scales, this table is the single place that maps a sensor type to

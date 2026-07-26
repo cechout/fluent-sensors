@@ -1,9 +1,7 @@
-﻿using Microsoft.UI.Dispatching;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-
-using FluentSensors.Common;
+﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core;
 
@@ -12,19 +10,19 @@ namespace FluentSensors.Features.Performance.Lhm
 {
     public class LhmNetworkPerformanceViewModel
     {
-        // === fields ===
-
-        private readonly DispatcherQueue _dispatcherQueue;
-
-
         // === constructor ===
 
         public LhmNetworkPerformanceViewModel()
         {
             Adapters = new ObservableCollection<LhmNetworkInstanceViewModel>();
-            _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
-            HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
+            var tree = LhmHardwareTreeService.Instance;
+
+            foreach (var instance in tree.HardwareGroups)
+            {
+                if (instance.Kind == HardwareGroupKind.Network) AttachToInstance(instance);
+            }
+            tree.HardwareGroups.CollectionChanged += OnTreeHardwareGroupsChanged;
         }
 
 
@@ -35,36 +33,68 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === event handlers ===
 
-        private void OnHardwareDataUpdated(List<SensorData> payload)
+        private void OnTreeHardwareGroupsChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            _dispatcherQueue.TryEnqueue(() =>
+            if (e.Action != NotifyCollectionChangedAction.Add) return;
+
+            foreach (LhmHardwareInstance instance in e.NewItems)
             {
-                foreach (var data in payload)
-                {
-                    if (data.HardwareType != "Network") continue;
-                    if (data.Name != "Upload Speed" && data.Name != "Download Speed") continue;
+                if (instance.Kind == HardwareGroupKind.Network) AttachToInstance(instance);
+            }
+        }
 
-                    var adapter = Adapters.FirstOrDefault(a => a.HardwareName == data.HardwareName);
-                    if (adapter == null)
-                    {
-                        adapter = new LhmNetworkInstanceViewModel(data.HardwareName);
-                        Adapters.Add(adapter);
-                    }
 
-                    string formatted = SensorUnitFormatter.Format(data.Value, data.SensorType);
+        // === private helpers ===
 
-                    if (data.Name == "Upload Speed")
-                    {
-                        if (adapter.UploadSpeed == null) adapter.UploadSpeed = new SensorGraphViewModel(data.Id, data.Name, data.SensorType);
-                        adapter.UploadSpeed.AddDataPoint(data.Value, formatted);
-                    }
-                    else
-                    {
-                        if (adapter.DownloadSpeed == null) adapter.DownloadSpeed = new SensorGraphViewModel(data.Id, data.Name, data.SensorType);
-                        adapter.DownloadSpeed.AddDataPoint(data.Value, formatted);
-                    }
-                }
-            });
+        private void AttachToInstance(LhmHardwareInstance instance)
+        {
+            var adapter = new LhmNetworkInstanceViewModel(instance.HardwareName);
+            Adapters.Add(adapter);
+
+            foreach (var entry in instance.Sensors)
+            {
+                OnSensorDiscovered(adapter, entry);
+            }
+            instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(adapter, e);
+        }
+
+        private void OnInstanceSensorsChanged(LhmNetworkInstanceViewModel adapter, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action != NotifyCollectionChangedAction.Add) return;
+
+            foreach (LhmSensorEntry entry in e.NewItems)
+            {
+                OnSensorDiscovered(adapter, entry);
+            }
+        }
+
+        private void OnSensorDiscovered(LhmNetworkInstanceViewModel adapter, LhmSensorEntry entry)
+        {
+            switch (entry.Name)
+            {
+                case "Upload Speed":
+                    adapter.UploadSpeed = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    PushDataPoint(adapter.UploadSpeed, entry);
+                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(adapter.UploadSpeed, entry, e);
+                    break;
+
+                case "Download Speed":
+                    adapter.DownloadSpeed = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    PushDataPoint(adapter.DownloadSpeed, entry);
+                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(adapter.DownloadSpeed, entry, e);
+                    break;
+            }
+        }
+
+        private static void OnEntryValueChanged(SensorGraphViewModel graph, LhmSensorEntry entry, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(LhmSensorEntry.Value)) return;
+            PushDataPoint(graph, entry);
+        }
+
+        private static void PushDataPoint(SensorGraphViewModel graph, LhmSensorEntry entry)
+        {
+            graph.AddDataPoint(entry.Value, SensorUnitFormatter.Format(entry.Value, entry.SensorType));
         }
     }
 }

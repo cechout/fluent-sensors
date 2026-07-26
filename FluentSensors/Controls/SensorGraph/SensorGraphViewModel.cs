@@ -4,9 +4,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-
-using FluentSensors.Common;
 using FluentSensors.Persistence.Services;
+using FluentSensors.Common.UI;
+using FluentSensors.Common.Sensors;
 
 
 namespace FluentSensors.Controls.SensorGraph

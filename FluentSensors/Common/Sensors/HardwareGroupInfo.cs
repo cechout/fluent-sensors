@@ -1,4 +1,4 @@
-﻿namespace FluentSensors.Common
+﻿namespace FluentSensors.Common.Sensors
 {
     // single source of truth for how a raw LibreHardwareMonitor HardwareType string maps to a broad category (HardwareGroupKind),
     // and what that category displays as (label + icon)

@@ -1,4 +1,4 @@
-﻿namespace FluentSensors.Common
+﻿namespace FluentSensors.Common.UI
 {
     // 3-state alternative to bool? for DependencyProperty use
     // nullable value types as DependencyProperty types have a history of XAML attribute-parsing issues in WinUI,

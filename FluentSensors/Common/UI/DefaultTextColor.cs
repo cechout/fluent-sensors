@@ -4,7 +4,7 @@ using Microsoft.UI.Xaml.Media;
 using FluentSensors.Persistence.Services;
 
 
-namespace FluentSensors.Common
+namespace FluentSensors.Common.UI
 {
     // resolves the apps default text color for the currently selected app theme
     //

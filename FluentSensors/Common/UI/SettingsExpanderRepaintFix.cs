@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using System;
 
 
-namespace FluentSensors.Common
+namespace FluentSensors.Common.UI
 {
     // --- workaround: SettingsExpander content goes blank after collapse/expand ---
     // problem: a SettingsExpanders internal ItemsRepeater stops rendering after repeated collapse/expand (or show/hide)

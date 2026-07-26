@@ -1,4 +1,4 @@
-﻿namespace FluentSensors.Common
+﻿namespace FluentSensors.Common.Sensors
 {
     // maps a LibreHardwareMonitor SensorType string to its display unit; single source of truth for anything
     // on the Performance page, so every graph formats its value label the same way

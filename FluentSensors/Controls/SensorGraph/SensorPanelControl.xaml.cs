@@ -1,8 +1,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-
-using FluentSensors.Common;
+using FluentSensors.Common.UI;
+using FluentSensors.Common.Sensors;
 
 
 namespace FluentSensors.Controls.SensorGraph

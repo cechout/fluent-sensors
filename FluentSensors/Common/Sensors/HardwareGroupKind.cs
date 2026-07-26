@@ -1,4 +1,4 @@
-﻿namespace FluentSensors.Common
+﻿namespace FluentSensors.Common.Sensors
 {
     // identifies which broad hardware category a group of sensors belongs to, regardless of which page displays
     // them (SensorsPage or the Performance page)

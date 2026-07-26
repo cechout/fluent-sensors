@@ -1,9 +1,7 @@
-﻿using Microsoft.UI.Dispatching;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-
-using FluentSensors.Common;
+﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core;
 
@@ -12,19 +10,19 @@ namespace FluentSensors.Features.Performance.Lhm
 {
     public class LhmStoragePerformanceViewModel
     {
-        // === fields ===
-
-        private readonly DispatcherQueue _dispatcherQueue;
-
-
         // === constructor ===
 
         public LhmStoragePerformanceViewModel()
         {
             Drives = new ObservableCollection<LhmStorageInstanceViewModel>();
-            _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
-            HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
+            var tree = LhmHardwareTreeService.Instance;
+
+            foreach (var instance in tree.HardwareGroups)
+            {
+                if (instance.Kind == HardwareGroupKind.Storage) AttachToInstance(instance);
+            }
+            tree.HardwareGroups.CollectionChanged += OnTreeHardwareGroupsChanged;
         }
 
 
@@ -35,36 +33,68 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === event handlers ===
 
-        private void OnHardwareDataUpdated(List<SensorData> payload)
+        private void OnTreeHardwareGroupsChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            _dispatcherQueue.TryEnqueue(() =>
+            if (e.Action != NotifyCollectionChangedAction.Add) return;
+
+            foreach (LhmHardwareInstance instance in e.NewItems)
             {
-                foreach (var data in payload)
-                {
-                    if (data.HardwareType != "Storage") continue;
-                    if (data.Name != "Write Rate" && data.Name != "Read Rate") continue;
+                if (instance.Kind == HardwareGroupKind.Storage) AttachToInstance(instance);
+            }
+        }
 
-                    var drive = Drives.FirstOrDefault(d => d.HardwareName == data.HardwareName);
-                    if (drive == null)
-                    {
-                        drive = new LhmStorageInstanceViewModel(data.HardwareName);
-                        Drives.Add(drive);
-                    }
 
-                    string formatted = SensorUnitFormatter.Format(data.Value, data.SensorType);
+        // === private helpers ===
 
-                    if (data.Name == "Write Rate")
-                    {
-                        if (drive.WriteRate == null) drive.WriteRate = new SensorGraphViewModel(data.Id, data.Name, data.SensorType);
-                        drive.WriteRate.AddDataPoint(data.Value, formatted);
-                    }
-                    else
-                    {
-                        if (drive.ReadRate == null) drive.ReadRate = new SensorGraphViewModel(data.Id, data.Name, data.SensorType);
-                        drive.ReadRate.AddDataPoint(data.Value, formatted);
-                    }
-                }
-            });
+        private void AttachToInstance(LhmHardwareInstance instance)
+        {
+            var drive = new LhmStorageInstanceViewModel(instance.HardwareName);
+            Drives.Add(drive);
+
+            foreach (var entry in instance.Sensors)
+            {
+                OnSensorDiscovered(drive, entry);
+            }
+            instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(drive, e);
+        }
+
+        private void OnInstanceSensorsChanged(LhmStorageInstanceViewModel drive, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action != NotifyCollectionChangedAction.Add) return;
+
+            foreach (LhmSensorEntry entry in e.NewItems)
+            {
+                OnSensorDiscovered(drive, entry);
+            }
+        }
+
+        private void OnSensorDiscovered(LhmStorageInstanceViewModel drive, LhmSensorEntry entry)
+        {
+            switch (entry.Name)
+            {
+                case "Write Rate":
+                    drive.WriteRate = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    PushDataPoint(drive.WriteRate, entry);
+                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(drive.WriteRate, entry, e);
+                    break;
+
+                case "Read Rate":
+                    drive.ReadRate = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    PushDataPoint(drive.ReadRate, entry);
+                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(drive.ReadRate, entry, e);
+                    break;
+            }
+        }
+
+        private static void OnEntryValueChanged(SensorGraphViewModel graph, LhmSensorEntry entry, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(LhmSensorEntry.Value)) return;
+            PushDataPoint(graph, entry);
+        }
+
+        private static void PushDataPoint(SensorGraphViewModel graph, LhmSensorEntry entry)
+        {
+            graph.AddDataPoint(entry.Value, SensorUnitFormatter.Format(entry.Value, entry.SensorType));
         }
     }
 }

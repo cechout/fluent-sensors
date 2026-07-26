@@ -361,22 +361,9 @@ namespace FluentSensors.Core
 
         private void DiscoverSensors(IHardware hardware)
         {
-            // pump all relevant sensors of this found hardware into our flat list
             foreach (var sensor in hardware.Sensors)
             {
-                // we accepts only this explicit sensor types, all the other are not relevant for now
-                if (sensor.SensorType == SensorType.Load ||
-                    sensor.SensorType == SensorType.Power ||
-                    sensor.SensorType == SensorType.Temperature ||
-                    sensor.SensorType == SensorType.Clock ||
-                    sensor.SensorType == SensorType.Data ||
-                    sensor.SensorType == SensorType.SmallData ||
-                    sensor.SensorType == SensorType.Fan ||
-                    sensor.SensorType == SensorType.Voltage ||
-                    sensor.SensorType == SensorType.Throughput) 
-                {
-                    _activeSensors.Add(sensor);
-                }
+                _activeSensors.Add(sensor);
             }
 
             // some hardware (like motherboards or big GPUs) have sub-hardware

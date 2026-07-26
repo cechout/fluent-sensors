@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-
-using FluentSensors.Common;
+using FluentSensors.Common.Sensors;
 
 namespace FluentSensors.Features.Performance
 {

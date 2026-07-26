@@ -3,9 +3,10 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-
-using FluentSensors.Common;
+using FluentSensors.Core;
 using FluentSensors.Persistence.Services;
+using FluentSensors.Common.UI;
+using FluentSensors.Common.Sensors;
 
 
 namespace FluentSensors.Controls.SensorRow
@@ -42,46 +43,42 @@ namespace FluentSensors.Controls.SensorRow
 
         // === bindable properties ===
 
-        // core configuration properties for the sensor row
-        private string _id;
-        public string Id
+        // backing sensor:
+        // source for Id/Name/SensorType and live Value; set once via object initializer must be set AFTER IsHidden, so
+        // the initial sync below correctly skips hidden rows
+        private LhmSensorEntry _entry;
+        public LhmSensorEntry Entry
         {
-            get => _id;
+            get => _entry;
             set
             {
-                if (_id == value) return; // Id is set once via object initializer; guards against double-subscribing
-                _id = value;
-                OnPropertyChanged();
+                if (_entry == value) return; // set once; guards against double-subscribing
+                _entry = value;
+
+                Unit = SensorUnitFormatter.GetUnit(value.SensorType);
+                OnPropertyChanged(nameof(Id));
+
+                // captures the UI thread this row was created on, so live/theme updates can be marshalled back here safely
+                _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
                 InitializeThreshold();
-            }
-        }
-        public string Name { get; set; } = "Unknown Sensor";
-        public int SortOrder { get; set; } // original creation order
-        public string Unit { get; private set; } = "";
-        private string _sensorType = "";
-        public string SensorType
-        {
-            get => _sensorType;
-            set
-            {
-                _sensorType = value;
-                Unit = value switch
+                _entry.PropertyChanged += OnEntryPropertyChanged;
+
+                // hidden and disabled sensors never show live values anywhere, so skip the initial sync entirely
+                if (!IsHidden)
                 {
-                    "Temperature" => "°C",
-                    "Power" => "W",
-                    "Load" => "%",
-                    "Clock" => "MHz",
-                    "SmallData" => "MB",
-                    "Data" => "GB",
-                    "Voltage" => "V",
-                    "Throughput" => "MB/s",
-                    "Fan" => "RPM",
-                    _ => "" // fallback, if LibreHardwareMonitor sends something exotic
-                };
+                    UpdateValue(_entry.Value);
+                }
             }
         }
 
-        // threshold, owned by the shared editor; created once Id is set (see InitializeThreshold), null before that
+        public string Id => _entry?.Id;
+        public string Name => _entry?.Name ?? "Unknown Sensor";
+        public string SensorType => _entry?.SensorType ?? "";
+        public int SortOrder { get; set; } // original creation order
+        public string Unit { get; private set; } = "";
+
+        // threshold, owned by the shared editor; created once Entry is set (see InitializeThreshold), null before that
         public ThresholdEditorViewModel Threshold { get; private set; }
 
         // threshold indicator (small badge in SensorRowControl)
@@ -110,11 +107,11 @@ namespace FluentSensors.Controls.SensorRow
                     _isSelected = value;
                     OnPropertyChanged();
 
-                    // persist immediately so the checkbox state survives an app restart; Id is always set by this point
-                    // since object initializers set it before IsSelected
-                    if (!string.IsNullOrEmpty(_id))
+                    // persist immediately so the checkbox state survives an app restart; Entry is set before IsSelected
+                    // in the object initializer (SensorsViewModel), so Id is always available here
+                    if (Id != null)
                     {
-                        SensorStateService.Instance.SetSelected(_id, value);
+                        SensorStateService.Instance.SetSelected(Id, value);
                     }
                 }
             }
@@ -217,25 +214,6 @@ namespace FluentSensors.Controls.SensorRow
 
         // === public methods ===
 
-        public void UpdateValue(double newValue)
-        {
-            if (newValue < _min) _min = newValue;
-            if (newValue > _max) _max = newValue;
-
-            _sum += newValue;
-            _count++;
-            _currentRaw = newValue;
-            _avg = _sum / _count;
-
-            // build strings for the UI with the dynamic unit
-            CurrentValue = $"{newValue:0.0} {Unit}";
-            MinimumValue = $"{_min:0.0} {Unit}";
-            MaximumValue = $"{_max:0.0} {Unit}";
-            AverageValue = $"{_avg:0.0} {Unit}";
-
-            RecalculateColors();
-        }
-
         // reset stats method
         public void ResetMinMax()
         {
@@ -253,11 +231,13 @@ namespace FluentSensors.Controls.SensorRow
             AverageValueColor = DefaultTextColor.Resolve();
         }
 
-        // unsubscribes from SettingsService and the threshold editor; must be called once this row is permanently
-        // removed (not just moved to the hidden list), or it keeps reacting to theme/threshold changes after disposal
+        // unsubscribes from SettingsService, the backing entry, and the threshold editor; must be called once this
+        // row is permanently removed (not just moved to the hidden list), or it keeps reacting to value/theme/threshold
+        // changes after disposal
         public void Cleanup()
         {
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+            if (_entry != null) _entry.PropertyChanged -= OnEntryPropertyChanged;
             Threshold?.Cleanup();
             if (Threshold != null) Threshold.PropertyChanged -= OnThresholdPropertyChanged;
         }
@@ -265,19 +245,27 @@ namespace FluentSensors.Controls.SensorRow
 
         // === private helpers ===
 
-        // creates this rows threshold editor once both Id and SensorType are known; SensorType must be set before Id in
-        // the object initializer (SensorsViewModel), otherwise the editor would fall back to the generic default profile
+        // creates this rows threshold editor once Entry is known
         private void InitializeThreshold()
         {
-            if (string.IsNullOrEmpty(_id) || Threshold != null) return;
+            if (_entry == null || Threshold != null) return;
 
-            // captures the UI thread this row was created on, so theme changes can be marshalled back here safely
-            _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-
-            Threshold = new ThresholdEditorViewModel(_id, _sensorType);
+            Threshold = new ThresholdEditorViewModel(_entry.Id, _entry.SensorType);
             Threshold.PropertyChanged += OnThresholdPropertyChanged;
             RecalculateColors();
             UpdateThresholdIndicator();
+        }
+
+        // reacts to live value ticks pushed by LhmHardwareTreeService via the backing entry
+        private void OnEntryPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(LhmSensorEntry.Value)) return;
+
+            // hidden and disabled sensors never show live values anywhere, so skip updating them entirely
+            if (IsHidden) return;
+
+            // no dispatch needed: LhmHardwareTreeService already raises this on the UI thread
+            UpdateValue(_entry.Value);
         }
 
         private void OnThresholdPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -290,6 +278,26 @@ namespace FluentSensors.Controls.SensorRow
                 RecalculateColors();
                 UpdateThresholdIndicator();
             }
+        }
+
+        // applies one new value tick: updates min/max/avg and the formatted display strings
+        private void UpdateValue(double newValue)
+        {
+            if (newValue < _min) _min = newValue;
+            if (newValue > _max) _max = newValue;
+
+            _sum += newValue;
+            _count++;
+            _currentRaw = newValue;
+            _avg = _sum / _count;
+
+            // build strings for the UI with the dynamic unit
+            CurrentValue = $"{newValue:0.0} {Unit}";
+            MinimumValue = $"{_min:0.0} {Unit}";
+            MaximumValue = $"{_max:0.0} {Unit}";
+            AverageValue = $"{_avg:0.0} {Unit}";
+
+            RecalculateColors();
         }
 
         // color evaluation

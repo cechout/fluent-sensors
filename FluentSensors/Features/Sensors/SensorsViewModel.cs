@@ -1,16 +1,16 @@
 ﻿using Microsoft.UI.Dispatching;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-
-using FluentSensors.Common;
+using FluentSensors.Controls.SensorRow;
+using FluentSensors.Core;
 using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
-using FluentSensors.Core;
-using FluentSensors.Controls.SensorRow;
+using FluentSensors.Common.Sensors;
 
 
 namespace FluentSensors.Features.Sensors
@@ -19,8 +19,6 @@ namespace FluentSensors.Features.Sensors
     {
         // === fields ===
 
-        private HardwareMonitorService _service;
-        private DispatcherQueue _dispatcherQueue;
         private TaskCompletionSource<bool> _initialLoadTcs = new TaskCompletionSource<bool>();
         public Task WaitForInitialLoadAsync() => _initialLoadTcs.Task; // MainWindow waits on this
 
@@ -46,11 +44,18 @@ namespace FluentSensors.Features.Sensors
         private SensorsViewModel()
         {
             HardwareGroups = new ObservableCollection<HardwareGroupViewModel>(); // initialize the empty list of hardware groups
-            _dispatcherQueue = DispatcherQueue.GetForCurrentThread(); // grab the ui threads dispatcher queue at startup
 
-            // HardwareMonitorService
-            _service = HardwareMonitorService.Instance; // get HardwareMonitorService instance
-            _service.HardwareDataUpdated += OnHardwareDataUpdated; // subscribe to the master event
+            // this is the first access site that creates LhmHardwareTreeService (lazy singleton), since SensorsViewModel
+            // itself is eager at splash screen; this is an accepted side effect, the tree service effectively also
+            // runs from app start instead of only once the Performance page is first visited
+            var tree = LhmHardwareTreeService.Instance;
+
+            // process whatever the tree service already discovered before we subscribed, then track further discoveries live
+            foreach (var instance in tree.HardwareGroups)
+            {
+                OnHardwareInstanceDiscovered(instance);
+            }
+            tree.HardwareGroups.CollectionChanged += OnTreeHardwareGroupsChanged;
 
             // covers the case where a widget auto-reopened (saved state) before this VM was constructed
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
@@ -79,90 +84,26 @@ namespace FluentSensors.Features.Sensors
 
         // === event handlers ===
 
-        private void OnHardwareDataUpdated(List<SensorData> payload)
+        // reacts to newly discovered hardware instances (e.g. a GPU appearing for the first time)
+        private void OnTreeHardwareGroupsChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            // safely push the UI updates onto the main thread
-            _dispatcherQueue.TryEnqueue(() =>
+            if (e.Action != NotifyCollectionChangedAction.Add) return;
+
+            foreach (LhmHardwareInstance instance in e.NewItems)
             {
-                foreach (var data in payload)
-                {
-                    // check if there is already a group for this specific hardware (e.g. "Intel Core i9-12900H")
-                    var existingGroup = HardwareGroups.FirstOrDefault(g => g.HardwareName == data.HardwareName);
+                OnHardwareInstanceDiscovered(instance);
+            }
+        }
 
-                    // if the group doesnt exist yet, we dynamically create a new expander group
-                    if (existingGroup == null)
-                    {
-                        // GroupLabel/IconGlyph come from the same shared lookup the Performance page uses, so both pages show
-                        // identical labels/icons for the same kind of hardware
-                        var kind = HardwareGroupInfo.GetKind(data.HardwareType);
-                        var profile = HardwareGroupInfo.GetProfile(kind);
+        // reacts to newly discovered sensors on an already-known hardware instance
+        private void OnInstanceSensorsChanged(HardwareGroupViewModel group, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action != NotifyCollectionChangedAction.Add) return;
 
-                        existingGroup = new HardwareGroupViewModel
-                        {
-                            HardwareName = data.HardwareName,
-                            GroupLabel = profile.Label,
-                            IconGlyph = profile.IconGlyph
-                        };
-                        existingGroup.PropertyChanged += Group_PropertyChanged;
-                        HardwareGroups.Add(existingGroup);
-                    }
-
-                    // check if we already have a row for this specific sensor ID inside this group (visible or hidden)
-                    var existingRow = existingGroup.Sensors.FirstOrDefault(r => r.Id == data.Id)
-                        ?? existingGroup.HiddenSensors.FirstOrDefault(r => r.Id == data.Id);
-
-                    if (existingRow != null)
-                    {
-                        // hidden and disabled sensors never show live values anywhere, so skip updating them entirely
-                        if (!existingRow.IsHidden)
-                        {
-                            existingRow.UpdateValue(data.Value);
-                        }
-                    }
-                    else
-                    {
-                        // row does not exist yet -> we dynamically create a new one
-                        // a sensor discovered for the first time this session may already have persisted state from a
-                        // previous run (e.g. it was hidden or selected before closing)
-                        var persistedState = SensorStateService.Instance.GetState(data.Id);
-                        bool isHidden = persistedState.IsHidden;
-
-                        // SensorType must be set before Id:
-                        // setting Id triggers this rows ThresholdEditorViewModel creation, which reads SensorType to resolve
-                        // the correct per-type threshold profile
-                        // if Id came first, the editor would always fall back to the generic Default profile
-                        var newRow = new SensorRowViewModel
-                        {
-                            SensorType = data.SensorType,
-                            Id = data.Id,
-                            Name = data.Name,
-                            SortOrder = existingGroup.Sensors.Count + existingGroup.HiddenSensors.Count,
-                            IsHidden = isHidden,
-                            IsSelected = persistedState.IsSelected,
-                        };
-
-                        if (isHidden)
-                        {
-                            // sensor was hidden before app was closed: block the backend from sending further values right away,
-                            // so no CPU cycles are wasted on a sensor the user does not want to see
-                            HardwareMonitorService.Instance.AddExcludedSensor(data.Id);
-                        }
-                        else
-                        {
-                            newRow.UpdateValue(data.Value);
-                        }
-
-                        existingGroup.AddDiscoveredSensor(newRow, isHidden);
-                    }
-                }
-
-                // signalize that the first data batch has been successfully processed
-                if (!_initialLoadTcs.Task.IsCompleted && HardwareGroups.Count > 0)
-                {
-                    HardwareGroups[0].IsExpanded = true;
-                    _initialLoadTcs.SetResult(true);
-                }
-            });
+            foreach (LhmSensorEntry entry in e.NewItems)
+            {
+                OnSensorDiscovered(group, entry);
+            }
         }
 
         // relays a groups hidden-state change into our own aggregated properties
@@ -178,6 +119,66 @@ namespace FluentSensors.Features.Sensors
         private void OnWidgetStateChanged()
         {
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
+        }
+
+
+        // === private helpers ===
+
+        // creates the expander group for a newly discovered hardware instance, then processes its sensors
+        // (already-known ones immediately, future ones reactively)
+        private void OnHardwareInstanceDiscovered(LhmHardwareInstance instance)
+        {
+            var profile = HardwareGroupInfo.GetProfile(instance.Kind);
+
+            var group = new HardwareGroupViewModel
+            {
+                HardwareName = instance.HardwareName,
+                GroupLabel = profile.Label,
+                IconGlyph = profile.IconGlyph
+            };
+            group.PropertyChanged += Group_PropertyChanged;
+            HardwareGroups.Add(group);
+
+            foreach (var entry in instance.Sensors)
+            {
+                OnSensorDiscovered(group, entry);
+            }
+            instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(group, e);
+        }
+
+        // creates and places the row for one newly discovered sensor; a sensor discovered for the first time this
+        // session may already have persisted state from a previous run (e.g. it was hidden or selected before closing)
+        private void OnSensorDiscovered(HardwareGroupViewModel group, LhmSensorEntry entry)
+        {
+            var persistedState = SensorStateService.Instance.GetState(entry.Id);
+            bool isHidden = persistedState.IsHidden;
+
+            // IsHidden must be set before Entry, and Entry before IsSelected:
+            // Entry's setter does the initial value sync and skips it if IsHidden is already true; IsSelected's setter
+            // persists immediately and needs Entry.Id to already be available
+            var newRow = new SensorRowViewModel
+            {
+                SortOrder = group.Sensors.Count + group.HiddenSensors.Count,
+                IsHidden = isHidden,
+                Entry = entry,
+                IsSelected = persistedState.IsSelected,
+            };
+
+            if (isHidden)
+            {
+                // sensor was hidden before app was closed: block the backend from sending further values right away,
+                // so no CPU cycles are wasted on a sensor the user does not want to see
+                HardwareMonitorService.Instance.AddExcludedSensor(entry.Id);
+            }
+
+            group.AddDiscoveredSensor(newRow, isHidden);
+
+            // signalize that the first sensor has been successfully processed
+            if (!_initialLoadTcs.Task.IsCompleted && HardwareGroups.Count > 0)
+            {
+                HardwareGroups[0].IsExpanded = true;
+                _initialLoadTcs.SetResult(true);
+            }
         }
 
 

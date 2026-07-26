@@ -1,4 +1,4 @@
-﻿namespace FluentSensors.Common
+﻿namespace FluentSensors.Common.Sensors
 {
     // controls which parts of SensorPanelControl are visible; each mode is a fixed preset rather than
     // individually toggleable flags, since these three specific combinations are the only ones currently needed
