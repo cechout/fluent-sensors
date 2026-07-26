@@ -3,10 +3,10 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using FluentSensors.Core;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Core.Lhm;
 
 
 namespace FluentSensors.Controls.SensorRow

@@ -152,7 +152,11 @@ namespace FluentSensors
                 PersistenceService.Instance.FlushAll();
                 Process.GetCurrentProcess().Kill();
             };
-        }   
+
+
+            // TEMP: uncomment to dump everything WinStaticInfoService collected to the Debug output window
+            // _ = Task.Run(FluentSensors.Debug.WinStaticInfoDebugDump.Dump);
+        }
 
 
         // === lifecycle and initialization ===

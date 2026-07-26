@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using FluentSensors.Common.Sensors;
 
-namespace FluentSensors.Core
+namespace FluentSensors.Core.Lhm
 {
     // central, single subscriber to HardwareMonitorService.HardwareDataUpdated:
     // turns the raw payload into a grouped, live-updating tree (HardwareInstance -> Sensors) that every page/ViewModel reads

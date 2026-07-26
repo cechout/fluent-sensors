@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
-using FluentSensors.Core;
+using FluentSensors.Core.Lhm;
 
 
 namespace FluentSensors.Features.Performance.Lhm

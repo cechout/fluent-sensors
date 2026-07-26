@@ -2,7 +2,7 @@
 using FluentSensors.Common.Sensors;
 
 
-namespace FluentSensors.Core
+namespace FluentSensors.Core.Lhm
 {
     // one physical/logical hardware instance (e.g. one specific GPU) and every sensor LHM ever reported for it,
     // completely unfiltered; no threshold, no hide/show, no curated subset

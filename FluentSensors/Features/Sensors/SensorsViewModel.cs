@@ -11,6 +11,7 @@ using FluentSensors.Core;
 using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Core.Lhm;
 
 
 namespace FluentSensors.Features.Sensors

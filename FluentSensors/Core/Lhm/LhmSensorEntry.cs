@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 
 
-namespace FluentSensors.Core
+namespace FluentSensors.Core.Lhm
 {
     // minimal live data node for one LHM sensor:
     // static identity (Id/Name/SensorType) plus a bindable Value no threshold
