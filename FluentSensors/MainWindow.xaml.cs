@@ -155,7 +155,7 @@ namespace FluentSensors
 
 
             // TEMP: uncomment to dump everything WinStaticInfoService collected to the Debug output window
-            // _ = Task.Run(FluentSensors.Debug.WinStaticInfoDebugDump.Dump);
+            // _ = Task.Run(FluentSensors.Diagnostics.WinStaticInfoDebugDump.Dump);
         }
 
 
