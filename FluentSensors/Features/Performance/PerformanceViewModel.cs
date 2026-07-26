@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
+
 using FluentSensors.Common.Sensors;
 using FluentSensors.Features.Performance.Lhm;
 
@@ -19,8 +22,8 @@ namespace FluentSensors.Features.Performance
         // lazy on purpose (unlike SensorsViewModel.Instance):
         // only created the first time PerformancePage actually asks for it, so nobody pays the cost of these background
         // graphs running unless they visit the page
-        // NavigationCacheMode="Enabled" on PerformancePage then keeps this instance alive and bound for the rest of the apps
-        // lifetime once created
+        // NavigationCacheMode="Enabled" on PerformancePage then keeps this instance alive and bound for the rest of the
+        // apps lifetime once created
         private static PerformanceViewModel _instance;
         public static PerformanceViewModel Instance => _instance ??= new PerformanceViewModel();
 
@@ -37,37 +40,16 @@ namespace FluentSensors.Features.Performance
 
             NavItems = new ObservableCollection<PerformanceNavItemViewModel>();
 
-            // Cpu and Ram always exist exactly once, regardless of hardware discovery timing; labels come from the same
-            // shared HardwareGroupInfo lookup SensorsPage uses, so both pages agree on naming
-            // DisplayName starts null and fills in once the underlying view model learns its HardwareName from the first
-            // matching payload entry (see the PropertyChanged subscriptions below)
-            var cpuNavItem = new PerformanceNavItemViewModel(
-                HardwareGroupKind.Cpu, HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Label, Cpu.HardwareName, Cpu);
-            var ramNavItem = new PerformanceNavItemViewModel(
-                HardwareGroupKind.Ram, HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).Label, Memory.HardwareName, Memory);
-            NavItems.Add(cpuNavItem);
-            NavItems.Add(ramNavItem);
-
-            Cpu.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(LhmCpuPerformanceViewModel.HardwareName))
-                {
-                    cpuNavItem.DisplayName = Cpu.HardwareName;
-                }
-            };
-            Memory.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(LhmMemoryPerformanceViewModel.HardwareName))
-                {
-                    ramNavItem.DisplayName = Memory.HardwareName;
-                }
-            };
-
+            // every category follows the exact same discovery pattern:
+            // process instances that already exist (likely true for all of them, since LhmHardwareTreeService runs from
+            // app start), then keep listening for future ones; no category assumes a fixed instance count anymore
+            AttachExistingAndFuture(Cpu.Cpus, HardwareGroupKind.Cpu, item => ((LhmCpuInstanceViewModel)item).HardwareName);
+            AttachExistingAndFuture(Memory.Memories, HardwareGroupKind.Ram, item => ((LhmMemoryInstanceViewModel)item).HardwareName);
             AttachExistingAndFuture(Gpu.Gpus, HardwareGroupKind.Gpu, item => ((LhmGpuInstanceViewModel)item).HardwareName);
             AttachExistingAndFuture(Storage.Drives, HardwareGroupKind.Storage, item => ((LhmStorageInstanceViewModel)item).HardwareName);
             AttachExistingAndFuture(Network.Adapters, HardwareGroupKind.Network, item => ((LhmNetworkInstanceViewModel)item).HardwareName);
 
-            SelectedItem = cpuNavItem;
+            SelectedItem = NavItems.FirstOrDefault(i => i.Kind == HardwareGroupKind.Cpu) ?? NavItems.FirstOrDefault();
         }
 
 
@@ -79,7 +61,7 @@ namespace FluentSensors.Features.Performance
         public LhmStoragePerformanceViewModel Storage { get; }
         public LhmNetworkPerformanceViewModel Network { get; }
 
-        // one entry per selectable hardware category/instance, shown in the sidebar
+        // one entry per selectable hardware instance, shown in the sidebar
         public ObservableCollection<PerformanceNavItemViewModel> NavItems { get; }
 
         private PerformanceNavItemViewModel _selectedItem;
@@ -101,6 +83,20 @@ namespace FluentSensors.Features.Performance
 
         // === private helpers ===
 
+        // processes hardware instances discovered before this ViewModel existed, then keeps listening for future
+        // ones; every category (Cpu/Ram/Gpu/Storage/Network) goes through this exact same path
+        private void AttachExistingAndFuture(IEnumerable collection, HardwareGroupKind kind, Func<object, string> getHardwareName)
+        {
+            string groupLabel = HardwareGroupInfo.GetProfile(kind).Label;
+
+            foreach (var item in collection)
+            {
+                NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, getHardwareName(item), item));
+            }
+
+            ((INotifyCollectionChanged)collection).CollectionChanged += (s, e) => OnHardwareCollectionChanged(e, kind, getHardwareName);
+        }
+
         private void OnHardwareCollectionChanged(NotifyCollectionChangedEventArgs e, HardwareGroupKind kind,
             Func<object, string> getHardwareName)
         {
@@ -112,21 +108,6 @@ namespace FluentSensors.Features.Performance
             {
                 NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, getHardwareName(newItem), newItem));
             }
-        }
-
-        // processes hardware instances discovered before this ViewModel existed (likely, since LhmHardwareTreeService
-        // runs from app start and PerformancePage is only visited later), then keeps listening for future ones
-        private void AttachExistingAndFuture(System.Collections.IEnumerable collection, HardwareGroupKind kind,
-            Func<object, string> getHardwareName)
-        {
-            string groupLabel = HardwareGroupInfo.GetProfile(kind).Label;
-
-            foreach (var item in collection)
-            {
-                NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, getHardwareName(item), item));
-            }
-
-            ((INotifyCollectionChanged)collection).CollectionChanged += (s, e) => OnHardwareCollectionChanged(e, kind, getHardwareName);
         }
 
 

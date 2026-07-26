@@ -1,6 +1,7 @@
-﻿using System.Collections.Specialized;
+﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
+
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core;
@@ -8,12 +9,14 @@ using FluentSensors.Core;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    public class LhmMemoryPerformanceViewModel : INotifyPropertyChanged
+    public class LhmMemoryPerformanceViewModel
     {
         // === constructor ===
 
         public LhmMemoryPerformanceViewModel()
         {
+            Memories = new ObservableCollection<LhmMemoryInstanceViewModel>();
+
             var tree = LhmHardwareTreeService.Instance;
 
             foreach (var instance in tree.HardwareGroups)
@@ -26,28 +29,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === bindable properties ===
 
-        // LHMs raw hardware name for this group (currently always "Total Memory"); captured once, used by Performance-
-        // ViewModel to populate the RAM nav items DisplayName
-        private string _hardwareName;
-        public string HardwareName
-        {
-            get => _hardwareName;
-            private set { _hardwareName = value; OnPropertyChanged(); }
-        }
-
-        private SensorGraphViewModel _used;
-        public SensorGraphViewModel Used
-        {
-            get => _used;
-            private set { _used = value; OnPropertyChanged(); }
-        }
-
-        private SensorGraphViewModel _available;
-        public SensorGraphViewModel Available
-        {
-            get => _available;
-            private set { _available = value; OnPropertyChanged(); }
-        }
+        public ObservableCollection<LhmMemoryInstanceViewModel> Memories { get; }
 
 
         // === event handlers ===
@@ -65,8 +47,8 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === private helpers ===
 
-        // LHM reports "Virtual Memory" (commit charge incl. page file) as a separate Memory-kind instance; we only want
-        // the physical RAM group here
+        // LHM reports "Virtual Memory" (commit charge incl. page file) as a separate Ram-kind instance;
+        // we only want the physical RAM group(s) here
         private static bool IsPhysicalMemory(LhmHardwareInstance instance)
         {
             return instance.Kind == HardwareGroupKind.Ram && instance.HardwareName == "Total Memory";
@@ -74,38 +56,39 @@ namespace FluentSensors.Features.Performance.Lhm
 
         private void AttachToInstance(LhmHardwareInstance instance)
         {
-            if (HardwareName == null) HardwareName = instance.HardwareName;
+            var memory = new LhmMemoryInstanceViewModel(instance.HardwareName);
+            Memories.Add(memory);
 
             foreach (var entry in instance.Sensors)
             {
-                OnSensorDiscovered(entry);
+                OnSensorDiscovered(memory, entry);
             }
-            instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(e);
+            instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(memory, e);
         }
 
-        private void OnInstanceSensorsChanged(NotifyCollectionChangedEventArgs e)
+        private void OnInstanceSensorsChanged(LhmMemoryInstanceViewModel memory, NotifyCollectionChangedEventArgs e)
         {
             if (e.Action != NotifyCollectionChangedAction.Add) return;
 
             foreach (LhmSensorEntry entry in e.NewItems)
             {
-                OnSensorDiscovered(entry);
+                OnSensorDiscovered(memory, entry);
             }
         }
 
-        private void OnSensorDiscovered(LhmSensorEntry entry)
+        private void OnSensorDiscovered(LhmMemoryInstanceViewModel memory, LhmSensorEntry entry)
         {
             if (entry.Name == "Memory Used")
             {
-                Used = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
-                PushDataPoint(Used, entry);
-                entry.PropertyChanged += (s, e) => OnEntryValueChanged(Used, entry, e);
+                memory.Used = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                PushDataPoint(memory.Used, entry);
+                entry.PropertyChanged += (s, e) => OnEntryValueChanged(memory.Used, entry, e);
             }
             else if (entry.Name == "Memory Available")
             {
-                Available = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
-                PushDataPoint(Available, entry);
-                entry.PropertyChanged += (s, e) => OnEntryValueChanged(Available, entry, e);
+                memory.Available = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                PushDataPoint(memory.Available, entry);
+                entry.PropertyChanged += (s, e) => OnEntryValueChanged(memory.Available, entry, e);
             }
         }
 
@@ -118,15 +101,6 @@ namespace FluentSensors.Features.Performance.Lhm
         private static void PushDataPoint(SensorGraphViewModel graph, LhmSensorEntry entry)
         {
             graph.AddDataPoint(entry.Value, SensorUnitFormatter.Format(entry.Value, entry.SensorType));
-        }
-
-
-        // === INotifyPropertyChanged implementation ===
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

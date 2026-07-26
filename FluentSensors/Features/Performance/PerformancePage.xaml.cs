@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Features.Performance.Lhm;
 
 namespace FluentSensors.Features.Performance
 {
@@ -13,23 +14,25 @@ namespace FluentSensors.Features.Performance
             InitializeComponent();
         }
 
-        // x:Bind function bindings, used instead of a separate IValueConverter class for this simple case
-        private Visibility ShowIfTrue(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
-        private Visibility ShowIfFalse(bool value) => value ? Visibility.Collapsed : Visibility.Visible;
-
         // shows the CPU detail block only while a CPU nav item is selected
         // (the same one-method-per-Kind pattern will be added for Ram/Gpu/Storage/Network) 
         private Visibility ShowIfCpuSelected(PerformanceNavItemViewModel item) =>
             item != null && item.Kind == HardwareGroupKind.Cpu ? Visibility.Visible : Visibility.Collapsed;
 
+        // resolves the currently selected nav item's Target to its CPU instance, or null if a non-CPU item
+        // (or nothing) is selected; used both for the ContentControl binding and the two click handlers below
+        private LhmCpuInstanceViewModel GetSelectedCpu(PerformanceNavItemViewModel item) => item?.Target as LhmCpuInstanceViewModel;
+
         private void ShowOverall_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Cpu.IsShowingAllThreads = false;
+            var cpu = GetSelectedCpu(ViewModel.SelectedItem);
+            if (cpu != null) cpu.IsShowingAllThreads = false;
         }
 
         private void ShowAllThreads_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Cpu.IsShowingAllThreads = true;
+            var cpu = GetSelectedCpu(ViewModel.SelectedItem);
+            if (cpu != null) cpu.IsShowingAllThreads = true;
         }
 
         // sidebar selection: every nav item button shares this one handler, the clicked items own DataContext (set by

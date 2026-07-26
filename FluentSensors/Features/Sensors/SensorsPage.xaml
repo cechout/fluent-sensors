@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:fhCommon="using:FluentSensors.Common"
+    xmlns:fhCommon="using:FluentSensors.Common.Sensors"
     xmlns:fhControls="using:FluentSensors.Controls.SensorRow"
     xmlns:fhSensors="using:FluentSensors.Features.Sensors"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
