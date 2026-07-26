@@ -327,5 +327,44 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(bool),
                 typeof(SensorGraphControl),
                 new PropertyMetadata(false));
+
+        // DependencyProperty: LabelText
+        public string LabelText
+        {
+            get => (string)GetValue(LabelTextProperty);
+            set => SetValue(LabelTextProperty, value);
+        }
+
+        public static readonly DependencyProperty LabelTextProperty =
+            DependencyProperty.Register(
+                nameof(LabelText),
+                typeof(string),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(string.Empty, OnLabelChanged));
+
+        // DependencyProperty: IsLabelVisible
+        public bool IsLabelVisible
+        {
+            get => (bool)GetValue(IsLabelVisibleProperty);
+            set => SetValue(IsLabelVisibleProperty, value);
+        }
+
+        public static readonly DependencyProperty IsLabelVisibleProperty =
+            DependencyProperty.Register(
+                nameof(IsLabelVisible),
+                typeof(bool),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(false, OnLabelChanged));
+
+        // shared callback for LabelText and IsLabelVisible: purely a static text overlay, no chart repaint needed
+        private static void OnLabelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not SensorGraphControl g) return;
+
+            g.GraphLabelText.Text = g.LabelText;
+            g.GraphLabelText.Visibility = g.IsLabelVisible && !string.IsNullOrEmpty(g.LabelText)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
     }
 }

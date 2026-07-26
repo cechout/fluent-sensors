@@ -1,8 +1,8 @@
 ﻿using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
@@ -80,20 +80,6 @@ namespace FluentSensors.Controls.SensorRow
 
         // threshold, owned by the shared editor; created once Entry is set (see InitializeThreshold), null before that
         public ThresholdEditorViewModel Threshold { get; private set; }
-
-        // threshold indicator (small badge in SensorRowControl)
-        private string _thresholdIndicatorText = "-";
-        public string ThresholdIndicatorText
-        {
-            get => _thresholdIndicatorText;
-            set { _thresholdIndicatorText = value; OnPropertyChanged(); }
-        }
-        private Brush _thresholdIndicatorBrush = new SolidColorBrush(Colors.Transparent);
-        public Brush ThresholdIndicatorBrush
-        {
-            get => _thresholdIndicatorBrush;
-            set { _thresholdIndicatorBrush = value; OnPropertyChanged(); }
-        }
 
         // item state
         private bool _isSelected;
@@ -253,7 +239,6 @@ namespace FluentSensors.Controls.SensorRow
             Threshold = new ThresholdEditorViewModel(_entry.Id, _entry.SensorType);
             Threshold.PropertyChanged += OnThresholdPropertyChanged;
             RecalculateColors();
-            UpdateThresholdIndicator();
         }
 
         // reacts to live value ticks pushed by LhmHardwareTreeService via the backing entry
@@ -276,7 +261,6 @@ namespace FluentSensors.Controls.SensorRow
                 e.PropertyName == nameof(ThresholdEditorViewModel.Color))
             {
                 RecalculateColors();
-                UpdateThresholdIndicator();
             }
         }
 
@@ -317,21 +301,6 @@ namespace FluentSensors.Controls.SensorRow
                 return DefaultTextColor.Resolve();
 
             return new SolidColorBrush(Threshold.Color);
-        }
-
-        // updates the small threshold badge shown in the new column
-        private void UpdateThresholdIndicator()
-        {
-            if (Threshold != null && Threshold.IsEnabled)
-            {
-                ThresholdIndicatorText = $"{Threshold.Value:0}";
-                ThresholdIndicatorBrush = Threshold.ColorBrush;
-            }
-            else
-            {
-                ThresholdIndicatorText = "--";
-                ThresholdIndicatorBrush = new SolidColorBrush(Colors.Transparent);
-            }
         }
 
 

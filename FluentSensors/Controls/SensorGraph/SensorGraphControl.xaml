@@ -32,6 +32,20 @@
                 XAxes="{Binding XAxes, ElementName=Root}"
                 YAxes="{Binding YAxes, ElementName=Root}" />
 
+            <!--  static title+unit label  -->
+            <!--  (top-left, only shown when IsLabelVisible is true; see LabelText/IsLabelVisible)  -->
+            <TextBlock
+                x:Name="GraphLabelText"
+                Margin="8,5,8,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                FontSize="11"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                IsHitTestVisible="False"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap"
+                Visibility="Collapsed" />
+
             <Canvas
                 x:Name="HoverCanvas"
                 Margin="-3,0,-3,-2"

@@ -7,6 +7,12 @@ using FluentSensors.Common.Sensors;
 
 namespace FluentSensors.Controls.SensorGraph
 {
+    // composable chrome around a SensorGraphControl:
+    // every optional piece (title row, status row, y-axis/threshold controls, graph-tap-to-toggle, ...) is its own
+    // independent property instead of a fixed set of presets, so any combination a consumer needs can be set directly
+    // in XAML without touching this class
+    // UseThresholdFlyout is the one exception: when true, it fully replaces ShowYAxisControls/ShowThresholdControls
+    // (forces both to Collapsed) instead of combining with them; see GetYAxisControlsVisibility/GetThresholdControlsVisibility
     public sealed partial class SensorPanelControl : UserControl
     {
         public SensorPanelControl()
@@ -30,20 +36,135 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(null, OnOverrideChanged));
 
-        public SensorPanelMode Mode
+        // separate title row above everything else, showing just the sensor name
+        public bool ShowTitleRow
         {
-            get => (SensorPanelMode)GetValue(ModeProperty);
-            set => SetValue(ModeProperty, value);
+            get => (bool)GetValue(ShowTitleRowProperty);
+            set => SetValue(ShowTitleRowProperty, value);
         }
 
-        // no changed-callback needed: Mode is set once via a static XAML attribute per instance and never
-        // changes at runtime in current usage
-        public static readonly DependencyProperty ModeProperty =
+        public static readonly DependencyProperty ShowTitleRowProperty =
             DependencyProperty.Register(
-                nameof(Mode),
-                typeof(SensorPanelMode),
+                nameof(ShowTitleRow),
+                typeof(bool),
                 typeof(SensorPanelControl),
-                new PropertyMetadata(SensorPanelMode.Standard));
+                new PropertyMetadata(false));
+
+        // status row shows name + unit combined instead of just the name (no effect if ShowStatusRow is false)
+        public bool ShowUnitInStatusRow
+        {
+            get => (bool)GetValue(ShowUnitInStatusRowProperty);
+            set => SetValue(ShowUnitInStatusRowProperty, value);
+        }
+
+        public static readonly DependencyProperty ShowUnitInStatusRowProperty =
+            DependencyProperty.Register(
+                nameof(ShowUnitInStatusRow),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(false));
+
+        // inline status row (toggle button, Y-max value, sensor name, current value) with its own dedicated toggle button
+        public bool ShowStatusRow
+        {
+            get => (bool)GetValue(ShowStatusRowProperty);
+            set => SetValue(ShowStatusRowProperty, value);
+        }
+
+        public static readonly DependencyProperty ShowStatusRowProperty =
+            DependencyProperty.Register(
+                nameof(ShowStatusRow),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(false));
+
+        // tapping the graph itself toggles the control panel; independent of ShowStatusRow so it also works when
+        // theres no dedicated toggle button (e.g. compact layouts with no status row at all)
+        public bool TogglePanelOnGraphTap
+        {
+            get => (bool)GetValue(TogglePanelOnGraphTapProperty);
+            set => SetValue(TogglePanelOnGraphTapProperty, value);
+        }
+
+        public static readonly DependencyProperty TogglePanelOnGraphTapProperty =
+            DependencyProperty.Register(
+                nameof(TogglePanelOnGraphTap),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(false));
+
+        // Y-axis scaling buttons (increase/decrease/auto) inside the control panel
+        public bool ShowYAxisControls
+        {
+            get => (bool)GetValue(ShowYAxisControlsProperty);
+            set => SetValue(ShowYAxisControlsProperty, value);
+        }
+
+        public static readonly DependencyProperty ShowYAxisControlsProperty =
+            DependencyProperty.Register(
+                nameof(ShowYAxisControls),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(false));
+
+        // threshold buttons (increase/decrease/enable/direction/color) inside the control panel
+        public bool ShowThresholdControls
+        {
+            get => (bool)GetValue(ShowThresholdControlsProperty);
+            set => SetValue(ShowThresholdControlsProperty, value);
+        }
+
+        public static readonly DependencyProperty ShowThresholdControlsProperty =
+            DependencyProperty.Register(
+                nameof(ShowThresholdControls),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(false));
+
+        // shows a small "sensor name (unit)" label directly inside the graph itself, top-left, in gray
+        // (independent of ShowTitleRow/ShowStatusRow, e.g. for compact layouts with neither)
+        public bool ShowGraphLabel
+        {
+            get => (bool)GetValue(ShowGraphLabelProperty);
+            set => SetValue(ShowGraphLabelProperty, value);
+        }
+
+        public static readonly DependencyProperty ShowGraphLabelProperty =
+            DependencyProperty.Register(
+                nameof(ShowGraphLabel),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(false));
+
+        // replaces the entire control panel (ShowYAxisControls/ShowThresholdControls, regardless of their own value)
+        // with a single compact flyout trigger reusing the threshold editor flyout from SensorRowControl
+        public bool UseThresholdFlyout
+        {
+            get => (bool)GetValue(UseThresholdFlyoutProperty);
+            set => SetValue(UseThresholdFlyoutProperty, value);
+        }
+
+        public static readonly DependencyProperty UseThresholdFlyoutProperty =
+            DependencyProperty.Register(
+                nameof(UseThresholdFlyout),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(false));
+
+        // overrides the graphs line/section color for this specific instance, regardless of the global accent/custom
+        // color setting; Colors.Transparent (Alpha 0) = no override, since a real accent color is never fully transparent
+        public Windows.UI.Color GraphColorOverride
+        {
+            get => (Windows.UI.Color)GetValue(GraphColorOverrideProperty);
+            set => SetValue(GraphColorOverrideProperty, value);
+        }
+
+        public static readonly DependencyProperty GraphColorOverrideProperty =
+            DependencyProperty.Register(
+                nameof(GraphColorOverride),
+                typeof(Windows.UI.Color),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(Windows.UI.Color.FromArgb(0, 0, 0, 0)));
 
         // 0 = no override
         // (a real graph never has 0 data points, so this doubles as a safe sentinel)
@@ -133,26 +254,31 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === bindable helper surfaces ===
 
-        // title is shown in Performance and Minimal (Widget shows the status header instead, which already
-        // contains the sensor name)
-        private Visibility GetTitleVisibility(SensorPanelMode mode)
+        private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
+
+        // status row shows either the plain sensor name, or name+unit combined, depending on ShowUnitInStatusRow
+        private string GetStatusRowTitle(bool showUnit, string name, string nameWithUnit)
         {
-            return mode == SensorPanelMode.Standard ? Visibility.Collapsed : Visibility.Visible;
+            return showUnit ? nameWithUnit : name;
         }
 
-        private Visibility GetStatusHeaderVisibility(SensorPanelMode mode)
+        // Y-axis and threshold controls both live inside the same toggleable control panel; UseThresholdFlyout replaces
+        // both entirely when active, so it forces this to Collapsed regardless of the individual Show*Controls properties
+        private Visibility GetYAxisControlsVisibility(bool showYAxisControls, bool useThresholdFlyout, Visibility controlPanelVisibility)
         {
-            return mode == SensorPanelMode.Standard ? Visibility.Visible : Visibility.Collapsed;
+            return showYAxisControls && !useThresholdFlyout ? controlPanelVisibility : Visibility.Collapsed;
         }
 
-        private Visibility GetYAxisControlsVisibility(SensorPanelMode mode, Visibility controlPanelVisibility)
+        private Visibility GetThresholdControlsVisibility(bool showThresholdControls, bool useThresholdFlyout, Visibility controlPanelVisibility)
         {
-            return mode == SensorPanelMode.Standard ? controlPanelVisibility : Visibility.Collapsed;
+            return showThresholdControls && !useThresholdFlyout ? controlPanelVisibility : Visibility.Collapsed;
         }
 
-        private Visibility GetThresholdControlsVisibility(SensorPanelMode mode, Visibility controlPanelVisibility)
+        // combines the automatic per-sensor color (resolved via global accent/custom settings) with this instances
+        // optional override; Alpha 0 on the override means "not set", since a real accent color is never fully transparent
+        private Windows.UI.Color GetEffectiveGraphColor(Windows.UI.Color overrideColor, Windows.UI.Color autoColor)
         {
-            return mode == SensorPanelMode.Minimal ? Visibility.Collapsed : controlPanelVisibility;
+            return overrideColor.A == 0 ? autoColor : overrideColor;
         }
 
 
@@ -160,7 +286,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         private void GraphControl_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            if (Mode == SensorPanelMode.Performance)
+            if (TogglePanelOnGraphTap)
             {
                 ViewModel?.ToggleControlPanel();
             }

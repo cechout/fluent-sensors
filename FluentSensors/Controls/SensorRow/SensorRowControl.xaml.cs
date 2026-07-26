@@ -2,7 +2,6 @@ using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Controls.Primitives;
 
 
 namespace FluentSensors.Controls.SensorRow
@@ -13,8 +12,6 @@ namespace FluentSensors.Controls.SensorRow
 
         private bool _isHovered = false;
         private bool _isPressed = false;
-        private bool _isThresholdIndicatorHovered = false;
-        private bool _isThresholdIndicatorPressed = false;
         private bool _isSubscribed = false;
 
 
@@ -120,8 +117,6 @@ namespace FluentSensors.Controls.SensorRow
         {
             _isHovered = false;
             _isPressed = false;
-            _isThresholdIndicatorHovered = false;
-            _isThresholdIndicatorPressed = false;
 
             // re-attach everything that Unloaded detached; the control can come back after a recycle with the same ViewModel,
             // in which case OnViewModelChanged never fires again and would leave the card dead
@@ -130,7 +125,7 @@ namespace FluentSensors.Controls.SensorRow
                 ViewModel.PropertyChanged += ViewModel_PropertyChanged;
                 _isSubscribed = true;
             }
-            this.Bindings.Update(); 
+            this.Bindings.Update();
 
             // skip transitions on the initial state
             // (fast collapse/expand cycles otherwise interrupt animations mid-flight and leave the card visually blank sometimes)
@@ -155,7 +150,7 @@ namespace FluentSensors.Controls.SensorRow
                 ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
                 _isSubscribed = false;
             }
-            this.Bindings.StopTracking(); 
+            this.Bindings.StopTracking();
         }
 
 
@@ -198,46 +193,6 @@ namespace FluentSensors.Controls.SensorRow
             UpdateVisualState();
         }
 
-        // threshold badge
-        // (press state via opacity only, no VSM)
-        private void ThresholdIndicatorBorder_PointerEntered(object sender, PointerRoutedEventArgs e)
-        {
-            _isThresholdIndicatorHovered = true;
-            UpdateThresholdIndicatorVisualState();
-        }
-
-        private void ThresholdIndicatorBorder_PointerExited(object sender, PointerRoutedEventArgs e)
-        {
-            _isThresholdIndicatorHovered = false;
-            _isThresholdIndicatorPressed = false;
-            UpdateThresholdIndicatorVisualState();
-        }
-
-        private void ThresholdIndicatorBorder_PointerPressed(object sender, PointerRoutedEventArgs e)
-        {
-            _isThresholdIndicatorPressed = true;
-            UpdateThresholdIndicatorVisualState();
-            e.Handled = true;
-        }
-
-        private void ThresholdIndicatorBorder_PointerReleased(object sender, PointerRoutedEventArgs e)
-        {
-            _isThresholdIndicatorPressed = false;
-            UpdateThresholdIndicatorVisualState();
-            e.Handled = true;
-        }
-
-        private void ThresholdIndicatorBorder_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            e.Handled = true;
-            FlyoutBase.ShowAttachedFlyout(ThresholdIndicatorBorder);
-        }
-
-        private void ThresholdCloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            ThresholdFlyout.Hide(); 
-        }
-
 
         // === private helpers ===
 
@@ -262,18 +217,6 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // decides between normal / hover / pressed for the threshold badge
-        // (hover-gray only applies when no threshold is configured yet, since a configured threshold already communicates
-        // state via its own background color)
-        private void UpdateThresholdIndicatorVisualState()
-        {
-            bool isConfigured = ViewModel?.Threshold?.IsEnabled == true;
-
-            if (_isThresholdIndicatorPressed) { VisualStateManager.GoToState(this, isConfigured ? "IndicatorPressedConfigured" : "IndicatorPressedUnconfigured", true); }
-            else if (_isThresholdIndicatorHovered && !isConfigured) { VisualStateManager.GoToState(this, "IndicatorHover", true); }
-            else { VisualStateManager.GoToState(this, "IndicatorNormal", true); }
-        }
-
         // decides between full details, disabled (dimmed/frozen), or name-only (in HiddenSensorsWindow)
         // (column collapsing for name-only happens here in code-behind rather than via VSM, since it involves width changes,
         // not just setters)
@@ -282,7 +225,7 @@ namespace FluentSensors.Controls.SensorRow
             if (IsCompact)
             {
                 CurrentValueText.Visibility = Visibility.Collapsed;
-                ThresholdIndicatorBorder.Visibility = Visibility.Collapsed;
+                ThresholdIndicator.Visibility = Visibility.Collapsed;
                 MinimumValueText.Visibility = Visibility.Collapsed;
                 MaximumValueText.Visibility = Visibility.Collapsed;
                 AverageValueText.Visibility = Visibility.Collapsed;

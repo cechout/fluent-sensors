@@ -26,6 +26,7 @@ namespace FluentSensors.Controls.SensorGraph
         {
             SensorId = sensorId;
             SensorName = sensorName;
+            Unit = SensorUnitFormatter.GetUnit(sensorType);
             CurrentValueText = "-"; // placeholder text until we have the first value
             CurrentValueColor = DefaultTextColor.Resolve();
 
@@ -70,8 +71,10 @@ namespace FluentSensors.Controls.SensorGraph
         public string SensorName
         {
             get => _sensorName;
-            set { _sensorName = value; OnPropertyChanged(); }
+            set { _sensorName = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayNameWithUnit)); }
         }
+        public string Unit { get; }
+        public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? SensorName : $"{SensorName} ({Unit})";
         private string _currentValueText = "-";
         public string CurrentValueText
         {

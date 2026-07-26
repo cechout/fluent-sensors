@@ -6,6 +6,7 @@
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhThreshold="using:FluentSensors.Controls.Threshold"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="Root"
     mc:Ignorable="d">
@@ -16,11 +17,11 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  label row: title (Performance/Minimal) and status header (Widget) overlap here, mutually exclusive  -->
+        <!--  label row  -->
+        <!--  (title row and status row overlap here, both independently toggleable via ShowTitleRow/ShowStatusRow)  -->
         <Grid Grid.Row="0">
 
-            <!--  only title  -->
-            <!--  (compact mode)  -->
+            <!--  separate title row: just the sensor name  -->
             <TextBlock
                 Margin="4,0,0,0"
                 VerticalAlignment="Center"
@@ -28,16 +29,15 @@
                 Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
                 TextTrimming="CharacterEllipsis"
                 TextWrapping="NoWrap"
-                Visibility="{x:Bind GetTitleVisibility(Mode), Mode=OneWay}" />
+                Visibility="{x:Bind BoolToVisibility(ShowTitleRow), Mode=OneWay}" />
 
-            <!--  status header with sensor name and current value  -->
-            <!--  (standard mode)  -->
+            <!--  status row: toggle button, current Y-max, sensor name (+ unit), current value  -->
             <Grid
                 Padding="0,0,0,0"
                 HorizontalAlignment="Stretch"
                 Background="Transparent"
                 ColumnSpacing="0"
-                Visibility="{x:Bind GetStatusHeaderVisibility(Mode), Mode=OneWay}">
+                Visibility="{x:Bind BoolToVisibility(ShowStatusRow), Mode=OneWay}">
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="36" />
@@ -49,6 +49,7 @@
                 <Button
                     Grid.Column="0"
                     Width="32"
+                    Height="18"
                     Padding="0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Stretch"
@@ -73,13 +74,13 @@
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind ViewModel.ActualYMaxText, Mode=OneWay}" />
 
-                <!--  sensor name  -->
+                <!--  sensor name, or name + unit if ShowUnitInStatusRow  -->
                 <TextBlock
                     Grid.Column="2"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind ViewModel.SensorName, Mode=OneWay}" />
+                    Text="{x:Bind GetStatusRowTitle(ShowUnitInStatusRow, ViewModel.SensorName, ViewModel.DisplayNameWithUnit), Mode=OneWay}" />
 
                 <!--  current value  -->
                 <TextBlock
@@ -105,13 +106,12 @@
             </Grid.ColumnDefinitions>
 
             <!--  Y-axis control buttons  -->
-            <!--  (standard mode)  -->
             <Grid
                 Grid.Column="0"
                 Width="36"
                 Padding="0,0,3,0"
                 RowSpacing="3"
-                Visibility="{x:Bind GetYAxisControlsVisibility(Mode, ViewModel.ControlPanelVisibility), Mode=OneWay}">
+                Visibility="{x:Bind GetYAxisControlsVisibility(ShowYAxisControls, UseThresholdFlyout, ViewModel.ControlPanelVisibility), Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
@@ -151,13 +151,12 @@
             </Grid>
 
             <!--  threshold buttons 1  -->
-            <!--  (standard + compact mode)  -->
             <Grid
                 Grid.Column="2"
                 Width="36"
                 Padding="3,0,0,0"
                 RowSpacing="3"
-                Visibility="{x:Bind GetThresholdControlsVisibility(Mode, ViewModel.ControlPanelVisibility), Mode=OneWay}">
+                Visibility="{x:Bind GetThresholdControlsVisibility(ShowThresholdControls, UseThresholdFlyout, ViewModel.ControlPanelVisibility), Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
@@ -197,13 +196,12 @@
             </Grid>
 
             <!--  threshold buttons 2  -->
-            <!--  (standard + compact mode)  -->
             <Grid
                 Grid.Column="3"
                 Width="36"
                 Padding="3,0,0,0"
                 RowSpacing="3"
-                Visibility="{x:Bind GetThresholdControlsVisibility(Mode, ViewModel.ControlPanelVisibility), Mode=OneWay}">
+                Visibility="{x:Bind GetThresholdControlsVisibility(ShowThresholdControls, UseThresholdFlyout, ViewModel.ControlPanelVisibility), Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
@@ -274,21 +272,29 @@
                 </ToggleButton>
             </Grid>
 
-            <!--  LiveChart graph  -->
-            <!--  (always visible)  -->
-            <!--  tapped toggles the panel in compact mode  -->
-            <fhGraph:SensorGraphControl
-                Grid.Column="1"
-                AccentColor="{x:Bind ViewModel.GraphColor, Mode=OneWay}"
-                IsAutoScaled="{x:Bind ViewModel.IsAutoScaled, Mode=OneWay}"
-                LabelFollowsPointer="True"
-                ManualYMax="{x:Bind ViewModel.ManualYMax, Mode=OneWay}"
-                Tapped="GraphControl_Tapped"
-                ThresholdColor="{x:Bind ViewModel.Threshold.Color, Mode=OneWay}"
-                ThresholdDirection="{x:Bind ViewModel.Threshold.Direction, Mode=OneWay}"
-                ThresholdLabelAlwaysVisible="{x:Bind ThresholdLabelAlwaysVisible, Mode=OneWay}"
-                ThresholdValue="{x:Bind ViewModel.Threshold.EffectiveValue, Mode=OneWay}"
-                Values="{x:Bind ViewModel.SensorData, Mode=OneWay}" />
+            <!--  graph, plus optional threshold-flyout badge overlay top-right when UseThresholdFlyout  -->
+            <Grid Grid.Column="1">
+                <fhGraph:SensorGraphControl
+                    AccentColor="{x:Bind GetEffectiveGraphColor(GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
+                    IsAutoScaled="{x:Bind ViewModel.IsAutoScaled, Mode=OneWay}"
+                    IsLabelVisible="{x:Bind ShowGraphLabel, Mode=OneWay}"
+                    LabelFollowsPointer="True"
+                    LabelText="{x:Bind ViewModel.DisplayNameWithUnit, Mode=OneWay}"
+                    ManualYMax="{x:Bind ViewModel.ManualYMax, Mode=OneWay}"
+                    Tapped="GraphControl_Tapped"
+                    ThresholdColor="{x:Bind ViewModel.Threshold.Color, Mode=OneWay}"
+                    ThresholdDirection="{x:Bind ViewModel.Threshold.Direction, Mode=OneWay}"
+                    ThresholdLabelAlwaysVisible="{x:Bind ThresholdLabelAlwaysVisible, Mode=OneWay}"
+                    ThresholdValue="{x:Bind ViewModel.Threshold.EffectiveValue, Mode=OneWay}"
+                    Values="{x:Bind ViewModel.SensorData, Mode=OneWay}" />
+
+                <fhThreshold:ThresholdFlyoutControl
+                    Margin="0,4,4,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Threshold="{x:Bind ViewModel.Threshold, Mode=OneWay}"
+                    Visibility="{x:Bind BoolToVisibility(UseThresholdFlyout), Mode=OneWay}" />
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>

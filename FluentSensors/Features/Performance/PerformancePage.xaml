@@ -129,7 +129,8 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!--  header: group label (left) + hardware display name (right) for the selected nav item  -->
+                <!--  header for one hardware  -->
+                <!--  group label (left) + hardware display name (right) for the selected nav item  -->
                 <Border
                     Grid.Row="0"
                     Padding="16,12,16,12"
@@ -150,11 +151,8 @@
                     </Grid>
                 </Border>
 
-                <!--
-                    CPU detail content; visible only while a CPU nav item is selected. Additional detail
-                    blocks for Ram/Gpu/Storage/Network will follow the same pattern (own Grid.Row="1"
-                    element, own ShowIfXSelected visibility) once built
-                -->
+
+                <!--  CPU detail content  -->
                 <ScrollViewer
                     Grid.Row="1"
                     HorizontalScrollBarVisibility="Disabled"
@@ -162,12 +160,6 @@
                     VerticalScrollMode="Auto"
                     Visibility="{x:Bind ShowIfCpuSelected(ViewModel.SelectedItem), Mode=OneWay}">
                     <StackPanel Padding="16" Spacing="12">
-
-                        <!--
-                            both views below enforce a minimum graph/cell height (MinHeight / MinCellHeight);
-                            once the available space can't fit that anymore, the ScrollViewer above scrolls
-                            instead of squeezing everything down to unusable size
-                        -->
                         <ContentControl
                             HorizontalContentAlignment="Stretch"
                             VerticalContentAlignment="Stretch"
@@ -176,46 +168,149 @@
                                 <DataTemplate x:DataType="fhLhm:LhmCpuInstanceViewModel">
                                     <Grid>
 
-                                        <!--  overall CPU load: single graph  -->
-                                        <fhGraph:SensorPanelControl
-                                            MinHeight="150"
-                                            GraphDataPointsOverride="110"
-                                            IsAutoScaledOverride="False"
-                                            ManualYMaxOverride="100"
-                                            Mode="Performance"
-                                            ThresholdLabelAlwaysVisible="False"
-                                            ViewModel="{x:Bind TotalLoad, Mode=OneWay}"
-                                            Visibility="{x:Bind OverallVisibility, Mode=OneWay}" />
+                                        <Grid.Resources>
 
-                                        <!--
-                                            all cores/threads: dynamic square grid, one mini panel per core/thread. The
-                                            ItemsControl's own default internal ScrollViewer is disabled here so its
-                                            content's true (possibly grown-beyond-viewport) height bubbles up to the outer
-                                            ScrollViewer instead of scrolling twice
-                                        -->
-                                        <ItemsControl
-                                            ItemsSource="{x:Bind Cores, Mode=OneWay}"
-                                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                            ScrollViewer.VerticalScrollMode="Disabled"
-                                            Visibility="{x:Bind AllThreadsVisibility, Mode=OneWay}">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <fhControls:SquareGridPanel MinCellHeight="150" Spacing="4" />
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
+                                            <!--  1 border for 1 physical core  -->
+                                            <!--  it stack whicever threads, temperatur, clocks it actually has  -->
+                                            <DataTemplate x:Key="CpuCoreCellTemplate" x:DataType="fhLhm:LhmCpuCoreViewModel">
+                                                <Border
+                                                    Padding="4"
+                                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                    CornerRadius="4">
+                                                    <Grid RowSpacing="2">
+                                                        <Grid.RowDefinitions>
+                                                            <!--  threads  -->
+                                                            <RowDefinition Height="2*" />
+                                                            <!--  temperature  -->
+                                                            <RowDefinition Height="*" />
+                                                            <!--  clock  -->
+                                                            <RowDefinition Height="*" />
+                                                        </Grid.RowDefinitions>
 
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
-                                                    <fhGraph:SensorPanelControl
-                                                        GraphDataPointsOverride="50"
-                                                        IsAutoScaledOverride="False"
-                                                        ManualYMaxOverride="100"
-                                                        Mode="Performance"
-                                                        ThresholdLabelAlwaysVisible="False"
-                                                        ViewModel="{x:Bind}" />
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
+                                                        <!--  threads graphs  -->
+                                                        <ItemsControl Grid.Row="0" ItemsSource="{x:Bind Threads, Mode=OneWay}">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate>
+                                                                    <fhControls:VerticalStretchPanel Spacing="2" />
+                                                                </ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
+                                                                    <fhGraph:SensorPanelControl
+                                                                        GraphDataPointsOverride="50"
+                                                                        IsAutoScaledOverride="False"
+                                                                        ManualYMaxOverride="100"
+                                                                        ShowTitleRow="True"
+                                                                        ThresholdLabelAlwaysVisible="False"
+                                                                        ViewModel="{x:Bind}" />
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+
+                                                        <!--  temperature graph  -->
+                                                        <fhGraph:SensorPanelControl
+                                                            Grid.Row="1"
+                                                            GraphDataPointsOverride="50"
+                                                            IsAutoScaledOverride="False"
+                                                            ManualYMaxOverride="100"
+                                                            ShowTitleRow="True"
+                                                            ThresholdLabelAlwaysVisible="False"
+                                                            ViewModel="{x:Bind Temperature, Mode=OneWay}" />
+
+                                                        <!--  clock graph  -->
+                                                        <fhGraph:SensorPanelControl
+                                                            Grid.Row="2"
+                                                            GraphDataPointsOverride="50"
+                                                            IsAutoScaledOverride="False"
+                                                            ManualYMaxOverride="5000"
+                                                            ShowTitleRow="True"
+                                                            ThresholdLabelAlwaysVisible="False"
+                                                            ViewModel="{x:Bind Clock, Mode=OneWay}" />
+
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </Grid.Resources>
+
+                                        <!--  first: overall cpu view  -->
+                                        <!--  total load + average/max temperature, stacked  -->
+                                        <StackPanel Spacing="8" Visibility="{x:Bind OverallVisibility, Mode=OneWay}">
+                                            <fhGraph:SensorPanelControl
+                                                MinHeight="120"
+                                                GraphDataPointsOverride="250"
+                                                IsAutoScaledOverride="False"
+                                                ManualYMaxOverride="100"
+                                                ShowStatusRow="True"
+                                                ShowThresholdControls="True"
+                                                ShowYAxisControls="True"
+                                                ThresholdLabelAlwaysVisible="False"
+                                                ViewModel="{x:Bind TotalLoad, Mode=OneWay}" />
+
+                                            <fhGraph:SensorPanelControl
+                                                MinHeight="120"
+                                                GraphDataPointsOverride="250"
+                                                IsAutoScaledOverride="False"
+                                                ManualYMaxOverride="100"
+                                                ShowStatusRow="True"
+                                                ShowThresholdControls="True"
+                                                ShowYAxisControls="True"
+                                                ThresholdLabelAlwaysVisible="False"
+                                                ViewModel="{x:Bind AverageTemperature, Mode=OneWay}" />
+
+                                            <fhGraph:SensorPanelControl
+                                                MinHeight="120"
+                                                GraphDataPointsOverride="250"
+                                                IsAutoScaledOverride="False"
+                                                ManualYMaxOverride="100"
+                                                ShowStatusRow="True"
+                                                ShowThresholdControls="True"
+                                                ShowYAxisControls="True"
+                                                ThresholdLabelAlwaysVisible="False"
+                                                ViewModel="{x:Bind MaxTemperature, Mode=OneWay}" />
+                                        </StackPanel>
+
+                                        <!--  second: all cpu cores view  -->
+                                        <!--  (cores with threads on top and cores withput threads below)  -->
+                                        <Grid Visibility="{x:Bind AllThreadsVisibility, Mode=OneWay}">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <ItemsControl
+                                                Grid.Row="0"
+                                                ItemTemplate="{StaticResource CpuCoreCellTemplate}"
+                                                ItemsSource="{x:Bind CoresWithThreads, Mode=OneWay}"
+                                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                                ScrollViewer.VerticalScrollMode="Disabled">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <fhControls:SquareGridPanel MinCellHeight="250" Spacing="8" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
+
+                                            <Border
+                                                Grid.Row="1"
+                                                Height="1"
+                                                Margin="0,8"
+                                                Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                                            <ItemsControl
+                                                Grid.Row="2"
+                                                ItemTemplate="{StaticResource CpuCoreCellTemplate}"
+                                                ItemsSource="{x:Bind CoresWithoutThreads, Mode=OneWay}"
+                                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                                ScrollViewer.VerticalScrollMode="Disabled">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <fhControls:SquareGridPanel MinCellHeight="200" Spacing="8" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
+
+                                        </Grid>
 
                                     </Grid>
                                 </DataTemplate>

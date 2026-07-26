@@ -25,15 +25,6 @@
             Height="auto"
             Background="Transparent">
 
-            <!--<Border
-                Width="34"
-                Height="3"
-                Margin="0,8,0,0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-                Background="{ThemeResource TextFillColorTertiaryBrush}"
-                CornerRadius="2" />-->
-
             <!--  back to main application button (currently in title bar too)  -->
             <Button
                 Width="32"
@@ -64,7 +55,11 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
-                        <fhGraph:SensorPanelControl Mode="Standard" ViewModel="{x:Bind}" />
+                        <fhGraph:SensorPanelControl
+                            ShowStatusRow="True"
+                            ShowThresholdControls="True"
+                            ShowYAxisControls="True"
+                            ViewModel="{x:Bind}" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

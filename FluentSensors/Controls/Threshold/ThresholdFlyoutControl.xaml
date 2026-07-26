@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="FluentSensors.Controls.Threshold.ThresholdFlyoutControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="Root"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <SolidColorBrush x:Key="ThresholdIndicatorHoverBrush" Color="#13FFFFFF" />
+                    <SolidColorBrush x:Key="ThresholdIndicatorPressedBrush" Color="#0CFFFFFF" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="ThresholdIndicatorHoverBrush" Color="#FFEFEFEF" />
+                    <SolidColorBrush x:Key="ThresholdIndicatorPressedBrush" Color="#FFF3F3F3" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!--  compact badge: shows "-" or the configured value, background = threshold color once configured  -->
+    <!--  tapping opens the full threshold editor flyout below  -->
+    <!--
+        IMPORTANT: this Border is the UserControls Content (its only implicit child), so VisualStateGroups must live
+        directly on it; GoToState only ever looks at the Content root, never at the UserControl instance itself
+    -->
+    <Border
+        x:Name="IndicatorBorder"
+        Width="34"
+        Padding="5,2"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Background="{x:Bind IndicatorBrush, Mode=OneWay}"
+        CornerRadius="3"
+        Opacity="0.95"
+        PointerEntered="IndicatorBorder_PointerEntered"
+        PointerExited="IndicatorBorder_PointerExited"
+        PointerPressed="IndicatorBorder_PointerPressed"
+        PointerReleased="IndicatorBorder_PointerReleased"
+        Tapped="IndicatorBorder_Tapped">
+        <FlyoutBase.AttachedFlyout>
+            <Flyout
+                x:Name="ThresholdFlyout"
+                Placement="Bottom"
+                ShouldConstrainToRootBounds="False">
+                <Flyout.FlyoutPresenterStyle>
+                    <Style TargetType="FlyoutPresenter">
+                        <Setter Property="Padding" Value="0,0,0,0" />
+                        <Setter Property="CornerRadius" Value="8" />
+                    </Style>
+                </Flyout.FlyoutPresenterStyle>
+
+                <StackPanel
+                    Width="105"
+                    Padding="4"
+                    Spacing="8">
+                    <Grid ColumnSpacing="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            Grid.Column="0"
+                            Margin="5,3,10,0"
+                            VerticalAlignment="Center"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Threshold Config" />
+
+                        <Button
+                            x:Name="ThresholdCloseButton"
+                            Grid.Column="0"
+                            Width="28"
+                            Height="28"
+                            Padding="0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Click="ThresholdCloseButton_Click"
+                            Style="{StaticResource SubtleButtonStyle}">
+                            <FontIcon FontSize="12" Glyph="&#xE711;" />
+                        </Button>
+                    </Grid>
+
+                    <Grid
+                        Height="90"
+                        Margin="2"
+                        ColumnSpacing="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.Column="0" RowSpacing="4">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <RepeatButton
+                                Grid.Row="0"
+                                Padding="0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                Click="{x:Bind Threshold.Increase}"
+                                ToolTipService.ToolTip="Increase Threshold">
+                                <FontIcon FontSize="12" Glyph="&#xE70E;" />
+                            </RepeatButton>
+
+                            <RepeatButton
+                                Grid.Row="1"
+                                Padding="0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                Click="{x:Bind Threshold.Decrease}"
+                                ToolTipService.ToolTip="Decrease Threshold">
+                                <FontIcon FontSize="12" Glyph="&#xE70D;" />
+                            </RepeatButton>
+
+                            <ToggleButton
+                                Grid.Row="2"
+                                Padding="0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                Content="T"
+                                FontSize="12"
+                                FontWeight="Normal"
+                                IsChecked="{x:Bind Threshold.IsEnabled, Mode=TwoWay}"
+                                ToolTipService.ToolTip="Toggle Threshold-Line" />
+                        </Grid>
+
+                        <Grid Grid.Column="1" RowSpacing="3">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <ToggleButton
+                                Grid.Row="0"
+                                Padding="0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                IsChecked="{x:Bind Threshold.IsAboveDirection, Mode=TwoWay}"
+                                ToolTipService.ToolTip="Mark Above Threshold">
+                                <FontIcon
+                                    FontSize="12"
+                                    Glyph="&#xEDE1;"
+                                    RenderTransformOrigin="0.5,0.5">
+                                    <FontIcon.RenderTransform>
+                                        <RotateTransform Angle="-90" />
+                                    </FontIcon.RenderTransform>
+                                </FontIcon>
+                            </ToggleButton>
+
+                            <Button
+                                Grid.Row="1"
+                                Padding="0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch">
+                                <Border
+                                    Background="{x:Bind Threshold.ColorBrush, Mode=OneWay}"
+                                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="3" />
+
+                                <Button.Flyout>
+                                    <Flyout Placement="Bottom" ShouldConstrainToRootBounds="False">
+                                        <controls:ColorPicker
+                                            ColorSpectrumShape="Box"
+                                            IsAlphaEnabled="False"
+                                            IsAlphaSliderVisible="False"
+                                            IsAlphaTextInputVisible="False"
+                                            IsColorChannelTextInputVisible="True"
+                                            IsColorPaletteVisible="True"
+                                            IsColorSliderVisible="True"
+                                            IsColorSpectrumVisible="True"
+                                            Color="{x:Bind Threshold.Color, Mode=TwoWay}" />
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+
+                            <ToggleButton
+                                Grid.Row="2"
+                                Padding="0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                IsChecked="{x:Bind Threshold.IsBelowDirection, Mode=TwoWay}"
+                                ToolTipService.ToolTip="Mark Under Threshold">
+                                <FontIcon
+                                    FontSize="12"
+                                    Glyph="&#xEDE1;"
+                                    RenderTransformOrigin="0.5,0.5">
+                                    <FontIcon.RenderTransform>
+                                        <RotateTransform Angle="90" />
+                                    </FontIcon.RenderTransform>
+                                </FontIcon>
+                            </ToggleButton>
+                        </Grid>
+                    </Grid>
+                </StackPanel>
+            </Flyout>
+        </FlyoutBase.AttachedFlyout>
+
+        <TextBlock
+            Margin="0,0,0,1"
+            HorizontalAlignment="Center"
+            FontSize="10"
+            Text="{x:Bind IndicatorText, Mode=OneWay}"
+            TextAlignment="Center" />
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="ThresholdIndicatorStates">
+                <VisualState x:Name="IndicatorNormal" />
+
+                <!--  (only when no threshold is configured yet)  -->
+                <VisualState x:Name="IndicatorHover">
+                    <VisualState.Setters>
+                        <Setter Target="IndicatorBorder.Background" Value="{ThemeResource ThresholdIndicatorHoverBrush}" />
+                    </VisualState.Setters>
+                </VisualState>
+
+                <!--  (only when no threshold is configured yet)  -->
+                <VisualState x:Name="IndicatorPressedUnconfigured">
+                    <VisualState.Setters>
+                        <Setter Target="IndicatorBorder.Background" Value="{ThemeResource ThresholdIndicatorPressedBrush}" />
+                        <Setter Target="IndicatorBorder.Opacity" Value="1.0" />
+                    </VisualState.Setters>
+                </VisualState>
+
+                <!--  pressed while a threshold color is already set  -->
+                <VisualState x:Name="IndicatorPressedConfigured">
+                    <VisualState.Setters>
+                        <Setter Target="IndicatorBorder.Opacity" Value="0.6" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+    </Border>
+</UserControl>
