@@ -6,24 +6,31 @@ using Windows.Foundation;
 
 namespace FluentSensors.Controls
 {
-    // arranges its children into a grid that grows roughly square as the child count grows (1-3 children get
-    // one row, 4-8 get two rows, 9-15 get three, and so on - a new row starts exactly at each perfect square),
-    // but caps the column count once the available width gets too narrow for that many columns to stay usable.
-    // rows are never capped, they simply grow to absorb whatever the capped columns can't hold.
+    // arranges its children into a single row by default; only once the available width can no longer
+    // fit them all at MinCellWidth does it give up columns one at a time (gaining rows instead); it never
+    // deliberately targets a square shape, thats just what falls out naturally at some widths for
+    // evenly-divisible counts like 4 or 6
+    //
     // also enforces a minimum cell height (MinCellHeight): once rows would otherwise get shorter than that, the
-    // panel reports a taller DesiredSize instead of squeezing cells further - wrapped in a ScrollViewer, this
-    // makes the page scroll instead of the content becoming unusably small.
+    // panel reports a taller DesiredSize instead of squeezing cells further; wrapped in a ScrollViewer, this
+    // makes the page scroll instead of the content becoming unusably small
     public class SquareGridPanel : Panel
     {
-        // below this width per cell, one more column gets dropped
-        private const double MinCellWidth = 110;
+        // === fields ===
 
+        // below this width per cell, one more column gets dropped
+        private const double MinCellWidth = 130;
+
+
+        // === bindable properties ===
+
+        // minimum height per cell; if rows would otherwise shrink below this, the panel reports a taller
+        // desired height instead of squeezing further, letting a wrapping ScrollViewer take over
         public double MinCellHeight
         {
             get => (double)GetValue(MinCellHeightProperty);
             set => SetValue(MinCellHeightProperty, value);
         }
-
         public static readonly DependencyProperty MinCellHeightProperty =
             DependencyProperty.Register(
                 nameof(MinCellHeight),
@@ -38,7 +45,6 @@ namespace FluentSensors.Controls
             get => (double)GetValue(SpacingProperty);
             set => SetValue(SpacingProperty, value);
         }
-
         public static readonly DependencyProperty SpacingProperty =
             DependencyProperty.Register(
                 nameof(Spacing),
@@ -46,11 +52,17 @@ namespace FluentSensors.Controls
                 typeof(SquareGridPanel),
                 new PropertyMetadata(0.0, OnLayoutAffectingPropertyChanged));
 
+        // shared change handler for both properties above; triggers a fresh layout pass whenever either one changes
         private static void OnLayoutAffectingPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is SquareGridPanel panel) panel.InvalidateMeasure();
         }
 
+
+        // === layout overrides ===
+
+        // works out the row/column count for the current width, then measures every child against that cell
+        // size and reports the resulting desired height back to the parent
         protected override Size MeasureOverride(Size availableSize)
         {
             int count = Children.Count;
@@ -76,6 +88,8 @@ namespace FluentSensors.Controls
             return new Size(measureWidth, desiredHeight);
         }
 
+        // places every child into its row/column slot, using the same row/column count MeasureOverride already
+        // determined for this width
         protected override Size ArrangeOverride(Size finalSize)
         {
             int count = Children.Count;
@@ -101,16 +115,19 @@ namespace FluentSensors.Controls
             return finalSize;
         }
 
+
+        // === private helpers ===
+
+        // determines how many columns fit at MinCellWidth for the given width, then derives the row count from
+        // that; starts from a single row and only drops columns as far as the width forces it
         private static (int rows, int columns) GetGridSize(int count, double availableWidth)
         {
-            int idealRows = (int)Math.Floor(Math.Sqrt(count));
-            int idealColumns = (int)Math.Ceiling(count / (double)idealRows);
-
             int maxColumnsForWidth = availableWidth > 0
                 ? Math.Max(1, (int)Math.Floor(availableWidth / MinCellWidth))
                 : 1;
 
-            int columns = Math.Min(idealColumns, maxColumnsForWidth);
+            int columns = Math.Min(count, maxColumnsForWidth);
+
             int rows = (int)Math.Ceiling(count / (double)columns);
 
             return (rows, columns);
