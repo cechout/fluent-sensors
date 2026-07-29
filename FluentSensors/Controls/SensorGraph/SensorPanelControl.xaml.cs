@@ -225,6 +225,21 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(true));
 
+        // pure visual pass-through to SensorGraphControl.ShowCardBackground; no ViewModel coupling, e.g. for graphs
+        // embedded in a consumer that already draws its own card background around this whole panel
+        public bool ShowGraphCardBackground
+        {
+            get => (bool)GetValue(ShowGraphCardBackgroundProperty);
+            set => SetValue(ShowGraphCardBackgroundProperty, value);
+        }
+
+        public static readonly DependencyProperty ShowGraphCardBackgroundProperty =
+            DependencyProperty.Register(
+                nameof(ShowGraphCardBackground),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(true));
+
         // fires whenever ViewModel itself changes, or any of the three override properties change; re-applies all of them
         // together so the final state is always correct regardless of the order XAML happens to set these attributes in
         private static void OnOverrideChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

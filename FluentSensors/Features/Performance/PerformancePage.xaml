@@ -133,18 +133,21 @@
                 <!--  group label (left) + hardware display name (right) for the selected nav item  -->
                 <Border
                     Grid.Row="0"
-                    Padding="16,12,16,12"
+                    Padding="16,12,16,0"
                     Background="Transparent"
                     BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                    BorderThickness="0,0,0,1">
+                    BorderThickness="0,0,0,0">
                     <Grid>
                         <TextBlock
+                            Margin="4,0,0,0"
                             HorizontalAlignment="Left"
-                            Style="{ThemeResource BodyStrongTextBlockStyle}"
+                            FontSize="24"
+                            Style="{ThemeResource BodyLargeTextBlockStyle}"
                             Text="{x:Bind ViewModel.SelectedItem.GroupLabel, Mode=OneWay}" />
                         <TextBlock
+                            Margin="0,0,4,0"
                             HorizontalAlignment="Right"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                             Style="{ThemeResource BodyTextBlockStyle}"
                             Text="{x:Bind ViewModel.SelectedItem.DisplayName, Mode=OneWay}"
                             TextTrimming="CharacterEllipsis" />
@@ -159,7 +162,7 @@
                     VerticalScrollBarVisibility="Auto"
                     VerticalScrollMode="Auto"
                     Visibility="{x:Bind ShowIfCpuSelected(ViewModel.SelectedItem), Mode=OneWay}">
-                    <StackPanel Padding="16" Spacing="12">
+                    <StackPanel Padding="16,8,16,16" Spacing="12">
                         <ContentControl
                             HorizontalContentAlignment="Stretch"
                             VerticalContentAlignment="Stretch"
@@ -167,6 +170,10 @@
                             <ContentControl.ContentTemplate>
                                 <DataTemplate x:DataType="fhLhm:LhmCpuInstanceViewModel">
                                     <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
 
                                         <Grid.Resources>
 
@@ -197,10 +204,13 @@
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
                                                                     <fhGraph:SensorPanelControl
-                                                                        GraphDataPointsOverride="50"
+                                                                        GraphColorOverride="#FF00B7C3"
+                                                                        GraphDataPointsOverride="70"
                                                                         IsAutoScaledOverride="False"
                                                                         ManualYMaxOverride="100"
-                                                                        ShowTitleRow="True"
+                                                                        ShowGraphCardBackground="False"
+                                                                        ShowGraphLabel="True"
+                                                                        ShowTitleRow="False"
                                                                         ThresholdLabelAlwaysVisible="False"
                                                                         ViewModel="{x:Bind}" />
                                                                 </DataTemplate>
@@ -210,20 +220,26 @@
                                                         <!--  temperature graph  -->
                                                         <fhGraph:SensorPanelControl
                                                             Grid.Row="1"
-                                                            GraphDataPointsOverride="50"
+                                                            GraphColorOverride="#FFFFB900"
+                                                            GraphDataPointsOverride="70"
                                                             IsAutoScaledOverride="False"
                                                             ManualYMaxOverride="100"
-                                                            ShowTitleRow="True"
+                                                            ShowGraphCardBackground="False"
+                                                            ShowGraphLabel="True"
+                                                            ShowTitleRow="False"
                                                             ThresholdLabelAlwaysVisible="False"
                                                             ViewModel="{x:Bind Temperature, Mode=OneWay}" />
 
                                                         <!--  clock graph  -->
                                                         <fhGraph:SensorPanelControl
                                                             Grid.Row="2"
-                                                            GraphDataPointsOverride="50"
+                                                            GraphColorOverride="#FF00CC6A"
+                                                            GraphDataPointsOverride="70"
                                                             IsAutoScaledOverride="False"
                                                             ManualYMaxOverride="5000"
-                                                            ShowTitleRow="True"
+                                                            ShowGraphCardBackground="False"
+                                                            ShowGraphLabel="True"
+                                                            ShowTitleRow="False"
                                                             ThresholdLabelAlwaysVisible="False"
                                                             ViewModel="{x:Bind Clock, Mode=OneWay}" />
 
@@ -234,9 +250,13 @@
 
                                         <!--  first: overall cpu view  -->
                                         <!--  total load + average/max temperature, stacked  -->
-                                        <StackPanel Spacing="8" Visibility="{x:Bind OverallVisibility, Mode=OneWay}">
+                                        <StackPanel
+                                            Grid.Row="0"
+                                            Spacing="8"
+                                            Visibility="{x:Bind OverallVisibility, Mode=OneWay}">
                                             <fhGraph:SensorPanelControl
-                                                MinHeight="120"
+                                                MinHeight="140"
+                                                GraphColorOverride="#FF00B7C3"
                                                 GraphDataPointsOverride="250"
                                                 IsAutoScaledOverride="False"
                                                 ManualYMaxOverride="100"
@@ -247,7 +267,8 @@
                                                 ViewModel="{x:Bind TotalLoad, Mode=OneWay}" />
 
                                             <fhGraph:SensorPanelControl
-                                                MinHeight="120"
+                                                MinHeight="100"
+                                                GraphColorOverride="#FFFFB900"
                                                 GraphDataPointsOverride="250"
                                                 IsAutoScaledOverride="False"
                                                 ManualYMaxOverride="100"
@@ -258,7 +279,8 @@
                                                 ViewModel="{x:Bind AverageTemperature, Mode=OneWay}" />
 
                                             <fhGraph:SensorPanelControl
-                                                MinHeight="120"
+                                                MinHeight="100"
+                                                GraphColorOverride="#FFFFB900"
                                                 GraphDataPointsOverride="250"
                                                 IsAutoScaledOverride="False"
                                                 ManualYMaxOverride="100"
@@ -271,7 +293,7 @@
 
                                         <!--  second: all cpu cores view  -->
                                         <!--  (cores with threads on top and cores withput threads below)  -->
-                                        <Grid Visibility="{x:Bind AllThreadsVisibility, Mode=OneWay}">
+                                        <Grid Grid.Row="0" Visibility="{x:Bind AllThreadsVisibility, Mode=OneWay}">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />
@@ -286,7 +308,7 @@
                                                 ScrollViewer.VerticalScrollMode="Disabled">
                                                 <ItemsControl.ItemsPanel>
                                                     <ItemsPanelTemplate>
-                                                        <fhControls:SquareGridPanel MinCellHeight="250" Spacing="8" />
+                                                        <fhControls:SquareGridPanel MinCellHeight="200" Spacing="8" />
                                                     </ItemsPanelTemplate>
                                                 </ItemsControl.ItemsPanel>
                                             </ItemsControl>
@@ -309,8 +331,122 @@
                                                     </ItemsPanelTemplate>
                                                 </ItemsControl.ItemsPanel>
                                             </ItemsControl>
-
                                         </Grid>
+
+                                        <!--  static CPU hardware info (raw draft, no final styling yet)  -->
+                                        <StackPanel Grid.Row="1" Spacing="4">
+                                            <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Text="CPU Static Info" />
+
+                                            <Grid ColumnSpacing="8" RowSpacing="2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="180" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                </Grid.RowDefinitions>
+
+                                                <TextBlock
+                                                    Grid.Row="0"
+                                                    Grid.Column="0"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="Physical Cores" />
+                                                <TextBlock
+                                                    Grid.Row="0"
+                                                    Grid.Column="1"
+                                                    Text="{x:Bind CpuPhysicalCoresText}" />
+
+                                                <TextBlock
+                                                    Grid.Row="1"
+                                                    Grid.Column="0"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="Logical Processors" />
+                                                <TextBlock
+                                                    Grid.Row="1"
+                                                    Grid.Column="1"
+                                                    Text="{x:Bind CpuLogicalProcessorsText}" />
+
+                                                <TextBlock
+                                                    Grid.Row="2"
+                                                    Grid.Column="0"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="L2 Cache" />
+                                                <TextBlock
+                                                    Grid.Row="2"
+                                                    Grid.Column="1"
+                                                    Text="{x:Bind CpuL2CacheText}" />
+
+                                                <TextBlock
+                                                    Grid.Row="3"
+                                                    Grid.Column="0"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="L3 Cache" />
+                                                <TextBlock
+                                                    Grid.Row="3"
+                                                    Grid.Column="1"
+                                                    Text="{x:Bind CpuL3CacheText}" />
+
+                                                <TextBlock
+                                                    Grid.Row="4"
+                                                    Grid.Column="0"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="Max Clock Speed" />
+                                                <TextBlock
+                                                    Grid.Row="4"
+                                                    Grid.Column="1"
+                                                    Text="{x:Bind CpuMaxClockText}" />
+
+                                                <TextBlock
+                                                    Grid.Row="5"
+                                                    Grid.Column="0"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="Socket" />
+                                                <TextBlock
+                                                    Grid.Row="5"
+                                                    Grid.Column="1"
+                                                    Text="{x:Bind CpuSocketText}" />
+
+                                                <TextBlock
+                                                    Grid.Row="6"
+                                                    Grid.Column="0"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="Virtualization (Firmware)" />
+                                                <TextBlock
+                                                    Grid.Row="6"
+                                                    Grid.Column="1"
+                                                    Text="{x:Bind CpuVirtualizationFirmwareText}"
+                                                    ToolTipService.ToolTip="Known unreliable on some systems, see WinCpuInfo doc comment" />
+
+                                                <TextBlock
+                                                    Grid.Row="7"
+                                                    Grid.Column="0"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="Virtualization Extensions" />
+                                                <TextBlock
+                                                    Grid.Row="7"
+                                                    Grid.Column="1"
+                                                    Text="{x:Bind CpuVirtualizationExtensionsText}" />
+
+                                                <TextBlock
+                                                    Grid.Row="8"
+                                                    Grid.Column="0"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="Core Topology" />
+                                                <TextBlock
+                                                    Grid.Row="8"
+                                                    Grid.Column="1"
+                                                    Text="{x:Bind CpuCoreTopologyText}"
+                                                    TextWrapping="Wrap" />
+                                            </Grid>
+                                        </StackPanel>
 
                                     </Grid>
                                 </DataTemplate>

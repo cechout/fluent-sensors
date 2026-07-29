@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 using FluentSensors.Controls.SensorGraph;
+using FluentSensors.Core.StaticInfo;
 
 
 namespace FluentSensors.Features.Performance.Lhm
@@ -95,6 +97,20 @@ namespace FluentSensors.Features.Performance.Lhm
         public Visibility AllThreadsVisibility => IsShowingAllThreads ? Visibility.Visible : Visibility.Collapsed;
 
 
+        // static CPU info 
+        // read-only, purely computed: WinStaticInfoService.Instance.Cpu never changes after the singletons first
+        // access, so there is nothing to raise OnPropertyChanged for here
+        public string CpuPhysicalCoresText => WinStaticInfoService.Instance.Cpu.PhysicalCores.ToString();
+        public string CpuLogicalProcessorsText => WinStaticInfoService.Instance.Cpu.LogicalProcessors.ToString();
+        public string CpuL2CacheText => FormatCacheSize(WinStaticInfoService.Instance.Cpu.L2CacheSizeKb);
+        public string CpuL3CacheText => FormatCacheSize(WinStaticInfoService.Instance.Cpu.L3CacheSizeKb);
+        public string CpuMaxClockText => $"{WinStaticInfoService.Instance.Cpu.MaxClockSpeedMhz} MHz";
+        public string CpuSocketText => WinStaticInfoService.Instance.Cpu.SocketDesignation;
+        public string CpuVirtualizationFirmwareText => FormatBool(WinStaticInfoService.Instance.Cpu.VirtualizationFirmwareEnabled);
+        public string CpuVirtualizationExtensionsText => FormatBool(WinStaticInfoService.Instance.Cpu.VirtualizationExtensionsSupported);
+        public string CpuCoreTopologyText => FormatCoreTopology(WinStaticInfoService.Instance.Cpu);
+
+
         // === public methods ===
 
         // returns the physical core for this Load core number, creating it (and bucketing it into
@@ -131,6 +147,21 @@ namespace FluentSensors.Features.Performance.Lhm
             core.Clock = graph;
             core.ClockLabel = label;
             _nextClockMatchIndex++;
+        }
+
+
+        // === private helpers ===
+
+        private static string FormatCacheSize(int cacheSizeKb) => cacheSizeKb > 0 ? $"{cacheSizeKb} KB" : "-";
+        private static string FormatBool(bool value) => value ? "Yes" : "No";
+
+        // deliberately does not label anything P-Core/E-Core (see WinCpuCoreTopologyEntry doc comment); just the raw
+        // counts for now, real UI interpretation of EfficiencyClass is a later step
+        private static string FormatCoreTopology(WinCpuInfo cpu)
+        {
+            int smtCores = cpu.CoreTopology.Count(c => c.HasSmt);
+            int efficiencyClasses = cpu.CoreTopology.Select(c => c.EfficiencyClass).Distinct().Count();
+            return $"{cpu.CoreTopology.Count} cores read, {smtCores} with SMT, {efficiencyClasses} efficiency class(es)";
         }
 
 

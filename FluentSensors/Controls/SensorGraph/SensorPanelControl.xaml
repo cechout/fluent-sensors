@@ -281,6 +281,7 @@
                     LabelFollowsPointer="True"
                     LabelText="{x:Bind ViewModel.DisplayNameWithUnit, Mode=OneWay}"
                     ManualYMax="{x:Bind ViewModel.ManualYMax, Mode=OneWay}"
+                    ShowCardBackground="{x:Bind ShowGraphCardBackground, Mode=OneWay}"
                     Tapped="GraphControl_Tapped"
                     ThresholdColor="{x:Bind ViewModel.Threshold.Color, Mode=OneWay}"
                     ThresholdDirection="{x:Bind ViewModel.Threshold.Direction, Mode=OneWay}"

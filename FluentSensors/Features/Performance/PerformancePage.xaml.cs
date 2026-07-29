@@ -1,13 +1,39 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System.Linq;
+
+using FluentSensors.Core.StaticInfo;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Features.Performance.Lhm;
+
 
 namespace FluentSensors.Features.Performance
 {
     public sealed partial class PerformancePage : Page
     {
         public PerformanceViewModel ViewModel => PerformanceViewModel.Instance;
+
+        // cpu static info (draft)
+        // each property re-reads WinStaticInfoService.Instance.Cpu; cheap after the very first access (singleton
+        // already constructed by then)
+        private string CpuPhysicalCoresText => WinStaticInfoService.Instance.Cpu.PhysicalCores.ToString();
+        private string CpuLogicalProcessorsText => WinStaticInfoService.Instance.Cpu.LogicalProcessors.ToString();
+        private string CpuL2CacheText => FormatCacheSize(WinStaticInfoService.Instance.Cpu.L2CacheSizeKb);
+        private string CpuL3CacheText => FormatCacheSize(WinStaticInfoService.Instance.Cpu.L3CacheSizeKb);
+        private string CpuMaxClockText => $"{WinStaticInfoService.Instance.Cpu.MaxClockSpeedMhz} MHz";
+        private string CpuSocketText => WinStaticInfoService.Instance.Cpu.SocketDesignation;
+        private string CpuVirtualizationFirmwareText => FormatBool(WinStaticInfoService.Instance.Cpu.VirtualizationFirmwareEnabled);
+        private string CpuVirtualizationExtensionsText => FormatBool(WinStaticInfoService.Instance.Cpu.VirtualizationExtensionsSupported);
+        private string CpuCoreTopologyText => FormatCoreTopology(WinStaticInfoService.Instance.Cpu);
+        private static string FormatCacheSize(int cacheSizeKb) => cacheSizeKb > 0 ? $"{cacheSizeKb} KB" : "-";
+        private static string FormatBool(bool value) => value ? "Yes" : "No";
+        private static string FormatCoreTopology(WinCpuInfo cpu)
+        {
+            int smtCores = cpu.CoreTopology.Count(c => c.HasSmt);
+            int efficiencyClasses = cpu.CoreTopology.Select(c => c.EfficiencyClass).Distinct().Count();
+            return $"{cpu.CoreTopology.Count} cores read, {smtCores} with SMT, {efficiencyClasses} efficiency class(es)";
+        }
+
 
         public PerformancePage()
         {

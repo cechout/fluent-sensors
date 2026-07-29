@@ -88,6 +88,7 @@ namespace FluentSensors.Controls.SensorGraph
             // initial visuals and threshold state
             ApplyStroke();
             RebuildSections();
+            VisualStateManager.GoToState(this, ShowCardBackground ? "CardBackgroundVisible" : "CardBackgroundHidden", false);
         }
 
         // LiveCharts only builds its internal scale/draw context on the first real measure pass;
@@ -365,6 +366,29 @@ namespace FluentSensors.Controls.SensorGraph
             g.GraphLabelText.Visibility = g.IsLabelVisible && !string.IsNullOrEmpty(g.LabelText)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+        }
+
+        // DependencyProperty: ShowCardBackground
+        public bool ShowCardBackground
+        {
+            get => (bool)GetValue(ShowCardBackgroundProperty);
+            set => SetValue(ShowCardBackgroundProperty, value);
+        }
+
+        public static readonly DependencyProperty ShowCardBackgroundProperty =
+            DependencyProperty.Register(
+                nameof(ShowCardBackground),
+                typeof(bool),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(true, OnShowCardBackgroundChanged));
+
+        // toggles the outer card fill/border between the normal themed look and fully transparent, e.g. for graphs
+        // embedded in a consumer that already provides its own background (see SensorPanelControl.ShowGraphCardBackground)
+        private static void OnShowCardBackgroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not SensorGraphControl g) return;
+
+            VisualStateManager.GoToState(g, g.ShowCardBackground ? "CardBackgroundVisible" : "CardBackgroundHidden", false);
         }
     }
 }

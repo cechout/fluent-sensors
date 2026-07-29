@@ -1,13 +1,13 @@
-﻿using System;
+﻿using FluentSensors.Common.Sensors;
+using FluentSensors.Core.StaticInfo;
+using FluentSensors.Features.Performance.Lhm;
+using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-
-using FluentSensors.Common.Sensors;
-using FluentSensors.Features.Performance.Lhm;
 
 namespace FluentSensors.Features.Performance
 {
