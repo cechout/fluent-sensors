@@ -10,13 +10,14 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WinUIEx;
 
+using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
+using FluentSensors.Core.StaticInfo;
+using FluentSensors.Features.Performance;
+using FluentSensors.Features.Sensors;
 using FluentSensors.Features.Settings;
 using FluentSensors.Features.Widget;
-using FluentSensors.Features.Sensors;
 using FluentSensors.Persistence.Services;
-using FluentSensors.Controls.SensorRow;
-using FluentSensors.Features.Performance;
 
 
 namespace FluentSensors
@@ -172,6 +173,10 @@ namespace FluentSensors
         private async Task StartHardwareServiceAsync()
         {
             var monitor = HardwareMonitorService.Instance;
+
+            // kicks off static hardware info collection (WMI queries) on a background thread; fully independent and
+            // parallel to the lhm sensor init below
+            _ = Task.Run(() => WinStaticInfoService.Instance);
 
             // scan motherboard
             LoadingStatusText.Text = "Initializing motherboard...";

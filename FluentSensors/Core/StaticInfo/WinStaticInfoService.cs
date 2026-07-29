@@ -3,26 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
+using System.Threading;
+
 
 namespace FluentSensors.Core.StaticInfo
 {
     // one-time collector for static hardware facts sourced from Windows itself (WMI + native Win32 APIs), as
     // opposed to LhmHardwareTreeService live, continuously-polled sensor data
-    // Facts here are queried exactly once, on first access - CPU core count or RAM slot count do not change while
+    // Facts here are queried exactly once, on first access; CPU core count or RAM slot count do not change while
     // the app runs (ideally)
-    // lazy singleton, same pattern as PerformanceViewModel/LhmHardwareTreeService: nothing runs until a
-    // consumer actually asks for it
+    // lazy singleton, same pattern as PerformanceViewModel/LhmHardwareTreeService
     //
     // NOTE: the constructor runs several WMI queries synchronously and will block whichever thread first
-    // touches .Instance for the duration (WMI first query in particular can take a noticeable moment to spin
-    // up)
-    // No UI wiring exists yet, so there is no "right" thread to decide this for; whoever eventually calls this from
-    // a page/ViewModel should do so via Task.Run, mirroring HardwareMonitorService's InitXAsync pattern, rather than
-    // calling it directly from the UI thread
+    // touches .Instance for the duration (WMI first query in particular can take a noticeable moment to spin up)
+    // Prewarmed on a background thread right at app startup (see MainWindow.StartHardwareServiceAsync), so by
+    // the time a page/ViewModel actually needs this data it is normally already sitting ready
     public class WinStaticInfoService
     {
-        private static WinStaticInfoService _instance;
-        public static WinStaticInfoService Instance => _instance ??= new WinStaticInfoService();
+        // Instance may now be created by a background prewarm thread (see MainWindow.StartHardwareServiceAsync) while the
+        // UI thread could still request it independently, e.g. if a page opens before the prewarm finishes
+        // Lazy<T> with ExecutionAndPublication ensures only one thread runs the constructor and everyone else waits for
+        // that same result, instead of two threads racing into duplicate WMI queries
+        private static readonly Lazy<WinStaticInfoService> _instance =
+            new(() => new WinStaticInfoService(), LazyThreadSafetyMode.ExecutionAndPublication);
+        public static WinStaticInfoService Instance => _instance.Value;
 
         private WinStaticInfoService()
         {
