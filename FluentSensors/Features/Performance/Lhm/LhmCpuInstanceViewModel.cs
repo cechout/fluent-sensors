@@ -67,6 +67,13 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _maxTemperature = value; OnPropertyChanged(); }
         }
 
+        private SensorGraphViewModel _packagePower;
+        public SensorGraphViewModel PackagePower
+        {
+            get => _packagePower;
+            set { _packagePower = value; OnPropertyChanged(); }
+        }
+
         private bool _isShowingAllThreads;
         public bool IsShowingAllThreads
         {

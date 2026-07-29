@@ -45,7 +45,8 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!--  toggle panel button  -->
+                <!--  toggle button  -->
+                <!--  (what it does depends on ButtonTapAction)  -->
                 <Button
                     Grid.Column="0"
                     Width="32"
@@ -53,7 +54,7 @@
                     Padding="0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Stretch"
-                    Click="{x:Bind ViewModel.ToggleControlPanel}"
+                    Click="ToggleButton_Click"
                     Style="{StaticResource SubtleButtonStyle}"
                     ToolTipService.ToolTip="Toggle Panel"
                     Visibility="Visible">
@@ -111,7 +112,7 @@
                 Width="36"
                 Padding="0,0,3,0"
                 RowSpacing="3"
-                Visibility="{x:Bind GetYAxisControlsVisibility(ShowYAxisControls, UseThresholdFlyout, ViewModel.ControlPanelVisibility), Mode=OneWay}">
+                Visibility="{x:Bind GetYAxisControlsVisibility(ShowYAxisControls, GraphTapAction, ButtonTapAction, ViewModel.ControlPanelVisibility), Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
@@ -156,7 +157,7 @@
                 Width="36"
                 Padding="3,0,0,0"
                 RowSpacing="3"
-                Visibility="{x:Bind GetThresholdControlsVisibility(ShowThresholdControls, UseThresholdFlyout, ViewModel.ControlPanelVisibility), Mode=OneWay}">
+                Visibility="{x:Bind GetThresholdControlsVisibility(ShowThresholdControls, GraphTapAction, ButtonTapAction, ViewModel.ControlPanelVisibility), Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
@@ -201,7 +202,7 @@
                 Width="36"
                 Padding="3,0,0,0"
                 RowSpacing="3"
-                Visibility="{x:Bind GetThresholdControlsVisibility(ShowThresholdControls, UseThresholdFlyout, ViewModel.ControlPanelVisibility), Mode=OneWay}">
+                Visibility="{x:Bind GetThresholdControlsVisibility(ShowThresholdControls, GraphTapAction, ButtonTapAction, ViewModel.ControlPanelVisibility), Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
@@ -272,7 +273,7 @@
                 </ToggleButton>
             </Grid>
 
-            <!--  graph, plus optional threshold-flyout badge overlay top-right when UseThresholdFlyout  -->
+            <!--  graph, plus optional threshold-flyout badge overlay top-right when either tap action opens it  -->
             <Grid Grid.Column="1">
                 <fhGraph:SensorGraphControl
                     AccentColor="{x:Bind GetEffectiveGraphColor(GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
@@ -290,11 +291,14 @@
                     Values="{x:Bind ViewModel.SensorData, Mode=OneWay}" />
 
                 <fhThreshold:ThresholdFlyoutControl
-                    Margin="0,4,4,0"
-                    HorizontalAlignment="Right"
+                    x:Name="ThresholdFlyoutBadge"
+                    Margin="0,14,0,0"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Top"
+                    IsHitTestVisible="{x:Bind ShowThresholdFlyoutIndicator, Mode=OneWay}"
+                    Opacity="{x:Bind BoolToOpacity(ShowThresholdFlyoutIndicator), Mode=OneWay}"
                     Threshold="{x:Bind ViewModel.Threshold, Mode=OneWay}"
-                    Visibility="{x:Bind BoolToVisibility(UseThresholdFlyout), Mode=OneWay}" />
+                    Visibility="{x:Bind GetThresholdFlyoutVisibility(GraphTapAction, ButtonTapAction), Mode=OneWay}" />
             </Grid>
         </Grid>
     </Grid>

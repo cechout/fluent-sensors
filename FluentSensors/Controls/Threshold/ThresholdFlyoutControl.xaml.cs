@@ -124,7 +124,23 @@ namespace FluentSensors.Controls.Threshold
         }
 
 
+        // === public methods ===
+
+        // opens the threshold editor flyout programmatically; used by consumers like SensorPanelControl that want
+        // a tap on the graph itself (not just this badge) to open the same flyout
+        public void ShowFlyout()
+        {
+            FlyoutBase.ShowAttachedFlyout(IndicatorBorder);
+        }
+
+
         // === event handlers ===
+
+        private void IndicatorBorder_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            e.Handled = true;
+            ShowFlyout();
+        }
 
         private void Threshold_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -163,12 +179,6 @@ namespace FluentSensors.Controls.Threshold
             e.Handled = true;
         }
 
-        private void IndicatorBorder_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            e.Handled = true;
-            FlyoutBase.ShowAttachedFlyout(IndicatorBorder);
-        }
-
         private void ThresholdCloseButton_Click(object sender, RoutedEventArgs e)
         {
             ThresholdFlyout.Hide();
@@ -178,7 +188,7 @@ namespace FluentSensors.Controls.Threshold
         // === private helpers ===
 
         // recomputes badge text/color: "-" and transparent when unconfigured, otherwise the value and the
-        // threshold's own color
+        // thresholds own color
         private void UpdateIndicator()
         {
             if (Threshold != null && Threshold.IsEnabled)

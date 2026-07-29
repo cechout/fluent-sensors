@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
+
 namespace FluentSensors.Features.Performance
 {
     // top-level data context for the single PerformancePage; orchestrates whichever engine-specific child view

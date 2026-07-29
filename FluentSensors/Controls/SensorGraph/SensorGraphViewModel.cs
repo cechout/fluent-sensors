@@ -74,7 +74,11 @@ namespace FluentSensors.Controls.SensorGraph
             set { _sensorName = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayNameWithUnit)); }
         }
         public string Unit { get; }
-        public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? SensorName : $"{SensorName} ({Unit})";
+
+        // not sure here if SensorName + Unit or just Unit fits best
+        //public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? SensorName : $"{SensorName} ({Unit})";
+        public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? "" : $"{Unit}";
+
         private string _currentValueText = "-";
         public string CurrentValueText
         {

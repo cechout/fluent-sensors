@@ -11,6 +11,8 @@ namespace FluentSensors.Features.Performance
 {
     public sealed partial class PerformancePage : Page
     {
+        // === fields
+
         public PerformanceViewModel ViewModel => PerformanceViewModel.Instance;
 
         // cpu static info (draft)
@@ -35,10 +37,15 @@ namespace FluentSensors.Features.Performance
         }
 
 
+        // === constructor ===
+
         public PerformancePage()
         {
             InitializeComponent();
         }
+
+
+        // === private helpers ===
 
         // shows the CPU detail block only while a CPU nav item is selected
         // (the same one-method-per-Kind pattern will be added for Ram/Gpu/Storage/Network) 

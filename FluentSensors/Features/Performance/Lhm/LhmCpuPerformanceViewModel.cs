@@ -148,6 +148,16 @@ namespace FluentSensors.Features.Performance.Lhm
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(graph, entry, e);
                 }
             }
+            else if (entry.SensorType == "Power")
+            {
+                // only the package-level total is shown on the overview page
+                if (entry.Name == "CPU Package")
+                {
+                    cpu.PackagePower = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    PushDataPoint(cpu.PackagePower, entry);
+                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(cpu.PackagePower, entry, e);
+                }
+            }
         }
 
         private static void OnEntryValueChanged(SensorGraphViewModel graph, LhmSensorEntry entry, PropertyChangedEventArgs e)

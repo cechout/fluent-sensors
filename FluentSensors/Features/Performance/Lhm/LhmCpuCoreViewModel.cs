@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 
 using FluentSensors.Controls.SensorGraph;
 
+
 namespace FluentSensors.Features.Performance.Lhm
 {
     // one physical core, bundling however many threads it has (1 for cores without SMT, 2+ for cores with it)
