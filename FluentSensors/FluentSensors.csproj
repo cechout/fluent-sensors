@@ -43,6 +43,7 @@
 		<None Remove="Controls\SensorCardControl.xaml" />
 		<None Remove="Controls\SensorGraph\SensorPanelControl.xaml" />
 		<None Remove="Controls\Threshold\ThresholdFlyoutControl.xaml" />
+		<None Remove="Features\Performance\HardwareViews\CpuDetailView.xaml" />
 		<None Remove="Features\Performance\PerformancePage.xaml" />
 		<None Remove="Features\Sensors\HiddenSensorsWindow.xaml" />
 		<None Remove="Features\Sensors\SensorsPage.xaml" />
@@ -134,6 +135,11 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Controls\Threshold\ThresholdFlyoutControl.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Features\Performance\HardwareViews\CpuDetailView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </Page>
 	</ItemGroup>
