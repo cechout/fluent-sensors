@@ -17,18 +17,24 @@ namespace FluentSensors.Features.Performance
     public class HardwareDetailTemplateSelector : DataTemplateSelector
     {
         public DataTemplate CpuTemplate { get; set; }
+        public DataTemplate GpuTemplate { get; set; }
+        public DataTemplate MemoryTemplate { get; set; }
+        public DataTemplate StorageTemplate { get; set; }
+        public DataTemplate NetworkTemplate { get; set; }
 
         protected override DataTemplate SelectTemplateCore(object item)
         {
             return item switch
             {
                 LhmCpuInstanceViewModel => CpuTemplate,
+                LhmGpuInstanceViewModel => GpuTemplate,
+                LhmMemoryInstanceViewModel => MemoryTemplate,
+                LhmStorageInstanceViewModel => StorageTemplate,
+                LhmNetworkInstanceViewModel => NetworkTemplate,
                 _ => null
             };
         }
 
-        // ContentControl actually calls this container-aware overload; without overriding it too, WinUI never
-        // reaches the overload above and just falls back to showing the items ToString()
         protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
         {
             return SelectTemplateCore(item);

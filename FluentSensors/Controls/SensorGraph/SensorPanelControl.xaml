@@ -19,7 +19,7 @@
 
         <!--  label row  -->
         <!--  (title row and status row overlap here, both independently toggleable via ShowTitleRow/ShowStatusRow)  -->
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" Visibility="{x:Bind GetContentVisibility(ViewModel), Mode=OneWay}">
 
             <!--  separate title row: just the sensor name  -->
             <TextBlock
@@ -45,8 +45,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!--  toggle button  -->
-                <!--  (what it does depends on ButtonTapAction)  -->
+                <!--  toggle button; what it does depends on ButtonTapAction  -->
                 <Button
                     Grid.Column="0"
                     Width="32"
@@ -98,7 +97,10 @@
 
         <!--  graph  -->
         <!--  (left + right: control buttons, middle: LiveChart graph)  -->
-        <Grid Grid.Row="1" ColumnSpacing="0">
+        <Grid
+            Grid.Row="1"
+            ColumnSpacing="0"
+            Visibility="{x:Bind GetContentVisibility(ViewModel), Mode=OneWay}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -276,6 +278,7 @@
             <!--  graph, plus optional threshold-flyout badge overlay top-right when either tap action opens it  -->
             <Grid Grid.Column="1">
                 <fhGraph:SensorGraphControl
+                    x:Name="GraphControl"
                     AccentColor="{x:Bind GetEffectiveGraphColor(GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
                     IsAutoScaled="{x:Bind ViewModel.IsAutoScaled, Mode=OneWay}"
                     IsLabelVisible="{x:Bind ShowGraphLabel, Mode=OneWay}"
@@ -301,5 +304,25 @@
                     Visibility="{x:Bind GetThresholdFlyoutVisibility(GraphTapAction, ButtonTapAction), Mode=OneWay}" />
             </Grid>
         </Grid>
+
+        <!--  not found placeholder; shown instad of the whole panel when viewmodel is null  -->
+        <Border
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
+            BorderThickness="1"
+            CornerRadius="4"
+            Visibility="{x:Bind GetNotFoundVisibility(ViewModel), Mode=OneWay}">
+            <TextBlock
+                Margin="8"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{ThemeResource CaptionTextBlockStyle}"
+                Text="{x:Bind FormatNotFoundMessage(PlaceholderSensorName, PlaceholderUnit)}"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+        </Border>
     </Grid>
 </UserControl>

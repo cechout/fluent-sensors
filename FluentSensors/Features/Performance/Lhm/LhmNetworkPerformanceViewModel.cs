@@ -9,6 +9,10 @@ using FluentSensors.Core.Lhm;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
+    // discovers every active network adapter from LhmHardwareTreeService and creates one
+    // LhmNetworkInstanceViewModel per adapter; parses each raw LHM sensor into the right property on the right
+    // instance
+    // the instance itself stays a dumb data holder
     public class LhmNetworkPerformanceViewModel
     {
         // === constructor ===

@@ -22,7 +22,7 @@ namespace FluentSensors.Core.Lhm
 
         // lazy on purpose (like PerformanceViewModel): only created the first time a consumer asks for it
         // note: SensorsViewModel is eager at splash screen and depends on this service, so in practice it still ends up
-        // running from app start - accepted side effect, not a bug
+        // running from app start; accepted side effect, not a bug
         private static LhmHardwareTreeService _instance;
         public static LhmHardwareTreeService Instance => _instance ??= new LhmHardwareTreeService();
 

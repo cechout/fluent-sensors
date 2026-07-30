@@ -9,6 +9,9 @@ using FluentSensors.Core.Lhm;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
+    // discovers every storage drive instance from LhmHardwareTreeService and creates one LhmStorageInstanceViewModel
+    // per drive; parses each raw LHM sensor into the right property on the right instance
+    // The instance itself stays a dumb data holder
     public class LhmStoragePerformanceViewModel
     {
         // === constructor ===
@@ -73,6 +76,12 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             switch (entry.Name)
             {
+                case "Total Activity":
+                    drive.TotalActivity = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    PushDataPoint(drive.TotalActivity, entry);
+                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(drive.TotalActivity, entry, e);
+                    break;
+
                 case "Write Rate":
                     drive.WriteRate = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(drive.WriteRate, entry);

@@ -42,8 +42,13 @@
 		<None Remove="Controls\Graph.xaml" />
 		<None Remove="Controls\SensorCardControl.xaml" />
 		<None Remove="Controls\SensorGraph\SensorPanelControl.xaml" />
+		<None Remove="Controls\SensorTile\SensorTileControl.xaml" />
 		<None Remove="Controls\Threshold\ThresholdFlyoutControl.xaml" />
 		<None Remove="Features\Performance\HardwareViews\CpuDetailView.xaml" />
+		<None Remove="Features\Performance\HardwareViews\GpuDetailView.xaml" />
+		<None Remove="Features\Performance\HardwareViews\MemoryDetailView.xaml" />
+		<None Remove="Features\Performance\HardwareViews\NetworkDetailView.xaml" />
+		<None Remove="Features\Performance\HardwareViews\StorageDetailView.xaml" />
 		<None Remove="Features\Performance\PerformancePage.xaml" />
 		<None Remove="Features\Sensors\HiddenSensorsWindow.xaml" />
 		<None Remove="Features\Sensors\SensorsPage.xaml" />
@@ -94,6 +99,26 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Features\Performance\HardwareViews\GpuDetailView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Features\Performance\HardwareViews\StorageDetailView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Features\Performance\HardwareViews\NetworkDetailView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Features\Performance\HardwareViews\MemoryDetailView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
     <Page Update="Controls\SensorGraph\SensorPanelControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -140,6 +165,11 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Features\Performance\HardwareViews\CpuDetailView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Controls\SensorTile\SensorTileControl.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </Page>
 	</ItemGroup>

@@ -137,13 +137,16 @@ namespace FluentSensors.Controls.SensorGraph
                 oldValues.CollectionChanged -= g.OnValuesCollectionChanged;
             }
 
-            // start listening to the new Values list, so new/removed data points update the graph
-            if (e.NewValue is ObservableCollection<double?> newValues)
-            {
-                g._lineSeries.Values = newValues;
-                newValues.CollectionChanged += g.OnValuesCollectionChanged;
-                g.ApplyStroke();
-            }
+            // when the new value is null (e.g. this sensor does not exist on the currently bound hardware
+            // instance), fall back to an empty collection instead of silently keeping whatever was there
+            // before
+            // without this, a null Values would leave the chart permanently pointed at the *previous* ViewModels
+            // live data, since a plain "is ObservableCollection<double?>" pattern match on null simply fails and
+            // skips the update entirely
+            var effectiveValues = e.NewValue as ObservableCollection<double?> ?? new ObservableCollection<double?>();
+            g._lineSeries.Values = effectiveValues;
+            effectiveValues.CollectionChanged += g.OnValuesCollectionChanged;
+            g.ApplyStroke();
         }
 
         // runs every time a data point is added or removed (i.e. every AddDataPoint call)

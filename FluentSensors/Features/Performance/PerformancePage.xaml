@@ -4,24 +4,10 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:fhLhm="using:FluentSensors.Features.Performance.Lhm"
-    xmlns:hw="using:FluentSensors.Features.Performance.HardwareViews"
     xmlns:local="using:FluentSensors.Features.Performance"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     NavigationCacheMode="Enabled"
     mc:Ignorable="d">
-
-    <Page.Resources>
-
-        <DataTemplate x:Key="CpuDetailTemplate" x:DataType="fhLhm:LhmCpuInstanceViewModel">
-            <hw:CpuDetailView Cpu="{x:Bind}" />
-        </DataTemplate>
-
-        <!--  picks the content template by the runtime type of the ContentControl belows content  -->
-        <!--  (adding a new hardware kind means one more keyed template here + one more property in the selector)  -->
-        <local:HardwareDetailTemplateSelector x:Key="HardwareDetailTemplateSelector" CpuTemplate="{StaticResource CpuDetailTemplate}" />
-
-    </Page.Resources>
 
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
@@ -67,16 +53,17 @@
         </Border>
 
 
-        <!--  content  -->
-        <!--  left: selection sidebar, right: hardware detail view  -->
+        <!--  content: hardware selection sidebar + detail area  -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="150" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-
-            <!--  sidebar: hardware selection  -->
+            <!--
+                sidebar: hardware selection, one unified list for every category (Cpu/Ram are always present,
+                Gpu/Storage/Network are added reactively as PerformanceViewModel discovers them)
+            -->
             <Border
                 Grid.Column="0"
                 Background="Transparent"
@@ -105,7 +92,10 @@
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
 
-                                        <!--  mini graph for the hardware  -->
+                                        <!--
+                                            mini graph placeholder; real per-instance mini graphs are a
+                                            separate future step, selection highlighting likewise
+                                        -->
                                         <Border
                                             Grid.Column="0"
                                             Width="48"
@@ -128,7 +118,7 @@
             </Border>
 
 
-            <!--  hardware view detail area  -->
+            <!--  detail area  -->
             <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -136,7 +126,7 @@
                 </Grid.RowDefinitions>
 
                 <!--  header for one hardware  -->
-                <!--  left: group label + right: hardware display name  -->
+                <!--  group label (left) + hardware display name (right) for the selected nav item  -->
                 <Border
                     Grid.Row="0"
                     Padding="16,12,16,0"
@@ -147,7 +137,6 @@
                         <TextBlock
                             Margin="4,0,0,0"
                             HorizontalAlignment="Left"
-                            VerticalAlignment="Bottom"
                             FontSize="26"
                             Style="{ThemeResource BodyLargeTextBlockStyle}"
                             Text="{x:Bind ViewModel.SelectedItem.GroupLabel, Mode=OneWay}" />
@@ -162,13 +151,15 @@
                     </Grid>
                 </Border>
 
-                <!--  HardwareDetailTemplateSelector picks the matching hardware-specific view  -->
-                <ContentControl
-                    Grid.Row="1"
-                    HorizontalContentAlignment="Stretch"
-                    VerticalContentAlignment="Stretch"
-                    Content="{x:Bind ViewModel.SelectedItem.Target, Mode=OneWay}"
-                    ContentTemplateSelector="{StaticResource HardwareDetailTemplateSelector}" />
+
+                <!--
+                    detail content host: filled/replaced entirely from code-behind on every selection change,
+                    no ContentControl/ContentTemplateSelector - see UpdateDetailView. Every switch tears the
+                    previous hardware-specific view down completely and builds a brand new instance, instead
+                    of letting WinUI silently recycle the old one; recycling caused stale frozen graphs and,
+                    worse, TwoWay threshold bindings leaking state into the wrong sensor
+                -->
+                <Grid x:Name="DetailHostGrid" Grid.Row="1" />
 
             </Grid>
 

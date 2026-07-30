@@ -7,6 +7,7 @@
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhLhm="using:FluentSensors.Features.Performance.Lhm"
+    xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
@@ -33,32 +34,12 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-
                     <Grid.Resources>
-                        <!--  1 tile for 1 sensor: sensor name + current value, no graph  -->
-                        <DataTemplate x:Key="SensorValueTileTemplate" x:DataType="fhGraph:SensorGraphViewModel">
-                            <Border
-                                Padding="2"
-                                Background="Transparent"
-                                CornerRadius="4">
-                                <StackPanel Spacing="2">
-                                    <TextBlock
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="{x:Bind SensorName, Mode=OneWay}" />
-                                    <TextBlock
-                                        Foreground="{x:Bind CurrentValueColor, Mode=OneWay}"
-                                        Style="{ThemeResource SubtitleTextBlockStyle}"
-                                        Text="{x:Bind CurrentValueText, Mode=OneWay}" />
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-
                         <!--  1 border for 1 physical core  -->
                         <!--  it stack whicever threads, temperatur, clocks it actually has  -->
                         <DataTemplate x:Key="CpuCoreCellTemplate" x:DataType="fhLhm:LhmCpuCoreViewModel">
                             <Border
-                                Padding="4"
+                                Padding="0"
                                 Background="Transparent"
                                 CornerRadius="4">
                                 <Grid RowSpacing="2">
@@ -76,7 +57,7 @@
                                     <!--  core title  -->
                                     <TextBlock
                                         Grid.Row="0"
-                                        Margin="4,0,0,2"
+                                        Margin="4,0,0,0"
                                         Style="{ThemeResource CaptionTextBlockStyle}"
                                         Text="{x:Bind Temperature.SensorName, Mode=OneWay}"
                                         TextTrimming="CharacterEllipsis" />
@@ -125,8 +106,7 @@
                                         GraphColorOverride="#FF00CC6A"
                                         GraphDataPointsOverride="70"
                                         GraphTapAction="ShowFlyout"
-                                        IsAutoScaledOverride="False"
-                                        ManualYMaxOverride="5000"
+                                        IsAutoScaledOverride="True"
                                         ShowGraphLabel="True"
                                         ShowThresholdFlyoutIndicator="False"
                                         ShowTitleRow="False"
@@ -214,14 +194,20 @@
                                     ViewModel="{x:Bind Cpu.PackagePower, Mode=OneWay}" />
                             </Grid>
 
-                            <!--  narrow: all 3 stacked equally, switched via SizeChanged  -->
-                            <fhControls:VerticalStretchPanel
+                            <!--  narrow: all 3 stacked, first weighted bigger, switched via SizeChanged  -->
+                            <Grid
                                 x:Name="NarrowGraphsPanel"
                                 MinHeight="240"
-                                Spacing="8"
+                                RowSpacing="8"
                                 Visibility="Collapsed">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="2*" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
 
                                 <fhGraph:SensorPanelControl
+                                    Grid.Row="0"
                                     GraphColorOverride="#FF00B7C3"
                                     GraphDataPointsOverride="180"
                                     IsAutoScaledOverride="False"
@@ -233,6 +219,7 @@
                                     ViewModel="{x:Bind Cpu.TotalLoad, Mode=OneWay}" />
 
                                 <fhGraph:SensorPanelControl
+                                    Grid.Row="1"
                                     GraphColorOverride="#FFFFB900"
                                     GraphDataPointsOverride="180"
                                     IsAutoScaledOverride="False"
@@ -244,6 +231,7 @@
                                     ViewModel="{x:Bind Cpu.MaxTemperature, Mode=OneWay}" />
 
                                 <fhGraph:SensorPanelControl
+                                    Grid.Row="2"
                                     GraphColorOverride="#FFFFB900"
                                     GraphDataPointsOverride="180"
                                     IsAutoScaledOverride="False"
@@ -253,10 +241,10 @@
                                     ShowYAxisControls="True"
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Cpu.PackagePower, Mode=OneWay}" />
-                            </fhControls:VerticalStretchPanel>
+                            </Grid>
                         </Grid>
 
-                        <!--  current value tiles + static hardware info  -->
+                        <!--  current value tiles  -->
                         <Grid
                             x:Name="TilesAndStaticInfoGrid"
                             Grid.Row="1"
@@ -271,155 +259,25 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <!--  left: 3 stacked value tiles  -->
-                            <!--<StackPanel Grid.Column="0" Spacing="8">
-                                <ContentControl
-                                    HorizontalContentAlignment="Stretch"
-                                    Content="{x:Bind Cpu.TotalLoad, Mode=OneWay}"
-                                    ContentTemplate="{StaticResource SensorValueTileTemplate}" />
-                                <ContentControl
-                                    HorizontalContentAlignment="Stretch"
-                                    Content="{x:Bind Cpu.MaxTemperature, Mode=OneWay}"
-                                    ContentTemplate="{StaticResource SensorValueTileTemplate}" />
-                                <ContentControl
-                                    HorizontalContentAlignment="Stretch"
-                                    Content="{x:Bind Cpu.PackagePower, Mode=OneWay}"
-                                    ContentTemplate="{StaticResource SensorValueTileTemplate}" />
-                            </StackPanel>-->
-
-                            <!--  top: value tiles  -->
                             <StackPanel
                                 Grid.Column="0"
                                 Grid.ColumnSpan="2"
                                 Margin="0,0,0,16"
                                 Orientation="Horizontal"
                                 Spacing="8">
-                                <ContentControl
+                                <fhTile:SensorTileControl
+                                    Title="CPU Total Load"
                                     Width="100"
-                                    Content="{x:Bind Cpu.TotalLoad, Mode=OneWay}"
-                                    ContentTemplate="{StaticResource SensorValueTileTemplate}" />
-                                <ContentControl
+                                    ViewModel="{x:Bind Cpu.TotalLoad, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    Title="Max Temperature"
+                                    Width="110"
+                                    ViewModel="{x:Bind Cpu.MaxTemperature, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    Title="Package Power"
                                     Width="100"
-                                    Content="{x:Bind Cpu.MaxTemperature, Mode=OneWay}"
-                                    ContentTemplate="{StaticResource SensorValueTileTemplate}" />
-                                <ContentControl
-                                    Width="100"
-                                    Content="{x:Bind Cpu.PackagePower, Mode=OneWay}"
-                                    ContentTemplate="{StaticResource SensorValueTileTemplate}" />
+                                    ViewModel="{x:Bind Cpu.PackagePower, Mode=OneWay}" />
                             </StackPanel>
-
-                            <!--  right: static CPU hardware info (raw draft, no final styling yet)  -->
-                            <!--<Border
-                                Grid.Row="1"
-                                Grid.Column="0"
-                                Grid.ColumnSpan="2"
-                                Padding="0"
-                                Background="Transparent"
-                                CornerRadius="4">
-                                <StackPanel Spacing="4">
-                            -->
-                            <!--<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Text="CPU Static Info" />-->
-                            <!--
-
-                                    <Grid ColumnSpacing="8" RowSpacing="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="150" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition />
-                                            <RowDefinition />
-                                            <RowDefinition />
-                                            <RowDefinition />
-                                            <RowDefinition />
-                                            <RowDefinition />
-                                            <RowDefinition />
-                                            <RowDefinition />
-                                        </Grid.RowDefinitions>
-
-                                        <TextBlock
-                                            Grid.Row="0"
-                                            Grid.Column="0"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="Physical Cores" />
-                                        <TextBlock
-                                            Grid.Row="0"
-                                            Grid.Column="1"
-                                            Text="{x:Bind Cpu.CpuPhysicalCoresText}" />
-
-                                        <TextBlock
-                                            Grid.Row="1"
-                                            Grid.Column="0"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="Logical Processors" />
-                                        <TextBlock
-                                            Grid.Row="1"
-                                            Grid.Column="1"
-                                            Text="{x:Bind Cpu.CpuLogicalProcessorsText}" />
-
-                                        <TextBlock
-                                            Grid.Row="2"
-                                            Grid.Column="0"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="L2 Cache" />
-                                        <TextBlock
-                                            Grid.Row="2"
-                                            Grid.Column="1"
-                                            Text="{x:Bind Cpu.CpuL2CacheText}" />
-
-                                        <TextBlock
-                                            Grid.Row="3"
-                                            Grid.Column="0"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="L3 Cache" />
-                                        <TextBlock
-                                            Grid.Row="3"
-                                            Grid.Column="1"
-                                            Text="{x:Bind Cpu.CpuL3CacheText}" />
-
-                                        <TextBlock
-                                            Grid.Row="4"
-                                            Grid.Column="0"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="Max Clock Speed" />
-                                        <TextBlock
-                                            Grid.Row="4"
-                                            Grid.Column="1"
-                                            Text="{x:Bind Cpu.CpuMaxClockText}" />
-
-                                        <TextBlock
-                                            Grid.Row="5"
-                                            Grid.Column="0"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="Socket" />
-                                        <TextBlock
-                                            Grid.Row="5"
-                                            Grid.Column="1"
-                                            Text="{x:Bind Cpu.CpuSocketText}" />
-
-                                        <TextBlock
-                                            Grid.Row="6"
-                                            Grid.Column="0"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="Virtualization (Firmware)" />
-                                        <TextBlock
-                                            Grid.Row="6"
-                                            Grid.Column="1"
-                                            Text="{x:Bind Cpu.CpuVirtualizationFirmwareText}"
-                                            ToolTipService.ToolTip="Known unreliable on some systems" />
-
-                                        <TextBlock
-                                            Grid.Row="7"
-                                            Grid.Column="0"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="Virtualization Extensions" />
-                                        <TextBlock
-                                            Grid.Row="7"
-                                            Grid.Column="1"
-                                            Text="{x:Bind Cpu.CpuVirtualizationExtensionsText}" />
-                                    </Grid>
-                                </StackPanel>
-                            </Border>-->
                         </Grid>
                     </Grid>
 
@@ -441,15 +299,15 @@
                             ScrollViewer.VerticalScrollMode="Disabled">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <fhControls:SquareGridPanel MinCellHeight="200" Spacing="8" />
+                                    <fhControls:SquareGridPanel MinCellHeight="200" Spacing="12" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                         </ItemsControl>
 
                         <Border
                             Grid.Row="1"
-                            Height="1"
-                            Margin="0,8"
+                            Height="0"
+                            Margin="0,24,0,0"
                             Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
 
                         <ItemsControl
@@ -460,7 +318,7 @@
                             ScrollViewer.VerticalScrollMode="Disabled">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <fhControls:SquareGridPanel MinCellHeight="200" Spacing="8" />
+                                    <fhControls:SquareGridPanel MinCellHeight="200" Spacing="12" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                         </ItemsControl>

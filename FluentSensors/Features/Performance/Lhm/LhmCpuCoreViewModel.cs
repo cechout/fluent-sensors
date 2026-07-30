@@ -14,17 +14,22 @@ namespace FluentSensors.Features.Performance.Lhm
     //
     // Load sensors usually do not carry that distinction by lhm, so this is the only place it can come from, and it
     // is stored as-is rather than interpreted or hardcoded to any particular vendors naming
-    // Kept as two separate fields since the two sensor families could in theory disagree; not resolved/displayed
+    // kept as two separate fields since the two sensor families could in theory disagree; not resolved/displayed
     // anywhere yet, just preserved for later
     public class LhmCpuCoreViewModel : INotifyPropertyChanged
     {
-        public bool HasThreads { get; }
+        // === constructor ===
 
         public LhmCpuCoreViewModel(bool hasThreads)
         {
             HasThreads = hasThreads;
             Threads = new ObservableCollection<SensorGraphViewModel>();
         }
+
+
+        // === bindable properties ===
+
+        public bool HasThreads { get; }
 
         // one entry per "CPU Core #N[ Thread #M]" Load sensor belonging to this physical core
         public ObservableCollection<SensorGraphViewModel> Threads { get; }
@@ -57,6 +62,8 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _clockLabel = value; OnPropertyChanged(); }
         }
 
+
+        // === INotifyPropertyChanged implementation ===
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)

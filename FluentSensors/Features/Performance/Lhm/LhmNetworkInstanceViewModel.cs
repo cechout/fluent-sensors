@@ -6,16 +6,22 @@ using FluentSensors.Controls.SensorGraph;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // one entry per currently active network adapter
-    // (inactive adapters never reach this VM at all, since HardwareMonitorService already excludes them from the payload)
+    // one entry per currently active network adapter (inactive adapters never reach this VM at all, since
+    // HardwareMonitorService already excludes them from the payload)
+    // A plain data holder; all sensor discovery/parsing lives in LhmNetworkPerformanceViewModel instead
     public class LhmNetworkInstanceViewModel : INotifyPropertyChanged
     {
-        public string HardwareName { get; }
+        // === constructor ===
 
         public LhmNetworkInstanceViewModel(string hardwareName)
         {
             HardwareName = hardwareName;
         }
+
+
+        // === bindable properties ===
+
+        public string HardwareName { get; }
 
         private SensorGraphViewModel _uploadSpeed;
         public SensorGraphViewModel UploadSpeed

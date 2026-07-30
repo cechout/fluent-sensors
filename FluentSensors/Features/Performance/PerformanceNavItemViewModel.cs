@@ -1,24 +1,15 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+
 using FluentSensors.Common.Sensors;
+
 
 namespace FluentSensors.Features.Performance
 {
     // one entry in the sidebar / one selectable "page" within the single PerformancePage
-    // Cpu and Ram entries are created once and live for the apps lifetime; Gpu/Storage/Network entries are created reactively as
-    // their underlying hardware collections discover new instances (see PerformanceViewModel)
     public class PerformanceNavItemViewModel : INotifyPropertyChanged
     {
-        public HardwareGroupKind Kind { get; }
-
-        // left side of the detail header, e.g. "CPU", "GPU"; fixed per Kind, never changes
-        public string GroupLabel { get; }
-
-        // the object the detail block for this Kind binds against; e.g. LhmCpuPerformanceViewModel for Cpu,
-        // or a single LhmGpuInstanceViewModel for a Gpu entry
-        // Typed as object since the concrete type differs per Kind; each detail block in PerformancePage.xaml only reads from
-        // the Target matching its own Kind
-        public object Target { get; }
+        // === constructor ===
 
         public PerformanceNavItemViewModel(HardwareGroupKind kind, string groupLabel, string displayName, object target)
         {
@@ -28,9 +19,22 @@ namespace FluentSensors.Features.Performance
             Target = target;
         }
 
+
+        // === bindable properties ===
+
+        public HardwareGroupKind Kind { get; }
+
+        // left side of the detail header, e.g. "CPU", "GPU"; fixed per Kind, never changes
+        public string GroupLabel { get; }
+
+        // the specific hardware instance this nav item represents, e.g. one LhmCpuInstanceViewModel or one
+        // LhmGpuInstanceViewModel; typed as object since the concrete type differs per Kind
+        // PerformancePage picks the matching cached detail view purely by this objects runtime type
+        public object Target { get; }
+
         // sidebar label / right side of the detail header, e.g. the CPUs product name or a GPUs model name;
-        // bindable because Cpu/Ram start with a null placeholder and get filled in once the first payload for that hardware
-        // arrives (see PerformanceViewModels HardwareName propagation)
+        // bindable because Cpu/Ram start with a null placeholder and get filled in once the first payload for
+        // that hardware arrives (see PerformanceViewModels HardwareName propagation)
         private string _displayName;
         public string DisplayName
         {
@@ -45,7 +49,7 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // drives sidebar highlighting; set exclusively by PerformanceViewModel.SelectedItem's setter
+        // drives sidebar highlighting; set exclusively by PerformanceViewModel.SelectedItems setter
         private bool _isSelected;
         public bool IsSelected
         {

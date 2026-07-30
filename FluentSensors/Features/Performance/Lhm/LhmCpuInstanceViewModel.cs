@@ -11,8 +11,10 @@ using FluentSensors.Core.StaticInfo;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // one entry per detected CPU:
-    // a multi-socket system shows more than one, though in practice this is virtually always exactly one
+    // one entry per detected CPU (a multi-socket system shows more than one, though in practice this is
+    // virtually always exactly one)
+    // A plain data holder plus a bit of matching logic for its own cores; LhmCpuPerformanceViewModel does the actual
+    // sensor discovery/parsing and decides what goes where
     public class LhmCpuInstanceViewModel : INotifyPropertyChanged
     {
         // === fields ===
@@ -25,7 +27,7 @@ namespace FluentSensors.Features.Performance.Lhm
         // every physical core in the exact order LHMs Load sensors introduced it
         // the single shared reference sequence Temperature/Clock matching walks through (see MatchNextTemperature/
         // MatchNextClock)
-        // Deliberately not the same object as CoresWithThreads/CoresWithoutThreads concatenated; those two exist
+        // deliberately not the same object as CoresWithThreads/CoresWithoutThreads concatenated; those two exist
         // purely for the UIs vertical split, this preserves the one combined discovery order that the matching relies on
         private readonly List<LhmCpuCoreViewModel> _coresInDiscoveryOrder = new();
         private int _nextTemperatureMatchIndex;
@@ -91,8 +93,7 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
         // physical cores whose Load sensor name contains a "Thread #" suffix (i.e. LHM reports more than one
-        // logical processor for them)
-        // A safe, name-based fact, unlike any P-Core/E-Core label
+        // logical processor for them); a safe, name-based fact, unlike any P-Core/E-Core label
         public ObservableCollection<LhmCpuCoreViewModel> CoresWithThreads { get; }
 
         // physical cores without a "Thread #" suffix in their Load sensor name
@@ -103,9 +104,8 @@ namespace FluentSensors.Features.Performance.Lhm
         public Visibility OverallVisibility => IsShowingAllThreads ? Visibility.Collapsed : Visibility.Visible;
         public Visibility AllThreadsVisibility => IsShowingAllThreads ? Visibility.Visible : Visibility.Collapsed;
 
-
-        // static CPU info 
-        // read-only, purely computed: WinStaticInfoService.Instance.Cpu never changes after the singletons first
+        // static CPU info
+        // read-only, purely computed; WinStaticInfoService.Instance.Cpu never changes after the singletons first
         // access, so there is nothing to raise OnPropertyChanged for here
         public string CpuPhysicalCoresText => WinStaticInfoService.Instance.Cpu.PhysicalCores.ToString();
         public string CpuLogicalProcessorsText => WinStaticInfoService.Instance.Cpu.LogicalProcessors.ToString();

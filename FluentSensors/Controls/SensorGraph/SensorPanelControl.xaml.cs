@@ -1,8 +1,9 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using System.Collections.ObjectModel;
+
 using FluentSensors.Common.UI;
-using FluentSensors.Common.Sensors;
 
 
 namespace FluentSensors.Controls.SensorGraph
@@ -105,6 +106,33 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(TapAction),
                 typeof(SensorPanelControl),
                 new PropertyMetadata(TapAction.TogglePanel));
+
+        // fallback sensor name shown in the not-found placeholder when ViewModel is null; has no effect when
+        // ViewModel is set (the real SensorGraphViewModels own name is used instead)
+        public string PlaceholderSensorName
+        {
+            get => (string)GetValue(PlaceholderSensorNameProperty);
+            set => SetValue(PlaceholderSensorNameProperty, value);
+        }
+        public static readonly DependencyProperty PlaceholderSensorNameProperty =
+            DependencyProperty.Register(
+                nameof(PlaceholderSensorName),
+                typeof(string),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(string.Empty));
+
+        // fallback unit shown alongside PlaceholderSensorName
+        public string PlaceholderUnit
+        {
+            get => (string)GetValue(PlaceholderUnitProperty);
+            set => SetValue(PlaceholderUnitProperty, value);
+        }
+        public static readonly DependencyProperty PlaceholderUnitProperty =
+            DependencyProperty.Register(
+                nameof(PlaceholderUnit),
+                typeof(string),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(string.Empty));
 
         // whether the small colored threshold badge is visually rendered when flyout mode is active; set to false
         // to keep GraphTapAction/ButtonTapAction opening the flyout without showing the badge itself
@@ -248,14 +276,23 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(true));
 
-        // fires whenever ViewModel itself changes, or any of the three override properties change;
-        // re-applies all of them together so the final state is always correct regardless of the order XAML happens
-        // to set these attributes in
+        // fires whenever ViewModel itself changes, or any of the three override properties change; re-applies all of them
+        // together so the final state is always correct regardless of the order XAML happens to set these attributes in
         private static void OnOverrideChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is SensorPanelControl panel)
+            if (d is not SensorPanelControl panel) return;
+
+            panel.ApplyOverridesToViewModel();
+
+            // x:Binds nested path down to SensorGraphControl.Values (ViewModel.SensorData) does not get
+            // re-evaluated once ViewModel itself becomes null
+            // it simply stops and leaves whatever was bound before untouched, which silently keeps showing another
+            // sensors live data
+            // Clear the chart explicitly here instead, since this callback is confirmed to fire correctly with
+            // ViewModel==null
+            if (e.Property == ViewModelProperty && e.NewValue == null)
             {
-                panel.ApplyOverridesToViewModel();
+                panel.GraphControl.Values = new ObservableCollection<double?>();
             }
         }
 
@@ -277,6 +314,21 @@ namespace FluentSensors.Controls.SensorGraph
 
 
         // === bindable helper surfaces ===
+
+        // whether the graph chrome (label row + chart row) should render; false when ViewModel is null, e.g.
+        // this hardware instance does not report the requested sensor at all
+        private Visibility GetContentVisibility(SensorGraphViewModel viewModel) =>
+            viewModel == null ? Visibility.Collapsed : Visibility.Visible;
+
+        private Visibility GetNotFoundVisibility(SensorGraphViewModel viewModel) =>
+            viewModel == null ? Visibility.Visible : Visibility.Collapsed;
+
+        // PlaceholderSensorName/PlaceholderUnit are set by the consumer alongside ViewModel, since a null
+        // ViewModel carries no name/unit of its own to fall back on
+        private string FormatNotFoundMessage(string sensorName, string unit)
+        {
+            return string.IsNullOrEmpty(unit) ? $"{sensorName} sensor not found" : $"{sensorName} ({unit}) sensor not found";
+        }
 
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
 

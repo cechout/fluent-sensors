@@ -18,6 +18,13 @@ namespace FluentSensors.Core.StaticInfo
     // this shape
     // fix: the buffer is read manually as raw bytes at fixed offsets documented by the Win32 API, instead of
     // marshaling it onto a C# struct
+    //
+    // official struct docs the manual offsets below are derived from:
+    // https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-system_logical_processor_information_ex
+    // https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-processor_relationship
+    // https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformationex
+    // worked example of the same "call with null buffer first, then enumerate variable-length records" pattern:
+    // https://devblogs.microsoft.com/oldnewthing/using-getlogicalprocessorinformationex-to-see-the-relationship-between-logical-and-physical-processors
     public static partial class WinCpuTopologyReader
     {
         private const int RelationProcessorCore = 0;

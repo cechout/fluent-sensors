@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.Lhm;
@@ -8,6 +9,10 @@ using FluentSensors.Core.Lhm;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
+    // discovers every GPU instance (dGPU + iGPU both count separately) from LhmHardwareTreeService and creates
+    // one LhmGpuInstanceViewModel per instance; parses each raw LHM sensor into the right property on the right
+    // instance
+    // the instance itself stays a dumb data holder
     public class LhmGpuPerformanceViewModel
     {
         // === constructor ===
@@ -68,23 +73,55 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
+        // matches on (Name, SensorType) rather than Name alone: "GPU Core" is reported both as a Load sensor
+        // (utilization %) and a Clock sensor (MHz) with the exact same name, so Name-only matching would let one
+        // silently overwrite the other
         private void OnSensorDiscovered(LhmGpuInstanceViewModel gpu, LhmSensorEntry entry)
         {
-            switch (entry.Name)
+            switch (entry.Name, entry.SensorType)
             {
-                case "GPU Core":
+                case ("GPU Core", "Load"):
                     gpu.CoreLoad = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.CoreLoad, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.CoreLoad, entry, e);
                     break;
 
-                case "GPU Memory Used":
+                case ("GPU Core", "Clock"):
+                    gpu.CoreClock = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    PushDataPoint(gpu.CoreClock, entry);
+                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.CoreClock, entry, e);
+                    break;
+
+                case ("GPU Hot Spot", "Temperature"):
+                    gpu.HotSpotTemperature = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    PushDataPoint(gpu.HotSpotTemperature, entry);
+                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.HotSpotTemperature, entry, e);
+                    break;
+
+                case ("GPU Package", "Power"):
+                    gpu.PackagePower = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    PushDataPoint(gpu.PackagePower, entry);
+                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.PackagePower, entry, e);
+                    break;
+
+                case ("GPU Memory Used", "SmallData"):
                     gpu.MemoryUsed = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.MemoryUsed, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.MemoryUsed, entry, e);
                     break;
 
-                case "GPU Memory Controller":
+                case ("GPU Memory Total", "SmallData"):
+                    gpu.MemoryTotal = entry.Value;
+                    entry.PropertyChanged += (s, e) => OnMemoryTotalChanged(gpu, entry, e);
+                    break;
+
+                case ("GPU Memory", "Clock"):
+                    gpu.MemoryClock = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    PushDataPoint(gpu.MemoryClock, entry);
+                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.MemoryClock, entry, e);
+                    break;
+
+                case ("GPU Memory Controller", "Load"):
                     gpu.MemoryControllerLoad = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.MemoryControllerLoad, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.MemoryControllerLoad, entry, e);
@@ -96,6 +133,12 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             if (e.PropertyName != nameof(LhmSensorEntry.Value)) return;
             PushDataPoint(graph, entry);
+        }
+
+        private static void OnMemoryTotalChanged(LhmGpuInstanceViewModel gpu, LhmSensorEntry entry, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(LhmSensorEntry.Value)) return;
+            gpu.MemoryTotal = entry.Value;
         }
 
         private static void PushDataPoint(SensorGraphViewModel graph, LhmSensorEntry entry)

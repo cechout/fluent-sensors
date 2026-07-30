@@ -7,13 +7,26 @@ using FluentSensors.Controls.SensorGraph;
 namespace FluentSensors.Features.Performance.Lhm
 {
     // one entry per detected drive
+    // A plain data holder; all sensor discovery/parsing lives in LhmStoragePerformanceViewModel instead
     public class LhmStorageInstanceViewModel : INotifyPropertyChanged
     {
-        public string HardwareName { get; }
+        // === constructor ===
 
         public LhmStorageInstanceViewModel(string hardwareName)
         {
             HardwareName = hardwareName;
+        }
+
+
+        // === bindable properties ===
+
+        public string HardwareName { get; }
+
+        private SensorGraphViewModel _totalActivity;
+        public SensorGraphViewModel TotalActivity
+        {
+            get => _totalActivity;
+            set { _totalActivity = value; OnPropertyChanged(); }
         }
 
         private SensorGraphViewModel _writeRate;

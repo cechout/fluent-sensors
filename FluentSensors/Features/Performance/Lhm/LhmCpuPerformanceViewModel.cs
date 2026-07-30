@@ -10,6 +10,9 @@ using FluentSensors.Core.Lhm;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
+    // discovers every CPU instance from LhmHardwareTreeService and creates one LhmCpuInstanceViewModel per
+    // instance; parses each raw LHM sensor into the right property on the right instance
+    // the instance itself stays a dumb data holder, all "which sensor goes where" logic lives here
     public class LhmCpuPerformanceViewModel
     {
         // matches "CPU Core #<n>" or "CPU Core #<n> Thread #<m>" (Load sensors); "CPU Core Max" and "CPU
@@ -17,8 +20,8 @@ namespace FluentSensors.Features.Performance.Lhm
         private static readonly Regex LoadCorePattern = new Regex(@"^CPU Core #(\d+)( Thread #\d+)?$", RegexOptions.Compiled);
 
         // matches a per-core Temperature/Clock sensor name like "P-Core #3" or "E-Core #12"
-        // A label followed by " #" and digits, with nothing else after
-        // This is what excludes sibling sensors that share the same prefix but are not a plain per-core reading, e.g.
+        // a label followed by " #" and digits, with nothing else after
+        // this is what excludes sibling sensors that share the same prefix but are not a plain per-core reading, e.g.
         // "P-Core #1 Distance to TjMax" does NOT match (it does not end right after the digits); no hardcoded exclusion
         // list needed
         private static readonly Regex CoreLabelPattern = new Regex(@"^(.+) #\d+$", RegexOptions.Compiled);

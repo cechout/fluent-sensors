@@ -139,9 +139,16 @@ namespace FluentSensors.Core.StaticInfo
             // MSFT_PhysicalDisk (modern Storage namespace) is more reliable than the legacy Win32_DiskDrive for two
             // properties:
             // FriendlyName (fixes the blank/garbled NVMe name LHM gave us earlier; confirmed working in the dump) and
-            // BusType (Win32_DiskDrive.InterfaceType reports "SCSI" for NVMe drives across the board; a well-known,
-            // confirmed Windows quirk, since NVMe is exposed through the storport/SCSI driver model;
-            // MSFT_PhysicalDisk.BusType correctly reports "NVMe" instead)
+            // BusType (Win32_DiskDrive.InterfaceType reports "SCSI" for NVMe drives across the board; confirmed by
+            // Microsoft support directly recommending MSFT_Disk/MSFT_PhysicalDisk.BusType instead:
+            // https://social.msdn.microsoft.com/Forums/en-US/3cb7d1ab-e9f0-4ddb-87d4-cfee3d3915c5/the-interfacetype-of-win32diskdrive-reports-scsi-instead-of-nvme
+            // the underlying reason: NVMe is served through the storport-based driver model, which
+            // Win32_DiskDrive.InterfaceType still reports through its legacy SCSI-descended classification:
+            // https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/storport-driver-overview
+            //
+            // MSFT_PhysicalDisk.BusType:
+            // https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-physicaldisk
+            // correctly reports "NVMe" instead)
             var physicalDiskInfo = new Dictionary<string, (string FriendlyName, string BusType)>();
             try
             {
