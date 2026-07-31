@@ -100,16 +100,21 @@ namespace FluentSensors.Common.Sensors
             get => Direction == ThresholdDirection.Above;
             set
             {
-                if (value)
-                {
-                    IsEnabled = true; 
-                    Direction = ThresholdDirection.Above;
-                }
-                else
+                if (!value)
                 {
                     // force the toggle back to checked; direction is radio-like, not a real off-state
                     OnPropertyChanged(nameof(IsAboveDirection));
+                    return;
                 }
+
+                // guard: TwoWay x:Bind re-syncs IsChecked (and therefore calls this setter again) any time
+                // this controls bindings get re-evaluated, e.g. after an Unloaded/Loaded cycle
+                // Not just on a real user click; without this check, a resync that merely re-confirms the current
+                // direction would still unconditionally re-enable the threshold below
+                if (Direction == ThresholdDirection.Above) return;
+
+                IsEnabled = true;
+                Direction = ThresholdDirection.Above;
             }
         }
         public bool IsBelowDirection
@@ -117,15 +122,17 @@ namespace FluentSensors.Common.Sensors
             get => Direction == ThresholdDirection.Below;
             set
             {
-                if (value)
-                {
-                    IsEnabled = true;
-                    Direction = ThresholdDirection.Below;
-                }
-                else
+                if (!value)
                 {
                     OnPropertyChanged(nameof(IsBelowDirection));
+                    return;
                 }
+
+                // guard
+                if (Direction == ThresholdDirection.Below) return;
+
+                IsEnabled = true;
+                Direction = ThresholdDirection.Below;
             }
         }
 

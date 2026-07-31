@@ -85,42 +85,10 @@ namespace FluentSensors.Controls.SensorGraph
             Chart.PointerExited += OnChartPointerExited;
             Chart.UpdateStarted += Chart_UpdateStarted;
 
-            // TEMP?
-            this.Loaded += (s, e) =>
-            {
-                if (_isLoaded)
-                {
-                    Chart.UpdateStarted += Chart_UpdateStarted;
-                }
-            };
-
             // initial visuals and threshold state
             ApplyStroke();
             RebuildSections();
             VisualStateManager.GoToState(this, ShowCardBackground ? "CardBackgroundVisible" : "CardBackgroundHidden", false);
-
-
-            // TEMPORARY DIAGNOSTIC
-            //this.Loaded += (s, e) =>
-            //    System.Diagnostics.Debug.WriteLine($"[SensorGraph {GetHashCode():X}] Loaded");
-            //this.Unloaded += (s, e) =>
-            //    System.Diagnostics.Debug.WriteLine($"[SensorGraph {GetHashCode():X}] Unloaded");
-            //this.Loaded += (s, e) =>
-            //    System.Diagnostics.Debug.WriteLine($"[SensorGraph {GetHashCode():X}] Loaded, Size={ActualWidth}x{ActualHeight}, Visibility={Visibility}");
-
-        }
-
-        // LiveCharts only builds its internal scale/draw context on the first real measure pass;
-        // UpdateStarted fires once that has happened (Loaded fires too early, before the chart is actually ready)
-        private void Chart_UpdateStarted(LiveChartsCore.Kernel.Sketches.IChartView chart)
-        {
-            // TEMPORARY DIAGNOSTIC
-            //System.Diagnostics.Debug.WriteLine($"[SensorGraph {GetHashCode():X}] Chart_UpdateStarted fired");
-
-
-            Chart.UpdateStarted -= Chart_UpdateStarted;
-            _isLoaded = true;
-            ShowThresholdLabelBriefly();
         }
 
 
@@ -416,5 +384,19 @@ namespace FluentSensors.Controls.SensorGraph
 
             VisualStateManager.GoToState(g, g.ShowCardBackground ? "CardBackgroundVisible" : "CardBackgroundHidden", false);
         }
+
+
+        // === event handlers ===
+
+        // LiveCharts only builds its internal scale/draw context on the first real measure pass;
+        // UpdateStarted fires once that has happened (Loaded fires too early, before the chart is actually ready)
+        private void Chart_UpdateStarted(LiveChartsCore.Kernel.Sketches.IChartView chart)
+        {
+            Chart.UpdateStarted -= Chart_UpdateStarted;
+            _isLoaded = true;
+            ShowThresholdLabelBriefly();
+        }
+    }
+}
     }
 }

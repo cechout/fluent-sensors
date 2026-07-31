@@ -87,10 +87,6 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
             if (Cpu.IsShowingAllThreads)
             {
-                // constrain the INACTIVE side directly, not the PageContentGrid wrapper around both - the
-                // wrappers own shared Auto row computes its height from each direct childs natural DesiredSize
-                // regardless of any Height set on the wrapper itself, so the override has to sit one level
-                // deeper, on OverviewBlockGrid/AllThreadsGrid themselves
                 OverviewBlockGrid.Height = 0;
                 AllThreadsGrid.Height = double.NaN;
             }
@@ -99,15 +95,6 @@ namespace FluentSensors.Features.Performance.HardwareViews
                 UpdateOverviewHeight();
                 AllThreadsGrid.Height = 0;
             }
-
-            System.Diagnostics.Debug.WriteLine(
-                $"[CpuDetailView] IsShowingAllThreads={Cpu.IsShowingAllThreads}, " +
-                $"OverviewBlockGrid.Height={OverviewBlockGrid.Height}, " +
-                $"AllThreadsGrid.Height={AllThreadsGrid.Height}, " +
-                $"PageContentGrid.ActualHeight={PageContentGrid.ActualHeight}, " +
-                $"ContentStackPanel.ActualHeight={ContentStackPanel.ActualHeight}, " +
-                $"ContentScrollViewer.ExtentHeight={ContentScrollViewer.ExtentHeight}, " +
-                $"ContentScrollViewer.ViewportHeight={ContentScrollViewer.ViewportHeight}");
         }
 
         // keeps the overview block at least as tall as the visible viewport (so its graphs can stretch to fill
