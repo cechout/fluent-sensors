@@ -99,23 +99,38 @@ namespace FluentSensors.Features.Performance
         // same applies to any native rendering wrapper incl. LiveChartsCore.SkiaSharpView)
         // fix: never destroy a hardware instances detail view once created; cache one permanent instance per
         // hardware instance (keyed by its Target object) and toggle Visibility on switch instead
+        //
+        // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
+        // problem: confirmed via diagnostic logging (Loaded event + ActualWidth/Height): a SensorGraphControl
+        // that is Visibility.Collapsed when its parent page gets unloaded and reloaded (e.g. leaving and
+        // returning to PerformancePage) measures at 0x0 on reload; LiveChartsCores native SkiaSharp rendering
+        // surface never recovers from this, even once the element later becomes Visible again with a real size
+        // fix: never set Visibility.Collapsed on a detail view once created; keep it permanently
+        // Visibility.Visible with a real, non-zero layout size, and hide/show via Opacity + IsHitTestVisible
+        // instead, so the native surface never sees a 0x0 measure pass to begin with
         private void UpdateDetailView()
         {
             object target = ViewModel.SelectedItem?.Target;
             if (target == null) return;
 
-            if (_currentDetailView != null) _currentDetailView.Visibility = Visibility.Collapsed;
+            if (_currentDetailView != null)
+            {
+                _currentDetailView.Opacity = 0;
+                _currentDetailView.IsHitTestVisible = false;
+            }
 
             UIElement view = EnsureDetailView(target);
             if (view == null) return;
 
-            view.Visibility = Visibility.Visible;
+            view.Opacity = 1;
+            view.IsHitTestVisible = true;
             _currentDetailView = view;
         }
 
         // creates (once) and caches the permanent detail view for one hardware instance; safe to call repeatedly
-        // for the same target, always returns the same cached instance; newly created views start Collapsed,
-        // UpdateDetailView() is responsible for making the selected one Visible
+        // for the same target, always returns the same cached instance; newly created views stay
+        // Visibility.Visible with Opacity 0 (see workaround comment on UpdateDetailView for why), UpdateDetailView()
+        // is responsible for opacity-swapping the selected one to 1
         private UIElement EnsureDetailView(object target)
         {
             if (target == null) return null;
@@ -134,7 +149,8 @@ namespace FluentSensors.Features.Performance
 
                 if (view == null) return null;
 
-                view.Visibility = Visibility.Collapsed;
+                view.Opacity = 0;
+                view.IsHitTestVisible = false;
                 _detailViewCache[target] = view;
                 DetailHostGrid.Children.Add(view);
             }

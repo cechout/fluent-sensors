@@ -22,6 +22,7 @@
         <ScrollViewer
             x:Name="ContentScrollViewer"
             Grid.Row="0"
+            Background="Transparent"
             HorizontalScrollBarVisibility="Disabled"
             SizeChanged="ContentScrollViewer_SizeChanged"
             VerticalScrollBarVisibility="Auto"
@@ -30,7 +31,7 @@
                 x:Name="ContentStackPanel"
                 Padding="16,8,16,16"
                 Spacing="12">
-                <Grid>
+                <Grid x:Name="PageContentGrid">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
@@ -124,8 +125,10 @@
                     <Grid
                         x:Name="OverviewBlockGrid"
                         Grid.Row="0"
-                        RowSpacing="12"
-                        Visibility="{x:Bind Cpu.OverallVisibility, Mode=OneWay}">
+                        Background="Transparent"
+                        IsHitTestVisible="{x:Bind Cpu.OverallIsHitTestVisible, Mode=OneWay}"
+                        Opacity="{x:Bind Cpu.OverallOpacity, Mode=OneWay}"
+                        RowSpacing="12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
@@ -198,8 +201,10 @@
                             <Grid
                                 x:Name="NarrowGraphsPanel"
                                 MinHeight="240"
-                                RowSpacing="8"
-                                Visibility="Collapsed">
+                                Background="Transparent"
+                                IsHitTestVisible="False"
+                                Opacity="0"
+                                RowSpacing="8">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="2*" />
                                     <RowDefinition Height="*" />
@@ -268,7 +273,11 @@
 
                     <!--  cpu view 2: all cpu cores  -->
                     <!--  (cores with threads on top and cores withput threads below)  -->
-                    <Grid Grid.Row="0" Visibility="{x:Bind Cpu.AllThreadsVisibility, Mode=OneWay}">
+                    <Grid
+                        x:Name="AllThreadsGrid"
+                        Grid.Row="0"
+                        IsHitTestVisible="{x:Bind Cpu.AllThreadsIsHitTestVisible, Mode=OneWay}"
+                        Opacity="{x:Bind Cpu.AllThreadsOpacity, Mode=OneWay}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />

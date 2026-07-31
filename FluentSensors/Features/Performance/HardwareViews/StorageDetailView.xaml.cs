@@ -8,15 +8,12 @@ using FluentSensors.Features.Performance.Lhm;
 
 namespace FluentSensors.Features.Performance.HardwareViews
 {
-    // self-contained storage detail view: total activity (big) + read/write rate stacked, same shape as CPU,
-    // including the wide/narrow switch
     public sealed partial class StorageDetailView : UserControl
     {
         // === fields ===
 
-        // below this width, the wide 3-graph layout (big Activity graph + 2 stacked) switches to the narrow
-        // layout (all 3 stacked equally)
         private const double NarrowGraphsLayoutThreshold = 600;
+        private bool _isNarrowLayoutActive;
 
 
         // === constructor ===
@@ -42,9 +39,6 @@ namespace FluentSensors.Features.Performance.HardwareViews
                 typeof(StorageDetailView),
                 new PropertyMetadata(null, OnStorageChanged));
 
-        // kept as a safety net: PerformancePage caches one permanent view per hardware instance and sets Storage
-        // exactly once, so this should never fire with a changing value in practice
-        // but if that ever changes, this forces the x:Binds to re-evaluate instead of silently going stale
         private static void OnStorageChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is StorageDetailView view) view.Bindings.Update();
@@ -53,9 +47,6 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === event handlers ===
 
-        // keeps the overview block at least as tall as the visible viewport (so its graphs can stretch to fill
-        // it), but lets it grow past that, and let the ScrollViewer take over once its natural minimum height
-        // no longer fits
         private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
@@ -64,9 +55,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth, double.PositiveInfinity));
             double tilesHeight = TilesGrid.DesiredSize.Height;
 
-            double graphsMinHeight = WideGraphsGrid.Visibility == Visibility.Visible
-                ? WideGraphsGrid.MinHeight
-                : NarrowGraphsPanel.MinHeight;
+            double graphsMinHeight = _isNarrowLayoutActive ? NarrowGraphsPanel.MinHeight : WideGraphsGrid.MinHeight;
 
             double naturalMinHeight = graphsMinHeight + OverviewBlockGrid.RowSpacing + tilesHeight;
             OverviewBlockGrid.Height = Math.Max(availableHeight, naturalMinHeight);
@@ -74,9 +63,22 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         private void GraphsAreaGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            bool useNarrow = e.NewSize.Width < NarrowGraphsLayoutThreshold;
-            WideGraphsGrid.Visibility = useNarrow ? Visibility.Collapsed : Visibility.Visible;
-            NarrowGraphsPanel.Visibility = useNarrow ? Visibility.Visible : Visibility.Collapsed;
+            _isNarrowLayoutActive = e.NewSize.Width < NarrowGraphsLayoutThreshold;
+            SetLayoutActive(WideGraphsGrid, NarrowGraphsPanel, _isNarrowLayoutActive);
+        }
+
+
+        // === private helpers ===
+
+        // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
+        // problem/fix: see GpuDetailView.xaml.cs SetLayoutActive for the full explanation
+        private static void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
+        {
+            wideLayout.Opacity = useNarrow ? 0 : 1;
+            wideLayout.IsHitTestVisible = !useNarrow;
+
+            narrowLayout.Opacity = useNarrow ? 1 : 0;
+            narrowLayout.IsHitTestVisible = useNarrow;
         }
     }
 }

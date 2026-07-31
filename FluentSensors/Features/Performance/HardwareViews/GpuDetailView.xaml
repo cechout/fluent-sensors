@@ -105,8 +105,9 @@
                         <Grid
                             x:Name="NarrowGraphsPanel1"
                             MinHeight="280"
-                            RowSpacing="8"
-                            Visibility="Collapsed">
+                            IsHitTestVisible="False"
+                            Opacity="0"
+                            RowSpacing="8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="*" />
@@ -224,8 +225,9 @@
                         <Grid
                             x:Name="NarrowGraphsPanel2"
                             MinHeight="280"
-                            RowSpacing="8"
-                            Visibility="Collapsed">
+                            IsHitTestVisible="False"
+                            Opacity="0"
+                            RowSpacing="8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="*" />

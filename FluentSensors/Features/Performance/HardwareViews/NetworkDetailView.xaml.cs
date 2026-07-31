@@ -13,6 +13,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // === fields ===
 
         private const double NarrowGraphsLayoutThreshold = 600;
+        private bool _isNarrowLayoutActive;
 
 
         // === constructor ===
@@ -54,9 +55,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth, double.PositiveInfinity));
             double tilesHeight = TilesGrid.DesiredSize.Height;
 
-            double graphsMinHeight = WideGraphsGrid.Visibility == Visibility.Visible
-                ? WideGraphsGrid.MinHeight
-                : NarrowGraphsPanel.MinHeight;
+            double graphsMinHeight = _isNarrowLayoutActive ? NarrowGraphsPanel.MinHeight : WideGraphsGrid.MinHeight;
 
             double naturalMinHeight = graphsMinHeight + OverviewBlockGrid.RowSpacing + tilesHeight;
             OverviewBlockGrid.Height = Math.Max(availableHeight, naturalMinHeight);
@@ -64,9 +63,22 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         private void GraphsAreaGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            bool useNarrow = e.NewSize.Width < NarrowGraphsLayoutThreshold;
-            WideGraphsGrid.Visibility = useNarrow ? Visibility.Collapsed : Visibility.Visible;
-            NarrowGraphsPanel.Visibility = useNarrow ? Visibility.Visible : Visibility.Collapsed;
+            _isNarrowLayoutActive = e.NewSize.Width < NarrowGraphsLayoutThreshold;
+            SetLayoutActive(WideGraphsGrid, NarrowGraphsPanel, _isNarrowLayoutActive);
+        }
+
+
+        // === private helpers ===
+
+        // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
+        // problem/fix: see GpuDetailView.xaml.cs SetLayoutActive for the full explanation
+        private static void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
+        {
+            wideLayout.Opacity = useNarrow ? 0 : 1;
+            wideLayout.IsHitTestVisible = !useNarrow;
+
+            narrowLayout.Opacity = useNarrow ? 1 : 0;
+            narrowLayout.IsHitTestVisible = useNarrow;
         }
     }
 }

@@ -97,8 +97,9 @@
                         <Grid
                             x:Name="NarrowGraphsPanel"
                             MinHeight="240"
-                            RowSpacing="8"
-                            Visibility="Collapsed">
+                            IsHitTestVisible="False"
+                            Opacity="0"
+                            RowSpacing="8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="2*" />
                                 <RowDefinition Height="*" />

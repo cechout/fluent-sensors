@@ -86,8 +86,10 @@ namespace FluentSensors.Features.Performance.Lhm
                 {
                     _isShowingAllThreads = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(OverallVisibility));
-                    OnPropertyChanged(nameof(AllThreadsVisibility));
+                    OnPropertyChanged(nameof(OverallOpacity));
+                    OnPropertyChanged(nameof(OverallIsHitTestVisible));
+                    OnPropertyChanged(nameof(AllThreadsOpacity));
+                    OnPropertyChanged(nameof(AllThreadsIsHitTestVisible));
                 }
             }
         }
@@ -99,10 +101,15 @@ namespace FluentSensors.Features.Performance.Lhm
         // physical cores without a "Thread #" suffix in their Load sensor name
         public ObservableCollection<LhmCpuCoreViewModel> CoresWithoutThreads { get; }
 
-        // pre-computed Visibility for the two CPU detail views; avoids function bindings inside the DataTemplate,
-        // which x:Bind cannot reliably re-evaluate when a property buried inside the function body changes
-        public Visibility OverallVisibility => IsShowingAllThreads ? Visibility.Collapsed : Visibility.Visible;
-        public Visibility AllThreadsVisibility => IsShowingAllThreads ? Visibility.Visible : Visibility.Collapsed;
+        // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
+        // problem/fix: see GpuDetailView.xaml.cs SetLayoutActive for the full explanation; the Overall/All-Threads
+        // switch hits the exact same trap, so it gets the same Opacity+IsHitTestVisible treatment instead of a
+        // real Visibility toggle
+        public double OverallOpacity => IsShowingAllThreads ? 0 : 1;
+        public bool OverallIsHitTestVisible => !IsShowingAllThreads;
+
+        public double AllThreadsOpacity => IsShowingAllThreads ? 1 : 0;
+        public bool AllThreadsIsHitTestVisible => IsShowingAllThreads;
 
         // static CPU info
         // read-only, purely computed; WinStaticInfoService.Instance.Cpu never changes after the singletons first

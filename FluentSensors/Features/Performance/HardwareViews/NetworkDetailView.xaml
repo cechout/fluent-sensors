@@ -76,8 +76,9 @@
                         <fhControls:VerticalStretchPanel
                             x:Name="NarrowGraphsPanel"
                             MinHeight="240"
-                            Spacing="8"
-                            Visibility="Collapsed">
+                            IsHitTestVisible="False"
+                            Opacity="0"
+                            Spacing="8">
                             <fhGraph:SensorPanelControl
                                 GraphColorOverride="#FFbf5977"
                                 GraphDataPointsOverride="180"

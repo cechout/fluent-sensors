@@ -17,6 +17,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // below this width, the wide 3-graph layout (big Load graph + 2 stacked) switches to the narrow layout
         // (all 3 stacked equally)
         private const double NarrowGraphsLayoutThreshold = 600;
+        private bool _isNarrowLayoutActive;
 
 
         // === constructor ===
@@ -56,43 +57,86 @@ namespace FluentSensors.Features.Performance.HardwareViews
         private void ShowOverall_Click(object sender, RoutedEventArgs e)
         {
             if (Cpu != null) Cpu.IsShowingAllThreads = false;
+            UpdatePageContentHeight();
         }
 
         private void ShowAllThreads_Click(object sender, RoutedEventArgs e)
         {
             if (Cpu != null) Cpu.IsShowingAllThreads = true;
+            UpdatePageContentHeight();
+        }
+
+        private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdatePageContentHeight();
+        }
+
+        private void GraphsAreaGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            _isNarrowLayoutActive = e.NewSize.Width < NarrowGraphsLayoutThreshold;
+            SetLayoutActive(WideGraphsGrid, NarrowGraphsPanel, _isNarrowLayoutActive);
+            UpdatePageContentHeight();
+        }
+
+
+        // === private helpers ===
+
+        private void UpdatePageContentHeight()
+        {
+            if (Cpu == null) return;
+
+            if (Cpu.IsShowingAllThreads)
+            {
+                // constrain the INACTIVE side directly, not the PageContentGrid wrapper around both - the
+                // wrappers own shared Auto row computes its height from each direct childs natural DesiredSize
+                // regardless of any Height set on the wrapper itself, so the override has to sit one level
+                // deeper, on OverviewBlockGrid/AllThreadsGrid themselves
+                OverviewBlockGrid.Height = 0;
+                AllThreadsGrid.Height = double.NaN;
+            }
+            else
+            {
+                UpdateOverviewHeight();
+                AllThreadsGrid.Height = 0;
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[CpuDetailView] IsShowingAllThreads={Cpu.IsShowingAllThreads}, " +
+                $"OverviewBlockGrid.Height={OverviewBlockGrid.Height}, " +
+                $"AllThreadsGrid.Height={AllThreadsGrid.Height}, " +
+                $"PageContentGrid.ActualHeight={PageContentGrid.ActualHeight}, " +
+                $"ContentStackPanel.ActualHeight={ContentStackPanel.ActualHeight}, " +
+                $"ContentScrollViewer.ExtentHeight={ContentScrollViewer.ExtentHeight}, " +
+                $"ContentScrollViewer.ViewportHeight={ContentScrollViewer.ViewportHeight}");
         }
 
         // keeps the overview block at least as tall as the visible viewport (so its graphs can stretch to fill
         // it), but lets it grow past that, and let the ScrollViewer take over once its natural minimum height
         // (graph MinHeight + tiles/static info) no longer fits
-        private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void UpdateOverviewHeight()
         {
             double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
-            double availableHeight = e.NewSize.Height - verticalPadding;
+            double availableHeight = ContentScrollViewer.ActualHeight - verticalPadding;
 
-            // the tiles/static info row has no Star rows in it, just plain Auto content (TextBlocks)
-            // so asking it directly for its natural height via Measure is fully reliable
             TilesAndStaticInfoGrid.Measure(new Size(ContentScrollViewer.ActualWidth, double.PositiveInfinity));
             double tilesAndStaticInfoHeight = TilesAndStaticInfoGrid.DesiredSize.Height;
 
-            // the graphs areas own minimum is exactly whatever MinHeight you set on the currently active
-            // layout (Wide or Narrow)
-            // reading it back here means you only ever have to change it in one place
-            double graphsMinHeight = WideGraphsGrid.Visibility == Visibility.Visible
-                ? WideGraphsGrid.MinHeight
-                : NarrowGraphsPanel.MinHeight;
+            double graphsMinHeight = _isNarrowLayoutActive ? NarrowGraphsPanel.MinHeight : WideGraphsGrid.MinHeight;
 
             double naturalMinHeight = graphsMinHeight + OverviewBlockGrid.RowSpacing + tilesAndStaticInfoHeight;
 
             OverviewBlockGrid.Height = Math.Max(availableHeight, naturalMinHeight);
         }
 
-        private void GraphsAreaGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+        // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
+        // problem/fix: see GpuDetailView.xaml.cs SetLayoutActive for the full explanation
+        private static void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
         {
-            bool useNarrow = e.NewSize.Width < NarrowGraphsLayoutThreshold;
-            WideGraphsGrid.Visibility = useNarrow ? Visibility.Collapsed : Visibility.Visible;
-            NarrowGraphsPanel.Visibility = useNarrow ? Visibility.Visible : Visibility.Collapsed;
+            wideLayout.Opacity = useNarrow ? 0 : 1;
+            wideLayout.IsHitTestVisible = !useNarrow;
+
+            narrowLayout.Opacity = useNarrow ? 1 : 0;
+            narrowLayout.IsHitTestVisible = useNarrow;
         }
     }
 }

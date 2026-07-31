@@ -101,11 +101,13 @@ namespace FluentSensors.Controls.SensorGraph
 
 
             // TEMPORARY DIAGNOSTIC
-            this.Loaded += (s, e) =>
-                System.Diagnostics.Debug.WriteLine($"[SensorGraph {GetHashCode():X}] Loaded");
-            this.Unloaded += (s, e) =>
-                System.Diagnostics.Debug.WriteLine($"[SensorGraph {GetHashCode():X}] Unloaded");
-        
+            //this.Loaded += (s, e) =>
+            //    System.Diagnostics.Debug.WriteLine($"[SensorGraph {GetHashCode():X}] Loaded");
+            //this.Unloaded += (s, e) =>
+            //    System.Diagnostics.Debug.WriteLine($"[SensorGraph {GetHashCode():X}] Unloaded");
+            //this.Loaded += (s, e) =>
+            //    System.Diagnostics.Debug.WriteLine($"[SensorGraph {GetHashCode():X}] Loaded, Size={ActualWidth}x{ActualHeight}, Visibility={Visibility}");
+
         }
 
         // LiveCharts only builds its internal scale/draw context on the first real measure pass;
@@ -113,7 +115,7 @@ namespace FluentSensors.Controls.SensorGraph
         private void Chart_UpdateStarted(LiveChartsCore.Kernel.Sketches.IChartView chart)
         {
             // TEMPORARY DIAGNOSTIC
-            System.Diagnostics.Debug.WriteLine($"[SensorGraph {GetHashCode():X}] Chart_UpdateStarted fired");
+            //System.Diagnostics.Debug.WriteLine($"[SensorGraph {GetHashCode():X}] Chart_UpdateStarted fired");
 
 
             Chart.UpdateStarted -= Chart_UpdateStarted;
