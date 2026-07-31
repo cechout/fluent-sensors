@@ -163,7 +163,7 @@
                                             Grid.Column="0"
                                             Width="74"
                                             Height="52"
-                                            AccentColor="{x:Bind PrimaryGraph.GraphColor, Mode=OneWay}"
+                                            AccentColor="{x:Bind HardwareColor, Mode=OneTime}"
                                             IsAutoScaled="{x:Bind PrimaryGraph.IsAutoScaled, Mode=OneWay}"
                                             ManualYMax="{x:Bind PrimaryGraph.ManualYMax, Mode=OneWay}"
                                             Values="{x:Bind PrimaryGraph.SensorData, Mode=OneWay}" />

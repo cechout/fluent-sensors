@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using SkiaSharp;
 using System.Collections.ObjectModel;
+
 using FluentSensors.Common.Sensors;
 
 
@@ -398,5 +399,4 @@ namespace FluentSensors.Controls.SensorGraph
         }
     }
 }
-    }
-}
+    

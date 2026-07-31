@@ -52,7 +52,7 @@
 
                             <fhGraph:SensorPanelControl
                                 Grid.Column="0"
-                                GraphColorOverride="#FFbf5977"
+                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                 GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="True"
                                 ShowStatusRow="True"
@@ -63,7 +63,7 @@
 
                             <fhGraph:SensorPanelControl
                                 Grid.Column="1"
-                                GraphColorOverride="#FFbf5977"
+                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                 GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="True"
                                 ShowStatusRow="True"
@@ -80,7 +80,7 @@
                             Opacity="0"
                             Spacing="8">
                             <fhGraph:SensorPanelControl
-                                GraphColorOverride="#FFbf5977"
+                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                 GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="True"
                                 ShowStatusRow="True"
@@ -90,7 +90,7 @@
                                 ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
 
                             <fhGraph:SensorPanelControl
-                                GraphColorOverride="#FFbf5977"
+                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                 GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="True"
                                 ShowStatusRow="True"

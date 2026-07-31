@@ -60,8 +60,8 @@
                                 Grid.Row="0"
                                 Grid.RowSpan="2"
                                 Grid.Column="0"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="100"
                                 PlaceholderSensorName="GPU Core"
@@ -75,8 +75,8 @@
                             <fhGraph:SensorPanelControl
                                 Grid.Row="0"
                                 Grid.Column="1"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="100"
                                 PlaceholderSensorName="GPU Hot Spot"
@@ -90,8 +90,8 @@
                             <fhGraph:SensorPanelControl
                                 Grid.Row="1"
                                 Grid.Column="1"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="True"
                                 PlaceholderSensorName="GPU Package"
                                 PlaceholderUnit="W"
@@ -116,8 +116,8 @@
 
                             <fhGraph:SensorPanelControl
                                 Grid.Row="0"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="100"
                                 PlaceholderSensorName="GPU Core"
@@ -130,8 +130,8 @@
 
                             <fhGraph:SensorPanelControl
                                 Grid.Row="1"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="100"
                                 PlaceholderSensorName="GPU Hot Spot"
@@ -144,8 +144,8 @@
 
                             <fhGraph:SensorPanelControl
                                 Grid.Row="2"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="True"
                                 PlaceholderSensorName="GPU Package"
                                 PlaceholderUnit="W"
@@ -180,8 +180,8 @@
                             <fhGraph:SensorPanelControl
                                 Grid.Row="0"
                                 Grid.Column="0"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="True"
                                 PlaceholderSensorName="GPU Core"
                                 PlaceholderUnit="MHz"
@@ -194,8 +194,8 @@
                             <fhGraph:SensorPanelControl
                                 Grid.Row="1"
                                 Grid.Column="0"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="True"
                                 PlaceholderSensorName="GPU Memory"
                                 PlaceholderUnit="MHz"
@@ -209,8 +209,8 @@
                                 Grid.Row="0"
                                 Grid.RowSpan="2"
                                 Grid.Column="1"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="{x:Bind Gpu.MemoryTotal, Mode=OneWay}"
                                 PlaceholderSensorName="GPU Memory Used"
@@ -236,8 +236,8 @@
 
                             <fhGraph:SensorPanelControl
                                 Grid.Row="0"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="{x:Bind Gpu.MemoryTotal, Mode=OneWay}"
                                 PlaceholderSensorName="GPU Memory Used"
@@ -250,8 +250,8 @@
 
                             <fhGraph:SensorPanelControl
                                 Grid.Row="1"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="True"
                                 PlaceholderSensorName="GPU Core"
                                 PlaceholderUnit="MHz"
@@ -263,8 +263,8 @@
 
                             <fhGraph:SensorPanelControl
                                 Grid.Row="2"
-                                GraphColorOverride="#FFa258b6"
-                                GraphDataPointsOverride="180"
+                                                        GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                                        GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="True"
                                 PlaceholderSensorName="GPU Memory"
                                 PlaceholderUnit="MHz"

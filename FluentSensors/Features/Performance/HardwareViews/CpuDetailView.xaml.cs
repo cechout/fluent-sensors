@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
 
+using FluentSensors.Common.Sensors;
 using FluentSensors.Features.Performance.Lhm;
 
 
@@ -29,6 +30,12 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
 
         // === dependency properties ===
+
+        // overview graph color (TotalLoad, MaxTemperature, PackagePower); single source of truth in
+        // HardwareGroupInfo
+        // the per-core Temperature/Clock graphs in CpuCoreCellTemplate deliberately keep their own fixed colors
+        // instead, to stay visually distinguishable from each other within one dense cell
+        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Color;
 
         public LhmCpuInstanceViewModel Cpu
         {

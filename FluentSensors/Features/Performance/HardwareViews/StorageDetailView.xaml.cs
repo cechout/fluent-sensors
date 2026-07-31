@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
 
+using FluentSensors.Common.Sensors;
 using FluentSensors.Features.Performance.Lhm;
 
 
@@ -25,6 +26,9 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
 
         // === dependency properties ===
+
+        // graph color for every SensorPanelControl in this view; single source of truth in HardwareGroupInfo
+        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Storage).Color;
 
         public LhmStorageInstanceViewModel Storage
         {
