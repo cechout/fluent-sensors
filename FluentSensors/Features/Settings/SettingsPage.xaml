@@ -226,7 +226,7 @@
 
             <controls:SettingsExpander
                 Description="© 2026 Daniel Čech | All rights reserved"
-                Header="Fluent HwInfo"
+                Header="Fluent Sensors"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE946;}">
 
                 <TextBlock
@@ -239,7 +239,7 @@
                         <HyperlinkButton Content="Github" NavigateUri="https://github.com/cechout" />
                     </controls:SettingsCard>
                     <controls:SettingsCard Header="Project Repository">
-                        <HyperlinkButton Content="Github" NavigateUri="https://github.com/cechout/fluent-hwinfo" />
+                        <HyperlinkButton Content="Github" NavigateUri="https://github.com/cechout/fluent-sensors" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

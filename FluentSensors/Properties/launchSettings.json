@@ -1,9 +1,9 @@
 {
   "profiles": {
-    "FluentHwInfo (Package)": {
+    "FluentSensors (Package)": {
       "commandName": "MsixPackage"
     },
-    "FluentHwInfo (Unpackaged)": {
+    "FluentSensors (Unpackaged)": {
       "commandName": "Project"
     }
   }
