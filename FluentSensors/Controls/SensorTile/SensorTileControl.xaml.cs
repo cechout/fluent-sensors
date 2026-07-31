@@ -7,13 +7,13 @@ using FluentSensors.Controls.SensorGraph;
 namespace FluentSensors.Controls.SensorTile
 {
     // compact "title + current value" tile for a single sensor; the display-only counterpart to
-    // SensorGraph/SensorPanelControl (which additionally renders the LiveChart) - the two are related but used in
+    // SensorGraph/SensorPanelControl (which additionally renders the LiveChart); the two are related but used in
     // different places, so this lives in its own sibling folder rather than inside SensorGraph/
     //
     // Title is a plain fixed string set by the consumer, not derived from ViewModel.SensorName: several LHM sensors
     // share the exact same raw name across different SensorTypes (e.g. "GPU Core" is both a Load and a Clock
-    // sensor), so a name pulled straight from the sensor would be ambiguous here. This also means the title stays
-    // visible even when ViewModel is null (sensor not found on this hardware instance)
+    // sensor), so a name pulled straight from the sensor would be ambiguous here
+    // This also means the title stays visible even when ViewModel is null (sensor not found on this hardware instance)
     public sealed partial class SensorTileControl : UserControl
     {
         public SensorTileControl()
@@ -36,7 +36,7 @@ namespace FluentSensors.Controls.SensorTile
                 typeof(SensorTileControl),
                 new PropertyMetadata(null));
 
-        // always shown as-is, regardless of whether ViewModel is set - see class doc comment for why
+        // always shown as-is, regardless of whether ViewModel is set
         public string Title
         {
             get => (string)GetValue(TitleProperty);
@@ -81,9 +81,10 @@ namespace FluentSensors.Controls.SensorTile
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
 
         // these two only need to react to ViewModel itself changing (a real object <-> null), which x:Bind
-        // tracks correctly for function bindings - unlike CurrentValueText/CurrentValueColor, which live inside
-        // an otherwise-unchanging ViewModel instance and must be bound as direct property paths instead (see
-        // the two TextBlocks in the XAML) for their live PropertyChanged ticks to actually be picked up
+        // tracks correctly for function bindings
+        // unlike CurrentValueText/CurrentValueColor, which live inside an otherwise-unchanging ViewModel instance
+        // and must be bound as direct property paths instead (see the two TextBlocks in the XAML) for their live
+        // PropertyChanged ticks to actually be picked up
         private Visibility GetValueVisibility(SensorGraphViewModel viewModel) =>
             viewModel != null ? Visibility.Visible : Visibility.Collapsed;
 

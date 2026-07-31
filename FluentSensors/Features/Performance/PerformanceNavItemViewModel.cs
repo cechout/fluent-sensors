@@ -1,7 +1,10 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Controls.SensorGraph;
+using Microsoft.UI.Xaml;
 
 
 namespace FluentSensors.Features.Performance
@@ -9,14 +12,31 @@ namespace FluentSensors.Features.Performance
     // one entry in the sidebar / one selectable "page" within the single PerformancePage
     public class PerformanceNavItemViewModel : INotifyPropertyChanged
     {
+        // === fields ===
+
+        // re-derives PrimaryGraph from Target whenever anything on the instance changes; the sensor this nav item
+        // cares about does not exist yet at construction time (hardware discovery runs after the nav item is
+        // created), so a one-time capture in the constructor would stay null forever; this keeps it live
+        private readonly Func<object, SensorGraphViewModel> _getPrimaryGraph;
+
+
         // === constructor ===
 
-        public PerformanceNavItemViewModel(HardwareGroupKind kind, string groupLabel, string displayName, object target)
+        public PerformanceNavItemViewModel(HardwareGroupKind kind, string groupLabel, string displayName, object target,
+            Func<object, SensorGraphViewModel> getPrimaryGraph)
         {
             Kind = kind;
             GroupLabel = groupLabel;
             _displayName = displayName;
             Target = target;
+            _getPrimaryGraph = getPrimaryGraph;
+
+            PrimaryGraph = _getPrimaryGraph(Target);
+
+            if (Target is INotifyPropertyChanged notifyingTarget)
+            {
+                notifyingTarget.PropertyChanged += OnTargetPropertyChanged;
+            }
         }
 
 
@@ -31,6 +51,23 @@ namespace FluentSensors.Features.Performance
         // LhmGpuInstanceViewModel; typed as object since the concrete type differs per Kind
         // PerformancePage picks the matching cached detail view purely by this objects runtime type
         public object Target { get; }
+
+        // the one sensor shown as this hardwares "at a glance" utilization graph, e.g. TotalLoad for CPU,
+        // DownloadSpeed for a network adapter; used by both the sidebar and (later) the start page
+        // Starts null and gets filled in once LHM actually discovers the underlying sensor
+        private SensorGraphViewModel _primaryGraph;
+        public SensorGraphViewModel PrimaryGraph
+        {
+            get => _primaryGraph;
+            set
+            {
+                if (_primaryGraph != value)
+                {
+                    _primaryGraph = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         // sidebar label / right side of the detail header, e.g. the CPUs product name or a GPUs model name;
         // bindable because Cpu/Ram start with a null placeholder and get filled in once the first payload for
@@ -62,6 +99,23 @@ namespace FluentSensors.Features.Performance
                     OnPropertyChanged();
                 }
             }
+        }
+
+
+        // === event handlers ===
+
+        // re-derives PrimaryGraph on every change to the underlying instance; not scoped to just the one relevant
+        // property (e.g. TotalLoad), since that would need a 6th selector delegate per Kind for little practical
+        // gain; PrimaryGraphs own setter already no-ops once the value stops actually changing
+        private void OnTargetPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            var newGraph = _getPrimaryGraph(Target);
+            if (!ReferenceEquals(newGraph, PrimaryGraph))
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[NavItem {GroupLabel}] PrimaryGraph SWAPPED: old={PrimaryGraph?.GetHashCode():X}, new={newGraph?.GetHashCode():X}, newDataCount={newGraph?.SensorData?.Count}");
+            }
+            PrimaryGraph = newGraph;
         }
 
 

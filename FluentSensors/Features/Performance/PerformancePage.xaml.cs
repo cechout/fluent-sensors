@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 
 using FluentSensors.Features.Performance.HardwareViews;
@@ -16,8 +17,8 @@ namespace FluentSensors.Features.Performance
         public PerformanceViewModel ViewModel => PerformanceViewModel.Instance;
 
         // one permanent view per hardware instance, keyed by its Target object (e.g. one specific
-        // LhmGpuInstanceViewModel); created lazily on first selection, never removed/destroyed afterward; see
-        // UpdateDetailView() for further information
+        // LhmGpuInstanceViewModel); created eagerly for every instance that exists (or later appears)
+        // Never removed/destroyed afterward; see EnsureDetailView() for further information
         private readonly Dictionary<object, UIElement> _detailViewCache = new();
         private UIElement _currentDetailView;
 
@@ -29,6 +30,23 @@ namespace FluentSensors.Features.Performance
             InitializeComponent();
 
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+            // eager-detail-view-construction:
+            // problem: each detail views SensorPanelControl applies its own fixed Y-axis config
+            // (ApplyViewOverrides) to its bound SensorGraphViewModel on construction; that same
+            // SensorGraphViewModel instance is also the one shown as the sidebar nav items PrimaryGraph, so a
+            // sensor whose fixed scale was never persisted anywhere else (e.g. Storage/Network, never pinned via
+            // the Sensors page) visibly auto-scaled in the sidebar until its detail view was first built on
+            // click, then jumped to the fixed scale; CPU never showed this because its detail view is already
+            // the default selection, built before the user ever sees the sidebar
+            // fix: build every hardware instances detail view immediately instead of lazily on first selection,
+            // so the override is applied before the sidebar is shown at all
+            foreach (var item in ViewModel.NavItems)
+            {
+                EnsureDetailView(item.Target);
+            }
+            ViewModel.NavItems.CollectionChanged += OnNavItemsChanged;
+
             UpdateDetailView();
         }
 
@@ -53,6 +71,19 @@ namespace FluentSensors.Features.Performance
             }
         }
 
+        // hardware discovered after this page was already constructed (e.g. a second GPU, or any category that
+        // finishes its async LHM discovery late) needs its detail view built immediately too, for the same
+        // reason as the eager construction above
+        private void OnNavItemsChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action != NotifyCollectionChangedAction.Add) return;
+
+            foreach (PerformanceNavItemViewModel item in e.NewItems)
+            {
+                EnsureDetailView(item.Target);
+            }
+        }
+
 
         // === private helpers ===
 
@@ -63,8 +94,9 @@ namespace FluentSensors.Features.Performance
         // MB per switch, unbounded
         // same root cause category as the WinUI secondary-window leak elsewhere in this app (native WinRT/interop
         // objects do not get released back to the GC), just triggered by chart controls moving between views
-        // instead of by a Window; see https://microsoft.github.io/Win2D/WinUI3/html/RefCycles.htm for the general
-        // mechanism (Win2D, but the same applies to any native rendering wrapper incl. LiveChartsCore.SkiaSharpView)
+        // instead of by a Window
+        // see https://microsoft.github.io/Win2D/WinUI3/html/RefCycles.htm for the general mechanism (Win2D, but the
+        // same applies to any native rendering wrapper incl. LiveChartsCore.SkiaSharpView)
         // fix: never destroy a hardware instances detail view once created; cache one permanent instance per
         // hardware instance (keyed by its Target object) and toggle Visibility on switch instead
         private void UpdateDetailView()
@@ -73,6 +105,20 @@ namespace FluentSensors.Features.Performance
             if (target == null) return;
 
             if (_currentDetailView != null) _currentDetailView.Visibility = Visibility.Collapsed;
+
+            UIElement view = EnsureDetailView(target);
+            if (view == null) return;
+
+            view.Visibility = Visibility.Visible;
+            _currentDetailView = view;
+        }
+
+        // creates (once) and caches the permanent detail view for one hardware instance; safe to call repeatedly
+        // for the same target, always returns the same cached instance; newly created views start Collapsed,
+        // UpdateDetailView() is responsible for making the selected one Visible
+        private UIElement EnsureDetailView(object target)
+        {
+            if (target == null) return null;
 
             if (!_detailViewCache.TryGetValue(target, out UIElement view))
             {
@@ -86,14 +132,14 @@ namespace FluentSensors.Features.Performance
                     _ => null
                 };
 
-                if (view == null) return;
+                if (view == null) return null;
 
+                view.Visibility = Visibility.Collapsed;
                 _detailViewCache[target] = view;
                 DetailHostGrid.Children.Add(view);
             }
 
-            view.Visibility = Visibility.Visible;
-            _currentDetailView = view;
+            return view;
         }
     }
 }

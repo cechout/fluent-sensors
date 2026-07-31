@@ -71,14 +71,14 @@ namespace FluentSensors.Features.Performance.HardwareViews
             double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
             double availableHeight = e.NewSize.Height - verticalPadding;
 
-            // the tiles/static info row has no Star rows in it, just plain Auto content (TextBlocks) - so asking
-            // it directly for its natural height via Measure is fully reliable, no ScrollViewer-infinite-height
-            // guessing involved here at all
+            // the tiles/static info row has no Star rows in it, just plain Auto content (TextBlocks)
+            // so asking it directly for its natural height via Measure is fully reliable
             TilesAndStaticInfoGrid.Measure(new Size(ContentScrollViewer.ActualWidth, double.PositiveInfinity));
             double tilesAndStaticInfoHeight = TilesAndStaticInfoGrid.DesiredSize.Height;
 
-            // the graphs area's own minimum is exactly whatever MinHeight you set on the currently active
-            // layout (Wide or Narrow) - reading it back here means you only ever have to change it in one place
+            // the graphs areas own minimum is exactly whatever MinHeight you set on the currently active
+            // layout (Wide or Narrow)
+            // reading it back here means you only ever have to change it in one place
             double graphsMinHeight = WideGraphsGrid.Visibility == Visibility.Visible
                 ? WideGraphsGrid.MinHeight
                 : NarrowGraphsPanel.MinHeight;

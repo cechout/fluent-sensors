@@ -54,7 +54,7 @@
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource SubtitleTextBlockStyle}"
-                    Text="Not found"
+                    Text="-"
                     Visibility="{x:Bind GetNotFoundVisibility(ViewModel), Mode=OneWay}" />
             </Grid>
         </StackPanel>

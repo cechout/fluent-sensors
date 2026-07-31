@@ -78,13 +78,14 @@ namespace FluentSensors.Features.Performance.Lhm
             switch (entry.Name)
             {
                 case "Upload Speed":
-                    adapter.UploadSpeed = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    // guard: see LhmStoragePerformanceViewModel.OnSensorDiscovered for the full explanation
+                    adapter.UploadSpeed ??= new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(adapter.UploadSpeed, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(adapter.UploadSpeed, entry, e);
                     break;
 
                 case "Download Speed":
-                    adapter.DownloadSpeed = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    adapter.DownloadSpeed ??= new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(adapter.DownloadSpeed, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(adapter.DownloadSpeed, entry, e);
                     break;

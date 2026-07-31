@@ -35,10 +35,10 @@
         // cumulative read/written data over uptime, can climb into the hundreds of GB
         private static readonly SensorTypeProfile Data = new()
         {
-            ThresholdDefault = 500,
-            ThresholdStep = 50,
-            YMaxDefault = 1000,
-            YMaxStep = 100
+            ThresholdDefault = 20,
+            ThresholdStep = 1,
+            YMaxDefault = 50,
+            YMaxStep = 10
         };
 
         // gpu memory usage and similar, commonly in the low thousands of MB

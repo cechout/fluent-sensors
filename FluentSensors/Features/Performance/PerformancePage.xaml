@@ -4,10 +4,81 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:local="using:FluentSensors.Features.Performance"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     NavigationCacheMode="Enabled"
     mc:Ignorable="d">
+
+
+    <Page.Resources>
+        <Style x:Key="SidebarNavToggleButtonStyle" TargetType="ToggleButton">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="RootBorder" CornerRadius="5">
+                            <ContentPresenter
+                                x:Name="ContentPresenter"
+                                Padding="{TemplateBinding Padding}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                Content="{TemplateBinding Content}" />
+
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+
+                                    <!--  not-selected states  -->
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorTransparentBrush}" />
+                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
+                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+
+                                    <!--  selected states  -->
+                                    <VisualState x:Name="Checked">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootBorder.Background" Value="{ThemeResource ControlFillColorDefaultBrush}" />
+                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="CheckedPointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootBorder.Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
+                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="CheckedPressed">
+                                        <VisualState.Setters>
+                                            <Setter Target="RootBorder.Background" Value="{ThemeResource ControlFillColorTertiaryBrush}" />
+                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
 
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
@@ -56,14 +127,11 @@
         <!--  content: hardware selection sidebar + detail area  -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="180" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!--
-                sidebar: hardware selection, one unified list for every category (Cpu/Ram are always present,
-                Gpu/Storage/Network are added reactively as PerformanceViewModel discovers them)
-            -->
+            <!--  sidebar: hardware selection  -->
             <Border
                 Grid.Column="0"
                 Background="Transparent"
@@ -80,37 +148,41 @@
 
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="local:PerformanceNavItemViewModel">
-                                <Button
-                                    Padding="8"
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Left"
+                                <ToggleButton
                                     Click="NavItem_Click"
-                                    Style="{StaticResource SubtleButtonStyle}">
-                                    <Grid>
+                                    IsChecked="{x:Bind IsSelected, Mode=OneWay}"
+                                    Style="{StaticResource SidebarNavToggleButtonStyle}">
+                                    <Grid ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="48" />
+                                            <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
 
-                                        <!--
-                                            mini graph placeholder; real per-instance mini graphs are a
-                                            separate future step, selection highlighting likewise
-                                        -->
-                                        <Border
+                                        <!--  mini utilization graph for this hardwares primary sensor  -->
+                                        <fhGraph:SensorGraphControl
                                             Grid.Column="0"
-                                            Width="48"
-                                            Height="38"
-                                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                            CornerRadius="4" />
+                                            Width="74"
+                                            Height="52"
+                                            AccentColor="{x:Bind PrimaryGraph.GraphColor, Mode=OneWay}"
+                                            IsAutoScaled="{x:Bind PrimaryGraph.IsAutoScaled, Mode=OneWay}"
+                                            ManualYMax="{x:Bind PrimaryGraph.ManualYMax, Mode=OneWay}"
+                                            Values="{x:Bind PrimaryGraph.SensorData, Mode=OneWay}" />
 
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            Margin="8,0,0,0"
-                                            VerticalAlignment="Center"
-                                            Text="{x:Bind DisplayName, Mode=OneWay}"
-                                            TextTrimming="CharacterEllipsis" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock
+                                                FontSize="15"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="{x:Bind GroupLabel, Mode=OneWay}"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <TextBlock
+                                                FontSize="12"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="{x:Bind PrimaryGraph.CurrentValueText, Mode=OneWay}"
+                                                TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
                                     </Grid>
-                                </Button>
+                                </ToggleButton>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -126,7 +198,7 @@
                 </Grid.RowDefinitions>
 
                 <!--  header for one hardware  -->
-                <!--  group label (left) + hardware display name (right) for the selected nav item  -->
+                <!--  left: group label + right: hardware display name for the selected nav item  -->
                 <Border
                     Grid.Row="0"
                     Padding="16,12,16,0"
@@ -151,16 +223,8 @@
                     </Grid>
                 </Border>
 
-
-                <!--
-                    detail content host: filled/replaced entirely from code-behind on every selection change,
-                    no ContentControl/ContentTemplateSelector - see UpdateDetailView. Every switch tears the
-                    previous hardware-specific view down completely and builds a brand new instance, instead
-                    of letting WinUI silently recycle the old one; recycling caused stale frozen graphs and,
-                    worse, TwoWay threshold bindings leaking state into the wrong sensor
-                -->
+                <!--  hardware datail view  -->
                 <Grid x:Name="DetailHostGrid" Grid.Row="1" />
-
             </Grid>
 
         </Grid>

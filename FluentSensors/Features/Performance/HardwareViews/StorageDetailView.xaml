@@ -3,6 +3,7 @@
     x:Class="FluentSensors.Features.Performance.HardwareViews.StorageDetailView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
@@ -58,7 +59,7 @@
                                 Grid.Row="0"
                                 Grid.RowSpan="2"
                                 Grid.Column="0"
-                                GraphColorOverride="#FF00B7C3"
+                                GraphColorOverride="#FF90c242"
                                 GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="100"
@@ -71,10 +72,9 @@
                             <fhGraph:SensorPanelControl
                                 Grid.Row="0"
                                 Grid.Column="1"
-                                GraphColorOverride="#FF00CC6A"
+                                GraphColorOverride="#FF90c242"
                                 GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="False"
-                                ManualYMaxOverride="500"
+                                IsAutoScaledOverride="True"
                                 ShowStatusRow="True"
                                 ShowThresholdControls="True"
                                 ShowYAxisControls="True"
@@ -84,10 +84,9 @@
                             <fhGraph:SensorPanelControl
                                 Grid.Row="1"
                                 Grid.Column="1"
-                                GraphColorOverride="#FFFF8C00"
+                                GraphColorOverride="#FF90c242"
                                 GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="False"
-                                ManualYMaxOverride="500"
+                                IsAutoScaledOverride="True"
                                 ShowStatusRow="True"
                                 ShowThresholdControls="True"
                                 ShowYAxisControls="True"
@@ -101,14 +100,14 @@
                             RowSpacing="8"
                             Visibility="Collapsed">
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="3*" />
+                                <RowDefinition Height="2*" />
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
                             <fhGraph:SensorPanelControl
                                 Grid.Row="0"
-                                GraphColorOverride="#FF00B7C3"
+                                GraphColorOverride="#FF90c242"
                                 GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="100"
@@ -120,10 +119,9 @@
 
                             <fhGraph:SensorPanelControl
                                 Grid.Row="1"
-                                GraphColorOverride="#FF00CC6A"
+                                GraphColorOverride="#FF90c242"
                                 GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="False"
-                                ManualYMaxOverride="500"
+                                IsAutoScaledOverride="True"
                                 ShowStatusRow="True"
                                 ShowThresholdControls="True"
                                 ShowYAxisControls="True"
@@ -132,10 +130,9 @@
 
                             <fhGraph:SensorPanelControl
                                 Grid.Row="2"
-                                GraphColorOverride="#FFFF8C00"
+                                GraphColorOverride="#FF90c242"
                                 GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="False"
-                                ManualYMaxOverride="500"
+                                IsAutoScaledOverride="True"
                                 ShowStatusRow="True"
                                 ShowThresholdControls="True"
                                 ShowYAxisControls="True"
@@ -146,23 +143,23 @@
 
                     <!--  current value tiles  -->
                     <Grid x:Name="TilesGrid" Grid.Row="1">
-                        <StackPanel
+                        <controls:WrapPanel
                             Margin="0,0,0,16"
-                            Orientation="Horizontal"
-                            Spacing="8">
+                            HorizontalSpacing="8"
+                            VerticalSpacing="8">
                             <fhTile:SensorTileControl
                                 Title="Total Activity"
                                 Width="90"
                                 ViewModel="{x:Bind Storage.TotalActivity, Mode=OneWay}" />
                             <fhTile:SensorTileControl
                                 Title="Read Rate"
-                                Width="120"
+                                Width="110"
                                 ViewModel="{x:Bind Storage.ReadRate, Mode=OneWay}" />
                             <fhTile:SensorTileControl
                                 Title="Write Rate"
-                                Width="120"
+                                Width="110"
                                 ViewModel="{x:Bind Storage.WriteRate, Mode=OneWay}" />
-                        </StackPanel>
+                        </controls:WrapPanel>
                     </Grid>
                 </Grid>
             </Grid>

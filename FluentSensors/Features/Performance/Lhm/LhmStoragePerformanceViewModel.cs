@@ -77,19 +77,22 @@ namespace FluentSensors.Features.Performance.Lhm
             switch (entry.Name)
             {
                 case "Total Activity":
-                    drive.TotalActivity = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    // guard: OnSensorDiscovered can run again for a sensor name that was already wired up (e.g.
+                    // triggered again via instance.Sensors.CollectionChanged); without this check every rerun
+                    // replaced the graph with an empty one, wiping its accumulated history and history-bound UI
+                    drive.TotalActivity ??= new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(drive.TotalActivity, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(drive.TotalActivity, entry, e);
                     break;
 
                 case "Write Rate":
-                    drive.WriteRate = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    drive.WriteRate ??= new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(drive.WriteRate, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(drive.WriteRate, entry, e);
                     break;
 
                 case "Read Rate":
-                    drive.ReadRate = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    drive.ReadRate ??= new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(drive.ReadRate, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(drive.ReadRate, entry, e);
                     break;
