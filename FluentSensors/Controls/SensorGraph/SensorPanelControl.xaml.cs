@@ -205,19 +205,20 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(Windows.UI.Color.FromArgb(0, 0, 0, 0)));
 
-        // 0 = no override
-        // (a real graph never has 0 data points, so this doubles as a safe sentinel)
-        public int GraphDataPointsOverride
+        // how much history this graph shows, independent of the global Settings value; point count is derived from
+        // this plus the current polling interval
+        // NaN = no override, same sentinel pattern as ManualYMaxOverride below
+        public double GraphTimeSpanOverrideSeconds
         {
-            get => (int)GetValue(GraphDataPointsOverrideProperty);
-            set => SetValue(GraphDataPointsOverrideProperty, value);
+            get => (double)GetValue(GraphTimeSpanOverrideSecondsProperty);
+            set => SetValue(GraphTimeSpanOverrideSecondsProperty, value);
         }
-        public static readonly DependencyProperty GraphDataPointsOverrideProperty =
+        public static readonly DependencyProperty GraphTimeSpanOverrideSecondsProperty =
             DependencyProperty.Register(
-                nameof(GraphDataPointsOverride),
-                typeof(int),
+                nameof(GraphTimeSpanOverrideSeconds),
+                typeof(double),
                 typeof(SensorPanelControl),
-                new PropertyMetadata(0, OnOverrideChanged));
+                new PropertyMetadata(double.NaN, OnOverrideChanged));
 
         // Inherit = no override
         // (this sensors persisted/global IsAutoScaled state is used as-is)
@@ -298,7 +299,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         private void ApplyOverridesToViewModel()
         {
-            int? dataPoints = GraphDataPointsOverride > 0 ? GraphDataPointsOverride : (int?)null;
+            double? graphTimeSpanSeconds = double.IsNaN(GraphTimeSpanOverrideSeconds) ? (double?)null : GraphTimeSpanOverrideSeconds;
 
             bool? isAutoScaled = IsAutoScaledOverride switch
             {
@@ -309,7 +310,7 @@ namespace FluentSensors.Controls.SensorGraph
 
             double? manualYMax = double.IsNaN(ManualYMaxOverride) ? (double?)null : ManualYMaxOverride;
 
-            ViewModel?.ApplyViewOverrides(dataPoints, isAutoScaled, manualYMax);
+            ViewModel?.ApplyViewOverrides(graphTimeSpanSeconds, isAutoScaled, manualYMax);
         }
 
 

@@ -71,7 +71,19 @@ namespace FluentSensors.Core
 
         // === public api ===
 
-        public int UpdateIntervalMs { get; set; } = 500;
+        private int _updateIntervalMs = 500;
+        public int UpdateIntervalMs
+        {
+            get => _updateIntervalMs;
+            set
+            {
+                if (_updateIntervalMs != value)
+                {
+                    _updateIntervalMs = value;
+                    UpdateIntervalChanged?.Invoke(_updateIntervalMs);
+                }
+            }
+        }
 
         // asynchronous initialization pipeline:
         // lhm heavily blocks the calling thread when enabling all the hardware components
@@ -190,6 +202,10 @@ namespace FluentSensors.Core
         // "public event Action<double>? CpuPackagePowerUpdated;"
         // "public event Action<double>? CpuIaPowerUpdated;" and so on
         public event Action<List<SensorData>>? HardwareDataUpdated;
+
+        // fires whenever the polling interval changes at runtime; graphs use
+        // this to keep their visible time span correct, since point count depends on both time span and interval
+        public event Action<int>? UpdateIntervalChanged;
 
 
         // === private helpers ===

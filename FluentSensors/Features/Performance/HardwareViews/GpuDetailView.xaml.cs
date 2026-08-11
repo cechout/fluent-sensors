@@ -1,4 +1,5 @@
 using FluentSensors.Common.Sensors;
+using FluentSensors.Features.Performance;
 using FluentSensors.Features.Performance.Lhm;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -26,6 +27,9 @@ namespace FluentSensors.Features.Performance.HardwareViews
         public GpuDetailView()
         {
             InitializeComponent();
+
+            // literal xaml children, already exist right after InitializeComponent, no need to wait for Loaded
+            PerformanceGraphDefaults.ApplyTimeSpan(OverviewBlockGrid, PerformanceGraphDefaults.StandardTimeSpanSeconds);
         }
 
 

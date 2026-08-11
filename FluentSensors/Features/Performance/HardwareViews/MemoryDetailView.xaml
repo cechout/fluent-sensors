@@ -101,7 +101,6 @@
                             <fhGraph:SensorPanelControl
                                 Grid.Row="0"
                                 GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="{x:Bind Memory.RoundedTotalMemory, Mode=OneWay}"
                                 ShowStatusRow="True"
@@ -113,7 +112,6 @@
                             <fhGraph:SensorPanelControl
                                 Grid.Row="1"
                                 GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="{x:Bind Memory.VirtualMemoryTotal, Mode=OneWay}"
                                 ShowStatusRow="True"

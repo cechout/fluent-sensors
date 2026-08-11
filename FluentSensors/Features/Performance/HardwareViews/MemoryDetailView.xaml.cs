@@ -4,6 +4,7 @@ using System;
 using Windows.Foundation;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Features.Performance;
 using FluentSensors.Features.Performance.Lhm;
 
 
@@ -17,6 +18,9 @@ namespace FluentSensors.Features.Performance.HardwareViews
         public MemoryDetailView()
         {
             InitializeComponent();
+
+            // literal xaml children, already exist right after InitializeComponent, no need to wait for Loaded
+            PerformanceGraphDefaults.ApplyTimeSpan(OverviewBlockGrid, PerformanceGraphDefaults.StandardTimeSpanSeconds);
         }
 
 

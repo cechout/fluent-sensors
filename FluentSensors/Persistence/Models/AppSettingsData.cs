@@ -16,7 +16,7 @@ namespace FluentSensors.Persistence.Models
         public Color CustomTintColor { get; set; } = Color.FromArgb(255, 25, 25, 25);
         public bool UseGraphAccentColor { get; set; } = true;
         public Windows.UI.Color GraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
-        public int GraphDataPoints { get; set; } = 110;
+        public double GraphTimeSpanSeconds { get; set; } = 45;
         public bool MinimizeToTray { get; set; } = true;
         public bool HideSensorsCompletely { get; set; } = true;
 

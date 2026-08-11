@@ -136,7 +136,7 @@
 
             <!--  graph appearance  -->
             <controls:SettingsExpander
-                Description="Graph color and number of data points"
+                Description="Graph color and time range"
                 Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
@@ -156,22 +156,17 @@
                         </StackPanel>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="Number of points shown on the graph" Header="Number of Data Points">
+                    <controls:SettingsCard Description="How much history the graph shows" Header="Time Range">
                         <ComboBox
-                            x:Name="GraphDataPointsComboBox"
-                            Width="150"
-                            SelectionChanged="GraphDataPointsComboBox_SelectionChanged">
-                            <ComboBoxItem Content="80 Points" Tag="80" />
-                            <ComboBoxItem Content="90 Points" Tag="90" />
-                            <ComboBoxItem Content="100 Points" Tag="100" />
-                            <ComboBoxItem Content="110 Points" Tag="110" />
-                            <ComboBoxItem Content="120 Points" Tag="120" />
-                            <ComboBoxItem Content="130 Points" Tag="130" />
-                            <ComboBoxItem Content="140 Points" Tag="140" />
-                            <ComboBoxItem Content="150 Points" Tag="150" />
-                            <ComboBoxItem Content="200 Points" Tag="200" />
-                            <ComboBoxItem Content="300 Points" Tag="300" />
-                            <ComboBoxItem Content="400 Points" Tag="400" />
+                            x:Name="GraphTimeSpanComboBox"
+                            Width="40"
+                            SelectionChanged="GraphTimeSpanComboBox_SelectionChanged">
+                            <ComboBoxItem Content="30s" Tag="30" />
+                            <ComboBoxItem Content="45s" Tag="45" />
+                            <ComboBoxItem Content="60s" Tag="60" />
+                            <ComboBoxItem Content="90s" Tag="90" />
+                            <ComboBoxItem Content="120s" Tag="120" />
+                            <ComboBoxItem Content="240s" Tag="240" />
                         </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>

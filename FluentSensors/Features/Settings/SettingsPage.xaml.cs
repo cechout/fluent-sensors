@@ -29,7 +29,7 @@ namespace FluentSensors.Features.Settings
 
             RestoreBackgroundMaterialSettings();
             RestoreGraphColorSettings();
-            RestoreGraphDataPointsSelection();
+            RestoreGraphTimeSpanSelection();
 
 
             // event listeners
@@ -219,15 +219,15 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        private void GraphDataPointsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void GraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
 
             if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
             {
-                if (selectedItem.Tag != null && int.TryParse(selectedItem.Tag.ToString(), out int newDataPoints))
+                if (selectedItem.Tag != null && double.TryParse(selectedItem.Tag.ToString(), out double newTimeSpanSeconds))
                 {
-                    SettingsService.Instance.GraphDataPoints = newDataPoints;
+                    SettingsService.Instance.GraphTimeSpanSeconds = newTimeSpanSeconds;
                 }
             }
         }
@@ -238,15 +238,15 @@ namespace FluentSensors.Features.Settings
             GraphColorPicker.SelectedColor = SettingsService.Instance.GraphCustomColor;
         }
 
-        private void RestoreGraphDataPointsSelection()
+        private void RestoreGraphTimeSpanSelection()
         {
-            int currentDataPoints = SettingsService.Instance.GraphDataPoints;
+            double currentTimeSpanSeconds = SettingsService.Instance.GraphTimeSpanSeconds;
 
-            foreach (ComboBoxItem item in GraphDataPointsComboBox.Items)
+            foreach (ComboBoxItem item in GraphTimeSpanComboBox.Items)
             {
-                if (item.Tag?.ToString() == currentDataPoints.ToString())
+                if (item.Tag?.ToString() == currentTimeSpanSeconds.ToString())
                 {
-                    GraphDataPointsComboBox.SelectedItem = item;
+                    GraphTimeSpanComboBox.SelectedItem = item;
                     break;
                 }
             }

@@ -1,10 +1,12 @@
-using FluentSensors.Common.Sensors;
-using FluentSensors.Diagnostics;
-using FluentSensors.Features.Performance.Lhm;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
+
+using FluentSensors.Common.Sensors;
+using FluentSensors.Diagnostics;
+using FluentSensors.Features.Performance;
+using FluentSensors.Features.Performance.Lhm;
 
 
 namespace FluentSensors.Features.Performance.HardwareViews
@@ -19,6 +21,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // (all 3 stacked equally)
         private const double NarrowGraphsLayoutThreshold = 700;
         private bool _isNarrowLayoutActive;
+        private bool _allThreadsTimeSpanHookAttached;
 
 
         // === constructor ===
@@ -26,6 +29,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
         public CpuDetailView()
         {
             InitializeComponent();
+
+            PerformanceGraphDefaults.ApplyTimeSpan(OverviewBlockGrid, PerformanceGraphDefaults.StandardTimeSpanSeconds);
         }
 
 
@@ -110,6 +115,13 @@ namespace FluentSensors.Features.Performance.HardwareViews
                 // actually selected, and is a cheap no-op on every call after that
                 FindName(nameof(AllThreadsGrid));
                 AllThreadsGrid.Height = double.NaN;
+
+                if (!_allThreadsTimeSpanHookAttached)
+                {
+                    _allThreadsTimeSpanHookAttached = true;
+                    AllThreadsGrid.Loaded += (s, e) =>
+                        PerformanceGraphDefaults.ApplyTimeSpan(AllThreadsGrid, PerformanceGraphDefaults.CpuThreadTimeSpanSeconds);
+                }
             }
             else
             {

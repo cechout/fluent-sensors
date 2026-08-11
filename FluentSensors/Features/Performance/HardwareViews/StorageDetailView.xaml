@@ -112,7 +112,6 @@
                                     Grid.RowSpan="2"
                                     Grid.Column="0"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    GraphDataPointsOverride="180"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     ShowStatusRow="True"
@@ -125,7 +124,6 @@
                                     Grid.Row="0"
                                     Grid.Column="1"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    GraphDataPointsOverride="180"
                                     IsAutoScaledOverride="True"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
@@ -137,7 +135,6 @@
                                     Grid.Row="1"
                                     Grid.Column="1"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    GraphDataPointsOverride="180"
                                     IsAutoScaledOverride="True"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
@@ -161,7 +158,6 @@
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="0"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    GraphDataPointsOverride="180"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     ShowStatusRow="True"
@@ -173,7 +169,6 @@
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="1"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    GraphDataPointsOverride="180"
                                     IsAutoScaledOverride="True"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
@@ -184,7 +179,6 @@
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="2"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    GraphDataPointsOverride="180"
                                     IsAutoScaledOverride="True"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"

@@ -1,9 +1,12 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+
+using FluentSensors.Core;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
@@ -17,12 +20,12 @@ namespace FluentSensors.Controls.SensorGraph
 
         private double _currentRaw;
         private readonly double _yMaxStep;
-        private int? _dataPointsOverride;
+        private double? _timeSpanOverrideSeconds;
 
 
         // === constructor ===
 
-        public SensorGraphViewModel(string sensorId, string sensorName, string sensorType, int? dataPointsOverride = null)
+        public SensorGraphViewModel(string sensorId, string sensorName, string sensorType, double? graphTimeSpanSecondsOverride = null)
         {
             SensorId = sensorId;
             SensorType = sensorType;
@@ -31,9 +34,10 @@ namespace FluentSensors.Controls.SensorGraph
             CurrentValueText = "-"; // placeholder text until we have the first value
             CurrentValueColor = DefaultTextColor.Resolve();
 
-            // when set, this instance owns a fixed graph data point count independent of the global GraphDataPoints setting
-            _dataPointsOverride = dataPointsOverride;
-            int initialPointCount = dataPointsOverride ?? SettingsService.Instance.GraphDataPoints;
+            // when set, this instance owns a fixed time span independent of the global GraphTimeSpanSeconds setting
+            _timeSpanOverrideSeconds = graphTimeSpanSecondsOverride;
+            double initialTimeSpanSeconds = graphTimeSpanSecondsOverride ?? SettingsService.Instance.GraphTimeSpanSeconds;
+            int initialPointCount = CalculatePointCount(initialTimeSpanSeconds, HardwareMonitorService.Instance.UpdateIntervalMs);
 
             // this raw data list will be plotted by LiveCharts
             // we use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
@@ -41,7 +45,8 @@ namespace FluentSensors.Controls.SensorGraph
 
             GraphColor = ResolveGraphColor(SettingsService.Instance.UseGraphAccentColor, SettingsService.Instance.GraphCustomColor);
             SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
-            SettingsService.Instance.GraphDataPointsChanged += OnGraphDataPointsChanged;
+            SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
+            HardwareMonitorService.Instance.UpdateIntervalChanged += OnUpdateIntervalChanged;
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
 
             // owns this sensors threshold config; shared logic/state lives there, this VM only reacts to it for coloring
@@ -199,11 +204,18 @@ namespace FluentSensors.Controls.SensorGraph
             GraphColor = ResolveGraphColor(useAccent, customColor);
         }
 
-        private void OnGraphDataPointsChanged(int newCount)
+        private void OnGraphTimeSpanChanged(double newTimeSpanSeconds)
         {
             // instances with a fixed override never resize with the global setting
-            if (_dataPointsOverride.HasValue) return;
-            ResizeSensorData(newCount);
+            if (_timeSpanOverrideSeconds.HasValue) return;
+            RecalculatePointCount();
+        }
+
+        // polling interval affects the point count regardless of whether this instance uses the global time span
+        // or a fixed override
+        private void OnUpdateIntervalChanged(int newIntervalMs)
+        {
+            RecalculatePointCount();
         }
 
 
@@ -214,7 +226,8 @@ namespace FluentSensors.Controls.SensorGraph
         public void Cleanup()
         {
             SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
-            SettingsService.Instance.GraphDataPointsChanged -= OnGraphDataPointsChanged;
+            SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+            HardwareMonitorService.Instance.UpdateIntervalChanged -= OnUpdateIntervalChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             Threshold.PropertyChanged -= OnThresholdPropertyChanged;
             Threshold.Cleanup();
@@ -237,17 +250,14 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         // applies view-specific configuration that intentionally does NOT persist to SensorStateService:
-        // used by consumers like the Performance page that need this graphs data point count / Y-axis behavior fixed and
-        // decoupled from whatever is (or isnt) configured for this sensor elsewhere (e.g. pinned in
-        // the Widget)
-        // passing null for any parameter leaves that aspect on its normal (persisted / globally
-        // configured) behavior
-        public void ApplyViewOverrides(int? dataPoints, bool? isAutoScaled, double? manualYMax)
+        // used by consumers like the Performance page that need this graphs time span / Y-axis behavior fixed and
+        // decoupled from whatever is (or isnt) configured for this sensor elsewhere
+        public void ApplyViewOverrides(double? graphTimeSpanSecondsOverride, bool? isAutoScaled, double? manualYMax)
         {
-            if (dataPoints.HasValue && dataPoints.Value != SensorData.Count)
+            if (graphTimeSpanSecondsOverride.HasValue && graphTimeSpanSecondsOverride.Value != _timeSpanOverrideSeconds)
             {
-                _dataPointsOverride = dataPoints; // also stops OnGraphDataPointsChanged from resizing this instance later
-                ResizeSensorData(dataPoints.Value);
+                _timeSpanOverrideSeconds = graphTimeSpanSecondsOverride; // also stops OnGraphTimeSpanChanged from resizing this instance later
+                RecalculatePointCount();
             }
 
             if (isAutoScaled.HasValue && _isAutoScaled != isAutoScaled.Value)
@@ -295,8 +305,23 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === private helpers ===
 
-        // shared point-count resize logic, used both when the global GraphDataPoints setting changes (see
-        // OnGraphDataPointsChanged) and when a per-instance override is applied from the view (see ApplyViewOverrides)
+        // recomputes the point count from whichever time span currently applies (override or global setting) plus
+        // the current polling interval, and resizes to it
+        private void RecalculatePointCount()
+        {
+            double effectiveSeconds = _timeSpanOverrideSeconds ?? SettingsService.Instance.GraphTimeSpanSeconds;
+            int newCount = CalculatePointCount(effectiveSeconds, HardwareMonitorService.Instance.UpdateIntervalMs);
+            ResizeSensorData(newCount);
+        }
+
+        // how many points a graph needs to cover timeSpanSeconds at the given polling interval
+        // e.g. 30s at a 500ms interval -> 60 points
+        private static int CalculatePointCount(double timeSpanSeconds, int intervalMs)
+        {
+            return Math.Max(1, (int)Math.Round(timeSpanSeconds * 1000.0 / intervalMs));
+        }
+
+        // shared point-count resize logic
         private void ResizeSensorData(int newCount)
         {
             int currentCount = SensorData.Count;

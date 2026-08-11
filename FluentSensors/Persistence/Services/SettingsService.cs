@@ -143,16 +143,17 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private int _graphDataPoints = 110;
-        public int GraphDataPoints
+        // seconds of history shown on a graph that does not have its own fixed override (e.g. the Widget)
+        private double _graphTimeSpanSeconds = 45;
+        public double GraphTimeSpanSeconds
         {
-            get => _graphDataPoints;
+            get => _graphTimeSpanSeconds;
             set
             {
-                if (_graphDataPoints != value)
+                if (_graphTimeSpanSeconds != value)
                 {
-                    _graphDataPoints = value;
-                    GraphDataPointsChanged?.Invoke(_graphDataPoints);
+                    _graphTimeSpanSeconds = value;
+                    GraphTimeSpanChanged?.Invoke(_graphTimeSpanSeconds);
                     SaveDebounced();
                 }
             }
@@ -201,7 +202,7 @@ namespace FluentSensors.Persistence.Services
             _customTintColor = data.CustomTintColor;
             _useGraphAccentColor = data.UseGraphAccentColor;
             _graphCustomColor = data.GraphCustomColor;
-            _graphDataPoints = data.GraphDataPoints;
+            _graphTimeSpanSeconds = data.GraphTimeSpanSeconds;
             _minimizeToTray = data.MinimizeToTray;
             _hideSensorsCompletely = data.HideSensorsCompletely;
 
@@ -222,7 +223,7 @@ namespace FluentSensors.Persistence.Services
                 CustomTintColor = _customTintColor,
                 UseGraphAccentColor = _useGraphAccentColor,
                 GraphCustomColor = _graphCustomColor,
-                GraphDataPoints = _graphDataPoints,
+                GraphTimeSpanSeconds = _graphTimeSpanSeconds,
                 MinimizeToTray = _minimizeToTray,
                 HideSensorsCompletely = _hideSensorsCompletely,
                 UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
@@ -230,7 +231,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // called by every setter above; public so code that changes UpdateIntervalMs directly on HardwareMonitorService
-        // (which has no change event of its own) can trigger a save too
+        // (its own change event does not trigger a save) can trigger a save too
         public void SaveDebounced()
         {
             PersistenceService.Instance.SaveSettingsDebounced(ToData());
@@ -253,7 +254,7 @@ namespace FluentSensors.Persistence.Services
         public event Action<float, float> OpacityChanged;
         public event Action<bool, Color> TintColorChanged;
         public event Action<bool, Windows.UI.Color> GraphColorChanged;
-        public event Action<int> GraphDataPointsChanged;
+        public event Action<double> GraphTimeSpanChanged;
         public event Action<bool> MinimizeToTrayChanged;
         public event Action<bool> HideSensorsCompletelyChanged;
     }
