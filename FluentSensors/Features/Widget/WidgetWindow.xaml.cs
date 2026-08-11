@@ -137,6 +137,21 @@ namespace FluentSensors.Features.Widget
             newWindow.Activate();
         }
 
+        // brings the widget back without touching its content or pinned sensors;
+        // Used by the tray icon single click restore, where the current selection has not changed
+        // Does nothing if no widget was ever pinned this session
+        public static void RestoreIfOpen()
+        {
+            if (CurrentInstance == null) return;
+
+            if (CurrentInstance._appWindow.Presenter is OverlappedPresenter presenter)
+            {
+                presenter.Restore();
+            }
+            CurrentInstance._appWindow.Show();
+            CurrentInstance.Activate();
+        }
+
 
         // === lifecycle ===
 
@@ -166,9 +181,6 @@ namespace FluentSensors.Features.Widget
             _configurationSource = null;
             CurrentInstance = null;
             WidgetStateChanged?.Invoke();
-
-            // if the dashboard was already closed too, there is nothing left to keep the app alive for
-            MainWindow.CurrentInstance?.EvaluateFullExit();
         }
 
         private void Window_Activated(object sender, WindowActivatedEventArgs args)
@@ -193,6 +205,10 @@ namespace FluentSensors.Features.Widget
         // a sensor set gets pinned
         // same approach as HiddenSensorsWindow; deliberately does NOT dispose backdrop controllers, unsubscribe SettingsService
         // events, or call ViewModel.Cleanup() here; the window stays alive, just hidden, so those stay valid for reuse
+        //
+        // always hides and retains, regardless of MinimizeToTray
+        // quitting the app is decided entirely elsewhere (MainWindow closing with MinimizeToTray off, or the tray Exit
+        // command); this window never decides to quit on its own
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
             args.Cancel = true;
@@ -203,9 +219,6 @@ namespace FluentSensors.Features.Widget
             WidgetStateChanged?.Invoke();
 
             _appWindow.Hide();
-
-            // if the dashboard was already closed too, there is nothing left to keep the app alive for
-            MainWindow.CurrentInstance?.EvaluateFullExit();
         }
 
 

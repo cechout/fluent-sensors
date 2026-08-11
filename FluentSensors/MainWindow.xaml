@@ -132,15 +132,32 @@
         <!--  taskbar icon  -->
         <tb:TaskbarIcon
             x:Name="TrayIcon"
-            DoubleClickCommand="{x:Bind ShowMainWindowCommand}"
+            DoubleClickCommand="{x:Bind TrayDoubleClickCommand}"
             IconSource="/Assets/Icon/Icon.ico"
+            LeftClickCommand="{x:Bind TrayLeftClickCommand}"
+            NoLeftClickDelay="True"
             ToolTipText="Fluent Sensors"
             Visibility="Visible">
 
             <tb:TaskbarIcon.ContextFlyout>
                 <MenuFlyout>
-                    <MenuFlyoutItem Command="{x:Bind ShowMainWindowCommand}" Text="Sensor List" />
-                    <MenuFlyoutItem Command="{x:Bind OpenSettingsCommand}" Text="Settings" />
+                    <MenuFlyoutItem
+                        Command="{x:Bind TrayLeftClickCommand}"
+                        KeyboardAcceleratorTextOverride="Single Click"
+                        Text="Widget Window" />
+                    <MenuFlyoutItem
+                        Command="{x:Bind TrayDoubleClickCommand}"
+                        KeyboardAcceleratorTextOverride="Double Click"
+                        Text="Main Window" />
+
+                    <MenuFlyoutSeparator />
+
+                    <MenuFlyoutItem Command="{x:Bind ShowMainWindowCommand}" Text="Sensor Page" />
+                    <MenuFlyoutItem Command="{x:Bind OpenPerformanceCommand}" Text="Performance Page" />
+                    <MenuFlyoutItem Command="{x:Bind OpenSettingsCommand}" Text="Settings Page" />
+
+                    <MenuFlyoutSeparator />
+
                     <MenuFlyoutItem Command="{x:Bind ExitAppCommand}" Text="Exit App" />
                 </MenuFlyout>
             </tb:TaskbarIcon.ContextFlyout>

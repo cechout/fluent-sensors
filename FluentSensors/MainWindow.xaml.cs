@@ -51,6 +51,18 @@ namespace FluentSensors
         private const uint SWP_NOACTIVATE = 0x0010;
         private const uint SWP_FRAMECHANGED = 0x0020;
 
+        // --- workaround: OpenDashboard does not reliably come to the front ---
+        // problem: WinUI 3 Window.Activate() fails to bring a window to the foreground if it is already restored but sitting
+        // in the background of other windows;
+        // Only works correctly starting from a minimized state confirmed, still-open platform bug:
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/7595
+        // hits us specifically when the widget window grabbed foreground moments earlier (tray double click), since Restore()
+        // puts the main window into exactly that broken background-but-not-minimized state right before Activate() runs
+        // fix: call the raw Win32 SetForegroundWindow directly instead of relying on Activate() for the actual foreground grab
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool SetForegroundWindow(IntPtr hWnd);
+
 
         // === fields ===
 
@@ -59,10 +71,15 @@ namespace FluentSensors
         private bool _isForceClosing = false;
         private bool _isHardwareServiceLoaded = false;
         private bool _isDashboardClosed = false;
+
+        // system tray icon commands
         public XamlUICommand RestoreAppCommand { get; } = new XamlUICommand(); // restore
         public XamlUICommand ShowMainWindowCommand { get; } = new XamlUICommand(); // restore + navigate to SensorPage
+        public XamlUICommand OpenPerformanceCommand { get; } = new XamlUICommand(); // restore + navigate to PerformancePage
         public XamlUICommand OpenSettingsCommand { get; } = new XamlUICommand(); // restore + navigate to SettingsPage
         public XamlUICommand ExitAppCommand { get; } = new XamlUICommand();
+        public XamlUICommand TrayLeftClickCommand { get; } = new XamlUICommand(); // tray single click, restores widget only
+        public XamlUICommand TrayDoubleClickCommand { get; } = new XamlUICommand(); // tray double click, restores main window only
 
 
         // === constructor ===
@@ -132,27 +149,19 @@ namespace FluentSensors
                 RestoreApp();
                 MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
             };
+            OpenPerformanceCommand.ExecuteRequested += (s, e) =>
+            {
+                RestoreApp();
+                MainNavigationView.SelectedItem = MainNavigationView.MenuItems[1];
+            };
             OpenSettingsCommand.ExecuteRequested += (s, e) =>
             {
                 RestoreApp();
                 MainNavigationView.SelectedItem = MainNavigationView.FooterMenuItems[0];
             };
-            ExitAppCommand.ExecuteRequested += (s, e) =>
-            {
-                // routes through the same hard-kill path as ForceExit() instead of Application.Current.Exit():
-                // WidgetWindow.AppWindow_Closing unconditionally cancels its own close and hides + retains itself (by design,
-                // for the retained-instance memory-leak workaround), with no _isForceClosing-style guard of
-                // its own
-                // Exit() trying to tear down both windows at once; MainWindows Closing permits a real close here,
-                // WidgetWindows never does; combined with Exit()s already-documented unreliability is what produced the ~50% hang,
-                // with either window unpredictably left behind
-                // A hard kill sidesteps the whole Closing/Closed choreography instead of patching every window class to cooperate
-                // with it
-                _isForceClosing = true;
-                SaveWindowState();
-                PersistenceService.Instance.FlushAll();
-                Process.GetCurrentProcess().Kill();
-            };
+            TrayLeftClickCommand.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen();
+            TrayDoubleClickCommand.ExecuteRequested += (s, e) => OpenDashboard();
+            ExitAppCommand.ExecuteRequested += (s, e) => QuitAppNow(); // tray menu "Exit"
 
 
             // TEMP: uncomment to dump everything WinStaticInfoService collected to the Debug output window
@@ -423,16 +432,16 @@ namespace FluentSensors
 
                 this.Hide();
                 CheckAndHideToTray();
-                EvaluateFullExit();
             }
             else
             {
-                HardwareMonitorService.Instance.StopMonitoring();
-
-                // MinimizeToTray is off: the window is actually about to close for real, capture its final rect and
-                // write everything to disk before the process ends
-                SaveWindowState();
-                PersistenceService.Instance.FlushAll();
+                // MinimizeToTray is off: closing the main window always fully exits the app right away, no matter what
+                // other windows are still open
+                // WidgetWindow.AppWindow_Closing always cancels its own close, then hides and retains itself (the
+                // retained-instance memory leak workaround), so without a hard kill here the process never actually
+                // terminates while a widget is pinned
+                // StopMonitoring alone used to leave everything stuck with a frozen, dataless widget and no way back
+                QuitAppNow();
             }
         }
 
@@ -452,6 +461,7 @@ namespace FluentSensors
                 opMain.Restore();
             }
             this.Activate();
+            SetForegroundWindow(hwnd); // see workaround comment on the P/Invoke declaration above
         }
 
         private void RestoreApp()
@@ -475,21 +485,16 @@ namespace FluentSensors
             }
         }
 
-        public void EvaluateFullExit()
+        // hard-kills the process right now instead of going through the normal WinUI Closing/Exit path
+        // used both by the tray Exit command and by closing the main window while MinimizeToTray is off
+        //
+        // Application.Current.Exit() was tried first for both cases but is unreliable with multiple windows open
+        private void QuitAppNow()
         {
-            // if the dashboard is closed and no widget is pinned anymore, nothing is left running;
-            // fully exit instead of sitting in the tray forever with no way to bring it back
-            if (_isDashboardClosed && WidgetWindow.CurrentInstance == null)
-            {
-                _isForceClosing = true;
-
-                // stop the background polling loop first, so no more sensor updates can hit UI elements while the XAML
-                // tree is being torn down below
-                HardwareMonitorService.Instance.StopMonitoring();
-
-                PersistenceService.Instance.FlushAll();
-                Application.Current.Exit();
-            }
+            _isForceClosing = true;
+            SaveWindowState();
+            PersistenceService.Instance.FlushAll();
+            Process.GetCurrentProcess().Kill();
         }
 
         // controlled tear-down for scenarios that bypass the normal closing paths (e.g. settings reset -> app restart)
