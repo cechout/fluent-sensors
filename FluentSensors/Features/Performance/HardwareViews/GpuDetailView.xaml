@@ -337,11 +337,11 @@
                                     ViewModel="{x:Bind Gpu.PackagePower, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
                                     Title="Memory Used"
-                                    Width="120"
+                                    Width="100"
                                     ViewModel="{x:Bind Gpu.MemoryUsed, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
                                     Title="Core Clock"
-                                    Width="130"
+                                    Width="120"
                                     ViewModel="{x:Bind Gpu.CoreClock, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
                                     Title="Memory Clock"

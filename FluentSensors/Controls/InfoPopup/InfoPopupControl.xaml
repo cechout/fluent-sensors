@@ -55,7 +55,7 @@
     </UserControl.Resources>
 
 
-    <StackPanel Orientation="Horizontal" Spacing="4">
+    <Grid x:Name="RootGrid">
 
         <!--  optional title  -->
         <!--  (collapses entirely, including its layout space, when Title is empty)  -->
@@ -65,14 +65,17 @@
             Visibility="{x:Bind GetTitleVisibility(Title), Mode=OneWay}">
             <TextBlock
                 x:Name="TitleTextBlock"
+                Margin="{x:Bind GetTitleMargin(ButtonSize), Mode=OneWay}"
+                HorizontalAlignment="Left"
                 Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                SizeChanged="TitleTextBlock_SizeChanged"
                 Style="{x:Bind TitleStyle, Mode=OneWay}"
                 Text="{x:Bind Title, Mode=OneWay}"
                 TextTrimming="{x:Bind TitleTextTrimming, Mode=OneWay}"
                 TextWrapping="{x:Bind TitleTextWrapping, Mode=OneWay}" />
         </Grid>
 
-        <Grid x:Name="ButtonHost">
+        <Grid x:Name="ButtonHost" HorizontalAlignment="Left">
             <Button
                 x:Name="InfoButton"
                 Width="{x:Bind ButtonSize, Mode=OneWay}"
@@ -140,5 +143,5 @@
                 </Border>
             </Popup>
         </Grid>
-    </StackPanel>
+    </Grid>
 </UserControl>

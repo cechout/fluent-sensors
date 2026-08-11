@@ -31,6 +31,9 @@ namespace FluentSensors.Controls.InfoPopup
         // title TextBlock; not used by the button-anchored placements
         private const double PopupVerticalManualAdjustment = 18;
 
+        // pixel gap between the end of the title text and the info button; adjust this to change that spacing
+        private const double TitleButtonGap = 4;
+
         // InfoPopupControl_Loaded can fire more than once per instance, since DetailViews are cached and reattached to
         // the live tree on repeat navigation instead of recreated
         // Without this the second run tries to re-add InfoPopup to a host it is already a child of
@@ -284,6 +287,15 @@ namespace FluentSensors.Controls.InfoPopup
             InfoPopup.IsOpen = !InfoPopup.IsOpen;
         }
 
+        // title and button now overlap in the same cell instead of separate grid columns; the title reserves room
+        // for the button via a plain right Margin (a real measure-time constraint, so TextTrimming/TextWrapping
+        // still work correctly), and the button is positioned directly off the titles own ActualWidth here,
+        // no cross-element width subtraction involved
+        private void TitleTextBlock_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            ButtonHost.Margin = new Thickness(TitleTextBlock.ActualWidth + TitleButtonGap, 0, 0, 0);
+        }
+
         // recomputed on SizeChanged rather than Popup.Opened:
         // Opened can fire before the popups content has actually been measured, which intermittently read a 0x0
         // size and left the popup at its XAML-default offset instead of the calculated one; SizeChanged only ever
@@ -349,6 +361,10 @@ namespace FluentSensors.Controls.InfoPopup
 
         private Visibility GetTitleVisibility(string title) =>
             string.IsNullOrEmpty(title) ? Visibility.Collapsed : Visibility.Visible;
+
+        // reserves room for the button on the right of the title text; a real Margin, so it is a genuine
+        // measure-time constraint and TextTrimming/TextWrapping correctly leave this much space alone
+        private Thickness GetTitleMargin(double buttonSize) => new Thickness(0, 0, buttonSize + TitleButtonGap, 0);
 
         private Visibility GetSourceVisibility(string source) =>
             string.IsNullOrEmpty(source) ? Visibility.Collapsed : Visibility.Visible;

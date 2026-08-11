@@ -134,7 +134,7 @@
                                 <fhTile:SensorTileControl
                                     Title="Virtual Memory Used"
                                     Width="150"
-                                    InfoMessage="Includes RAM plus page file space reserved for programs - roughly matches Task Manager's &quot;Committed&quot; + &quot;Cached&quot; figures, not just physical RAM."
+                                    InfoMessage="Corresponds to Task Manager's &quot;Committed&quot; value; usually exact, but can deviate occasionally."
                                     ShowInfoButton="True"
                                     ViewModel="{x:Bind Memory.VirtualMemoryUsed, Mode=OneWay}" />
                             </controls:WrapPanel>
@@ -176,7 +176,8 @@
                                         Margin="0,0,0,-4"
                                         Description="Type - DDR generation (DDR4, DDR5, ...)&#10;Form Factor - DIMM (desktop) or SO-DIMM (laptop)&#10;RAM Speed - Configured (active) vs Rated (spec)&#10;Voltage - operating voltage; XMP/EXPO can raise it&#10;Bank - physical bank/slot grouping on the motherboard this module belongs to&#10;Rank - number of independent chip sets on the module itself (unreliable)&#10;Width - Data (usable bits) vs Total (includes ECC bits)"
                                         PlacementMode="TitleAnchored"
-                                        Source="Windows Management Instrumentation (WMI)" />
+                                        Source="Windows Management Instrumentation (WMI)"
+                                        TitleTextTrimming="CharacterEllipsis" />
 
                                     <StackPanel Spacing="2">
                                         <TextBlock
