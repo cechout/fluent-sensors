@@ -25,6 +25,7 @@ namespace FluentSensors.Controls.SensorGraph
         public SensorGraphViewModel(string sensorId, string sensorName, string sensorType, int? dataPointsOverride = null)
         {
             SensorId = sensorId;
+            SensorType = sensorType;
             SensorName = sensorName;
             Unit = SensorUnitFormatter.GetUnit(sensorType);
             CurrentValueText = "-"; // placeholder text until we have the first value
@@ -67,12 +68,14 @@ namespace FluentSensors.Controls.SensorGraph
         // general
         public ObservableCollection<double?> SensorData { get; private set; }
         public string SensorId { get; }
+        public string SensorType { get; }
         private string _sensorName = "not provided";
         public string SensorName
         {
             get => _sensorName;
             set { _sensorName = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayNameWithUnit)); }
         }
+
         public string Unit { get; }
 
         // not sure here if SensorName + Unit or just Unit fits best
@@ -333,12 +336,16 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 // finds the highest point in the graph; the ?? 0 handles the case where the list is still empty
                 double currentHighestPoint = SensorData.Max() ?? 0;
-                ActualYMaxText = $"{currentHighestPoint:0.0}";
+                var (scaledValue, _) = SensorUnitFormatter.Scale(currentHighestPoint, SensorType);
+                ActualYMaxText = $"{scaledValue:0.0}";
             }
             else
             {
-                // if manual, we simply show the raw number
-                ActualYMaxText = ManualYMax.ToString("0");
+                // manual value, one decimal once Clock/SmallData crossed into GHz/GB, whole number otherwise exactly as before
+                var (scaledValue, unit) = SensorUnitFormatter.Scale(ManualYMax, SensorType);
+                ActualYMaxText = unit == SensorUnitFormatter.GetUnit(SensorType)
+                    ? scaledValue.ToString("0")
+                    : $"{scaledValue:0.0}";
             }
         }
 

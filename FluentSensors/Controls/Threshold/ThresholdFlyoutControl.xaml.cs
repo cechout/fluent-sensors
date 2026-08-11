@@ -187,13 +187,14 @@ namespace FluentSensors.Controls.Threshold
 
         // === private helpers ===
 
-        // recomputes badge text/color: "-" and transparent when unconfigured, otherwise the value and the
+        // recomputes badge text/color: "-" and transparent when unconfigured, otherwise the scaled value and the
         // thresholds own color
         private void UpdateIndicator()
         {
             if (Threshold != null && Threshold.IsEnabled)
             {
-                IndicatorText = $"{Threshold.Value:0}";
+                var (scaledValue, _) = SensorUnitFormatter.Scale(Threshold.Value, Threshold.SensorType);
+                IndicatorText = $"{scaledValue:0}";
                 IndicatorBrush = Threshold.ColorBrush;
             }
             else

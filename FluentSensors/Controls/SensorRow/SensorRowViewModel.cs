@@ -275,11 +275,11 @@ namespace FluentSensors.Controls.SensorRow
             _currentRaw = newValue;
             _avg = _sum / _count;
 
-            // build strings for the UI with the dynamic unit
-            CurrentValue = $"{newValue:0.0} {Unit}";
-            MinimumValue = $"{_min:0.0} {Unit}";
-            MaximumValue = $"{_max:0.0} {Unit}";
-            AverageValue = $"{_avg:0.0} {Unit}";
+            // each value picks its own scale independently, so Min can still read MHz while Max already switched to GHz
+            CurrentValue = SensorUnitFormatter.Format(newValue, SensorType);
+            MinimumValue = SensorUnitFormatter.Format(_min, SensorType);
+            MaximumValue = SensorUnitFormatter.Format(_max, SensorType);
+            AverageValue = SensorUnitFormatter.Format(_avg, SensorType);
 
             RecalculateColors();
         }

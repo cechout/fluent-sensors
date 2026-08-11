@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
 using FluentSensors.Controls.SensorGraph;
@@ -109,11 +110,8 @@ namespace FluentSensors.Features.Widget
 
                     if (realSensor != null)
                     {
-                        // determine the correct unit string based on the sensor type
-                        string unit = GetUnitString(realSensor.SensorType);
-
                         // push the updated value and the formatted string to the individual sensor view model
-                        pinnedSensor.AddDataPoint(realSensor.Value, $"{realSensor.Value:F1} {unit}");
+                        pinnedSensor.AddDataPoint(realSensor.Value, SensorUnitFormatter.Format(realSensor.Value, realSensor.SensorType));
                     }
                 }
             });

@@ -65,7 +65,8 @@ namespace FluentSensors.Controls.SensorGraph
 
             // pick which Y coordinate the label follows, based on LabelFollowsPointer
             double labelY = LabelFollowsPointer ? position.Y : valuePixels.Y;
-            CurrentValueLabelText.Text = value.Value.ToString("0.0");
+            var (scaledValue, _) = SensorUnitFormatter.Scale(value.Value, SensorType);
+            CurrentValueLabelText.Text = scaledValue.ToString("0.0");
 
             // force a synchronous re-measure so DesiredSize reflects the new text width
             // immediately - without this, ActualWidth would still hold last frame's

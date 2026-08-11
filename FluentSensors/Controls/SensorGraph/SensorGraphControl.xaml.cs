@@ -227,6 +227,30 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
 
+        // DependencyProperty: SensorType
+        // raw LibreHardwareMonitor SensorType string (e.g. "Clock"), used only to scale the threshold and hover value
+        // labels to a bigger unit
+        public string SensorType
+        {
+            get => (string)GetValue(SensorTypeProperty);
+            set => SetValue(SensorTypeProperty, value);
+        }
+
+        public static readonly DependencyProperty SensorTypeProperty =
+            DependencyProperty.Register(
+                nameof(SensorType),
+                typeof(string),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(string.Empty, OnSensorTypeChanged));
+
+        // refreshes the already-positioned threshold label if this control gets rebound to a different sensor while
+        // still visible (view-cache reuse in PerformancePage), same as OnThresholdChanged
+        private static void OnSensorTypeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SensorGraphControl g) g.ShowThresholdLabelBriefly();
+        }
+
+
         // DependencyProperty: ThresholdValue 
         public double? ThresholdValue
         {

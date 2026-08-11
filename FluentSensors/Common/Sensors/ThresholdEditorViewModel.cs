@@ -26,6 +26,7 @@ namespace FluentSensors.Common.Sensors
         public ThresholdEditorViewModel(string sensorId, string sensorType)
         {
             SensorId = sensorId;
+            SensorType = sensorType;
 
             // per-sensor-type step size, a clock sensor needs a much bigger step than a load percentage
             var profile = SensorTypeProfiles.GetProfile(sensorType);
@@ -49,6 +50,7 @@ namespace FluentSensors.Common.Sensors
         // === bindable properties ===
 
         public string SensorId { get; }
+        public string SensorType { get; }
 
         private bool _isEnabled;
         public bool IsEnabled

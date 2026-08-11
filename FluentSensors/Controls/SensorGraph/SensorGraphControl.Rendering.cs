@@ -35,7 +35,8 @@ namespace FluentSensors.Controls.SensorGraph
             Canvas.SetLeft(ThresholdValueLabelBorder, 6);
             Canvas.SetTop(ThresholdValueLabelBorder, labelY);
 
-            ThresholdValueLabelText.Text = ThresholdValue.Value.ToString("0.0");
+            var (scaledValue, _) = SensorUnitFormatter.Scale(ThresholdValue.Value, SensorType);
+            ThresholdValueLabelText.Text = scaledValue.ToString("0.0");
         }
 
         // shows the label (with colors) and (re)starts the auto-hide timer; call this on
