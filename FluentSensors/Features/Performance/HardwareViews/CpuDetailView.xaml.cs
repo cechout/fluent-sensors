@@ -1,10 +1,10 @@
+using FluentSensors.Common.Sensors;
+using FluentSensors.Diagnostics;
+using FluentSensors.Features.Performance.Lhm;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
-
-using FluentSensors.Common.Sensors;
-using FluentSensors.Features.Performance.Lhm;
 
 
 namespace FluentSensors.Features.Performance.HardwareViews
@@ -17,7 +17,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // below this width, the wide 3-graph layout (big Load graph + 2 stacked) switches to the narrow layout
         // (all 3 stacked equally)
-        private const double NarrowGraphsLayoutThreshold = 600;
+        private const double NarrowGraphsLayoutThreshold = 700;
         private bool _isNarrowLayoutActive;
 
 
@@ -29,13 +29,21 @@ namespace FluentSensors.Features.Performance.HardwareViews
         }
 
 
-        // === dependency properties ===
+        // === bindable properties ===
 
-        // overview graph color (TotalLoad, MaxTemperature, PackagePower); single source of truth in
+        // cpu graphs color (TotalLoad, MaxTemperature, PackagePower); single source of truth in
         // HardwareGroupInfo
-        // the per-core Temperature/Clock graphs in CpuCoreCellTemplate deliberately keep their own fixed colors
-        // instead, to stay visually distinguishable from each other within one dense cell
         public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Color;
+
+        // same color as HardwareColor, wrapped as a Brush (for hardware icon?)
+        //public SolidColorBrush HardwareColorBrush => new(HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Color);
+
+        // header
+        public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Label;
+        public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).IconGlyph;
+
+
+        // === dependency properties ===
 
         public LhmCpuInstanceViewModel Cpu
         {
@@ -50,9 +58,6 @@ namespace FluentSensors.Features.Performance.HardwareViews
                 typeof(CpuDetailView),
                 new PropertyMetadata(null, OnCpuChanged));
 
-        // kept as a safety net: PerformancePage caches one permanent view per hardware instance and sets Cpu
-        // exactly once, so this should never fire with a changing value in practice
-        // but if that ever changes, this forces the x:Binds to re-evaluate instead of silently going stale
         private static void OnCpuChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is CpuDetailView view) view.Bindings.Update();
@@ -64,55 +69,68 @@ namespace FluentSensors.Features.Performance.HardwareViews
         private void ShowOverall_Click(object sender, RoutedEventArgs e)
         {
             if (Cpu != null) Cpu.IsShowingAllThreads = false;
-            UpdatePageContentHeight();
+            RecalculateOverviewHeight();
         }
 
         private void ShowAllThreads_Click(object sender, RoutedEventArgs e)
         {
             if (Cpu != null) Cpu.IsShowingAllThreads = true;
-            UpdatePageContentHeight();
+            RecalculateOverviewHeight();
         }
 
         private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            UpdatePageContentHeight();
+            RecalculateOverviewHeight();
         }
 
         private void GraphsAreaGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             _isNarrowLayoutActive = e.NewSize.Width < NarrowGraphsLayoutThreshold;
             SetLayoutActive(WideGraphsGrid, NarrowGraphsPanel, _isNarrowLayoutActive);
-            UpdatePageContentHeight();
+            RecalculateOverviewHeight();
         }
 
 
         // === private helpers ===
 
-        private void UpdatePageContentHeight()
+        // recomputes whichever section (Overview or All Threads) is currently shown
+        //
+        // Called both by the handlers above and externally by PerformancePage after a nav sidebar/info panel toggle,
+        // since that changes DetailHostGrids available size without necessarily firing SizeChanged on this control
+        // quickly enough
+        public void RecalculateOverviewHeight()
         {
             if (Cpu == null) return;
 
             if (Cpu.IsShowingAllThreads)
             {
                 OverviewBlockGrid.Height = 0;
+
+                // AllThreadsGrid is x:Load="False"; FindName forces it into the tree the first time All Threads is
+                // actually selected, and is a cheap no-op on every call after that
+                FindName(nameof(AllThreadsGrid));
                 AllThreadsGrid.Height = double.NaN;
             }
             else
             {
                 UpdateOverviewHeight();
-                AllThreadsGrid.Height = 0;
+
+                // still null if All Threads was never selected this session; nothing to size in that case
+                if (AllThreadsGrid != null) AllThreadsGrid.Height = 0;
             }
         }
 
-        // keeps the overview block at least as tall as the visible viewport (so its graphs can stretch to fill
-        // it), but lets it grow past that, and let the ScrollViewer take over once its natural minimum height
+        // keeps the overview block at least as tall as the visible viewport (so its graphs can stretch to fill it),
+        // but lets it grow past that, and let the ScrollViewer take over once its natural minimum height
         // (graph MinHeight + tiles/static info) no longer fits
         private void UpdateOverviewHeight()
         {
             double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
-            double availableHeight = ContentScrollViewer.ActualHeight - verticalPadding;
+            double headerHeight = HeaderGrid.ActualHeight + ContentStackPanel.Spacing;
+            double availableHeight = ContentScrollViewer.ActualHeight - verticalPadding - headerHeight;
 
-            TilesAndStaticInfoGrid.Measure(new Size(ContentScrollViewer.ActualWidth, double.PositiveInfinity));
+            double horizontalPadding = ContentStackPanel.Padding.Left + ContentStackPanel.Padding.Right;
+            TilesAndStaticInfoGrid.Measure(new Size(ContentScrollViewer.ActualWidth - horizontalPadding, double.PositiveInfinity));
             double tilesAndStaticInfoHeight = TilesAndStaticInfoGrid.DesiredSize.Height;
 
             double graphsMinHeight = _isNarrowLayoutActive ? NarrowGraphsPanel.MinHeight : WideGraphsGrid.MinHeight;

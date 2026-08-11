@@ -377,6 +377,13 @@ namespace FluentSensors.Controls.SensorGraph
         // layout position and ShowFlyout() keeps working), only the visual rendering is toggled here
         private double BoolToOpacity(bool value) => value ? 1.0 : 0.0;
 
+        // translates the panels own simple ShowGraphCardBackground bool into SensorGraphControl.CardBackgroundOverride:
+        // true - keeps the graphs normal themed background (no override, null)
+        // false - hides it via an explicit fully
+        // transparent override - external behavior of ShowGraphCardBackground stays exactly as before
+        private Windows.UI.Color? BoolToCardBackgroundOverride(bool showBackground) =>
+            showBackground ? null : Windows.UI.Color.FromArgb(0, 0, 0, 0);
+
 
         // === event handlers ===
 

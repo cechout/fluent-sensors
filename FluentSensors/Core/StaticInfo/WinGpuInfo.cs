@@ -1,9 +1,6 @@
 ﻿namespace FluentSensors.Core.StaticInfo
 {
     // static facts about a GPU;
-    // VRAM total/type/bus width are deliberately NOT here; VRAM total is already available live via LHM, and
-    // type/bus width would need vendor SDKs (NVAPI/ADL), out of scope for now
-    //
     // Win32_VideoController.AdapterRAM is also deliberately not used: its a uint32 field, so any card with 4GB+
     // VRAM wraps/truncates; not officially documented as broken by Microsoft, but widely reproduced, e.g. an
     // 8GB RTX 2070 reporting exactly 4293918720 bytes (~4GB):
@@ -12,6 +9,13 @@
     public record WinGpuInfo(
         string Name,
         string DriverVersion,
-        string PnpDeviceId
+        string PnpDeviceId,
+
+        // everything below comes from DXGI (IDXGIAdapter1.Description1), not WMI
+        uint VendorId,
+        uint DeviceId,
+        ulong DedicatedVideoMemoryBytes,
+        ulong DedicatedSystemMemoryBytes,
+        ulong SharedSystemMemoryBytes
     );
 }

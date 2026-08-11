@@ -86,20 +86,13 @@
             </Canvas>
         </Grid>
 
+
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="CardBackgroundStates">
                 <VisualState x:Name="CardBackgroundVisible">
                     <VisualState.Setters>
                         <Setter Target="CardBorder.Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
                         <Setter Target="CardBorder.BorderBrush" Value="{ThemeResource ControlStrokeColorSecondaryBrush}" />
-                    </VisualState.Setters>
-                </VisualState>
-
-                <!--  fully transparent card: no fill  -->
-                <VisualState x:Name="CardBackgroundHidden">
-                    <VisualState.Setters>
-                        <Setter Target="CardBorder.Background" Value="Transparent" />
-                        <!--<Setter Target="CardBorder.BorderBrush" Value="Transparent" />-->
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

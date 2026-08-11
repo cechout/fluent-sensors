@@ -1,8 +1,14 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.UI.Dispatching;
 
 using FluentSensors.Features.Performance.HardwareViews;
 using FluentSensors.Features.Performance.Lhm;
@@ -15,6 +21,12 @@ namespace FluentSensors.Features.Performance
         // === fields ===
 
         public PerformanceViewModel ViewModel => PerformanceViewModel.Instance;
+
+        // below this DetailHostGrid width, the nav sidebar and info panel become mutually exclusive - both eat into
+        // the same remaining space after the nav sidebar's own column, so a narrow DetailHostGrid means too little is
+        // left for usable content if both stay open at once
+        private const double NarrowContentThreshold = 500;
+        private bool _isNarrow;
 
         // one permanent view per hardware instance, keyed by its Target object (e.g. one specific
         // LhmGpuInstanceViewModel); created eagerly for every instance that exists (or later appears)
@@ -29,25 +41,34 @@ namespace FluentSensors.Features.Performance
         {
             InitializeComponent();
 
+            // keeps PerformanceViewModel.IsDarkTheme in sync with the pages actually applied theme
+            Loaded += (s, e) => ViewModel.IsDarkTheme = ActualTheme == ElementTheme.Dark;
+            ActualThemeChanged += (s, e) => ViewModel.IsDarkTheme = ActualTheme == ElementTheme.Dark;
+
+            // viewmodel
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
 
-            // eager-detail-view-construction:
-            // problem: each detail views SensorPanelControl applies its own fixed Y-axis config
-            // (ApplyViewOverrides) to its bound SensorGraphViewModel on construction; that same
-            // SensorGraphViewModel instance is also the one shown as the sidebar nav items PrimaryGraph, so a
-            // sensor whose fixed scale was never persisted anywhere else (e.g. Storage/Network, never pinned via
-            // the Sensors page) visibly auto-scaled in the sidebar until its detail view was first built on
-            // click, then jumped to the fixed scale; CPU never showed this because its detail view is already
-            // the default selection, built before the user ever sees the sidebar
-            // fix: build every hardware instances detail view immediately instead of lazily on first selection,
-            // so the override is applied before the sidebar is shown at all
-            foreach (var item in ViewModel.NavItems)
+            // only the initially selected hardwares detail view (normally CPU) is built synchronously here, so the
+            // page has real, correctly-scaled content the instant it appears; every other hardware instance gets its
+            // detail view built one at a time via BuildRemainingDetailViewsAsync below, instead of all of them in one
+            // synchronous burst
+            // building even a single one of these is not free (each one hosts several SensorGraphControls, and each of
+            // those spins up its own native LiveChartsCore/SkiaSharp render surface), so 5 in a row up front was what
+            // made first entry into this page noticeably slow
+            object initialTarget = ViewModel.SelectedItem?.Target;
+            if (initialTarget != null)
             {
-                EnsureDetailView(item.Target);
+                EnsureDetailView(initialTarget);
             }
-            ViewModel.NavItems.CollectionChanged += OnNavItemsChanged;
-
             UpdateDetailView();
+
+            var remainingTargets = ViewModel.NavItems
+                .Select(item => item.Target)
+                .Where(target => target != initialTarget)
+                .ToList();
+            _ = BuildRemainingDetailViewsAsync(remainingTargets);
+
+            ViewModel.NavItems.CollectionChanged += OnNavItemsChanged;
         }
 
 
@@ -55,11 +76,17 @@ namespace FluentSensors.Features.Performance
 
         // sidebar selection: every nav item button shares this one handler, the clicked items own DataContext (set by
         // the ItemTemplate) tells us which PerformanceNavItemViewModel was chosen
+        //
+        // IsChecked is only bound OneWay from IsSelected, but a ToggleButton always flips its own IsChecked on click
+        // regardless of bindings; clicking the already-selected item therefore visually unchecks it, since
+        // SelectedItem does not change and so IsSelected never raises PropertyChanged to push it back forcing IsChecked
+        // back to true here makes the sidebar behave like a radio selection instead
         private void NavItem_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is FrameworkElement element && element.DataContext is PerformanceNavItemViewModel item)
+            if (sender is ToggleButton toggle && toggle.DataContext is PerformanceNavItemViewModel item)
             {
                 ViewModel.SelectedItem = item;
+                toggle.IsChecked = true;
             }
         }
 
@@ -68,6 +95,40 @@ namespace FluentSensors.Features.Performance
             if (e.PropertyName == nameof(PerformanceViewModel.SelectedItem))
             {
                 UpdateDetailView();
+            }
+
+            // narrow-width exclusivity
+            else if (e.PropertyName == nameof(PerformanceViewModel.IsNavSidebarVisible))
+            {
+                if (_isNarrow && ViewModel.IsNavSidebarVisible && ViewModel.IsInfoPanelVisible)
+                {
+                    ViewModel.IsInfoPanelVisible = false;
+                }
+                RecalculateCurrentDetailViewHeight();
+            }
+
+            else if (e.PropertyName == nameof(PerformanceViewModel.IsInfoPanelVisible))
+            {
+                if (_isNarrow && ViewModel.IsInfoPanelVisible && ViewModel.IsNavSidebarVisible)
+                {
+                    ViewModel.IsNavSidebarVisible = false;
+                }
+                RecalculateCurrentDetailViewHeight();
+            }
+        }
+
+        // tracks whether DetailHostGrid currently counts as "narrow"; also handles the one case the property-changed
+        // logic above can't cover - the window shrinking while both panels are already open, with neither one having
+        // just been toggled
+        private void DetailHostGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            bool wasNarrow = _isNarrow;
+            _isNarrow = e.NewSize.Width < NarrowContentThreshold;
+
+            if (_isNarrow && !wasNarrow && ViewModel.IsNavSidebarVisible && ViewModel.IsInfoPanelVisible)
+            {
+                // hardcoded priority: info panel always loses when space runs out from a resize, not a toggle click
+                ViewModel.IsInfoPanelVisible = false;
             }
         }
 
@@ -156,6 +217,53 @@ namespace FluentSensors.Features.Performance
             }
 
             return view;
+        }
+
+        // builds every remaining hardware instances detail view one at a time, each on its own separate dispatcher
+        // pass instead of all in one synchronous loop
+        // This is what actually lets the UI thread render/respond between each one, so the page stays interactive
+        // immediately and the not-yet-selected sidebar entries simply pop in their correct Y-axis scale over the next
+        // moment instead of blocking first entry into the page
+        // Low priority: this can freely lose out to anything the user is actually doing on the page right now
+        private async Task BuildRemainingDetailViewsAsync(List<object> targets)
+        {
+            foreach (var target in targets)
+            {
+                var tcs = new TaskCompletionSource();
+                DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+                {
+                    EnsureDetailView(target);
+                    tcs.SetResult();
+                });
+                await tcs.Task;
+            }
+        }
+
+        // resolves the sidebar mini-graphs card background:
+        // in dark mode, reuses the same fill color the outer ToggleButtons own Checked VisualState
+        // (SidebarNavToggleButtonStyle) already uses when this item is selected
+        // light mode intentionally left alone: the tile background already got its own light-mode fix, this graph
+        // override is not part of that and stays on its normal default there
+        private static Windows.UI.Color? ResolveSelectedGraphBackground(bool isSelected, bool isDarkTheme) =>
+            isSelected && isDarkTheme ? (Windows.UI.Color)Application.Current.Resources["ControlFillColorTertiary"] : (Windows.UI.Color?)null;
+
+        // re-measures the current detail views vertical layout after a nav sidebar/info panel visibility change;
+        // Dispatched rather than called synchronously
+        private void RecalculateCurrentDetailViewHeight()
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                RootGrid.UpdateLayout();
+
+                switch (_currentDetailView)
+                {
+                    case CpuDetailView cpu: cpu.RecalculateOverviewHeight(); break;
+                    case GpuDetailView gpu: gpu.RecalculateOverviewHeight(); break;
+                    case MemoryDetailView memory: memory.RecalculateOverviewHeight(); break;
+                    case StorageDetailView storage: storage.RecalculateOverviewHeight(); break;
+                    case NetworkDetailView network: network.RecalculateOverviewHeight(); break;
+                }
+            });
         }
     }
 }

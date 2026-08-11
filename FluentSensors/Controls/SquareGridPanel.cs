@@ -7,13 +7,11 @@ using Windows.Foundation;
 namespace FluentSensors.Controls
 {
     // arranges its children into a single row by default; only once the available width can no longer
-    // fit them all at MinCellWidth does it give up columns one at a time (gaining rows instead); it never
-    // deliberately targets a square shape, thats just what falls out naturally at some widths for
-    // evenly-divisible counts like 4 or 6
+    // fit them all at MinCellWidth does it give up columns one at a time (gaining rows instead)
     //
-    // also enforces a minimum cell height (MinCellHeight): once rows would otherwise get shorter than that, the
-    // panel reports a taller DesiredSize instead of squeezing cells further; wrapped in a ScrollViewer, this
-    // makes the page scroll instead of the content becoming unusably small
+    // row height is not uniform: each row takes on the natural height of its tallest child instead of a shared
+    // forced height, so children with more content (e.g. more stacked graphs) end up in a taller row than
+    // children with less, instead of every row being stretched to match
     public class SquareGridPanel : Panel
     {
         // === fields ===
@@ -24,8 +22,8 @@ namespace FluentSensors.Controls
 
         // === bindable properties ===
 
-        // minimum height per cell; if rows would otherwise shrink below this, the panel reports a taller
-        // desired height instead of squeezing further, letting a wrapping ScrollViewer take over
+        // floor for any single rows height; a row whose tallest child is still shorter than this gets padded up
+        // to it instead of collapsing to near-zero
         public double MinCellHeight
         {
             get => (double)GetValue(MinCellHeightProperty);
@@ -61,35 +59,38 @@ namespace FluentSensors.Controls
 
         // === layout overrides ===
 
-        // works out the row/column count for the current width, then measures every child against that cell
-        // size and reports the resulting desired height back to the parent
+        // works out the row/column count for the current width, measures every child at that column width with
+        // unconstrained height so it reports its own natural size, then sums each rows tallest child into the
+        // total desired height
         protected override Size MeasureOverride(Size availableSize)
         {
             int count = Children.Count;
             if (count == 0) return new Size(0, 0);
 
             double measureWidth = double.IsInfinity(availableSize.Width) ? 0 : availableSize.Width;
-            double measureHeight = double.IsInfinity(availableSize.Height) ? 0 : availableSize.Height;
 
             var (rows, columns) = GetGridSize(count, measureWidth);
 
             double cellWidth = Math.Max(0, (measureWidth - Spacing * (columns - 1)) / columns);
-            double rawCellHeight = Math.Max(0, (measureHeight - Spacing * (rows - 1)) / rows);
-            double cellHeight = Math.Max(rawCellHeight, MinCellHeight);
 
-            double desiredHeight = Math.Max(measureHeight, cellHeight * rows + Spacing * (rows - 1));
-
-            var cellSize = new Size(cellWidth, cellHeight);
+            var cellSize = new Size(cellWidth, double.PositiveInfinity);
             foreach (var child in Children)
             {
                 child.Measure(cellSize);
             }
 
-            return new Size(measureWidth, desiredHeight);
+            double totalHeight = 0;
+            for (int row = 0; row < rows; row++)
+            {
+                totalHeight += GetRowHeight(row, columns, count);
+            }
+            totalHeight += Spacing * Math.Max(0, rows - 1);
+
+            return new Size(measureWidth, totalHeight);
         }
 
-        // places every child into its row/column slot, using the same row/column count MeasureOverride already
-        // determined for this width
+        // places every child into its row/column slot, reusing each childs DesiredSize from the Measure pass
+        // above rather than remeasuring
         protected override Size ArrangeOverride(Size finalSize)
         {
             int count = Children.Count;
@@ -98,18 +99,22 @@ namespace FluentSensors.Controls
             var (rows, columns) = GetGridSize(count, finalSize.Width);
 
             double cellWidth = Math.Max(0, (finalSize.Width - Spacing * (columns - 1)) / columns);
-            double rawCellHeight = Math.Max(0, (finalSize.Height - Spacing * (rows - 1)) / rows);
-            double cellHeight = Math.Max(rawCellHeight, MinCellHeight);
 
-            for (int i = 0; i < count; i++)
+            double y = 0;
+            for (int row = 0; row < rows; row++)
             {
-                int row = i / columns;
-                int column = i % columns;
+                double rowHeight = GetRowHeight(row, columns, count);
 
-                double x = column * (cellWidth + Spacing);
-                double y = row * (cellHeight + Spacing);
+                for (int column = 0; column < columns; column++)
+                {
+                    int index = row * columns + column;
+                    if (index >= count) break;
 
-                Children[i].Arrange(new Rect(x, y, cellWidth, cellHeight));
+                    double x = column * (cellWidth + Spacing);
+                    Children[index].Arrange(new Rect(x, y, cellWidth, rowHeight));
+                }
+
+                y += rowHeight + Spacing;
             }
 
             return finalSize;
@@ -131,6 +136,21 @@ namespace FluentSensors.Controls
             int rows = (int)Math.Ceiling(count / (double)columns);
 
             return (rows, columns);
+        }
+
+        // tallest childs measured height among the cells in this row, floored at MinCellHeight
+        private double GetRowHeight(int row, int columns, int count)
+        {
+            double tallest = 0;
+            for (int column = 0; column < columns; column++)
+            {
+                int index = row * columns + column;
+                if (index >= count) break;
+
+                tallest = Math.Max(tallest, Children[index].DesiredSize.Height);
+            }
+
+            return Math.Max(tallest, MinCellHeight);
         }
     }
 }

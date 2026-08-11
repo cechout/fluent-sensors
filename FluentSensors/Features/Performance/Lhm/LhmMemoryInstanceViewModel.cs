@@ -1,7 +1,9 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 using FluentSensors.Controls.SensorGraph;
+using FluentSensors.Core.StaticInfo;
 
 
 namespace FluentSensors.Features.Performance.Lhm
@@ -63,6 +65,17 @@ namespace FluentSensors.Features.Performance.Lhm
             get => _virtualMemoryTotal;
             set { _virtualMemoryTotal = value; OnPropertyChanged(); }
         }
+
+
+        // === static info properties ===
+
+        // RAM never has more than one instance in practice (see class doc comment above), so unlike
+        // GPU/Storage/Network this needs no HardwareNameMatcher lookup; WinStaticInfoService.Instance.Memory is
+        // taken directly
+        // read-only, purely computed, WinStaticInfoService never changes after the singletons first access, so nothing
+        // to raise OnPropertyChanged for here
+        public string MemoryTotalSlotsText => WinStaticInfoService.Instance.Memory.TotalSlots.ToString();
+        public IReadOnlyList<WinMemoryModuleInfo> MemoryModules => WinStaticInfoService.Instance.Memory.Modules;
 
 
         // === INotifyPropertyChanged implementation ===

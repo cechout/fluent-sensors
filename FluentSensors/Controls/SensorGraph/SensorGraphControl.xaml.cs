@@ -6,10 +6,13 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.Painting.Effects;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
+using System;
 using System.Collections.ObjectModel;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Diagnostics;
 
 
 namespace FluentSensors.Controls.SensorGraph
@@ -27,6 +30,8 @@ namespace FluentSensors.Controls.SensorGraph
         // === fields ===
 
         private readonly Axis _yAxis;
+        private readonly Axis _xAxis;
+        private readonly SolidColorPaint _crosshairPaint;
         private readonly StepLineSeries<double?> _lineSeries;
         private bool _isPointerOverChart = false;
         private Windows.Foundation.Point _lastPointerPosition;
@@ -59,21 +64,19 @@ namespace FluentSensors.Controls.SensorGraph
             YAxes = new ICartesianAxis[] { _yAxis };
 
             // custom x-axis line following the pointer
-            var crosshairPaint = new SolidColorPaint(SKColors.Gray.WithAlpha(180))
+            _crosshairPaint = new SolidColorPaint(SKColors.Gray.WithAlpha(180))
             {
                 StrokeThickness = 1,
                 PathEffect = new DashEffect(new float[] { 3, 3 })
             };
-            XAxes = new ICartesianAxis[]
-            {
-            new Axis
+            _xAxis = new Axis
             {
                 IsVisible = false,
-                CrosshairPaint = crosshairPaint,
+                CrosshairPaint = _crosshairPaint,
                 CrosshairLabelsPaint = null,
                 CrosshairSnapEnabled = false
-            }
             };
+            XAxes = new ICartesianAxis[] { _xAxis };
 
             _thresholdLabelTimer = new DispatcherTimer { Interval = System.TimeSpan.FromSeconds(2) };
             _thresholdLabelTimer.Tick += (s, e) =>
@@ -89,7 +92,7 @@ namespace FluentSensors.Controls.SensorGraph
             // initial visuals and threshold state
             ApplyStroke();
             RebuildSections();
-            VisualStateManager.GoToState(this, ShowCardBackground ? "CardBackgroundVisible" : "CardBackgroundHidden", false);
+            ApplyCardBackground();
         }
 
 
@@ -158,6 +161,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+
         // DependencyProperty: AccentColor
         public Windows.UI.Color AccentColor
         {
@@ -179,6 +183,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+
         // DependencyProperty: IsAutoScaled
         public bool IsAutoScaled
         {
@@ -192,6 +197,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(bool),
                 typeof(SensorGraphControl),
                 new PropertyMetadata(true, OnScaleChanged));
+
 
         // DependencyProperty: ManualYMax
         public double ManualYMax
@@ -220,6 +226,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+
         // DependencyProperty: ThresholdValue 
         public double? ThresholdValue
         {
@@ -244,6 +251,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+
         // DependencyProperty: ThresholdDirection
         public ThresholdDirection ThresholdDirection
         {
@@ -256,6 +264,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(ThresholdDirection),
                 typeof(SensorGraphControl),
                 new PropertyMetadata(ThresholdDirection.Above, OnThresholdVisualsChanged));
+
 
         // DependencyProperty: ThresholdColor
         public Windows.UI.Color ThresholdColor
@@ -291,6 +300,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+
         // DependencyProperty: ThresholdLabelAlwaysVisible
         public bool ThresholdLabelAlwaysVisible
         {
@@ -310,6 +320,7 @@ namespace FluentSensors.Controls.SensorGraph
             if (d is SensorGraphControl g) g.ShowThresholdLabelBriefly();
         }
 
+
         // DependencyProperty: LabelFollowsPointer
         public bool LabelFollowsPointer
         {
@@ -324,6 +335,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorGraphControl),
                 new PropertyMetadata(false));
 
+
         // DependencyProperty: LabelText
         public string LabelText
         {
@@ -337,6 +349,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(string),
                 typeof(SensorGraphControl),
                 new PropertyMetadata(string.Empty, OnLabelChanged));
+
 
         // DependencyProperty: IsLabelVisible
         public bool IsLabelVisible
@@ -363,31 +376,95 @@ namespace FluentSensors.Controls.SensorGraph
                 : Visibility.Collapsed;
         }
 
-        // DependencyProperty: ShowCardBackground
-        public bool ShowCardBackground
+
+        // DependencyProperty: CardBackgroundOverride
+        // null = no override, uses the normal themed VisualState (CardBackgroundVisible, which stays theme-reactive
+        // since its Setters use ThemeResource brushes)
+        // any explicit Color, including a fully transparent one, is applied directly as a plain SolidColorBrush instead,
+        // bypassing the VisualState entirely - covers both a hard override color (e.g. highlighting the selected item
+        // in the Performance page's hardware sidebar) and full transparency (the previous ShowCardBackground=false
+        // behavior, now expressed as an override of Colors.Transparent - see SensorPanelControl.ShowGraphCardBackground)
+        public Windows.UI.Color? CardBackgroundOverride
         {
-            get => (bool)GetValue(ShowCardBackgroundProperty);
-            set => SetValue(ShowCardBackgroundProperty, value);
+            get => (Windows.UI.Color?)GetValue(CardBackgroundOverrideProperty);
+            set => SetValue(CardBackgroundOverrideProperty, value);
         }
 
-        public static readonly DependencyProperty ShowCardBackgroundProperty =
+        public static readonly DependencyProperty CardBackgroundOverrideProperty =
             DependencyProperty.Register(
-                nameof(ShowCardBackground),
+                nameof(CardBackgroundOverride),
+                typeof(Windows.UI.Color?),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(null, OnCardBackgroundOverrideChanged));
+
+        private static void OnCardBackgroundOverrideChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SensorGraphControl g) g.ApplyCardBackground();
+        }
+
+        // applies CardBackgroundOverride's current value; factored out so both the constructor (initial state) and the
+        // property-changed callback share the same logic
+        private void ApplyCardBackground()
+        {
+            if (CardBackgroundOverride is Windows.UI.Color color)
+            {
+                CardBorder.Background = new SolidColorBrush(color);
+            }
+            else
+            {
+                VisualStateManager.GoToState(this, "CardBackgroundVisible", false);
+            }
+        }
+
+
+        // DependencyProperty: IsHoverEnabled
+        // fully disables pointer hover interaction when false: circle + value label (OnChartPointerMoved /
+        // OnChartPointerExited) are unsubscribed entirely instead of just early-returning inside them
+        public bool IsHoverEnabled
+        {
+            get => (bool)GetValue(IsHoverEnabledProperty);
+            set => SetValue(IsHoverEnabledProperty, value);
+        }
+
+        public static readonly DependencyProperty IsHoverEnabledProperty =
+            DependencyProperty.Register(
+                nameof(IsHoverEnabled),
                 typeof(bool),
                 typeof(SensorGraphControl),
-                new PropertyMetadata(true, OnShowCardBackgroundChanged));
+                new PropertyMetadata(true, OnIsHoverEnabledChanged));
 
-        // toggles the outer card fill/border between the normal themed look and fully transparent, e.g. for graphs
-        // embedded in a consumer that already provides its own background (see SensorPanelControl.ShowGraphCardBackground)
-        private static void OnShowCardBackgroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnIsHoverEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is not SensorGraphControl g) return;
 
-            VisualStateManager.GoToState(g, g.ShowCardBackground ? "CardBackgroundVisible" : "CardBackgroundHidden", false);
+            bool enabled = (bool)e.NewValue;
+
+            if (enabled)
+            {
+                g.Chart.PointerMoved += g.OnChartPointerMoved;
+                g.Chart.PointerExited += g.OnChartPointerExited;
+            }
+            else
+            {
+                g.Chart.PointerMoved -= g.OnChartPointerMoved;
+                g.Chart.PointerExited -= g.OnChartPointerExited;
+                g.HideHoverElements(); // clears any hover state left over from before being disabled
+            }
+
+            // detach LiveCharts own crosshair paint too, so it stops tracking the pointer internally as well
+            g._xAxis.CrosshairPaint = enabled ? g._crosshairPaint : null;
+
+            // with hover off, the chart no longer needs any pointer input of its own
+            // Taking it fully out of hit-testing lets clicks pass straight through
+            g.Chart.IsHitTestVisible = enabled;
         }
 
 
         // === event handlers ===
+
+        // fires once, the first time LiveCharts has actually built its internal render context and drawn a real frame;
+        // used by MainWindow to prewarm the native SkiaSharp/LiveChartsCore pipeline during the splash screen
+        public event EventHandler ChartReady;
 
         // LiveCharts only builds its internal scale/draw context on the first real measure pass;
         // UpdateStarted fires once that has happened (Loaded fires too early, before the chart is actually ready)

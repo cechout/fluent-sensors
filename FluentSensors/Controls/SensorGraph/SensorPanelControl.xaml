@@ -280,12 +280,12 @@
                 <fhGraph:SensorGraphControl
                     x:Name="GraphControl"
                     AccentColor="{x:Bind GetEffectiveGraphColor(GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
+                    CardBackgroundOverride="{x:Bind BoolToCardBackgroundOverride(ShowGraphCardBackground), Mode=OneWay}"
                     IsAutoScaled="{x:Bind ViewModel.IsAutoScaled, Mode=OneWay}"
                     IsLabelVisible="{x:Bind ShowGraphLabel, Mode=OneWay}"
                     LabelFollowsPointer="True"
                     LabelText="{x:Bind ViewModel.DisplayNameWithUnit, Mode=OneWay}"
                     ManualYMax="{x:Bind ViewModel.ManualYMax, Mode=OneWay}"
-                    ShowCardBackground="{x:Bind ShowGraphCardBackground, Mode=OneWay}"
                     Tapped="GraphControl_Tapped"
                     ThresholdColor="{x:Bind ViewModel.Threshold.Color, Mode=OneWay}"
                     ThresholdDirection="{x:Bind ViewModel.Threshold.Direction, Mode=OneWay}"

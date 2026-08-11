@@ -62,7 +62,7 @@ namespace FluentSensors.Controls.SensorTile
                 typeof(SensorTileControl),
                 new PropertyMetadata(false));
 
-        // text shown in the flyout when the info button is tapped; no effect if ShowInfoButton is false
+        // text shown in the popup when the info button is tapped; no effect if ShowInfoButton is false
         public string InfoMessage
         {
             get => (string)GetValue(InfoMessageProperty);
@@ -77,8 +77,6 @@ namespace FluentSensors.Controls.SensorTile
 
 
         // === bindable helper surfaces ===
-
-        private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
 
         // these two only need to react to ViewModel itself changing (a real object <-> null), which x:Bind
         // tracks correctly for function bindings

@@ -7,7 +7,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhLhm="using:FluentSensors.Features.Performance.Lhm"
+    xmlns:fhPerf="using:FluentSensors.Features.Performance"
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="Root"
@@ -18,11 +20,21 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*" />
+            <ColumnDefinition
+                x:Name="InfoPanelColumn"
+                Width="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnWidth, Mode=OneWay}"
+                MinWidth="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnMinWidth, Mode=OneWay}"
+                MaxWidth="300" />
+        </Grid.ColumnDefinitions>
 
-        <!--  CPU detail content  -->
+
+        <!--  view-content with header, graphs and tiles  -->
         <ScrollViewer
             x:Name="ContentScrollViewer"
             Grid.Row="0"
+            Grid.Column="0"
             Background="Transparent"
             HorizontalScrollBarVisibility="Disabled"
             SizeChanged="ContentScrollViewer_SizeChanged"
@@ -30,31 +42,73 @@
             VerticalScrollMode="Auto">
             <StackPanel
                 x:Name="ContentStackPanel"
-                Padding="16,8,16,16"
+                Padding="16,12,16,16"
                 Spacing="12">
+
+                <!--  header  -->
+                <Grid x:Name="HeaderGrid" ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel
+                        Grid.Column="0"
+                        Margin="4,0,0,0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="12">
+                        <FontIcon
+                            Margin="0,0,0,-2"
+                            FontSize="22"
+                            Glyph="{x:Bind GroupIconGlyph, Mode=OneTime}" />
+                        <TextBlock
+                            Margin="0,0,0,0"
+                            FontSize="26"
+                            Style="{ThemeResource BodyLargeTextBlockStyle}"
+                            Text="{x:Bind GroupLabel, Mode=OneTime}" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="0,0,4,4"
+                        VerticalAlignment="Bottom"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{x:Bind Cpu.HardwareName, Mode=OneWay}"
+                        TextAlignment="Right"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap" />
+                </Grid>
+
+
                 <Grid x:Name="PageContentGrid">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Grid.Resources>
+                        <!--  fixed height for every individual sensor graph inside a core cell  -->
+                        <x:Double x:Key="CpuCoreGraphHeight">45</x:Double>
+
                         <!--  1 border for 1 physical core  -->
-                        <!--  it stack whicever threads, temperatur, clocks it actually has  -->
+                        <!--  it stack whichever threads, temperature, clocks it actually has  -->
                         <DataTemplate x:Key="CpuCoreCellTemplate" x:DataType="fhLhm:LhmCpuCoreViewModel">
                             <Border
                                 Padding="0"
                                 Background="Transparent"
                                 CornerRadius="4">
+
                                 <Grid RowSpacing="2">
                                     <Grid.RowDefinitions>
-                                        <!--  core title, from the Temperature sensor's raw name (e.g. "P-Core #3")  -->
+                                        <!--  core title, from the Temperature sensors raw name (e.g. "P-Core #3")  -->
                                         <RowDefinition Height="Auto" />
-                                        <!--  threads  -->
-                                        <RowDefinition Height="2*" />
+                                        <!--  threads: one row per thread, each the same fixed height as Temperature/Clock below  -->
+                                        <RowDefinition Height="Auto" />
                                         <!--  temperature  -->
-                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
                                         <!--  clock  -->
-                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
                                     <!--  core title  -->
@@ -69,12 +123,13 @@
                                     <ItemsControl Grid.Row="1" ItemsSource="{x:Bind Threads, Mode=OneWay}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
-                                                <fhControls:VerticalStretchPanel Spacing="2" />
+                                                <StackPanel Spacing="2" />
                                             </ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
                                                 <fhGraph:SensorPanelControl
+                                                    Height="{StaticResource CpuCoreGraphHeight}"
                                                     GraphColorOverride="{Binding HardwareColor, ElementName=Root}"
                                                     GraphDataPointsOverride="70"
                                                     GraphTapAction="ShowFlyout"
@@ -92,6 +147,7 @@
                                     <!--  temperature graph  -->
                                     <fhGraph:SensorPanelControl
                                         Grid.Row="2"
+                                        Height="{StaticResource CpuCoreGraphHeight}"
                                         GraphColorOverride="#FFFFB900"
                                         GraphDataPointsOverride="70"
                                         GraphTapAction="ShowFlyout"
@@ -106,6 +162,7 @@
                                     <!--  clock graph  -->
                                     <fhGraph:SensorPanelControl
                                         Grid.Row="3"
+                                        Height="{StaticResource CpuCoreGraphHeight}"
                                         GraphColorOverride="#FF00CC6A"
                                         GraphDataPointsOverride="70"
                                         GraphTapAction="ShowFlyout"
@@ -136,7 +193,7 @@
                         </Grid.RowDefinitions>
 
                         <!--  total load + max temperature and power  -->
-                        <!--  wide: big Load graph + 2 stacked  -->
+                        <!--  (wide: big Load graph + 2 stacked)  -->
                         <Grid
                             x:Name="GraphsAreaGrid"
                             Grid.Row="0"
@@ -145,7 +202,7 @@
 
                             <Grid
                                 x:Name="WideGraphsGrid"
-                                MinHeight="200"
+                                MinHeight="190"
                                 ColumnSpacing="8"
                                 RowSpacing="8">
 
@@ -198,18 +255,18 @@
                                     ViewModel="{x:Bind Cpu.PackagePower, Mode=OneWay}" />
                             </Grid>
 
-                            <!--  narrow: all 3 stacked, first weighted bigger, switched via SizeChanged  -->
+                            <!--  (narrow: all 3 stacked, first weighted bigger)  -->
                             <Grid
                                 x:Name="NarrowGraphsPanel"
-                                MinHeight="240"
+                                MinHeight="360"
                                 Background="Transparent"
                                 IsHitTestVisible="False"
                                 Opacity="0"
                                 RowSpacing="8">
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="2*" />
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="5*" />
+                                    <RowDefinition Height="3*" />
+                                    <RowDefinition Height="3*" />
                                 </Grid.RowDefinitions>
 
                                 <fhGraph:SensorPanelControl
@@ -249,10 +306,11 @@
                             </Grid>
                         </Grid>
 
+                        <!--  current graph value tiles  -->
                         <Grid x:Name="TilesAndStaticInfoGrid" Grid.Row="1">
 
                             <controls:WrapPanel
-                                Margin="0,0,0,16"
+                                Margin="4,0,4,12"
                                 HorizontalSpacing="8"
                                 VerticalSpacing="8">
                                 <fhTile:SensorTileControl
@@ -273,13 +331,17 @@
 
 
                     <!--  cpu view 2: all cpu cores  -->
-                    <!--  (cores with threads on top and cores withput threads below)  -->
+                    <!--  (cores with threads on top and cores without threads below, each followed by its own group averages)  -->
                     <Grid
                         x:Name="AllThreadsGrid"
                         Grid.Row="0"
+                        x:Load="False"
                         IsHitTestVisible="{x:Bind Cpu.AllThreadsIsHitTestVisible, Mode=OneWay}"
                         Opacity="{x:Bind Cpu.AllThreadsOpacity, Mode=OneWay}">
+
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -293,29 +355,70 @@
                             ScrollViewer.VerticalScrollMode="Disabled">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <fhControls:SquareGridPanel MinCellHeight="200" Spacing="12" />
+                                    <fhControls:SquareGridPanel MinCellHeight="100" Spacing="12" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                         </ItemsControl>
 
-                        <Border
+                        <!--  averages across all cores with threads  -->
+                        <controls:WrapPanel
                             Grid.Row="1"
+                            Margin="4,12,4,0"
+                            HorizontalSpacing="8"
+                            VerticalSpacing="8">
+                            <fhTile:SensorTileControl
+                                Title="Average Load"
+                                Width="90"
+                                ViewModel="{x:Bind Cpu.AvgLoadWithThreads, Mode=OneWay}" />
+                            <fhTile:SensorTileControl
+                                Title="Average Temperature"
+                                Width="130"
+                                ViewModel="{x:Bind Cpu.AvgTemperatureWithThreads, Mode=OneWay}" />
+                            <fhTile:SensorTileControl
+                                Title="Average Clock"
+                                Width="130"
+                                ViewModel="{x:Bind Cpu.AvgClockWithThreads, Mode=OneWay}" />
+                        </controls:WrapPanel>
+
+                        <Border
+                            Grid.Row="2"
                             Height="0"
                             Margin="0,24,0,0"
                             Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
 
                         <ItemsControl
-                            Grid.Row="2"
+                            Grid.Row="3"
                             ItemTemplate="{StaticResource CpuCoreCellTemplate}"
                             ItemsSource="{x:Bind Cpu.CoresWithoutThreads, Mode=OneWay}"
                             ScrollViewer.VerticalScrollBarVisibility="Disabled"
                             ScrollViewer.VerticalScrollMode="Disabled">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <fhControls:SquareGridPanel MinCellHeight="200" Spacing="12" />
+                                    <fhControls:SquareGridPanel MinCellHeight="100" Spacing="12" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                         </ItemsControl>
+
+                        <!--  averages across all cores without threads  -->
+                        <controls:WrapPanel
+                            Grid.Row="4"
+                            Margin="4,12,4,12"
+                            HorizontalSpacing="8"
+                            VerticalSpacing="8">
+                            <fhTile:SensorTileControl
+                                Title="Average Load"
+                                Width="90"
+                                ViewModel="{x:Bind Cpu.AvgLoadWithoutThreads, Mode=OneWay}" />
+                            <fhTile:SensorTileControl
+                                Title="Average Temperature"
+                                Width="130"
+                                ViewModel="{x:Bind Cpu.AvgTemperatureWithoutThreads, Mode=OneWay}" />
+                            <fhTile:SensorTileControl
+                                Title="Average Clock"
+                                Width="130"
+                                ViewModel="{x:Bind Cpu.AvgClockWithoutThreads, Mode=OneWay}" />
+                        </controls:WrapPanel>
+
                     </Grid>
 
                 </Grid>
@@ -323,9 +426,191 @@
         </ScrollViewer>
 
 
+        <!--  info panel: static hardware facts for the selected CPU  -->
+        <Border
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Grid.Column="1"
+            VerticalAlignment="Stretch"
+            Background="Transparent"
+            BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
+            BorderThickness="1,0,0,0"
+            Visibility="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelVisibility, Mode=OneWay}">
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+                <StackPanel Margin="16" Spacing="24">
+                    <TextBlock
+                        Margin="0,0,0,0"
+                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                        Text="CPU Info" />
+
+                    <StackPanel Spacing="12">
+
+                        <!--  general  -->
+                        <fhInfoPopup:InfoPopupControl
+                            Title="General"
+                            Margin="0,0,0,-4"
+                            Description="Physical Cores - actual processing units on chip&#10;Logical Processors - total execution threads (SMT/Hyper-Threading doubles per core)&#10;Core Topology - Performance vs Efficient core split on hybrid CPUs"
+                            PlacementMode="TitleAnchored"
+                            Source="Windows Management Instrumentation (WMI) + Windows CPU topology API for the Performance/Efficient breakdown" />
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Physical Cores"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Cpu.CpuPhysicalCoresText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Logical Processors"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Cpu.CpuLogicalProcessorsText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Core Topology" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Cpu.CpuCoreTopologyText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Socket"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Cpu.CpuSocketText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Max Clock Speed"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Cpu.CpuMaxClockText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
+
+                    <!--  cache  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            Title="Cache"
+                            Margin="0,0,0,-4"
+                            Description="Cache - small, fast on-die memory holding recently used data&#10;L1 - smallest, fastest, per core; sum of separate instruction + data caches&#10;L2 - larger, slower, per core; unified&#10;L3 - largest, shared across all cores; unified"
+                            PlacementMode="TitleAnchored"
+                            Source="Windows Management Instrumentation (WMI)" />
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="L1 Cache"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Cpu.CpuL1CacheText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="L2 Cache"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Cpu.CpuL2CacheText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="L3 Cache"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Cpu.CpuL3CacheText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
+
+                    <!--  virtualization  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            Title="Virtualization"
+                            Margin="0,0,0,-4"
+                            Description="Extensions - CPU hardware support for running virtual machines (VT-x/AMD-V), used by Hyper-V, WSL2, and similar&#10;Firmware - currently enabled or not (unreliable)"
+                            PlacementMode="TitleAnchored"
+                            Source="Windows Management Instrumentation (WMI)" />
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Firmware"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Cpu.CpuVirtualizationFirmwareText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Extensions"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Cpu.CpuVirtualizationExtensionsText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+
         <!--  cpu bottom bar  -->
         <Border
             Grid.Row="1"
+            Grid.Column="0"
             Padding="16,0,10,1"
             Background="Transparent"
             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
@@ -359,7 +644,7 @@
                         Click="ShowOverall_Click"
                         Label="Overall">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE9D9;" />
+                            <FontIcon Glyph="&#xF16B;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -368,7 +653,7 @@
                         Click="ShowAllThreads_Click"
                         Label="All Threads">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE80A;" />
+                            <FontIcon Glyph="&#xF0E2;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
                 </CommandBar>

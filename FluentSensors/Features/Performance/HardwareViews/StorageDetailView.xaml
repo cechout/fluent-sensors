@@ -7,163 +7,422 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
+    xmlns:fhPerf="using:FluentSensors.Features.Performance"
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer
-        x:Name="ContentScrollViewer"
-        HorizontalScrollBarVisibility="Disabled"
-        SizeChanged="ContentScrollViewer_SizeChanged"
-        VerticalScrollBarVisibility="Auto"
-        VerticalScrollMode="Auto">
-        <StackPanel
-            x:Name="ContentStackPanel"
-            Padding="16,8,16,16"
-            Spacing="12">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*" />
+            <ColumnDefinition
+                x:Name="InfoPanelColumn"
+                Width="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnWidth, Mode=OneWay}"
+                MinWidth="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnMinWidth, Mode=OneWay}"
+                MaxWidth="300" />
+        </Grid.ColumnDefinitions>
 
-                <Grid
-                    x:Name="OverviewBlockGrid"
-                    Grid.Row="0"
-                    RowSpacing="12">
+
+        <!--  view content with header, graphs and tiles  -->
+        <ScrollViewer
+            x:Name="ContentScrollViewer"
+            Grid.Column="0"
+            HorizontalScrollBarVisibility="Disabled"
+            SizeChanged="ContentScrollViewer_SizeChanged"
+            VerticalScrollBarVisibility="Auto"
+            VerticalScrollMode="Auto">
+            <StackPanel
+                x:Name="ContentStackPanel"
+                Padding="16,12,16,16"
+                Spacing="12">
+
+                <!--  header  -->
+                <Grid x:Name="HeaderGrid" ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel
+                        Grid.Column="0"
+                        Margin="4,0,0,0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="12">
+                        <FontIcon
+                            Margin="0,0,0,-2"
+                            FontSize="22"
+                            Glyph="{x:Bind GroupIconGlyph, Mode=OneTime}" />
+                        <TextBlock
+                            FontSize="26"
+                            Style="{ThemeResource BodyLargeTextBlockStyle}"
+                            Text="{x:Bind GroupLabel, Mode=OneTime}" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="0,0,4,4"
+                        VerticalAlignment="Bottom"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{x:Bind Storage.HardwareName, Mode=OneWay}"
+                        TextAlignment="Right"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap" />
+                </Grid>
+
+
+                <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!--  total activity + read/write rate  -->
                     <Grid
-                        x:Name="GraphsAreaGrid"
+                        x:Name="OverviewBlockGrid"
                         Grid.Row="0"
-                        SizeChanged="GraphsAreaGrid_SizeChanged">
+                        RowSpacing="12">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
+                        <!--  total activity + read/write rate  -->
                         <Grid
-                            x:Name="WideGraphsGrid"
-                            MinHeight="200"
-                            ColumnSpacing="8"
-                            RowSpacing="8">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="3*" />
-                                <ColumnDefinition Width="2*" />
-                            </Grid.ColumnDefinitions>
+                            x:Name="GraphsAreaGrid"
+                            Grid.Row="0"
+                            SizeChanged="GraphsAreaGrid_SizeChanged">
 
-                            <fhGraph:SensorPanelControl
-                                Grid.Row="0"
-                                Grid.RowSpan="2"
-                                Grid.Column="0"
-                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="False"
-                                ManualYMaxOverride="100"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.TotalActivity, Mode=OneWay}" />
+                            <Grid
+                                x:Name="WideGraphsGrid"
+                                MinHeight="200"
+                                ColumnSpacing="8"
+                                RowSpacing="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="3*" />
+                                    <ColumnDefinition Width="2*" />
+                                </Grid.ColumnDefinitions>
 
-                            <fhGraph:SensorPanelControl
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="True"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.ReadRate, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    Grid.Row="0"
+                                    Grid.RowSpan="2"
+                                    Grid.Column="0"
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphDataPointsOverride="180"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.TotalActivity, Mode=OneWay}" />
 
-                            <fhGraph:SensorPanelControl
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="True"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.WriteRate, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphDataPointsOverride="180"
+                                    IsAutoScaledOverride="True"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.ReadRate, Mode=OneWay}" />
+
+                                <fhGraph:SensorPanelControl
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphDataPointsOverride="180"
+                                    IsAutoScaledOverride="True"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.WriteRate, Mode=OneWay}" />
+                            </Grid>
+
+                            <Grid
+                                x:Name="NarrowGraphsPanel"
+                                MinHeight="360"
+                                IsHitTestVisible="False"
+                                Opacity="0"
+                                RowSpacing="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="5*" />
+                                    <RowDefinition Height="3*" />
+                                    <RowDefinition Height="3*" />
+                                </Grid.RowDefinitions>
+
+                                <fhGraph:SensorPanelControl
+                                    Grid.Row="0"
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphDataPointsOverride="180"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.TotalActivity, Mode=OneWay}" />
+
+                                <fhGraph:SensorPanelControl
+                                    Grid.Row="1"
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphDataPointsOverride="180"
+                                    IsAutoScaledOverride="True"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.ReadRate, Mode=OneWay}" />
+
+                                <fhGraph:SensorPanelControl
+                                    Grid.Row="2"
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphDataPointsOverride="180"
+                                    IsAutoScaledOverride="True"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.WriteRate, Mode=OneWay}" />
+                            </Grid>
                         </Grid>
 
-                        <Grid
-                            x:Name="NarrowGraphsPanel"
-                            MinHeight="240"
-                            IsHitTestVisible="False"
-                            Opacity="0"
-                            RowSpacing="8">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="2*" />
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-
-                            <fhGraph:SensorPanelControl
-                                Grid.Row="0"
-                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="False"
-                                ManualYMaxOverride="100"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.TotalActivity, Mode=OneWay}" />
-
-                            <fhGraph:SensorPanelControl
-                                Grid.Row="1"
-                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="True"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.ReadRate, Mode=OneWay}" />
-
-                            <fhGraph:SensorPanelControl
-                                Grid.Row="2"
-                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="True"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.WriteRate, Mode=OneWay}" />
+                        <!--  current value tiles  -->
+                        <Grid x:Name="TilesGrid" Grid.Row="1">
+                            <controls:WrapPanel
+                                Margin="0,0,0,12"
+                                HorizontalSpacing="8"
+                                VerticalSpacing="8">
+                                <fhTile:SensorTileControl
+                                    Title="Total Activity"
+                                    Width="90"
+                                    ViewModel="{x:Bind Storage.TotalActivity, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    Title="Read Rate"
+                                    Width="110"
+                                    ViewModel="{x:Bind Storage.ReadRate, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    Title="Write Rate"
+                                    Width="110"
+                                    ViewModel="{x:Bind Storage.WriteRate, Mode=OneWay}" />
+                            </controls:WrapPanel>
                         </Grid>
-                    </Grid>
-
-                    <!--  current value tiles  -->
-                    <Grid x:Name="TilesGrid" Grid.Row="1">
-                        <controls:WrapPanel
-                            Margin="0,0,0,16"
-                            HorizontalSpacing="8"
-                            VerticalSpacing="8">
-                            <fhTile:SensorTileControl
-                                Title="Total Activity"
-                                Width="90"
-                                ViewModel="{x:Bind Storage.TotalActivity, Mode=OneWay}" />
-                            <fhTile:SensorTileControl
-                                Title="Read Rate"
-                                Width="110"
-                                ViewModel="{x:Bind Storage.ReadRate, Mode=OneWay}" />
-                            <fhTile:SensorTileControl
-                                Title="Write Rate"
-                                Width="110"
-                                ViewModel="{x:Bind Storage.WriteRate, Mode=OneWay}" />
-                        </controls:WrapPanel>
                     </Grid>
                 </Grid>
-            </Grid>
-        </StackPanel>
-    </ScrollViewer>
+            </StackPanel>
+        </ScrollViewer>
+
+
+        <!--  info panel: static hardware facts for the selected drive  -->
+        <Border
+            Grid.Column="1"
+            VerticalAlignment="Stretch"
+            Background="Transparent"
+            BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
+            BorderThickness="1,0,0,0"
+            Visibility="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelVisibility, Mode=OneWay}">
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+                <StackPanel Margin="16" Spacing="24">
+                    <TextBlock
+                        Margin="0,0,0,0"
+                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                        Text="Storage Info" />
+
+                    <!--  general  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            Title="General"
+                            Margin="0,0,0,-4"
+                            Description="Bus Type - connection interface (NVMe, SATA, USB, ...), caps the drive's realistic maximum speed; read from the modern Storage API since the legacy Windows API misreports NVMe drives as SCSI"
+                            PlacementMode="TitleAnchored"
+                            Source="Windows Management Instrumentation (WMI)" />
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Model" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Storage.StorageFriendlyNameText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Size"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageSizeText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Bus Type"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageBusTypeText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
+
+                    <!--  identifiers  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            Title="Identifiers"
+                            Margin="0,0,0,-4"
+                            Description="Serial Number, Firmware Revision, Device ID - together uniquely identify this exact drive and its firmware"
+                            PlacementMode="TitleAnchored"
+                            Source="Windows Management Instrumentation (WMI)" />
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Serial Number"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageSerialNumberText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Firmware Revision"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageFirmwareRevisionText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Device ID"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StoragePnpDeviceIdText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
+
+                    <!--<StackPanel Spacing="2">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource CaptionTextBlockStyle}"
+                    Text="Manufacture Date" />
+                <TextBlock
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                    Text="{x:Bind Storage.StorageManufactureDateText, Mode=OneWay}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource CaptionTextBlockStyle}"
+                    Text="Temperature (Current / Max)" />
+                <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Storage.StorageTemperatureText, Mode=OneWay}" />
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource CaptionTextBlockStyle}"
+                    Text="Max Recorded Temperature" />
+                <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Storage.StorageTemperatureMaxText, Mode=OneWay}" />
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource CaptionTextBlockStyle}"
+                    Text="Wear" />
+                <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Storage.StorageWearText, Mode=OneWay}" />
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource CaptionTextBlockStyle}"
+                    Text="Power-On Hours" />
+                <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Storage.StoragePowerOnHoursText, Mode=OneWay}" />
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource CaptionTextBlockStyle}"
+                    Text="Read Errors" />
+                <TextBlock
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                    Text="{x:Bind Storage.StorageReadErrorsText, Mode=OneWay}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource CaptionTextBlockStyle}"
+                    Text="Write Errors" />
+                <TextBlock
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                    Text="{x:Bind Storage.StorageWriteErrorsText, Mode=OneWay}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource CaptionTextBlockStyle}"
+                    Text="Start/Stop Cycles" />
+                <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Storage.StorageStartStopCyclesText, Mode=OneWay}" />
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource CaptionTextBlockStyle}"
+                    Text="Load/Unload Cycles" />
+                <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Storage.StorageLoadUnloadCyclesText, Mode=OneWay}" />
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource CaptionTextBlockStyle}"
+                    Text="Max Latency (Read/Write/Flush)" />
+                <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Storage.StorageLatencyMaxText, Mode=OneWay}" />
+            </StackPanel>-->
+
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+    </Grid>
 </UserControl>

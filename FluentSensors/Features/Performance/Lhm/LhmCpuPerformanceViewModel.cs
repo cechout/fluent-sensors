@@ -108,7 +108,12 @@ namespace FluentSensors.Features.Performance.Lhm
                     var threadGraph = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     core.Threads.Add(threadGraph);
                     PushDataPoint(threadGraph, entry);
-                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(threadGraph, entry, e);
+                    cpu.RecomputeLoadAverage(hasThreads); // All Threads tile: first reading for this thread
+                    entry.PropertyChanged += (s, e) =>
+                    {
+                        OnEntryValueChanged(threadGraph, entry, e);
+                        if (e.PropertyName == nameof(LhmSensorEntry.Value)) cpu.RecomputeLoadAverage(hasThreads);
+                    };
                 }
             }
             else if (entry.SensorType == "Temperature")
@@ -132,9 +137,14 @@ namespace FluentSensors.Features.Performance.Lhm
                     {
                         string label = labelMatch.Groups[1].Value;
                         var graph = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
-                        cpu.MatchNextTemperature(graph, label);
+                        var core = cpu.MatchNextTemperature(graph, label);
                         PushDataPoint(graph, entry);
-                        entry.PropertyChanged += (s, e) => OnEntryValueChanged(graph, entry, e);
+                        if (core != null) cpu.RecomputeTemperatureAverage(core.HasThreads); // All Threads tile: first reading for this core
+                        entry.PropertyChanged += (s, e) =>
+                        {
+                            OnEntryValueChanged(graph, entry, e);
+                            if (core != null && e.PropertyName == nameof(LhmSensorEntry.Value)) cpu.RecomputeTemperatureAverage(core.HasThreads);
+                        };
                     }
                 }
             }
@@ -146,9 +156,14 @@ namespace FluentSensors.Features.Performance.Lhm
                 {
                     string label = labelMatch.Groups[1].Value;
                     var graph = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
-                    cpu.MatchNextClock(graph, label);
+                    var core = cpu.MatchNextClock(graph, label);
                     PushDataPoint(graph, entry);
-                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(graph, entry, e);
+                    if (core != null) cpu.RecomputeClockAverage(core.HasThreads); // All Threads tile: first reading for this core
+                    entry.PropertyChanged += (s, e) =>
+                    {
+                        OnEntryValueChanged(graph, entry, e);
+                        if (core != null && e.PropertyName == nameof(LhmSensorEntry.Value)) cpu.RecomputeClockAverage(core.HasThreads);
+                    };
                 }
             }
             else if (entry.SensorType == "Power")

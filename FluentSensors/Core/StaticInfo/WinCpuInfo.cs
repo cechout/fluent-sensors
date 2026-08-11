@@ -8,8 +8,6 @@ namespace FluentSensors.Core.StaticInfo
     public record WinCpuInfo(
         int PhysicalCores,
         int LogicalProcessors,
-        int L2CacheSizeKb, // 0 if not reported by firmware
-        int L3CacheSizeKb, // 0 if not reported by firmware
         int MaxClockSpeedMhz, // rated/base clock as reported by SMBIOS, not real-time boost
         string SocketDesignation,
 
@@ -23,6 +21,8 @@ namespace FluentSensors.Core.StaticInfo
         // Do not treat a False value here as ground truth without cross-checking Task Manager
         bool VirtualizationFirmwareEnabled,
         bool VirtualizationExtensionsSupported,
-        IReadOnlyList<WinCpuCoreTopologyEntry> CoreTopology
+
+        IReadOnlyList<WinCpuCoreTopologyEntry> CoreTopology,
+        IReadOnlyList<WinCpuCacheEntry> CacheEntries // raw per-instance cache facts, see WinCpuCacheEntry for the Level numbering
     );
 }

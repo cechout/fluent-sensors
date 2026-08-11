@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
+using FluentSensors.Common.Sensors;
 
 
 namespace FluentSensors.Features.Performance.Lhm
@@ -41,6 +42,17 @@ namespace FluentSensors.Features.Performance.Lhm
             HardwareName = hardwareName;
             CoresWithThreads = new ObservableCollection<LhmCpuCoreViewModel>();
             CoresWithoutThreads = new ObservableCollection<LhmCpuCoreViewModel>();
+
+            // synthetic per-group averages for the All Threads tiles; not discovered from LHM like the graphs above,
+            // computed locally
+            // sensor id only needs to be unique within one CPU instance, fine since multi-socket systems with identical
+            // hardware names are not a case this app has seen in practice
+            AvgLoadWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-load-with-threads", "Average Load", "Load");
+            AvgTemperatureWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-temperature-with-threads", "Average Temperature", "Temperature");
+            AvgClockWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-clock-with-threads", "Average Clock", "Clock");
+            AvgLoadWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-load-without-threads", "Average Load", "Load");
+            AvgTemperatureWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-temperature-without-threads", "Average Temperature", "Temperature");
+            AvgClockWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-clock-without-threads", "Average Clock", "Clock");
         }
 
 
@@ -101,6 +113,14 @@ namespace FluentSensors.Features.Performance.Lhm
         // physical cores without a "Thread #" suffix in their Load sensor name
         public ObservableCollection<LhmCpuCoreViewModel> CoresWithoutThreads { get; }
 
+        // all Threads tiles: average Load/Temperature/Clock per core group
+        public SensorGraphViewModel AvgLoadWithThreads { get; }
+        public SensorGraphViewModel AvgTemperatureWithThreads { get; }
+        public SensorGraphViewModel AvgClockWithThreads { get; }
+        public SensorGraphViewModel AvgLoadWithoutThreads { get; }
+        public SensorGraphViewModel AvgTemperatureWithoutThreads { get; }
+        public SensorGraphViewModel AvgClockWithoutThreads { get; }
+
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
         // problem/fix: see GpuDetailView.xaml.cs SetLayoutActive for the full explanation; the Overall/All-Threads
         // switch hits the exact same trap, so it gets the same Opacity+IsHitTestVisible treatment instead of a
@@ -116,8 +136,9 @@ namespace FluentSensors.Features.Performance.Lhm
         // access, so there is nothing to raise OnPropertyChanged for here
         public string CpuPhysicalCoresText => WinStaticInfoService.Instance.Cpu.PhysicalCores.ToString();
         public string CpuLogicalProcessorsText => WinStaticInfoService.Instance.Cpu.LogicalProcessors.ToString();
-        public string CpuL2CacheText => FormatCacheSize(WinStaticInfoService.Instance.Cpu.L2CacheSizeKb);
-        public string CpuL3CacheText => FormatCacheSize(WinStaticInfoService.Instance.Cpu.L3CacheSizeKb);
+        public string CpuL1CacheText => HardwareInfoFormatter.FormatCacheLevelTotal(WinStaticInfoService.Instance.Cpu.CacheEntries, level: 3);
+        public string CpuL2CacheText => HardwareInfoFormatter.FormatCacheLevelTotal(WinStaticInfoService.Instance.Cpu.CacheEntries, level: 4);
+        public string CpuL3CacheText => HardwareInfoFormatter.FormatCacheLevelTotal(WinStaticInfoService.Instance.Cpu.CacheEntries, level: 5);
         public string CpuMaxClockText => $"{WinStaticInfoService.Instance.Cpu.MaxClockSpeedMhz} MHz";
         public string CpuSocketText => WinStaticInfoService.Instance.Cpu.SocketDesignation;
         public string CpuVirtualizationFirmwareText => FormatBool(WinStaticInfoService.Instance.Cpu.VirtualizationFirmwareEnabled);
@@ -141,26 +162,53 @@ namespace FluentSensors.Features.Performance.Lhm
             return core;
         }
 
-        // assigns the next unmatched core (in Load-discovery order) this Temperature graph + label
+        // assigns the next unmatched core (in Load-discovery order) this Temperature graph + label, and returns that core
+        // so the caller can trigger the right group average
         // relies entirely on LHM reporting Temperature sensors in the same per-core order Load already established
-        public void MatchNextTemperature(SensorGraphViewModel graph, string label)
+        public LhmCpuCoreViewModel MatchNextTemperature(SensorGraphViewModel graph, string label)
         {
-            if (_nextTemperatureMatchIndex >= _coresInDiscoveryOrder.Count) return;
+            if (_nextTemperatureMatchIndex >= _coresInDiscoveryOrder.Count) return null;
 
             var core = _coresInDiscoveryOrder[_nextTemperatureMatchIndex];
             core.Temperature = graph;
             core.TemperatureLabel = label;
             _nextTemperatureMatchIndex++;
+            return core;
         }
 
-        public void MatchNextClock(SensorGraphViewModel graph, string label)
+        public LhmCpuCoreViewModel MatchNextClock(SensorGraphViewModel graph, string label)
         {
-            if (_nextClockMatchIndex >= _coresInDiscoveryOrder.Count) return;
+            if (_nextClockMatchIndex >= _coresInDiscoveryOrder.Count) return null;
 
             var core = _coresInDiscoveryOrder[_nextClockMatchIndex];
             core.Clock = graph;
             core.ClockLabel = label;
             _nextClockMatchIndex++;
+            return core;
+        }
+
+        // recomputes one core groups Load average from every threads latest value and pushes it as this averages new
+        // data point; called once per thread tick, from LhmCpuPerformanceViewModel
+        // Temperature/Clock below follow the exact same pattern, just averaging a different reading
+        public void RecomputeLoadAverage(bool hasThreads)
+        {
+            var cores = hasThreads ? CoresWithThreads : CoresWithoutThreads;
+            var target = hasThreads ? AvgLoadWithThreads : AvgLoadWithoutThreads;
+            UpdateAverage(target, "Load", cores.SelectMany(c => c.Threads));
+        }
+
+        public void RecomputeTemperatureAverage(bool hasThreads)
+        {
+            var cores = hasThreads ? CoresWithThreads : CoresWithoutThreads;
+            var target = hasThreads ? AvgTemperatureWithThreads : AvgTemperatureWithoutThreads;
+            UpdateAverage(target, "Temperature", cores.Select(c => c.Temperature));
+        }
+
+        public void RecomputeClockAverage(bool hasThreads)
+        {
+            var cores = hasThreads ? CoresWithThreads : CoresWithoutThreads;
+            var target = hasThreads ? AvgClockWithThreads : AvgClockWithoutThreads;
+            UpdateAverage(target, "Clock", cores.Select(c => c.Clock));
         }
 
 
@@ -169,13 +217,58 @@ namespace FluentSensors.Features.Performance.Lhm
         private static string FormatCacheSize(int cacheSizeKb) => cacheSizeKb > 0 ? $"{cacheSizeKb} KB" : "-";
         private static string FormatBool(bool value) => value ? "Yes" : "No";
 
-        // deliberately does not label anything P-Core/E-Core (see WinCpuCoreTopologyEntry doc comment); just the raw
-        // counts for now, real UI interpretation of EfficiencyClass is a later step
+        // hybrid detection and labeling relies on the EfficiencyClass semantics documented for PROCESSOR_RELATIONSHIP:
+        // "a core with a higher value for the efficiency class has intrinsically greater performance and less
+        // efficiency than a core with a lower value" - confirmed by Microsoft, unlike the Win32_CacheMemory Level
+        // numbering elsewhere in this app, so labeling the highest group "Performance" and the lowest "Efficient" is
+        // safe without needing a second real-hardware cross-check
+        // https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-processor_relationship
         private static string FormatCoreTopology(WinCpuInfo cpu)
         {
-            int smtCores = cpu.CoreTopology.Count(c => c.HasSmt);
-            int efficiencyClasses = cpu.CoreTopology.Select(c => c.EfficiencyClass).Distinct().Count();
-            return $"{cpu.CoreTopology.Count} cores read, {smtCores} with SMT, {efficiencyClasses} efficiency class(es)";
+            if (cpu.CoreTopology.Count == 0) return "-";
+
+            var groups = cpu.CoreTopology
+                .GroupBy(c => c.EfficiencyClass)
+                .OrderByDescending(g => g.Key)
+                .ToList();
+
+            // EfficiencyClass is only ever nonzero on systems with a heterogeneous (P/E) core set, per the docs above -
+            // a single group here means a conventional, non-hybrid CPU; SMT status is the one detail this line can add
+            // that Physical/Logical Cores above don't already cover
+            if (groups.Count == 1)
+            {
+                bool hasSmt = cpu.CoreTopology.Any(c => c.HasSmt);
+                return hasSmt ? "Symmetric, Hyper-Threading enabled" : "Symmetric, no Hyper-Threading";
+            }
+
+            var parts = new List<string>();
+            for (int i = 0; i < groups.Count; i++)
+            {
+                // only the two extremes have a confirmed meaning (highest = most performant, lowest = most efficient);
+                // a third class in between (not seen on real hardware yet) gets a plain numeric label instead of a
+                // guessed name
+                string label = i == 0 ? "Performance"
+                    : i == groups.Count - 1 ? "Efficient"
+                    : $"Class {groups[i].Key}";
+
+                int coreCount = groups[i].Count();
+                int threadCount = groups[i].Sum(c => c.LogicalProcessorIndices.Count);
+                parts.Add($"{coreCount} {label} ({threadCount} threads)");
+            }
+
+            return string.Join(" + ", parts);
+        }
+
+        // averages the latest value of every given graph and pushes the result as the targets own new data point
+        // graphs not matched yet (null, e.g. Temperature/Clock before LhmCpuPerformanceViewModel reaches this core) are
+        // skipped rather than counted as 0, so an incomplete group does not drag its own average down
+        private static void UpdateAverage(SensorGraphViewModel target, string sensorType, IEnumerable<SensorGraphViewModel> sourceGraphs)
+        {
+            var values = sourceGraphs.Where(g => g != null).Select(g => g.SensorData.LastOrDefault() ?? 0).ToList();
+            if (values.Count == 0) return;
+
+            double average = values.Average();
+            target.AddDataPoint(average, SensorUnitFormatter.Format(average, sensorType));
         }
 
 

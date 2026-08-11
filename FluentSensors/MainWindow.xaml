@@ -24,6 +24,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+
         <!--  custom title bar  -->
         <TitleBar
             Title="Fluent Sensors"
@@ -35,6 +36,7 @@
                 <ImageIconSource ImageSource="/Assets/Icon/Icon.ico" />
             </TitleBar.IconSource>
         </TitleBar>
+
 
         <!--  navigation view  -->
         <NavigationView
@@ -77,6 +79,7 @@
             <Frame x:Name="contentFrame" />
 
         </NavigationView>
+
 
         <!--  loading status screen  -->
         <Grid
@@ -121,7 +124,7 @@
                     HorizontalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource BodyStrongTextBlockStyle}"
-                    Text="Starting Fluent HwInfo..." />
+                    Text="Starting Fluent Sensors..." />
             </StackPanel>
         </Grid>
 
@@ -131,7 +134,7 @@
             x:Name="TrayIcon"
             DoubleClickCommand="{x:Bind ShowMainWindowCommand}"
             IconSource="/Assets/Icon/Icon.ico"
-            ToolTipText="Fluent HwInfo"
+            ToolTipText="Fluent Sensors"
             Visibility="Visible">
 
             <tb:TaskbarIcon.ContextFlyout>

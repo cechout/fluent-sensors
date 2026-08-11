@@ -40,6 +40,7 @@
 		<None Remove="Assets\Icon\Icon.png" />
 		<None Remove="Assets\SplashScreen.ico" />
 		<None Remove="Controls\Graph.xaml" />
+		<None Remove="Controls\InfoPopup\InfoPopupControl.xaml" />
 		<None Remove="Controls\SensorCardControl.xaml" />
 		<None Remove="Controls\SensorGraph\SensorPanelControl.xaml" />
 		<None Remove="Controls\SensorTile\SensorTileControl.xaml" />
@@ -88,6 +89,7 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
     <PackageReference Include="System.Management" Version="10.0.10" />
+    <PackageReference Include="Vortice.DXGI" Version="3.8.3" />
     <PackageReference Include="WinUIEx" Version="2.9.2" />
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +99,11 @@
     <Content Update="Assets\Icon\Icon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\InfoPopup\InfoPopupControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Features\Performance\HardwareViews\GpuDetailView.xaml">

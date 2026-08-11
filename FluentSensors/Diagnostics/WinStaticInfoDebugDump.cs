@@ -20,8 +20,6 @@ namespace FluentSensors.Diagnostics
             System.Diagnostics.Debug.WriteLine("--- CPU ---");
             System.Diagnostics.Debug.WriteLine($"PhysicalCores={info.Cpu.PhysicalCores}");
             System.Diagnostics.Debug.WriteLine($"LogicalProcessors={info.Cpu.LogicalProcessors}");
-            System.Diagnostics.Debug.WriteLine($"L2CacheSizeKb={info.Cpu.L2CacheSizeKb}");
-            System.Diagnostics.Debug.WriteLine($"L3CacheSizeKb={info.Cpu.L3CacheSizeKb}");
             System.Diagnostics.Debug.WriteLine($"MaxClockSpeedMhz={info.Cpu.MaxClockSpeedMhz}");
             System.Diagnostics.Debug.WriteLine($"SocketDesignation={info.Cpu.SocketDesignation}");
             System.Diagnostics.Debug.WriteLine($"VirtualizationFirmwareEnabled={info.Cpu.VirtualizationFirmwareEnabled} (known unreliable, see WinCpuInfo)");
@@ -33,6 +31,11 @@ namespace FluentSensors.Diagnostics
                 string logicalProcs = string.Join(",", core.LogicalProcessorIndices);
                 System.Diagnostics.Debug.WriteLine(
                     $"  Core #{core.CoreIndex} | EfficiencyClass={core.EfficiencyClass} | HasSmt={core.HasSmt} | LogicalProcessors=[{logicalProcs}]");
+            }
+            System.Diagnostics.Debug.WriteLine($"CacheEntries: {info.Cpu.CacheEntries.Count}");
+            foreach (var cache in info.Cpu.CacheEntries)
+            {
+                System.Diagnostics.Debug.WriteLine($"  Level={cache.Level} | Type={cache.CacheTypeText} | SizeKb={cache.SizeKb}");
             }
 
             // gpu
@@ -69,10 +72,11 @@ namespace FluentSensors.Diagnostics
             System.Diagnostics.Debug.WriteLine($"--- Network Adapters ({info.NetworkAdapters.Count}) ---");
             foreach (var nic in info.NetworkAdapters)
             {
-                string ips = string.Join(", ", nic.IpAddresses);
+                string ipv4 = string.Join(", ", nic.IPv4Addresses);
+                string ipv6 = string.Join(", ", nic.IPv6Addresses);
                 System.Diagnostics.Debug.WriteLine(
                     $"  Name='{nic.Name}' | Description='{nic.Description}' | MAC={nic.MacAddress} | " +
-                    $"Speed={nic.SpeedBitsPerSecond / 1_000_000} Mbps | Type={nic.InterfaceType} | IPs=[{ips}] | Dhcp={nic.DhcpEnabled}");
+                    $"Speed={nic.SpeedBitsPerSecond / 1_000_000} Mbps | Type={nic.InterfaceType} | IPv4=[{ipv4}] | IPv6=[{ipv6}] | Dhcp={nic.DhcpEnabled}");
             }
 
             // motherboard

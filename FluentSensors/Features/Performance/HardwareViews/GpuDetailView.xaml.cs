@@ -12,7 +12,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
     {
         // === fields ===
 
-        private const double NarrowGraphsLayoutThreshold = 600;
+        private const double NarrowGraphsLayoutThreshold = 700;
 
         // tracks which layout is active per row; Visibility can no longer be queried for this (see workaround
         // comment on SetLayoutActive below), so this replaces the previous
@@ -33,6 +33,10 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // graph color for every SensorPanelControl in this view; single source of truth in HardwareGroupInfo
         public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).Color;
+
+        // header
+        public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).Label;
+        public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).IconGlyph;
 
         public LhmGpuInstanceViewModel Gpu
         {
@@ -57,10 +61,22 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
-            double availableHeight = e.NewSize.Height - verticalPadding;
+            RecalculateOverviewHeight();
+        }
 
-            TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth, double.PositiveInfinity));
+        // recomputes OverviewBlockGrid.Height from the scroll viewers current size
+        //
+        // Called both by ContentScrollViewer_SizeChanged above and externally by PerformancePage after a nav
+        // sidebar/info panel toggle, since that changes DetailHostGrids available size without necessarily firing
+        // SizeChanged on this control quickly enough
+        public void RecalculateOverviewHeight()
+        {
+            double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
+            double headerHeight = HeaderGrid.ActualHeight + ContentStackPanel.Spacing;
+            double availableHeight = ContentScrollViewer.ActualHeight - verticalPadding - headerHeight;
+
+            double horizontalPadding = ContentStackPanel.Padding.Left + ContentStackPanel.Padding.Right;
+            TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth - horizontalPadding, double.PositiveInfinity));
             double tilesHeight = TilesGrid.DesiredSize.Height;
 
             double row1MinHeight = _isNarrowLayout1Active ? NarrowGraphsPanel1.MinHeight : WideGraphsGrid1.MinHeight;
@@ -92,7 +108,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // even once made Visible again with a real size later; the Wide/Narrow layout switch hits this exact same
         // trap one level deeper than the outer detail-view switch, since whichever layout is not currently active
         // is normally the one thats Collapsed
-        // fix: same pattern as the outer fix - never Collapse either layout, toggle Opacity + IsHitTestVisible
+        // fix: same pattern as the outer fix; never Collapse either layout, toggle Opacity + IsHitTestVisible
         // instead; both layouts now always occupy their full measured space (they already overlap in the same
         // Grid cell, so this doesnt change the visible arrangement), just one of them is invisible/non-interactive
         private static void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)

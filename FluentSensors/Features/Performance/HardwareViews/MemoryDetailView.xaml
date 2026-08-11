@@ -6,90 +6,303 @@
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
+    xmlns:fhPerf="using:FluentSensors.Features.Performance"
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:staticInfo="using:FluentSensors.Core.StaticInfo"
     mc:Ignorable="d">
 
-    <ScrollViewer
-        x:Name="ContentScrollViewer"
-        HorizontalScrollBarVisibility="Disabled"
-        SizeChanged="ContentScrollViewer_SizeChanged"
-        VerticalScrollBarVisibility="Auto"
-        VerticalScrollMode="Auto">
-        <StackPanel
-            x:Name="ContentStackPanel"
-            Padding="16,8,16,16"
-            Spacing="12">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*" />
+            <ColumnDefinition
+                x:Name="InfoPanelColumn"
+                Width="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnWidth, Mode=OneWay}"
+                MinWidth="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnMinWidth, Mode=OneWay}"
+                MaxWidth="300" />
+        </Grid.ColumnDefinitions>
 
-                <Grid
-                    x:Name="OverviewBlockGrid"
-                    Grid.Row="0"
-                    RowSpacing="12">
+
+        <!--  view content with header, graph and tiles  -->
+        <ScrollViewer
+            x:Name="ContentScrollViewer"
+            Grid.Column="0"
+            HorizontalScrollBarVisibility="Disabled"
+            SizeChanged="ContentScrollViewer_SizeChanged"
+            VerticalScrollBarVisibility="Auto"
+            VerticalScrollMode="Auto">
+            <StackPanel
+                x:Name="ContentStackPanel"
+                Padding="16,12,16,16"
+                Spacing="12">
+
+                <!--  header  -->
+                <Grid x:Name="HeaderGrid" ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel
+                        Grid.Column="0"
+                        Margin="4,0,0,0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="12">
+                        <FontIcon
+                            Margin="0,0,0,-2"
+                            FontSize="22"
+                            Glyph="{x:Bind GroupIconGlyph, Mode=OneTime}" />
+                        <TextBlock
+                            FontSize="26"
+                            Style="{ThemeResource BodyLargeTextBlockStyle}"
+                            Text="{x:Bind GroupLabel, Mode=OneTime}" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="0,0,4,4"
+                        VerticalAlignment="Bottom"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{x:Bind Memory.HardwareName, Mode=OneWay}"
+                        TextAlignment="Right"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap" />
+                </Grid>
+
+
+                <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!--  physical memory (top) + virtual memory (bottom), stacked - no wide/narrow switching  -->
                     <Grid
-                        x:Name="GraphsAreaGrid"
+                        x:Name="OverviewBlockGrid"
                         Grid.Row="0"
-                        MinHeight="280"
-                        RowSpacing="8">
+                        RowSpacing="12">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="3*" />
                             <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <fhGraph:SensorPanelControl
+                        <!--  physical memory (top) + virtual memory (bottom), stacked  -->
+                        <Grid
+                            x:Name="GraphsAreaGrid"
                             Grid.Row="0"
-                            GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                            GraphDataPointsOverride="180"
-                            IsAutoScaledOverride="False"
-                            ManualYMaxOverride="{x:Bind Memory.RoundedTotalMemory, Mode=OneWay}"
-                            ShowStatusRow="True"
-                            ShowThresholdControls="True"
-                            ShowYAxisControls="True"
-                            ThresholdLabelAlwaysVisible="False"
-                            ViewModel="{x:Bind Memory.Used, Mode=OneWay}" />
+                            MinHeight="300"
+                            RowSpacing="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="2*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
 
-                        <fhGraph:SensorPanelControl
-                            Grid.Row="1"
-                            GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                            GraphDataPointsOverride="180"
-                            IsAutoScaledOverride="False"
-                            ManualYMaxOverride="{x:Bind Memory.VirtualMemoryTotal, Mode=OneWay}"
-                            ShowStatusRow="True"
-                            ShowThresholdControls="True"
-                            ShowYAxisControls="True"
-                            ThresholdLabelAlwaysVisible="False"
-                            ViewModel="{x:Bind Memory.VirtualMemoryUsed, Mode=OneWay}" />
-                    </Grid>
-
-                    <!--  current value tiles  -->
-                    <Grid x:Name="TilesGrid" Grid.Row="1">
-                        <controls:WrapPanel
-                            Margin="0,0,0,16"
-                            HorizontalSpacing="8"
-                            VerticalSpacing="8">
-                            <fhTile:SensorTileControl
-                                Title="Physical Memory Used"
-                                Width="140"
+                            <fhGraph:SensorPanelControl
+                                Grid.Row="0"
+                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                GraphDataPointsOverride="180"
+                                IsAutoScaledOverride="False"
+                                ManualYMaxOverride="{x:Bind Memory.RoundedTotalMemory, Mode=OneWay}"
+                                ShowStatusRow="True"
+                                ShowThresholdControls="True"
+                                ShowYAxisControls="True"
+                                ThresholdLabelAlwaysVisible="False"
                                 ViewModel="{x:Bind Memory.Used, Mode=OneWay}" />
-                            <fhTile:SensorTileControl
-                                Title="Virtual Memory Used"
-                                Width="150"
-                                InfoMessage="Includes RAM plus page file space reserved for programs - roughly matches Task Manager's &quot;Committed&quot; + &quot;Cached&quot; figures, not just physical RAM."
-                                ShowInfoButton="True"
+
+                            <fhGraph:SensorPanelControl
+                                Grid.Row="1"
+                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                GraphDataPointsOverride="180"
+                                IsAutoScaledOverride="False"
+                                ManualYMaxOverride="{x:Bind Memory.VirtualMemoryTotal, Mode=OneWay}"
+                                ShowStatusRow="True"
+                                ShowThresholdControls="True"
+                                ShowYAxisControls="True"
+                                ThresholdLabelAlwaysVisible="False"
                                 ViewModel="{x:Bind Memory.VirtualMemoryUsed, Mode=OneWay}" />
-                        </controls:WrapPanel>
+                        </Grid>
+
+                        <!--  current value tiles  -->
+                        <Grid x:Name="TilesGrid" Grid.Row="1">
+                            <controls:WrapPanel
+                                Margin="0,0,0,12"
+                                HorizontalSpacing="8"
+                                VerticalSpacing="8">
+                                <fhTile:SensorTileControl
+                                    Title="Physical Memory Used"
+                                    Width="140"
+                                    ViewModel="{x:Bind Memory.Used, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    Title="Virtual Memory Used"
+                                    Width="150"
+                                    InfoMessage="Includes RAM plus page file space reserved for programs - roughly matches Task Manager's &quot;Committed&quot; + &quot;Cached&quot; figures, not just physical RAM."
+                                    ShowInfoButton="True"
+                                    ViewModel="{x:Bind Memory.VirtualMemoryUsed, Mode=OneWay}" />
+                            </controls:WrapPanel>
+                        </Grid>
                     </Grid>
                 </Grid>
-            </Grid>
-        </StackPanel>
-    </ScrollViewer>
+            </StackPanel>
+        </ScrollViewer>
+
+
+        <!--  info panel: static hardware facts for the selected RAM  -->
+        <Border
+            Grid.Column="1"
+            VerticalAlignment="Stretch"
+            Background="Transparent"
+            BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
+            BorderThickness="1,0,0,0"
+            Visibility="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelVisibility, Mode=OneWay}">
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+                <StackPanel Margin="16" Spacing="24">
+                    <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Text="RAM Info" />
+
+                    <StackPanel Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Total Slots" />
+                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Memory.MemoryTotalSlotsText, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!--  one card per physical module  -->
+                    <ItemsControl ItemsSource="{x:Bind Memory.MemoryModules, Mode=OneWay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="staticInfo:WinMemoryModuleInfo">
+                                <StackPanel Margin="0,0,0,12" Spacing="12">
+                                    <fhInfoPopup:InfoPopupControl
+                                        Title="{x:Bind DeviceLocator}"
+                                        Margin="0,0,0,-4"
+                                        Description="Type - DDR generation (DDR4, DDR5, ...)&#10;Form Factor - DIMM (desktop) or SO-DIMM (laptop)&#10;RAM Speed - Configured (active) vs Rated (spec)&#10;Voltage - operating voltage; XMP/EXPO can raise it&#10;Bank - physical bank/slot grouping on the motherboard this module belongs to&#10;Rank - number of independent chip sets on the module itself (unreliable)&#10;Width - Data (usable bits) vs Total (includes ECC bits)"
+                                        PlacementMode="TitleAnchored"
+                                        Source="Windows Management Instrumentation (WMI)" />
+
+                                    <StackPanel Spacing="2">
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="Manufacturer" />
+                                        <TextBlock
+                                            Style="{ThemeResource BodyTextBlockStyle}"
+                                            Text="{x:Bind Manufacturer}"
+                                            TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                                        <StackPanel Width="Auto" Spacing="2">
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Part Number"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Style="{ThemeResource BodyTextBlockStyle}"
+                                                Text="{x:Bind PartNumber}"
+                                                TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <StackPanel Width="Auto" Spacing="2">
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Serial Number"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Style="{ThemeResource BodyTextBlockStyle}"
+                                                Text="{x:Bind SerialNumber}"
+                                                TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </controls:WrapPanel>
+
+                                    <StackPanel Spacing="2">
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="Capacity" />
+                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatBytesAsGb(CapacityBytes)}" />
+                                    </StackPanel>
+
+                                    <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                                        <StackPanel Width="Auto" Spacing="2">
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Type"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatMemoryType(SmbiosMemoryType)}" />
+                                        </StackPanel>
+
+                                        <StackPanel Width="Auto" Spacing="2">
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Form Factor"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatFormFactor(FormFactor)}" />
+                                        </StackPanel>
+                                    </controls:WrapPanel>
+
+                                    <StackPanel Spacing="2">
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="RAM Speed (Configured / Rated)" />
+                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatSpeedPair(ConfiguredClockSpeedMhz, RatedSpeedMhz)}" />
+                                    </StackPanel>
+
+                                    <StackPanel Spacing="2">
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="Voltage (Configured / Min / Max)" />
+                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatVoltageRange(ConfiguredVoltageMillivolts, MinVoltageMillivolts, MaxVoltageMillivolts)}" />
+                                    </StackPanel>
+
+                                    <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                                        <StackPanel Width="Auto" Spacing="2">
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Bank"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Style="{ThemeResource BodyTextBlockStyle}"
+                                                Text="{x:Bind BankLabel}"
+                                                TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <StackPanel Width="Auto" Spacing="2">
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="Rank"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                Style="{ThemeResource BodyTextBlockStyle}"
+                                                Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatRank(Rank)}" />
+                                        </StackPanel>
+                                    </controls:WrapPanel>
+
+                                    <StackPanel Spacing="2">
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="Width (Total / Data)" />
+                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatBitsWidth(TotalWidthBits, DataWidthBits)}" />
+                                    </StackPanel>
+
+                                    <Border Height="0" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+    </Grid>
 </UserControl>

@@ -9,11 +9,15 @@ using FluentSensors.Features.Performance.Lhm;
 
 namespace FluentSensors.Features.Performance.HardwareViews
 {
+    // self-contained storage detail view: total activity (big) + read/write rate stacked, same shape as CPU,
+    // including the wide/narrow switch
     public sealed partial class StorageDetailView : UserControl
     {
         // === fields ===
 
-        private const double NarrowGraphsLayoutThreshold = 600;
+        // below this width, the wide 3-graph layout (big Activity graph + 2 stacked) switches to the narrow
+        // layout (all 3 stacked equally)
+        private const double NarrowGraphsLayoutThreshold = 700;
         private bool _isNarrowLayoutActive;
 
 
@@ -25,10 +29,16 @@ namespace FluentSensors.Features.Performance.HardwareViews
         }
 
 
-        // === dependency properties ===
+        // === bindable properties ===
 
-        // graph color for every SensorPanelControl in this view; single source of truth in HardwareGroupInfo
         public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Storage).Color;
+
+        // header
+        public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Storage).Label;
+        public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Storage).IconGlyph;
+
+
+        // === dependency properties ===
 
         public LhmStorageInstanceViewModel Storage
         {
@@ -53,10 +63,22 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
-            double availableHeight = e.NewSize.Height - verticalPadding;
+            RecalculateOverviewHeight();
+        }
 
-            TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth, double.PositiveInfinity));
+        // recomputes OverviewBlockGrid.Height from the scroll viewers current size
+        //
+        // Called both by ContentScrollViewer_SizeChanged above and externally by PerformancePage after a nav
+        // sidebar/info panel toggle, since that changes DetailHostGrids available size without necessarily firing
+        // SizeChanged on this control quickly enough
+        public void RecalculateOverviewHeight()
+        {
+            double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
+            double headerHeight = HeaderGrid.ActualHeight + ContentStackPanel.Spacing;
+            double availableHeight = ContentScrollViewer.ActualHeight - verticalPadding - headerHeight;
+
+            double horizontalPadding = ContentStackPanel.Padding.Left + ContentStackPanel.Padding.Right;
+            TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth - horizontalPadding, double.PositiveInfinity));
             double tilesHeight = TilesGrid.DesiredSize.Height;
 
             double graphsMinHeight = _isNarrowLayoutActive ? NarrowGraphsPanel.MinHeight : WideGraphsGrid.MinHeight;

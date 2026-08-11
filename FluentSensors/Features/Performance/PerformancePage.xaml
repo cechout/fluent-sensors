@@ -7,76 +7,161 @@
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:local="using:FluentSensors.Features.Performance"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:xaml="using:Microsoft.UI.Xaml"
+    xmlns:xaml1="using:ABI.Microsoft.UI.Xaml"
     NavigationCacheMode="Enabled"
     mc:Ignorable="d">
 
 
     <Page.Resources>
-        <Style x:Key="SidebarNavToggleButtonStyle" TargetType="ToggleButton">
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="Padding" Value="8" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Border x:Name="RootBorder" CornerRadius="5">
-                            <ContentPresenter
-                                x:Name="ContentPresenter"
-                                Padding="{TemplateBinding Padding}"
-                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                Content="{TemplateBinding Content}" />
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
 
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
+                <!--  selected sidebar tile background, per theme  -->
+                <!--  light  -->
+                <ResourceDictionary x:Key="Light">
+                    <StaticResource x:Key="SidebarNavSelectedBackgroundBrush" ResourceKey="SubtleFillColorTertiaryBrush" />
+                    <StaticResource x:Key="SidebarNavSelectedPointerOverBackgroundBrush" ResourceKey="SubtleFillColorSecondaryBrush" />
+                    <StaticResource x:Key="SidebarNavSelectedPressedBackgroundBrush" ResourceKey="SubtleFillColorTertiaryBrush" />
+                </ResourceDictionary>
+                <!--  dark  -->
+                <ResourceDictionary x:Key="Dark">
+                    <StaticResource x:Key="SidebarNavSelectedBackgroundBrush" ResourceKey="ControlFillColorDefaultBrush" />
+                    <StaticResource x:Key="SidebarNavSelectedPointerOverBackgroundBrush" ResourceKey="ControlFillColorSecondaryBrush" />
+                    <StaticResource x:Key="SidebarNavSelectedPressedBackgroundBrush" ResourceKey="ControlFillColorTertiaryBrush" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
 
-                                    <!--  not-selected states  -->
-                                    <VisualState x:Name="Normal">
-                                        <VisualState.Setters>
-                                            <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorTransparentBrush}" />
-                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
-                                        </VisualState.Setters>
-                                    </VisualState>
-                                    <VisualState x:Name="PointerOver">
-                                        <VisualState.Setters>
-                                            <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
-                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
-                                        </VisualState.Setters>
-                                    </VisualState>
-                                    <VisualState x:Name="Pressed">
-                                        <VisualState.Setters>
-                                            <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
-                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
-                                        </VisualState.Setters>
-                                    </VisualState>
 
-                                    <!--  selected states  -->
-                                    <VisualState x:Name="Checked">
-                                        <VisualState.Setters>
-                                            <Setter Target="RootBorder.Background" Value="{ThemeResource ControlFillColorDefaultBrush}" />
-                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
-                                        </VisualState.Setters>
-                                    </VisualState>
-                                    <VisualState x:Name="CheckedPointerOver">
-                                        <VisualState.Setters>
-                                            <Setter Target="RootBorder.Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
-                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
-                                        </VisualState.Setters>
-                                    </VisualState>
-                                    <VisualState x:Name="CheckedPressed">
-                                        <VisualState.Setters>
-                                            <Setter Target="RootBorder.Background" Value="{ThemeResource ControlFillColorTertiaryBrush}" />
-                                            <Setter Target="ContentPresenter.Opacity" Value="1.0" />
-                                        </VisualState.Setters>
-                                    </VisualState>
+            <Style x:Key="SidebarNavToggleButtonStyle" TargetType="ToggleButton">
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Padding" Value="8" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border x:Name="RootBorder" CornerRadius="5">
+                                <ContentPresenter
+                                    x:Name="ContentPresenter"
+                                    Padding="{TemplateBinding Padding}"
+                                    HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding Content}" />
 
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+
+                                        <!--  not-selected states  -->
+                                        <VisualState x:Name="Normal">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorTransparentBrush}" />
+                                                <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                                <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
+                                                <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+
+                                        <!--  selected states  -->
+                                        <VisualState x:Name="Checked">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource SidebarNavSelectedBackgroundBrush}" />
+                                                <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="CheckedPointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource SidebarNavSelectedPointerOverBackgroundBrush}" />
+                                                <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="CheckedPressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource SidebarNavSelectedPressedBackgroundBrush}" />
+                                                <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+
+            <Style x:Key="CommandBarToggleButtonStyle" TargetType="ToggleButton">
+                <Setter Property="Width" Value="40" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border x:Name="RootBorder" CornerRadius="4">
+                                <ContentPresenter
+                                    x:Name="ContentPresenter"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Content="{TemplateBinding Content}" />
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+
+                                        <!--  not-active states: flat, matches a normal AppBarButton  -->
+                                        <VisualState x:Name="Normal">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorTransparentBrush}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+
+                                        <!--
+                                            active states: filled, matches a checked native ToggleButton - same fill
+                                            brushes as SidebarNavToggleButtonStyle's Checked states, for consistency
+                                        -->
+                                        <VisualState x:Name="Checked">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource ControlFillColorDefaultBrush}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="CheckedPointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="CheckedPressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource ControlFillColorTertiaryBrush}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
     </Page.Resources>
 
 
@@ -103,7 +188,7 @@
                 <TextBlock
                     x:Name="PerformanceTitleText"
                     Grid.Column="0"
-                    Margin="8,0,0,0"
+                    Margin="4,0,0,0"
                     VerticalAlignment="Center"
                     Style="{ThemeResource BodyStrongTextBlockStyle}"
                     Text="Performance" />
@@ -114,9 +199,26 @@
                     HorizontalAlignment="Right"
                     DefaultLabelPosition="Right">
 
-                    <!--  placeholders, not final  -->
-                    <AppBarButton x:Name="PlaceholderButtonOne" Label="Placeholder 1" />
-                    <AppBarButton x:Name="PlaceholderButtonTwo" Label="Placeholder 2" />
+                    <AppBarToggleButton
+                        Width="42"
+                        IsChecked="{x:Bind ViewModel.IsNavSidebarVisible, Mode=TwoWay}"
+                        Label="Hardware List"
+                        LabelPosition="Collapsed">
+                        <AppBarToggleButton.Icon>
+                            <FontIcon Glyph="&#xE90C;" />
+                        </AppBarToggleButton.Icon>
+                    </AppBarToggleButton>
+
+                    <AppBarToggleButton
+                        Width="42"
+                        Height="48"
+                        IsChecked="{x:Bind ViewModel.IsInfoPanelVisible, Mode=TwoWay}"
+                        Label="Hardware Info"
+                        LabelPosition="Collapsed">
+                        <AppBarToggleButton.Icon>
+                            <FontIcon Glyph="&#xE90D;" />
+                        </AppBarToggleButton.Icon>
+                    </AppBarToggleButton>
 
                 </CommandBar>
 
@@ -127,8 +229,12 @@
         <!--  content: hardware selection sidebar + detail area  -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="180" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition
+                    x:Name="SidebarColumn"
+                    Width="{x:Bind ViewModel.NavSidebarColumnWidth, Mode=OneWay}"
+                    MinWidth="{x:Bind ViewModel.NavSidebarColumnMinWidth, Mode=OneWay}"
+                    MaxWidth="180" />
+                <ColumnDefinition Width="5*" />
             </Grid.ColumnDefinitions>
 
             <!--  sidebar: hardware selection  -->
@@ -152,19 +258,22 @@
                                     Click="NavItem_Click"
                                     IsChecked="{x:Bind IsSelected, Mode=OneWay}"
                                     Style="{StaticResource SidebarNavToggleButtonStyle}">
-                                    <Grid ColumnSpacing="8">
+
+                                    <Grid HorizontalAlignment="Stretch" ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="4*" />
+                                            <ColumnDefinition Width="3*" />
                                         </Grid.ColumnDefinitions>
 
-                                        <!--  mini utilization graph for this hardwares primary sensor  -->
+                                        <!--  miniutilization graph  -->
+                                        <!--  (theoretically resizeable)  -->
                                         <fhGraph:SensorGraphControl
                                             Grid.Column="0"
-                                            Width="74"
                                             Height="52"
                                             AccentColor="{x:Bind HardwareColor, Mode=OneTime}"
+                                            CardBackgroundOverride="{x:Bind local:PerformancePage.ResolveSelectedGraphBackground(IsSelected, local:PerformanceViewModel.Instance.IsDarkTheme), Mode=OneWay}"
                                             IsAutoScaled="{x:Bind PrimaryGraph.IsAutoScaled, Mode=OneWay}"
+                                            IsHoverEnabled="False"
                                             ManualYMax="{x:Bind PrimaryGraph.ManualYMax, Mode=OneWay}"
                                             Values="{x:Bind PrimaryGraph.SensorData, Mode=OneWay}" />
 
@@ -182,51 +291,27 @@
                                                 TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
                                     </Grid>
+
                                 </ToggleButton>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
+
                     </ItemsControl>
                 </ScrollViewer>
             </Border>
 
 
-            <!--  detail area  -->
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <!--  header for one hardware  -->
-                <!--  left: group label + right: hardware display name for the selected nav item  -->
-                <Border
-                    Grid.Row="0"
-                    Padding="16,12,16,0"
-                    Background="Transparent"
-                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                    BorderThickness="0,0,0,0">
-                    <Grid>
-                        <TextBlock
-                            Margin="4,0,0,0"
-                            HorizontalAlignment="Left"
-                            FontSize="26"
-                            Style="{ThemeResource BodyLargeTextBlockStyle}"
-                            Text="{x:Bind ViewModel.SelectedItem.GroupLabel, Mode=OneWay}" />
-                        <TextBlock
-                            Margin="0,0,4,4"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Bottom"
-                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                            Style="{ThemeResource BodyTextBlockStyle}"
-                            Text="{x:Bind ViewModel.SelectedItem.DisplayName, Mode=OneWay}"
-                            TextTrimming="CharacterEllipsis" />
-                    </Grid>
-                </Border>
-
-                <!--  hardware datail view  -->
-                <Grid x:Name="DetailHostGrid" Grid.Row="1" />
-            </Grid>
-
+            <!--
+                hardware detail view: each view now brings its own header (type + name) directly above its own
+                content, so its info panel can start flush with that header instead of only next to the content
+                below it - see e.g. CpuDetailView.xaml root Grid
+            -->
+            <Grid
+                x:Name="DetailHostGrid"
+                Grid.Column="1"
+                SizeChanged="DetailHostGrid_SizeChanged" />
         </Grid>
+
+
     </Grid>
 </Page>

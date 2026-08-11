@@ -1,9 +1,10 @@
-using FluentSensors.Common.Sensors;
-using FluentSensors.Features.Performance.Lhm;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
+
+using FluentSensors.Common.Sensors;
+using FluentSensors.Features.Performance.Lhm;
 
 
 namespace FluentSensors.Features.Performance.HardwareViews
@@ -19,10 +20,17 @@ namespace FluentSensors.Features.Performance.HardwareViews
         }
 
 
-        // === dependency properties ===
+        // === bindable properties ===
 
         // graph color for every SensorPanelControl in this view; single source of truth in HardwareGroupInfo
         public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).Color;
+
+        // header
+        public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).Label;
+        public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).IconGlyph;
+
+
+        // === dependency properties ===
 
         public LhmMemoryInstanceViewModel Memory
         {
@@ -37,9 +45,6 @@ namespace FluentSensors.Features.Performance.HardwareViews
                 typeof(MemoryDetailView),
                 new PropertyMetadata(null, OnMemoryChanged));
 
-        // kept as a safety net: PerformancePage caches one permanent view per hardware instance and sets Memory
-        // exactly once, so this should never fire with a changing value in practice
-        // but if that ever changes, this forces the x:Binds to re-evaluate instead of silently going stale
         private static void OnMemoryChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is MemoryDetailView view) view.Bindings.Update();
@@ -48,15 +53,24 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === event handlers ===
 
-        // keeps the overview block at least as tall as the visible viewport (so its graph can stretch to fill
-        // it), but lets it grow past that, and let the ScrollViewer take over once its natural minimum height
-        // no longer fits
         private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
-            double availableHeight = e.NewSize.Height - verticalPadding;
+            RecalculateOverviewHeight();
+        }
 
-            TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth, double.PositiveInfinity));
+        // recomputes OverviewBlockGrid.Height from the scroll viewers current size
+        //
+        // Called both by ContentScrollViewer_SizeChanged above and externally by PerformancePage after a nav
+        // sidebar/info panel toggle, since that changes DetailHostGrids available size without necessarily firing
+        // SizeChanged on this control quickly enough
+        public void RecalculateOverviewHeight()
+        {
+            double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
+            double headerHeight = HeaderGrid.ActualHeight + ContentStackPanel.Spacing;
+            double availableHeight = ContentScrollViewer.ActualHeight - verticalPadding - headerHeight;
+
+            double horizontalPadding = ContentStackPanel.Padding.Left + ContentStackPanel.Padding.Right;
+            TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth - horizontalPadding, double.PositiveInfinity));
             double tilesHeight = TilesGrid.DesiredSize.Height;
 
             double naturalMinHeight = GraphsAreaGrid.MinHeight + OverviewBlockGrid.RowSpacing + tilesHeight;

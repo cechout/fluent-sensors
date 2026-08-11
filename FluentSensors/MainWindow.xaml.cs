@@ -26,7 +26,7 @@ namespace FluentSensors
     {
         // === win32 api imports ===
 
-        // workaround: hiding a window in WinUI 3
+        // --- workaround: hiding a window in WinUI 3 ---
         // problem: this.Hide() alone does not remove the window from Alt+Tab or the taskbar switcher reliably; the official
         // AppWindow.IsShownInSwitchers API was tried first and failed the same way; no public issue
         // found that documents this exact behavior
@@ -176,7 +176,12 @@ namespace FluentSensors
 
             // kicks off static hardware info collection (WMI queries) on a background thread; fully independent and
             // parallel to the lhm sensor init below
-            _ = Task.Run(() => WinStaticInfoService.Instance);
+            // captured instead of fire-and-forget: without waiting on this, a page that accesses
+            // WinStaticInfoService.Instance before this finishes blocks its own thread for the remainder of the WMI
+            // scan (Lazy<T> just makes every other accessor wait for the same in-progress construction); awaited
+            // together with the sensor data wait further down, so a slow WMI scan still shows up as splash progress
+            // instead of surfacing later as an unexplained freeze on whichever page asks for it first
+            var staticInfoPrewarmTask = Task.Run(() => WinStaticInfoService.Instance);
 
             // scan motherboard
             LoadingStatusText.Text = "Initializing motherboard...";
@@ -211,13 +216,17 @@ namespace FluentSensors
             // no we start the HardwareMonitorService loop manually
             monitor.StartMonitoring();
 
-            // we explicitly wait until the ViewModel has received and processed the very first data payload
+            // we explicitly wait until the ViewModel has received and processed the very first data payload, and until
+            // the static info prewarm above has finished; both have been running in parallel with everything since
+            // their own starting point, so this only waits as long as whichever of the two is still slower
             LoadingStatusText.Text = "Waiting for data...";
-            await SensorsViewModel.Instance.WaitForInitialLoadAsync();
+            await Task.WhenAll(
+                SensorsViewModel.Instance.WaitForInitialLoadAsync(),
+                staticInfoPrewarmTask);
 
             // now we are finished loading
             LoadingStatusText.Text = "Ready";
-            await Task.Delay(500);
+            //await Task.Delay(100);
 
             // show the main grid
             MainNavigationView.Visibility = Visibility.Visible;

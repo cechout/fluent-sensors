@@ -10,7 +10,8 @@ namespace FluentSensors.Core.StaticInfo
         string MacAddress,
         long SpeedBitsPerSecond,
         NetworkInterfaceType InterfaceType,
-        IReadOnlyList<string> IpAddresses,
+        IReadOnlyList<string> IPv4Addresses,
+        IReadOnlyList<string> IPv6Addresses,
         bool DhcpEnabled
     );
 }

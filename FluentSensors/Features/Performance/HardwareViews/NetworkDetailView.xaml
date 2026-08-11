@@ -7,118 +7,308 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
+    xmlns:fhPerf="using:FluentSensors.Features.Performance"
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer
-        x:Name="ContentScrollViewer"
-        HorizontalScrollBarVisibility="Disabled"
-        SizeChanged="ContentScrollViewer_SizeChanged"
-        VerticalScrollBarVisibility="Auto"
-        VerticalScrollMode="Auto">
-        <StackPanel
-            x:Name="ContentStackPanel"
-            Padding="16,8,16,16"
-            Spacing="12">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*" />
+            <ColumnDefinition
+                x:Name="InfoPanelColumn"
+                Width="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnWidth, Mode=OneWay}"
+                MinWidth="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnMinWidth, Mode=OneWay}"
+                MaxWidth="300" />
+        </Grid.ColumnDefinitions>
 
-                <Grid
-                    x:Name="OverviewBlockGrid"
-                    Grid.Row="0"
-                    RowSpacing="12">
+
+        <!--  view content with header, graphs and tiles  -->
+        <ScrollViewer
+            x:Name="ContentScrollViewer"
+            Grid.Column="0"
+            HorizontalScrollBarVisibility="Disabled"
+            SizeChanged="ContentScrollViewer_SizeChanged"
+            VerticalScrollBarVisibility="Auto"
+            VerticalScrollMode="Auto">
+            <StackPanel
+                x:Name="ContentStackPanel"
+                Padding="16,12,16,16"
+                Spacing="12">
+
+                <!--  header  -->
+                <Grid x:Name="HeaderGrid" ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel
+                        Grid.Column="0"
+                        Margin="4,0,0,0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="12">
+                        <FontIcon
+                            Margin="0,0,0,-2"
+                            FontSize="22"
+                            Glyph="{x:Bind GroupIconGlyph, Mode=OneTime}" />
+                        <TextBlock
+                            FontSize="26"
+                            Style="{ThemeResource BodyLargeTextBlockStyle}"
+                            Text="{x:Bind GroupLabel, Mode=OneTime}" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="0,0,4,4"
+                        VerticalAlignment="Bottom"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{x:Bind Network.HardwareName, Mode=OneWay}"
+                        TextAlignment="Right"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap" />
+                </Grid>
+
+
+                <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!--  upload + download; wide: side by side, narrow: stacked, switched via SizeChanged  -->
                     <Grid
-                        x:Name="GraphsAreaGrid"
+                        x:Name="OverviewBlockGrid"
                         Grid.Row="0"
-                        SizeChanged="GraphsAreaGrid_SizeChanged">
+                        RowSpacing="12">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
+                        <!--  upload + download; wide: side by side, narrow: stacked  -->
                         <Grid
-                            x:Name="WideGraphsGrid"
-                            MinHeight="200"
-                            ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
+                            x:Name="GraphsAreaGrid"
+                            Grid.Row="0"
+                            SizeChanged="GraphsAreaGrid_SizeChanged">
 
-                            <fhGraph:SensorPanelControl
-                                Grid.Column="0"
-                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="True"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
+                            <Grid
+                                x:Name="WideGraphsGrid"
+                                MinHeight="200"
+                                ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
 
-                            <fhGraph:SensorPanelControl
-                                Grid.Column="1"
-                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="True"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    Grid.Column="0"
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphDataPointsOverride="180"
+                                    IsAutoScaledOverride="True"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
+
+                                <fhGraph:SensorPanelControl
+                                    Grid.Column="1"
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphDataPointsOverride="180"
+                                    IsAutoScaledOverride="True"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
+                            </Grid>
+
+                            <fhControls:VerticalStretchPanel
+                                x:Name="NarrowGraphsPanel"
+                                MinHeight="240"
+                                IsHitTestVisible="False"
+                                Opacity="0"
+                                Spacing="8">
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphDataPointsOverride="180"
+                                    IsAutoScaledOverride="True"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
+
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphDataPointsOverride="180"
+                                    IsAutoScaledOverride="True"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
+                            </fhControls:VerticalStretchPanel>
                         </Grid>
 
-                        <fhControls:VerticalStretchPanel
-                            x:Name="NarrowGraphsPanel"
-                            MinHeight="240"
-                            IsHitTestVisible="False"
-                            Opacity="0"
-                            Spacing="8">
-                            <fhGraph:SensorPanelControl
-                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="True"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
-
-                            <fhGraph:SensorPanelControl
-                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                GraphDataPointsOverride="180"
-                                IsAutoScaledOverride="True"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
-                        </fhControls:VerticalStretchPanel>
-                    </Grid>
-
-                    <!--  current value tiles  -->
-                    <Grid x:Name="TilesGrid" Grid.Row="1">
-                        <controls:WrapPanel
-                            Margin="0,0,0,16"
-                            HorizontalSpacing="8"
-                            VerticalSpacing="8">
-                            <fhTile:SensorTileControl
-                                Title="Upload Speed"
-                                Width="110"
-                                ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
-                            <fhTile:SensorTileControl
-                                Title="Download Speed"
-                                Width="110"
-                                ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
-                        </controls:WrapPanel>
+                        <!--  current value tiles  -->
+                        <Grid x:Name="TilesGrid" Grid.Row="1">
+                            <controls:WrapPanel
+                                Margin="0,0,0,12"
+                                HorizontalSpacing="8"
+                                VerticalSpacing="8">
+                                <fhTile:SensorTileControl
+                                    Title="Upload Speed"
+                                    Width="110"
+                                    ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    Title="Download Speed"
+                                    Width="110"
+                                    ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
+                            </controls:WrapPanel>
+                        </Grid>
                     </Grid>
                 </Grid>
-            </Grid>
-        </StackPanel>
-    </ScrollViewer>
+            </StackPanel>
+        </ScrollViewer>
+
+
+        <!--  info panel: static hardware facts for the selected adapter  -->
+        <Border
+            Grid.Column="1"
+            VerticalAlignment="Stretch"
+            Background="Transparent"
+            BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
+            BorderThickness="1,0,0,0"
+            Visibility="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelVisibility, Mode=OneWay}">
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+                <StackPanel Margin="16" Spacing="24">
+                    <TextBlock
+                        Margin="0,0,0,0"
+                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                        Text="Network Info" />
+
+                    <!--  connection  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            Title="Connection"
+                            Margin="0,0,0,-4"
+                            Description="Represents one active connection, not the adapter's full range of possible connections. Multiple active connections (e.g. Wi-Fi + Ethernet) each get their own separate entry.&#10;Hardware - physical adapter behind this connection&#10;Type - its medium (Wi-Fi, Ethernet, ...)"
+                            PlacementMode="TitleAnchored"
+                            Source="Windows' own network stack (the same data LibreHardwareMonitor uses to detect this as a piece of hardware in the first place)" />
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Hardware"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkNameText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Type"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkInterfaceTypeText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
+
+                    <!--  ip addresses  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            Title="IP Addresses"
+                            Margin="0,0,0,-4"
+                            Description="IPv4 and IPv6 are independent addressing systems, both active at once.&#10;IPv4 - usually one address&#10;IPv6 - often several at once (stable + rotating privacy addresses)"
+                            PlacementMode="TitleAnchored"
+                            Source="Windows' own network stack" />
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="IPv4 Address(es)" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Network.NetworkIPv4AddressesText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="IPv6 Address(es)" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Network.NetworkIPv6AddressesText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  general  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            Title="General"
+                            Margin="0,0,0,-4"
+                            Description="Link Speed - negotiated rate of this specific connection, not the adapter's maximum rated speed; can be lower, and shifts over time on Wi-Fi as signal conditions change&#10;DHCP Enabled - whether this connection's own address was assigned automatically or set statically; a property of this connection, not a general network-wide setting"
+                            PlacementMode="TitleAnchored"
+                            Source="Windows' own network stack" />
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Link Speed"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkSpeedText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="MAC Address"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkMacAddressText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="DHCP Enabled"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkDhcpEnabledText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+    </Grid>
 </UserControl>

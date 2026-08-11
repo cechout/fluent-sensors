@@ -1,9 +1,10 @@
-using FluentSensors.Common.Sensors;
-using FluentSensors.Features.Performance.Lhm;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
+
+using FluentSensors.Common.Sensors;
+using FluentSensors.Features.Performance.Lhm;
 
 
 namespace FluentSensors.Features.Performance.HardwareViews
@@ -12,7 +13,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
     {
         // === fields ===
 
-        private const double NarrowGraphsLayoutThreshold = 600;
+        // below this width, the wide 2-graph layout (side by side) switches to the narrow layout (stacked)
+        private const double NarrowGraphsLayoutThreshold = 700;
         private bool _isNarrowLayoutActive;
 
 
@@ -24,10 +26,16 @@ namespace FluentSensors.Features.Performance.HardwareViews
         }
 
 
-        // === dependency properties ===
+        // === bindable properties ===
 
-        // graph color for every SensorPanelControl in this view; single source of truth in HardwareGroupInfo
         public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).Color;
+
+        // header
+        public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).Label;
+        public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).IconGlyph;
+
+
+        // === dependency properties ===
 
         public LhmNetworkInstanceViewModel Network
         {
@@ -52,10 +60,22 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
-            double availableHeight = e.NewSize.Height - verticalPadding;
+            RecalculateOverviewHeight();
+        }
 
-            TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth, double.PositiveInfinity));
+        // recomputes OverviewBlockGrid.Height from the scroll viewers current size
+        //
+        // Called both by ContentScrollViewer_SizeChanged above and externally by PerformancePage after a nav
+        // sidebar/info panel toggle, since that changes DetailHostGrids available size without necessarily firing
+        // SizeChanged on this control quickly enough
+        public void RecalculateOverviewHeight()
+        {
+            double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
+            double headerHeight = HeaderGrid.ActualHeight + ContentStackPanel.Spacing;
+            double availableHeight = ContentScrollViewer.ActualHeight - verticalPadding - headerHeight;
+
+            double horizontalPadding = ContentStackPanel.Padding.Left + ContentStackPanel.Padding.Right;
+            TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth - horizontalPadding, double.PositiveInfinity));
             double tilesHeight = TilesGrid.DesiredSize.Height;
 
             double graphsMinHeight = _isNarrowLayoutActive ? NarrowGraphsPanel.MinHeight : WideGraphsGrid.MinHeight;
