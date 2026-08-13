@@ -88,6 +88,7 @@ namespace FluentSensors.Controls.SensorGraph
             Chart.PointerMoved += OnChartPointerMoved;
             Chart.PointerExited += OnChartPointerExited;
             Chart.UpdateStarted += Chart_UpdateStarted;
+            Loaded += OnControlLoaded;
 
             // initial visuals and threshold state
             ApplyStroke();
@@ -102,7 +103,7 @@ namespace FluentSensors.Controls.SensorGraph
         public ISeries[] Series { get; }
         public ICartesianAxis[] XAxes { get; }
         public ICartesianAxis[] YAxes { get; }
-        public RectangularSection[] Sections { get; private set; } = new RectangularSection[0];
+        public RectangularSection[] Sections { get; private set; } = Array.Empty<RectangularSection>();
         public LiveChartsCore.Measure.Margin ChartMargin { get; } = new LiveChartsCore.Measure.Margin(0);
 
 
@@ -487,8 +488,15 @@ namespace FluentSensors.Controls.SensorGraph
         // === event handlers ===
 
         // fires once, the first time LiveCharts has actually built its internal render context and drawn a real frame;
-        // used by MainWindow to prewarm the native SkiaSharp/LiveChartsCore pipeline during the splash screen
-        public event EventHandler ChartReady;
+        // maybe used by MainWindow to prewarm the native SkiaSharp/LiveChartsCore pipeline during the splash screen?
+        //public event EventHandler ChartReady;
+
+        // forces a full repaint every time this control enters the live visual tree
+        // keeps the native chart surface from drifting out of sync with the guard above
+        private void OnControlLoaded(object sender, RoutedEventArgs e)
+        {
+            ForceRepaint();
+        }
 
         // LiveCharts only builds its internal scale/draw context on the first real measure pass;
         // UpdateStarted fires once that has happened (Loaded fires too early, before the chart is actually ready)
