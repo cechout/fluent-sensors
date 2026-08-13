@@ -11,7 +11,8 @@ using FluentSensors.Persistence.Models;
 
 namespace FluentSensors.Persistence.Services
 {
-    // handles all disk I/O for persisted app state, split into three files (settings, window positions, per-sensor state)
+    // handles all disk I/O for persisted app state, split into four files (settings, window positions, per-sensor
+    // state, sensor-switch choices)
     // pure I/O layer; knows nothing about SettingsService, windows, or ViewModels; callers hand it plain data and get plain
     // data back
     public class PersistenceService
@@ -23,6 +24,7 @@ namespace FluentSensors.Persistence.Services
         private string SettingsPath => Path.Combine(_rootFolder, "settings.json");
         private string WindowStatePath => Path.Combine(_rootFolder, "window-state.json");
         private string SensorStatePath => Path.Combine(_rootFolder, "sensors.json");
+        private string SensorSwitchStatePath => Path.Combine(_rootFolder, "sensor-switches.json");
         private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
@@ -34,11 +36,13 @@ namespace FluentSensors.Persistence.Services
         private Timer _settingsTimer;
         private Timer _windowStateTimer;
         private Timer _sensorStateTimer;
+        private Timer _sensorSwitchStateTimer;
 
         // most recent pending data per file, written when its timer fires (or on FlushAll)
         private AppSettingsData _pendingSettings;
         private Dictionary<string, WindowState> _pendingWindowStates;
         private Dictionary<string, SensorState> _pendingSensorStates;
+        private Dictionary<string, SensorSwitchState> _pendingSensorSwitchStates;
 
 
         // === singleton instance ===
@@ -57,6 +61,7 @@ namespace FluentSensors.Persistence.Services
         public AppSettingsData LoadSettings() => LoadFile<AppSettingsData>(SettingsPath) ?? new AppSettingsData();
         public Dictionary<string, WindowState> LoadWindowStates() => LoadFile<Dictionary<string, WindowState>>(WindowStatePath) ?? new();
         public Dictionary<string, SensorState> LoadSensorStates() => LoadFile<Dictionary<string, SensorState>>(SensorStatePath) ?? new();
+        public Dictionary<string, SensorSwitchState> LoadSensorSwitchStates() => LoadFile<Dictionary<string, SensorSwitchState>>(SensorSwitchStatePath) ?? new();
 
         // debounced save
         public void SaveSettingsDebounced(AppSettingsData data)
@@ -77,6 +82,12 @@ namespace FluentSensors.Persistence.Services
             ResetTimer(ref _sensorStateTimer, () => SaveFile(SensorStatePath, _pendingSensorStates));
         }
 
+        public void SaveSensorSwitchStatesDebounced(Dictionary<string, SensorSwitchState> data)
+        {
+            _pendingSensorSwitchStates = data;
+            ResetTimer(ref _sensorSwitchStateTimer, () => SaveFile(SensorSwitchStatePath, _pendingSensorSwitchStates));
+        }
+
         // immediate save:
         // called on app exit, so the last pending change isnt lost to a debounce timer that never gets to fire because
         // the process is already gone
@@ -85,10 +96,12 @@ namespace FluentSensors.Persistence.Services
             _settingsTimer?.Dispose();
             _windowStateTimer?.Dispose();
             _sensorStateTimer?.Dispose();
+            _sensorSwitchStateTimer?.Dispose();
 
             if (_pendingSettings != null) SaveFile(SettingsPath, _pendingSettings);
             if (_pendingWindowStates != null) SaveFile(WindowStatePath, _pendingWindowStates);
             if (_pendingSensorStates != null) SaveFile(SensorStatePath, _pendingSensorStates);
+            if (_pendingSensorSwitchStates != null) SaveFile(SensorSwitchStatePath, _pendingSensorSwitchStates);
         }
 
         // reset:
@@ -119,15 +132,24 @@ namespace FluentSensors.Persistence.Services
             DeleteFile(SensorStatePath);
         }
 
+        public void ResetSensorSwitchStates()
+        {
+            _sensorSwitchStateTimer?.Dispose();
+            _sensorSwitchStateTimer = null;
+            _pendingSensorSwitchStates = null;
+            DeleteFile(SensorSwitchStatePath);
+        }
+
         public void ResetAll()
         {
             ResetSettings();
             ResetWindowStates();
             ResetSensorStates();
+            ResetSensorSwitchStates();
         }
 
         // backup:
-        // bundles the three raw json files into one zip; flushes any pending debounced writes first so the export always
+        // bundles the four raw json files into one zip; flushes any pending debounced writes first so the export always
         // reflects the latest in-memory state, not a stale version still waiting on its debounce timer
         public void ExportBackup(string destinationZipPath)
         {
@@ -139,9 +161,10 @@ namespace FluentSensors.Persistence.Services
             AddFileIfExists(zip, SettingsPath, "settings.json");
             AddFileIfExists(zip, WindowStatePath, "window-state.json");
             AddFileIfExists(zip, SensorStatePath, "sensors.json");
+            AddFileIfExists(zip, SensorSwitchStatePath, "sensor-switches.json");
         }
 
-        // all-or-nothing: every entry in the zip must be one of the three known files and must deserialize into its
+        // all-or-nothing: every entry in the zip must be one of the four known files and must deserialize into its
         // expected type before anything on disk gets touched; returns false without changing any state if validation fails
         // at any point
         public bool ImportBackup(string sourceZipPath)
@@ -161,6 +184,7 @@ namespace FluentSensors.Persistence.Services
                         "settings.json" => TryDeserialize<AppSettingsData>(json),
                         "window-state.json" => TryDeserialize<Dictionary<string, WindowState>>(json),
                         "sensors.json" => TryDeserialize<Dictionary<string, SensorState>>(json),
+                        "sensor-switches.json" => TryDeserialize<Dictionary<string, SensorSwitchState>>(json),
                         _ => false // unknown entry: not a valid backup file
                     };
                     if (!isValid) return false;
@@ -170,10 +194,12 @@ namespace FluentSensors.Persistence.Services
                 _settingsTimer?.Dispose(); _settingsTimer = null; _pendingSettings = null;
                 _windowStateTimer?.Dispose(); _windowStateTimer = null; _pendingWindowStates = null;
                 _sensorStateTimer?.Dispose(); _sensorStateTimer = null; _pendingSensorStates = null;
+                _sensorSwitchStateTimer?.Dispose(); _sensorSwitchStateTimer = null; _pendingSensorSwitchStates = null;
 
                 DeleteFile(SettingsPath);
                 DeleteFile(WindowStatePath);
                 DeleteFile(SensorStatePath);
+                DeleteFile(SensorSwitchStatePath);
 
                 Directory.CreateDirectory(_rootFolder);
                 foreach (var entry in zip.Entries)
@@ -183,6 +209,7 @@ namespace FluentSensors.Persistence.Services
                         "settings.json" => SettingsPath,
                         "window-state.json" => WindowStatePath,
                         "sensors.json" => SensorStatePath,
+                        "sensor-switches.json" => SensorSwitchStatePath,
                         _ => null
                     };
                     if (destPath != null) entry.ExtractToFile(destPath, overwrite: true);

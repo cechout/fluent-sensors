@@ -286,7 +286,7 @@ namespace FluentSensors.Features.Settings
 
             bool confirmed = await ConfirmAction(
                 "Import Settings?",
-                "This will overwrite all current settings, window states, and sensor states, then restart the app.",
+                "This will overwrite all current settings, window states, sensor states, and sensor switch choices, then restart the app.",
                 "Import");
             if (!confirmed) return;
 
@@ -299,6 +299,7 @@ namespace FluentSensors.Features.Settings
                 SettingsService.Instance.LoadFromData(PersistenceService.Instance.LoadSettings());
                 WindowStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadWindowStates());
                 SensorStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorStates());
+                SensorSwitchStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorSwitchStates());
 
                 RestartApp();
             }

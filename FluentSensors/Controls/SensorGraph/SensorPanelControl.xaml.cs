@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 using FluentSensors.Common.UI;
 
@@ -19,6 +20,15 @@ namespace FluentSensors.Controls.SensorGraph
     // is no separate switch for that, it is purely derived from these two
     public sealed partial class SensorPanelControl : UserControl
     {
+        // === fields ===
+
+        // manual toggle: true also shows the switch UI for a slot with exactly one candidate, false falls back to
+        // plain text in that case
+        private const bool ShowSwitchUiForSingleCandidate = true;
+
+
+        // === constructor ===
+
         public SensorPanelControl()
         {
             InitializeComponent();
@@ -38,6 +48,24 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorGraphViewModel),
                 typeof(SensorPanelControl),
                 new PropertyMetadata(null, OnOverrideChanged));
+
+        // known alternatives for this slot; null means this panel never switches at all
+        public ObservableCollection<SensorSwitchCandidate> SwitchCandidates
+        {
+            get => (ObservableCollection<SensorSwitchCandidate>)GetValue(SwitchCandidatesProperty);
+            set => SetValue(SwitchCandidatesProperty, value);
+        }
+        public static readonly DependencyProperty SwitchCandidatesProperty =
+            DependencyProperty.Register(
+                nameof(SwitchCandidates),
+                typeof(ObservableCollection<SensorSwitchCandidate>),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(null, OnSwitchCandidatesChanged));
+
+        private static void OnSwitchCandidatesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SensorPanelControl panel) panel.SyncSwitchSelection();
+        }
 
         // separate title row above everything else, showing just the sensor name
         public bool ShowTitleRow
@@ -295,6 +323,8 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 panel.GraphControl.Values = new ObservableCollection<double?>();
             }
+
+            if (e.Property == ViewModelProperty) panel.SyncSwitchSelection();
         }
 
         private void ApplyOverridesToViewModel()
@@ -337,6 +367,24 @@ namespace FluentSensors.Controls.SensorGraph
         private string GetStatusRowTitle(bool showUnit, string name, string nameWithUnit)
         {
             return showUnit ? nameWithUnit : name;
+        }
+
+        // switch button and its plain-text fallback share the same cell, exactly one of the two is ever visible
+        private Visibility GetSwitchButtonVisibility(ObservableCollection<SensorSwitchCandidate> candidates)
+        {
+            return IsSwitchUiActive(candidates) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private Visibility GetSwitchTextVisibility(ObservableCollection<SensorSwitchCandidate> candidates)
+        {
+            return IsSwitchUiActive(candidates) ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        // null (never wired up) never shows the switch UI; with exactly one candidate, ShowSwitchUiForSingleCandidate decides
+        private bool IsSwitchUiActive(ObservableCollection<SensorSwitchCandidate> candidates)
+        {
+            if (candidates == null) return false;
+            return candidates.Count > 1 || ShowSwitchUiForSingleCandidate;
         }
 
         // true whenever either tap gesture opens the flyout badge;
@@ -398,6 +446,26 @@ namespace FluentSensors.Controls.SensorGraph
             ExecuteTapAction(ButtonTapAction);
         }
 
+        // keeps the closed comboboxs displayed text in sync with the active sensor
+        private void SwitchCandidateComboBox_DropDownOpened(object sender, object e)
+        {
+            SyncSwitchSelection();
+        }
+
+        private void SwitchButton_Click(object sender, RoutedEventArgs e)
+        {
+            SwitchCandidateComboBox.IsDropDownOpen = true;
+        }
+
+        // resolves the pick (builds its graph on first pick, cached after) and hands it to ViewModel
+        private void SwitchCandidateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (SwitchCandidateComboBox.SelectedItem is not SensorSwitchCandidate candidate) return;
+            if (ViewModel != null && candidate.SensorId == ViewModel.SensorId) return;
+
+            ViewModel = candidate.Resolve();
+        }
+
 
         // === private helpers ===
 
@@ -413,6 +481,12 @@ namespace FluentSensors.Controls.SensorGraph
                     ThresholdFlyoutBadge.ShowFlyout();
                     break;
             }
+        }
+
+        private void SyncSwitchSelection()
+        {
+            if (ViewModel == null || SwitchCandidates == null) return;
+            SwitchCandidateComboBox.SelectedItem = SwitchCandidates.FirstOrDefault(c => c.SensorId == ViewModel.SensorId);
         }
     }
 }

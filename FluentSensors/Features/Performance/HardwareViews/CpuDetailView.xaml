@@ -222,8 +222,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Cpu.TotalLoadOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Cpu.TotalLoad, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Cpu.TotalLoad, Mode=TwoWay}" />
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="0"
@@ -234,8 +235,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Cpu.MaxTemperatureOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Cpu.MaxTemperature, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Cpu.MaxTemperature, Mode=TwoWay}" />
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="1"
@@ -245,8 +247,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Cpu.PackagePowerOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Cpu.PackagePower, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Cpu.PackagePower, Mode=TwoWay}" />
                             </Grid>
 
                             <!--  (narrow: all 3 stacked, first weighted bigger)  -->
@@ -271,8 +274,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Cpu.TotalLoadOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Cpu.TotalLoad, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Cpu.TotalLoad, Mode=TwoWay}" />
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="1"
@@ -282,8 +286,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Cpu.MaxTemperatureOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Cpu.MaxTemperature, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Cpu.MaxTemperature, Mode=TwoWay}" />
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="2"
@@ -292,8 +297,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Cpu.PackagePowerOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Cpu.PackagePower, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Cpu.PackagePower, Mode=TwoWay}" />
                             </Grid>
                         </Grid>
 

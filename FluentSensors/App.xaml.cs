@@ -40,6 +40,7 @@ namespace FluentSensors
             SettingsService.Instance.LoadFromData(PersistenceService.Instance.LoadSettings());
             SensorStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorStates());
             WindowStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadWindowStates());
+            SensorSwitchStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorSwitchStates());
 
             _window = new MainWindow();
             _window.Activate();

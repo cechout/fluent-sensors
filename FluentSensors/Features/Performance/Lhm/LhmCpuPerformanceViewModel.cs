@@ -1,11 +1,14 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.Lhm;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Features.Performance.Lhm
@@ -25,6 +28,11 @@ namespace FluentSensors.Features.Performance.Lhm
         // "P-Core #1 Distance to TjMax" does NOT match (it does not end right after the digits); no hardcoded exclusion
         // list needed
         private static readonly Regex CoreLabelPattern = new Regex(@"^(.+) #\d+$", RegexOptions.Compiled);
+
+        // curated candidate names per switchable category, in preference order (first present wins if nothing was persisted)
+        private static readonly string[] LoadCategoryNames = { "CPU Total" };
+        private static readonly string[] TemperatureCategoryNames = { "Core Max", "Core Average" };
+        private static readonly string[] PowerCategoryNames = { "CPU Package", "CPU Platform" };
 
 
         // === constructor ===
@@ -72,7 +80,17 @@ namespace FluentSensors.Features.Performance.Lhm
             {
                 OnSensorDiscovered(cpu, entry);
             }
+            ApplyCategoryFallbacks(cpu);
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(cpu, e);
+        }
+
+        // falls back to the first candidate if a persisted choice never shows up on this system (removed hardware,
+        // imported state from another PC); otherwise that category would stay without an active graph forever
+        private static void ApplyCategoryFallbacks(LhmCpuInstanceViewModel cpu)
+        {
+            if (cpu.TotalLoad == null && cpu.TotalLoadOptions.Count > 0) cpu.SetTotalLoadWithoutPersisting(cpu.TotalLoadOptions[0].Resolve());
+            if (cpu.MaxTemperature == null && cpu.MaxTemperatureOptions.Count > 0) cpu.SetMaxTemperatureWithoutPersisting(cpu.MaxTemperatureOptions[0].Resolve());
+            if (cpu.PackagePower == null && cpu.PackagePowerOptions.Count > 0) cpu.SetPackagePowerWithoutPersisting(cpu.PackagePowerOptions[0].Resolve());
         }
 
         private void OnInstanceSensorsChanged(LhmCpuInstanceViewModel cpu, NotifyCollectionChangedEventArgs e)
@@ -89,11 +107,10 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             if (entry.SensorType == "Load")
             {
-                if (entry.Name == "CPU Total")
+                if (LoadCategoryNames.Contains(entry.Name))
                 {
-                    cpu.TotalLoad = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
-                    PushDataPoint(cpu.TotalLoad, entry);
-                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(cpu.TotalLoad, entry, e);
+                    RegisterCategoryCandidate(cpu, "Load", entry,
+                        c => c.TotalLoad, (c, g) => c.SetTotalLoadWithoutPersisting(g), cpu.TotalLoadOptions);
                     return;
                 }
 
@@ -118,17 +135,10 @@ namespace FluentSensors.Features.Performance.Lhm
             }
             else if (entry.SensorType == "Temperature")
             {
-                if (entry.Name == "Core Average")
+                if (TemperatureCategoryNames.Contains(entry.Name))
                 {
-                    cpu.AverageTemperature = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
-                    PushDataPoint(cpu.AverageTemperature, entry);
-                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(cpu.AverageTemperature, entry, e);
-                }
-                else if (entry.Name == "Core Max")
-                {
-                    cpu.MaxTemperature = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
-                    PushDataPoint(cpu.MaxTemperature, entry);
-                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(cpu.MaxTemperature, entry, e);
+                    RegisterCategoryCandidate(cpu, "Temperature", entry,
+                        c => c.MaxTemperature, (c, g) => c.SetMaxTemperatureWithoutPersisting(g), cpu.MaxTemperatureOptions);
                 }
                 else
                 {
@@ -168,13 +178,42 @@ namespace FluentSensors.Features.Performance.Lhm
             }
             else if (entry.SensorType == "Power")
             {
-                // only the package-level total is shown on the overview page
-                if (entry.Name == "CPU Package")
+                if (PowerCategoryNames.Contains(entry.Name))
                 {
-                    cpu.PackagePower = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
-                    PushDataPoint(cpu.PackagePower, entry);
-                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(cpu.PackagePower, entry, e);
+                    RegisterCategoryCandidate(cpu, "Power", entry,
+                        c => c.PackagePower, (c, g) => c.SetPackagePowerWithoutPersisting(g), cpu.PackagePowerOptions);
                 }
+            }
+        }
+
+        // adds entry as a candidate, and activates it if nothing is active yet and it matches the persisted choice
+        // (or nothing was ever persisted, first-found-wins)
+        private void RegisterCategoryCandidate(
+            LhmCpuInstanceViewModel cpu,
+            string category,
+            LhmSensorEntry entry,
+            Func<LhmCpuInstanceViewModel, SensorGraphViewModel> getActive,
+            Action<LhmCpuInstanceViewModel, SensorGraphViewModel> setActiveWithoutPersisting,
+            ObservableCollection<SensorSwitchCandidate> options)
+        {
+            SensorGraphViewModel cached = null;
+            SensorGraphViewModel Resolve()
+            {
+                if (cached != null) return cached;
+                cached = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                PushDataPoint(cached, entry);
+                entry.PropertyChanged += (s, e) => OnEntryValueChanged(cached, entry, e);
+                return cached;
+            }
+
+            options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve));
+
+            if (getActive(cpu) != null) return; // already resolved, this is just an additional alternative
+
+            string persistedId = SensorSwitchStateService.Instance.GetSelectedSensorId(cpu.HardwareName, category);
+            if (persistedId == entry.Id || persistedId == null)
+            {
+                setActiveWithoutPersisting(cpu, Resolve());
             }
         }
 

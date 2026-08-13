@@ -33,6 +33,7 @@
 
             <!--  status row: toggle button, current Y-max, sensor name (+ unit), current value  -->
             <Grid
+                Height="18"
                 Padding="0,0,0,0"
                 HorizontalAlignment="Stretch"
                 Background="Transparent"
@@ -67,7 +68,7 @@
                 <!--  current max y-axis value  -->
                 <TextBlock
                     Grid.Column="1"
-                    Margin="1,0,10,0"
+                    Margin="1,0,6,0"
                     Padding="0,0,0,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
@@ -75,17 +76,47 @@
                     Text="{x:Bind ViewModel.ActualYMaxText, Mode=OneWay}" />
 
                 <!--  sensor name, or name + unit if ShowUnitInStatusRow  -->
+                <!--  switchable: subtle button with a manual chevron, opens the hidden combobox below in one click  -->
+                <Button
+                    Grid.Column="2"
+                    Padding="6,0,7,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Stretch"
+                    HorizontalContentAlignment="Left"
+                    Click="SwitchButton_Click"
+                    Style="{StaticResource SubtleButtonStyle}"
+                    Visibility="{x:Bind GetSwitchButtonVisibility(SwitchCandidates), Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind GetStatusRowTitle(ShowUnitInStatusRow, ViewModel.SensorName, ViewModel.DisplayNameWithUnit), Mode=OneWay}" />
+                        <FontIcon FontSize="10" Glyph="&#xE70D;" />
+                    </StackPanel>
+                </Button>
+
+                <!--  drives the actual selection; kept invisible, the button above just opens its dropdown  -->
+                <ComboBox
+                    x:Name="SwitchCandidateComboBox"
+                    Grid.Column="2"
+                    DisplayMemberPath="DisplayName"
+                    DropDownOpened="SwitchCandidateComboBox_DropDownOpened"
+                    IsHitTestVisible="False"
+                    ItemsSource="{x:Bind SwitchCandidates, Mode=OneWay}"
+                    Opacity="0"
+                    SelectionChanged="SwitchCandidateComboBox_SelectionChanged"
+                    Visibility="{x:Bind GetSwitchButtonVisibility(SwitchCandidates), Mode=OneWay}" />
+
+                <!--  plain fallback for the single-candidate case  -->
                 <TextBlock
                     Grid.Column="2"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetStatusRowTitle(ShowUnitInStatusRow, ViewModel.SensorName, ViewModel.DisplayNameWithUnit), Mode=OneWay}" />
+                    Text="{x:Bind GetStatusRowTitle(ShowUnitInStatusRow, ViewModel.SensorName, ViewModel.DisplayNameWithUnit), Mode=OneWay}"
+                    Visibility="{x:Bind GetSwitchTextVisibility(SwitchCandidates), Mode=OneWay}" />
 
                 <!--  current value  -->
                 <TextBlock
                     Grid.Column="2"
-                    Padding="0,0,6,0"
+                    Padding="0,0,7,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
                     Foreground="{x:Bind ViewModel.CurrentValueColor, Mode=OneWay}"
@@ -111,7 +142,7 @@
             <!--  Y-axis control buttons  -->
             <Grid
                 Grid.Column="0"
-                Width="36"
+                Width="35"
                 Padding="0,0,3,0"
                 RowSpacing="3"
                 Visibility="{x:Bind GetYAxisControlsVisibility(ShowYAxisControls, GraphTapAction, ButtonTapAction, ViewModel.ControlPanelVisibility), Mode=OneWay}">
@@ -156,7 +187,7 @@
             <!--  threshold buttons 1  -->
             <Grid
                 Grid.Column="2"
-                Width="36"
+                Width="35"
                 Padding="3,0,0,0"
                 RowSpacing="3"
                 Visibility="{x:Bind GetThresholdControlsVisibility(ShowThresholdControls, GraphTapAction, ButtonTapAction, ViewModel.ControlPanelVisibility), Mode=OneWay}">
@@ -201,7 +232,7 @@
             <!--  threshold buttons 2  -->
             <Grid
                 Grid.Column="3"
-                Width="36"
+                Width="35"
                 Padding="3,0,0,0"
                 RowSpacing="3"
                 Visibility="{x:Bind GetThresholdControlsVisibility(ShowThresholdControls, GraphTapAction, ButtonTapAction, ViewModel.ControlPanelVisibility), Mode=OneWay}">

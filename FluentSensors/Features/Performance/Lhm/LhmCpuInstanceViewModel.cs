@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Features.Performance.Lhm
@@ -43,6 +44,12 @@ namespace FluentSensors.Features.Performance.Lhm
             CoresWithThreads = new ObservableCollection<LhmCpuCoreViewModel>();
             CoresWithoutThreads = new ObservableCollection<LhmCpuCoreViewModel>();
 
+            // switch-candidate lists for the three overview categories; LhmCpuPerformanceViewModel populates these
+            // as it discovers matching sensors
+            TotalLoadOptions = new ObservableCollection<SensorSwitchCandidate>();
+            MaxTemperatureOptions = new ObservableCollection<SensorSwitchCandidate>();
+            PackagePowerOptions = new ObservableCollection<SensorSwitchCandidate>();
+
             // synthetic per-group averages for the All Threads tiles; not discovered from LHM like the graphs above,
             // computed locally
             // sensor id only needs to be unique within one CPU instance, fine since multi-socket systems with identical
@@ -60,32 +67,66 @@ namespace FluentSensors.Features.Performance.Lhm
 
         public string HardwareName { get; }
 
+        // public setter persists the choice; SetXWithoutPersisting is for the default/restored graph during discovery
+        // MaxTemperature/PackagePower below follow the same shape silently
         private SensorGraphViewModel _totalLoad;
         public SensorGraphViewModel TotalLoad
         {
             get => _totalLoad;
-            set { _totalLoad = value; OnPropertyChanged(); }
+            set
+            {
+                if (_totalLoad == value) return;
+                _totalLoad = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "Load", value.SensorId);
+            }
         }
+        public ObservableCollection<SensorSwitchCandidate> TotalLoadOptions { get; }
 
-        private SensorGraphViewModel _averageTemperature;
-        public SensorGraphViewModel AverageTemperature
+        internal void SetTotalLoadWithoutPersisting(SensorGraphViewModel value)
         {
-            get => _averageTemperature;
-            set { _averageTemperature = value; OnPropertyChanged(); }
+            _totalLoad = value;
+            OnPropertyChanged(nameof(TotalLoad));
         }
 
         private SensorGraphViewModel _maxTemperature;
         public SensorGraphViewModel MaxTemperature
         {
             get => _maxTemperature;
-            set { _maxTemperature = value; OnPropertyChanged(); }
+            set
+            {
+                if (_maxTemperature == value) return;
+                _maxTemperature = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "Temperature", value.SensorId);
+            }
+        }
+        public ObservableCollection<SensorSwitchCandidate> MaxTemperatureOptions { get; }
+
+        internal void SetMaxTemperatureWithoutPersisting(SensorGraphViewModel value)
+        {
+            _maxTemperature = value;
+            OnPropertyChanged(nameof(MaxTemperature));
         }
 
         private SensorGraphViewModel _packagePower;
         public SensorGraphViewModel PackagePower
         {
             get => _packagePower;
-            set { _packagePower = value; OnPropertyChanged(); }
+            set
+            {
+                if (_packagePower == value) return;
+                _packagePower = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "Power", value.SensorId);
+            }
+        }
+        public ObservableCollection<SensorSwitchCandidate> PackagePowerOptions { get; }
+
+        internal void SetPackagePowerWithoutPersisting(SensorGraphViewModel value)
+        {
+            _packagePower = value;
+            OnPropertyChanged(nameof(PackagePower));
         }
 
         private bool _isShowingAllThreads;
