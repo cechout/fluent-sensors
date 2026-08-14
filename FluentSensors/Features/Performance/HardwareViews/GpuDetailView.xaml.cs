@@ -1,25 +1,26 @@
-using FluentSensors.Common.Sensors;
-using FluentSensors.Features.Performance;
-using FluentSensors.Features.Performance.Lhm;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
 
+using FluentSensors.Common.Sensors;
+using FluentSensors.Features.Performance;
+using FluentSensors.Features.Performance.Lhm;
+
 
 namespace FluentSensors.Features.Performance.HardwareViews
 {
+    // self-contained GPU detail view: everything shown once a GPU nav item is selected, including its own
+    // Overall/Extended toggle bar
     public sealed partial class GpuDetailView : UserControl
     {
         // === fields ===
 
+        // below this width, the wide 3-graph layout (big Load graph + 2 stacked) switches to the narrow layout
+        // (all 3 stacked equally)
         private const double NarrowGraphsLayoutThreshold = 700;
-
-        // tracks which layout is active per row; Visibility can no longer be queried for this (see workaround
-        // comment on SetLayoutActive below), so this replaces the previous
-        // WideGraphsGridN.Visibility == Visible checks
-        private bool _isNarrowLayout1Active;
-        private bool _isNarrowLayout2Active;
+        private bool _isNarrowLayoutActive;
+        private bool _extendedTimeSpanHookAttached;
 
 
         // === constructor ===
@@ -28,12 +29,11 @@ namespace FluentSensors.Features.Performance.HardwareViews
         {
             InitializeComponent();
 
-            // literal xaml children, already exist right after InitializeComponent, no need to wait for Loaded
             PerformanceGraphDefaults.ApplyTimeSpan(OverviewBlockGrid, PerformanceGraphDefaults.StandardTimeSpanSeconds);
         }
 
 
-        // === dependency properties ===
+        // === bindable properties ===
 
         // graph color for every SensorPanelControl in this view; single source of truth in HardwareGroupInfo
         public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).Color;
@@ -41,6 +41,9 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).Label;
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).IconGlyph;
+
+
+        // === dependency properties ===
 
         public LhmGpuInstanceViewModel Gpu
         {
@@ -63,17 +66,71 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === event handlers ===
 
+        private void ShowOverall_Click(object sender, RoutedEventArgs e)
+        {
+            if (Gpu != null) Gpu.IsShowingExtended = false;
+            RecalculateOverviewHeight();
+        }
+
+        private void ShowExtended_Click(object sender, RoutedEventArgs e)
+        {
+            if (Gpu != null) Gpu.IsShowingExtended = true;
+            RecalculateOverviewHeight();
+        }
+
         private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             RecalculateOverviewHeight();
         }
 
-        // recomputes OverviewBlockGrid.Height from the scroll viewers current size
+        private void GraphsAreaGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            _isNarrowLayoutActive = e.NewSize.Width < NarrowGraphsLayoutThreshold;
+            SetLayoutActive(WideGraphsGrid, NarrowGraphsPanel, _isNarrowLayoutActive);
+            RecalculateOverviewHeight();
+        }
+
+
+        // === private helpers ===
+
+        // recomputes whichever section (Overview or Extended) is currently shown
         //
-        // Called both by ContentScrollViewer_SizeChanged above and externally by PerformancePage after a nav
-        // sidebar/info panel toggle, since that changes DetailHostGrids available size without necessarily firing
-        // SizeChanged on this control quickly enough
+        // Called both by the handlers above and externally by PerformancePage after a nav sidebar/info panel toggle,
+        // since that changes DetailHostGrids available size without necessarily firing SizeChanged on this control
+        // quickly enough
         public void RecalculateOverviewHeight()
+        {
+            if (Gpu == null) return;
+
+            if (Gpu.IsShowingExtended)
+            {
+                OverviewBlockGrid.Height = 0;
+
+                // ExtendedGrid is x:Load="False"; FindName forces it into the tree the first time Extended is
+                // actually selected, and is a cheap no-op on every call after that
+                FindName(nameof(ExtendedGrid));
+                ExtendedGrid.Height = double.NaN;
+
+                if (!_extendedTimeSpanHookAttached)
+                {
+                    _extendedTimeSpanHookAttached = true;
+                    ExtendedGrid.Loaded += (s, e) =>
+                        PerformanceGraphDefaults.ApplyTimeSpan(ExtendedGrid, PerformanceGraphDefaults.GpuExtendedTimeSpanSeconds);
+                }
+            }
+            else
+            {
+                UpdateOverviewHeight();
+
+                // still null if Extended was never selected this session; nothing to size in that case
+                if (ExtendedGrid != null) ExtendedGrid.Height = 0;
+            }
+        }
+
+        // keeps the overview block at least as tall as the visible viewport (so its graphs can stretch to fill it),
+        // but lets it grow past that, and let the ScrollViewer take over once its natural minimum height
+        // (graph MinHeight + tiles) no longer fits
+        private void UpdateOverviewHeight()
         {
             double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
             double headerHeight = HeaderGrid.ActualHeight + ContentStackPanel.Spacing;
@@ -83,38 +140,17 @@ namespace FluentSensors.Features.Performance.HardwareViews
             TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth - horizontalPadding, double.PositiveInfinity));
             double tilesHeight = TilesGrid.DesiredSize.Height;
 
-            double row1MinHeight = _isNarrowLayout1Active ? NarrowGraphsPanel1.MinHeight : WideGraphsGrid1.MinHeight;
-            double row2MinHeight = _isNarrowLayout2Active ? NarrowGraphsPanel2.MinHeight : WideGraphsGrid2.MinHeight;
+            double graphsMinHeight = _isNarrowLayoutActive ? NarrowGraphsPanel.MinHeight : WideGraphsGrid.MinHeight;
 
-            double naturalMinHeight = row1MinHeight + row2MinHeight + (OverviewBlockGrid.RowSpacing * 2) + tilesHeight;
+            double naturalMinHeight = graphsMinHeight + OverviewBlockGrid.RowSpacing + tilesHeight;
+
             OverviewBlockGrid.Height = Math.Max(availableHeight, naturalMinHeight);
         }
-
-        private void GraphsAreaGrid1_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            _isNarrowLayout1Active = e.NewSize.Width < NarrowGraphsLayoutThreshold;
-            SetLayoutActive(WideGraphsGrid1, NarrowGraphsPanel1, _isNarrowLayout1Active);
-        }
-
-        private void GraphsAreaGrid2_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            _isNarrowLayout2Active = e.NewSize.Width < NarrowGraphsLayoutThreshold;
-            SetLayoutActive(WideGraphsGrid2, NarrowGraphsPanel2, _isNarrowLayout2Active);
-        }
-
-
-        // === private helpers ===
 
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
         // problem: same root cause as PerformancePage.xaml.cs UpdateDetailView (see that comment for the full
         // explanation)
-        // A SensorGraphControl that is Visibility.Collapsed when its parent page unloads and reloads never recovers,
-        // even once made Visible again with a real size later; the Wide/Narrow layout switch hits this exact same
-        // trap one level deeper than the outer detail-view switch, since whichever layout is not currently active
-        // is normally the one thats Collapsed
-        // fix: same pattern as the outer fix; never Collapse either layout, toggle Opacity + IsHitTestVisible
-        // instead; both layouts now always occupy their full measured space (they already overlap in the same
-        // Grid cell, so this doesnt change the visible arrangement), just one of them is invisible/non-interactive
+        // fix: never Collapse either layout, toggle Opacity + IsHitTestVisible instead
         private static void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
         {
             wideLayout.Opacity = useNarrow ? 0 : 1;

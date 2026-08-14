@@ -113,12 +113,13 @@
                                     Grid.Column="0"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
-                                    ManualYMaxOverride="100"
+                                    ManualYMaxOverride="{x:Bind Storage.TotalSpace, Mode=OneWay}"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.TotalActivityOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Storage.TotalActivity, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Storage.TotalActivity, Mode=TwoWay}" />
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="0"
@@ -128,8 +129,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.ReadRateOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Storage.ReadRate, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Storage.ReadRate, Mode=TwoWay}" />
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="1"
@@ -139,8 +141,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.WriteRateOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Storage.WriteRate, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Storage.WriteRate, Mode=TwoWay}" />
                             </Grid>
 
                             <Grid
@@ -159,12 +162,13 @@
                                     Grid.Row="0"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
-                                    ManualYMaxOverride="100"
+                                    ManualYMaxOverride="{x:Bind Storage.TotalSpace, Mode=OneWay}"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.TotalActivityOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Storage.TotalActivity, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Storage.TotalActivity, Mode=TwoWay}" />
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="1"
@@ -173,8 +177,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.ReadRateOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Storage.ReadRate, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Storage.ReadRate, Mode=TwoWay}" />
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="2"
@@ -183,8 +188,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.WriteRateOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Storage.WriteRate, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Storage.WriteRate, Mode=TwoWay}" />
                             </Grid>
                         </Grid>
 

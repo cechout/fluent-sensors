@@ -14,6 +14,10 @@
     mc:Ignorable="d">
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="4*" />
             <ColumnDefinition
@@ -27,7 +31,9 @@
         <!--  view content with header, graphs and tiles  -->
         <ScrollViewer
             x:Name="ContentScrollViewer"
+            Grid.Row="0"
             Grid.Column="0"
+            Background="Transparent"
             HorizontalScrollBarVisibility="Disabled"
             SizeChanged="ContentScrollViewer_SizeChanged"
             VerticalScrollBarVisibility="Auto"
@@ -73,30 +79,29 @@
                 </Grid>
 
 
-                <Grid>
+                <Grid x:Name="PageContentGrid">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
+                    <!--  gpu view 1: overview (Load, Temperature, Power), same 3-slot switchable layout as CPU  -->
                     <Grid
                         x:Name="OverviewBlockGrid"
                         Grid.Row="0"
                         RowSpacing="12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  row 1: core load (big) + hot spot temp + package power  -->
-                        <!--  (same as CPU)  -->
                         <Grid
-                            x:Name="GraphsAreaGrid1"
+                            x:Name="GraphsAreaGrid"
                             Grid.Row="0"
-                            SizeChanged="GraphsAreaGrid1_SizeChanged">
+                            Background="Transparent"
+                            SizeChanged="GraphsAreaGrid_SizeChanged">
 
                             <Grid
-                                x:Name="WideGraphsGrid1"
+                                x:Name="WideGraphsGrid"
                                 MinHeight="190"
                                 ColumnSpacing="8"
                                 RowSpacing="8">
@@ -130,38 +135,41 @@
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
-                                    PlaceholderSensorName="GPU Hot Spot"
+                                    PlaceholderSensorName="GPU Temperature"
                                     PlaceholderUnit="°C"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.TemperatureOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.HotSpotTemperature, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Gpu.Temperature, Mode=TwoWay}" />
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="1"
                                     Grid.Column="1"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
-                                    PlaceholderSensorName="GPU Package"
-                                    PlaceholderUnit="W"
+                                    PlaceholderSensorName="GPU Power"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.PackagePowerOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.PackagePower, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Gpu.PackagePower, Mode=TwoWay}" />
                             </Grid>
 
+                            <!--  (narrow: all 3 stacked, first weighted bigger)  -->
                             <Grid
-                                x:Name="NarrowGraphsPanel1"
-                                MinHeight="300"
+                                x:Name="NarrowGraphsPanel"
+                                MinHeight="360"
+                                Background="Transparent"
                                 IsHitTestVisible="False"
                                 Opacity="0"
                                 RowSpacing="8">
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="5*" />
+                                    <RowDefinition Height="3*" />
+                                    <RowDefinition Height="3*" />
                                 </Grid.RowDefinitions>
 
                                 <fhGraph:SensorPanelControl
@@ -182,145 +190,33 @@
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
-                                    PlaceholderSensorName="GPU Hot Spot"
+                                    PlaceholderSensorName="GPU Temperature"
                                     PlaceholderUnit="°C"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.TemperatureOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.HotSpotTemperature, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Gpu.Temperature, Mode=TwoWay}" />
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="2"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
-                                    PlaceholderSensorName="GPU Package"
-                                    PlaceholderUnit="W"
+                                    PlaceholderSensorName="GPU Power"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.PackagePowerOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.PackagePower, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Gpu.PackagePower, Mode=TwoWay}" />
                             </Grid>
                         </Grid>
 
-                        <!--  row 2: memory used (big) + core/memory clock stacked  -->
-                        <Grid
-                            x:Name="GraphsAreaGrid2"
-                            Grid.Row="1"
-                            SizeChanged="GraphsAreaGrid2_SizeChanged">
-
-                            <Grid
-                                x:Name="WideGraphsGrid2"
-                                MinHeight="190"
-                                ColumnSpacing="8"
-                                RowSpacing="8">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="2*" />
-                                    <ColumnDefinition Width="3*" />
-                                </Grid.ColumnDefinitions>
-
-                                <fhGraph:SensorPanelControl
-                                    Grid.Row="0"
-                                    Grid.Column="0"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    IsAutoScaledOverride="True"
-                                    PlaceholderSensorName="GPU Core"
-                                    PlaceholderUnit="MHz"
-                                    ShowStatusRow="True"
-                                    ShowThresholdControls="True"
-                                    ShowYAxisControls="True"
-                                    ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.CoreClock, Mode=OneWay}" />
-
-                                <fhGraph:SensorPanelControl
-                                    Grid.Row="1"
-                                    Grid.Column="0"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    IsAutoScaledOverride="True"
-                                    PlaceholderSensorName="GPU Memory"
-                                    PlaceholderUnit="MHz"
-                                    ShowStatusRow="True"
-                                    ShowThresholdControls="True"
-                                    ShowYAxisControls="True"
-                                    ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.MemoryClock, Mode=OneWay}" />
-
-                                <fhGraph:SensorPanelControl
-                                    Grid.Row="0"
-                                    Grid.RowSpan="2"
-                                    Grid.Column="1"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    IsAutoScaledOverride="False"
-                                    ManualYMaxOverride="{x:Bind Gpu.MemoryTotal, Mode=OneWay}"
-                                    PlaceholderSensorName="GPU Memory Used"
-                                    PlaceholderUnit="MB"
-                                    ShowStatusRow="True"
-                                    ShowThresholdControls="True"
-                                    ShowYAxisControls="True"
-                                    ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.MemoryUsed, Mode=OneWay}" />
-                            </Grid>
-
-                            <Grid
-                                x:Name="NarrowGraphsPanel2"
-                                MinHeight="300"
-                                IsHitTestVisible="False"
-                                Opacity="0"
-                                RowSpacing="8">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-
-                                <fhGraph:SensorPanelControl
-                                    Grid.Row="0"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    IsAutoScaledOverride="False"
-                                    ManualYMaxOverride="{x:Bind Gpu.MemoryTotal, Mode=OneWay}"
-                                    PlaceholderSensorName="GPU Memory Used"
-                                    PlaceholderUnit="MB"
-                                    ShowStatusRow="True"
-                                    ShowThresholdControls="True"
-                                    ShowYAxisControls="True"
-                                    ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.MemoryUsed, Mode=OneWay}" />
-
-                                <fhGraph:SensorPanelControl
-                                    Grid.Row="1"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    IsAutoScaledOverride="True"
-                                    PlaceholderSensorName="GPU Core"
-                                    PlaceholderUnit="MHz"
-                                    ShowStatusRow="True"
-                                    ShowThresholdControls="True"
-                                    ShowYAxisControls="True"
-                                    ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.CoreClock, Mode=OneWay}" />
-
-                                <fhGraph:SensorPanelControl
-                                    Grid.Row="2"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                                    IsAutoScaledOverride="True"
-                                    PlaceholderSensorName="GPU Memory"
-                                    PlaceholderUnit="MHz"
-                                    ShowStatusRow="True"
-                                    ShowThresholdControls="True"
-                                    ShowYAxisControls="True"
-                                    ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.MemoryClock, Mode=OneWay}" />
-                            </Grid>
-                        </Grid>
-
-                        <!--  current value tiles  -->
-                        <Grid x:Name="TilesGrid" Grid.Row="2">
+                        <!--  current graph value tiles  -->
+                        <Grid x:Name="TilesGrid" Grid.Row="1">
                             <controls:WrapPanel
-                                Margin="0,0,0,12"
+                                Margin="4,0,4,12"
                                 HorizontalSpacing="8"
                                 VerticalSpacing="8">
                                 <fhTile:SensorTileControl
@@ -328,35 +224,324 @@
                                     Width="100"
                                     ViewModel="{x:Bind Gpu.CoreLoad, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Hot Spot"
-                                    Width="85"
-                                    ViewModel="{x:Bind Gpu.HotSpotTemperature, Mode=OneWay}" />
+                                    Title="Temperature"
+                                    Width="100"
+                                    ViewModel="{x:Bind Gpu.Temperature, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
                                     Title="Package Power"
                                     Width="100"
                                     ViewModel="{x:Bind Gpu.PackagePower, Mode=OneWay}" />
-                                <fhTile:SensorTileControl
-                                    Title="Memory Used"
-                                    Width="100"
-                                    ViewModel="{x:Bind Gpu.MemoryUsed, Mode=OneWay}" />
-                                <fhTile:SensorTileControl
-                                    Title="Core Clock"
-                                    Width="120"
-                                    ViewModel="{x:Bind Gpu.CoreClock, Mode=OneWay}" />
-                                <fhTile:SensorTileControl
-                                    Title="Memory Clock"
-                                    Width="120"
-                                    ViewModel="{x:Bind Gpu.MemoryClock, Mode=OneWay}" />
                             </controls:WrapPanel>
                         </Grid>
+                    </Grid>
+
+
+                    <!--  gpu view 2: extended, grouped by theme instead of by core (no tiles here, see chat)  -->
+                    <Grid
+                        x:Name="ExtendedGrid"
+                        Grid.Row="0"
+                        x:Load="False"
+                        IsHitTestVisible="{x:Bind Gpu.ExtendedIsHitTestVisible, Mode=OneWay}"
+                        Opacity="{x:Bind Gpu.ExtendedOpacity, Mode=OneWay}"
+                        RowSpacing="20">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!--  core; Power/Voltage sits at the top since it does not have a group of its own anymore  -->
+                        <StackPanel Grid.Row="0" Spacing="8">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Core" />
+                            <fhControls:SquareGridPanel MinCellHeight="90" MinCellWidth="260" Spacing="12">
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="GPU Power"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.PackagePowerOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.PackagePower, Mode=TwoWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="GPU Core"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.CoreLoad, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="GPU Core"
+                                    PlaceholderUnit="MHz"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.CoreClock, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="GPU Core"
+                                    PlaceholderUnit="°C"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.CoreTemperature, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="GPU Hot Spot"
+                                    PlaceholderUnit="°C"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.HotSpotTemperature, Mode=OneWay}" />
+                            </fhControls:SquareGridPanel>
+                        </StackPanel>
+
+                        <!--  memory; Memory Free folded into the MemoryUsed switch instead of its own cell  -->
+                        <StackPanel Grid.Row="1" Spacing="8">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Memory" />
+                            <fhControls:SquareGridPanel MinCellHeight="90" MinCellWidth="260" Spacing="12">
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="{x:Bind Gpu.MemoryTotal, Mode=OneWay}"
+                                    PlaceholderSensorName="GPU Memory Used"
+                                    PlaceholderUnit="MB"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.MemoryUsedOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.MemoryUsed, Mode=TwoWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="GPU Memory"
+                                    PlaceholderUnit="MHz"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.MemoryClock, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="GPU Memory Controller"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.MemoryControllerLoad, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="D3D Shared Memory Used"
+                                    PlaceholderUnit="MB"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.D3dSharedMemoryUsed, Mode=OneWay}" />
+                            </fhControls:SquareGridPanel>
+                        </StackPanel>
+
+                        <!--  pcie / bus  -->
+                        <StackPanel Grid.Row="2" Spacing="8">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="PCIe / Bus" />
+                            <fhControls:SquareGridPanel MinCellHeight="90" MinCellWidth="260" Spacing="12">
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="GPU PCIe Rx"
+                                    PlaceholderUnit="MB/s"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.PcieRx, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="GPU PCIe Tx"
+                                    PlaceholderUnit="MB/s"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.PcieTx, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="GPU Bus"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.BusLoad, Mode=OneWay}" />
+                            </fhControls:SquareGridPanel>
+                        </StackPanel>
+
+                        <!--  engines: 1 fixed anchor + 4 switchable slots sharing the full D3D pool  -->
+                        <StackPanel Grid.Row="3" Spacing="8">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Engines" />
+                            <fhControls:SquareGridPanel MinCellHeight="90" MinCellWidth="260" Spacing="12">
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="GPU Video Engine"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.VideoEngineLoad, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="D3D Engine"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.D3dEngineOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.D3dEngineSlot1, Mode=TwoWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="D3D Engine"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.D3dEngineOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.D3dEngineSlot2, Mode=TwoWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="D3D Engine"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.D3dEngineOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.D3dEngineSlot3, Mode=TwoWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="D3D Engine"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.D3dEngineOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.D3dEngineSlot4, Mode=TwoWay}" />
+                            </fhControls:SquareGridPanel>
+                        </StackPanel>
+
                     </Grid>
                 </Grid>
             </StackPanel>
         </ScrollViewer>
 
 
+        <!--  gpu bottom bar  -->
+        <Border
+            Grid.Row="1"
+            Grid.Column="0"
+            Padding="16,0,10,1"
+            Background="Transparent"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <CommandBar
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Background="Transparent"
+                    DefaultLabelPosition="Right"
+                    IsDynamicOverflowEnabled="False"
+                    IsOpen="False">
+
+                    <CommandBar.Resources>
+                        <SolidColorBrush x:Key="CommandBarBackground" Color="Transparent" />
+                        <SolidColorBrush x:Key="CommandBarBackgroundOpen" Color="Transparent" />
+                        <SolidColorBrush x:Key="CommandBarBorderBrushOpen" Color="Transparent" />
+
+                        <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
+                    </CommandBar.Resources>
+
+                    <AppBarButton
+                        x:Name="ShowOverallButton"
+                        Click="ShowOverall_Click"
+                        Label="Overall">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xF16B;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="ShowExtendedButton"
+                        Click="ShowExtended_Click"
+                        Label="Extended">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xF0E2;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+                </CommandBar>
+            </Grid>
+        </Border>
+
+
         <!--  info panel: static hardware facts for the selected GPU  -->
         <Border
+            Grid.Row="0"
+            Grid.RowSpan="2"
             Grid.Column="1"
             VerticalAlignment="Stretch"
             Background="Transparent"
@@ -476,8 +661,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="PnP Device ID"
-                                    TextWrapping="Wrap" />
+                                    Text="PnP Device ID" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
                                     Text="{x:Bind Gpu.GpuPnpDeviceIdText, Mode=OneWay}"

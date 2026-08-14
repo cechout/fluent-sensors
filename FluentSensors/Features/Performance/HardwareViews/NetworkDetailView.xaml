@@ -87,7 +87,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  upload + download; wide: side by side, narrow: stacked  -->
+                        <!--  utilization (big, switchable) + upload/download stacked; narrow: all 3 stacked equally  -->
                         <Grid
                             x:Name="GraphsAreaGrid"
                             Grid.Row="0"
@@ -95,15 +95,36 @@
 
                             <Grid
                                 x:Name="WideGraphsGrid"
-                                MinHeight="200"
-                                ColumnSpacing="8">
+                                MinHeight="190"
+                                ColumnSpacing="8"
+                                RowSpacing="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="3*" />
+                                    <ColumnDefinition Width="2*" />
                                 </Grid.ColumnDefinitions>
 
                                 <fhGraph:SensorPanelControl
+                                    Grid.Row="0"
+                                    Grid.RowSpan="2"
                                     Grid.Column="0"
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Network Utilization"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Network.NetworkUtilizationOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.NetworkUtilization, Mode=TwoWay}" />
+
+                                <fhGraph:SensorPanelControl
+                                    Grid.Row="0"
+                                    Grid.Column="1"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
                                     ShowStatusRow="True"
@@ -113,6 +134,7 @@
                                     ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
 
                                 <fhGraph:SensorPanelControl
+                                    Grid.Row="1"
                                     Grid.Column="1"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
@@ -125,10 +147,22 @@
 
                             <fhControls:VerticalStretchPanel
                                 x:Name="NarrowGraphsPanel"
-                                MinHeight="240"
+                                MinHeight="360"
                                 IsHitTestVisible="False"
                                 Opacity="0"
                                 Spacing="8">
+                                <fhGraph:SensorPanelControl
+                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Network Utilization"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Network.NetworkUtilizationOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.NetworkUtilization, Mode=TwoWay}" />
+
                                 <fhGraph:SensorPanelControl
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
@@ -155,6 +189,10 @@
                                 Margin="0,0,0,12"
                                 HorizontalSpacing="8"
                                 VerticalSpacing="8">
+                                <fhTile:SensorTileControl
+                                    Title="Utilization"
+                                    Width="90"
+                                    ViewModel="{x:Bind Network.NetworkUtilization, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
                                     Title="Upload Speed"
                                     Width="110"

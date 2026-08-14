@@ -13,6 +13,7 @@ namespace FluentSensors.Features.Performance
     {
         public const double StandardTimeSpanSeconds = 45;
         public const double CpuThreadTimeSpanSeconds = 30;
+        public const double GpuExtendedTimeSpanSeconds = 30;
 
         // walks every SensorPanelControl under root and applies timeSpanSeconds to it
         public static void ApplyTimeSpan(DependencyObject root, double timeSpanSeconds)

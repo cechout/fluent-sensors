@@ -1,10 +1,13 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
 
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.Lhm;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Features.Performance.Lhm
@@ -60,7 +63,18 @@ namespace FluentSensors.Features.Performance.Lhm
             {
                 OnSensorDiscovered(adapter, entry);
             }
+            ApplyCategoryFallbacks(adapter);
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(adapter, e);
+        }
+
+        // falls back to the first candidate if a persisted choice never shows up on this system (removed hardware,
+        // imported state from another PC); otherwise the category would stay without an active graph forever
+        private static void ApplyCategoryFallbacks(LhmNetworkInstanceViewModel adapter)
+        {
+            if (adapter.NetworkUtilization == null && adapter.NetworkUtilizationOptions.Count > 0)
+            {
+                adapter.SetNetworkUtilizationWithoutPersisting(adapter.NetworkUtilizationOptions[0].Resolve());
+            }
         }
 
         private void OnInstanceSensorsChanged(LhmNetworkInstanceViewModel adapter, NotifyCollectionChangedEventArgs e)
@@ -89,6 +103,55 @@ namespace FluentSensors.Features.Performance.Lhm
                     PushDataPoint(adapter.DownloadSpeed, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(adapter.DownloadSpeed, entry, e);
                     break;
+
+                case "Network Utilization":
+                    RegisterCategoryCandidate(adapter, "Utilization", entry,
+                        a => a.NetworkUtilization, (a, v) => a.SetNetworkUtilizationWithoutPersisting(v), adapter.NetworkUtilizationOptions);
+                    break;
+
+                case "Data Uploaded":
+                    RegisterCategoryCandidate(adapter, "Utilization", entry,
+                        a => a.NetworkUtilization, (a, v) => a.SetNetworkUtilizationWithoutPersisting(v), adapter.NetworkUtilizationOptions);
+                    break;
+
+                case "Data Downloaded":
+                    RegisterCategoryCandidate(adapter, "Utilization", entry,
+                        a => a.NetworkUtilization, (a, v) => a.SetNetworkUtilizationWithoutPersisting(v), adapter.NetworkUtilizationOptions);
+                    break;
+            }
+        }
+
+        // adds entry as a candidate, and activates it if nothing is active yet and it matches the persisted choice
+        // (or nothing was ever persisted, first-found-wins)
+        // guard: see LhmStoragePerformanceViewModel.OnSensorDiscovered for why a duplicate-candidate check is needed
+        private void RegisterCategoryCandidate(
+            LhmNetworkInstanceViewModel adapter,
+            string category,
+            LhmSensorEntry entry,
+            Func<LhmNetworkInstanceViewModel, SensorGraphViewModel> getActive,
+            Action<LhmNetworkInstanceViewModel, SensorGraphViewModel> setActiveWithoutPersisting,
+            ObservableCollection<SensorSwitchCandidate> options)
+        {
+            if (options.Any(c => c.SensorId == entry.Id)) return;
+
+            SensorGraphViewModel cached = null;
+            SensorGraphViewModel Resolve()
+            {
+                if (cached != null) return cached;
+                cached = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                PushDataPoint(cached, entry);
+                entry.PropertyChanged += (s, e) => OnEntryValueChanged(cached, entry, e);
+                return cached;
+            }
+
+            options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve));
+
+            if (getActive(adapter) != null) return; // already resolved, this is just an additional alternative
+
+            string persistedId = SensorSwitchStateService.Instance.GetSelectedSensorId(adapter.HardwareName, category);
+            if (persistedId == entry.Id || persistedId == null)
+            {
+                setActiveWithoutPersisting(adapter, Resolve());
             }
         }
 

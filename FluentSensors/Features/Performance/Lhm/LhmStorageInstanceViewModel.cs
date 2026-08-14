@@ -1,8 +1,10 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Features.Performance.Lhm
@@ -28,6 +30,10 @@ namespace FluentSensors.Features.Performance.Lhm
                 hardwareName,
                 WinStaticInfoService.Instance.Drives,
                 drive => drive.FriendlyName);
+
+            TotalActivityOptions = new ObservableCollection<SensorSwitchCandidate>();
+            ReadRateOptions = new ObservableCollection<SensorSwitchCandidate>();
+            WriteRateOptions = new ObservableCollection<SensorSwitchCandidate>();
         }
 
 
@@ -35,25 +41,76 @@ namespace FluentSensors.Features.Performance.Lhm
 
         public string HardwareName { get; }
 
+        // public setter persists the choice, SetXWithoutPersisting is for the default/restored graph during
+        // discovery; ReadRate/WriteRate further below follow the same shape silently
         private SensorGraphViewModel _totalActivity;
         public SensorGraphViewModel TotalActivity
         {
             get => _totalActivity;
-            set { _totalActivity = value; OnPropertyChanged(); }
+            set
+            {
+                if (_totalActivity == value) return;
+                _totalActivity = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "TotalActivity", value.SensorId);
+            }
+        }
+        public ObservableCollection<SensorSwitchCandidate> TotalActivityOptions { get; }
+
+        internal void SetTotalActivityWithoutPersisting(SensorGraphViewModel value)
+        {
+            _totalActivity = value;
+            OnPropertyChanged(nameof(TotalActivity));
+        }
+
+        // not charted, just a Y-max helper for TotalActivity (covers both its Total Activity % and Free Space GB
+        // candidates, see StorageDetailView.xaml)
+        // the drives own reported total, no rounding needed
+        private double _totalSpace;
+        public double TotalSpace
+        {
+            get => _totalSpace;
+            set { _totalSpace = value; OnPropertyChanged(); }
         }
 
         private SensorGraphViewModel _writeRate;
         public SensorGraphViewModel WriteRate
         {
             get => _writeRate;
-            set { _writeRate = value; OnPropertyChanged(); }
+            set
+            {
+                if (_writeRate == value) return;
+                _writeRate = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "Write", value.SensorId);
+            }
+        }
+        public ObservableCollection<SensorSwitchCandidate> WriteRateOptions { get; }
+
+        internal void SetWriteRateWithoutPersisting(SensorGraphViewModel value)
+        {
+            _writeRate = value;
+            OnPropertyChanged(nameof(WriteRate));
         }
 
         private SensorGraphViewModel _readRate;
         public SensorGraphViewModel ReadRate
         {
             get => _readRate;
-            set { _readRate = value; OnPropertyChanged(); }
+            set
+            {
+                if (_readRate == value) return;
+                _readRate = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "Read", value.SensorId);
+            }
+        }
+        public ObservableCollection<SensorSwitchCandidate> ReadRateOptions { get; }
+
+        internal void SetReadRateWithoutPersisting(SensorGraphViewModel value)
+        {
+            _readRate = value;
+            OnPropertyChanged(nameof(ReadRate));
         }
 
 

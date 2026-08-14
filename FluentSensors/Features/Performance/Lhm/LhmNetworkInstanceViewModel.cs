@@ -1,8 +1,10 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Features.Performance.Lhm
@@ -29,6 +31,8 @@ namespace FluentSensors.Features.Performance.Lhm
                 hardwareName,
                 WinStaticInfoService.Instance.NetworkAdapters,
                 adapter => adapter.Name);
+
+            NetworkUtilizationOptions = new ObservableCollection<SensorSwitchCandidate>();
         }
 
 
@@ -48,6 +52,27 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             get => _downloadSpeed;
             set { _downloadSpeed = value; OnPropertyChanged(); }
+        }
+
+        // switches between live utilization % and the two cumulative Data Uploaded/Downloaded GB counters
+        private SensorGraphViewModel _networkUtilization;
+        public SensorGraphViewModel NetworkUtilization
+        {
+            get => _networkUtilization;
+            set
+            {
+                if (_networkUtilization == value) return;
+                _networkUtilization = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "Utilization", value.SensorId);
+            }
+        }
+        public ObservableCollection<SensorSwitchCandidate> NetworkUtilizationOptions { get; }
+
+        internal void SetNetworkUtilizationWithoutPersisting(SensorGraphViewModel value)
+        {
+            _networkUtilization = value;
+            OnPropertyChanged(nameof(NetworkUtilization));
         }
 
 

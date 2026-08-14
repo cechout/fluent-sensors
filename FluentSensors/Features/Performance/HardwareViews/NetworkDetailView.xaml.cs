@@ -14,7 +14,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
     {
         // === fields ===
 
-        // below this width, the wide 2-graph layout (side by side) switches to the narrow layout (stacked)
+        // below this width, the wide 3-graph layout (big Utilization graph + 2 stacked) switches to the narrow
+        // layout (all 3 stacked equally)
         private const double NarrowGraphsLayoutThreshold = 700;
         private bool _isNarrowLayoutActive;
 
