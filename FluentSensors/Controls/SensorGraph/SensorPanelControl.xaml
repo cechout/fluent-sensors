@@ -116,7 +116,7 @@
                 <!--  current value  -->
                 <TextBlock
                     Grid.Column="2"
-                    Padding="0,0,7,0"
+                    Padding="0,0,8,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
                     Foreground="{x:Bind ViewModel.CurrentValueColor, Mode=OneWay}"

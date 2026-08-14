@@ -70,12 +70,14 @@ namespace FluentSensors.Features.Performance.HardwareViews
         {
             if (Gpu != null) Gpu.IsShowingExtended = false;
             RecalculateOverviewHeight();
+            SyncSectionRenderingGate();
         }
 
         private void ShowExtended_Click(object sender, RoutedEventArgs e)
         {
             if (Gpu != null) Gpu.IsShowingExtended = true;
             RecalculateOverviewHeight();
+            SyncSectionRenderingGate();
         }
 
         private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -124,6 +126,20 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
                 // still null if Extended was never selected this session; nothing to size in that case
                 if (ExtendedGrid != null) ExtendedGrid.Height = 0;
+            }
+        }
+
+        // mirrors CpuDetailView.SyncSectionRenderingGate
+        public void SyncSectionRenderingGate()
+        {
+            if (Gpu == null) return;
+
+            PerformanceGraphDefaults.SetGraphsRenderingActive(OverviewBlockGrid, !Gpu.IsShowingExtended);
+
+            // still null if Extended was never selected this session; nothing to gate in that case
+            if (ExtendedGrid != null)
+            {
+                PerformanceGraphDefaults.SetGraphsRenderingActive(ExtendedGrid, Gpu.IsShowingExtended);
             }
         }
 

@@ -79,12 +79,14 @@ namespace FluentSensors.Features.Performance.HardwareViews
         {
             if (Cpu != null) Cpu.IsShowingAllThreads = false;
             RecalculateOverviewHeight();
+            SyncSectionRenderingGate();
         }
 
         private void ShowAllThreads_Click(object sender, RoutedEventArgs e)
         {
             if (Cpu != null) Cpu.IsShowingAllThreads = true;
             RecalculateOverviewHeight();
+            SyncSectionRenderingGate();
         }
 
         private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -133,6 +135,24 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
                 // still null if All Threads was never selected this session; nothing to size in that case
                 if (AllThreadsGrid != null) AllThreadsGrid.Height = 0;
+            }
+        }
+
+        // keeps only the currently shown section (Overview or All Threads) actually rendering; the other ones
+        // graphs get gated off exactly like a whole hidden detail view does
+        // separate from RecalculateOverviewHeight because this also needs to run when the whole view regains
+        // visibility (PerformancePage.UpdateDetailView reactivates this views entire subtree indiscriminately, this
+        // corrects it back down to just the shown section), not only on every resize
+        public void SyncSectionRenderingGate()
+        {
+            if (Cpu == null) return;
+
+            PerformanceGraphDefaults.SetGraphsRenderingActive(OverviewBlockGrid, !Cpu.IsShowingAllThreads);
+
+            // still null if All Threads was never selected this session; nothing to gate in that case
+            if (AllThreadsGrid != null)
+            {
+                PerformanceGraphDefaults.SetGraphsRenderingActive(AllThreadsGrid, Cpu.IsShowingAllThreads);
             }
         }
 
