@@ -140,6 +140,9 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // keeps only the currently shown section (Overview or All Threads) actually rendering; the other ones
         // graphs get gated off exactly like a whole hidden detail view does
+        // separate from RecalculateOverviewHeight because this also needs to run when the whole view regains
+        // visibility (PerformancePage.UpdateDetailView reactivates this views entire subtree indiscriminately, this
+        // corrects it back down to just the shown section), not only on every resize
         public void SyncSectionRenderingGate()
         {
             if (Cpu == null) return;
