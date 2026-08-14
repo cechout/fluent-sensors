@@ -38,6 +38,20 @@ namespace FluentSensors.Controls.SensorGraph
         private readonly DispatcherTimer _thresholdLabelTimer;
         private bool _isLoaded;
 
+        // live rendering gate:
+        // an off-screen graph (e.g. a Performance page detail view that is not the selected one) is detached from
+        // its data so LiveCharts does no per-tick redraw work for it at all; the underlying values keep updating,
+        // the graph just catches up in one repaint when it is shown again (see SetRenderingActive)
+        // active by default, so any graph nobody ever gates (e.g. the always-visible sidebar mini-graphs) keeps
+        // rendering exactly as before
+        private bool _isRenderingActive = true;
+        private ObservableCollection<double?> _boundValues;
+        private bool _isValuesSubscribed;
+
+        // what _lineSeries points at while detached; a never-changing empty list, so LiveCharts stays subscribed to
+        // something inert instead of the live values and never redraws off-screen
+        private readonly ObservableCollection<double?> _detachedValues = new();
+
 
         // === constructor ===
 
@@ -127,11 +141,8 @@ namespace FluentSensors.Controls.SensorGraph
         {
             if (d is not SensorGraphControl g) return;
 
-            // stop listening to the previous Values list (the one before this change)
-            if (e.OldValue is ObservableCollection<double?> oldValues)
-            {
-                oldValues.CollectionChanged -= g.OnValuesCollectionChanged;
-            }
+            // drop whatever was bound before, including our own CollectionChanged handler on it
+            g.DetachFromBoundValues();
 
             // when the new value is null (e.g. this sensor does not exist on the currently bound hardware
             // instance), fall back to an empty collection instead of silently keeping whatever was there
@@ -139,10 +150,15 @@ namespace FluentSensors.Controls.SensorGraph
             // without this, a null Values would leave the chart permanently pointed at the *previous* ViewModels
             // live data, since a plain "is ObservableCollection<double?>" pattern match on null simply fails and
             // skips the update entirely
-            var effectiveValues = e.NewValue as ObservableCollection<double?> ?? new ObservableCollection<double?>();
-            g._lineSeries.Values = effectiveValues;
-            effectiveValues.CollectionChanged += g.OnValuesCollectionChanged;
-            g.ApplyStroke();
+            g._boundValues = e.NewValue as ObservableCollection<double?> ?? new ObservableCollection<double?>();
+
+            // only rejoin the live render path if this graph is currently on-screen; an off-screen graph just
+            // remembers the collection and stays detached until it is shown again (see SetRenderingActive)
+            if (g._isRenderingActive)
+            {
+                g.AttachToBoundValues();
+                g.ApplyStroke();
+            }
         }
 
         // runs every time a data point is added or removed (i.e. every AddDataPoint call)
@@ -160,6 +176,56 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 PositionThresholdLabel();
             }
+        }
+
+
+        // === live rendering gate ===
+
+        // switches this graphs live rendering on or off without ever destroying it; used by the Performance page to
+        // keep only the currently visible detail views graphs drawing
+        //
+        // off (active false): detaches from the live values so neither LiveCharts nor our own repaint runs on new
+        // data ticks
+        // on (active true): rejoins the live values and does one catch-up repaint for everything missed while off
+        public void SetRenderingActive(bool active)
+        {
+            if (_isRenderingActive == active) return;
+            _isRenderingActive = active;
+
+            if (active)
+            {
+                AttachToBoundValues();
+                ForceRepaint(); // single repaint that catches up on every tick missed while detached
+            }
+            else
+            {
+                DetachFromBoundValues();
+            }
+        }
+
+        // points _lineSeries back at the live values and (re)subscribes our own repaint handler; idempotent
+        private void AttachToBoundValues()
+        {
+            _boundValues ??= new ObservableCollection<double?>();
+            _lineSeries.Values = _boundValues;
+
+            if (!_isValuesSubscribed)
+            {
+                _boundValues.CollectionChanged += OnValuesCollectionChanged;
+                _isValuesSubscribed = true;
+            }
+        }
+
+        // points _lineSeries at the inert detached list and removes our own repaint handler from the live values,
+        // so LiveCharts stops tracking them; the live values keep updating, nobody just listens
+        private void DetachFromBoundValues()
+        {
+            if (_isValuesSubscribed && _boundValues != null)
+            {
+                _boundValues.CollectionChanged -= OnValuesCollectionChanged;
+            }
+            _isValuesSubscribed = false;
+            _lineSeries.Values = _detachedValues;
         }
 
 

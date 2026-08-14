@@ -178,10 +178,25 @@ namespace FluentSensors.Features.Performance
             {
                 _currentDetailView.Opacity = 0;
                 _currentDetailView.IsHitTestVisible = false;
+
+                // the view is now hidden; stop all of its graphs from doing any per-tick rendering work
+                PerformanceGraphDefaults.SetGraphsRenderingActive(_currentDetailView, false);
             }
 
             UIElement view = EnsureDetailView(target);
             if (view == null) return;
+
+            // resume rendering before the view becomes visible, so its first shown frame already shows current data
+            PerformanceGraphDefaults.SetGraphsRenderingActive(view, true);
+
+            // the walk above just turned every graph in this view back on, including whichever of Overview/Extended
+            // (or Overview/All Threads) is not the one actually shown right now; hand it back to the view itself to
+            // correct that down to just the visible section
+            switch (view)
+            {
+                case CpuDetailView cpu: cpu.SyncSectionRenderingGate(); break;
+                case GpuDetailView gpu: gpu.SyncSectionRenderingGate(); break;
+            }
 
             view.Opacity = 1;
             view.IsHitTestVisible = true;
@@ -214,6 +229,19 @@ namespace FluentSensors.Features.Performance
                 view.IsHitTestVisible = false;
                 _detailViewCache[target] = view;
                 DetailHostGrid.Children.Add(view);
+
+                // a newly built view starts with all its graphs rendering (the control default); unless it is (or is
+                // about to become) the selected one, shut that rendering off once it has actually been laid out, so
+                // only the visible views graphs ever draw
+                // deferred to Low priority so the graphs exist in the visual tree by the time the walk runs, and
+                // skipped if this view has meanwhile become the selected one (UpdateDetailView activates that one)
+                UIElement created = view;
+                DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+                {
+                    if (ReferenceEquals(created, _currentDetailView)) return;
+                    created.UpdateLayout();
+                    PerformanceGraphDefaults.SetGraphsRenderingActive(created, false);
+                });
             }
 
             return view;

@@ -31,5 +31,25 @@ namespace FluentSensors.Features.Performance
                 ApplyTimeSpan(child, timeSpanSeconds);
             }
         }
+
+        // walks every SensorGraphControl under root and switches its live rendering on or off
+        //
+        // the Performance page calls this so only the visible detail views graphs keep drawing, while the hidden
+        // ones stop doing per-tick work entirely without being destroyed
+        public static void SetGraphsRenderingActive(DependencyObject root, bool active)
+        {
+            int childCount = VisualTreeHelper.GetChildrenCount(root);
+            for (int i = 0; i < childCount; i++)
+            {
+                var child = VisualTreeHelper.GetChild(root, i);
+
+                if (child is SensorGraphControl graph)
+                {
+                    graph.SetRenderingActive(active);
+                }
+
+                SetGraphsRenderingActive(child, active);
+            }
+        }
     }
 }
