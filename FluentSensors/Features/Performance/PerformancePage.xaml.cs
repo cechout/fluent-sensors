@@ -245,7 +245,7 @@ namespace FluentSensors.Features.Performance
         // light mode intentionally left alone: the tile background already got its own light-mode fix, this graph
         // override is not part of that and stays on its normal default there
         private static Windows.UI.Color? ResolveSelectedGraphBackground(bool isSelected, bool isDarkTheme) =>
-            isSelected && isDarkTheme ? (Windows.UI.Color)Application.Current.Resources["ControlFillColorTertiary"] : (Windows.UI.Color?)null;
+            isSelected && isDarkTheme ? (Windows.UI.Color)Application.Current.Resources["ControlFillColorDisabled"] : (Windows.UI.Color?)null;
 
         // re-measures the current detail views vertical layout after a nav sidebar/info panel visibility change;
         // Dispatched rather than called synchronously

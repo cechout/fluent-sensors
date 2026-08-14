@@ -26,9 +26,13 @@
                 </ResourceDictionary>
                 <!--  dark  -->
                 <ResourceDictionary x:Key="Dark">
-                    <StaticResource x:Key="SidebarNavSelectedBackgroundBrush" ResourceKey="ControlFillColorDefaultBrush" />
+                    <!--<StaticResource x:Key="SidebarNavSelectedBackgroundBrush" ResourceKey="ControlFillColorDefaultBrush" />
                     <StaticResource x:Key="SidebarNavSelectedPointerOverBackgroundBrush" ResourceKey="ControlFillColorSecondaryBrush" />
-                    <StaticResource x:Key="SidebarNavSelectedPressedBackgroundBrush" ResourceKey="ControlFillColorTertiaryBrush" />
+                    <StaticResource x:Key="SidebarNavSelectedPressedBackgroundBrush" ResourceKey="ControlFillColorTertiaryBrush" />-->
+
+                    <StaticResource x:Key="SidebarNavSelectedBackgroundBrush" ResourceKey="SubtleFillColorTertiaryBrush" />
+                    <StaticResource x:Key="SidebarNavSelectedPointerOverBackgroundBrush" ResourceKey="SubtleFillColorSecondaryBrush" />
+                    <StaticResource x:Key="SidebarNavSelectedPressedBackgroundBrush" ResourceKey="SubtleFillColorTertiaryBrush" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
