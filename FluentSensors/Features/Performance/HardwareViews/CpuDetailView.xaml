@@ -332,13 +332,20 @@
 
                     <!--  cpu view 2: all cpu cores  -->
                     <!--  (cores with threads on top and cores without threads below, each followed by its own group averages)  -->
+                    <!--
+                        workaround: RowSpacing still applied to a Collapsed row
+                        problem: Grid.RowSpacing (like StackPanel.Spacing) keeps reserving its gap even when the sibling
+                        row is Collapsed;
+                        Confirmed platform bug: https://github.com/microsoft/microsoft-ui-xaml/issues/916
+                        fix: no RowSpacing on this Grid at all, the gap between the two groups instead lives on the second
+                        StackPanels own Margin, which (unlike RowSpacing) correctly collapses away together with the panel
+                    -->
                     <Grid
                         x:Name="AllThreadsGrid"
                         Grid.Row="0"
                         x:Load="False"
                         IsHitTestVisible="{x:Bind Cpu.AllThreadsIsHitTestVisible, Mode=OneWay}"
-                        Opacity="{x:Bind Cpu.AllThreadsOpacity, Mode=OneWay}"
-                        RowSpacing="24">
+                        Opacity="{x:Bind Cpu.AllThreadsOpacity, Mode=OneWay}">
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -346,12 +353,17 @@
                         </Grid.RowDefinitions>
 
                         <!--  cores with threads  -->
-                        <StackPanel Grid.Row="0" Spacing="8">
+                        <!--  (the whole group collapses if this CPU never populates it)  -->
+                        <StackPanel
+                            Grid.Row="0"
+                            Spacing="8"
+                            Visibility="{x:Bind BoolToVisibility(Cpu.HasCoresWithThreads), Mode=OneWay}">
                             <TextBlock
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Cores With Threads" />
+                                Text="Cores With Threads"
+                                Visibility="{x:Bind BoolToVisibility(Cpu.ShowCoreGroupTitles), Mode=OneWay}" />
 
                             <ItemsControl
                                 ItemTemplate="{StaticResource CpuCoreCellTemplate}"
@@ -365,7 +377,7 @@
                                 </ItemsControl.ItemsPanel>
                             </ItemsControl>
 
-                            <!--  averages across all cores with threads  -->
+                            <!--  sensor tiles: averages across all cores with threads  -->
                             <controls:WrapPanel
                                 Margin="4,0,4,0"
                                 HorizontalSpacing="8"
@@ -386,12 +398,19 @@
                         </StackPanel>
 
                         <!--  cores without threads  -->
-                        <StackPanel Grid.Row="1" Spacing="8">
+                        <!--  (the whole group collapses if this CPU never populates it)  -->
+                        <!--  (Margin top is the gap to the group above, 0 when that group is not shown)  -->
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="{x:Bind GroupSpacingMargin(Cpu.ShowCoreGroupTitles), Mode=OneWay}"
+                            Spacing="8"
+                            Visibility="{x:Bind BoolToVisibility(Cpu.HasCoresWithoutThreads), Mode=OneWay}">
                             <TextBlock
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Cores Without Threads" />
+                                Text="Cores Without Threads"
+                                Visibility="{x:Bind BoolToVisibility(Cpu.ShowCoreGroupTitles), Mode=OneWay}" />
 
                             <ItemsControl
                                 ItemTemplate="{StaticResource CpuCoreCellTemplate}"
@@ -660,7 +679,7 @@
                     <AppBarButton
                         x:Name="ShowAllThreadsButton"
                         Click="ShowAllThreads_Click"
-                        Label="All Threads">
+                        Label="Extended">
                         <AppBarButton.Icon>
                             <FontIcon Glyph="&#xF0E2;" />
                         </AppBarButton.Icon>

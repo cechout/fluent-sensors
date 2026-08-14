@@ -154,6 +154,14 @@ namespace FluentSensors.Features.Performance.Lhm
         // physical cores without a "Thread #" suffix in their Load sensor name
         public ObservableCollection<LhmCpuCoreViewModel> CoresWithoutThreads { get; }
 
+        // whether this specific group has at least one core; drives whether that groups whole section shows at all
+        public bool HasCoresWithThreads => CoresWithThreads.Count > 0;
+        public bool HasCoresWithoutThreads => CoresWithoutThreads.Count > 0;
+
+        // true only once both groups actually contain a core; the group titles only carry meaning once there is
+        // a real split to label
+        public bool ShowCoreGroupTitles => HasCoresWithThreads && HasCoresWithoutThreads;
+
         // all Threads tiles: average Load/Temperature/Clock per core group
         public SensorGraphViewModel AvgLoadWithThreads { get; }
         public SensorGraphViewModel AvgTemperatureWithThreads { get; }
@@ -200,6 +208,11 @@ namespace FluentSensors.Features.Performance.Lhm
             _coresByLoadIndex[loadCoreNumber] = core;
             _coresInDiscoveryOrder.Add(core);
             (hasThreads ? CoresWithThreads : CoresWithoutThreads).Add(core);
+
+            // group membership just changed, re-evaluate whether that groups section, and the title split, is still needed
+            OnPropertyChanged(hasThreads ? nameof(HasCoresWithThreads) : nameof(HasCoresWithoutThreads));
+            OnPropertyChanged(nameof(ShowCoreGroupTitles));
+
             return core;
         }
 

@@ -23,6 +23,10 @@ namespace FluentSensors.Features.Performance.HardwareViews
         private bool _isNarrowLayoutActive;
         private bool _allThreadsTimeSpanHookAttached;
 
+        // vertical gap between the "Cores With Threads" and "Cores Without Threads" groups
+        // (only applied when both are shown)
+        private const double CoreGroupSpacing = 24;
+
 
         // === constructor ===
 
@@ -162,5 +166,11 @@ namespace FluentSensors.Features.Performance.HardwareViews
             narrowLayout.Opacity = useNarrow ? 1 : 0;
             narrowLayout.IsHitTestVisible = useNarrow;
         }
+
+        private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
+
+        // gap above the second core group, collapses to 0 together with the group above it instead of leaving a stray
+        // RowSpacing-style gap, see the workaround note on AllThreadsGrid in the XAML
+        private Thickness GroupSpacingMargin(bool showSplit) => showSplit ? new Thickness(0, CoreGroupSpacing, 0, 0) : new Thickness(0);
     }
 }
