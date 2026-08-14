@@ -55,17 +55,17 @@
     </UserControl.Resources>
 
 
-    <Grid x:Name="RootGrid">
+    <Grid x:Name="RootGrid" MinHeight="{x:Bind ButtonSize, Mode=OneWay}">
 
         <!--  optional title  -->
         <!--  (collapses entirely, including its layout space, when Title is empty)  -->
         <Grid
             x:Name="TitleHost"
-            VerticalAlignment="Top"
+            VerticalAlignment="Center"
             Visibility="{x:Bind GetTitleVisibility(Title), Mode=OneWay}">
             <TextBlock
                 x:Name="TitleTextBlock"
-                Margin="{x:Bind GetTitleMargin(ButtonSize), Mode=OneWay}"
+                Margin="{x:Bind GetTitleMargin(ButtonSize, ShowInfoButton), Mode=OneWay}"
                 HorizontalAlignment="Left"
                 Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                 SizeChanged="TitleTextBlock_SizeChanged"
@@ -75,7 +75,10 @@
                 TextWrapping="{x:Bind TitleTextWrapping, Mode=OneWay}" />
         </Grid>
 
-        <Grid x:Name="ButtonHost" HorizontalAlignment="Left">
+        <Grid
+            x:Name="ButtonHost"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center">
             <Button
                 x:Name="InfoButton"
                 Width="{x:Bind ButtonSize, Mode=OneWay}"

@@ -196,19 +196,22 @@
                         <Grid x:Name="TilesGrid" Grid.Row="1">
                             <controls:WrapPanel
                                 Margin="4,0,0,12"
-                                HorizontalSpacing="8"
+                                HorizontalSpacing="16"
                                 VerticalSpacing="8">
                                 <fhTile:SensorTileControl
-                                    Title="Utilization"
-                                    Width="90"
+                                    Title="{x:Bind Network.NetworkUtilization.SensorName, Mode=OneWay}"
+                                    Width="Auto"
+                                    MaxValueText="00,0 %"
                                     ViewModel="{x:Bind Network.NetworkUtilization, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Upload Speed"
-                                    Width="110"
+                                    Title="{x:Bind Network.UploadSpeed.SensorName, Mode=OneWay}"
+                                    Width="Auto"
+                                    MaxValueText="00,0 Mb/s"
                                     ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Download Speed"
-                                    Width="110"
+                                    Title="{x:Bind Network.DownloadSpeed.SensorName, Mode=OneWay}"
+                                    Width="Auto"
+                                    MaxValueText="00,0 Mb/s"
                                     ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
                             </controls:WrapPanel>
                         </Grid>

@@ -201,16 +201,16 @@
                                 HorizontalSpacing="8"
                                 VerticalSpacing="8">
                                 <fhTile:SensorTileControl
-                                    Title="Total Activity"
-                                    Width="90"
+                                    Title="{x:Bind Storage.TotalActivity.SensorName, Mode=OneWay}"
+                                    Width="Auto"
                                     ViewModel="{x:Bind Storage.TotalActivity, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Read Rate"
-                                    Width="110"
+                                    Title="{x:Bind Storage.ReadRate.SensorName, Mode=OneWay}"
+                                    Width="Auto"
                                     ViewModel="{x:Bind Storage.ReadRate, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Write Rate"
-                                    Width="110"
+                                    Title="{x:Bind Storage.WriteRate.SensorName, Mode=OneWay}"
+                                    Width="Auto"
                                     ViewModel="{x:Bind Storage.WriteRate, Mode=OneWay}" />
                             </controls:WrapPanel>
                         </Grid>

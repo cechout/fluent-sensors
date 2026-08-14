@@ -308,19 +308,22 @@
 
                             <controls:WrapPanel
                                 Margin="4,0,4,12"
-                                HorizontalSpacing="0"
+                                HorizontalSpacing="16"
                                 VerticalSpacing="8">
                                 <fhTile:SensorTileControl
-                                    Title="CPU Total Load"
+                                    Title="{x:Bind Cpu.TotalLoad.SensorName, Mode=OneWay}"
                                     Width="Auto"
+                                    MaxValueText="00,0 %"
                                     ViewModel="{x:Bind Cpu.TotalLoad, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Max Temperature"
+                                    Title="{x:Bind Cpu.MaxTemperature.SensorName, Mode=OneWay}"
                                     Width="Auto"
+                                    MaxValueText="00,0 °C"
                                     ViewModel="{x:Bind Cpu.MaxTemperature, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Package Power"
+                                    Title="{x:Bind Cpu.PackagePower.SensorName, Mode=OneWay}"
                                     Width="Auto"
+                                    MaxValueText="00,0 W"
                                     ViewModel="{x:Bind Cpu.PackagePower, Mode=OneWay}" />
                             </controls:WrapPanel>
                         </Grid>
@@ -334,87 +337,96 @@
                         Grid.Row="0"
                         x:Load="False"
                         IsHitTestVisible="{x:Bind Cpu.AllThreadsIsHitTestVisible, Mode=OneWay}"
-                        Opacity="{x:Bind Cpu.AllThreadsOpacity, Mode=OneWay}">
+                        Opacity="{x:Bind Cpu.AllThreadsOpacity, Mode=OneWay}"
+                        RowSpacing="24">
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <ItemsControl
-                            Grid.Row="0"
-                            ItemTemplate="{StaticResource CpuCoreCellTemplate}"
-                            ItemsSource="{x:Bind Cpu.CoresWithThreads, Mode=OneWay}"
-                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                            ScrollViewer.VerticalScrollMode="Disabled">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <fhControls:SquareGridPanel MinCellHeight="100" Spacing="12" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
+                        <!--  cores with threads  -->
+                        <StackPanel Grid.Row="0" Spacing="8">
+                            <TextBlock
+                                Margin="4,0,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Cores With Threads" />
 
-                        <!--  averages across all cores with threads  -->
-                        <controls:WrapPanel
-                            Grid.Row="1"
-                            Margin="4,12,4,0"
-                            HorizontalSpacing="8"
-                            VerticalSpacing="8">
-                            <fhTile:SensorTileControl
-                                Title="Average Load"
-                                Width="90"
-                                ViewModel="{x:Bind Cpu.AvgLoadWithThreads, Mode=OneWay}" />
-                            <fhTile:SensorTileControl
-                                Title="Average Temperature"
-                                Width="130"
-                                ViewModel="{x:Bind Cpu.AvgTemperatureWithThreads, Mode=OneWay}" />
-                            <fhTile:SensorTileControl
-                                Title="Average Clock"
-                                Width="130"
-                                ViewModel="{x:Bind Cpu.AvgClockWithThreads, Mode=OneWay}" />
-                        </controls:WrapPanel>
+                            <ItemsControl
+                                ItemTemplate="{StaticResource CpuCoreCellTemplate}"
+                                ItemsSource="{x:Bind Cpu.CoresWithThreads, Mode=OneWay}"
+                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                ScrollViewer.VerticalScrollMode="Disabled">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <fhControls:SquareGridPanel MinCellHeight="100" Spacing="12" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
 
-                        <Border
-                            Grid.Row="2"
-                            Height="0"
-                            Margin="0,24,0,0"
-                            Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                            <!--  averages across all cores with threads  -->
+                            <controls:WrapPanel
+                                Margin="4,0,4,0"
+                                HorizontalSpacing="8"
+                                VerticalSpacing="8">
+                                <fhTile:SensorTileControl
+                                    Title="Average Load"
+                                    Width="90"
+                                    ViewModel="{x:Bind Cpu.AvgLoadWithThreads, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    Title="Average Temperature"
+                                    Width="130"
+                                    ViewModel="{x:Bind Cpu.AvgTemperatureWithThreads, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    Title="Average Clock"
+                                    Width="130"
+                                    ViewModel="{x:Bind Cpu.AvgClockWithThreads, Mode=OneWay}" />
+                            </controls:WrapPanel>
+                        </StackPanel>
 
-                        <ItemsControl
-                            Grid.Row="3"
-                            ItemTemplate="{StaticResource CpuCoreCellTemplate}"
-                            ItemsSource="{x:Bind Cpu.CoresWithoutThreads, Mode=OneWay}"
-                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                            ScrollViewer.VerticalScrollMode="Disabled">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <fhControls:SquareGridPanel MinCellHeight="100" Spacing="12" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
+                        <!--  cores without threads  -->
+                        <StackPanel Grid.Row="1" Spacing="8">
+                            <TextBlock
+                                Margin="4,0,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Cores Without Threads" />
 
-                        <!--  averages across all cores without threads  -->
-                        <controls:WrapPanel
-                            Grid.Row="4"
-                            Margin="4,12,4,12"
-                            HorizontalSpacing="8"
-                            VerticalSpacing="8">
-                            <fhTile:SensorTileControl
-                                Title="Average Load"
-                                Width="90"
-                                ViewModel="{x:Bind Cpu.AvgLoadWithoutThreads, Mode=OneWay}" />
-                            <fhTile:SensorTileControl
-                                Title="Average Temperature"
-                                Width="130"
-                                ViewModel="{x:Bind Cpu.AvgTemperatureWithoutThreads, Mode=OneWay}" />
-                            <fhTile:SensorTileControl
-                                Title="Average Clock"
-                                Width="130"
-                                ViewModel="{x:Bind Cpu.AvgClockWithoutThreads, Mode=OneWay}" />
-                        </controls:WrapPanel>
+                            <ItemsControl
+                                ItemTemplate="{StaticResource CpuCoreCellTemplate}"
+                                ItemsSource="{x:Bind Cpu.CoresWithoutThreads, Mode=OneWay}"
+                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                ScrollViewer.VerticalScrollMode="Disabled">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <fhControls:SquareGridPanel MinCellHeight="100" Spacing="12" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+
+                            <!--  sensor tiles: averages across all cores without threads  -->
+                            <controls:WrapPanel
+                                Margin="4,0,4,0"
+                                HorizontalSpacing="16"
+                                VerticalSpacing="8">
+                                <fhTile:SensorTileControl
+                                    Title="Average Load"
+                                    Width="Auto"
+                                    MaxValueText="00,0 %"
+                                    ViewModel="{x:Bind Cpu.AvgLoadWithoutThreads, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    Title="Average Temperature"
+                                    Width="Auto"
+                                    MaxValueText="00,0 °C"
+                                    ViewModel="{x:Bind Cpu.AvgTemperatureWithoutThreads, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    Title="Average Clock"
+                                    Width="Auto"
+                                    MaxValueText="000,0 MHz"
+                                    ViewModel="{x:Bind Cpu.AvgClockWithoutThreads, Mode=OneWay}" />
+                            </controls:WrapPanel>
+                        </StackPanel>
 
                     </Grid>
 

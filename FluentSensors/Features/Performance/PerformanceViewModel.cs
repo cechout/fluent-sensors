@@ -66,7 +66,7 @@ namespace FluentSensors.Features.Performance
 
             AttachExistingAndFuture(Network.Adapters, HardwareGroupKind.Network,
                 item => ((LhmNetworkInstanceViewModel)item).HardwareName,
-                item => ((LhmNetworkInstanceViewModel)item).DownloadSpeed);
+                item => ((LhmNetworkInstanceViewModel)item).NetworkUtilization);
 
             SelectedItem = NavItems.FirstOrDefault(i => i.Kind == HardwareGroupKind.Cpu) ?? NavItems.FirstOrDefault();
         }

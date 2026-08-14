@@ -217,19 +217,22 @@
                         <Grid x:Name="TilesGrid" Grid.Row="1">
                             <controls:WrapPanel
                                 Margin="4,0,4,12"
-                                HorizontalSpacing="0"
+                                HorizontalSpacing="16"
                                 VerticalSpacing="8">
                                 <fhTile:SensorTileControl
-                                    Title="GPU Core Load"
+                                    Title="{x:Bind Gpu.CoreLoad.SensorName, Mode=OneWay}"
                                     Width="Auto"
+                                    MaxValueText="00,0 %"
                                     ViewModel="{x:Bind Gpu.CoreLoad, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="GPU Temperature"
+                                    Title="{x:Bind Gpu.Temperature.SensorName, Mode=OneWay}"
                                     Width="Auto"
+                                    MaxValueText="00,0 °C"
                                     ViewModel="{x:Bind Gpu.Temperature, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Package Power"
+                                    Title="{x:Bind Gpu.PackagePower.SensorName, Mode=OneWay}"
                                     Width="Auto"
+                                    MaxValueText="000,0 W"
                                     ViewModel="{x:Bind Gpu.PackagePower, Mode=OneWay}" />
                             </controls:WrapPanel>
                         </Grid>
@@ -243,7 +246,7 @@
                         x:Load="False"
                         IsHitTestVisible="{x:Bind Gpu.ExtendedIsHitTestVisible, Mode=OneWay}"
                         Opacity="{x:Bind Gpu.ExtendedOpacity, Mode=OneWay}"
-                        RowSpacing="20">
+                        RowSpacing="24">
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />

@@ -125,15 +125,15 @@
                         <Grid x:Name="TilesGrid" Grid.Row="1">
                             <controls:WrapPanel
                                 Margin="4,0,0,12"
-                                HorizontalSpacing="8"
+                                HorizontalSpacing="16"
                                 VerticalSpacing="8">
                                 <fhTile:SensorTileControl
-                                    Title="Physical Memory Used"
-                                    Width="140"
+                                    Title="Memory Used (Physical)"
+                                    Width="Auto"
                                     ViewModel="{x:Bind Memory.Used, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Virtual Memory Used"
-                                    Width="150"
+                                    Title="Memory Used (Virtual)"
+                                    Width="Auto"
                                     InfoMessage="Corresponds to Task Manager's &quot;Committed&quot; value; usually exact, but can deviate occasionally."
                                     ShowInfoButton="True"
                                     ViewModel="{x:Bind Memory.VirtualMemoryUsed, Mode=OneWay}" />
