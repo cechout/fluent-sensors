@@ -56,7 +56,7 @@ namespace FluentSensors.Features.Performance
         public object Target { get; }
 
         // the one sensor shown as this hardwares "at a glance" utilization graph, e.g. TotalLoad for CPU,
-        // DownloadSpeed for a network adapter; used by both the sidebar and (later) the start page
+        // DownloadSpeed for a network adapter; used by both the sidebar and the start page
         // Starts null and gets filled in once LHM actually discovers the underlying sensor
         private SensorGraphViewModel _primaryGraph;
         public SensorGraphViewModel PrimaryGraph

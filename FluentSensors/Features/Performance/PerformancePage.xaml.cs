@@ -34,6 +34,10 @@ namespace FluentSensors.Features.Performance
         private readonly Dictionary<object, UIElement> _detailViewCache = new();
         private UIElement _currentDetailView;
 
+        // permanent start page view; built lazily on first visit, since CPU (not the start page) is the default
+        // selected view
+        private PerformanceStartView _startView;
+
 
         // === constructor ===
 
@@ -88,6 +92,12 @@ namespace FluentSensors.Features.Performance
                 ViewModel.SelectedItem = item;
                 toggle.IsChecked = true;
             }
+        }
+
+        // jumps to the Performance start page; mirrors NavItem_Click, just with no specific hardware to select
+        private void StartPageButton_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.SelectedItem = null;
         }
 
         private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -172,7 +182,6 @@ namespace FluentSensors.Features.Performance
         private void UpdateDetailView()
         {
             object target = ViewModel.SelectedItem?.Target;
-            if (target == null) return;
 
             if (_currentDetailView != null)
             {
@@ -183,7 +192,8 @@ namespace FluentSensors.Features.Performance
                 PerformanceGraphDefaults.SetGraphsRenderingActive(_currentDetailView, false);
             }
 
-            UIElement view = EnsureDetailView(target);
+            // no SelectedItem means the start page is shown instead of a hardware instances detail view
+            UIElement view = target != null ? EnsureDetailView(target) : EnsureStartView();
             if (view == null) return;
 
             // resume rendering before the view becomes visible, so its first shown frame already shows current data
@@ -245,6 +255,23 @@ namespace FluentSensors.Features.Performance
             }
 
             return view;
+        }
+
+        // creates (once) and caches the permanent start page view; same retained-instance rule as EnsureDetailView,
+        // just not keyed by a hardware Target, since this view shows every NavItem at once instead of one instance
+        private UIElement EnsureStartView()
+        {
+            if (_startView == null)
+            {
+                _startView = new PerformanceStartView
+                {
+                    Opacity = 0,
+                    IsHitTestVisible = false
+                };
+                DetailHostGrid.Children.Add(_startView);
+            }
+
+            return _startView;
         }
 
         // builds every remaining hardware instances detail view one at a time, each on its own separate dispatcher

@@ -46,8 +46,8 @@ namespace FluentSensors.Features.Performance
             // every category follows the exact same discovery pattern:
             // process instances that already exist (likely true for all of them, since LhmHardwareTreeService runs from
             // app start), then keep listening for future ones
-            // getPrimaryGraph picks each Kinds "at a glance" utilization sensor, shown in the sidebar (and later the
-            // start page)
+            // getPrimaryGraph picks each Kinds "at a glance" utilization sensor, shown in the sidebar and the
+            // start page
             AttachExistingAndFuture(Cpu.Cpus, HardwareGroupKind.Cpu,
                 item => ((LhmCpuInstanceViewModel)item).HardwareName,
                 item => ((LhmCpuInstanceViewModel)item).TotalLoad);
@@ -96,6 +96,14 @@ namespace FluentSensors.Features.Performance
                 if (_selectedItem != null) _selectedItem.IsSelected = true;
 
                 OnPropertyChanged();
+
+                // start-page <-> hardware-view transitions flip IsHardwareViewActive, which gates whether the sidebar
+                // and info panel are allowed to show at all
+                OnPropertyChanged(nameof(NavSidebarColumnWidth));
+                OnPropertyChanged(nameof(NavSidebarColumnMinWidth));
+                OnPropertyChanged(nameof(InfoPanelVisibility));
+                OnPropertyChanged(nameof(InfoPanelColumnWidth));
+                OnPropertyChanged(nameof(InfoPanelColumnMinWidth));
             }
         }
 
@@ -136,7 +144,9 @@ namespace FluentSensors.Features.Performance
 
         // pre-computed Visibility for the per-hardware info panel; avoids a function binding inside each detail
         // views XAML
-        public Visibility InfoPanelVisibility => IsInfoPanelVisible ? Visibility.Visible : Visibility.Collapsed;
+        // forced Collapsed on the start page: the info panel describes one specific hardware, so it only shows next
+        // to a hardware view, even while its command-bar toggle stays checked (see IsHardwareViewActive)
+        public Visibility InfoPanelVisibility => IsInfoPanelVisible && IsHardwareViewActive ? Visibility.Visible : Visibility.Collapsed;
 
         // nav sidebar (hardware selection list), toggled independently from the info panel; both can be open at once
         // above the width threshold, exclusive below it
@@ -161,11 +171,18 @@ namespace FluentSensors.Features.Performance
         // reserving layout space
         // MinWidth has to collapse together with Width, since a nonzero MinWidth alone would otherwise keep forcing the
         // column open regardless of Width
-        public GridLength NavSidebarColumnWidth => IsNavSidebarVisible ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
-        public double NavSidebarColumnMinWidth => IsNavSidebarVisible ? 180 : 0;
+        // both are additionally gated on IsHardwareViewActive: on the start page neither column is shown, no matter
+        // what the toggles say
+        public GridLength NavSidebarColumnWidth => IsNavSidebarVisible && IsHardwareViewActive ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
+        public double NavSidebarColumnMinWidth => IsNavSidebarVisible && IsHardwareViewActive ? 180 : 0;
 
-        public GridLength InfoPanelColumnWidth => IsInfoPanelVisible ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
-        public double InfoPanelColumnMinWidth => IsInfoPanelVisible ? 190 : 0;
+        public GridLength InfoPanelColumnWidth => IsInfoPanelVisible && IsHardwareViewActive ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
+        public double InfoPanelColumnMinWidth => IsInfoPanelVisible && IsHardwareViewActive ? 190 : 0;
+
+        // true while a specific hardwares detail view is shown, false on the start page (SelectedItem null)
+        // the nav sidebar and info panel only make sense next to a hardware view, so both stay collapsed on the start
+        // page even while their command-bar toggles remain checked
+        private bool IsHardwareViewActive => SelectedItem != null;
 
 
         // === private helpers ===

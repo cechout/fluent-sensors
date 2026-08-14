@@ -203,6 +203,12 @@
                     HorizontalAlignment="Right"
                     DefaultLabelPosition="Right">
 
+                    <AppBarButton Click="StartPageButton_Click" Label="Home">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE80F;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
                     <AppBarToggleButton
                         Width="42"
                         IsChecked="{x:Bind ViewModel.IsNavSidebarVisible, Mode=TwoWay}"
