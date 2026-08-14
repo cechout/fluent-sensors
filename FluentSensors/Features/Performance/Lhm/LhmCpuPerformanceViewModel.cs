@@ -84,13 +84,39 @@ namespace FluentSensors.Features.Performance.Lhm
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(cpu, e);
         }
 
-        // falls back to the first candidate if a persisted choice never shows up on this system (removed hardware,
-        // imported state from another PC); otherwise that category would stay without an active graph forever
+        // runs once after the initial sensor batch, per category: if nothing was ever persisted and one candidate
+        // is explicitly flagged IsDefault, that one wins over whichever candidate happened to be discovered first;
+        // if nothing is active at all yet (e.g. a persisted choice never showed up), falls back to the first
+        // candidate present
         private static void ApplyCategoryFallbacks(LhmCpuInstanceViewModel cpu)
         {
-            if (cpu.TotalLoad == null && cpu.TotalLoadOptions.Count > 0) cpu.SetTotalLoadWithoutPersisting(cpu.TotalLoadOptions[0].Resolve());
-            if (cpu.MaxTemperature == null && cpu.MaxTemperatureOptions.Count > 0) cpu.SetMaxTemperatureWithoutPersisting(cpu.MaxTemperatureOptions[0].Resolve());
-            if (cpu.PackagePower == null && cpu.PackagePowerOptions.Count > 0) cpu.SetPackagePowerWithoutPersisting(cpu.PackagePowerOptions[0].Resolve());
+            ActivateDefault(cpu.HardwareName, "Load", cpu.TotalLoadOptions, () => cpu.TotalLoad, cpu.SetTotalLoadWithoutPersisting);
+            ActivateDefault(cpu.HardwareName, "Temperature", cpu.MaxTemperatureOptions, () => cpu.MaxTemperature, cpu.SetMaxTemperatureWithoutPersisting);
+            ActivateDefault(cpu.HardwareName, "Power", cpu.PackagePowerOptions, () => cpu.PackagePower, cpu.SetPackagePowerWithoutPersisting);
+        }
+
+        private static void ActivateDefault(
+            string hardwareName, string category, ObservableCollection<SensorSwitchCandidate> options,
+            Func<SensorGraphViewModel> getActive, Action<SensorGraphViewModel> setActiveWithoutPersisting)
+        {
+            if (options.Count == 0) return;
+
+            if (SensorSwitchStateService.Instance.GetSelectedSensorId(hardwareName, category) == null)
+            {
+                var flaggedDefault = options.FirstOrDefault(c => c.IsDefault);
+                if (flaggedDefault != null)
+                {
+                    var active = getActive();
+                    bool activeIsAlreadyDefault = active != null && options.Any(c => c.SensorId == active.SensorId && c.IsDefault);
+                    if (!activeIsAlreadyDefault)
+                    {
+                        setActiveWithoutPersisting(flaggedDefault.Resolve());
+                        return;
+                    }
+                }
+            }
+
+            if (getActive() == null) setActiveWithoutPersisting(options[0].Resolve());
         }
 
         private void OnInstanceSensorsChanged(LhmCpuInstanceViewModel cpu, NotifyCollectionChangedEventArgs e)
@@ -138,7 +164,7 @@ namespace FluentSensors.Features.Performance.Lhm
                 if (TemperatureCategoryNames.Contains(entry.Name))
                 {
                     RegisterCategoryCandidate(cpu, "Temperature", entry,
-                        c => c.MaxTemperature, (c, g) => c.SetMaxTemperatureWithoutPersisting(g), cpu.MaxTemperatureOptions);
+                        c => c.MaxTemperature, (c, g) => c.SetMaxTemperatureWithoutPersisting(g), cpu.MaxTemperatureOptions, isDefault: entry.Name == "Core Max");
                 }
                 else
                 {
@@ -181,20 +207,23 @@ namespace FluentSensors.Features.Performance.Lhm
                 if (PowerCategoryNames.Contains(entry.Name))
                 {
                     RegisterCategoryCandidate(cpu, "Power", entry,
-                        c => c.PackagePower, (c, g) => c.SetPackagePowerWithoutPersisting(g), cpu.PackagePowerOptions);
+                        c => c.PackagePower, (c, g) => c.SetPackagePowerWithoutPersisting(g), cpu.PackagePowerOptions, isDefault: entry.Name == "CPU Package");
                 }
             }
         }
 
         // adds entry as a candidate, and activates it if nothing is active yet and it matches the persisted choice
-        // (or nothing was ever persisted, first-found-wins)
+        // (or nothing was ever persisted, first-found-wins for now; ApplyCategoryFallbacks corrects to the flagged
+        // default afterward if one exists and discovery order picked something else)
         private void RegisterCategoryCandidate(
             LhmCpuInstanceViewModel cpu,
             string category,
             LhmSensorEntry entry,
             Func<LhmCpuInstanceViewModel, SensorGraphViewModel> getActive,
             Action<LhmCpuInstanceViewModel, SensorGraphViewModel> setActiveWithoutPersisting,
-            ObservableCollection<SensorSwitchCandidate> options)
+            ObservableCollection<SensorSwitchCandidate> options,
+            bool isDefault = false,
+            Func<double?> yMaxOverride = null)
         {
             SensorGraphViewModel cached = null;
             SensorGraphViewModel Resolve()
@@ -206,9 +235,9 @@ namespace FluentSensors.Features.Performance.Lhm
                 return cached;
             }
 
-            options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve));
+            options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve, isDefault, yMaxOverride));
 
-            if (getActive(cpu) != null) return; // already resolved, this is just an additional alternative
+            if (getActive(cpu) != null) return; 
 
             string persistedId = SensorSwitchStateService.Instance.GetSelectedSensorId(cpu.HardwareName, category);
             if (persistedId == entry.Id || persistedId == null)

@@ -308,19 +308,19 @@
 
                             <controls:WrapPanel
                                 Margin="4,0,4,12"
-                                HorizontalSpacing="8"
+                                HorizontalSpacing="0"
                                 VerticalSpacing="8">
                                 <fhTile:SensorTileControl
                                     Title="CPU Total Load"
-                                    Width="100"
+                                    Width="Auto"
                                     ViewModel="{x:Bind Cpu.TotalLoad, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
                                     Title="Max Temperature"
-                                    Width="110"
+                                    Width="Auto"
                                     ViewModel="{x:Bind Cpu.MaxTemperature, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
                                     Title="Package Power"
-                                    Width="100"
+                                    Width="Auto"
                                     ViewModel="{x:Bind Cpu.PackagePower, Mode=OneWay}" />
                             </controls:WrapPanel>
                         </Grid>

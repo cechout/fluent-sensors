@@ -103,8 +103,8 @@
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="3*" />
                                     <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
 
                                 <fhGraph:SensorPanelControl
@@ -145,13 +145,20 @@
                                     ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
                             </Grid>
 
-                            <fhControls:VerticalStretchPanel
+                            <Grid
                                 x:Name="NarrowGraphsPanel"
                                 MinHeight="360"
                                 IsHitTestVisible="False"
                                 Opacity="0"
-                                Spacing="8">
+                                RowSpacing="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="5*" />
+                                    <RowDefinition Height="3*" />
+                                    <RowDefinition Height="3*" />
+                                </Grid.RowDefinitions>
+
                                 <fhGraph:SensorPanelControl
+                                    Grid.Row="0"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="Network Utilization"
@@ -164,6 +171,7 @@
                                     ViewModel="{x:Bind Network.NetworkUtilization, Mode=TwoWay}" />
 
                                 <fhGraph:SensorPanelControl
+                                    Grid.Row="1"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
                                     ShowStatusRow="True"
@@ -173,6 +181,7 @@
                                     ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
 
                                 <fhGraph:SensorPanelControl
+                                    Grid.Row="2"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
                                     ShowStatusRow="True"
@@ -180,13 +189,13 @@
                                     ShowYAxisControls="True"
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
-                            </fhControls:VerticalStretchPanel>
+                            </Grid>
                         </Grid>
 
                         <!--  current value tiles  -->
                         <Grid x:Name="TilesGrid" Grid.Row="1">
                             <controls:WrapPanel
-                                Margin="0,0,0,12"
+                                Margin="4,0,0,12"
                                 HorizontalSpacing="8"
                                 VerticalSpacing="8">
                                 <fhTile:SensorTileControl

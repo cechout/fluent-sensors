@@ -67,14 +67,37 @@ namespace FluentSensors.Features.Performance.Lhm
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(adapter, e);
         }
 
-        // falls back to the first candidate if a persisted choice never shows up on this system (removed hardware,
-        // imported state from another PC); otherwise the category would stay without an active graph forever
+        // runs once after the initial sensor batch, per category: if nothing was ever persisted and one candidate
+        // is explicitly flagged IsDefault, that one wins over whichever candidate happened to be discovered first;
+        // if nothing is active at all yet (e.g. a persisted choice never showed up), falls back to the first
+        // candidate present
         private static void ApplyCategoryFallbacks(LhmNetworkInstanceViewModel adapter)
         {
-            if (adapter.NetworkUtilization == null && adapter.NetworkUtilizationOptions.Count > 0)
+            ActivateDefault(adapter.HardwareName, "Utilization", adapter.NetworkUtilizationOptions, () => adapter.NetworkUtilization, adapter.SetNetworkUtilizationWithoutPersisting);
+        }
+
+        private static void ActivateDefault(
+            string hardwareName, string category, ObservableCollection<SensorSwitchCandidate> options,
+            Func<SensorGraphViewModel> getActive, Action<SensorGraphViewModel> setActiveWithoutPersisting)
+        {
+            if (options.Count == 0) return;
+
+            if (SensorSwitchStateService.Instance.GetSelectedSensorId(hardwareName, category) == null)
             {
-                adapter.SetNetworkUtilizationWithoutPersisting(adapter.NetworkUtilizationOptions[0].Resolve());
+                var flaggedDefault = options.FirstOrDefault(c => c.IsDefault);
+                if (flaggedDefault != null)
+                {
+                    var active = getActive();
+                    bool activeIsAlreadyDefault = active != null && options.Any(c => c.SensorId == active.SensorId && c.IsDefault);
+                    if (!activeIsAlreadyDefault)
+                    {
+                        setActiveWithoutPersisting(flaggedDefault.Resolve());
+                        return;
+                    }
+                }
             }
+
+            if (getActive() == null) setActiveWithoutPersisting(options[0].Resolve());
         }
 
         private void OnInstanceSensorsChanged(LhmNetworkInstanceViewModel adapter, NotifyCollectionChangedEventArgs e)
@@ -106,7 +129,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
                 case "Network Utilization":
                     RegisterCategoryCandidate(adapter, "Utilization", entry,
-                        a => a.NetworkUtilization, (a, v) => a.SetNetworkUtilizationWithoutPersisting(v), adapter.NetworkUtilizationOptions);
+                        a => a.NetworkUtilization, (a, v) => a.SetNetworkUtilizationWithoutPersisting(v), adapter.NetworkUtilizationOptions, isDefault: true);
                     break;
 
                 case "Data Uploaded":
@@ -122,7 +145,8 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
         // adds entry as a candidate, and activates it if nothing is active yet and it matches the persisted choice
-        // (or nothing was ever persisted, first-found-wins)
+        // (or nothing was ever persisted, first-found-wins for now; ApplyCategoryFallbacks corrects to the flagged
+        // default afterward if one exists and discovery order picked something else)
         // guard: see LhmStoragePerformanceViewModel.OnSensorDiscovered for why a duplicate-candidate check is needed
         private void RegisterCategoryCandidate(
             LhmNetworkInstanceViewModel adapter,
@@ -130,7 +154,9 @@ namespace FluentSensors.Features.Performance.Lhm
             LhmSensorEntry entry,
             Func<LhmNetworkInstanceViewModel, SensorGraphViewModel> getActive,
             Action<LhmNetworkInstanceViewModel, SensorGraphViewModel> setActiveWithoutPersisting,
-            ObservableCollection<SensorSwitchCandidate> options)
+            ObservableCollection<SensorSwitchCandidate> options,
+            bool isDefault = false,
+            Func<double?> yMaxOverride = null)
         {
             if (options.Any(c => c.SensorId == entry.Id)) return;
 
@@ -144,7 +170,7 @@ namespace FluentSensors.Features.Performance.Lhm
                 return cached;
             }
 
-            options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve));
+            options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve, isDefault, yMaxOverride));
 
             if (getActive(adapter) != null) return; // already resolved, this is just an additional alternative
 

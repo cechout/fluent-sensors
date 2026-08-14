@@ -64,7 +64,12 @@ namespace FluentSensors.Controls.SensorGraph
 
         private static void OnSwitchCandidatesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is SensorPanelControl panel) panel.SyncSwitchSelection();
+            if (d is not SensorPanelControl panel) return;
+
+            // candidates can bind after ViewModel depending on XAML attribute order; re-apply so a candidates own
+            // Y-axis max is honored even if it was not yet reachable the first time overrides ran
+            panel.ApplyOverridesToViewModel();
+            panel.SyncSwitchSelection();
         }
 
         // separate title row above everything else, showing just the sensor name
@@ -338,9 +343,25 @@ namespace FluentSensors.Controls.SensorGraph
                 _ => null
             };
 
-            double? manualYMax = double.IsNaN(ManualYMaxOverride) ? (double?)null : ManualYMaxOverride;
+            double? panelYMax = double.IsNaN(ManualYMaxOverride) ? (double?)null : ManualYMaxOverride;
+
+            // a switch candidate can carry its own Y-axis max (e.g. Free Space scaling to the drives Total Space);
+            // when the active sensor is such a candidate, that wins and also forces manual scaling, otherwise the
+            // panel-level override applies exactly as before
+            double? candidateYMax = GetActiveCandidateYMax();
+            double? manualYMax = candidateYMax ?? panelYMax;
+            if (candidateYMax.HasValue) isAutoScaled = false;
 
             ViewModel?.ApplyViewOverrides(graphTimeSpanSeconds, isAutoScaled, manualYMax);
+        }
+
+        // Y-axis max of whichever candidate matches the active ViewModel, or null if the active sensor is not a
+        // switch candidate or that candidate has no override of its own
+        private double? GetActiveCandidateYMax()
+        {
+            if (ViewModel == null || SwitchCandidates == null) return null;
+            var active = SwitchCandidates.FirstOrDefault(c => c.SensorId == ViewModel.SensorId);
+            return active?.YMaxOverride;
         }
 
 

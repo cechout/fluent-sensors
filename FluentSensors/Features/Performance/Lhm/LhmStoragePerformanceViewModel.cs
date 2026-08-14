@@ -66,13 +66,39 @@ namespace FluentSensors.Features.Performance.Lhm
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(drive, e);
         }
 
-        // falls back to the first candidate if a persisted choice never shows up on this system (removed hardware,
-        // imported state from another PC); otherwise that category would stay without an active graph forever
+        // runs once after the initial sensor batch, per category: if nothing was ever persisted and one candidate
+        // is explicitly flagged IsDefault, that one wins over whichever candidate happened to be discovered first;
+        // if nothing is active at all yet (e.g. a persisted choice never showed up), falls back to the first
+        // candidate present
         private static void ApplyCategoryFallbacks(LhmStorageInstanceViewModel drive)
         {
-            if (drive.TotalActivity == null && drive.TotalActivityOptions.Count > 0) drive.SetTotalActivityWithoutPersisting(drive.TotalActivityOptions[0].Resolve());
-            if (drive.ReadRate == null && drive.ReadRateOptions.Count > 0) drive.SetReadRateWithoutPersisting(drive.ReadRateOptions[0].Resolve());
-            if (drive.WriteRate == null && drive.WriteRateOptions.Count > 0) drive.SetWriteRateWithoutPersisting(drive.WriteRateOptions[0].Resolve());
+            ActivateDefault(drive.HardwareName, "TotalActivity", drive.TotalActivityOptions, () => drive.TotalActivity, drive.SetTotalActivityWithoutPersisting);
+            ActivateDefault(drive.HardwareName, "Read", drive.ReadRateOptions, () => drive.ReadRate, drive.SetReadRateWithoutPersisting);
+            ActivateDefault(drive.HardwareName, "Write", drive.WriteRateOptions, () => drive.WriteRate, drive.SetWriteRateWithoutPersisting);
+        }
+
+        private static void ActivateDefault(
+            string hardwareName, string category, ObservableCollection<SensorSwitchCandidate> options,
+            Func<SensorGraphViewModel> getActive, Action<SensorGraphViewModel> setActiveWithoutPersisting)
+        {
+            if (options.Count == 0) return;
+
+            if (SensorSwitchStateService.Instance.GetSelectedSensorId(hardwareName, category) == null)
+            {
+                var flaggedDefault = options.FirstOrDefault(c => c.IsDefault);
+                if (flaggedDefault != null)
+                {
+                    var active = getActive();
+                    bool activeIsAlreadyDefault = active != null && options.Any(c => c.SensorId == active.SensorId && c.IsDefault);
+                    if (!activeIsAlreadyDefault)
+                    {
+                        setActiveWithoutPersisting(flaggedDefault.Resolve());
+                        return;
+                    }
+                }
+            }
+
+            if (getActive() == null) setActiveWithoutPersisting(options[0].Resolve());
         }
 
         private void OnInstanceSensorsChanged(LhmStorageInstanceViewModel drive, NotifyCollectionChangedEventArgs e)
@@ -91,12 +117,15 @@ namespace FluentSensors.Features.Performance.Lhm
             {
                 case "Total Activity":
                     RegisterCategoryCandidate(drive, "TotalActivity", entry,
-                        d => d.TotalActivity, (d, v) => d.SetTotalActivityWithoutPersisting(v), drive.TotalActivityOptions);
+                        d => d.TotalActivity, (d, v) => d.SetTotalActivityWithoutPersisting(v), drive.TotalActivityOptions, isDefault: true);
                     break;
 
                 case "Free Space":
+                    // scales to the drives full capacity instead of the panels default; live Func since Total Space
+                    // may be discovered after this candidate is registered
                     RegisterCategoryCandidate(drive, "TotalActivity", entry,
-                        d => d.TotalActivity, (d, v) => d.SetTotalActivityWithoutPersisting(v), drive.TotalActivityOptions);
+                        d => d.TotalActivity, (d, v) => d.SetTotalActivityWithoutPersisting(v), drive.TotalActivityOptions,
+                        yMaxOverride: () => drive.TotalSpace > 0 ? drive.TotalSpace : (double?)null);
                     break;
 
                 case "Total Space":
@@ -106,28 +135,29 @@ namespace FluentSensors.Features.Performance.Lhm
 
                 case "Write Rate":
                     RegisterCategoryCandidate(drive, "Write", entry,
-                        d => d.WriteRate, (d, v) => d.SetWriteRateWithoutPersisting(v), drive.WriteRateOptions);
+                        d => d.WriteRate, (d, v) => d.SetWriteRateWithoutPersisting(v), drive.WriteRateOptions, isDefault: true);
                     break;
 
                 case "Write Activity":
                     RegisterCategoryCandidate(drive, "Write", entry,
-                        d => d.WriteRate, (d, v) => d.SetWriteRateWithoutPersisting(v), drive.WriteRateOptions);
+                        d => d.WriteRate, (d, v) => d.SetWriteRateWithoutPersisting(v), drive.WriteRateOptions, yMaxOverride: () => 100);
                     break;
 
                 case "Read Rate":
                     RegisterCategoryCandidate(drive, "Read", entry,
-                        d => d.ReadRate, (d, v) => d.SetReadRateWithoutPersisting(v), drive.ReadRateOptions);
+                        d => d.ReadRate, (d, v) => d.SetReadRateWithoutPersisting(v), drive.ReadRateOptions, isDefault: true);
                     break;
 
                 case "Read Activity":
                     RegisterCategoryCandidate(drive, "Read", entry,
-                        d => d.ReadRate, (d, v) => d.SetReadRateWithoutPersisting(v), drive.ReadRateOptions);
+                        d => d.ReadRate, (d, v) => d.SetReadRateWithoutPersisting(v), drive.ReadRateOptions, yMaxOverride: () => 100);
                     break;
             }
         }
 
         // adds entry as a candidate, and activates it if nothing is active yet and it matches the persisted choice
-        // (or nothing was ever persisted, first-found-wins)
+        // (or nothing was ever persisted, first-found-wins for now; ApplyCategoryFallbacks corrects to the flagged
+        // default afterward if one exists and discovery order picked something else)
         // guard: OnSensorDiscovered can run again for a sensor already registered here (e.g. re-triggered via
         // instance.Sensors.CollectionChanged); without it every rerun would add a duplicate candidate
         private void RegisterCategoryCandidate(
@@ -136,7 +166,9 @@ namespace FluentSensors.Features.Performance.Lhm
             LhmSensorEntry entry,
             Func<LhmStorageInstanceViewModel, SensorGraphViewModel> getActive,
             Action<LhmStorageInstanceViewModel, SensorGraphViewModel> setActiveWithoutPersisting,
-            ObservableCollection<SensorSwitchCandidate> options)
+            ObservableCollection<SensorSwitchCandidate> options,
+            bool isDefault = false,
+            Func<double?> yMaxOverride = null)
         {
             if (options.Any(c => c.SensorId == entry.Id)) return;
 
@@ -150,7 +182,7 @@ namespace FluentSensors.Features.Performance.Lhm
                 return cached;
             }
 
-            options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve));
+            options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve, isDefault, yMaxOverride));
 
             if (getActive(drive) != null) return; // already resolved, this is just an additional alternative
 

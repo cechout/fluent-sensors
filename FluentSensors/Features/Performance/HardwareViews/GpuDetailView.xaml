@@ -217,19 +217,19 @@
                         <Grid x:Name="TilesGrid" Grid.Row="1">
                             <controls:WrapPanel
                                 Margin="4,0,4,12"
-                                HorizontalSpacing="8"
+                                HorizontalSpacing="0"
                                 VerticalSpacing="8">
                                 <fhTile:SensorTileControl
                                     Title="GPU Core Load"
-                                    Width="100"
+                                    Width="Auto"
                                     ViewModel="{x:Bind Gpu.CoreLoad, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Temperature"
-                                    Width="100"
+                                    Title="GPU Temperature"
+                                    Width="Auto"
                                     ViewModel="{x:Bind Gpu.Temperature, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
                                     Title="Package Power"
-                                    Width="100"
+                                    Width="Auto"
                                     ViewModel="{x:Bind Gpu.PackagePower, Mode=OneWay}" />
                             </controls:WrapPanel>
                         </Grid>
@@ -255,10 +255,14 @@
                         <!--  core; Power/Voltage sits at the top since it does not have a group of its own anymore  -->
                         <StackPanel Grid.Row="0" Spacing="8">
                             <TextBlock
+                                Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="Core" />
-                            <fhControls:SquareGridPanel MinCellHeight="90" MinCellWidth="260" Spacing="12">
+                            <fhControls:SquareGridPanel
+                                MinCellHeight="90"
+                                MinCellWidth="260"
+                                Spacing="12">
                                 <fhGraph:SensorPanelControl
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
@@ -318,10 +322,14 @@
                         <!--  memory; Memory Free folded into the MemoryUsed switch instead of its own cell  -->
                         <StackPanel Grid.Row="1" Spacing="8">
                             <TextBlock
+                                Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="Memory" />
-                            <fhControls:SquareGridPanel MinCellHeight="90" MinCellWidth="260" Spacing="12">
+                            <fhControls:SquareGridPanel
+                                MinCellHeight="90"
+                                MinCellWidth="260"
+                                Spacing="12">
                                 <fhGraph:SensorPanelControl
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
@@ -371,10 +379,14 @@
                         <!--  pcie / bus  -->
                         <StackPanel Grid.Row="2" Spacing="8">
                             <TextBlock
+                                Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="PCIe / Bus" />
-                            <fhControls:SquareGridPanel MinCellHeight="90" MinCellWidth="260" Spacing="12">
+                            <fhControls:SquareGridPanel
+                                MinCellHeight="90"
+                                MinCellWidth="260"
+                                Spacing="12">
                                 <fhGraph:SensorPanelControl
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
@@ -412,10 +424,14 @@
                         <!--  engines: 1 fixed anchor + 4 switchable slots sharing the full D3D pool  -->
                         <StackPanel Grid.Row="3" Spacing="8">
                             <TextBlock
+                                Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="Engines" />
-                            <fhControls:SquareGridPanel MinCellHeight="90" MinCellWidth="260" Spacing="12">
+                            <fhControls:SquareGridPanel
+                                MinCellHeight="90"
+                                MinCellWidth="260"
+                                Spacing="12">
                                 <fhGraph:SensorPanelControl
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
