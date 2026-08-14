@@ -71,7 +71,7 @@
                                         <VisualState x:Name="Pressed">
                                             <VisualState.Setters>
                                                 <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
-                                                <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                                <Setter Target="ContentPresenter.Opacity" Value="0.7" />
                                             </VisualState.Setters>
                                         </VisualState>
 

@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -108,6 +109,21 @@ namespace FluentSensors.Controls.SensorGraph
         public static readonly DependencyProperty ShowStatusRowProperty =
             DependencyProperty.Register(
                 nameof(ShowStatusRow),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(false));
+
+        // swaps the status row for a toggle-button-free variant (Y-max, sensor name, current value only, no panel
+        // toggle, no switch UI); only takes effect while ShowStatusRow is also true
+        // for consumers with nothing for the panel toggle to actually toggle, e.g. a read-only tile in a grid
+        public bool ShowCompactStatusRow
+        {
+            get => (bool)GetValue(ShowCompactStatusRowProperty);
+            set => SetValue(ShowCompactStatusRowProperty, value);
+        }
+        public static readonly DependencyProperty ShowCompactStatusRowProperty =
+            DependencyProperty.Register(
+                nameof(ShowCompactStatusRow),
                 typeof(bool),
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
@@ -310,6 +326,20 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(true));
 
+        // pure visual pass-through to SensorGraphControl.IsHoverEnabled; default true keeps every existing consumer
+        // unchanged, set to false for a purely decorative graph (no hover circle, no value label on pointer move)
+        public bool IsGraphHoverEnabled
+        {
+            get => (bool)GetValue(IsGraphHoverEnabledProperty);
+            set => SetValue(IsGraphHoverEnabledProperty, value);
+        }
+        public static readonly DependencyProperty IsGraphHoverEnabledProperty =
+            DependencyProperty.Register(
+                nameof(IsGraphHoverEnabled),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(true));
+
         // fires whenever ViewModel itself changes, or any of the three override properties change; re-applies all of them
         // together so the final state is always correct regardless of the order XAML happens to set these attributes in
         private static void OnOverrideChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -367,10 +397,16 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === bindable helper surfaces ===
 
-        // whether the graph chrome (label row + chart row) should render; false when ViewModel is null, e.g.
+        // whether the graph chrome (chart row + its control buttons) should render; false when ViewModel is null, e.g.
         // this hardware instance does not report the requested sensor at all
+        // the label row above it is a separate concern now, see GetTitleRowVisibility: the status row keeps showing
+        // (with placeholder values) even while this is Collapsed
         private Visibility GetContentVisibility(SensorGraphViewModel viewModel) =>
             viewModel == null ? Visibility.Collapsed : Visibility.Visible;
+
+        // title row only makes sense once a real sensor exists; unlike the status row it has no placeholder variant
+        private Visibility GetTitleRowVisibility(bool showTitleRow, SensorGraphViewModel viewModel) =>
+            showTitleRow && viewModel != null ? Visibility.Visible : Visibility.Collapsed;
 
         private Visibility GetNotFoundVisibility(SensorGraphViewModel viewModel) =>
             viewModel == null ? Visibility.Visible : Visibility.Collapsed;
@@ -383,6 +419,37 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
+
+        // status row placeholder for when ViewModel is null; keeps the row at its usual layout position instead of
+        // collapsing it, e.g. a start page tile for a sensor this hardware does not currently report
+        private string GetTextOrPlaceholder(string value) => string.IsNullOrEmpty(value) ? "--" : value;
+
+        // --- workaround: x:Bind skips function calls whose argument path runs through null ---
+        // problem: when a function bindings argument is a multi-segment path like ViewModel.ActualYMaxText and
+        // ViewModel is null, x:Bind does not call the function at all and leaves the target at its default; the
+        // placeholder text below never showed up, the TextBlock just stayed empty
+        // confirmed platform bug: https://github.com/microsoft/microsoft-ui-xaml/issues/2166
+        // fix: pass ViewModel itself (a single, always-readable property, not a path through it) and do the
+        // null-safe navigation inside the method body instead; GetContentVisibility/GetNotFoundVisibility right
+        // above already used this exact pattern and always worked correctly
+        private string GetYMaxOrPlaceholder(SensorGraphViewModel viewModel) => GetTextOrPlaceholder(viewModel?.ActualYMaxText);
+
+        private string GetCurrentValueOrPlaceholder(SensorGraphViewModel viewModel) => GetTextOrPlaceholder(viewModel?.CurrentValueText);
+
+        private Brush GetCurrentValueColorOrDefault(SensorGraphViewModel viewModel) => viewModel?.CurrentValueColor ?? DefaultTextColor.Resolve();
+
+        private string GetStatusRowTitleOrPlaceholder(bool showUnit, SensorGraphViewModel viewModel) =>
+            viewModel == null ? "--" : GetTextOrPlaceholder(GetStatusRowTitle(showUnit, viewModel.SensorName, viewModel.DisplayNameWithUnit));
+
+        private Brush GetBrushOrDefault(Brush value) => value ?? DefaultTextColor.Resolve();
+
+        // the two status row variants are mutually exclusive; compact wins whenever both ShowStatusRow and
+        // ShowCompactStatusRow are set
+        private Visibility GetStandardStatusRowVisibility(bool showStatusRow, bool showCompactStatusRow) =>
+            showStatusRow && !showCompactStatusRow ? Visibility.Visible : Visibility.Collapsed;
+
+        private Visibility GetCompactStatusRowVisibility(bool showStatusRow, bool showCompactStatusRow) =>
+            showStatusRow && showCompactStatusRow ? Visibility.Visible : Visibility.Collapsed;
 
         // status row shows either the plain sensor name, or name+unit combined, depending on ShowUnitInStatusRow
         private string GetStatusRowTitle(bool showUnit, string name, string nameWithUnit)

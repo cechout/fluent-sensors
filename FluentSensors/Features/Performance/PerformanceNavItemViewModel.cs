@@ -50,6 +50,9 @@ namespace FluentSensors.Features.Performance
         // sidebar mini-graph color; single source of truth in HardwareGroupInfo, same color every detail view uses
         public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(Kind).Color;
 
+        // hardware type icon; same source and same glyph the detail views own header uses (e.g. CpuDetailView)
+        public string GroupIconGlyph => HardwareGroupInfo.GetProfile(Kind).IconGlyph;
+
         // the specific hardware instance this nav item represents, e.g. one LhmCpuInstanceViewModel or one
         // LhmGpuInstanceViewModel; typed as object since the concrete type differs per Kind
         // PerformancePage picks the matching cached detail view purely by this objects runtime type

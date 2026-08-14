@@ -17,9 +17,10 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+
         <!--  label row  -->
         <!--  (title row and status row overlap here, both independently toggleable via ShowTitleRow/ShowStatusRow)  -->
-        <Grid Grid.Row="0" Visibility="{x:Bind GetContentVisibility(ViewModel), Mode=OneWay}">
+        <Grid Grid.Row="0">
 
             <!--  separate title row: just the sensor name  -->
             <TextBlock
@@ -29,7 +30,7 @@
                 Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
                 TextTrimming="CharacterEllipsis"
                 TextWrapping="NoWrap"
-                Visibility="{x:Bind BoolToVisibility(ShowTitleRow), Mode=OneWay}" />
+                Visibility="{x:Bind GetTitleRowVisibility(ShowTitleRow, ViewModel), Mode=OneWay}" />
 
             <!--  status row: toggle button, current Y-max, sensor name (+ unit), current value  -->
             <Grid
@@ -38,7 +39,7 @@
                 HorizontalAlignment="Stretch"
                 Background="Transparent"
                 ColumnSpacing="0"
-                Visibility="{x:Bind BoolToVisibility(ShowStatusRow), Mode=OneWay}">
+                Visibility="{x:Bind GetStandardStatusRowVisibility(ShowStatusRow, ShowCompactStatusRow), Mode=OneWay}">
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="36" />
@@ -46,7 +47,8 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!--  toggle button; what it does depends on ButtonTapAction  -->
+                <!--  toggle button  -->
+                <!--  (what it does depends on ButtonTapAction)  -->
                 <Button
                     Grid.Column="0"
                     Width="32"
@@ -73,7 +75,7 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind ViewModel.ActualYMaxText, Mode=OneWay}" />
+                    Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}" />
 
                 <!--  sensor name, or name + unit if ShowUnitInStatusRow  -->
                 <!--  switchable: subtle button with a manual chevron, opens the hidden combobox below in one click  -->
@@ -87,7 +89,7 @@
                     Style="{StaticResource SubtleButtonStyle}"
                     Visibility="{x:Bind GetSwitchButtonVisibility(SwitchCandidates), Mode=OneWay}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind GetStatusRowTitle(ShowUnitInStatusRow, ViewModel.SensorName, ViewModel.DisplayNameWithUnit), Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel), Mode=OneWay}" />
                         <FontIcon FontSize="10" Glyph="&#xE70D;" />
                     </StackPanel>
                 </Button>
@@ -110,7 +112,7 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetStatusRowTitle(ShowUnitInStatusRow, ViewModel.SensorName, ViewModel.DisplayNameWithUnit), Mode=OneWay}"
+                    Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel), Mode=OneWay}"
                     Visibility="{x:Bind GetSwitchTextVisibility(SwitchCandidates), Mode=OneWay}" />
 
                 <!--  current value  -->
@@ -119,9 +121,54 @@
                     Padding="0,0,8,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    Foreground="{x:Bind ViewModel.CurrentValueColor, Mode=OneWay}"
+                    Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}" />
+                    Text="{x:Bind GetCurrentValueOrPlaceholder(ViewModel), Mode=OneWay}" />
+            </Grid>
+
+            <!--  compact status row: same three facts (Y-max, sensor name, current value), no panel toggle button and  -->
+            <!--  no switch UI; ShowCompactStatusRow picks this over the row above  -->
+            <Grid
+                Height="18"
+                Padding="0,0,0,0"
+                HorizontalAlignment="Stretch"
+                Background="Transparent"
+                ColumnSpacing="6"
+                Visibility="{x:Bind GetCompactStatusRowVisibility(ShowStatusRow, ShowCompactStatusRow), Mode=OneWay}">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!--  current max y-axis value  -->
+                <TextBlock
+                    Grid.Column="0"
+                    Margin="4,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}" />
+
+                <!--  sensor name, or name + unit if ShowUnitInStatusRow  -->
+                <TextBlock
+                    Grid.Column="1"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel), Mode=OneWay}"
+                    TextTrimming="CharacterEllipsis" />
+
+                <!--  current value  -->
+                <TextBlock
+                    Grid.Column="2"
+                    Padding="0,0,8,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind GetCurrentValueOrPlaceholder(ViewModel), Mode=OneWay}" />
             </Grid>
         </Grid>
 
@@ -313,6 +360,7 @@
                     AccentColor="{x:Bind GetEffectiveGraphColor(GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
                     CardBackgroundOverride="{x:Bind BoolToCardBackgroundOverride(ShowGraphCardBackground), Mode=OneWay}"
                     IsAutoScaled="{x:Bind ViewModel.IsAutoScaled, Mode=OneWay}"
+                    IsHoverEnabled="{x:Bind IsGraphHoverEnabled, Mode=OneWay}"
                     IsLabelVisible="{x:Bind ShowGraphLabel, Mode=OneWay}"
                     LabelFollowsPointer="True"
                     LabelText="{x:Bind ViewModel.DisplayNameWithUnit, Mode=OneWay}"
@@ -337,10 +385,10 @@
             </Grid>
         </Grid>
 
-        <!--  not found placeholder; shown instad of the whole panel when viewmodel is null  -->
+        <!--  not found placeholder  -->
+        <!--  (covers only the graph row when viewmodel is null)  -->
         <Border
-            Grid.Row="0"
-            Grid.RowSpan="2"
+            Grid.Row="1"
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
             BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
             BorderThickness="1"

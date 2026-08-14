@@ -14,12 +14,13 @@
         <ResourceDictionary>
 
             <!--  plain-Button version of PerformancePages SidebarNavToggleButtonStyle; same subtle background/hover/pressed  -->
-            <!--  language, minus the Checked states, since the header is a one-shot navigation action, not a persisted  -->
-            <!--  selection; only the header navigates, the panel below it stays fully interactive  -->
-            <Style x:Key="StartTileHeaderButtonStyle" TargetType="Button">
+            <!--  language, minus the Checked states, since a tile is a one-shot navigation action, not a persisted  -->
+            <!--  selection; pressed state additionally dims the content itself, on top of the background change, as a  -->
+            <!--  clearer press cue  -->
+            <Style x:Key="StartTileButtonStyle" TargetType="Button">
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                <Setter Property="Padding" Value="8,4,8,4" />
+                <Setter Property="Padding" Value="8" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
@@ -46,6 +47,7 @@
                                         <VisualState x:Name="Pressed">
                                             <VisualState.Setters>
                                                 <Setter Target="RootBorder.Background" Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
+                                                <Setter Target="ContentPresenter.Opacity" Value="0.7" />
                                             </VisualState.Setters>
                                         </VisualState>
                                     </VisualStateGroup>
@@ -61,58 +63,102 @@
 
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
-        <ItemsControl Margin="16" ItemsSource="{x:Bind ViewModel.NavItems, Mode=OneWay}">
+        <ItemsControl Margin="8" ItemsSource="{x:Bind ViewModel.NavItems, Mode=OneWay}">
 
-            <!--  same SquareGridPanel layout idea as GPU Extended view, just flat: one grid over every NavItem, no  -->
-            <!--  grouping into sections  -->
+            <!--  (same SquareGridPanel layout idea as GPU Extended view)  -->
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <fhControls:SquareGridPanel MinCellWidth="320" Spacing="12" />
+                    <fhControls:SquareGridPanel MinCellWidth="280" Spacing="2" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
 
             <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="local:PerformanceNavItemViewModel">
+                    <Button Click="Tile_Click" Style="{StaticResource StartTileButtonStyle}">
 
-                    <Grid RowSpacing="4">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
+                        <Grid RowSpacing="4">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
 
-                        <!--  header: same sidebar content (group label + hardware name), clickable to jump into that  -->
-                        <!--  hardwares detail view  -->
-                        <Button
-                            Grid.Row="0"
-                            Click="Header_Click"
-                            Style="{StaticResource StartTileHeaderButtonStyle}">
-                            <StackPanel>
-                                <TextBlock
-                                    Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                    Text="{x:Bind GroupLabel, Mode=OneWay}"
-                                    TextTrimming="CharacterEllipsis" />
-                                <TextBlock
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind DisplayName, Mode=OneWay}"
-                                    TextTrimming="CharacterEllipsis" />
-                            </StackPanel>
-                        </Button>
 
-                        <!--  the same PrimaryGraph the sidebar shows, but rendered as a full SensorPanelControl instead of  -->
-                        <!--  the sidebars bare mini graph; scaling stays inherited from the graphs own state (no  -->
-                        <!--  override), exactly like the sidebar reads PrimaryGraph.IsAutoScaled/ManualYMax  -->
-                        <fhGraph:SensorPanelControl
-                            Grid.Row="1"
-                            Height="150"
-                            GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
-                            ShowStatusRow="True"
-                            ShowThresholdControls="True"
-                            ShowYAxisControls="True"
-                            ThresholdLabelAlwaysVisible="False"
-                            ViewModel="{x:Bind PrimaryGraph, Mode=OneWay}" />
-                    </Grid>
+                            <!--  header  -->
+                            <!--  hardware type icon, group label, hardware name  -->
+                            <Grid Grid.Row="0" Margin="8,4,8,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
+                                <!--  Grid instead of a horizontal StackPanel: a StackPanel always measures its children at infinite width along  -->
+                                <!--  its own orientation axis and never compresses them back down on arrange, so TextTrimming below never had an  -->
+                                <!--  actual width to trim against; the Star column here does constrain it correctly  -->
+                                <Grid Grid.Column="0" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <FontIcon
+                                        Grid.Column="0"
+                                        FontSize="22"
+                                        Glyph="{x:Bind GroupIconGlyph, Mode=OneTime}" />
+
+                                    <StackPanel Grid.Column="1" Spacing="0">
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                            Text="{x:Bind GroupLabel, Mode=OneWay}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind DisplayName, Mode=OneWay}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Padding="8,0,0,0"
+                                    Orientation="Horizontal"
+                                    Spacing="12">
+
+                                    <!--  (later for hiding hardware groups?)  -->
+                                    <!--<FontIcon
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        Foreground="{ThemeResource TextFillColorSecondary}"
+                                        Glyph="&#xED1A;" />-->
+                                    <FontIcon
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Glyph="&#xE76C;" />
+                                </StackPanel>
+
+                            </Grid>
+
+
+                            <!--  graph  -->
+                            <!--  (the same PrimaryGraph the sidebar shows, but rendered as a full SensorPanelControl)  -->
+                            <!--  (no hover, no side controls, not even hit-testable)  -->
+                            <fhGraph:SensorPanelControl
+                                Grid.Row="1"
+                                Height="130"
+                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                IsGraphHoverEnabled="False"
+                                IsHitTestVisible="False"
+                                ShowCompactStatusRow="True"
+                                ShowStatusRow="True"
+                                ThresholdLabelAlwaysVisible="False"
+                                ViewModel="{x:Bind PrimaryGraph, Mode=OneWay}" />
+                        </Grid>
+
+                    </Button>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
 
