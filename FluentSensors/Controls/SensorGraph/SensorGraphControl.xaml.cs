@@ -52,12 +52,23 @@ namespace FluentSensors.Controls.SensorGraph
         // something inert instead of the live values and never redraws off-screen
         private readonly ObservableCollection<double?> _detachedValues = new();
 
+        // live count of every SensorGraphControl instance currently rendering (_isRenderingActive true), across
+        // every window; used by AppStatusService for the title bar status readout
+        // only ever written from the UI thread (construction and SetRenderingActive both happen there), read back
+        // later from a background timer thread; a plain int is fine for that, a stale read for one tick has no
+        // real consequence
+        private static int _activeRenderingCount;
+        public static int ActiveRenderingCount => _activeRenderingCount;
+
 
         // === constructor ===
 
         public SensorGraphControl()
         {
             InitializeComponent();
+
+            // starts rendering-active by default (see _isRenderingActive above), counted immediately
+            _activeRenderingCount++;
 
             // the LiveCharts ISeries definition
             _lineSeries = new StepLineSeries<double?>
@@ -191,6 +202,7 @@ namespace FluentSensors.Controls.SensorGraph
         {
             if (_isRenderingActive == active) return;
             _isRenderingActive = active;
+            _activeRenderingCount += active ? 1 : -1;
 
             if (active)
             {

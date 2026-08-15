@@ -13,6 +13,7 @@ using WinUIEx;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
 using FluentSensors.Core.StaticInfo;
+using FluentSensors.Features.AppStatus;
 using FluentSensors.Features.Performance;
 using FluentSensors.Features.Sensors;
 using FluentSensors.Features.Settings;
@@ -81,6 +82,10 @@ namespace FluentSensors
         public XamlUICommand TrayLeftClickCommand { get; } = new XamlUICommand(); // tray single click, restores widget only
         public XamlUICommand TrayDoubleClickCommand { get; } = new XamlUICommand(); // tray double click, restores main window only
 
+        // backs the title bar status readout (sensors found/rendering, CPU/RAM/handles); AppStatusService itself
+        // is started further down, once hardware discovery has actually run
+        public AppStatusViewModel AppStatus { get; } = new AppStatusViewModel();
+
 
         // === constructor ===
 
@@ -96,7 +101,7 @@ namespace FluentSensors
             AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
             if (AppWindow.TitleBar.ExtendsContentIntoTitleBar)
             {
-                AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Standard;
+                AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
                 AppWindow.TitleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
                 AppWindow.TitleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
 
@@ -224,6 +229,9 @@ namespace FluentSensors
 
             // no we start the HardwareMonitorService loop manually
             monitor.StartMonitoring();
+
+            // sensor discovery just finished above, TotalSensorsFound is meaningful from here on
+            AppStatusService.Instance.Start();
 
             // we explicitly wait until the ViewModel has received and processed the very first data payload, and until
             // the static info prewarm above has finished; both have been running in parallel with everything since

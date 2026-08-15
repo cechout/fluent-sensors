@@ -161,6 +161,19 @@ namespace FluentSensors.Core
             _computer.Close();
         }
 
+        // total number of sensors LHM currently reports, regardless of exclusion state; used by the app status
+        // readout in the title bar
+        public int TotalSensorsFound
+        {
+            get
+            {
+                lock (_sensorLock)
+                {
+                    return _activeSensors.Count;
+                }
+            }
+        }
+
         // exclusion API:
         // the service stays blind about the meaning of "excluded" (hidden, disabled, whatever); it just skips these ids
         public void AddExcludedSensor(string sensorId)
