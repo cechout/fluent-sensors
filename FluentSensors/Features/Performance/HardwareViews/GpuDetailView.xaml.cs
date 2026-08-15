@@ -4,6 +4,7 @@ using System;
 using Windows.Foundation;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Features.Performance;
 using FluentSensors.Features.Performance.Lhm;
 
@@ -134,12 +135,12 @@ namespace FluentSensors.Features.Performance.HardwareViews
         {
             if (Gpu == null) return;
 
-            PerformanceGraphDefaults.SetGraphsRenderingActive(OverviewBlockGrid, !Gpu.IsShowingExtended);
+            SensorGraphRenderingGate.SetActive(OverviewBlockGrid, !Gpu.IsShowingExtended);
 
             // still null if Extended was never selected this session; nothing to gate in that case
             if (ExtendedGrid != null)
             {
-                PerformanceGraphDefaults.SetGraphsRenderingActive(ExtendedGrid, Gpu.IsShowingExtended);
+                SensorGraphRenderingGate.SetActive(ExtendedGrid, Gpu.IsShowingExtended);
             }
         }
 

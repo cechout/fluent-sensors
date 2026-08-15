@@ -12,6 +12,7 @@ using System.Linq;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Controls.SensorRow;
+using FluentSensors.Controls.SensorGraph;
 
 
 namespace FluentSensors.Features.Widget
@@ -127,6 +128,11 @@ namespace FluentSensors.Features.Widget
                 CurrentInstance = window;
                 WidgetStateChanged?.Invoke();
 
+                // level 2 reverse: refill each graph to a flat baseline, resubscribe to live data, then resume
+                // rendering, so the reopened widget starts fresh from zero instead of the pre-close history
+                window.ViewModel.SetLiveDataActive(true);
+                window.SetGraphsRenderingActive(true);
+
                 window._appWindow.Show();
                 window.Activate();
                 return;
@@ -219,6 +225,12 @@ namespace FluentSensors.Features.Widget
             WidgetStateChanged?.Invoke();
 
             _appWindow.Hide();
+
+            // level 2: a closed widget decouples completely; stop rendering first, then stop all incoming data and wipe
+            // the history, so a hidden widget does nothing in the background at all
+            // gating rendering off first means the history wipe below fires no repaints; reopening restores it all
+            SetGraphsRenderingActive(false);
+            ViewModel.SetLiveDataActive(false);
         }
 
 
@@ -280,17 +292,42 @@ namespace FluentSensors.Features.Widget
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
-            // triggers when the widget window minimizes or restores
+            // --- workaround: minimize/restore never gated, DidPresenterChange does not cover it ---
+            // problem: DidPresenterChange only fires when the Presenter itself is swapped for a different one (e.g.
+            // Overlapped -> CompactOverlay); minimize/maximize/restore are just a state change within the same
+            // OverlappedPresenter and never set it, so a check gated on DidPresenterChange silently never runs
+            // https://learn.microsoft.com/en-us/windows/apps/develop/ui/manage-app-windows
+            // fix: minimize/maximize/restore show up as DidSizeChange instead (confirmed via Microsofts own
+            // OverlappedPresenterState sample), read presenter.State there instead
             if (args.DidPresenterChange && MainWindow.CurrentInstance != null)
             {
                 // notify the main window to re-evaluate the system tray state
                 MainWindow.CurrentInstance.CheckAndHideToTray();
             }
 
+            if (args.DidSizeChange)
+            {
+                // level 1: while minimized, stop the graphs from drawing but keep their data lists filling in the
+                // background, so restoring shows the continuous history (a close resets instead, see AppWindow_Closing)
+                bool isMinimized = sender.Presenter is OverlappedPresenter presenter &&
+                                   presenter.State == OverlappedPresenterState.Minimized;
+                SetGraphsRenderingActive(!isMinimized);
+            }
+
             // capture position/size for persistence whenever the window moves or resizes
             if ((args.DidPositionChange || args.DidSizeChange) && this.AppWindow.IsVisible)
             {
                 SaveWindowState();
+            }
+        }
+
+        // level 1 gate: switches only the live rendering of every widget graph on or off; the data lists keep filling
+        // in the background either way
+        private void SetGraphsRenderingActive(bool active)
+        {
+            if (this.Content is DependencyObject root)
+            {
+                SensorGraphRenderingGate.SetActive(root, active);
             }
         }
 

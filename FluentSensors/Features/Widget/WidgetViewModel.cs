@@ -17,6 +17,10 @@ namespace FluentSensors.Features.Widget
 
         private readonly DispatcherQueue _dispatcherQueue;
 
+        // whether this widget is currently fed by the live hardware data stream
+        // starts true since the constructor subscribes right away; toggled by SetLiveDataActive for the closed widget
+        private bool _isLiveDataActive = true;
+
 
         // === constructor ===
 
@@ -88,6 +92,35 @@ namespace FluentSensors.Features.Widget
                 if (currentIndex != -1 && currentIndex != targetIndex)
                 {
                     PinnedSensors.Move(currentIndex, targetIndex);
+                }
+            }
+        }
+
+
+        // fully couples or decouples the widget from the live hardware data stream; used for the closed (hidden) widget,
+        // where nothing should run in the background at all
+        // off: stops all incoming data (unsubscribes from HardwareMonitorService) and wipes every pinned graphs history
+        // on: refills each graph to a flat baseline and resubscribes, so a reopened widget starts fresh from zero
+        // this is the deliberate difference from minimize, which keeps the subscription alive and preserves the history
+        public void SetLiveDataActive(bool active)
+        {
+            if (_isLiveDataActive == active) return;
+            _isLiveDataActive = active;
+
+            if (active)
+            {
+                foreach (var sensor in PinnedSensors)
+                {
+                    sensor.ResetToBaseline();
+                }
+                HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
+            }
+            else
+            {
+                HardwareMonitorService.Instance.HardwareDataUpdated -= OnHardwareDataUpdated;
+                foreach (var sensor in PinnedSensors)
+                {
+                    sensor.ClearHistory();
                 }
             }
         }

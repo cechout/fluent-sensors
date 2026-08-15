@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.UI.Dispatching;
 
+using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Features.Performance.HardwareViews;
 using FluentSensors.Features.Performance.Lhm;
 
@@ -189,7 +190,7 @@ namespace FluentSensors.Features.Performance
                 _currentDetailView.IsHitTestVisible = false;
 
                 // the view is now hidden; stop all of its graphs from doing any per-tick rendering work
-                PerformanceGraphDefaults.SetGraphsRenderingActive(_currentDetailView, false);
+                SensorGraphRenderingGate.SetActive(_currentDetailView, false);
             }
 
             // no SelectedItem means the start page is shown instead of a hardware instances detail view
@@ -197,7 +198,7 @@ namespace FluentSensors.Features.Performance
             if (view == null) return;
 
             // resume rendering before the view becomes visible, so its first shown frame already shows current data
-            PerformanceGraphDefaults.SetGraphsRenderingActive(view, true);
+            SensorGraphRenderingGate.SetActive(view, true);
 
             // the walk above just turned every graph in this view back on, including whichever of Overview/Extended
             // (or Overview/All Threads) is not the one actually shown right now; hand it back to the view itself to
@@ -250,7 +251,7 @@ namespace FluentSensors.Features.Performance
                 {
                     if (ReferenceEquals(created, _currentDetailView)) return;
                     created.UpdateLayout();
-                    PerformanceGraphDefaults.SetGraphsRenderingActive(created, false);
+                    SensorGraphRenderingGate.SetActive(created, false);
                 });
             }
 

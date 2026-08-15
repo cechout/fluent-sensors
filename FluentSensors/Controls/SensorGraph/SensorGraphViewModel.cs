@@ -249,6 +249,31 @@ namespace FluentSensors.Controls.SensorGraph
             RecalculateColor();
         }
 
+        // wipes this graphs history back to empty; used when the Widget window is closed, so a hidden widget holds no
+        // data at all (see WidgetViewModel.SetLiveDataActive)
+        public void ClearHistory()
+        {
+            SensorData.Clear();
+            CurrentValueText = "-"; // back to the placeholder until the next value
+        }
+
+        // refills this graph to a flat zero baseline at the current point count; used when a closed Widget window is
+        // reopened, so it starts fresh instead of resuming the pre-close history
+        // deliberately not called on minimize; a minimized widget keeps feeding data and preserves its history
+        public void ResetToBaseline()
+        {
+            double effectiveSeconds = _timeSpanOverrideSeconds ?? SettingsService.Instance.GraphTimeSpanSeconds;
+            int pointCount = CalculatePointCount(effectiveSeconds, HardwareMonitorService.Instance.UpdateIntervalMs);
+
+            SensorData.Clear();
+            for (int i = 0; i < pointCount; i++)
+            {
+                SensorData.Add(0.0);
+            }
+
+            CurrentValueText = "-"; // back to the placeholder until the first value after reopen
+        }
+
         // applies view-specific configuration that intentionally does NOT persist to SensorStateService:
         // used by consumers like the Performance page that need this graphs time span / Y-axis behavior fixed and
         // decoupled from whatever is (or isnt) configured for this sensor elsewhere

@@ -4,6 +4,7 @@ using System;
 using Windows.Foundation;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Diagnostics;
 using FluentSensors.Features.Performance;
 using FluentSensors.Features.Performance.Lhm;
@@ -147,12 +148,12 @@ namespace FluentSensors.Features.Performance.HardwareViews
         {
             if (Cpu == null) return;
 
-            PerformanceGraphDefaults.SetGraphsRenderingActive(OverviewBlockGrid, !Cpu.IsShowingAllThreads);
+            SensorGraphRenderingGate.SetActive(OverviewBlockGrid, !Cpu.IsShowingAllThreads);
 
             // still null if All Threads was never selected this session; nothing to gate in that case
             if (AllThreadsGrid != null)
             {
-                PerformanceGraphDefaults.SetGraphsRenderingActive(AllThreadsGrid, Cpu.IsShowingAllThreads);
+                SensorGraphRenderingGate.SetActive(AllThreadsGrid, Cpu.IsShowingAllThreads);
             }
         }
 
