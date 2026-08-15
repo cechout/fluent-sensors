@@ -90,6 +90,12 @@ namespace FluentSensors.Features.Performance.Lhm
         public string NetworkIPv6AddressesText => _staticInfo != null ? HardwareInfoFormatter.FormatIpAddresses(_staticInfo.IPv6Addresses) : "-";
         public string NetworkDhcpEnabledText => _staticInfo != null ? HardwareInfoFormatter.FormatYesNo(_staticInfo.DhcpEnabled) : "-";
 
+        // display-only name for the Performance page nav item/header/tiles; the matched adapters own hardware
+        // description (same one NetworkNameText already shows) reads far better there than LHMs raw HardwareName
+        // (an OS connection name like "WLAN" or "Ethernet")
+        // display-only: does not replace HardwareName itself, which stays LHMs raw name everywhere else 
+        public string PerformanceDisplayName => _staticInfo?.Description ?? HardwareName;
+
 
         // === INotifyPropertyChanged implementation ===
 

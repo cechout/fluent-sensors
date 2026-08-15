@@ -66,7 +66,7 @@
                         VerticalAlignment="Bottom"
                         Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                         Style="{ThemeResource BodyTextBlockStyle}"
-                        Text="{x:Bind Network.HardwareName, Mode=OneWay}"
+                        Text="{x:Bind Network.PerformanceDisplayName, Mode=OneWay}"
                         TextAlignment="Right"
                         TextTrimming="CharacterEllipsis"
                         TextWrapping="NoWrap" />

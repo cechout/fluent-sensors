@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
+using FluentSensors.Core.StaticInfo;
 using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.Sensors;
@@ -134,7 +135,7 @@ namespace FluentSensors.Features.Sensors
 
             var group = new HardwareGroupViewModel
             {
-                HardwareName = instance.HardwareName,
+                HardwareName = GetDisplayName(instance),
                 GroupLabel = profile.Label,
                 IconGlyph = profile.IconGlyph
             };
@@ -146,6 +147,32 @@ namespace FluentSensors.Features.Sensors
                 OnSensorDiscovered(group, entry);
             }
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(group, e);
+        }
+
+        // display-only, does not touch instance.HardwareName itself: for storage and network, the matched
+        // hardwares own model name / adapter description (same matches PerformanceViewModel does for its own nav
+        // items) reads better than LHMs raw name; every other kind keeps showing exactly what it always has
+        private static string GetDisplayName(LhmHardwareInstance instance)
+        {
+            switch (instance.Kind)
+            {
+                case HardwareGroupKind.Storage:
+                    var drive = HardwareNameMatcher.FindBestMatch(
+                        instance.HardwareName,
+                        WinStaticInfoService.Instance.Drives,
+                        d => d.FriendlyName);
+                    return drive?.FriendlyName ?? instance.HardwareName;
+
+                case HardwareGroupKind.Network:
+                    var adapter = HardwareNameMatcher.FindBestMatch(
+                        instance.HardwareName,
+                        WinStaticInfoService.Instance.NetworkAdapters,
+                        a => a.Name);
+                    return adapter?.Description ?? instance.HardwareName;
+
+                default:
+                    return instance.HardwareName;
+            }
         }
 
         // creates and places the row for one newly discovered sensor; a sensor discovered for the first time this

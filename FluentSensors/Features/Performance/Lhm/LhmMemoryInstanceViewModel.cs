@@ -77,6 +77,26 @@ namespace FluentSensors.Features.Performance.Lhm
         public string MemoryTotalSlotsText => WinStaticInfoService.Instance.Memory.TotalSlots.ToString();
         public IReadOnlyList<WinMemoryModuleInfo> MemoryModules => WinStaticInfoService.Instance.Memory.Modules;
 
+        // display-only name for the Performance page nav item/header/tiles; composed instead of using LHMs raw
+        // HardwareName 
+        // Size comes from RoundedTotalMemory (already computed above), type from the first modules SmbiosMemoryType;
+        // falls back to HardwareName while either piece is not available yet
+        // display-only: does not replace HardwareName, which stays LHMs raw name for anything outside this page
+        public string PerformanceDisplayName
+        {
+            get
+            {
+                if (RoundedTotalMemory <= 0) return HardwareName;
+
+                string sizeText = $"{RoundedTotalMemory:0} GB";
+                var modules = MemoryModules;
+                if (modules == null || modules.Count == 0) return sizeText;
+
+                string typeText = HardwareInfoFormatter.FormatMemoryType(modules[0].SmbiosMemoryType);
+                return $"{sizeText} {typeText}";
+            }
+        }
+
 
         // === INotifyPropertyChanged implementation ===
 

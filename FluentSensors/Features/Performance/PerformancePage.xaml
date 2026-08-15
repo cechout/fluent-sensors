@@ -203,9 +203,10 @@
                     HorizontalAlignment="Right"
                     DefaultLabelPosition="Right">
 
-                    <AppBarButton Click="StartPageButton_Click" Label="Home">
+                    <AppBarButton Click="StartPageButton_Click" Label="Hardware Overview">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE80F;" />
+                            <!--<FontIcon Glyph="&#xE80F;" />-->
+                            <FontIcon Glyph="&#xE71D;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 

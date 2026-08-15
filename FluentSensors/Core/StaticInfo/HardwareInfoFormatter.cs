@@ -103,6 +103,11 @@ namespace FluentSensors.Core.StaticInfo
             };
         }
 
+        // SMBIOS/WMI name these fields "...ClockSpeedMhz", but the reported number is actually the DDR effective
+        // transfer rate (MT/s), not the real clock frequency;
+        // MT/s is 2x the real MHz for double data rate memory
+        public static string FormatMemorySpeed(uint speedMts) => $"{speedMts} MT/s";
+
         // --- workaround: Win32_PhysicalMemory.FormFactor off-by-one vs SMBIOS spec ---
         // problem: the DMTF SMBIOS spec table starts at 1=Other, but Microsofts WMI/CIM provider reindexes it
         // internally and reports one lower per value (0=Other instead of 1=Other, and so on); the spec-numbered
@@ -151,7 +156,7 @@ namespace FluentSensors.Core.StaticInfo
         // combined because x:Bind cannot mix multiple function calls with literal separator text in one attribute
         // (same reasoning as FormatVoltageRange above)
         public static string FormatSpeedPair(uint configuredSpeedMhz, uint ratedSpeedMhz) =>
-            $"{FormatMhz(configuredSpeedMhz)} / {FormatMhz(ratedSpeedMhz)}";
+            $"{FormatMemorySpeed(configuredSpeedMhz)} / {FormatMemorySpeed(ratedSpeedMhz)}";
 
 
         // === Storage ===

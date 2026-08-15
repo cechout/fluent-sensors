@@ -125,8 +125,13 @@ namespace FluentSensors.Features.Performance.Lhm
         public string StoragePnpDeviceIdText => _staticInfo?.PnpDeviceId ?? "-";
         public string StorageManufactureDateText => !string.IsNullOrEmpty(_staticInfo?.ManufactureDate) ? _staticInfo.ManufactureDate : "-";
 
+        // display-only name for the Performance page nav item/header/tiles; the matched drives own model name reads
+        // far better there than LHMs raw HardwareName
+        // display-only: does not replace HardwareName itself, which stays LHMs raw name everywhere else 
+        public string PerformanceDisplayName => _staticInfo?.FriendlyName ?? HardwareName;
+
         // everything below goes through HardwareInfoFormatter, which itself returns "-" per field when Windows
-        // didnt report it - see the doc comment on WinStorageDriveInfo for why these are nullable to begin with
+        // didnt report it 
         public string StorageTemperatureText => HardwareInfoFormatter.FormatCelsius(_staticInfo?.TemperatureCelsius);
         public string StorageTemperatureMaxText => HardwareInfoFormatter.FormatCelsius(_staticInfo?.TemperatureMaxCelsius);
         public string StorageWearText => HardwareInfoFormatter.FormatPercent(_staticInfo?.WearPercent);

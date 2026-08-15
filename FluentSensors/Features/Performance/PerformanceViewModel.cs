@@ -53,7 +53,7 @@ namespace FluentSensors.Features.Performance
                 item => ((LhmCpuInstanceViewModel)item).TotalLoad);
 
             AttachExistingAndFuture(Memory.Memories, HardwareGroupKind.Ram,
-                item => ((LhmMemoryInstanceViewModel)item).HardwareName,
+                item => ((LhmMemoryInstanceViewModel)item).PerformanceDisplayName,
                 item => ((LhmMemoryInstanceViewModel)item).Used);
 
             AttachExistingAndFuture(Gpu.Gpus, HardwareGroupKind.Gpu,
@@ -61,11 +61,11 @@ namespace FluentSensors.Features.Performance
                 item => ((LhmGpuInstanceViewModel)item).CoreLoad);
 
             AttachExistingAndFuture(Storage.Drives, HardwareGroupKind.Storage,
-                item => ((LhmStorageInstanceViewModel)item).HardwareName,
+                item => ((LhmStorageInstanceViewModel)item).PerformanceDisplayName,
                 item => ((LhmStorageInstanceViewModel)item).TotalActivity);
 
             AttachExistingAndFuture(Network.Adapters, HardwareGroupKind.Network,
-                item => ((LhmNetworkInstanceViewModel)item).HardwareName,
+                item => ((LhmNetworkInstanceViewModel)item).PerformanceDisplayName,
                 item => ((LhmNetworkInstanceViewModel)item).NetworkUtilization);
 
             SelectedItem = NavItems.FirstOrDefault(i => i.Kind == HardwareGroupKind.Cpu) ?? NavItems.FirstOrDefault();
