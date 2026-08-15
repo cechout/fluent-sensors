@@ -102,13 +102,13 @@
 
                                     <FontIcon
                                         Grid.Column="0"
-                                        FontSize="22"
+                                        FontSize="20"
                                         Glyph="{x:Bind GroupIconGlyph, Mode=OneTime}" />
 
                                     <StackPanel Grid.Column="1" Spacing="0">
                                         <TextBlock
                                             VerticalAlignment="Center"
-                                            Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                            Style="{ThemeResource BodyTextBlockStyle}"
                                             Text="{x:Bind GroupLabel, Mode=OneWay}"
                                             TextTrimming="CharacterEllipsis"
                                             TextWrapping="NoWrap" />

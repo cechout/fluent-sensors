@@ -118,7 +118,7 @@
                 <!--  current value  -->
                 <TextBlock
                     Grid.Column="2"
-                    Padding="0,0,8,0"
+                    Padding="0,0,7,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
                     Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"
@@ -145,7 +145,7 @@
                 <!--  current max y-axis value  -->
                 <TextBlock
                     Grid.Column="0"
-                    Margin="4,0,0,0"
+                    Margin="7,0,0,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
@@ -163,7 +163,7 @@
                 <!--  current value  -->
                 <TextBlock
                     Grid.Column="2"
-                    Padding="0,0,8,0"
+                    Padding="0,0,7,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
                     Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"

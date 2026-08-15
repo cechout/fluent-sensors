@@ -42,11 +42,15 @@
             VerticalScrollMode="Auto">
             <StackPanel
                 x:Name="ContentStackPanel"
-                Padding="16,12,16,16"
-                Spacing="12">
+                Padding="16,16,16,16"
+                Spacing="14">
+
 
                 <!--  header  -->
-                <Grid x:Name="HeaderGrid" ColumnSpacing="12">
+                <Grid
+                    x:Name="HeaderGrid"
+                    Background="Transparent"
+                    ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -60,21 +64,20 @@
                         Spacing="12">
                         <FontIcon
                             Margin="0,0,0,-2"
-                            FontSize="22"
+                            FontSize="20"
                             Glyph="{x:Bind GroupIconGlyph, Mode=OneTime}" />
                         <TextBlock
                             Margin="0,0,0,0"
-                            FontSize="26"
                             Style="{ThemeResource BodyLargeTextBlockStyle}"
                             Text="{x:Bind GroupLabel, Mode=OneTime}" />
                     </StackPanel>
 
                     <TextBlock
                         Grid.Column="1"
-                        Margin="0,0,4,4"
+                        Margin="0,0,4,2"
                         VerticalAlignment="Bottom"
-                        Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
                         Text="{x:Bind Cpu.HardwareName, Mode=OneWay}"
                         TextAlignment="Right"
                         TextTrimming="CharacterEllipsis"
