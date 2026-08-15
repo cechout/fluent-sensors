@@ -54,9 +54,10 @@
             </Setter>
         </Style>
 
-        <!--  minimal for now, real styling pass happens once every InfoPopupControl usage got real SourceLinks  -->
         <Style x:Key="SourceLinkButtonStyle" TargetType="HyperlinkButton">
-            <Setter Property="Padding" Value="0" />
+            <Setter Property="Padding" Value="6,2,6,2" />
+            <Setter Property="Margin" Value="-6,0,0,0" />
+            <Setter Property="CornerRadius" Value="4" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="FontSize" Value="12" />
@@ -65,6 +66,7 @@
 
 
     <Grid x:Name="RootGrid" MinHeight="{x:Bind ButtonSize, Mode=OneWay}">
+
 
         <!--  optional title  -->
         <!--  (collapses entirely, including its layout space, when Title is empty)  -->
@@ -84,6 +86,8 @@
                 TextWrapping="{x:Bind TitleTextWrapping, Mode=OneWay}" />
         </Grid>
 
+
+        <!--  InfoButton  -->
         <Grid
             x:Name="ButtonHost"
             HorizontalAlignment="Left"
@@ -107,6 +111,8 @@
                     Glyph="{x:Bind ButtonGlyph, Mode=OneWay}" />
             </Button>
 
+
+            <!--  Popup  -->
             <Popup
                 x:Name="InfoPopup"
                 HorizontalOffset="-280"
@@ -127,13 +133,15 @@
                     CornerRadius="4"
                     SizeChanged="PopupContent_SizeChanged">
 
-                    <!--  order top to bottom: SourceIntro, SourceLinks (or the plain Source line as fallback), Description  -->
-                    <StackPanel Spacing="8">
+                    <!--  order top to bottom:  -->
+                    <!--  SourceIntro  -->
+                    <!--  SourceLinks (or the plain Source line as fallback)  -->
+                    <!--  Description  -->
+                    <StackPanel Spacing="4">
 
-                        <!--  optional text introducing the links below, empty and collapsed by default  -->
-                        <ItemsControl
-                            ItemsSource="{x:Bind SplitParagraphs(SourceIntro), Mode=OneWay}"
-                            Visibility="{x:Bind GetSourceIntroVisibility(SourceIntro), Mode=OneWay}">
+                        <!--  SourceIntro,  -->
+                        <!--  (empty and collapsed by default)  -->
+                        <ItemsControl ItemsSource="{x:Bind SplitParagraphs(SourceIntro), Mode=OneWay}" Visibility="{x:Bind GetSourceIntroVisibility(SourceIntro), Mode=OneWay}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Spacing="6" />
@@ -142,6 +150,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="x:String">
                                     <TextBlock
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                         Style="{ThemeResource CaptionTextBlockStyle}"
                                         Text="{x:Bind}"
                                         TextWrapping="Wrap" />
@@ -149,13 +158,15 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <!--  clickable sources, one HyperlinkButton per entry; takes over from the plain Source line below whenever populated  -->
+                        <!--  SourceLinks  -->
+                        <!--  (clickable sources, one HyperlinkButton per entry)  -->
                         <ItemsControl
+                            Margin="0,0,0,8"
                             ItemsSource="{x:Bind SourceLinks}"
                             Visibility="{x:Bind GetSourceLinksVisibility(SourceLinks)}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <StackPanel Spacing="2" />
+                                    <StackPanel Spacing="0" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
@@ -168,7 +179,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <!--  fallback plain text line, only shown while SourceLinks is still empty  -->
+                        <!--  (fallback plain text line, only shown while SourceLinks is still empty)  -->
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
@@ -176,7 +187,8 @@
                             TextWrapping="Wrap"
                             Visibility="{x:Bind GetSourceVisibility(Source, SourceLinks), Mode=OneWay}" />
 
-                        <!--  each paragraph in its own TextBlock instead of one block with embedded line breaks  -->
+                        <!--  Description  -->
+                        <!--  (each paragraph in its own TextBlock instead of one block with embedded line breaks)  -->
                         <ItemsControl ItemsSource="{x:Bind SplitParagraphs(Description), Mode=OneWay}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>

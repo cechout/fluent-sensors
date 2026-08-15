@@ -106,6 +106,12 @@ namespace FluentSensors
                 AppWindow.TitleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
 
             }
+
+            // AppTitleBar is a plain Grid now, not the native TitleBar control, so it needs to be registered as the
+            // drag region explicitly; interactive controls inside it (the toggle button, info popup buttons) stay
+            // clickable on their own, only the empty space around them is actually draggable
+            this.SetTitleBar(AppTitleBar);
+
             var manager = WinUIEx.WindowManager.Get(this);
             manager.MinWidth = 600;
             manager.MinHeight = 400;

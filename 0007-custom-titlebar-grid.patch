@@ -1,0 +1,247 @@
+diff --git a/FluentSensors/MainWindow.xaml b/FluentSensors/MainWindow.xaml
+index 548eaef..528fae1 100644
+--- a/FluentSensors/MainWindow.xaml
++++ b/FluentSensors/MainWindow.xaml
+@@ -27,109 +27,130 @@
+ 
+ 
+         <!--  custom title bar  -->
+-        <TitleBar
++        <!--  plain Grid instead of the native TitleBar control: Content/RightHeader turned out to force their own
++              internal alignment and could even collapse the title text under space pressure, with no exposed way
++              to override it; SetTitleBar with an ordinary Grid gives full manual control instead, interactive
++              controls inside it (buttons etc) stay clickable normally, they consume the click before it reaches
++              the windows drag handling  -->
++        <Grid
+             x:Name="AppTitleBar"
+-            Title="Fluent Sensors"
+             Grid.Row="0"
+-            IsBackButtonVisible="False"
+-            IsPaneToggleButtonVisible="False"
++            Height="48"
++            Background="Transparent"
+             SizeChanged="AppTitleBar_SizeChanged">
+ 
+-            <TitleBar.IconSource>
+-                <ImageIconSource ImageSource="/Assets/Icon/Icon.ico" />
+-            </TitleBar.IconSource>
++            <Grid.ColumnDefinitions>
++                <ColumnDefinition Width="Auto" />
++                <ColumnDefinition Width="Auto" />
++                <ColumnDefinition Width="Auto" />
++                <ColumnDefinition Width="Auto" />
++                <ColumnDefinition Width="Auto" />
++                <ColumnDefinition Width="*" />
++            </Grid.ColumnDefinitions>
++
++            <!--  icon  -->
++            <Image
++                Grid.Column="0"
++                Width="16"
++                Height="16"
++                Margin="16,0,0,0"
++                VerticalAlignment="Center"
++                Source="/Assets/Icon/Icon.png" />
++
++            <!--  title text, always shown, never collapses regardless of how little room is left further right  -->
++            <TextBlock
++                Grid.Column="1"
++                Margin="12,0,0,0"
++                VerticalAlignment="Center"
++                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
++                Style="{ThemeResource CaptionTextBlockStyle}"
++                Text="Fluent Sensors" />
+ 
+             <!--  tiny toggle for the whole status readout, sits right after the title; styling not final  -->
+-            <TitleBar.Content>
+-                <ToggleButton
+-                    Width="28"
+-                    Height="28"
+-                    Margin="4,0,0,0"
+-                    Padding="0"
++            <ToggleButton
++                Grid.Column="2"
++                Width="28"
++                Height="28"
++                Margin="16,0,0,0"
++                Padding="0"
++                VerticalAlignment="Center"
++                Background="Transparent"
++                BorderThickness="0"
++                IsChecked="{x:Bind AppStatus.IsStatusEnabled, Mode=TwoWay}">
++                <FontIcon FontSize="10" Glyph="&#xE76C;" />
++            </ToggleButton>
++
++            <!--  lhm group, has priority over the windows group below when space runs out  -->
++            <StackPanel
++                Grid.Column="3"
++                Margin="16,0,0,0"
++                VerticalAlignment="Center"
++                Orientation="Horizontal"
++                Spacing="8"
++                Visibility="{x:Bind BoolToVisibility(AppStatus.IsLhmGroupVisible), Mode=OneWay}">
++                <TextBlock
++                    VerticalAlignment="Center"
++                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
++                    Style="{ThemeResource CaptionTextBlockStyle}"
++                    Text="{x:Bind AppStatus.SensorsFoundText, Mode=OneWay}" />
++                <TextBlock
++                    VerticalAlignment="Center"
++                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
++                    Style="{ThemeResource CaptionTextBlockStyle}"
++                    Text="{x:Bind AppStatus.SensorsRenderedText, Mode=OneWay}" />
++                <fhInfoPopup:InfoPopupControl
++                    Margin="-2,2,0,0"
++                    Description="LibreHardwareMonitor reads CPU, GPU, RAM, storage, and network sensors directly from the hardware&#10;The largest and most established open source hardware monitoring library for Windows"
++                    PlacementMode="Below"
++                    SourceIntro="Powered by the open source LibreHardwareMonitor project:">
++                    <fhInfoPopup:InfoPopupControl.SourceLinks>
++                        <fhInfoPopup:SourceLink Label="LibreHardwareMonitor on GitHub" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
++                    </fhInfoPopup:InfoPopupControl.SourceLinks>
++                </fhInfoPopup:InfoPopupControl>
++            </StackPanel>
++
++            <!--  this apps own resource usage, first to hide on a narrow window  -->
++            <StackPanel
++                Grid.Column="4"
++                Margin="20,0,0,0"
++                VerticalAlignment="Center"
++                Orientation="Horizontal"
++                Spacing="8"
++                Visibility="{x:Bind BoolToVisibility(AppStatus.IsWindowsGroupVisible), Mode=OneWay}">
++                <TextBlock
++                    MinWidth="55"
++                    VerticalAlignment="Center"
++                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
++                    Style="{ThemeResource CaptionTextBlockStyle}"
++                    Text="{x:Bind AppStatus.CpuUsageText, Mode=OneWay}" />
++                <TextBlock
++                    MinWidth="65"
++                    VerticalAlignment="Center"
++                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
++                    Style="{ThemeResource CaptionTextBlockStyle}"
++                    Text="{x:Bind AppStatus.RamUsageText, Mode=OneWay}" />
++                <!--<TextBlock
+                     VerticalAlignment="Center"
+-                    Background="Transparent"
+-                    BorderThickness="0"
+-                    IsChecked="{x:Bind AppStatus.IsStatusEnabled, Mode=TwoWay}">
+-                    <FontIcon FontSize="10" Glyph="&#xE76C;" />
+-                </ToggleButton>
+-            </TitleBar.Content>
+-
+-            <!--  app status readout, plain TextBlocks for now, design not final  -->
+-            <TitleBar.RightHeader>
+-                <StackPanel
+-                    Margin="4,0,0,0"
++                    Style="{ThemeResource CaptionTextBlockStyle}"
++                    Text="{x:Bind AppStatus.HandleCountText, Mode=OneWay}" />
++                <TextBlock
+                     VerticalAlignment="Center"
+-                    Orientation="Horizontal"
+-                    Spacing="20">
+-
+-                    <!--  lhm group, has priority over the windows group below when space runs out  -->
+-                    <StackPanel
+-                        VerticalAlignment="Center"
+-                        Orientation="Horizontal"
+-                        Spacing="8"
+-                        Visibility="{x:Bind BoolToVisibility(AppStatus.IsLhmGroupVisible), Mode=OneWay}">
+-                        <TextBlock
+-                            VerticalAlignment="Center"
+-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+-                            Style="{ThemeResource CaptionTextBlockStyle}"
+-                            Text="{x:Bind AppStatus.SensorsFoundText, Mode=OneWay}" />
+-                        <TextBlock
+-                            VerticalAlignment="Center"
+-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+-                            Style="{ThemeResource CaptionTextBlockStyle}"
+-                            Text="{x:Bind AppStatus.SensorsRenderedText, Mode=OneWay}" />
+-                        <fhInfoPopup:InfoPopupControl
+-                            Margin="-2,2,0,0"
+-                            Description="LibreHardwareMonitor reads CPU, GPU, RAM, storage, and network sensors directly from the hardware&#10;The largest and most established open source hardware monitoring library for Windows"
+-                            PlacementMode="Below"
+-                            SourceIntro="Powered by the open source LibreHardwareMonitor project:">
+-                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+-                                <fhInfoPopup:SourceLink Label="LibreHardwareMonitor on GitHub" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
+-                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+-                        </fhInfoPopup:InfoPopupControl>
+-                    </StackPanel>
+-
+-                    <!--  this apps own resource usage, first to hide on a narrow window  -->
+-                    <StackPanel
+-                        VerticalAlignment="Center"
+-                        Orientation="Horizontal"
+-                        Spacing="8"
+-                        Visibility="{x:Bind BoolToVisibility(AppStatus.IsWindowsGroupVisible), Mode=OneWay}">
+-                        <TextBlock
+-                            MinWidth="55"
+-                            VerticalAlignment="Center"
+-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+-                            Style="{ThemeResource CaptionTextBlockStyle}"
+-                            Text="{x:Bind AppStatus.CpuUsageText, Mode=OneWay}" />
+-                        <TextBlock
+-                            MinWidth="65"
+-                            VerticalAlignment="Center"
+-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+-                            Style="{ThemeResource CaptionTextBlockStyle}"
+-                            Text="{x:Bind AppStatus.RamUsageText, Mode=OneWay}" />
+-                        <!--<TextBlock
+-                            VerticalAlignment="Center"
+-                            Style="{ThemeResource CaptionTextBlockStyle}"
+-                            Text="{x:Bind AppStatus.HandleCountText, Mode=OneWay}" />
+-                        <TextBlock
+-                            VerticalAlignment="Center"
+-                            Style="{ThemeResource CaptionTextBlockStyle}"
+-                            Text="{x:Bind AppStatus.GcMemoryText, Mode=OneWay}" />-->
+-                        <fhInfoPopup:InfoPopupControl
+-                            Margin="-2,2,0,0"
+-                            Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)&#10;Handles - open OS handles held by this app, useful for spotting leaks&#10;GC Memory - size of the managed heap tracked by the .NET garbage collector"
+-                            PlacementMode="Below"
+-                            SourceIntro="Read directly from:">
+-                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+-                                <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
+-                                <fhInfoPopup:SourceLink Label=".NET Garbage Collector" Url="https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/" />
+-                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+-                        </fhInfoPopup:InfoPopupControl>
+-                    </StackPanel>
+-
+-                </StackPanel>
+-            </TitleBar.RightHeader>
+-        </TitleBar>
++                    Style="{ThemeResource CaptionTextBlockStyle}"
++                    Text="{x:Bind AppStatus.GcMemoryText, Mode=OneWay}" />-->
++                <fhInfoPopup:InfoPopupControl
++                    Margin="-2,2,0,0"
++                    Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)&#10;Handles - open OS handles held by this app, useful for spotting leaks&#10;GC Memory - size of the managed heap tracked by the .NET garbage collector"
++                    PlacementMode="Below"
++                    SourceIntro="Read directly from:">
++                    <fhInfoPopup:InfoPopupControl.SourceLinks>
++                        <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
++                        <fhInfoPopup:SourceLink Label=".NET Garbage Collector" Url="https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/" />
++                    </fhInfoPopup:InfoPopupControl.SourceLinks>
++                </fhInfoPopup:InfoPopupControl>
++            </StackPanel>
++
++            <!--  column 5 is a deliberately empty * spacer, stays draggable all the way to the caption buttons  -->
++        </Grid>
+ 
+ 
+         <!--  navigation view  -->
+diff --git a/FluentSensors/MainWindow.xaml.cs b/FluentSensors/MainWindow.xaml.cs
+index 683faca..e4e8ec0 100644
+--- a/FluentSensors/MainWindow.xaml.cs
++++ b/FluentSensors/MainWindow.xaml.cs
+@@ -106,6 +106,12 @@ namespace FluentSensors
+                 AppWindow.TitleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
+ 
+             }
++
++            // AppTitleBar is a plain Grid now, not the native TitleBar control, so it needs to be registered as the
++            // drag region explicitly; interactive controls inside it (the toggle button, info popup buttons) stay
++            // clickable on their own, only the empty space around them is actually draggable
++            this.SetTitleBar(AppTitleBar);
++
+             var manager = WinUIEx.WindowManager.Get(this);
+             manager.MinWidth = 600;
+             manager.MinHeight = 400;

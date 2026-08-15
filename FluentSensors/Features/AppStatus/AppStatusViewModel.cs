@@ -24,7 +24,11 @@ namespace FluentSensors.Features.AppStatus
 
         // below this TitleBar width the Windows group hides and only the LHM group stays visible; adjust to change
         // where that cutoff sits
-        private const double MinWidthForFullStatus = 900;
+        // window defaults to 670px wide (MainWindow ctor) with a 600px minimum, 900 here was unreachable at any
+        // normal window size, hence the windows group never actually showing; picked 640 as a starting point,
+        // comfortably below the 670 default so it shows out of the box, still above the 600 minimum so shrinking
+        // the window has a visible effect
+        private const double MinWidthForFullStatus = 640;
 
         // the three inputs behind IsLhmGroupVisible/IsWindowsGroupVisible below; see UpdateVisibility
         private bool _isAppReady;
