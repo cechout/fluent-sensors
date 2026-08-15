@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 
 using FluentSensors.Persistence.Services;
+using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
 
 
@@ -340,11 +341,21 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        private async void ResetWindowStates_Click(object sender, RoutedEventArgs e)
+        // window and page states cover three things that all fall under "what the window/page layout currently
+        // looks like": window position/size, the title bar status toggle, and which sensor is picked per graph
+        // slot on the Performance page
+        private async void ResetWindowAndPageStates_Click(object sender, RoutedEventArgs e)
         {
-            if (await ConfirmReset("Window States"))
+            if (await ConfirmReset("Window and Page States"))
             {
                 PersistenceService.Instance.ResetWindowStates();
+                PersistenceService.Instance.ResetSensorSwitchStates();
+
+                // lives inside settings.json next to unrelated general settings (theme, tray behavior, etc), so it
+                // is reset in place through its own setter instead of deleting that whole file; the debounced save
+                // this queues still reaches disk before restart, ForceExit() flushes any pending write on its way out
+                SettingsService.Instance.StatusReadoutEnabled = new AppSettingsData().StatusReadoutEnabled;
+
                 RestartApp();
             }
         }

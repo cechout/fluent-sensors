@@ -130,7 +130,7 @@ namespace FluentSensors
             }
             else
             {
-                this.SetWindowSize(670, 710); // width, height
+                this.SetWindowSize(650, 770); // width, height
                 this.CenterOnScreen();
                 var currentPos = this.AppWindow.Position;
                 // yea idk; might change this in future

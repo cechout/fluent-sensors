@@ -161,6 +161,8 @@
                             x:Name="GraphTimeSpanComboBox"
                             Width="40"
                             SelectionChanged="GraphTimeSpanComboBox_SelectionChanged">
+                            <ComboBoxItem Content="15s" Tag="15" />
+                            <ComboBoxItem Content="20s" Tag="20" />
                             <ComboBoxItem Content="30s" Tag="30" />
                             <ComboBoxItem Content="45s" Tag="45" />
                             <ComboBoxItem Content="60s" Tag="60" />
@@ -202,8 +204,8 @@
                         <Button Click="ResetGeneralSettings_Click" Content="Reset" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="Position and size of all windows" Header="Window States">
-                        <Button Click="ResetWindowStates_Click" Content="Reset" />
+                    <controls:SettingsCard Description="Position and size of all windows, hardware page sensor selection" Header="Window and Page States">
+                        <Button Click="ResetWindowAndPageStates_Click" Content="Reset" />
                     </controls:SettingsCard>
 
                     <controls:SettingsCard Description="Per-sensor visibility, thresholds, graph scaling, pinned selection" Header="Sensor States">
@@ -220,7 +222,7 @@
                 Text="About &amp; Open Source" />
 
             <controls:SettingsExpander
-                Description="© 2026 Daniel Čech | All rights reserved"
+                Description="© 2026 Daniel Čech. All rights reserved."
                 Header="Fluent Sensors"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE946;}">
 

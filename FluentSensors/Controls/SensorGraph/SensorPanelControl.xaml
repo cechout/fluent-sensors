@@ -22,6 +22,7 @@
         <!--  (title row and status row overlap here, both independently toggleable via ShowTitleRow/ShowStatusRow)  -->
         <Grid Grid.Row="0">
 
+
             <!--  separate title row: just the sensor name  -->
             <TextBlock
                 Margin="4,0,0,0"
@@ -32,7 +33,9 @@
                 TextWrapping="NoWrap"
                 Visibility="{x:Bind GetTitleRowVisibility(ShowTitleRow, ViewModel), Mode=OneWay}" />
 
-            <!--  status row: toggle button, current Y-max, sensor name (+ unit), current value  -->
+
+            <!--  standard status row  -->
+            <!--  toggle button, current Y-max, sensor name (+ unit), current value  -->
             <Grid
                 Height="18"
                 Padding="0,0,0,0"
@@ -109,6 +112,7 @@
                 <!--  plain fallback for the single-candidate case  -->
                 <TextBlock
                     Grid.Column="2"
+                    Margin="8,0,0,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
@@ -126,8 +130,9 @@
                     Text="{x:Bind GetCurrentValueOrPlaceholder(ViewModel), Mode=OneWay}" />
             </Grid>
 
-            <!--  compact status row: same three facts (Y-max, sensor name, current value), no panel toggle button and  -->
-            <!--  no switch UI; ShowCompactStatusRow picks this over the row above  -->
+
+            <!--  compact status row  -->
+            <!--  no panel toggle button and no switch UI; ShowCompactStatusRow picks this over the row above  -->
             <Grid
                 Height="18"
                 Padding="0,0,0,0"

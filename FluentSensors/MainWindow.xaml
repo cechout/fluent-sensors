@@ -71,8 +71,10 @@
                 Text="Fluent Sensors" />
 
             <!--  toggle button for the whole status readout  -->
-            <!--  plain Button, not a real ToggleButton, its default checked-state chrome did not fit here; the
-                  Click handler flips AppStatus.IsStatusEnabled itself, opacity reflects on/off  -->
+            <!--
+                plain Button, not a real ToggleButton, its default checked-state chrome did not fit here; the
+                Click handler flips AppStatus.IsStatusEnabled itself, opacity reflects on/off
+            -->
             <Button
                 Grid.Column="2"
                 Width="28"
