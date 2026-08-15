@@ -4,6 +4,7 @@ using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.Painting.Effects;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -47,6 +48,11 @@ namespace FluentSensors.Controls.SensorGraph
         private bool _isRenderingActive = true;
         private ObservableCollection<double?> _boundValues;
         private bool _isValuesSubscribed;
+
+        // whether this control is currently attached to a live, rooted visual tree right now; distinct from
+        // _isRenderingActive, only exists to tell a permanent removal apart from a transient Unloaded/Loaded cycle
+        // in OnControlUnloaded below
+        private bool _isInLiveTree;
 
         // what _lineSeries points at while detached; a never-changing empty list, so LiveCharts stays subscribed to
         // something inert instead of the live values and never redraws off-screen
@@ -114,6 +120,7 @@ namespace FluentSensors.Controls.SensorGraph
             Chart.PointerExited += OnChartPointerExited;
             Chart.UpdateStarted += Chart_UpdateStarted;
             Loaded += OnControlLoaded;
+            Unloaded += OnControlUnloaded;
 
             // initial visuals and threshold state
             ApplyStroke();
@@ -573,7 +580,31 @@ namespace FluentSensors.Controls.SensorGraph
         // keeps the native chart surface from drifting out of sync with the guard above
         private void OnControlLoaded(object sender, RoutedEventArgs e)
         {
+            _isInLiveTree = true;
             ForceRepaint();
+        }
+
+        // mirrors OnControlLoaded above; fires for two very different reasons that look identical from here:
+        // a permanent removal, or a transient Unloaded/Loaded cycle that PerformancePage already works around
+        // elsewhere (leaving and returning to a NavigationCacheMode page detaches and reattaches its whole
+        // subtree, so both events fire again there too even though nothing was actually destroyed
+        //
+        // everywhere in the app retains and hides its graphs instead of destroying them, so a permanent removal
+        // never happens there, but the widgets pinned sensor list is a real ObservableCollection bound to a plain
+        // ItemsControl, unpinning a sensor really does remove and destroy its container; without this,
+        // ActiveRenderingCount permanently overcounts by one for every sensor ever unpinned, since nothing else
+        // ever gets the chance to run SetRenderingActives own accounting for a control that just disappears
+        // deferred by one dispatcher tick to tell the two cases apart: a transient cycle already re-fired Loaded
+        // by the time this runs, a real removal never does
+        private void OnControlUnloaded(object sender, RoutedEventArgs e)
+        {
+            _isInLiveTree = false;
+
+            DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+            {
+                if (_isInLiveTree) return; // Loaded already fired again in the meantime, this was a transient cycle
+                SetRenderingActive(false);
+            });
         }
 
         // LiveCharts only builds its internal scale/draw context on the first real measure pass;
