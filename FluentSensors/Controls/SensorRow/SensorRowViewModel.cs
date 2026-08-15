@@ -7,6 +7,7 @@ using FluentSensors.Persistence.Services;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Core.Lhm;
+using FluentSensors.Controls.Threshold;
 
 
 namespace FluentSensors.Controls.SensorRow

@@ -10,6 +10,7 @@ using FluentSensors.Core;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Controls.Threshold;
 
 
 namespace FluentSensors.Controls.SensorGraph
