@@ -236,7 +236,7 @@ namespace FluentSensors
             // no we start the HardwareMonitorService loop manually
             monitor.StartMonitoring();
 
-            // sensor discovery just finished above, TotalSensorsFound is meaningful from here on
+            // sensor discovery just finished above, LhmHardwareTreeService starts filling in from here on
             AppStatusService.Instance.Start();
 
             // we explicitly wait until the ViewModel has received and processed the very first data payload, and until
@@ -305,7 +305,15 @@ namespace FluentSensors
             AppStatus.UpdateAvailableWidth(e.NewSize.Width);
         }
 
+        // plain Button standing in for a real ToggleButton, see the XAML comment on it for why
+        private void StatusToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            AppStatus.IsStatusEnabled = !AppStatus.IsStatusEnabled;
+        }
+
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
+
+        private double GetToggleOpacity(bool enabled) => enabled ? 1.0 : 0.5;
 
 
         // === theme handling ===

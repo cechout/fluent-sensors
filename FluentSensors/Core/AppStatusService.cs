@@ -1,8 +1,11 @@
+using Microsoft.UI.Dispatching;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 using FluentSensors.Controls.SensorGraph;
+using FluentSensors.Core.Lhm;
 
 
 namespace FluentSensors.Core
@@ -32,6 +35,10 @@ namespace FluentSensors.Core
         private TimeSpan _lastCpuTime;
         private DateTime _lastSampleTime;
 
+        // LhmHardwareTreeService.HardwareGroups is only ever mutated on the UI thread; reading it from Tick()s
+        // background timer thread directly would race with that, see Tick() below
+        private DispatcherQueue _dispatcherQueue;
+
 
         // === singleton instance ===
 
@@ -43,8 +50,9 @@ namespace FluentSensors.Core
 
         // === public api ===
 
-        // fires once per tick with a fresh snapshot; always on a background thread, consumers marshal to the UI
-        // thread themselves (same contract as HardwareMonitorService.HardwareDataUpdated)
+        // fires once per tick with a fresh snapshot, from the UI thread (see Tick(), needed for the safe
+        // LhmHardwareTreeService read); consumers can still marshal defensively if they want, its a no-op cost
+        // from an already-UI thread
         public event Action<AppStatusData> StatusUpdated;
 
         // starts the polling timer; safe to call more than once, later calls are a no-op
@@ -52,6 +60,7 @@ namespace FluentSensors.Core
         {
             if (_timer != null) return;
 
+            _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
             _lastCpuTime = _process.TotalProcessorTime;
             _lastSampleTime = DateTime.UtcNow;
 
@@ -87,16 +96,28 @@ namespace FluentSensors.Core
             _lastCpuTime = cpuTime;
             _lastSampleTime = now;
 
-            var data = new AppStatusData(
-                SensorsFound: HardwareMonitorService.Instance.TotalSensorsFound,
-                SensorsRendered: SensorGraphControl.ActiveRenderingCount,
-                CpuUsagePercent: Math.Clamp(cpuPercent, 0, 100),
-                RamUsageBytes: _process.WorkingSet64,
-                HandleCount: _process.HandleCount,
-                GcMemoryBytes: GC.GetTotalMemory(false)
-            );
+            // LhmHardwareTreeService.HardwareGroups only ever contains sensors that actually made it through
+            // HardwareMonitorServices own filtering (active network adapters only, valid values only), the exact
+            // same set the Sensors page itself is built from; counting _activeSensors on HardwareMonitorService
+            // instead used to count LHMs raw pre-filter discovery, including every never-shown sensor belonging to
+            // the many virtual/inactive network pseudo-adapters Windows creates
+            // read on the UI thread since the collection is only ever mutated there, a background-thread read could
+            // race an in-progress Add and throw
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                int sensorsFound = LhmHardwareTreeService.Instance.HardwareGroups.Sum(g => g.Sensors.Count);
 
-            StatusUpdated?.Invoke(data);
+                var data = new AppStatusData(
+                    SensorsFound: sensorsFound,
+                    SensorsRendered: SensorGraphControl.ActiveRenderingCount,
+                    CpuUsagePercent: Math.Clamp(cpuPercent, 0, 100),
+                    RamUsageBytes: _process.WorkingSet64,
+                    HandleCount: _process.HandleCount,
+                    GcMemoryBytes: GC.GetTotalMemory(false)
+                );
+
+                StatusUpdated?.Invoke(data);
+            });
         }
     }
 }

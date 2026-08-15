@@ -19,6 +19,7 @@ namespace FluentSensors.Persistence.Models
         public double GraphTimeSpanSeconds { get; set; } = 45;
         public bool MinimizeToTray { get; set; } = true;
         public bool HideSensorsCompletely { get; set; } = true;
+        public bool StatusReadoutEnabled { get; set; } = true;
 
         // lives on HardwareMonitorService at runtime, but conceptually belongs with the rest of the app settings for
         // persistence purposes

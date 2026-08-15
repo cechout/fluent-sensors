@@ -189,6 +189,22 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // whether the title bar status readout (lhm/windows groups) is toggled on, set from MainWindows toggle button
+        private bool _statusReadoutEnabled = true;
+        public bool StatusReadoutEnabled
+        {
+            get => _statusReadoutEnabled;
+            set
+            {
+                if (_statusReadoutEnabled != value)
+                {
+                    _statusReadoutEnabled = value;
+                    StatusReadoutEnabledChanged?.Invoke(_statusReadoutEnabled);
+                    SaveDebounced();
+                }
+            }
+        }
+
         // persistence
         // writes every property straight to its backing field, skipping change events and the save trigger; used only
         // once at startup, before any window or listener exists yet
@@ -205,6 +221,7 @@ namespace FluentSensors.Persistence.Services
             _graphTimeSpanSeconds = data.GraphTimeSpanSeconds;
             _minimizeToTray = data.MinimizeToTray;
             _hideSensorsCompletely = data.HideSensorsCompletely;
+            _statusReadoutEnabled = data.StatusReadoutEnabled;
 
             // lives on HardwareMonitorService at runtime, not here, but shares this settings file
             HardwareMonitorService.Instance.UpdateIntervalMs = data.UpdateIntervalMs;
@@ -226,6 +243,7 @@ namespace FluentSensors.Persistence.Services
                 GraphTimeSpanSeconds = _graphTimeSpanSeconds,
                 MinimizeToTray = _minimizeToTray,
                 HideSensorsCompletely = _hideSensorsCompletely,
+                StatusReadoutEnabled = _statusReadoutEnabled,
                 UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
             };
         }
@@ -257,5 +275,6 @@ namespace FluentSensors.Persistence.Services
         public event Action<double> GraphTimeSpanChanged;
         public event Action<bool> MinimizeToTrayChanged;
         public event Action<bool> HideSensorsCompletelyChanged;
+        public event Action<bool> StatusReadoutEnabledChanged;
     }
 }

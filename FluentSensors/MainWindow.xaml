@@ -71,7 +71,9 @@
                 Text="Fluent Sensors" />
 
             <!--  toggle button for the whole status readout  -->
-            <ToggleButton
+            <!--  plain Button, not a real ToggleButton, its default checked-state chrome did not fit here; the
+                  Click handler flips AppStatus.IsStatusEnabled itself, opacity reflects on/off  -->
+            <Button
                 Grid.Column="2"
                 Width="28"
                 Height="28"
@@ -80,9 +82,12 @@
                 VerticalAlignment="Center"
                 Background="Transparent"
                 BorderThickness="0"
-                IsChecked="{x:Bind AppStatus.IsStatusEnabled, Mode=TwoWay}">
-                <FontIcon FontSize="10" Glyph="&#xE76C;" />
-            </ToggleButton>
+                Click="StatusToggleButton_Click">
+                <FontIcon
+                    FontSize="10"
+                    Glyph="&#xE76C;"
+                    Opacity="{x:Bind GetToggleOpacity(AppStatus.IsStatusEnabled), Mode=OneWay}" />
+            </Button>
 
             <!--  lhm group  -->
             <!--  (has priority over the windows group below when horizontal space runs out)  -->

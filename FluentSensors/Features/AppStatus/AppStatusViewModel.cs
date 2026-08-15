@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 using FluentSensors.Core;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Features.AppStatus
@@ -32,7 +33,7 @@ namespace FluentSensors.Features.AppStatus
 
         // the three inputs behind IsLhmGroupVisible/IsWindowsGroupVisible below; see UpdateVisibility
         private bool _isAppReady;
-        private bool? _isStatusEnabled = true;
+        private bool _isStatusEnabled;
         private bool _hasEnoughWidthForFull = true;
 
         private bool _isLhmGroupVisible;
@@ -44,6 +45,7 @@ namespace FluentSensors.Features.AppStatus
         public AppStatusViewModel()
         {
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+            _isStatusEnabled = SettingsService.Instance.StatusReadoutEnabled;
             AppStatusService.Instance.StatusUpdated += OnStatusUpdated;
         }
 
@@ -94,13 +96,18 @@ namespace FluentSensors.Features.AppStatus
             set { if (_isAppReady == value) return; _isAppReady = value; UpdateVisibility(); }
         }
 
-        // the manual toggle button next to the title, defaults on
-        // bool? (not bool) to match ToggleButton.IsChecked exactly, so the TwoWay bind needs no converter
-        // never actually null in practice, the button is a plain two-state toggle, not IsThreeState
-        public bool? IsStatusEnabled
+        // toggled by a plain Button click in the title bar (StatusToggleButton_Click in MainWindow), persists
+        // across restarts via SettingsService
+        public bool IsStatusEnabled
         {
             get => _isStatusEnabled;
-            set { if (_isStatusEnabled == value) return; _isStatusEnabled = value; UpdateVisibility(); }
+            set
+            {
+                if (_isStatusEnabled == value) return;
+                _isStatusEnabled = value;
+                SettingsService.Instance.StatusReadoutEnabled = value;
+                UpdateVisibility();
+            }
         }
 
         // set from MainWindows TitleBar SizeChanged, see UpdateAvailableWidth
@@ -139,20 +146,18 @@ namespace FluentSensors.Features.AppStatus
         // recomputes both group visibilities from the three inputs above, called whenever any of them changes
         private void UpdateVisibility()
         {
-            bool statusEnabled = IsStatusEnabled == true; // null (indeterminate) never actually happens, treated as off
-
-            IsLhmGroupVisible = IsAppReady && statusEnabled;
-            IsWindowsGroupVisible = IsAppReady && statusEnabled && HasEnoughWidthForFull;
+            IsLhmGroupVisible = IsAppReady && IsStatusEnabled;
+            IsWindowsGroupVisible = IsAppReady && IsStatusEnabled && HasEnoughWidthForFull;
         }
 
-        // AppStatusService fires this from its own background timer thread; every property write below needs to
-        // land on the UI thread since the title bar binds to them directly
+        // AppStatusService already fires this from the UI thread now (see its own Tick()), TryEnqueue here is just
+        // a defensive no-op safety net in case that ever changes
         private void OnStatusUpdated(AppStatusData data)
         {
             _dispatcherQueue.TryEnqueue(() =>
             {
-                SensorsFoundText = $"total: {data.SensorsFound}";
-                SensorsRenderedText = $"rendered: {data.SensorsRendered}";
+                SensorsFoundText = $"Total: {data.SensorsFound}";
+                SensorsRenderedText = $"Rendered: {data.SensorsRendered}";
                 CpuUsageText = $"CPU: {data.CpuUsagePercent:0.0}%";
                 RamUsageText = $"RAM: {data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
                 HandleCountText = $"Handles: {data.HandleCount}";
