@@ -483,7 +483,12 @@
                             Margin="0,0,0,-4"
                             Description="Physical Cores - actual processing units on chip&#10;Logical Processors - total execution threads (SMT/Hyper-Threading doubles per core)&#10;Core Topology - Performance vs Efficient core split on hybrid CPUs"
                             PlacementMode="TitleAnchored"
-                            Source="Windows Management Instrumentation (WMI) + Windows CPU topology API for the Performance/Efficient breakdown" />
+                            SourceIntro="Source:">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="Win32_Processor" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-processor" />
+                                <fhInfoPopup:SourceLink Label="GetLogicalProcessorInformationEx" Url="https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformationex" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
@@ -554,9 +559,13 @@
                         <fhInfoPopup:InfoPopupControl
                             Title="Cache"
                             Margin="0,0,0,-4"
-                            Description="Cache - small, fast on-die memory holding recently used data&#10;L1 - smallest, fastest, per core; sum of separate instruction + data caches&#10;L2 - larger, slower, per core; unified&#10;L3 - largest, shared across all cores; unified"
+                            Description="Small, fast on-die memory holding recently used data&#10;L1 - smallest, fastest, per core; sum of separate instruction + data caches&#10;L2 - larger, slower, per core; unified&#10;L3 - largest, shared across all cores; unified"
                             PlacementMode="TitleAnchored"
-                            Source="Windows Management Instrumentation (WMI)" />
+                            SourceIntro="Source:">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="Win32_CacheMemory" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-cachememory" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
@@ -604,7 +613,11 @@
                             Margin="0,0,0,-4"
                             Description="Extensions - CPU hardware support for running virtual machines (VT-x/AMD-V), used by Hyper-V, WSL2, and similar&#10;Firmware - currently enabled or not (unreliable)"
                             PlacementMode="TitleAnchored"
-                            Source="Windows Management Instrumentation (WMI)" />
+                            SourceIntro="Source:">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="Win32_Processor" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-processor" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">

@@ -248,7 +248,11 @@
                             Margin="0,0,0,-4"
                             Description="Represents one active connection, not the adapter's full range of possible connections. Multiple active connections (e.g. Wi-Fi + Ethernet) each get their own separate entry.&#10;Hardware - physical adapter behind this connection&#10;Type - its medium (Wi-Fi, Ethernet, ...)"
                             PlacementMode="TitleAnchored"
-                            Source="Windows' own network stack (the same data LibreHardwareMonitor uses to detect this as a piece of hardware in the first place)" />
+                            SourceIntro="Source:">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="NetworkInterface (.NET, same data LibreHardwareMonitor uses)" Url="https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.networkinterface" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
@@ -284,7 +288,11 @@
                             Margin="0,0,0,-4"
                             Description="IPv4 and IPv6 are independent addressing systems, both active at once.&#10;IPv4 - usually one address&#10;IPv6 - often several at once (stable + rotating privacy addresses)"
                             PlacementMode="TitleAnchored"
-                            Source="Windows' own network stack" />
+                            SourceIntro="Source:">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="IPInterfaceProperties.UnicastAddresses" Url="https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ipinterfaceproperties.unicastaddresses" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <StackPanel Spacing="2">
                             <TextBlock
@@ -316,7 +324,12 @@
                             Margin="0,0,0,-4"
                             Description="Link Speed - negotiated rate of this specific connection, not the adapter's maximum rated speed; can be lower, and shifts over time on Wi-Fi as signal conditions change&#10;DHCP Enabled - whether this connection's own address was assigned automatically or set statically; a property of this connection, not a general network-wide setting"
                             PlacementMode="TitleAnchored"
-                            Source="Windows' own network stack" />
+                            SourceIntro="Source:">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="NetworkInterface.Speed" Url="https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.networkinterface.speed" />
+                                <fhInfoPopup:SourceLink Label="IPInterfaceProperties.DhcpServerAddresses" Url="https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ipinterfaceproperties.dhcpserveraddresses" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">

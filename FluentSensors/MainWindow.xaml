@@ -28,11 +28,12 @@
 
         <!--  custom title bar  -->
         <!--
-            plain Grid instead of the native TitleBar control: Content/RightHeader turned out to force their own
-            internal alignment and could even collapse the title text under space pressure, with no exposed way
-            to override it; SetTitleBar with an ordinary Grid gives full manual control instead, interactive
-            controls inside it (buttons etc) stay clickable normally, they consume the click before it reaches
-            the windows drag handling
+            plain Grid instead of the native TitleBar control:
+            Content/RightHeader turned out to force their own internal alignment and could even collapse the
+            title text under space pressure, with no exposed way to override it;
+            SetTitleBar with an ordinary Grid gives full manual control instead; interactive controls inside it
+            (buttons etc) stay clickable normally, they consume the click before it reaches the windows drag
+            handling
         -->
         <Grid
             x:Name="AppTitleBar"
@@ -59,7 +60,8 @@
                 VerticalAlignment="Center"
                 Source="/Assets/Icon/Icon.png" />
 
-            <!--  title text, always shown, never collapses regardless of how little room is left further right  -->
+            <!--  title text  -->
+            <!--  (always shown, never collapses)  -->
             <TextBlock
                 Grid.Column="1"
                 Margin="20,0,0,0"
@@ -68,7 +70,7 @@
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="Fluent Sensors" />
 
-            <!--  tiny toggle for the whole status readout, sits right after the title; styling not final  -->
+            <!--  toggle button for the whole status readout  -->
             <ToggleButton
                 Grid.Column="2"
                 Width="28"
@@ -82,7 +84,8 @@
                 <FontIcon FontSize="10" Glyph="&#xE76C;" />
             </ToggleButton>
 
-            <!--  lhm group, has priority over the windows group below when space runs out  -->
+            <!--  lhm group  -->
+            <!--  (has priority over the windows group below when horizontal space runs out)  -->
             <StackPanel
                 Grid.Column="3"
                 Margin="8,0,0,0"
@@ -102,16 +105,17 @@
                     Text="{x:Bind AppStatus.SensorsRenderedText, Mode=OneWay}" />
                 <fhInfoPopup:InfoPopupControl
                     Margin="-2,1,0,0"
-                    Description="LibreHardwareMonitor reads CPU, GPU, RAM, storage, and network sensors directly from the hardware&#10;The largest and most established open source hardware monitoring library for Windows"
+                    Description="Total - number of sensors LibreHardwareMonitor found on this system&#10;Rendered - how many of those are actively drawn right now&#10;LibreHardwareMonitorLib is the largest and most established open source hardware monitoring library for Windows"
                     PlacementMode="Below"
-                    SourceIntro="Powered by the open source LibreHardwareMonitor project:">
+                    SourceIntro="This App is powered by the open source LibreHardwareMonitor project:">
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
                         <fhInfoPopup:SourceLink Label="LibreHardwareMonitor on GitHub" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
                     </fhInfoPopup:InfoPopupControl.SourceLinks>
                 </fhInfoPopup:InfoPopupControl>
             </StackPanel>
 
-            <!--  this apps own resource usage, first to hide on a narrow window  -->
+            <!--  windows group  -->
+            <!--  (this apps own resource usage, first to hide on a narrow window)  -->
             <StackPanel
                 Grid.Column="4"
                 Margin="12,0,0,0"
@@ -131,6 +135,8 @@
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
                     Text="{x:Bind AppStatus.RamUsageText, Mode=OneWay}" />
+
+                <!--  (handle + gc memory; currently not displayed)  -->
                 <!--<TextBlock
                     VerticalAlignment="Center"
                     Style="{ThemeResource CaptionTextBlockStyle}"
@@ -139,14 +145,24 @@
                     VerticalAlignment="Center"
                     Style="{ThemeResource CaptionTextBlockStyle}"
                     Text="{x:Bind AppStatus.GcMemoryText, Mode=OneWay}" />-->
-                <fhInfoPopup:InfoPopupControl
+                <!--<fhInfoPopup:InfoPopupControl
                     Margin="-2,1,0,0"
                     Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)&#10;Handles - open OS handles held by this app, useful for spotting leaks&#10;GC Memory - size of the managed heap tracked by the .NET garbage collector"
                     PlacementMode="Below"
-                    SourceIntro="Read directly from:">
+                    SourceIntro="Source:">
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
                         <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
                         <fhInfoPopup:SourceLink Label=".NET Garbage Collector" Url="https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/" />
+                    </fhInfoPopup:InfoPopupControl.SourceLinks>
+                </fhInfoPopup:InfoPopupControl>-->
+
+                <fhInfoPopup:InfoPopupControl
+                    Margin="-2,1,0,0"
+                    Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)"
+                    PlacementMode="Below"
+                    SourceIntro="Source:">
+                    <fhInfoPopup:InfoPopupControl.SourceLinks>
+                        <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
                     </fhInfoPopup:InfoPopupControl.SourceLinks>
                 </fhInfoPopup:InfoPopupControl>
             </StackPanel>

@@ -180,8 +180,12 @@
                                         Margin="0,0,0,-4"
                                         Description="Type - DDR generation (DDR4, DDR5, ...)&#10;Form Factor - DIMM (desktop) or SO-DIMM (laptop)&#10;RAM Speed - Configured (active) vs Rated (spec)&#10;Voltage - operating voltage; XMP/EXPO can raise it&#10;Bank - physical bank/slot grouping on the motherboard this module belongs to&#10;Rank - number of independent chip sets on the module itself (unreliable)&#10;Width - Data (usable bits) vs Total (includes ECC bits)"
                                         PlacementMode="TitleAnchored"
-                                        Source="Windows Management Instrumentation (WMI)"
-                                        TitleTextTrimming="CharacterEllipsis" />
+                                        SourceIntro="Source:"
+                                        TitleTextTrimming="CharacterEllipsis">
+                                        <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                            <fhInfoPopup:SourceLink Label="Win32_PhysicalMemory" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-physicalmemory" />
+                                        </fhInfoPopup:InfoPopupControl.SourceLinks>
+                                    </fhInfoPopup:InfoPopupControl>
 
                                     <StackPanel Spacing="2">
                                         <TextBlock

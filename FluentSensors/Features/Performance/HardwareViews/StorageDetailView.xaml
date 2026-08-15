@@ -247,7 +247,12 @@
                             Margin="0,0,0,-4"
                             Description="Bus Type - connection interface (NVMe, SATA, USB, ...), caps the drive's realistic maximum speed; read from the modern Storage API since the legacy Windows API misreports NVMe drives as SCSI"
                             PlacementMode="TitleAnchored"
-                            Source="Windows Management Instrumentation (WMI)" />
+                            SourceIntro="Source:">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="MSFT_PhysicalDisk" Url="https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-physicaldisk" />
+                                <fhInfoPopup:SourceLink Label="Win32_DiskDrive (legacy fallback)" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-diskdrive" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <StackPanel Spacing="2">
                             <TextBlock
@@ -294,7 +299,11 @@
                             Margin="0,0,0,-4"
                             Description="Serial Number, Firmware Revision, Device ID - together uniquely identify this exact drive and its firmware"
                             PlacementMode="TitleAnchored"
-                            Source="Windows Management Instrumentation (WMI)" />
+                            SourceIntro="Source:">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="Win32_DiskDrive" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-diskdrive" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">

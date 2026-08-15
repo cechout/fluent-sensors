@@ -586,7 +586,11 @@
                             Margin="0,0,0,-4"
                             Description="Driver Version - internal Windows driver number, differs from vendor's own version scheme"
                             PlacementMode="TitleAnchored"
-                            Source="Windows Management Instrumentation (WMI)" />
+                            SourceIntro="Source:">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="Win32_VideoController" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-videocontroller" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <StackPanel Spacing="2">
                             <TextBlock
@@ -629,7 +633,11 @@
                             Margin="0,0,0,-4"
                             Description="Dedicated Memory - VRAM reserved exclusively for the GPU&#10;Shared Memory - system RAM the GPU may additionally borrow, shared with the CPU; calculated independently per GPU from total system RAM, not split between multiple GPUs"
                             PlacementMode="TitleAnchored"
-                            Source="DXGI (DirectX Graphics Infrastructure)" />
+                            SourceIntro="Source:">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="IDXGIAdapter1::GetDesc1 (DXGI)" Url="https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter1-getdesc1" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
@@ -665,7 +673,12 @@
                             Margin="0,0,0,-4"
                             Description="PCI Device ID - vendor/chip code hardcoded on the GPU&#10;PnP Device ID - Windows' instance identifier for this device"
                             PlacementMode="TitleAnchored"
-                            Source="DXGI (PCI Device ID) + Windows Management Instrumentation (PnP Device ID)" />
+                            SourceIntro="Source:">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="IDXGIAdapter1::GetDesc1 (PCI Device ID)" Url="https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter1-getdesc1" />
+                                <fhInfoPopup:SourceLink Label="Win32_VideoController (PnP Device ID)" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-videocontroller" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
