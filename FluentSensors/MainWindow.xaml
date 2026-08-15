@@ -45,7 +45,7 @@
             IsBackButtonVisible="Collapsed"
             IsPaneOpen="False"
             IsSettingsVisible="False"
-            OpenPaneLength="160"
+            OpenPaneLength="170"
             PaneDisplayMode="Left"
             SelectionChanged="MainNavigationView_SelectionChanged">
 
@@ -59,7 +59,7 @@
                 </NavigationViewItem>
 
                 <!--  performance page  -->
-                <NavigationViewItem Content="Performance" Tag="Performance">
+                <NavigationViewItem Content="Hardware View" Tag="Performance">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE9D9;" />
                     </NavigationViewItem.Icon>
@@ -150,11 +150,11 @@
                         KeyboardAcceleratorTextOverride="Double Click"
                         Text="Main Window" />
 
-                    <MenuFlyoutSeparator />
+                    <!--<MenuFlyoutSeparator />
 
                     <MenuFlyoutItem Command="{x:Bind ShowMainWindowCommand}" Text="Sensor Page" />
                     <MenuFlyoutItem Command="{x:Bind OpenPerformanceCommand}" Text="Performance Page" />
-                    <MenuFlyoutItem Command="{x:Bind OpenSettingsCommand}" Text="Settings Page" />
+                    <MenuFlyoutItem Command="{x:Bind OpenSettingsCommand}" Text="Settings Page" />-->
 
                     <MenuFlyoutSeparator />
 

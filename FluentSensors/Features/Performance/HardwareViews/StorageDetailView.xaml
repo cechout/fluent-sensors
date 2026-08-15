@@ -70,7 +70,7 @@
                         VerticalAlignment="Bottom"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="{x:Bind Storage.HardwareName, Mode=OneWay}"
+                        Text="{x:Bind Storage.PerformanceDisplayName, Mode=OneWay}"
                         TextAlignment="Right"
                         TextTrimming="CharacterEllipsis"
                         TextWrapping="NoWrap" />

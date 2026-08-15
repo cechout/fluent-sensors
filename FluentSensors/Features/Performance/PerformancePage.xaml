@@ -195,7 +195,7 @@
                     Margin="4,0,0,0"
                     VerticalAlignment="Center"
                     Style="{ThemeResource BodyStrongTextBlockStyle}"
-                    Text="Performance" />
+                    Text="Hardware View" />
 
                 <CommandBar
                     x:Name="PerformanceCommandBar"
