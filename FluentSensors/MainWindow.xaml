@@ -48,6 +48,7 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -70,15 +71,31 @@
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="Fluent Sensors" />
 
-            <!--  toggle button for the whole status readout  -->
+            <!--  dotnet runtime hint  -->
             <!--
-                plain Button, not a real ToggleButton, its default checked-state chrome did not fit here; the
-                Click handler flips AppStatus.IsStatusEnabled itself, opacity reflects on/off
+                only shown when WinStaticInfoServices one-time registry check found no NET Desktop Runtime
+                Major >= 10 installed system-wide; several LHM sensors depend on it regardless of this apps own
+                self-contained runtime
             -->
-            <Button
+            <fhInfoPopup:InfoPopupControl
                 Grid.Column="2"
-                Width="28"
-                Height="28"
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                Description="NET 10 is not installed on this device&#10;LibreHardwareMonitor needs it to access every available sensor, some readings may be missing or incomplete without it"
+                PlacementMode="Below"
+                SourceIntro="Recommended:"
+                Visibility="{x:Bind BoolToVisibility(AppStatus.IsDotNetRuntimeMissing), Mode=OneWay}">
+                <fhInfoPopup:InfoPopupControl.SourceLinks>
+                    <fhInfoPopup:SourceLink Label=".NET 10 Runtime" Url="https://dotnet.microsoft.com/en-us/download/dotnet/10.0" />
+                </fhInfoPopup:InfoPopupControl.SourceLinks>
+            </fhInfoPopup:InfoPopupControl>
+
+            <!--  toggle button for the whole status readout  -->
+            <Button
+                Grid.Column="3"
+                Width="22"
+                Height="22"
                 Margin="8,0,0,0"
                 Padding="0"
                 VerticalAlignment="Center"
@@ -94,7 +111,7 @@
             <!--  lhm group  -->
             <!--  (has priority over the windows group below when horizontal space runs out)  -->
             <StackPanel
-                Grid.Column="3"
+                Grid.Column="4"
                 Margin="8,0,0,0"
                 VerticalAlignment="Center"
                 Orientation="Horizontal"
@@ -124,7 +141,7 @@
             <!--  windows group  -->
             <!--  (this apps own resource usage, first to hide on a narrow window)  -->
             <StackPanel
-                Grid.Column="4"
+                Grid.Column="5"
                 Margin="12,0,0,0"
                 VerticalAlignment="Center"
                 Orientation="Horizontal"
@@ -174,7 +191,7 @@
                 </fhInfoPopup:InfoPopupControl>
             </StackPanel>
 
-            <!--  column 5 is a deliberately empty * spacer, stays draggable all the way to the caption buttons  -->
+            <!--  column 6 is a deliberately empty * spacer, stays draggable all the way to the caption buttons  -->
         </Grid>
 
 

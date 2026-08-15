@@ -23,13 +23,8 @@ namespace FluentSensors.Features.AppStatus
         private string _handleCountText = "";
         private string _gcMemoryText = "";
 
-        // below this TitleBar width the Windows group hides and only the LHM group stays visible; adjust to change
-        // where that cutoff sits
-        // window defaults to 670px wide (MainWindow ctor) with a 600px minimum, 900 here was unreachable at any
-        // normal window size, hence the windows group never actually showing; picked 640 as a starting point,
-        // comfortably below the 670 default so it shows out of the box, still above the 600 minimum so shrinking
-        // the window has a visible effect
-        private const double MinWidthForFullStatus = 640;
+        // below this TitleBar width the Windows group hides and only the LHM group stays visible
+        private const double MinWidthForFullStatus = 660;
 
         // the three inputs behind IsLhmGroupVisible/IsWindowsGroupVisible below; see UpdateVisibility
         private bool _isAppReady;
@@ -38,6 +33,8 @@ namespace FluentSensors.Features.AppStatus
 
         private bool _isLhmGroupVisible;
         private bool _isWindowsGroupVisible;
+
+        private bool _isDotNetRuntimeMissing;
 
 
         // === constructor ===
@@ -129,6 +126,15 @@ namespace FluentSensors.Features.AppStatus
         {
             get => _isWindowsGroupVisible;
             private set { _isWindowsGroupVisible = value; OnPropertyChanged(); }
+        }
+
+        // set once from MainWindow right next to IsAppReady, after WinStaticInfoServices one-time registry check
+        // has resolved; stays false (hint hidden) until then, independent of IsStatusEnabled since this hint
+        // should not be hideable by the same toggle that hides the CPU/RAM readout
+        public bool IsDotNetRuntimeMissing
+        {
+            get => _isDotNetRuntimeMissing;
+            set { if (_isDotNetRuntimeMissing == value) return; _isDotNetRuntimeMissing = value; OnPropertyChanged(); }
         }
 
 

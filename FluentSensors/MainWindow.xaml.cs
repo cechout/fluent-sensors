@@ -263,6 +263,7 @@ namespace FluentSensors
 
             SplashOverlay.Visibility = Visibility.Collapsed;
             AppStatus.IsAppReady = true;
+            AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;
             MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
 
             // re-open the widget window with its previously pinned sensors, if it was still open when the app last closed

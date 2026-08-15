@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
@@ -39,6 +40,7 @@ namespace FluentSensors.Core.StaticInfo
             Drives = QueryDrives();
             NetworkAdapters = QueryNetworkAdapters();
             Motherboard = QueryMotherboard();
+            IsDotNetRuntimeInstalled = QueryDotNetRuntimeInstalled();
         }
 
 
@@ -51,6 +53,9 @@ namespace FluentSensors.Core.StaticInfo
         public IReadOnlyList<WinStorageDriveInfo> Drives { get; }
         public IReadOnlyList<WinNetworkAdapterInfo> NetworkAdapters { get; }
         public WinMotherboardInfo Motherboard { get; }
+
+        // true once any Major >= 10 shared framework version is found, see QueryDotNetRuntimeInstalled
+        public bool IsDotNetRuntimeInstalled { get; }
 
 
         // === Private Helpers ===
@@ -487,6 +492,50 @@ namespace FluentSensors.Core.StaticInfo
             }
 
             return new WinMotherboardInfo(manufacturer, product, version, biosVersion, biosDate);
+        }
+
+        // many LHM sensors (notably several CPU/GPU ones) only populate correctly when a NET Desktop Runtime
+        // Major >= 10 is present system-wide, independent of this apps own self-contained runtime
+        //
+        // spawns the dotnet CLI itself instead of reading the Setup/InstalledVersions registry tree; that
+        // registry tree only gets populated by the standalone SDK/Runtime installer, Microsofts own uninstall
+        // tool documents that it cannot see anything installed through the Visual Studio Installer since VS2019
+        // 16.3, which is exactly how a dev machine (this one included) normally gets NET, dotnet --list-runtimes
+        // instead resolves against the real shared framework folders on disk and works the same regardless of
+        // how NET actually got installed
+        private static bool QueryDotNetRuntimeInstalled()
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = "--list-runtimes",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using var process = Process.Start(startInfo);
+                string output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit(2000); // startup check, never worth blocking app launch on a hung subprocess
+
+                return output
+                    .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                    .Any(HasMajorVersion10OrNewer);
+            }
+            catch
+            {
+                return false; // dotnet not on PATH, or the process failed to start at all
+            }
+        }
+
+        // a line looks like "Microsoft.WindowsDesktop.App 10.0.0 [C:\Program Files\dotnet\shared\...]", version
+        // is the second whitespace-separated token
+        private static bool HasMajorVersion10OrNewer(string listRuntimesLine)
+        {
+            var parts = listRuntimesLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length >= 2 && Version.TryParse(parts[1], out var version) && version.Major >= 10;
         }
 
 
