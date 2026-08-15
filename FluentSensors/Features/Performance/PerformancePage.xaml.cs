@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Navigation;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -38,6 +39,17 @@ namespace FluentSensors.Features.Performance
         // permanent start page view; built lazily on first visit, since CPU (not the start page) is the default
         // selected view
         private PerformanceStartView _startView;
+
+        // whether this page is currently the Frames content (OnNavigatedTo/OnNavigatedFrom) and whether the app
+        // window itself is actually shown on screen right now (set externally by MainWindow, minimized or hidden
+        // e.g. minimize-to-tray both count); combined in UpdatePageRenderingState, both default true since the
+        // window is visible and this page is the active content whenever it first gets constructed through normal
+        // navigation
+        private bool _isNavigatedToPage = true;
+        private bool _isWindowVisible = true;
+
+        // last applied result of _isNavigatedToPage && _isWindowVisible, only used to skip redundant gate calls
+        private bool _isPageRenderingActive = true;
 
 
         // === constructor ===
@@ -156,6 +168,31 @@ namespace FluentSensors.Features.Performance
             }
         }
 
+        // page entering/leaving the Frame (Sensors/Settings <-> Performance navigation); NavigationCacheMode keeps
+        // this same instance around, so these fire on every visit, not just the first
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            _isNavigatedToPage = true;
+            UpdatePageRenderingState();
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            _isNavigatedToPage = false;
+            UpdatePageRenderingState();
+        }
+
+        // called by MainWindow whenever the app window itself stops or starts actually being shown on screen
+        // (minimized, or hidden entirely e.g. minimize-to-tray); independent of whether this page is currently
+        // navigated to, both conditions gate the same underlying rendering state, see UpdatePageRenderingState
+        public void SetWindowVisibilityActive(bool isVisible)
+        {
+            _isWindowVisible = isVisible;
+            UpdatePageRenderingState();
+        }
+
 
         // === private helpers ===
 
@@ -197,21 +234,61 @@ namespace FluentSensors.Features.Performance
             UIElement view = target != null ? EnsureDetailView(target) : EnsureStartView();
             if (view == null) return;
 
-            // resume rendering before the view becomes visible, so its first shown frame already shows current data
-            SensorGraphRenderingGate.SetActive(view, true);
+            _currentDetailView = view;
 
-            // the walk above just turned every graph in this view back on, including whichever of Overview/Extended
-            // (or Overview/All Threads) is not the one actually shown right now; hand it back to the view itself to
-            // correct that down to just the visible section
-            switch (view)
-            {
-                case CpuDetailView cpu: cpu.SyncSectionRenderingGate(); break;
-                case GpuDetailView gpu: gpu.SyncSectionRenderingGate(); break;
-            }
+            // only actually resume rendering if the page itself is currently on screen right now; if it is not
+            // (navigated away, window minimized/hidden) the newly selected view stays gated off until
+            // UpdatePageRenderingState reactivates it on return, exactly like every other graph on the page
+            if (_isPageRenderingActive) ActivateCurrentDetailViewRendering();
 
             view.Opacity = 1;
             view.IsHitTestVisible = true;
-            _currentDetailView = view;
+        }
+
+        // combines page-navigation and window-visibility into this pages one rendering-active state; same
+        // philosophy SensorGraphRenderingGate itself already uses one level up: only the live redraw ever pauses,
+        // SensorData keeps filling in the background regardless, so returning shows continuous history
+        private void UpdatePageRenderingState()
+        {
+            bool active = _isNavigatedToPage && _isWindowVisible;
+            if (active == _isPageRenderingActive) return;
+            _isPageRenderingActive = active;
+
+            if (active)
+            {
+                SensorGraphRenderingGate.SetActive(NavItemsControl, true);
+                ActivateCurrentDetailViewRendering();
+            }
+            else
+            {
+                // blanket off across the whole page; safe even though it also re-touches the cached views and
+                // sub-sections that are already off, turning something already off, off again is a no-op
+                SensorGraphRenderingGate.SetActive(RootGrid, false);
+            }
+        }
+
+        // re-enables live rendering for whichever view is currently selected, including resyncing its own visible
+        // sub-section/layout (Overview vs AllThreads/Extended, Wide vs Narrow); shared by UpdateDetailView
+        // (hardware switch) and UpdatePageRenderingState (page/window visibility returning) - both need exactly
+        // this and nothing more, reactivating the whole DetailHostGrid indiscriminately would also wake up every
+        // other cached hardware views graphs
+        private void ActivateCurrentDetailViewRendering()
+        {
+            if (_currentDetailView == null) return;
+
+            // resume rendering before the view becomes visible, so its first shown frame already shows current data
+            SensorGraphRenderingGate.SetActive(_currentDetailView, true);
+
+            // the walk above just turned every graph in this view back on, including whichever of
+            // Overview/Extended (or Overview/AllThreads) and whichever of Wide/Narrow is not actually shown right
+            // now; hand it back to the view itself to correct that down to just the visible section/layout
+            switch (_currentDetailView)
+            {
+                case CpuDetailView cpu: cpu.SyncSectionRenderingGate(); break;
+                case GpuDetailView gpu: gpu.SyncSectionRenderingGate(); break;
+                case StorageDetailView storage: storage.SyncLayoutRenderingGate(); break;
+                case NetworkDetailView network: network.SyncLayoutRenderingGate(); break;
+            }
         }
 
         // creates (once) and caches the permanent detail view for one hardware instance; safe to call repeatedly

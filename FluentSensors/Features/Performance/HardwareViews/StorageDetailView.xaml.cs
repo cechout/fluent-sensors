@@ -4,6 +4,7 @@ using System;
 using Windows.Foundation;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Features.Performance;
 using FluentSensors.Features.Performance.Lhm;
 
@@ -98,17 +99,36 @@ namespace FluentSensors.Features.Performance.HardwareViews
         }
 
 
+        // === public methods ===
+
+        // PerformancePage.ActivateCurrentDetailViewRendering reactivates this views entire subtree
+        // indiscriminately (e.g. on hardware switch, or the whole page/window regaining visibility); this
+        // corrects it back down to just the active layout, mirrors what Cpu/GpuDetailView need for their own
+        // Overview/AllThreads-Extended split, this view just has no such section to begin with
+        public void SyncLayoutRenderingGate()
+        {
+            SensorGraphRenderingGate.SetActive(_isNarrowLayoutActive ? WideGraphsGrid : NarrowGraphsPanel, false);
+        }
+
+
         // === private helpers ===
 
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
-        // problem/fix: see GpuDetailView.xaml.cs SetLayoutActive for the full explanation
-        private static void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
+        // problem/fix: see GpuDetailView.xaml.cs SetLayoutActive for the full explanation, including why the
+        // render gate below is conditional on IsHitTestVisible; this view has no section split, so that alone
+        // is enough
+        private void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
         {
             wideLayout.Opacity = useNarrow ? 0 : 1;
             wideLayout.IsHitTestVisible = !useNarrow;
 
             narrowLayout.Opacity = useNarrow ? 1 : 0;
             narrowLayout.IsHitTestVisible = useNarrow;
+
+            if (!IsHitTestVisible) return;
+
+            SensorGraphRenderingGate.SetActive(wideLayout, !useNarrow);
+            SensorGraphRenderingGate.SetActive(narrowLayout, useNarrow);
         }
     }
 }

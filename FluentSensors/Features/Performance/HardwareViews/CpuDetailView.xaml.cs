@@ -142,8 +142,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // keeps only the currently shown section (Overview or All Threads) actually rendering; the other ones
         // graphs get gated off exactly like a whole hidden detail view does
         // separate from RecalculateOverviewHeight because this also needs to run when the whole view regains
-        // visibility (PerformancePage.UpdateDetailView reactivates this views entire subtree indiscriminately, this
-        // corrects it back down to just the shown section), not only on every resize
+        // visibility (PerformancePage.ActivateCurrentDetailViewRendering reactivates this views entire subtree
+        // indiscriminately, this corrects it back down to just the shown section), not only on every resize
         public void SyncSectionRenderingGate()
         {
             if (Cpu == null) return;
@@ -154,6 +154,14 @@ namespace FluentSensors.Features.Performance.HardwareViews
             if (AllThreadsGrid != null)
             {
                 SensorGraphRenderingGate.SetActive(AllThreadsGrid, Cpu.IsShowingAllThreads);
+            }
+
+            // the walk above just turned every graph in Overview back on, including whichever of Wide/Narrow is
+            // not the one actually shown right now; correct that back down to just the active layout, same
+            // follow-up correction the section split itself needed one level up
+            if (!Cpu.IsShowingAllThreads)
+            {
+                SensorGraphRenderingGate.SetActive(_isNarrowLayoutActive ? WideGraphsGrid : NarrowGraphsPanel, false);
             }
         }
 
@@ -178,14 +186,20 @@ namespace FluentSensors.Features.Performance.HardwareViews
         }
 
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
-        // problem/fix: see GpuDetailView.xaml.cs SetLayoutActive for the full explanation
-        private static void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
+        // problem/fix: see GpuDetailView.xaml.cs SetLayoutActive for the full explanation, including why the
+        // render gate below is conditional on IsHitTestVisible and the current section
+        private void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
         {
             wideLayout.Opacity = useNarrow ? 0 : 1;
             wideLayout.IsHitTestVisible = !useNarrow;
 
             narrowLayout.Opacity = useNarrow ? 1 : 0;
             narrowLayout.IsHitTestVisible = useNarrow;
+
+            if (!IsHitTestVisible || Cpu == null || Cpu.IsShowingAllThreads) return;
+
+            SensorGraphRenderingGate.SetActive(wideLayout, !useNarrow);
+            SensorGraphRenderingGate.SetActive(narrowLayout, useNarrow);
         }
 
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;

@@ -413,6 +413,29 @@ namespace FluentSensors
             {
                 SaveWindowState();
             }
+
+            // minimize/restore only shows up as DidSizeChange (see the same workaround already in
+            // WidgetWindow.AppWindow_Changed), actual hide/show (e.g. minimize-to-tray via CheckAndHideToTray
+            // above) shows up as DidVisibilityChange instead; checked after CheckAndHideToTray so a Hide() it just
+            // triggered is already reflected in AppWindow.IsVisible below
+            if (args.DidSizeChange || args.DidVisibilityChange)
+            {
+                UpdatePerformancePageRenderingState();
+            }
+        }
+
+        // pauses/resumes the Performance pages own rendering gate whenever this window itself stops or starts
+        // actually being shown on screen (minimized, or hidden entirely e.g. minimize-to-tray); a no-op whenever
+        // Performance page is not the current contentFrame content, PerformancePage tracks its own default state
+        // for whenever it is next navigated to
+        private void UpdatePerformancePageRenderingState()
+        {
+            if (contentFrame.Content is not PerformancePage performancePage) return;
+
+            bool isMinimized = this.AppWindow.Presenter is OverlappedPresenter presenter &&
+                               presenter.State == OverlappedPresenterState.Minimized;
+
+            performancePage.SetWindowVisibilityActive(this.AppWindow.IsVisible && !isMinimized);
         }
 
         public void CheckAndHideToTray()

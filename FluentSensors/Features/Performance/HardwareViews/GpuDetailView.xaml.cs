@@ -142,6 +142,14 @@ namespace FluentSensors.Features.Performance.HardwareViews
             {
                 SensorGraphRenderingGate.SetActive(ExtendedGrid, Gpu.IsShowingExtended);
             }
+
+            // the walk above just turned every graph in Overview back on, including whichever of Wide/Narrow is
+            // not the one actually shown right now; correct that back down to just the active layout, same
+            // follow-up correction the section split itself needed one level up
+            if (!Gpu.IsShowingExtended)
+            {
+                SensorGraphRenderingGate.SetActive(_isNarrowLayoutActive ? WideGraphsGrid : NarrowGraphsPanel, false);
+            }
         }
 
         // keeps the overview block at least as tall as the visible viewport (so its graphs can stretch to fill it),
@@ -168,13 +176,28 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // problem: same root cause as PerformancePage.xaml.cs UpdateDetailView (see that comment for the full
         // explanation)
         // fix: never Collapse either layout, toggle Opacity + IsHitTestVisible instead
-        private static void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
+        //
+        // also gates live rendering (Wide or Narrow, whichever loses, would otherwise keep drawing forever in the
+        // background instead of just briefly during the switch, since Opacity 0 alone does not stop a
+        // SensorGraphControl from rendering)
+        // DetailHostGrid stacks every hardware views detail view on top of each other for the exact same reason
+        // (never Collapsed), so a width change fires this for every one of them at once, not just the one
+        // actually shown right now, and Overview itself might currently be gated off in favor of Extended anyway
+        // only touch the render gate while this view is both the one actually selected and Overview is the shown
+        // section right now, otherwise leave it exactly as is; SyncSectionRenderingGate resyncs Wide/Narrow
+        // correctly whenever either one turns true again
+        private void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
         {
             wideLayout.Opacity = useNarrow ? 0 : 1;
             wideLayout.IsHitTestVisible = !useNarrow;
 
             narrowLayout.Opacity = useNarrow ? 1 : 0;
             narrowLayout.IsHitTestVisible = useNarrow;
+
+            if (!IsHitTestVisible || Gpu == null || Gpu.IsShowingExtended) return;
+
+            SensorGraphRenderingGate.SetActive(wideLayout, !useNarrow);
+            SensorGraphRenderingGate.SetActive(narrowLayout, useNarrow);
         }
     }
 }

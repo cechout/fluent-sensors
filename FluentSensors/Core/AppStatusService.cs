@@ -98,9 +98,11 @@ namespace FluentSensors.Core
 
             // LhmHardwareTreeService.HardwareGroups only ever contains sensors that actually made it through
             // HardwareMonitorServices own filtering (active network adapters only, valid values only), the exact
-            // same set the Sensors page itself is built from; counting _activeSensors on HardwareMonitorService
-            // instead used to count LHMs raw pre-filter discovery, including every never-shown sensor belonging to
-            // the many virtual/inactive network pseudo-adapters Windows creates
+            // same set the Sensors page itself is built from;
+            // counting _activeSensors on HardwareMonitorService instead used to count LHMs raw pre-filter discovery,
+            // including every never-shown sensor belonging to the many virtual/inactive network pseudo-adapters Windows
+            // creates
+            //
             // read on the UI thread since the collection is only ever mutated there, a background-thread read could
             // race an in-progress Add and throw
             _dispatcherQueue.TryEnqueue(() =>
