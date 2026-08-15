@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Windows.Foundation;
 
@@ -38,6 +39,11 @@ namespace FluentSensors.Controls.InfoPopup
         // the live tree on repeat navigation instead of recreated
         // Without this the second run tries to re-add InfoPopup to a host it is already a child of
         private bool _popupRelocated;
+
+        // backing store for SourceLinks below; a plain read-only IList property (not a DependencyProperty) so XAML
+        // can populate it via nested <InfoPopupControl.SourceLinks> elements, the same pattern NavigationView uses
+        // for MenuItems
+        private readonly ObservableCollection<SourceLink> _sourceLinks = new();
 
 
         // === Constructor ===
@@ -223,7 +229,9 @@ namespace FluentSensors.Controls.InfoPopup
         }
 
         // short label for where this content comes from, e.g. "Windows Management Instrumentation (WMI)"; shown
-        // as its own line above Description; the whole line, not just the text, collapses when empty
+        // as its own plain text line above Description
+        // only rendered when SourceLinks below is empty, a populated SourceLinks list replaces this line with
+        // clickable buttons instead; the whole line collapses when empty either way
         public string Source
         {
             get => (string)GetValue(SourceProperty);
@@ -232,6 +240,28 @@ namespace FluentSensors.Controls.InfoPopup
         public static readonly DependencyProperty SourceProperty =
             DependencyProperty.Register(
                 nameof(Source),
+                typeof(string),
+                typeof(InfoPopupControl),
+                new PropertyMetadata(string.Empty));
+
+        // clickable alternative to the plain Source line above, one HyperlinkButton per entry, opens in the system
+        // default browser; populated via nested XAML content:
+        // <fhInfoPopup:InfoPopupControl.SourceLinks>
+        //     <fhInfoPopup:SourceLink Label="..." Url="..." />
+        // </fhInfoPopup:InfoPopupControl.SourceLinks>
+        // empty by default, so every caller still on the plain Source string keeps working unchanged
+        public IList<SourceLink> SourceLinks => _sourceLinks;
+
+        // optional short text shown above SourceLinks, introduces what the links below are
+        // (Title top, then SourceIntro, then SourceLinks/Source, then Description, see PopupContentBorder)
+        public string SourceIntro
+        {
+            get => (string)GetValue(SourceIntroProperty);
+            set => SetValue(SourceIntroProperty, value);
+        }
+        public static readonly DependencyProperty SourceIntroProperty =
+            DependencyProperty.Register(
+                nameof(SourceIntro),
                 typeof(string),
                 typeof(InfoPopupControl),
                 new PropertyMetadata(string.Empty));
@@ -368,8 +398,16 @@ namespace FluentSensors.Controls.InfoPopup
         private Thickness GetTitleMargin(double buttonSize, bool showInfoButton) =>
             showInfoButton ? new Thickness(0, 0, buttonSize + TitleButtonGap, 0) : new Thickness(0);
 
-        private Visibility GetSourceVisibility(string source) =>
-            string.IsNullOrEmpty(source) ? Visibility.Collapsed : Visibility.Visible;
+        // plain Source line: only shown when there is no SourceLinks entry to show instead
+        private Visibility GetSourceVisibility(string source, IList<SourceLink> sourceLinks) =>
+            !string.IsNullOrEmpty(source) && sourceLinks.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        private Visibility GetSourceLinksVisibility(IList<SourceLink> sourceLinks) =>
+            sourceLinks.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        // same empty check as GetTitleVisibility above, own name since it is used for SourceIntro specifically
+        private Visibility GetSourceIntroVisibility(string sourceIntro) =>
+            string.IsNullOrEmpty(sourceIntro) ? Visibility.Collapsed : Visibility.Visible;
 
         private string FormatSource(string source) => $"Source: {source}";
 

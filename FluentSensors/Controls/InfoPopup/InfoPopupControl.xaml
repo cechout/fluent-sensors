@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:FluentSensors.Controls.InfoPopup"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Loaded="InfoPopupControl_Loaded"
     mc:Ignorable="d">
@@ -51,6 +52,14 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!--  minimal for now, real styling pass happens once every InfoPopupControl usage got real SourceLinks  -->
+        <Style x:Key="SourceLinkButtonStyle" TargetType="HyperlinkButton">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="FontSize" Value="12" />
         </Style>
     </UserControl.Resources>
 
@@ -118,13 +127,54 @@
                     CornerRadius="4"
                     SizeChanged="PopupContent_SizeChanged">
 
+                    <!--  order top to bottom: SourceIntro, SourceLinks (or the plain Source line as fallback), Description  -->
                     <StackPanel Spacing="8">
+
+                        <!--  optional text introducing the links below, empty and collapsed by default  -->
+                        <ItemsControl
+                            ItemsSource="{x:Bind SplitParagraphs(SourceIntro), Mode=OneWay}"
+                            Visibility="{x:Bind GetSourceIntroVisibility(SourceIntro), Mode=OneWay}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="6" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <TextBlock
+                                        Style="{ThemeResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind}"
+                                        TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!--  clickable sources, one HyperlinkButton per entry; takes over from the plain Source line below whenever populated  -->
+                        <ItemsControl
+                            ItemsSource="{x:Bind SourceLinks}"
+                            Visibility="{x:Bind GetSourceLinksVisibility(SourceLinks)}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="2" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="local:SourceLink">
+                                    <HyperlinkButton
+                                        Content="{x:Bind Label}"
+                                        NavigateUri="{x:Bind Url}"
+                                        Style="{StaticResource SourceLinkButtonStyle}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!--  fallback plain text line, only shown while SourceLinks is still empty  -->
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
                             Text="{x:Bind FormatSource(Source), Mode=OneWay}"
                             TextWrapping="Wrap"
-                            Visibility="{x:Bind GetSourceVisibility(Source), Mode=OneWay}" />
+                            Visibility="{x:Bind GetSourceVisibility(Source, SourceLinks), Mode=OneWay}" />
 
                         <!--  each paragraph in its own TextBlock instead of one block with embedded line breaks  -->
                         <ItemsControl ItemsSource="{x:Bind SplitParagraphs(Description), Mode=OneWay}">

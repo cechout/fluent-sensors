@@ -256,6 +256,7 @@ namespace FluentSensors
             await Task.Delay(200);
 
             SplashOverlay.Visibility = Visibility.Collapsed;
+            AppStatus.IsAppReady = true;
             MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
 
             // re-open the widget window with its previously pinned sensors, if it was still open when the app last closed
@@ -287,6 +288,18 @@ namespace FluentSensors
                 .Where(s => s != null)
                 .ToList();
         }
+
+
+        // === app status readout ===
+
+        // feeds AppStatus.HasEnoughWidthForFull, which decides whether the windows group still fits next to the
+        // lhm group; fires on every window resize, see AppStatusViewModel.UpdateVisibility for the combined logic
+        private void AppTitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            AppStatus.UpdateAvailableWidth(e.NewSize.Width);
+        }
+
+        private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
 
 
         // === theme handling ===
