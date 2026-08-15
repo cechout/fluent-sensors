@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using WinRT;
 using System.Runtime.InteropServices;
 using System.Linq;
+using WinUIEx;
 
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
@@ -30,6 +31,12 @@ namespace FluentSensors.Features.Widget
 
         private AppWindow _appWindow;
         private const string WindowKey = "Widget"; 
+
+        // resize floor in XAML DIP, so the window can never be dragged smaller than this and squeeze the panels
+        // unusable; MinPanelHeight is per pinned sensor, MinWidgetWidth is the whole window
+        private const int MinPanelHeight = 60;
+        private const int MinWidgetWidth = 220;
+
         public WidgetViewModel ViewModel { get; }
         public static WidgetWindow CurrentInstance { get; private set; }
         public static event Action WidgetStateChanged;
@@ -63,6 +70,10 @@ namespace FluentSensors.Features.Widget
             presenter.IsMinimizable = true;
             presenter.IsResizable = true;
             _appWindow.SetPresenter(presenter);
+
+            // resize floor for the currently pinned sensor count; recalculated in ReconfigureFor whenever that
+            // count changes
+            ApplyMinimumWindowSize(selectedSensors.Count);
 
             // window size and position:
             // restore the last saved X/Y/Width if one exists; this covers both the auto-reopen-on-launch case and manually
@@ -353,6 +364,25 @@ namespace FluentSensors.Features.Widget
             return Math.Min(physicalHeight, screenHeight - 40); // height should not be taller than the screen
         }
 
+        // enforces MinWidgetWidth/MinPanelHeight as an actual resize floor via WindowManager, so dragging the
+        // window smaller stops there instead of squeezing the panels past legibility
+        private void ApplyMinimumWindowSize(int sensorCount)
+        {
+            var manager = WindowManager.Get(this);
+            manager.MinWidth = MinWidgetWidth;
+            manager.MinHeight = CalculateWidgetMinHeight(sensorCount, GetScaleFactor());
+        }
+
+        // same idea as CalculateWidgetHeight, but for the minimum instead of the default height, and using
+        // MinPanelHeight instead of the default per-sensor height
+        private double CalculateWidgetMinHeight(int sensorCount, double scaleFactor)
+        {
+            double minXamlHeight = 31 + (sensorCount * (90 + 8)); // titleBar-height + x*(sensor-min-height + spacing)
+
+            double screenHeightDip = DisplayArea.Primary.WorkArea.Height / scaleFactor;
+            return Math.Min(minXamlHeight, screenHeightDip - 40); // height should not be taller than the screen
+        }
+
         // checks whether the given rect would actually be visible on any currently connected monitor; a saved position can
         // become stale if the monitor it was on gets disconnected, or the display arrangement changes
         private bool IsPositionOnScreen(int x, int y, int width, int height)
@@ -417,6 +447,7 @@ namespace FluentSensors.Features.Widget
         private void ReconfigureFor(List<SensorRowViewModel> selectedSensors)
         {
             ViewModel.Reconfigure(selectedSensors);
+            ApplyMinimumWindowSize(selectedSensors.Count);
 
             double scaleFactor = GetScaleFactor();
             var savedState = WindowStateService.Instance.GetState(WindowKey);
@@ -439,7 +470,7 @@ namespace FluentSensors.Features.Widget
         // passing null keeps whatever IDs were already saved
         private void SaveWindowState(List<SensorRowViewModel> pinnedSensors = null, bool wasOpen = true)
         {
-            var state = WindowStateService.Instance.GetState(WindowKey) ?? new WindowState();
+            var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
 
             // while minimized, Windows reports the windows position as the (-32000, -32000) sentinel value; keep the last
             // known real rect instead of overwriting it with that garbage
