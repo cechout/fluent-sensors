@@ -81,7 +81,7 @@
                 <!--  switchable: subtle button with a manual chevron, opens the hidden combobox below in one click  -->
                 <Button
                     Grid.Column="2"
-                    Padding="6,0,7,0"
+                    Padding="8,0,8,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Stretch"
                     HorizontalContentAlignment="Left"
@@ -118,7 +118,7 @@
                 <!--  current value  -->
                 <TextBlock
                     Grid.Column="2"
-                    Padding="0,0,7,0"
+                    Padding="0,0,7.4,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
                     Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"
@@ -163,7 +163,7 @@
                 <!--  current value  -->
                 <TextBlock
                     Grid.Column="2"
-                    Padding="0,0,7,0"
+                    Padding="0,0,7.4,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
                     Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"

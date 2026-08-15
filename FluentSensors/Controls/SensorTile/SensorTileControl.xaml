@@ -39,7 +39,7 @@
 
                 <TextBlock
                     Foreground="{x:Bind ViewModel.CurrentValueColor, Mode=OneWay}"
-                    Style="{ThemeResource SubtitleTextBlockStyle}"
+                    Style="{ThemeResource BodyLargeTextBlockStyle}"
                     Text="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}"
                     Visibility="{x:Bind GetValueVisibility(ViewModel), Mode=OneWay}" />
                 <TextBlock

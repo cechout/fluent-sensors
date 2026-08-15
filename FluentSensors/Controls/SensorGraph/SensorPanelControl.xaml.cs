@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 
 using FluentSensors.Common.UI;
@@ -360,6 +361,21 @@ namespace FluentSensors.Controls.SensorGraph
             }
 
             if (e.Property == ViewModelProperty) panel.SyncSwitchSelection();
+
+            // --- workaround: x:Bind function bindings only track the arguments own path, not what the function body reads ---
+            // problem: GetYMaxOrPlaceholder/GetCurrentValueOrPlaceholder/GetCurrentValueColorOrDefault/
+            // GetStatusRowTitleOrPlaceholder all take ViewModel itself rather than a dotted path into it, so they
+            // correctly handle ViewModel being null; but that also means x:Bind only reruns them when ViewModel
+            // itself gets swapped for a different instance, never when CurrentValueText/CurrentValueColor/
+            // ActualYMaxText change on the very same instance, which is what actually happens on every sensor tick
+            // fix: subscribe to the new ViewModels own PropertyChanged directly and force every x:Bind expression
+            // in this control to refresh whenever it fires; unsubscribe from the old one first so a sensor
+            // switched away from does not keep this control alive
+            if (e.Property == ViewModelProperty)
+            {
+                if (e.OldValue is SensorGraphViewModel oldViewModel) oldViewModel.PropertyChanged -= panel.OnViewModelPropertyChanged;
+                if (e.NewValue is SensorGraphViewModel newViewModel) newViewModel.PropertyChanged += panel.OnViewModelPropertyChanged;
+            }
         }
 
         private void ApplyOverridesToViewModel()
@@ -523,6 +539,13 @@ namespace FluentSensors.Controls.SensorGraph
 
 
         // === event handlers ===
+
+        // see OnOverrideChanged: forces every x:Bind expression in this control to re-evaluate, since the
+        // GetXOrPlaceholder functions take ViewModel itself and x:Bind does not track what they read off of it
+        private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            Bindings.Update();
+        }
 
         private void GraphControl_Tapped(object sender, TappedRoutedEventArgs e)
         {
