@@ -22,13 +22,12 @@ namespace FluentSensors.Core
     );
 
 
-    // self monitoring: polls this processes own resource usage plus the LHM sensor counts on a fixed interval
+    // self monitoring: polls this processes own resource usage plus the LHM sensor counts on the same interval as
+    // HardwareMonitorServices sensor polling, so both readouts stay in step
     // feeds the title bar status readout for now, the future App Status page reuses the same data
     public class AppStatusService
     {
         // === fields ===
-
-        private const int UpdateIntervalMs = 1000;
 
         private readonly Process _process = Process.GetCurrentProcess();
         private Timer _timer;
@@ -64,17 +63,29 @@ namespace FluentSensors.Core
             _lastCpuTime = _process.TotalProcessorTime;
             _lastSampleTime = DateTime.UtcNow;
 
-            _timer = new Timer(_ => Tick(), null, UpdateIntervalMs, UpdateIntervalMs);
+            // takes the interval straight from HardwareMonitorService instead of its own value, this is the same
+            // number the settings service persists as UpdateIntervalMs
+            int intervalMs = HardwareMonitorService.Instance.UpdateIntervalMs;
+            _timer = new Timer(_ => Tick(), null, intervalMs, intervalMs);
+
+            HardwareMonitorService.Instance.UpdateIntervalChanged += OnUpdateIntervalChanged;
         }
 
         public void Stop()
         {
+            HardwareMonitorService.Instance.UpdateIntervalChanged -= OnUpdateIntervalChanged;
             _timer?.Dispose();
             _timer = null;
         }
 
 
         // === private helpers ===
+
+        // keeps the timer in step whenever the user changes the polling rate on the settings page while running
+        private void OnUpdateIntervalChanged(int newIntervalMs)
+        {
+            _timer?.Change(newIntervalMs, newIntervalMs);
+        }
 
         private void Tick()
         {
