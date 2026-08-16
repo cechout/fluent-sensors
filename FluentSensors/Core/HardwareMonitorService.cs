@@ -1,6 +1,7 @@
 ﻿using LibreHardwareMonitor.Hardware;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,9 @@ namespace FluentSensors.Core
         private CancellationTokenSource? _cts;
         private Task? _loopTask;
         private readonly HashSet<string> _excludedSensorIds = new();
+
+        // measures real time between two successive HardwareDataUpdated broadcasts, see ActualUpdateIntervalMs below
+        private readonly Stopwatch _updateStopwatch = new();
 
 
         // === singleton instance ===
@@ -83,6 +87,19 @@ namespace FluentSensors.Core
                     UpdateIntervalChanged?.Invoke(_updateIntervalMs);
                 }
             }
+        }
+
+        // measured real cadence of the loop below (hardware.Update() + payload building + the previous Task.Delay
+        // combined), not just the requested UpdateIntervalMs; a short UpdateIntervalMs does not guarantee the loop
+        // can actually keep up, this is how AppStatusService shows the real number next to the aimed-for one
+        //
+        // read cross-thread by AppStatusService; double reads/writes are not guaranteed atomic, Interlocked keeps
+        // this lock-free instead of adding a lock for a single number
+        private double _actualUpdateIntervalMs;
+        public double ActualUpdateIntervalMs
+        {
+            get => Interlocked.CompareExchange(ref _actualUpdateIntervalMs, 0, 0);
+            private set => Interlocked.Exchange(ref _actualUpdateIntervalMs, value);
         }
 
         // asynchronous initialization pipeline:
@@ -213,6 +230,8 @@ namespace FluentSensors.Core
         // polling loop
         private async Task LoopAsync(CancellationToken token)
         {
+            _updateStopwatch.Restart();
+
             while (!token.IsCancellationRequested)
             {
                 // update hardware (lhm fetches new values from the sensor)
@@ -340,6 +359,11 @@ namespace FluentSensors.Core
 
                 // extra guard: skip the broadcast entirely if a shutdown was requested while we were building the payload above
                 if (token.IsCancellationRequested) break;
+
+                // real time since the previous broadcast; restarting right here means this measures fire-to-fire,
+                // the actual cadence consumers see, not just the delay below
+                ActualUpdateIntervalMs = _updateStopwatch.Elapsed.TotalMilliseconds;
+                _updateStopwatch.Restart();
 
                 // we fire the event with the new list of sensor data
                 HardwareDataUpdated?.Invoke(payload);

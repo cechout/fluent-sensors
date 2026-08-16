@@ -16,8 +16,8 @@ namespace FluentSensors.Features.AppStatus
 
         private readonly DispatcherQueue _dispatcherQueue;
 
-        private string _sensorsFoundText = "";
-        private string _sensorsRenderedText = "";
+        private string _sensorsText = "";
+        private string _pollText = "";
         private string _cpuUsageText = "";
         private string _ramUsageText = "";
         private string _handleCountText = "";
@@ -49,16 +49,18 @@ namespace FluentSensors.Features.AppStatus
 
         // === bindable properties ===
 
-        public string SensorsFoundText
+        // found/rendered, e.g. "Sensors: 169/3"
+        public string SensorsText
         {
-            get => _sensorsFoundText;
-            private set { _sensorsFoundText = value; OnPropertyChanged(); }
+            get => _sensorsText;
+            private set { _sensorsText = value; OnPropertyChanged(); }
         }
 
-        public string SensorsRenderedText
+        // actual/aimed polling interval, e.g. "Poll: 289/100ms"
+        public string PollText
         {
-            get => _sensorsRenderedText;
-            private set { _sensorsRenderedText = value; OnPropertyChanged(); }
+            get => _pollText;
+            private set { _pollText = value; OnPropertyChanged(); }
         }
 
         public string CpuUsageText
@@ -162,8 +164,8 @@ namespace FluentSensors.Features.AppStatus
         {
             _dispatcherQueue.TryEnqueue(() =>
             {
-                SensorsFoundText = $"Total: {data.SensorsFound}";
-                SensorsRenderedText = $"Rendered: {data.SensorsRendered}";
+                SensorsText = $"Sensors: {data.SensorsFound}/{data.SensorsRendered}";
+                PollText = $"Poll: {data.ActualUpdateIntervalMs:0}/{data.AimedUpdateIntervalMs}ms";
                 CpuUsageText = $"CPU: {data.CpuUsagePercent:0.0}%";
                 RamUsageText = $"RAM: {data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
                 HandleCountText = $"Handles: {data.HandleCount}";

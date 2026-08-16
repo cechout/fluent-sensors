@@ -11,14 +11,16 @@ using FluentSensors.Core.Lhm;
 namespace FluentSensors.Core
 {
     // one snapshot of the apps self status: how many sensors LHM found and how many of them are currently
-    // rendering, plus this processes own CPU/RAM/handle/GC footprint
+    // rendering, this processes own CPU/RAM/handle/GC footprint, plus the actual vs aimed-for polling cadence
     public record AppStatusData(
         int SensorsFound,
         int SensorsRendered,
         double CpuUsagePercent,
         long RamUsageBytes,
         int HandleCount,
-        long GcMemoryBytes
+        long GcMemoryBytes,
+        double ActualUpdateIntervalMs, // measured, see HardwareMonitorService.ActualUpdateIntervalMs
+        int AimedUpdateIntervalMs // the configured HardwareMonitorService.UpdateIntervalMs, alongside it for display
     );
 
 
@@ -126,7 +128,9 @@ namespace FluentSensors.Core
                     CpuUsagePercent: Math.Clamp(cpuPercent, 0, 100),
                     RamUsageBytes: _process.WorkingSet64,
                     HandleCount: _process.HandleCount,
-                    GcMemoryBytes: GC.GetTotalMemory(false)
+                    GcMemoryBytes: GC.GetTotalMemory(false),
+                    ActualUpdateIntervalMs: HardwareMonitorService.Instance.ActualUpdateIntervalMs,
+                    AimedUpdateIntervalMs: HardwareMonitorService.Instance.UpdateIntervalMs
                 );
 
                 StatusUpdated?.Invoke(data);

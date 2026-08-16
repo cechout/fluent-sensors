@@ -121,15 +121,15 @@
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.SensorsFoundText, Mode=OneWay}" />
+                    Text="{x:Bind AppStatus.SensorsText, Mode=OneWay}" />
                 <TextBlock
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.SensorsRenderedText, Mode=OneWay}" />
+                    Text="{x:Bind AppStatus.PollText, Mode=OneWay}" />
                 <fhInfoPopup:InfoPopupControl
                     Margin="-2,1,0,0"
-                    Description="Total - number of sensors LibreHardwareMonitor found on this system&#10;Rendered - how many of those are actively drawn right now&#10;LibreHardwareMonitorLib is the largest and most established open source hardware monitoring library for Windows"
+                    Description="Sensors - number of sensors LibreHardwareMonitor found on this system, and how many of those are actively drawn right now (found/rendered)&#10;Poll - how often the polling loop actually manages to update vs. the interval configured in Settings (current/aimed)&#10;LibreHardwareMonitorLib is the largest and most established open source hardware monitoring library for Windows"
                     PlacementMode="Below"
                     SourceIntro="This App is powered by the open source LibreHardwareMonitor project:">
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
