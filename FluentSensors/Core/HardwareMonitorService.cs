@@ -228,12 +228,21 @@ namespace FluentSensors.Core
         // === private helpers ===
 
         // polling loop
+        // fixed-cadence on purpose:
+        // only the leftover of UpdateIntervalMs after the actual work below is spent as delay, instead of always waiting
+        // the full UpdateIntervalMs on top of however long the work took;
+        //
+        // workStopwatch measures that work, _updateStopwatch (the field) keeps measuring the externally visible
+        // fire-to-fire cadence for ActualUpdateIntervalMs, unchanged
         private async Task LoopAsync(CancellationToken token)
         {
             _updateStopwatch.Restart();
+            var workStopwatch = new Stopwatch();
 
             while (!token.IsCancellationRequested)
             {
+                workStopwatch.Restart();
+
                 // update hardware (lhm fetches new values from the sensor)
                 foreach (var hardware in _computer.Hardware)
                 {
@@ -368,9 +377,19 @@ namespace FluentSensors.Core
                 // we fire the event with the new list of sensor data
                 HardwareDataUpdated?.Invoke(payload);
 
+                // only wait for whatever is left of UpdateIntervalMs after the work above; if the work alone
+                // already took longer (LHM cannot keep up), skip the delay entirely instead of adding a full
+                // wait on top of an already-late tick; ActualUpdateIntervalMs then honestly shows the overrun
+                // starting exactly here, instead of the fixed ~100ms overshoot the old unconditional delay caused
+                // on every tick regardless of UpdateIntervalMs
+                double remainingMs = UpdateIntervalMs - workStopwatch.Elapsed.TotalMilliseconds;
+
                 try
                 {
-                    await Task.Delay(UpdateIntervalMs, token);
+                    if (remainingMs > 0)
+                    {
+                        await Task.Delay(TimeSpan.FromMilliseconds(remainingMs), token);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
