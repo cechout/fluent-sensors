@@ -4,7 +4,7 @@
     // on the Performance page, so every graph formats its value label the same way
     public static class SensorUnitFormatter
     {
-        // Clock and SmallData switch to a bigger unit once a raw value reaches this
+        // Clock, SmallData and Throughput switch to a bigger unit once a raw value reaches this
         private const double ScaleThreshold = 1000;
 
         public static string GetUnit(string sensorType)
@@ -25,7 +25,7 @@
         }
 
         // resolves a raw value to whatever unit it should actually be shown in right now, scaling it down once it
-        // reaches ScaleThreshold (Clock: MHz -> GHz, SmallData: MB -> GB)
+        // reaches ScaleThreshold (Clock: MHz -> GHz, SmallData: MB -> GB, Throughput: MB/s -> GB/s)
         //
         // callers that only need the bare number, without any unit text, still go through here instead of
         // re-checking the threshold themselves, so the scaling decision only exists in this one place
@@ -35,6 +35,7 @@
             {
                 "Clock" when value >= ScaleThreshold => (value / ScaleThreshold, "GHz"),
                 "SmallData" when value >= ScaleThreshold => (value / ScaleThreshold, "GB"),
+                "Throughput" when value >= ScaleThreshold => (value / ScaleThreshold, "GB/s"),
                 _ => (value, GetUnit(sensorType))
             };
         }
