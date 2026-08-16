@@ -41,6 +41,7 @@
                     Foreground="{x:Bind ViewModel.CurrentValueColor, Mode=OneWay}"
                     Style="{ThemeResource BodyLargeTextBlockStyle}"
                     Text="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular"
                     Visibility="{x:Bind GetValueVisibility(ViewModel), Mode=OneWay}" />
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"

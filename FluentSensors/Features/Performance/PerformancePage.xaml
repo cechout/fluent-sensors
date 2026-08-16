@@ -295,13 +295,15 @@
                                                 FontSize="15"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                                 Text="{x:Bind GroupLabel, Mode=OneWay}"
-                                                TextTrimming="CharacterEllipsis" />
+                                                TextTrimming="CharacterEllipsis"
+                                                Typography.NumeralAlignment="Tabular" />
                                             <TextBlock
                                                 FontSize="12"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                                 Text="{x:Bind PrimaryGraph.CurrentValueText, Mode=OneWay}"
-                                                TextTrimming="CharacterEllipsis" />
+                                                TextTrimming="CharacterEllipsis"
+                                                Typography.NumeralAlignment="Tabular" />
                                         </StackPanel>
                                     </Grid>
 

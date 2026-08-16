@@ -79,7 +79,7 @@
             -->
             <fhInfoPopup:InfoPopupControl
                 Grid.Column="2"
-                Margin="8,0,0,0"
+                Margin="8,1,0,0"
                 VerticalAlignment="Center"
                 ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
                 Description="NET 10 is not installed on this device&#10;LibreHardwareMonitor needs it to access every available sensor, some readings may be missing or incomplete without it"
@@ -96,14 +96,14 @@
                 Grid.Column="3"
                 Width="22"
                 Height="22"
-                Margin="8,0,0,0"
+                Margin="8,1,0,0"
                 Padding="0"
                 VerticalAlignment="Center"
                 Background="Transparent"
                 BorderThickness="0"
                 Click="StatusToggleButton_Click">
                 <FontIcon
-                    FontSize="10"
+                    FontSize="11"
                     Glyph="&#xE76C;"
                     Opacity="{x:Bind GetToggleOpacity(AppStatus.IsStatusEnabled), Mode=OneWay}" />
             </Button>
@@ -121,15 +121,17 @@
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.SensorsText, Mode=OneWay}" />
+                    Text="{x:Bind AppStatus.SensorsText, Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
                 <TextBlock
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.PollText, Mode=OneWay}" />
+                    Text="{x:Bind AppStatus.PollText, Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
                 <fhInfoPopup:InfoPopupControl
                     Margin="-2,1,0,0"
-                    Description="Sensors - number of sensors LibreHardwareMonitor found on this system, and how many of those are actively drawn right now (found/rendered)&#10;Poll - how often the polling loop actually manages to update vs. the interval configured in Settings (current/aimed)&#10;LibreHardwareMonitorLib is the largest and most established open source hardware monitoring library for Windows"
+                    Description="Sensors (found/rendered) - number of sensors LibreHardwareMonitor found on this system, and how many of those are actively drawn right now&#10;Poll (current/aimed) - how often the polling loop actually manages to update vs. the interval configured in Settings&#10;LibreHardwareMonitorLib is the largest and most established open source hardware monitoring library for Windows"
                     PlacementMode="Below"
                     SourceIntro="This App is powered by the open source LibreHardwareMonitor project:">
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -148,17 +150,17 @@
                 Spacing="8"
                 Visibility="{x:Bind BoolToVisibility(AppStatus.IsWindowsGroupVisible), Mode=OneWay}">
                 <TextBlock
-                    MinWidth="55"
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.CpuUsageText, Mode=OneWay}" />
+                    Text="{x:Bind AppStatus.CpuUsageText, Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
                 <TextBlock
-                    MinWidth="65"
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.RamUsageText, Mode=OneWay}" />
+                    Text="{x:Bind AppStatus.RamUsageText, Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
 
                 <!--  (handle + gc memory; currently not displayed)  -->
                 <!--<TextBlock

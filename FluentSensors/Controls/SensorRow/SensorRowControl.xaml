@@ -120,7 +120,8 @@
                 FontWeight="Normal"
                 Foreground="{x:Bind ViewModel.CurrentValueColor, Mode=OneWay}"
                 Style="{ThemeResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.CurrentValue, Mode=OneWay}" />
+                Text="{x:Bind ViewModel.CurrentValue, Mode=OneWay}"
+                Typography.NumeralAlignment="Tabular" />
 
             <!--  minimum value  -->
             <TextBlock
@@ -131,7 +132,8 @@
                 FontWeight="Normal"
                 Foreground="{x:Bind ViewModel.MinimumValueColor, Mode=OneWay}"
                 Style="{ThemeResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.MinimumValue, Mode=OneWay}" />
+                Text="{x:Bind ViewModel.MinimumValue, Mode=OneWay}"
+                Typography.NumeralAlignment="Tabular" />
 
             <!--  maximum value  -->
             <TextBlock
@@ -142,7 +144,8 @@
                 FontWeight="Normal"
                 Foreground="{x:Bind ViewModel.MaximumValueColor, Mode=OneWay}"
                 Style="{ThemeResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.MaximumValue, Mode=OneWay}" />
+                Text="{x:Bind ViewModel.MaximumValue, Mode=OneWay}"
+                Typography.NumeralAlignment="Tabular" />
 
             <!--  average value  -->
             <TextBlock
@@ -153,7 +156,8 @@
                 FontWeight="Normal"
                 Foreground="{x:Bind ViewModel.AverageValueColor, Mode=OneWay}"
                 Style="{ThemeResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.AverageValue, Mode=OneWay}" />
+                Text="{x:Bind ViewModel.AverageValue, Mode=OneWay}"
+                Typography.NumeralAlignment="Tabular" />
 
             <!--  unit, only visible in compact mode  -->
             <!--  (to disambiguate sensors that share the exact same name)  -->
