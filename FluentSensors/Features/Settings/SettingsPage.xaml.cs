@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using FluentSensors.Persistence.Services;
@@ -22,6 +23,9 @@ namespace FluentSensors.Features.Settings
         public SettingsPage()
         {
             this.InitializeComponent();
+
+            Version appVersion = Assembly.GetExecutingAssembly().GetName().Version;
+            VersionTextBlock.Text = $"Version {appVersion?.ToString(3)}";
 
             // restore the previous user selections
             RestoreThemeSelection();

@@ -1,0 +1,65 @@
+# builds the win-x64 installer and drafts a GitHub release whenever a version tag is pushed
+# csproj Version is the single source of truth, Inno Setup receives it as a command line define
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # reads the version once so the csproj stays the only place it gets bumped by hand
+      - name: read version from csproj
+        id: version
+        shell: pwsh
+        run: |
+          $xml = [xml](Get-Content FluentSensors/FluentSensors.csproj)
+          $version = $xml.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      # output path matches what Setup/Inno_Setup.iss already expects, so its Files section stays untouched
+      # ReadyToRun/Trimmed come from the csproj own Release-only conditions, no need to repeat them here
+      - name: publish win-x64
+        run: >
+          dotnet publish FluentSensors/FluentSensors.csproj
+          -c Release -p:Platform=x64 -r win-x64 --self-contained true
+          -o FluentSensors/bin/x64/Release/net10.0-windows10.0.19041.0/win-x64
+
+      - name: install inno setup
+        run: choco install innosetup -y --no-progress
+
+      - name: compile installer
+        shell: pwsh
+        run: >
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          /DMyAppVersion=${{ steps.version.outputs.version }}
+          Setup\Inno_Setup.iss
+
+      - name: upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FluentSensors_Installer
+          path: Setup/Output/FluentSensors_Installer.exe
+
+      # draft only, review and hit publish yourself so release notes stay a deliberate step
+      - name: create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create ${{ github.ref_name }}
+          Setup/Output/FluentSensors_Installer.exe
+          --draft --generate-notes --title "FluentSensors ${{ github.ref_name }}"

@@ -227,9 +227,9 @@
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE946;}">
 
                 <TextBlock
+                    x:Name="VersionTextBlock"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    IsTextSelectionEnabled="True"
-                    Text="Version 0.3.1" />
+                    IsTextSelectionEnabled="True" />
 
                 <controls:SettingsExpander.Items>
                     <controls:SettingsCard Header="Developer Profile">

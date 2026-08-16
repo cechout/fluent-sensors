@@ -3,7 +3,11 @@
 ; Non-commercial use only
 
 #define MyAppName "Fluent Sensors"
-#define MyAppVersion "0.3.1"
+; overridable so CI can pass the version from FluentSensors.csproj via /DMyAppVersion
+; local manual compiles keep using this fallback untouched
+#ifndef MyAppVersion
+  #define MyAppVersion "0.3.1"
+#endif
 #define MyAppPublisher "Daniel Čech"
 #define MyAppExeName "FluentSensors.exe"
 

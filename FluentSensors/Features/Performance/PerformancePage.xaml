@@ -210,6 +210,8 @@
                         </AppBarButton.Icon>
                     </AppBarButton>
 
+                    <AppBarSeparator />
+
                     <AppBarToggleButton
                         Width="42"
                         IsChecked="{x:Bind ViewModel.IsNavSidebarVisible, Mode=TwoWay}"
@@ -256,9 +258,7 @@
                 BorderThickness="0,0,1,0">
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
-                    <ItemsControl
-                        x:Name="NavItemsControl"
-                        ItemsSource="{x:Bind ViewModel.NavItems, Mode=OneWay}">
+                    <ItemsControl x:Name="NavItemsControl" ItemsSource="{x:Bind ViewModel.NavItems, Mode=OneWay}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Margin="8" Spacing="4" />
