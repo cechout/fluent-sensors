@@ -1,21 +1,20 @@
-<img width="2560" height="810" alt="frame7" src="https://github.com/user-attachments/assets/21b06b30-6e80-4c90-999b-510dc9fc9cfb" />
+<img width="2560" height="810" alt="frame8" src="https://github.com/user-attachments/assets/760155b4-6a3e-4915-849c-4d2dc4856b77" />
 
 
 ###
-Reading hardware sensors often results in cluttered and old-looking interfaces. This project aims to change that. 
 
-Fluent Sensors is a hardware monitoring application built with **WinUI 3**. The goal is to display deep system diagnostics (like CPU, GPU, RAM, and thermals) in a clean, native Windows 11 user interface.
+There aren't many hardware monitoring tools that actually look native on Windows 11. FluentSensors is an attempt to fix that, showing the same deep sensor data, CPU, GPU, RAM, temperatures, clocks, fans, in a clean, native Fluent Design interface.
 
-## ⚙️ Under the Hood
-The app is built with a straightforward architecture and native Windows 11 integration in mind.
+## ✨ Features
 
-* **The Interface (WinUI 3):** Built with the Windows App SDK to get the standard Windows 11 Fluent Design look.
-* **The Architecture (MVVM):** Uses the Model-View-ViewModel pattern to keep the UI completely separate from the background code.
-* **The Engine (LibreHardwareMonitor):** Uses the `LibreHardwareMonitorLib` package to read system sensors (CPU, GPU, Memory, etc.). *Note: This library currently has some limitations and might struggle to read some sensors like the ones from the integrated graphics cards (iGPUs).*
-* **The Graphs (LiveCharts2 & SkiaSharp):** The visual sensor graphs are rendered using `LiveCharts2`, which runs on `SkiaSharp` to draw the graphs smoothly.
+* **The Engine (LibreHardwareMonitorLib):** Reads all sensors, CPU, GPU, RAM, storage, network, using the open source [LibreHardwareMonitorLib](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) library. Note: this library has some limitations and can struggle to read certain sensors, like the ones from integrated graphics cards (iGPUs).
+* **The Interface (WinUI 3 + MVVM):** Built with the Windows App SDK for the native Windows 11 Fluent Design look, using the Model-View-ViewModel pattern to keep the UI cleanly separated from the background logic.
+* **Sensors Page:** Shows every sensor found, with the option to pin your most important ones to a separate, always-visible widget window.
+* **Hardware View Page:** Shows every hardware component LibreHardwareMonitorLib finds as its own tab, so multiple CPUs, GPUs, or drives each get their own tab. Only RAM is grouped into a single tab. Each tab shows the most important graphs for that component, plus static info like cache size, RAM speed, or storage type.
+* **The Graphs (LiveCharts2 & SkiaSharp):** Sensor graphs are rendered with `LiveCharts2`, which runs on `SkiaSharp` for smooth drawing.
 
 
-## 🛠️ How to Run
+## 🛠️ How to Build
 
 ### 1. Prerequisites
 To build and run this project, it is highly recommended to use **Visual Studio 2022** (Version 17.0 or later). 
