@@ -37,13 +37,10 @@ jobs:
       - name: build win-x64
         run: dotnet build FluentSensors/FluentSensors.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained true
 
-      # output path matches what Setup/Inno_Setup.iss already expects, so its Files section stays untouched
-      # ReadyToRun/Trimmed come from the csproj own Release-only conditions, no need to repeat them here
+      # uses the real FolderProfile.pubxml (Properties/PublishProfiles) so CI applies the exact same
+      # settings as a local Visual Studio publish, PublishTrimmed=false included
       - name: publish win-x64
-        run: >
-          dotnet publish FluentSensors/FluentSensors.csproj
-          -c Release -p:Platform=x64 -r win-x64 --self-contained true --no-build
-          -o FluentSensors/bin/x64/Release/net10.0-windows10.0.19041.0/win-x64
+        run: dotnet publish FluentSensors/FluentSensors.csproj -c Release -p:Platform=x64 -p:PublishProfile=FolderProfile --no-build
 
       - name: install inno setup
         run: choco install innosetup -y --no-progress
