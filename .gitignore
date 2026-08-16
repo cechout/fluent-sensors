@@ -436,6 +436,10 @@ test-results/
 # Icon must end with two \r
 Icon
 
+# our own FluentSensors/Assets/Icon folder collides with the macOS rule above
+# without this it silently excludes the app icon files from git
+!FluentSensors/Assets/Icon/
+
 
 # Thumbnails
 ._*

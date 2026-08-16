@@ -31,12 +31,18 @@ jobs:
           $version = $xml.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
           "version=$version" >> $env:GITHUB_OUTPUT
 
+      # WinUI3 x:Bind on types defined in this project (like SourceLink) needs a full Build pass
+      # first, so MarkupCompilePass2 gets the LocalAssembly it resolves them against, otherwise the
+      # XAML compiler fails on a from-scratch checkout with no prior obj state (WMC0909/WMC9999)
+      - name: build win-x64
+        run: dotnet build FluentSensors/FluentSensors.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained true
+
       # output path matches what Setup/Inno_Setup.iss already expects, so its Files section stays untouched
       # ReadyToRun/Trimmed come from the csproj own Release-only conditions, no need to repeat them here
       - name: publish win-x64
         run: >
           dotnet publish FluentSensors/FluentSensors.csproj
-          -c Release -p:Platform=x64 -r win-x64 --self-contained true
+          -c Release -p:Platform=x64 -r win-x64 --self-contained true --no-build
           -o FluentSensors/bin/x64/Release/net10.0-windows10.0.19041.0/win-x64
 
       - name: install inno setup
@@ -55,7 +61,7 @@ jobs:
           name: FluentSensors_Installer
           path: Setup/Output/FluentSensors_Installer.exe
 
-      # draft only, review and hit publish yourself so release notes stay a deliberate step
+      # draft only
       - name: create draft release
         env:
           GH_TOKEN: ${{ github.token }}
