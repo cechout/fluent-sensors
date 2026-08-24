@@ -222,7 +222,7 @@
                             <controls:WrapPanel
                                 Margin="4,0,4,12"
                                 HorizontalSpacing="16"
-                                VerticalSpacing="8">
+                                VerticalSpacing="0">
                                 <fhTile:SensorTileControl
                                     Title="{x:Bind Gpu.CoreLoad.SensorName, Mode=OneWay}"
                                     Width="Auto"

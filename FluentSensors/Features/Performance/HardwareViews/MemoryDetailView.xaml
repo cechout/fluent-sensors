@@ -128,9 +128,9 @@
                         <!--  current value tiles  -->
                         <Grid x:Name="TilesGrid" Grid.Row="1">
                             <controls:WrapPanel
-                                Margin="4,0,0,12"
+                                Margin="4,0,4,12"
                                 HorizontalSpacing="16"
-                                VerticalSpacing="8">
+                                VerticalSpacing="0">
                                 <fhTile:SensorTileControl
                                     Title="Memory Used (Physical)"
                                     Width="Auto"
