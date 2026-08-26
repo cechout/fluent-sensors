@@ -7,7 +7,7 @@ There aren't many hardware monitoring tools that actually look native on Windows
 
 ## ✨ Features
 
-* **The Engine (LibreHardwareMonitorLib):** Reads all sensors, CPU, GPU, RAM, storage, network, using the open source [LibreHardwareMonitorLib](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) library. *Note: this library has some limitations and can struggle to read certain sensors, like the ones from integrated graphics cards.*
+* **The Engine:** Reads all sensors, CPU, GPU, RAM, storage, network, using the open source [LibreHardwareMonitorLib](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) library. *Note: this library has some limitations and can struggle to read certain sensors, like the ones from integrated graphics cards.*
 * **The Interface (WinUI 3 + MVVM):** Built with the Windows App SDK for the native Windows 11 Fluent Design look, and using the Model-View-ViewModel pattern.
 * **Sensors Page:** Shows every sensor found, with the option to pin your most important ones to a separate, always-visible widget window.
 * **Hardware View Page:** Shows every hardware component LibreHardwareMonitorLib finds as its own tab, so multiple CPUs, GPUs, or drives each get their own tab. Each tab shows the most important graphs for that component, plus static info like cache size, RAM speed, or storage type.
