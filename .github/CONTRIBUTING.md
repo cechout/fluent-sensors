@@ -1,10 +1,6 @@
 # Contributing to FluentSensors
 
-Thanks for wanting to contribute. FluentSensors is a solo hobby project, so response times may vary.
-
-### Before you start
-
-For anything beyond a small fix, open an issue first to talk through the approach before writing code. Saves everyone rework.
+Thanks for wanting to contribute. FluentSensors is a solo hobby project, so response times may vary. For anything beyond a small fix, open an issue first to talk through the approach before writing code, saves everyone rework.
 
 ## Getting set up
 
@@ -12,20 +8,18 @@ For anything beyond a small fix, open an issue first to talk through the approac
 2. Clone your fork
 
 ```
-   git clone https://github.com/<your-username>/fluent-sensors.git
-   ```
+git clone https://github.com/<your-username>/fluent-sensors.git
+```
 
 3. Create a branch off `main`, named `feature/xxx`, `fix/xxx`, or `chore/xxx`
 
 ```
-   git checkout -b feature/your-feature-name
-   ```
+git checkout -b feature/your-feature-name
+```
 
 4. Make your changes, then push and [open a pull request](https://github.com/cechout/fluent-sensors/compare) against `main`
 
-See the "How to Build" section in the [README](README.md) for build prerequisites.
-
-Pull requests run an automated build check (Windows, x64, Release). Make sure it is green before requesting review.
+See the "How to Build" section in the [README](https://github.com/cechout/fluent-sensors/blob/main/.github/README.md) for build prerequisites.
 
 ## What we accept
 
