@@ -1,0 +1,24 @@
+root = true
+
+# charset intentionally not set here, existing files mix BOM and no-BOM, not touching that for now
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+
+[*.xaml]
+indent_style = space
+indent_size = 4
+
+[*.{csproj,props,targets,sln,slnx}]
+indent_style = space
+indent_size = 2
+
+[*.{yml,yaml,json,md}]
+indent_style = space
+indent_size = 2
