@@ -38,8 +38,8 @@ namespace FluentSensors.Features.Sensors
         private HashSet<ICommandBarElement> _forcedOverflowElements;
         private bool _commandBarWidthsCached = false;
         private const double OverflowButtonReservedWidth = 48;
-        private const double HeaderSpacingBuffer = 100;
-        private int _commandBarOverflowStartIndex = -1; // -1 means "not computed yet" so the very first call always applies once
+        private const double HeaderSpacingBuffer = 80;
+        private int _commandBarOverflowStartIndex = -1; // -1 means "not computed yet" so the very first call always applies once, indexes into the grouped units, not raw elements
 
         // info bar
         private bool _infoBarClipHandlersAttached = false;
@@ -111,12 +111,9 @@ namespace FluentSensors.Features.Sensors
 
             ViewModel.ActiveProfile = profile;
 
-            // the commit button occupying the priority orders first slot changed, force a full rebuild rather than
-            // relying on the width-based dedup check in UpdateCommandBarOverflow
+            // the commit button occupying the priority orders first slot changed
             _commandBarPriorityOrder = BuildCommandBarPriorityOrder();
-            CacheCommandBarButtonWidths();
-            _commandBarOverflowStartIndex = -1;
-            UpdateCommandBarOverflow();
+            RebuildCommandBarOverflow();
         }
 
         private void ResetMinMax_Click(object sender, RoutedEventArgs e)
@@ -263,12 +260,29 @@ namespace FluentSensors.Features.Sensors
                 ShowHiddenSensorsButton
             };
 
+            RebuildCommandBarOverflow();
+        }
+
+        // an AppBarButton that isnt currently a live PrimaryCommand or SecondaryCommand of this CommandBar does not
+        // report the same ActualWidth it gets once actually placed and arranged inside it, DefaultLabelPosition and
+        // compact rendering only apply to the bars current children
+        // the previous version measured a profiles commit button before it was ever added, giving a wrong (too
+        // small) width and letting too many buttons through as fitting, this hit every profile switch since the
+        // newly swapped-in button had never been a live command yet
+        // fix: two phases, first every element goes in as a PrimaryCommand unconditionally so each one gets a real,
+        // correctly labeled layout pass, even ones that were never live before; the actual primary/secondary split
+        // only happens once that has settled (next dispatcher tick), once ActualWidth is trustworthy
+        private void RebuildCommandBarOverflow()
+        {
             _commandBarOverflowStartIndex = -1;
 
-            // Loaded fires as soon as the command bar enters the tree, not necessarily after the surrounding grids
-            // layout pass has actually settled; measuring ActualWidth right here can catch everything (grid, title,
-            // combobox, the buttons themselves) still at a stale/near-zero size from before that pass completed
-            // deferring one dispatcher cycle guarantees a full layout pass has already run by the time we measure
+            SensorListCommandBar.PrimaryCommands.Clear();
+            SensorListCommandBar.SecondaryCommands.Clear();
+            foreach (var element in _commandBarPriorityOrder)
+            {
+                SensorListCommandBar.PrimaryCommands.Add(element);
+            }
+
             this.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
             {
                 CacheCommandBarButtonWidths();
@@ -328,7 +342,7 @@ namespace FluentSensors.Features.Sensors
             _commandBarWidthsCached = true;
         }
 
-        // fills the command bar strictly in priority order; the first button that does not fit anymore, and everything
+        // fills the command bar strictly in priority order; the first unit that does not fit anymore, and everything
         // after it, goes into the overflow menu
         // only touches PrimaryCommands/SecondaryCommands when the split actually changes, otherwise every resize tick
         // would rebuild the buttons and cause label flicker
@@ -340,12 +354,12 @@ namespace FluentSensors.Features.Sensors
             // TEMP DIAGNOSTIC: remove once the overflow width calculation is confirmed correct again
             Debug.WriteLine($"[CommandBarOverflow] grid={SensorListHeaderGrid.ActualWidth:F0} title={SensorListTitleText.ActualWidth:F0} combo={SelectionProfileComboBox.ActualWidth:F0} available={availableWidth:F0}");
 
-            // only elements not permanently pinned to overflow take part in the width fit
-            var fittableElements = _commandBarPriorityOrder
-                .Where(element => !_forcedOverflowElements.Contains(element))
-                .ToArray();
+            // (only elements not permanently pinned to overflow take part in the width fit, grouped into units so a
+            // separator can never end up dangling alone)
+            var fittableUnits = GroupIntoOverflowUnits(
+                _commandBarPriorityOrder.Where(element => !_forcedOverflowElements.Contains(element)));
 
-            double totalWidth = fittableElements.Sum(button => _commandBarButtonWidths[button]);
+            double totalWidth = fittableUnits.Sum(unit => unit.Sum(element => _commandBarButtonWidths[element]));
 
             // overflow button is needed if the fittable elements alone overflow,
             // or if theres at least one forced element that needs it regardless
@@ -355,42 +369,42 @@ namespace FluentSensors.Features.Sensors
                 : availableWidth;
 
             double runningWidth = 0;
-            int fittableOverflowStartIndex = fittableElements.Length;
+            int fittableOverflowStartUnitIndex = fittableUnits.Count;
 
-            for (int i = 0; i < fittableElements.Length; i++)
+            for (int i = 0; i < fittableUnits.Count; i++)
             {
-                double buttonWidth = _commandBarButtonWidths[fittableElements[i]];
+                double unitWidth = fittableUnits[i].Sum(element => _commandBarButtonWidths[element]);
 
-                if (runningWidth + buttonWidth > budget)
+                if (runningWidth + unitWidth > budget)
                 {
-                    fittableOverflowStartIndex = i;
+                    fittableOverflowStartUnitIndex = i;
                     break;
                 }
 
-                runningWidth += buttonWidth;
+                runningWidth += unitWidth;
             }
 
             // nothing changed since the last check: skip rebuilding
             // (stops flickering when resizing)
-            if (fittableOverflowStartIndex == _commandBarOverflowStartIndex)
+            if (fittableOverflowStartUnitIndex == _commandBarOverflowStartIndex)
             {
                 return;
             }
 
-            _commandBarOverflowStartIndex = fittableOverflowStartIndex;
+            _commandBarOverflowStartIndex = fittableOverflowStartUnitIndex;
 
             SensorListCommandBar.PrimaryCommands.Clear();
             SensorListCommandBar.SecondaryCommands.Clear();
 
-            for (int i = 0; i < fittableElements.Length; i++)
+            for (int i = 0; i < fittableUnits.Count; i++)
             {
-                if (i < fittableOverflowStartIndex)
+                var targetCommands = i < fittableOverflowStartUnitIndex
+                    ? SensorListCommandBar.PrimaryCommands
+                    : SensorListCommandBar.SecondaryCommands;
+
+                foreach (var element in fittableUnits[i])
                 {
-                    SensorListCommandBar.PrimaryCommands.Add(fittableElements[i]);
-                }
-                else
-                {
-                    SensorListCommandBar.SecondaryCommands.Add(fittableElements[i]);
+                    targetCommands.Add(element);
                 }
             }
 
@@ -402,6 +416,28 @@ namespace FluentSensors.Features.Sensors
                     SensorListCommandBar.SecondaryCommands.Add(element);
                 }
             }
+        }
+
+        // AppBarSeparators are visually bonded to whichever element comes right before them in the priority order,
+        // grouping them into that elements unit means the fit check can never cut between a button and the
+        // separator immediately following it, so neither one ends up dangling alone on the wrong side of the split
+        private static List<ICommandBarElement[]> GroupIntoOverflowUnits(IEnumerable<ICommandBarElement> elements)
+        {
+            var units = new List<ICommandBarElement[]>();
+
+            foreach (var element in elements)
+            {
+                if (element is AppBarSeparator && units.Count > 0)
+                {
+                    units[^1] = units[^1].Append(element).ToArray();
+                }
+                else
+                {
+                    units.Add(new[] { element });
+                }
+            }
+
+            return units;
         }
     }
 }
