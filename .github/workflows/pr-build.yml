@@ -34,12 +34,12 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+      # no cache here, unlike the build job, dotnet format whitespace does not
+      # reliably populate the nuget packages folder the cache action expects to save
       - name: setup dotnet
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
-          cache: true
-          cache-dependency-path: FluentSensors/FluentSensors.csproj
 
       # scoped to whitespace only, matches the new .editorconfig, not style/analyzers
       # non blocking for now, flip continue-on-error to false once confirmed clean against main
