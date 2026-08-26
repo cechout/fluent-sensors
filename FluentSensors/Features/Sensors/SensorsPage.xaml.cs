@@ -1,9 +1,11 @@
 using CommunityToolkit.WinUI.Controls;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -262,8 +264,16 @@ namespace FluentSensors.Features.Sensors
             };
 
             _commandBarOverflowStartIndex = -1;
-            CacheCommandBarButtonWidths();
-            UpdateCommandBarOverflow();
+
+            // Loaded fires as soon as the command bar enters the tree, not necessarily after the surrounding grids
+            // layout pass has actually settled; measuring ActualWidth right here can catch everything (grid, title,
+            // combobox, the buttons themselves) still at a stale/near-zero size from before that pass completed
+            // deferring one dispatcher cycle guarantees a full layout pass has already run by the time we measure
+            this.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+            {
+                CacheCommandBarButtonWidths();
+                UpdateCommandBarOverflow();
+            });
         }
 
         // picks whichever commit button matches the active selection profile
@@ -309,6 +319,9 @@ namespace FluentSensors.Features.Sensors
                 if (element is FrameworkElement frameworkElement)
                 {
                     _commandBarButtonWidths[element] = frameworkElement.ActualWidth;
+
+                    // TEMP DIAGNOSTIC: remove once the overflow width calculation is confirmed correct again
+                    Debug.WriteLine($"[CommandBarOverflow] cached {frameworkElement.Name}={frameworkElement.ActualWidth:F0}");
                 }
             }
 
@@ -323,6 +336,9 @@ namespace FluentSensors.Features.Sensors
         {
             double availableWidth = SensorListHeaderGrid.ActualWidth - SensorListTitleText.ActualWidth
                 - SelectionProfileComboBox.ActualWidth - HeaderSpacingBuffer;
+
+            // TEMP DIAGNOSTIC: remove once the overflow width calculation is confirmed correct again
+            Debug.WriteLine($"[CommandBarOverflow] grid={SensorListHeaderGrid.ActualWidth:F0} title={SensorListTitleText.ActualWidth:F0} combo={SelectionProfileComboBox.ActualWidth:F0} available={availableWidth:F0}");
 
             // only elements not permanently pinned to overflow take part in the width fit
             var fittableElements = _commandBarPriorityOrder
