@@ -45,4 +45,4 @@ jobs:
       # non blocking for now, flip continue-on-error to false once confirmed clean against main
       - name: dotnet format whitespace check
         continue-on-error: true
-        run: dotnet format whitespace FluentSensors/FluentSensors.csproj --verify-no-changes --verbosity diagnostic
+        run: dotnet format whitespace FluentSensors/FluentSensors.csproj -p:Platform=x64 --verify-no-changes --verbosity diagnostic
