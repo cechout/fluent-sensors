@@ -10,6 +10,7 @@ using Windows.Foundation;
 
 using FluentSensors.Features.Widget;
 using FluentSensors.Common.UI;
+using FluentSensors.Common.Sensors;
 
 
 namespace FluentSensors.Features.Sensors
@@ -22,6 +23,12 @@ namespace FluentSensors.Features.Sensors
         public SensorsViewModel ViewModel { get; }
         private int _infoBarTicket = 0;
         private const double SensorsPageMinContentWidth = 520;
+
+        // flag to prevent event handlers from firing during initialization
+        //
+        // (same pattern as SettingsPage SelectionProfileComboBox SelectedIndex="0" in xaml fires SelectionChanged
+        // during InitializeComponent, before ViewModel below is even assigned)
+        private bool _isLoading = true;
 
         // command bar overflow handling fields
         private ICommandBarElement[] _commandBarPriorityOrder;
@@ -41,7 +48,8 @@ namespace FluentSensors.Features.Sensors
         public SensorsPage()
         {
             this.InitializeComponent();
-            ViewModel = SensorsViewModel.Instance; 
+            ViewModel = SensorsViewModel.Instance;
+            _isLoading = false;
         }
 
 
@@ -49,30 +57,9 @@ namespace FluentSensors.Features.Sensors
 
         private async void PinToWidget_Click(object sender, RoutedEventArgs e)
         {
-            // flatten the nested groups and filter for selected items
-            // this is LINQ, which is a more concise way to write the same logic as the long form below
-            var selectedSensors = ViewModel.HardwareGroups
-                .SelectMany(group => group.Sensors)
-                .Where(sensor => sensor.IsSelected)
-                .ToList();
-
-            // the long form without LINQ would look like this:
-            //List<SensorRowViewModel> selectedSensors = new List<SensorRowViewModel>();
-
-            //// 1. go through each hardware group "the boxes"
-            //foreach (var group in ViewModel.HardwareGroups)
-            //{
-            //    // 2. go through each sensor in this group (the contents of the box); that is what is known as "flattening"
-            //    foreach (var sensor in group.Sensors)
-            //    {
-            //        // 3. check if the checkbox is set; that is the ".Where"
-            //        if (sensor.IsSelected == true)
-            //        {
-            //            // 4. pack it in our final list; that is the ".ToList()"
-            //            selectedSensors.Add(sensor);
-            //        }
-            //    }
-            //}
+            // commits the checked sensors as the WidgetWindow profiles new selection and gets that exact list back,
+            // so persistence and what the widget actually shows can never drift apart
+            var selectedSensors = ViewModel.CommitActiveProfileSelection();
 
             // show flyout when no sensor was selected
             if (selectedSensors.Count == 0)
@@ -95,8 +82,39 @@ namespace FluentSensors.Features.Sensors
 
             // reuses the existing widget window if one is open or was previously hidden, only creates a fresh native window if
             // none exists yet at all (see WidgetWindow._retainedInstance)
-            // the journey of selectedSensors: SensorsPage (View) -> WidgetWindow (View) -> WidgetViewModel (ViewModel)
             WidgetWindow.ShowWithSensors(selectedSensors);
+        }
+
+        // Phase 1: commits the Csv profiles selection so it round-trips correctly, no csv consumer exists yet to act on it
+        private void StartCsvMonitoring_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.CommitActiveProfileSelection();
+        }
+
+        // Phase 1: commits the Taskbar profiles selection so it round-trips correctly
+        // (the taskbar widget window itself ships in a later phase)
+        private void PinToTaskbar_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.CommitActiveProfileSelection();
+        }
+
+        // switches which profile the checkboxes reflect and commit to, and swaps the commit button in the command
+        // bar to match (Pin to Widget / Start CSV Monitoring / Pin to Taskbar)
+        private void SelectionProfileComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (sender is not ComboBox comboBox || comboBox.SelectedItem is not ComboBoxItem selectedItem) return;
+            if (selectedItem.Tag is not string tag || !Enum.TryParse(tag, out SensorSelectionProfile profile)) return;
+
+            ViewModel.ActiveProfile = profile;
+
+            // the commit button occupying the priority orders first slot changed, force a full rebuild rather than
+            // relying on the width-based dedup check in UpdateCommandBarOverflow
+            _commandBarPriorityOrder = BuildCommandBarPriorityOrder();
+            CacheCommandBarButtonWidths();
+            _commandBarOverflowStartIndex = -1;
+            UpdateCommandBarOverflow();
         }
 
         private void ResetMinMax_Click(object sender, RoutedEventArgs e)
@@ -232,21 +250,10 @@ namespace FluentSensors.Features.Sensors
         // === command bar overflow handling ===
 
         // runs once when the command bar is first ready
-        // sets the fixed priority order and takes the initial width measurement
+        // sets the priority order and takes the initial width measurement
         private void SensorListCommandBar_Loaded(object sender, RoutedEventArgs e)
         {
-            _commandBarPriorityOrder = new ICommandBarElement[]
-            {
-                PinToWidgetButton,
-                HideSensorsButton,
-                ButtonSeparator,
-                ResetValuesButton,
-                ShowHiddenSensorsButton,
-
-                //ButtonSeparator2,
-                //SelectPinnedButton,
-                //DeselectAllButton
-            };
+            _commandBarPriorityOrder = BuildCommandBarPriorityOrder();
 
             // elements in here always in the overflow menu
             _forcedOverflowElements = new HashSet<ICommandBarElement>
@@ -257,6 +264,31 @@ namespace FluentSensors.Features.Sensors
             _commandBarOverflowStartIndex = -1;
             CacheCommandBarButtonWidths();
             UpdateCommandBarOverflow();
+        }
+
+        // picks whichever commit button matches the active selection profile
+        private ICommandBarElement[] BuildCommandBarPriorityOrder()
+        {
+            ICommandBarElement commitButton = ViewModel.ActiveProfile switch
+            {
+                SensorSelectionProfile.WidgetWindow => PinToWidgetButton,
+                SensorSelectionProfile.Csv => StartCsvMonitoringButton,
+                SensorSelectionProfile.Taskbar => PinToTaskbarButton,
+                _ => PinToWidgetButton
+            };
+
+            return new ICommandBarElement[]
+            {
+                commitButton,
+                HideSensorsButton,
+                ButtonSeparator,
+                ResetValuesButton,
+                ShowHiddenSensorsButton,
+
+                //ButtonSeparator2,
+                //SelectPinnedButton,
+                //DeselectAllButton
+            };
         }
 
         // recalculates the overflow split whenever the header changes size
@@ -289,7 +321,8 @@ namespace FluentSensors.Features.Sensors
         // would rebuild the buttons and cause label flicker
         private void UpdateCommandBarOverflow()
         {
-            double availableWidth = SensorListHeaderGrid.ActualWidth - SensorListTitleText.ActualWidth - HeaderSpacingBuffer;
+            double availableWidth = SensorListHeaderGrid.ActualWidth - SensorListTitleText.ActualWidth
+                - SelectionProfileComboBox.ActualWidth - HeaderSpacingBuffer;
 
             // only elements not permanently pinned to overflow take part in the width fit
             var fittableElements = _commandBarPriorityOrder

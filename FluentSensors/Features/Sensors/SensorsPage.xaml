@@ -42,6 +42,7 @@
                 <Grid x:Name="SensorListHeaderGrid" SizeChanged="SensorListHeaderGrid_SizeChanged">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
@@ -53,9 +54,22 @@
                         Style="{ThemeResource BodyStrongTextBlockStyle}"
                         Text="Sensor List" />
 
+                    <!--  switches which profile the checkboxes below reflect and commit to  -->
+                    <ComboBox
+                        x:Name="SelectionProfileComboBox"
+                        Grid.Column="1"
+                        Margin="12,0,0,0"
+                        VerticalAlignment="Center"
+                        SelectedIndex="0"
+                        SelectionChanged="SelectionProfileComboBox_SelectionChanged">
+                        <ComboBoxItem Content="Widget Window" Tag="WidgetWindow" />
+                        <ComboBoxItem Content="CSV" Tag="Csv" />
+                        <ComboBoxItem Content="Taskbar" Tag="Taskbar" />
+                    </ComboBox>
+
                     <CommandBar
                         x:Name="SensorListCommandBar"
-                        Grid.Column="1"
+                        Grid.Column="2"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
                         Background="Transparent"
@@ -73,12 +87,35 @@
                         </CommandBar.Resources>
 
                         <!--  pin to widget button  -->
+                        <!--  (shown for the WidgetWindow profile)  -->
                         <AppBarButton
                             x:Name="PinToWidgetButton"
                             Click="PinToWidget_Click"
                             Label="Pin to Widget">
                             <AppBarButton.Icon>
                                 <FontIcon Glyph="&#xE718;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+
+                        <!--  start csv monitoring button  -->
+                        <!--  (shown for the Csv profile)  -->
+                        <AppBarButton
+                            x:Name="StartCsvMonitoringButton"
+                            Click="StartCsvMonitoring_Click"
+                            Label="Start CSV Monitoring">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE768;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+
+                        <!--  pin to taskbar button  -->
+                        <!--  (shown for the Taskbar profile)  -->
+                        <AppBarButton
+                            x:Name="PinToTaskbarButton"
+                            Click="PinToTaskbar_Click"
+                            Label="Pin to Taskbar">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE840;" />
                             </AppBarButton.Icon>
                         </AppBarButton>
 

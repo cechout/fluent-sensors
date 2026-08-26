@@ -95,9 +95,9 @@ namespace FluentSensors.Features.Widget
                 ResizeWidgetToFitSensors(selectedSensors.Count);
             }
 
-            // remember this window as open and which sensors are pinned, so it can auto-reopen with the same sensors on
-            // next launch
-            SaveWindowState(selectedSensors);
+            // remember this window as open, so it can auto-reopen on next launch; which sensors to reopen it with comes
+            // from SensorSelectionService, not from here
+            SaveWindowState();
 
             // theming
             SetBackdrop(SettingsService.Instance.BackdropType);
@@ -174,9 +174,9 @@ namespace FluentSensors.Features.Widget
 
         private void WidgetWindow_Closed(object sender, WindowEventArgs args)
         {
-            // mark the widget as closed so it wont auto-reopen on the next launch; keep the last rect and pinned sensors
-            // around in case its simply re-pinned later this session
-            SaveWindowState(pinnedSensors: null, wasOpen: false);
+            // mark the widget as closed so it wont auto-reopen on the next launch; the pinned selection itself is
+            // untouched, its owned by SensorSelectionService, not by window state
+            SaveWindowState(wasOpen: false);
 
             // we detach the event handlers from the settings service
             SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
@@ -230,7 +230,7 @@ namespace FluentSensors.Features.Widget
         {
             args.Cancel = true;
 
-            SaveWindowState(pinnedSensors: null, wasOpen: false);
+            SaveWindowState(wasOpen: false);
             CurrentInstance = null;
             _retainedInstance = this;
             WidgetStateChanged?.Invoke();
@@ -462,13 +462,12 @@ namespace FluentSensors.Features.Widget
                 ResizeWidgetToFitSensors(selectedSensors.Count);
             }
 
-            SaveWindowState(selectedSensors);
+            SaveWindowState();
         }
 
-        // writes the current rect (debounced) to the window state store
-        // pinnedSensors is only passed when the pin selection actually changed (construction); on plain move/resize or close,
-        // passing null keeps whatever IDs were already saved
-        private void SaveWindowState(List<SensorRowViewModel> pinnedSensors = null, bool wasOpen = true)
+        // writes the current rect and open state (debounced) to the window state store
+        // no longer touches which sensors are pinned, SensorSelectionService owns that independently of window state
+        private void SaveWindowState(bool wasOpen = true)
         {
             var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
 
@@ -484,11 +483,6 @@ namespace FluentSensors.Features.Widget
                 state.Height = _appWindow.Size.Height;
             }
             state.WasOpen = wasOpen;
-
-            if (pinnedSensors != null)
-            {
-                state.PinnedSensorIds = pinnedSensors.Select(s => s.Id).ToList();
-            }
 
             WindowStateService.Instance.SetState(WindowKey, state);
         }

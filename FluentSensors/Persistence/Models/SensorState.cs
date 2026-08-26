@@ -15,6 +15,5 @@ namespace FluentSensors.Persistence.Models
         // null means "never customized by the user"
         // gets resolved against a per-sensor-type default (see SensorTypeProfiles) the first time its actually needed
         public double? ManualYMax { get; set; } = null;
-        public bool IsSelected { get; set; }
     }
 }

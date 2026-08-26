@@ -19,6 +19,7 @@ using FluentSensors.Features.Sensors;
 using FluentSensors.Features.Settings;
 using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
+using FluentSensors.Common.Sensors;
 
 
 namespace FluentSensors
@@ -275,9 +276,12 @@ namespace FluentSensors
         private void TryRestoreWidgetWindow()
         {
             var widgetState = WindowStateService.Instance.GetState("Widget");
-            if (widgetState == null || !widgetState.WasOpen || widgetState.PinnedSensorIds.Count == 0) return;
+            if (widgetState == null || !widgetState.WasOpen) return;
 
-            var pinnedSensors = FindSensorRowsByIds(widgetState.PinnedSensorIds);
+            var pinnedSensorIds = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetWindow);
+            if (pinnedSensorIds.Count == 0) return;
+
+            var pinnedSensors = FindSensorRowsByIds(pinnedSensorIds);
             if (pinnedSensors.Count == 0) return; // none of them exist on this system anymore
 
             WidgetWindow.ShowWithSensors(pinnedSensors);
@@ -285,7 +289,7 @@ namespace FluentSensors
 
         // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, preserving the original
         // pin order rather than whatever order the hardware groups produce
-        private List<SensorRowViewModel> FindSensorRowsByIds(List<string> ids)
+        private List<SensorRowViewModel> FindSensorRowsByIds(IReadOnlyList<string> ids)
         {
             var allSensors = SensorsViewModel.Instance.HardwareGroups
                 .SelectMany(g => g.Sensors.Concat(g.HiddenSensors));

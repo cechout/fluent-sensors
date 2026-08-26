@@ -93,13 +93,6 @@ namespace FluentSensors.Controls.SensorRow
                 {
                     _isSelected = value;
                     OnPropertyChanged();
-
-                    // persist immediately so the checkbox state survives an app restart; Entry is set before IsSelected
-                    // in the object initializer (SensorsViewModel), so Id is always available here
-                    if (Id != null)
-                    {
-                        SensorStateService.Instance.SetSelected(Id, value);
-                    }
                 }
             }
         }

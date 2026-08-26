@@ -41,6 +41,11 @@ namespace FluentSensors
             SensorStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorStates());
             WindowStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadWindowStates());
             SensorSwitchStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorSwitchStates());
+            SensorSelectionService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorSelections());
+
+            // one-time migration for users updating from a version before selection profiles existed, WindowStateService
+            // is already loaded by this point so the legacy widget pin list is available
+            SensorSelectionService.Instance.MigrateFromLegacyWidgetPins(WindowStateService.Instance.GetState("Widget")?.PinnedSensorIds);
 
             _window = new MainWindow();
             _window.Activate();

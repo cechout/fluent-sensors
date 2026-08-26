@@ -70,6 +70,27 @@ namespace FluentSensors.Features.Sensors
 
         public ObservableCollection<HardwareGroupViewModel> HardwareGroups { get; set; }
         public bool HasHiddenSensors => HardwareGroups.Any(g => g.HasHiddenSensors);
+
+        // which selection profile the checkboxes currently reflect and commit to
+        private SensorSelectionProfile _activeProfile = SensorSelectionProfile.WidgetWindow;
+        public SensorSelectionProfile ActiveProfile
+        {
+            get => _activeProfile;
+            set
+            {
+                if (_activeProfile == value) return;
+                _activeProfile = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsWidgetProfileActive));
+                OnPropertyChanged(nameof(IsCsvProfileActive));
+                OnPropertyChanged(nameof(IsTaskbarProfileActive));
+                ResyncCheckboxesForActiveProfile();
+            }
+        }
+        public bool IsWidgetProfileActive => ActiveProfile == SensorSelectionProfile.WidgetWindow;
+        public bool IsCsvProfileActive => ActiveProfile == SensorSelectionProfile.Csv;
+        public bool IsTaskbarProfileActive => ActiveProfile == SensorSelectionProfile.Taskbar;
+
         private bool _isWidgetOpen;
         public bool IsWidgetOpen
         {
@@ -175,6 +196,23 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
+        // mirrors every visible sensors checkbox onto the active profiles persisted selection, so switching profiles
+        // always shows exactly what that profile currently contains
+        //
+        // hidden sensors are excluded even though group.Sensors should never contain one
+        // (HideSensorsCompletely=false leaves a soft-hidden sensor (IsHidden=true, IsDisabled=true) sitting right there,
+        // same guard SelectPinnedSensors already relied on)
+        private void ResyncCheckboxesForActiveProfile()
+        {
+            foreach (var group in HardwareGroups)
+            {
+                foreach (var sensor in group.Sensors)
+                {
+                    sensor.IsSelected = !sensor.IsHidden && SensorSelectionService.Instance.IsSelected(ActiveProfile, sensor.Id);
+                }
+            }
+        }
+
         // creates and places the row for one newly discovered sensor; a sensor discovered for the first time this
         // session may already have persisted state from a previous run (e.g. it was hidden or selected before closing)
         private void OnSensorDiscovered(HardwareGroupViewModel group, LhmSensorEntry entry)
@@ -183,14 +221,15 @@ namespace FluentSensors.Features.Sensors
             bool isHidden = persistedState.IsHidden;
 
             // IsHidden must be set before Entry, and Entry before IsSelected:
-            // Entry's setter does the initial value sync and skips it if IsHidden is already true; IsSelected's setter
+            // Entrys setter does the initial value sync and skips it if IsHidden is already true; IsSelected's setter
             // persists immediately and needs Entry.Id to already be available
+            // checkbox seeds from the active profiles persisted selection, not from persistedState.IsSelected, that
             var newRow = new SensorRowViewModel
             {
                 SortOrder = group.Sensors.Count + group.HiddenSensors.Count,
                 IsHidden = isHidden,
                 Entry = entry,
-                IsSelected = persistedState.IsSelected,
+                IsSelected = !isHidden && SensorSelectionService.Instance.IsSelected(ActiveProfile, entry.Id),
             };
 
             if (isHidden)
@@ -261,6 +300,20 @@ namespace FluentSensors.Features.Sensors
                     sensor.IsSelected = false;
                 }
             }
+        }
+
+        // reads every currently checked sensor, in display order, and persists that exact list as the active profiles
+        // new selection; same method backs the commit button for all three profiles
+        public List<SensorRowViewModel> CommitActiveProfileSelection()
+        {
+            var checkedSensors = HardwareGroups
+                .SelectMany(group => group.Sensors)
+                .Where(sensor => sensor.IsSelected)
+                .ToList();
+
+            SensorSelectionService.Instance.SetSelection(ActiveProfile, checkedSensors.Select(s => s.Id).ToList());
+
+            return checkedSensors;
         }
 
 
