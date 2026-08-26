@@ -14,7 +14,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: setup dotnet
         uses: actions/setup-dotnet@v6
@@ -32,7 +32,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # no cache here, unlike the build job, dotnet format whitespace does not
       # reliably populate the nuget packages folder the cache action expects to save
