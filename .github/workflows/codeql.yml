@@ -1,0 +1,44 @@
+# security scanning via CodeQL, advanced setup with manual build mode
+#
+# autobuild is not used here, WinUI3 needs the same explicit build pass release.yml documents
+# (MarkupCompilePass2 needs a full Build pass to resolve x:Bind LocalAssembly types)
+name: codeql
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "24 3 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: initialize codeql
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          build-mode: manual
+
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: build win-x64
+        run: dotnet build FluentSensors/FluentSensors.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained true
+
+      - name: perform codeql analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:csharp"
