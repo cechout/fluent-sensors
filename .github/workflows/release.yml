@@ -22,6 +22,9 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      - name: setup msbuild
+        uses: microsoft/setup-msbuild@v2
+
       # reads the version once so the csproj stays the only place it gets bumped by hand
       - name: read version from csproj
         id: version
@@ -31,16 +34,24 @@ jobs:
           $version = $xml.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
           "version=$version" >> $env:GITHUB_OUTPUT
 
+      # --- workaround: dotnet build cannot resolve COMReference ---
+      # problem: ResolveComReference is not implemented in the .NET Core version of MSBuild, only
+      # the full .NET Framework MSBuild (msbuild.exe) supports it, dotnet build/publish fail with MSB4803
+      # https://aka.ms/msbuild/MSB4803
+      # fix: restore via dotnet CLI as usual, then build/publish through msbuild.exe from microsoft/setup-msbuild
+      - name: restore
+        run: dotnet restore FluentSensors/FluentSensors.csproj -p:Platform=x64 -r win-x64 -p:SelfContained=true
+
       # WinUI3 x:Bind on types defined in this project (like SourceLink) needs a full Build pass
       # first, so MarkupCompilePass2 gets the LocalAssembly it resolves them against, otherwise the
       # XAML compiler fails on a from-scratch checkout with no prior obj state (WMC0909/WMC9999)
       - name: build win-x64
-        run: dotnet build FluentSensors/FluentSensors.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained true
+        run: msbuild FluentSensors/FluentSensors.csproj -p:Configuration=Release -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -p:SelfContained=true
 
       # uses the real FolderProfile.pubxml (Properties/PublishProfiles) so CI applies the exact same
       # settings as a local Visual Studio publish, PublishTrimmed=false included
       - name: publish win-x64
-        run: dotnet publish FluentSensors/FluentSensors.csproj -c Release -p:Platform=x64 -p:PublishProfile=FolderProfile --no-build
+        run: msbuild FluentSensors/FluentSensors.csproj -t:Publish -p:Configuration=Release -p:Platform=x64 -p:PublishProfile=FolderProfile -p:NoBuild=true
 
       - name: install inno setup
         run: choco install innosetup -y --no-progress
@@ -58,7 +69,7 @@ jobs:
           name: FluentSensors_Installer
           path: Setup/Output/FluentSensors_Installer.exe
 
-      # draft only
+      # create draft only
       - name: create draft release
         env:
           GH_TOKEN: ${{ github.token }}
