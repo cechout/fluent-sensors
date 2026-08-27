@@ -28,17 +28,23 @@ namespace FluentSensors.Core.Taskbar
         private const int CacheDurationMs = 5000;
 
         // KNOWN UNRELIABLE:
-        // these class names and the automation id have no official Microsoft documentation, they are internal
+        // these class names and automation ids have no official Microsoft documentation, they are internal
         // implementation details of explorer.exes XAML Islands taskbar UI and are known to shift between Windows
         // 11 builds
-        // confirmed current via community reverse engineering (Windows 11 taskbar styling tools that target
-        // these same identifiers):
+        // confirmed against a live UIA tree dump on a real Windows 11 machine (WinTaskbarDebugDump.DumpTaskbarTree)
+        // initial guesses came from community reverse engineering and turned out wrong for two of the three:
+        // TaskbarFrame actually carries a real AutomationId, not just a ClassName, and there is no
+        // SystemTray.SystemTrayFrame in the live tree at all, the tray sits in a differently named classic Win32
+        // child window instead
+        // community sources for background, not the actual source of truth here:
         // https://github.com/ramensoftware/windows-11-taskbar-styling-guide
         // https://github.com/ramensoftware/windhawk-mods/discussions/679
-        // a null Frame/Tray/WidgetsButton on the debug dump most likely means the identifier changed on this
-        // Windows build, not that something is broken
-        private const string TaskbarFrameClassName = "Taskbar.TaskbarFrame";
-        private const string SystemTrayFrameClassName = "SystemTray.SystemTrayFrame";
+        // WidgetsButton was not observed in the tree at all (Widgets was disabled on the test machine), the
+        // automation id here is still unconfirmed but has no counter-evidence either
+        // a null Frame/Tray/WidgetsButton on the debug dump most likely means the identifier changed again on
+        // this Windows build, not that something is broken
+        private const string TaskbarFrameAutomationId = "TaskbarFrame";
+        private const string TrayClassName = "TrayNotifyWnd";
         private const string WidgetsButtonAutomationId = "WidgetsButton";
 
         private readonly object _lock = new();
@@ -109,8 +115,8 @@ namespace FluentSensors.Core.Taskbar
                 if (root == null) return null;
 
                 return new WinTaskbarUiaSnapshot(
-                    Frame: ToUiaElement(FindDescendant(automation, root, UIA_PropertyIds.UIA_ClassNamePropertyId, TaskbarFrameClassName)),
-                    Tray: ToUiaElement(FindDescendant(automation, root, UIA_PropertyIds.UIA_ClassNamePropertyId, SystemTrayFrameClassName)),
+                    Frame: ToUiaElement(FindDescendant(automation, root, UIA_PropertyIds.UIA_AutomationIdPropertyId, TaskbarFrameAutomationId)),
+                    Tray: ToUiaElement(FindDescendant(automation, root, UIA_PropertyIds.UIA_ClassNamePropertyId, TrayClassName)),
                     WidgetsButton: ToUiaElement(FindDescendant(automation, root, UIA_PropertyIds.UIA_AutomationIdPropertyId, WidgetsButtonAutomationId))
                 );
             }
