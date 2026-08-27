@@ -154,6 +154,35 @@ namespace FluentSensors
             this.AppWindow.Changed += AppWindow_Changed;
             this.AppWindow.Closing += AppWindow_Closing;
 
+            // TEMP: manual check whether WS_EX_NOACTIVATE still lets WinUI 3 XAML controls receive
+            // pointer input, applied a few seconds after the window is already up and visible, so
+            // this isolates that question from whether NOACTIVATE set before the initial Activate()
+            // call breaks the window showing up at all
+            // deliberately signals through the visible title text instead of Debug.WriteLine, since
+            // that gets compiled out entirely in Release builds
+            // test protocol: wait for the title text to flip to "NOACTIVATE ACTIVE", then, with some
+            // other window (Notepad) focused, click a nav item here (Sensors, Hardware View,
+            // Settings) and immediately start typing on the keyboard
+            // expected if NOACTIVATE works correctly in WinUI 3: the page still switches (pointer
+            // input reaches the nav item), but the typed characters land in Notepad, not here
+            // (keyboard focus was never stolen)
+            // remove this whole block, and the x:Name on the title TextBlock, again once answered
+            ((FrameworkElement)this.Content).Loaded += (s, e) =>
+            {
+                var tempTimer = DispatcherQueue.CreateTimer();
+                tempTimer.Interval = TimeSpan.FromSeconds(3);
+                tempTimer.IsRepeating = false;
+                tempTimer.Tick += (s2, e2) =>
+                {
+                    var tempHwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+                    int tempExStyle = GetWindowLong(tempHwnd, GWL_EXSTYLE);
+                    SetWindowLong(tempHwnd, GWL_EXSTYLE, tempExStyle | WS_EX_NOACTIVATE);
+                    TempTitleText.Text = "NOACTIVATE ACTIVE - test now";
+                    tempTimer.Stop();
+                };
+                tempTimer.Start();
+            };
+
             // system tray commands 
             RestoreAppCommand.ExecuteRequested += (s, e) => RestoreApp();
             ShowMainWindowCommand.ExecuteRequested += (s, e) =>
