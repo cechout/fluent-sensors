@@ -176,9 +176,10 @@ namespace FluentSensors.Core.Taskbar
             };
             NativeMethods.SHAppBarMessage(NativeMethods.ABM_GETTASKBARPOS, ref positionData);
 
-            // ABM_GETSTATE reports the primary taskbars autohide state process-wide; Windows has no per-monitor
-            // variant of this exact call (ABM_GETAUTOHIDEBAREX exists but takes a monitor rect, not investigated
-            // yet), so every taskbar currently reports the same IsAutoHide value regardless of which monitor its on
+            // ABM_GETSTATE reports the primary taskbars autohide state process-wide;
+            // Windows has no per-monitor variant of this exact call
+            // (ABM_GETAUTOHIDEBAREX exists but takes a monitor rect, not investigated yet);
+            // so every taskbar currently reports the same IsAutoHide value regardless of which monitor its on
             var stateData = new NativeMethods.APPBARDATA
             {
                 cbSize = (uint)Marshal.SizeOf<NativeMethods.APPBARDATA>()
