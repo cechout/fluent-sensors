@@ -53,6 +53,7 @@
 		<None Remove="Features\Sensors\HiddenSensorsWindow.xaml" />
 		<None Remove="Features\Sensors\SensorsPage.xaml" />
 		<None Remove="Features\Settings\SettingsPage.xaml" />
+		<None Remove="Features\TaskbarWidget\TaskbarWidgetWindow.xaml" />
 		<None Remove="Features\Widget\WidgetWindow.xaml" />
 	</ItemGroup>
 

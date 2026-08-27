@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Taskbar Widget"
+    mc:Ignorable="d">
+
+    <!--  no styling yet, step 1 is only about proving the window shows, sits on top, and is clickable  -->
+    <Grid Background="{ThemeResource SystemFillColorSolidNeutralBackgroundBrush}">
+        <Button
+            x:Name="TestButton"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Click="TestButton_Click"
+            Content="Click me" />
+    </Grid>
+</Window>

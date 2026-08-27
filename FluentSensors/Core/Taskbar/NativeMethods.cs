@@ -147,5 +147,17 @@ namespace FluentSensors.Core.Taskbar
         [LibraryImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool GetMonitorInfoW(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+
+        // === window styles (activation) ===
+
+        internal const int GWL_EXSTYLE = -20;
+        internal const int WS_EX_NOACTIVATE = 0x08000000;
+
+        [LibraryImport("user32.dll", EntryPoint = "GetWindowLongW")]
+        internal static partial int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [LibraryImport("user32.dll", EntryPoint = "SetWindowLongW")]
+        internal static partial int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
     }
 }

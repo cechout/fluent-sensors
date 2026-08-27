@@ -192,6 +192,13 @@ namespace FluentSensors
             if (_isHardwareServiceLoaded) return;
             _isHardwareServiceLoaded = true;
 
+            // TEMP: shows the taskbar widget skeleton window (step 1 of Phase 3, fixed placeholder
+            // position at screen center, no real taskbar geometry yet); remove once the widget has
+            // a real trigger
+            // deliberately here and not in the constructor: creating a second WinUI Window from
+            // inside another Windows constructor runs before the visual tree exists
+            FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow.ShowWidget();
+
             await StartHardwareServiceAsync(); // load the HardwareMonitorService singleton instance asynchronously
         }
 
