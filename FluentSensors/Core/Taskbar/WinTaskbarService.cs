@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Windows.Graphics;
 
 
-namespace FluentSensors.Core.Interop
+namespace FluentSensors.Core.Taskbar
 {
     // finds every taskbar currently on screen (the primary one, plus one Shell_SecondaryTrayWnd per additional
     // monitor) and polls their geometry
@@ -22,7 +22,7 @@ namespace FluentSensors.Core.Interop
         private const int PollIntervalMs = 1000;
 
         private readonly object _lock = new();
-        private List<TaskbarInfo> _taskbars = new();
+        private List<WinTaskbarInfo> _taskbars = new();
         private CancellationTokenSource? _cts;
         private Task? _loopTask;
 
@@ -43,7 +43,7 @@ namespace FluentSensors.Core.Interop
         // latest snapshot from the polling loop, or from the most recent DiscoverNow() call if monitoring was never
         // started;
         // empty (never null) before the first discovery has run at all
-        public IReadOnlyList<TaskbarInfo> CurrentTaskbars
+        public IReadOnlyList<WinTaskbarInfo> CurrentTaskbars
         {
             get { lock (_lock) return _taskbars; }
         }
@@ -73,7 +73,7 @@ namespace FluentSensors.Core.Interop
 
         // one-shot discovery outside the polling loop; used by the debug dump and by any caller that just needs the
         // current state once without starting continuous monitoring
-        public List<TaskbarInfo> DiscoverNow()
+        public List<WinTaskbarInfo> DiscoverNow()
         {
             var found = FindAllTaskbars();
             lock (_lock)
@@ -88,7 +88,7 @@ namespace FluentSensors.Core.Interop
 
         // fires only when the discovered set actually changed since the previous tick (new/removed taskbar, moved
         // edge, resized, dpi change, autohide toggled); a tick where nothing changed stays silent
-        public event Action<IReadOnlyList<TaskbarInfo>>? TaskbarsChanged;
+        public event Action<IReadOnlyList<WinTaskbarInfo>>? TaskbarsChanged;
 
 
         // === private helpers ===
@@ -131,9 +131,9 @@ namespace FluentSensors.Core.Interop
 
         // discovery: primary taskbar (Shell_TrayWnd, exactly one) plus every secondary taskbar
         // (Shell_SecondaryTrayWnd, one per additional monitor, zero on a single-monitor system)
-        private static List<TaskbarInfo> FindAllTaskbars()
+        private static List<WinTaskbarInfo> FindAllTaskbars()
         {
-            var result = new List<TaskbarInfo>();
+            var result = new List<WinTaskbarInfo>();
 
             foreach (var hwnd in FindAllWindowsByClass("Shell_TrayWnd"))
             {
@@ -165,7 +165,7 @@ namespace FluentSensors.Core.Interop
 
         // null if the window disappeared between being found and being queried (Explorer restart, monitor unplugged
         // mid-poll); callers just skip it for this tick rather than throwing
-        private static TaskbarInfo? BuildTaskbarInfo(IntPtr hwnd)
+        private static WinTaskbarInfo? BuildTaskbarInfo(IntPtr hwnd)
         {
             if (!NativeMethods.GetWindowRect(hwnd, out var rect)) return null;
 
@@ -185,7 +185,7 @@ namespace FluentSensors.Core.Interop
             };
             uint state = (uint)NativeMethods.SHAppBarMessage(NativeMethods.ABM_GETSTATE, ref stateData);
 
-            return new TaskbarInfo(
+            return new WinTaskbarInfo(
                 Hwnd: hwnd,
                 Rect: new RectInt32(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top),
                 Edge: ToScreenEdge(positionData.uEdge),

@@ -2,11 +2,11 @@ using System;
 using System.Runtime.InteropServices;
 
 
-namespace FluentSensors.Core.Interop
+namespace FluentSensors.Core.Taskbar
 {
     // raw Win32 declarations for taskbar discovery (user32 window/monitor queries, shell32 appbar messages)
     //
-    // pure P/Invoke surface, no logic; WinTaskbarService is where these calls turn into TaskbarInfo
+    // pure P/Invoke surface, no logic; WinTaskbarService is where these calls turn into WinTaskbarInfo
     internal static partial class NativeMethods
     {
         // === structs ===
