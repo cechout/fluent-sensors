@@ -64,7 +64,6 @@
             <!--  title text  -->
             <!--  (always shown, never collapses)  -->
             <TextBlock
-                x:Name="TempTitleText"
                 Grid.Column="1"
                 Margin="20,0,0,0"
                 VerticalAlignment="Center"
