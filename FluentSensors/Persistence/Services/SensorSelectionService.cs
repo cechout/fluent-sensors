@@ -28,17 +28,29 @@ namespace FluentSensors.Persistence.Services
 
         // === public api ===
 
-        // returns the live list directly, callers must not mutate it, use SetSelection so changes actually persist
+        // returns the live list directly, callers must not mutate it, use SetMembership so changes actually persist
         public IReadOnlyList<string> GetSelection(SensorSelectionProfile profile) => GetList(profile);
 
         public bool IsSelected(SensorSelectionProfile profile, string sensorId) => GetList(profile).Contains(sensorId);
 
-        // replaces a profiles entire ordered selection at once
-        // the commit buttons (Pin to Widget etc) diff the currently checked rows against this in one shot rather than
-        // adding or removing one id at a time
-        public void SetSelection(SensorSelectionProfile profile, List<string> orderedSensorIds)
+        // adds or removes a single sensor from a profiles selection, called live on every checkbox toggle rather than
+        // in a batch, so persistence never depends on some separate commit step happening afterward
+        // a newly added sensor is appended at the end, the existing order of everything already in the list is left
+        // untouched
+        public void SetMembership(SensorSelectionProfile profile, string sensorId, bool isMember)
         {
-            SetList(profile, orderedSensorIds);
+            var list = GetList(profile);
+
+            if (isMember)
+            {
+                if (list.Contains(sensorId)) return;
+                list.Add(sensorId);
+            }
+            else
+            {
+                if (!list.Remove(sensorId)) return;
+            }
+
             Persist();
         }
 
@@ -70,17 +82,6 @@ namespace FluentSensors.Persistence.Services
             SensorSelectionProfile.Taskbar => _state.Taskbar,
             _ => throw new ArgumentOutOfRangeException(nameof(profile))
         };
-
-        private void SetList(SensorSelectionProfile profile, List<string> orderedSensorIds)
-        {
-            switch (profile)
-            {
-                case SensorSelectionProfile.WidgetWindow: _state.WidgetWindow = orderedSensorIds; break;
-                case SensorSelectionProfile.Csv: _state.Csv = orderedSensorIds; break;
-                case SensorSelectionProfile.Taskbar: _state.Taskbar = orderedSensorIds; break;
-                default: throw new ArgumentOutOfRangeException(nameof(profile));
-            }
-        }
 
         private void Persist()
         {

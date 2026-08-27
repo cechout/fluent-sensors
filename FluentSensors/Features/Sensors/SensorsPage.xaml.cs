@@ -59,9 +59,12 @@ namespace FluentSensors.Features.Sensors
 
         private async void PinToWidget_Click(object sender, RoutedEventArgs e)
         {
-            // commits the checked sensors as the WidgetWindow profiles new selection and gets that exact list back,
-            // so persistence and what the widget actually shows can never drift apart
-            var selectedSensors = ViewModel.CommitActiveProfileSelection();
+            // this is the real action: open or reconfigure the widget window with whatever is currently checked
+            // persistence already happened live as each checkbox was toggled, this button has nothing left to commit
+            var selectedSensors = ViewModel.HardwareGroups
+                .SelectMany(group => group.Sensors)
+                .Where(sensor => sensor.IsSelected)
+                .ToList();
 
             // show flyout when no sensor was selected
             if (selectedSensors.Count == 0)
@@ -87,20 +90,17 @@ namespace FluentSensors.Features.Sensors
             WidgetWindow.ShowWithSensors(selectedSensors);
         }
 
-        // Phase 1: commits the Csv profiles selection so it round-trips correctly, no csv consumer exists yet to act on it
+        // Phase 1: no csv consumer exists yet, theres no action to perform on the current selection
         private void StartCsvMonitoring_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.CommitActiveProfileSelection();
         }
 
-        // Phase 1: commits the Taskbar profiles selection so it round-trips correctly
-        // (the taskbar widget window itself ships in a later phase)
+        // Phase 1: the taskbar widget window itself ships in a later phase, theres no action to perform yet
         private void PinToTaskbar_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.CommitActiveProfileSelection();
         }
 
-        // switches which profile the checkboxes reflect and commit to, and swaps the commit button in the command
+        // switches which profile the checkboxes reflect and persist to, and swaps the action button in the command
         // bar to match (Pin to Widget / Start CSV Monitoring / Pin to Taskbar)
         private void SelectionProfileComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

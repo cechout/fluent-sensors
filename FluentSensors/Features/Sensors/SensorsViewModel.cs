@@ -25,6 +25,10 @@ namespace FluentSensors.Features.Sensors
         private TaskCompletionSource<bool> _initialLoadTcs = new TaskCompletionSource<bool>();
         public Task WaitForInitialLoadAsync() => _initialLoadTcs.Task; // MainWindow waits on this
 
+        // guards OnSensorRowSelectionChanged against firing while ResyncCheckboxesForActiveProfile is itself only
+        // mirroring an already-persisted selection back onto the checkboxes, not a genuine user toggle
+        private bool _isResyncingCheckboxes = false;
+
 
         // === singleton instance ===
 
@@ -71,7 +75,7 @@ namespace FluentSensors.Features.Sensors
         public ObservableCollection<HardwareGroupViewModel> HardwareGroups { get; set; }
         public bool HasHiddenSensors => HardwareGroups.Any(g => g.HasHiddenSensors);
 
-        // which selection profile the checkboxes currently reflect and commit to
+        // which selection profile the checkboxes currently reflect and persist to
         private SensorSelectionProfile _activeProfile = SensorSelectionProfile.WidgetWindow;
         public SensorSelectionProfile ActiveProfile
         {
@@ -145,6 +149,19 @@ namespace FluentSensors.Features.Sensors
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
         }
 
+        // persists every genuine checkbox toggle on the active profile immediately; this is purely a data write, it
+        // never opens or reconfigures anything, that only happens when the corresponding action button is clicked
+        // hidden sensors are excluded: a checkbox toggled from the Hidden Sensors window is the profile-independent
+        // restore selection, not a pin, this is the same distinction ResyncCheckboxesForActiveProfile already makes
+        private void OnSensorRowSelectionChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(SensorRowViewModel.IsSelected)) return;
+            if (_isResyncingCheckboxes) return;
+            if (sender is not SensorRowViewModel row || row.IsHidden) return;
+
+            SensorSelectionService.Instance.SetMembership(ActiveProfile, row.Id, row.IsSelected);
+        }
+
 
         // === private helpers ===
 
@@ -204,6 +221,8 @@ namespace FluentSensors.Features.Sensors
         // same guard SelectPinnedSensors already relied on)
         private void ResyncCheckboxesForActiveProfile()
         {
+            _isResyncingCheckboxes = true;
+
             foreach (var group in HardwareGroups)
             {
                 foreach (var sensor in group.Sensors)
@@ -211,6 +230,8 @@ namespace FluentSensors.Features.Sensors
                     sensor.IsSelected = !sensor.IsHidden && SensorSelectionService.Instance.IsSelected(ActiveProfile, sensor.Id);
                 }
             }
+
+            _isResyncingCheckboxes = false;
         }
 
         // creates and places the row for one newly discovered sensor; a sensor discovered for the first time this
@@ -231,6 +252,7 @@ namespace FluentSensors.Features.Sensors
                 Entry = entry,
                 IsSelected = !isHidden && SensorSelectionService.Instance.IsSelected(ActiveProfile, entry.Id),
             };
+            newRow.PropertyChanged += OnSensorRowSelectionChanged;
 
             if (isHidden)
             {
@@ -300,20 +322,6 @@ namespace FluentSensors.Features.Sensors
                     sensor.IsSelected = false;
                 }
             }
-        }
-
-        // reads every currently checked sensor, in display order, and persists that exact list as the active profiles
-        // new selection; same method backs the commit button for all three profiles
-        public List<SensorRowViewModel> CommitActiveProfileSelection()
-        {
-            var checkedSensors = HardwareGroups
-                .SelectMany(group => group.Sensors)
-                .Where(sensor => sensor.IsSelected)
-                .ToList();
-
-            SensorSelectionService.Instance.SetSelection(ActiveProfile, checkedSensors.Select(s => s.Id).ToList());
-
-            return checkedSensors;
         }
 
 
