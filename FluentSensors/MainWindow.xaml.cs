@@ -178,6 +178,10 @@ namespace FluentSensors
 
             // TEMP: uncomment to dump everything WinStaticInfoService collected to the Debug output window
             // _ = Task.Run(FluentSensors.Diagnostics.WinStaticInfoDebugDump.Dump);
+
+            // TEMP: uncomment to dump the taskbar detection backend (WinTaskbarService/WinTaskbarUiaProbe/
+            // WinShellStateWatcher) to the Debug output window
+            _ = Task.Run(FluentSensors.Diagnostics.WinTaskbarDebugDump.Dump);
         }
 
 
