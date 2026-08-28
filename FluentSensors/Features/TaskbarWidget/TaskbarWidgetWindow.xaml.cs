@@ -33,9 +33,9 @@ namespace FluentSensors.Features.TaskbarWidget
         // logical pixels, scaled to the taskbars DPI before use, so these read the same at any scaling
         private const int VerticalMarginDip = 2; // gap above and below the widget; height follows from it
         private const int AnchorOffsetDip = 8; // gap between the widget and the anchored end of the taskbar
-        private const int SensorSlotWidthDip = 90; // width per pinned sensor slot
-        private const int SensorSlotSpacingDip = 4; // spacing between sensor slots
-        private const int ButtonPaddingDip = 4; // inner horizontal padding of the taskbar button
+        private const int SensorSlotWidthDip = 120; // width per pinned sensor slot
+        private const int SensorSlotSpacingDip = 8; // spacing between sensor slots
+        private const int ButtonPaddingDip = 2; // inner horizontal padding of the taskbar button
         private const int MinimumWidgetWidthDip = 60; // fallback width when no sensors are pinned
 
         // Start while testing; will become a user setting later
@@ -184,7 +184,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 _taskbarHwnd = primaryTaskbar.Hwnd;
 
                 int widthDip = CalculateWidgetWidthDip(ViewModel.PinnedSensors.Count);
-                double scale = primaryTaskbar.Dpi / 96.0;
+                double scale = primaryTaskbar.Dpi / 96.6;
                 var screenRect = TaskbarWidgetPlacement.Calculate(
                     primaryTaskbar,
                     Anchor,

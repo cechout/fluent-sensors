@@ -16,7 +16,8 @@
         <!--  the entire taskbar widget is one unified button containing all sensor graphs  -->
         <Button
             x:Name="TaskbarButton"
-            Padding="4,0,4,0"
+            Margin="0,0.5,0,0"
+            Padding="4,0,4,1"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             HorizontalContentAlignment="Stretch"
@@ -75,28 +76,28 @@
                 </ControlTemplate>
             </Button.Template>
 
-            <!--  inner horizontal list of compact sensor graphs  -->
+            <!--  inner horizontal list of compact sensor graphs stretching equally across widget width  -->
             <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" Spacing="4" />
+                        <fhControls:HorizontalStretchPanel Spacing="6" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
                         <fhGraph:SensorPanelControl
-                            Width="90"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch"
                             IsGraphHoverEnabled="False"
                             IsHitTestVisible="False"
                             ShowGraphCardBackground="True"
-                            ShowGraphLabel="False"
+                            ShowGraphLabel="True"
                             ShowStatusRow="False"
                             ShowThresholdControls="False"
                             ShowThresholdFlyoutIndicator="False"
                             ShowYAxisControls="False"
+                            ThresholdLabelAlwaysVisible="False"
                             ViewModel="{x:Bind}" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

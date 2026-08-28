@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.ObjectModel;
@@ -84,9 +84,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         public string Unit { get; }
 
-        // not sure here if SensorName + Unit or just Unit fits best
-        //public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? SensorName : $"{SensorName} ({Unit})";
-        public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? "" : $"{Unit}";
+        public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? SensorName : $"{SensorName} ({Unit})";
 
         private string _currentValueText = "-";
         public string CurrentValueText

@@ -240,6 +240,32 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
+        // toggles visibility of sensor name inside graph header overlay
+        public bool ShowGraphName
+        {
+            get => (bool)GetValue(ShowGraphNameProperty);
+            set => SetValue(ShowGraphNameProperty, value);
+        }
+        public static readonly DependencyProperty ShowGraphNameProperty =
+            DependencyProperty.Register(
+                nameof(ShowGraphName),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(true));
+
+        // toggles visibility of current value inside graph header overlay
+        public bool ShowGraphCurrentValue
+        {
+            get => (bool)GetValue(ShowGraphCurrentValueProperty);
+            set => SetValue(ShowGraphCurrentValueProperty, value);
+        }
+        public static readonly DependencyProperty ShowGraphCurrentValueProperty =
+            DependencyProperty.Register(
+                nameof(ShowGraphCurrentValue),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(true));
+
         // overrides the graphs line/section color for this specific instance, regardless of the global accent/custom
         // color setting;
         // Colors.Transparent (Alpha 0) = no override, since a real accent color is never fully transparent

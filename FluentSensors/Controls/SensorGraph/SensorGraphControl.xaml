@@ -32,19 +32,43 @@
                 XAxes="{Binding XAxes, ElementName=Root}"
                 YAxes="{Binding YAxes, ElementName=Root}" />
 
-            <!--  static title+unit label  -->
-            <!--  (top-left, only shown when IsLabelVisible is true; see LabelText/IsLabelVisible)  -->
-            <TextBlock
-                x:Name="GraphLabelText"
-                Margin="4,2,4,0"
-                HorizontalAlignment="Left"
+            <!--  static title + current value overlay  -->
+            <!--  (top row, only shown when IsLabelVisible is true; see LabelText/CurrentValueText/IsLabelVisible)  -->
+            <Grid
+                Margin="4,1,4,0"
                 VerticalAlignment="Top"
-                FontSize="10"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                IsHitTestVisible="False"
-                TextTrimming="CharacterEllipsis"
-                TextWrapping="NoWrap"
-                Visibility="Collapsed" />
+                IsHitTestVisible="False">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!--  left: sensor name + unit  -->
+                <TextBlock
+                    x:Name="GraphLabelText"
+                    Grid.Column="0"
+                    Margin="0,0,4,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    FontSize="10"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap"
+                    Visibility="Collapsed" />
+
+                <!--  right: current value  -->
+                <TextBlock
+                    x:Name="GraphCurrentValueText"
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    FontSize="10"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap"
+                    Typography.NumeralAlignment="Tabular"
+                    Visibility="Collapsed" />
+            </Grid>
 
             <Canvas
                 x:Name="HoverCanvas"
