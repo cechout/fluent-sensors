@@ -159,5 +159,22 @@ namespace FluentSensors.Core.Taskbar
 
         [LibraryImport("user32.dll", EntryPoint = "SetWindowLongW")]
         internal static partial int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+
+        // === window z-order (topmost) ===
+
+        // a WS_EX_TOPMOST + WS_EX_NOACTIVATE window can silently drop out of the topmost band once
+        // some other window activates, since normal activation is exactly what would otherwise keep
+        // a topmost window on top of other topmost windows, and a NOACTIVATE window never activates
+        // confirmed on hardware: without periodically reasserting this, the widget vanishes behind
+        // everything for good the moment any other app is brought to the foreground
+        internal static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        internal const uint SWP_NOSIZE = 0x0001;
+        internal const uint SWP_NOMOVE = 0x0002;
+        internal const uint SWP_NOACTIVATE = 0x0010;
+
+        [LibraryImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
     }
 }

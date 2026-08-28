@@ -1,6 +1,8 @@
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using WinUIEx.Messaging;
 
@@ -27,6 +29,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private AppWindow _appWindow;
         private WindowMessageMonitor _nonActivatingMonitor; // see WinNonActivatingWindow.Apply, must stay alive
+        private WindowMessageMonitor _topmostMonitor; // see ReassertTopmost, must stay alive
+        private DispatcherQueueTimer _topmostTimer; // must stay alive, see constructor
+        private bool _isReassertingTopmost; // reentrancy guard, see ReassertTopmost in the constructor
         private static TaskbarWidgetWindow _retainedInstance;
         public static TaskbarWidgetWindow CurrentInstance { get; private set; }
 
@@ -64,21 +69,82 @@ namespace FluentSensors.Features.TaskbarWidget
                 presenter.IsAlwaysOnTop = true;
                 _appWindow.SetPresenter(presenter);
 
-                // fixed placeholder position for now, screen center, so this step is not about
-                // finding a free spot near the taskbar at all yet, only about the window showing up
-                // real taskbar-anchored placement comes later once this shell is confirmed working
-                var workArea = DisplayArea.Primary.WorkArea;
+                // step 2: real taskbar-anchored placement, replaces the screen-center placeholder
+                // from step 1
+                // still MVP: primary taskbar only (first entry from WinTaskbarService; Shell_TrayWnd
+                // is always found before any Shell_SecondaryTrayWnd, see
+                // WinTaskbarService.FindAllTaskbars), End anchor hardcoded, fixed offset, one-time
+                // placement at construction
+                // not wired in yet, all still on the plan: poll loop, topmost reassertion, and the
+                // visibility rules (fullscreen/autohide/vertical bar/...)
                 const int width = 250;
                 const int height = 48;
-                _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(
-                    workArea.X + (workArea.Width - width) / 2,
-                    workArea.Y + (workArea.Height - height) / 2,
-                    width,
-                    height));
+                const int offset = 8;
+                var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
+
+                Windows.Graphics.RectInt32 targetRect;
+                if (primaryTaskbar != null)
+                {
+                    targetRect = TaskbarWidgetPlacement.Calculate(primaryTaskbar, TaskbarAnchor.End, offset, width, height);
+                }
+                else
+                {
+                    // no taskbar found at all (Explorer not running yet, or FindWindowExW failed);
+                    // falls back to the step 1 screen-center placeholder so the window still shows
+                    // up somewhere instead of at 0,0
+                    var workArea = DisplayArea.Primary.WorkArea;
+                    targetRect = new Windows.Graphics.RectInt32(
+                        workArea.X + (workArea.Width - width) / 2,
+                        workArea.Y + (workArea.Height - height) / 2,
+                        width,
+                        height);
+                }
+                _appWindow.MoveAndResize(targetRect);
 
                 var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
                 _appWindow.Closing += AppWindow_Closing;
+
+                // step 3, round 2: pure polling still flickered even at 1ms, which rules out "gap
+                // between corrections" as the cause, a 1ms gap is below any human perception
+                // threshold; the actual fix is reacting to WM_WINDOWPOSCHANGED, which Windows sends
+                // the instant our own z-order actually shifts, instead of guessing on a schedule
+                // reentrancy guard needed: our own SetWindowPos call below generates this exact same
+                // message synchronously, without the guard this becomes an infinite loop
+                // untested on hardware, this is the first attempt at this specific mechanism
+                void ReassertTopmost()
+                {
+                    if (_isReassertingTopmost) return;
+                    _isReassertingTopmost = true;
+                    try
+                    {
+                        NativeMethods.SetWindowPos(hwnd, NativeMethods.HWND_TOPMOST, 0, 0, 0, 0,
+                            NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE);
+                    }
+                    finally
+                    {
+                        _isReassertingTopmost = false;
+                    }
+                }
+
+                const uint WM_WINDOWPOSCHANGED = 0x0047;
+                _topmostMonitor = new WindowMessageMonitor(hwnd);
+                _topmostMonitor.WindowMessageReceived += (s, e) =>
+                {
+                    if (e.Message.MessageId == WM_WINDOWPOSCHANGED)
+                    {
+                        ReassertTopmost();
+                    }
+                };
+
+                // kept as a slow safety net only now, not the primary mechanism anymore; covers the
+                // case where topmost is lost through some path that does not raise
+                // WM_WINDOWPOSCHANGED for us, not yet confirmed whether that can actually happen
+                _topmostTimer = DispatcherQueue.CreateTimer();
+                _topmostTimer.Interval = TimeSpan.FromSeconds(2);
+                _topmostTimer.IsRepeating = true;
+                _topmostTimer.Tick += (s, e) => ReassertTopmost();
+                _topmostTimer.Start();
 
                 // show completely normally first, exactly like WidgetWindow does; apply NOACTIVATE
                 // only once the window is already up, the same order that worked for the MainWindow
