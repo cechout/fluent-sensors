@@ -118,6 +118,12 @@ namespace FluentSensors.Features.TaskbarWidget
                 void ReassertTopmost()
                 {
                     if (_isReassertingTopmost) return;
+
+                    // skip the actual correction when nothing is above us already; confirmed on
+                    // hardware that calling SetWindowPos unconditionally on every event is what
+                    // caused the brief visible blink on every single window switch
+                    if (NativeMethods.GetWindow(hwnd, NativeMethods.GW_HWNDPREV) == IntPtr.Zero) return;
+
                     _isReassertingTopmost = true;
                     try
                     {
@@ -135,17 +141,17 @@ namespace FluentSensors.Features.TaskbarWidget
                 _foregroundChangedCallback = (hook, eventType, eventHwnd, idObject, idChild, thread, time) => ReassertTopmost();
                 _foregroundHook = NativeMethods.SetWinEventHook(
                     NativeMethods.EVENT_SYSTEM_FOREGROUND,
-                    NativeMethods.EVENT_SYSTEM_FOREGROUND,
+                    NativeMethods.EVENT_SYSTEM_MINIMIZEEND,
                     IntPtr.Zero,
                     _foregroundChangedCallback,
                     0, // all processes
                     0, // all threads
                     NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
 
-                // slow safety net only, covers anything that raises the taskbar without a foreground
-                // change; the hook above is what handles the normal case
+                // shortened from 2s: covers whatever this widened range still does not catch, kept
+                // tight since a miss should self-heal fast, not visibly stay wrong for seconds
                 _topmostTimer = DispatcherQueue.CreateTimer();
-                _topmostTimer.Interval = TimeSpan.FromSeconds(2);
+                _topmostTimer.Interval = TimeSpan.FromMilliseconds(300);
                 _topmostTimer.IsRepeating = true;
                 _topmostTimer.Tick += (s, e) => ReassertTopmost();
                 _topmostTimer.Start();
@@ -191,7 +197,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 // survives on the instance, so reinstalling is enough
                 window._foregroundHook = NativeMethods.SetWinEventHook(
                     NativeMethods.EVENT_SYSTEM_FOREGROUND,
-                    NativeMethods.EVENT_SYSTEM_FOREGROUND,
+                    NativeMethods.EVENT_SYSTEM_MINIMIZEEND,
                     IntPtr.Zero,
                     window._foregroundChangedCallback,
                     0,

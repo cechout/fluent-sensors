@@ -185,7 +185,16 @@ namespace FluentSensors.Core.Taskbar
         // long as the polling interval, meaning only the timer was ever correcting it)
         // this hook fires system-wide the moment the foreground window changes, which is the actual
         // trigger for the taskbar being raised
+        // EVENT_SYSTEM_FOREGROUND alone missed a case confirmed on hardware: clicking a taskbar icon
+        // (as opposed to alt-tabbing or clicking an already visible window) sometimes raises the
+        // taskbar a second time, separate from the plain foreground change, and our widget dropped
+        // below it again without any further event reaching us
+        // widened to the whole contiguous EVENT_SYSTEM_* range covering window state transitions
+        // (minimize/restore, move/size, switch, menu, dialog, drag) since it is not confirmed yet
+        // which one specifically the taskbar uses for that second raise; all of them are cheap to
+        // react to, the cost of reacting to one too many is negligible
         internal const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+        internal const uint EVENT_SYSTEM_MINIMIZEEND = 0x0017;
         internal const uint WINEVENT_OUTOFCONTEXT = 0x0000; // callback delivered to our own thread, no dll injection
         internal const uint WINEVENT_SKIPOWNPROCESS = 0x0002; // ignore our own windows, avoids self-triggering
 
@@ -201,5 +210,17 @@ namespace FluentSensors.Core.Taskbar
         [LibraryImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool UnhookWinEvent(IntPtr hWinEventHook);
+
+
+        // === z-order query ===
+
+        // used to check whether a reassert is even needed before calling SetWindowPos; confirmed on
+        // hardware that calling SetWindowPos(HWND_TOPMOST) unconditionally, even when already on top,
+        // causes its own brief visible blink, so this check exists to skip the call when nothing is
+        // actually wrong
+        internal const uint GW_HWNDPREV = 3; // handle of the window directly above ours in z-order
+
+        [LibraryImport("user32.dll")]
+        internal static partial IntPtr GetWindow(IntPtr hWnd, uint uCmd);
     }
 }
