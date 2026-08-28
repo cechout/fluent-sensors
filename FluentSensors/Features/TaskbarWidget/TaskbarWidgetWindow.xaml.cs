@@ -29,7 +29,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private AppWindow _appWindow;
         private WindowMessageMonitor _nonActivatingMonitor; // see WinNonActivatingWindow.Apply, must stay alive
-        private WindowMessageMonitor _topmostMonitor; // see ReassertTopmost, must stay alive
+        private NativeMethods.WinEventProc _foregroundChangedCallback; // must stay alive, see constructor
+        private IntPtr _foregroundHook; // released in AppWindow_Closing
         private DispatcherQueueTimer _topmostTimer; // must stay alive, see constructor
         private bool _isReassertingTopmost; // reentrancy guard, see ReassertTopmost in the constructor
         private static TaskbarWidgetWindow _retainedInstance;
@@ -105,13 +106,15 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 _appWindow.Closing += AppWindow_Closing;
 
-                // step 3, round 2: pure polling still flickered even at 1ms, which rules out "gap
-                // between corrections" as the cause, a 1ms gap is below any human perception
-                // threshold; the actual fix is reacting to WM_WINDOWPOSCHANGED, which Windows sends
-                // the instant our own z-order actually shifts, instead of guessing on a schedule
-                // reentrancy guard needed: our own SetWindowPos call below generates this exact same
-                // message synchronously, without the guard this becomes an infinite loop
-                // untested on hardware, this is the first attempt at this specific mechanism
+                // step 3, round 3: the window never actually loses WS_EX_TOPMOST, it gets pushed below
+                // the taskbar inside the topmost band whenever Explorer raises the bar on a foreground
+                // change; listening for WM_WINDOWPOSCHANGED on our own window could never catch that,
+                // since that message only reaches the window whose own position changed, which is why
+                // round 2 did nothing and the flicker still lasted exactly one polling interval
+                // SetWinEventHook fires system-wide the instant the foreground window changes, which
+                // is the actual trigger, so the correction happens in the same moment instead of
+                // however long the next tick takes
+                // reentrancy guard: our own SetWindowPos can re-enter through the hook
                 void ReassertTopmost()
                 {
                     if (_isReassertingTopmost) return;
@@ -127,19 +130,20 @@ namespace FluentSensors.Features.TaskbarWidget
                     }
                 }
 
-                const uint WM_WINDOWPOSCHANGED = 0x0047;
-                _topmostMonitor = new WindowMessageMonitor(hwnd);
-                _topmostMonitor.WindowMessageReceived += (s, e) =>
-                {
-                    if (e.Message.MessageId == WM_WINDOWPOSCHANGED)
-                    {
-                        ReassertTopmost();
-                    }
-                };
+                // field, not a local: native code holds the raw pointer, a local would let the GC
+                // collect the delegate while the hook is still installed
+                _foregroundChangedCallback = (hook, eventType, eventHwnd, idObject, idChild, thread, time) => ReassertTopmost();
+                _foregroundHook = NativeMethods.SetWinEventHook(
+                    NativeMethods.EVENT_SYSTEM_FOREGROUND,
+                    NativeMethods.EVENT_SYSTEM_FOREGROUND,
+                    IntPtr.Zero,
+                    _foregroundChangedCallback,
+                    0, // all processes
+                    0, // all threads
+                    NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
 
-                // kept as a slow safety net only now, not the primary mechanism anymore; covers the
-                // case where topmost is lost through some path that does not raise
-                // WM_WINDOWPOSCHANGED for us, not yet confirmed whether that can actually happen
+                // slow safety net only, covers anything that raises the taskbar without a foreground
+                // change; the hook above is what handles the normal case
                 _topmostTimer = DispatcherQueue.CreateTimer();
                 _topmostTimer.Interval = TimeSpan.FromSeconds(2);
                 _topmostTimer.IsRepeating = true;
@@ -182,6 +186,19 @@ namespace FluentSensors.Features.TaskbarWidget
                 var window = _retainedInstance;
                 _retainedInstance = null;
                 CurrentInstance = window;
+
+                // both were torn down on hide, see AppWindow_Closing; the callback delegate itself
+                // survives on the instance, so reinstalling is enough
+                window._foregroundHook = NativeMethods.SetWinEventHook(
+                    NativeMethods.EVENT_SYSTEM_FOREGROUND,
+                    NativeMethods.EVENT_SYSTEM_FOREGROUND,
+                    IntPtr.Zero,
+                    window._foregroundChangedCallback,
+                    0,
+                    0,
+                    NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
+                window._topmostTimer?.Start();
+
                 // not yet verified on hardware: NOACTIVATE is already applied on this hwnd from the
                 // first show, so Show(false) should be safe here even though it was not for the very
                 // first, not-yet-rendered show further up; worth confirming once this path is reached
@@ -232,6 +249,15 @@ namespace FluentSensors.Features.TaskbarWidget
             args.Cancel = true;
             CurrentInstance = null;
             _retainedInstance = this;
+
+            // stop correcting z-order while hidden; both get set up again on the next ShowWidget
+            _topmostTimer?.Stop();
+            if (_foregroundHook != IntPtr.Zero)
+            {
+                NativeMethods.UnhookWinEvent(_foregroundHook);
+                _foregroundHook = IntPtr.Zero;
+            }
+
             _appWindow.Hide();
         }
     }

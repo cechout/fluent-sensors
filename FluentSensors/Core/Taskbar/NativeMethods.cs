@@ -163,11 +163,10 @@ namespace FluentSensors.Core.Taskbar
 
         // === window z-order (topmost) ===
 
-        // a WS_EX_TOPMOST + WS_EX_NOACTIVATE window can silently drop out of the topmost band once
-        // some other window activates, since normal activation is exactly what would otherwise keep
-        // a topmost window on top of other topmost windows, and a NOACTIVATE window never activates
-        // confirmed on hardware: without periodically reasserting this, the widget vanishes behind
-        // everything for good the moment any other app is brought to the foreground
+        // the widget does not actually lose WS_EX_TOPMOST; it gets pushed below the taskbar inside
+        // the topmost band, since the taskbar is topmost too and Explorer raises it whenever another
+        // app is activated, while we never activate ourselves because of WS_EX_NOACTIVATE
+        // reasserting our own position at the top of the topmost band is what puts us back above it
         internal static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         internal const uint SWP_NOSIZE = 0x0001;
         internal const uint SWP_NOMOVE = 0x0002;
@@ -176,5 +175,31 @@ namespace FluentSensors.Core.Taskbar
         [LibraryImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+
+        // === system-wide foreground change hook ===
+
+        // needed because WM_WINDOWPOSCHANGED only ever reaches the window whose own position changed;
+        // when Explorer raises the taskbar above us, our window gets no message at all, so listening
+        // on our own window can never catch it, confirmed on hardware (the flicker lasted exactly as
+        // long as the polling interval, meaning only the timer was ever correcting it)
+        // this hook fires system-wide the moment the foreground window changes, which is the actual
+        // trigger for the taskbar being raised
+        internal const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+        internal const uint WINEVENT_OUTOFCONTEXT = 0x0000; // callback delivered to our own thread, no dll injection
+        internal const uint WINEVENT_SKIPOWNPROCESS = 0x0002; // ignore our own windows, avoids self-triggering
+
+        // callback must be kept alive by the caller for as long as the hook is installed, native code
+        // holds the raw pointer and the GC has no way to see that
+        internal delegate void WinEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
+
+        // DllImport instead of LibraryImport, same reason as RegisterClassExW above:
+        // the source generator does not marshal delegate parameters
+        [DllImport("user32.dll")]
+        internal static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc, WinEventProc lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool UnhookWinEvent(IntPtr hWinEventHook);
     }
 }
