@@ -19,6 +19,8 @@
     <Grid Background="Transparent">
         <Button
             x:Name="TestButton"
+            Background="Transparent"
+            BorderBrush="Transparent"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             Click="TestButton_Click"

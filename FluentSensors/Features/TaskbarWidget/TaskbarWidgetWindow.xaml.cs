@@ -42,12 +42,20 @@ namespace FluentSensors.Features.TaskbarWidget
         // tray on the right; becomes a user setting later
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
 
+        // confirmed same as TrafficMonitor documents for their own SetParent-into-taskbar approach: embedding
+        // can fail transiently, e.g. while the start menu is open or another app is mid-embed at the same
+        // moment, and normally succeeds a moment later; retrying beats reporting a false failure
+        private const int MaxEmbedAttempts = 5;
+        private static readonly TimeSpan EmbedRetryDelay = TimeSpan.FromMilliseconds(500);
+        private int _embedAttempt;
+
         private AppWindow _appWindow;
         private IntPtr _hwnd;
         private IntPtr _taskbarHwnd; // parent we are embedded into, zero while detached
         private WindowMessageMonitor _nonActivatingMonitor; // see WinNonActivatingWindow.Apply, must stay alive
         private DispatcherQueueTimer _watchdogTimer; // TEMP, see constructor, must stay alive
         private bool _isEmbedded;
+        private bool _embedGaveUp; // set once RetryOrReportFailure has already shown its own message
         private static TaskbarWidgetWindow _retainedInstance;
         public static TaskbarWidgetWindow CurrentInstance { get; private set; }
 
@@ -101,16 +109,18 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 this.Activate();
 
-                // TEMP: closes the one failure mode that cost the most time before, where nothing happened at
-                // all and there was no way to tell whether the code had even run
-                // remove together with the MessageBox helper once embedding is settled
+                // closes the one failure mode that cost the most time before, where nothing happened at all
+                // and there was no way to tell whether the code had even run
+                // widened from 3s to 5s: retrying now takes up to MaxEmbedAttempts * EmbedRetryDelay before a
+                // real failure is reported, the watchdog must stay quiet through all of that
+                // TEMP: remove together with the MessageBox helper once embedding is settled
                 _watchdogTimer = DispatcherQueue.CreateTimer();
-                _watchdogTimer.Interval = TimeSpan.FromSeconds(3);
+                _watchdogTimer.Interval = TimeSpan.FromSeconds(5);
                 _watchdogTimer.IsRepeating = false;
                 _watchdogTimer.Tick += (s, e) =>
                 {
                     _watchdogTimer.Stop();
-                    if (_isEmbedded) return;
+                    if (_isEmbedded || _embedGaveUp) return; // already succeeded, or RetryOrReportFailure already reported
 
                     MessageBoxW(IntPtr.Zero,
                         "Window was constructed but never got embedded, Loaded probably never fired.\n\n" +
@@ -155,6 +165,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // === embedding ===
 
         // finds the primary taskbar, works out where on it the widget belongs, and reparents into it
+        // failures go through RetryOrReportFailure instead of reporting straight away, see its comment
         private void EmbedIntoTaskbar()
         {
             try
@@ -164,9 +175,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
                 if (primaryTaskbar == null)
                 {
-                    MessageBoxW(IntPtr.Zero,
-                        "No taskbar found, nothing to embed into.",
-                        "TEMP: taskbar widget", 0);
+                    RetryOrReportFailure("No taskbar found.");
                     return;
                 }
 
@@ -185,12 +194,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 if (!WinTaskbarEmbedder.Embed(_hwnd, _taskbarHwnd, screenRect, out int errorCode))
                 {
                     _taskbarHwnd = IntPtr.Zero;
-                    MessageBoxW(IntPtr.Zero,
-                        $"SetParent into the taskbar failed.\n\n" +
-                        $"win32 error: {errorCode}\n" +
-                        $"taskbar hwnd: {primaryTaskbar.Hwnd}\n" +
-                        $"target rect: {screenRect.X},{screenRect.Y} {screenRect.Width}x{screenRect.Height}",
-                        "TEMP: taskbar widget", 0);
+                    RetryOrReportFailure($"SetParent failed, win32 error {errorCode}.");
                     return;
                 }
 
@@ -199,13 +203,40 @@ namespace FluentSensors.Features.TaskbarWidget
                 // kept because it is verified working and costs one call, worth removing once confirmed unneeded
                 _nonActivatingMonitor = WinNonActivatingWindow.Apply(_hwnd);
 
+                _embedAttempt = 0;
                 _isEmbedded = true;
                 TestButton.Content = "Embedded, test clicking";
             }
             catch (Exception ex)
             {
-                MessageBoxW(IntPtr.Zero, ex.ToString(), "TEMP: embedding failed", 0);
+                RetryOrReportFailure(ex.ToString());
             }
+        }
+
+        // retries embedding a few times before giving up, confirmed the same strategy TrafficMonitor uses for
+        // its own SetParent-into-taskbar approach: a transient failure (start menu open, another app mid-embed
+        // at the same moment) usually clears up a moment later on its own
+        private void RetryOrReportFailure(string reason)
+        {
+            _embedAttempt++;
+            if (_embedAttempt < MaxEmbedAttempts)
+            {
+                var retryTimer = DispatcherQueue.CreateTimer();
+                retryTimer.Interval = EmbedRetryDelay;
+                retryTimer.IsRepeating = false;
+                retryTimer.Tick += (s, e) =>
+                {
+                    retryTimer.Stop();
+                    EmbedIntoTaskbar();
+                };
+                retryTimer.Start();
+                return;
+            }
+
+            MessageBoxW(IntPtr.Zero,
+                $"Embedding failed after {_embedAttempt} attempts.\n\n{reason}",
+                "TEMP: taskbar widget", 0);
+            _embedGaveUp = true;
         }
 
 
