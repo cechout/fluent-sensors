@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using WinUIEx;
 using WinUIEx.Messaging;
 
 using FluentSensors.Core.Taskbar;
@@ -81,6 +82,15 @@ namespace FluentSensors.Features.TaskbarWidget
                 // deliberately no IsAlwaysOnTop: an embedded child is ordered inside the taskbar and is not
                 // part of the topmost band at all, see WinTaskbarEmbedder
                 _appWindow.SetPresenter(presenter);
+
+                // the widget sits on the taskbar, so it has to let the bar show through instead of painting a
+                // rectangle of its own
+                // set here, while the window is still a normal top level one: WinUIExs TransparentTintBackdrop
+                // is built on DwmExtendFrameIntoClientArea and DwmEnableBlurBehindWindow, and DWM only manages
+                // top level windows, so applying it after the reparent would most likely be ignored
+                // NOT VERIFIED: whether the effect survives becoming a child of the taskbar at all; if the
+                // widget shows up as a solid block, this is the first thing to suspect, not the XAML
+                this.SystemBackdrop = new TransparentTintBackdrop();
 
                 _appWindow.Closing += AppWindow_Closing;
 

@@ -8,12 +8,19 @@
     Title="Taskbar Widget"
     mc:Ignorable="d">
 
-    <!--  no styling yet, step 1 is only about proving the window shows, sits on top, and is clickable  -->
-    <Grid Background="{ThemeResource SystemFillColorSolidNeutralBackgroundBrush}">
+    <!--
+        Background has to stay Transparent, an opaque root paints straight over the backdrop and the window
+        looks solid no matter what the backdrop is set to
+    -->
+    <!--
+        the button deliberately does not stretch, the empty area next to it is what shows whether the window
+        is really transparent or just painting the taskbar color
+    -->
+    <Grid Background="Transparent">
         <Button
             x:Name="TestButton"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
             Click="TestButton_Click"
             Content="Click me" />
     </Grid>
