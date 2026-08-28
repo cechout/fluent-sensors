@@ -7,24 +7,20 @@ namespace FluentSensors.Core.Taskbar
 {
     // makes a window a child of Shell_TrayWnd so it sits inside the taskbar instead of floating above it
     //
-    // replaces the earlier topmost approach, which could not work by design: a WS_EX_NOACTIVATE window never
-    // activates, so inside the topmost band it always ends up below every other topmost window (the taskbar
-    // itself, the start menu, taskbar thumbnail previews), and every correction after the fact was visible as
-    // a flicker
-    // as a child there is no ordering contest left to lose, the window belongs to the taskbar
+    // replaces the earlier topmost approach: a WS_EX_NOACTIVATE window never activates, so inside the topmost band
+    // it always ended up below other topmost windows (the taskbar itself, start menu, thumbnail previews);
+    // every correction after the fact was visible as a flicker
+    // as a child there is no ordering contest left to lose, the window belongs to the taskbar directly
     //
-    // KNOWN RISK, not resolved here:
+    // KNOWN RISK:
     // SetParent across processes attaches the input queues of both threads, so a hang on our UI thread can
-    // freeze the taskbar with it; anything long running has to stay off the UI thread once this is in use
-    // second, FluentSensors runs elevated while explorer.exe does not, and UIPI blocks messages from the lower
-    // integrity parent to our higher integrity child; TrafficMonitor ships this exact combination (elevated,
-    // LibreHardwareMonitor, embedded via SetParent), which is the reason to try it, but it is not proof that a
-    // WinUI 3 window with its XAML island survives the same treatment
+    // freeze the taskbar with it; anything long running must stay off the UI thread once this is in use
+    // second, FluentSensors runs elevated while explorer.exe does not, and UIPI blocks messages from lower
+    // integrity parents to higher integrity children; TrafficMonitor successfully ships this combination
     internal static class WinTaskbarEmbedder
     {
-        // turns hwnd into a child of taskbarHwnd and places it at screenRect
-        // errorCode carries the Win32 error when this returns false, so a caller can report why instead of
-        // silently showing nothing
+        // turns hwnd into a child of taskbarHwnd and places it at screenRect;
+        // errorCode carries the Win32 error when this returns false, so callers can report details
         internal static bool Embed(IntPtr hwnd, IntPtr taskbarHwnd, RectInt32 screenRect, out int errorCode)
         {
             errorCode = 0;
@@ -43,8 +39,7 @@ namespace FluentSensors.Core.Taskbar
             int style = NativeMethods.GetWindowLong(hwnd, NativeMethods.GWL_STYLE);
             NativeMethods.SetWindowLong(hwnd, NativeMethods.GWL_STYLE, (style & ~NativeMethods.WS_POPUP) | NativeMethods.WS_CHILD);
 
-            // style change first, then reparent; the reverse order is also seen in the wild and it is not
-            // confirmed which one WinUI 3 tolerates, so this is the one to revisit first if embedding fails
+            // style change first, then reparent
             if (NativeMethods.SetParent(hwnd, taskbarHwnd) == IntPtr.Zero)
             {
                 errorCode = Marshal.GetLastWin32Error();
@@ -55,9 +50,8 @@ namespace FluentSensors.Core.Taskbar
             return true;
         }
 
-        // moves an already embedded window, translating from screen coordinates to the parents client area
-        // AppWindow.MoveAndResize must not be used once embedded, it works in screen coordinates and would
-        // fight this
+        // moves an already embedded window, translating from screen coordinates to the parents client area;
+        // AppWindow.MoveAndResize must not be used once embedded, it works in screen coordinates
         internal static void Position(IntPtr hwnd, IntPtr taskbarHwnd, RectInt32 screenRect)
         {
             var origin = new NativeMethods.POINT { X = screenRect.X, Y = screenRect.Y };
@@ -71,14 +65,11 @@ namespace FluentSensors.Core.Taskbar
                 NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_FRAMECHANGED | NativeMethods.SWP_SHOWWINDOW);
         }
 
-        // detaches the window from the taskbar and makes it a plain top level window again
+        // detaches the window from the taskbar and makes it a plain top level window again;
         // used before hiding, so AppWindow keeps operating on a shape it understands while the widget is away
         internal static void Detach(IntPtr hwnd)
         {
-            if (hwnd == IntPtr.Zero)
-            {
-                return;
-            }
+            if (hwnd == IntPtr.Zero) return;
 
             NativeMethods.SetParent(hwnd, IntPtr.Zero);
 

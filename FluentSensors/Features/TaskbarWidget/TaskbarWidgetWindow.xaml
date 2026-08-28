@@ -4,26 +4,103 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Taskbar Widget"
     mc:Ignorable="d">
 
-    <!--
-        Background has to stay Transparent, an opaque root paints straight over the backdrop and the window
-        looks solid no matter what the backdrop is set to
-    -->
-    <!--
-        the button deliberately does not stretch, the empty area next to it is what shows whether the window
-        is really transparent or just painting the taskbar color
-    -->
-    <Grid Background="Transparent">
+    <!--  background has to stay transparent; an opaque root paints over the backdrop  -->
+    <Grid x:Name="RootGrid" Background="Transparent">
+
+        <!--  the entire taskbar widget is one unified button containing all sensor graphs  -->
         <Button
-            x:Name="TestButton"
+            x:Name="TaskbarButton"
+            Padding="4,0,4,0"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            HorizontalContentAlignment="Stretch"
+            VerticalContentAlignment="Stretch"
             Background="Transparent"
             BorderBrush="Transparent"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Center"
-            Click="TestButton_Click"
-            Content="Click me" />
+            Click="TaskbarButton_Click">
+
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        x:Name="ButtonRootBorder"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="4">
+                        <ContentPresenter
+                            x:Name="ContentPresenter"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Content="{TemplateBinding Content}" />
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Target="ButtonRootBorder.Background" Value="{ThemeResource SubtleFillColorTransparentBrush}" />
+                                        <Setter Target="ButtonRootBorder.BorderBrush" Value="Transparent" />
+                                        <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="ButtonRootBorder.Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                        <Setter Target="ButtonRootBorder.BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+                                        <Setter Target="ContentPresenter.Opacity" Value="1.0" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="ButtonRootBorder.Background" Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
+                                        <Setter Target="ButtonRootBorder.BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+                                        <Setter Target="ContentPresenter.Opacity" Value="0.7" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="ButtonRootBorder.Background" Value="Transparent" />
+                                        <Setter Target="ContentPresenter.Opacity" Value="0.5" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Button.Template>
+
+            <!--  inner horizontal list of compact sensor graphs  -->
+            <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="4" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
+                        <fhGraph:SensorPanelControl
+                            Width="90"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            IsGraphHoverEnabled="False"
+                            IsHitTestVisible="False"
+                            ShowGraphCardBackground="True"
+                            ShowGraphLabel="False"
+                            ShowStatusRow="False"
+                            ShowThresholdControls="False"
+                            ShowThresholdFlyoutIndicator="False"
+                            ShowYAxisControls="False"
+                            ViewModel="{x:Bind}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Button>
     </Grid>
 </Window>

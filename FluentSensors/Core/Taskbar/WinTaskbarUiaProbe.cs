@@ -12,9 +12,8 @@ namespace FluentSensors.Core.Taskbar
     // frame root, the system tray, the widgets button);
     // GetWindowRect/SHAppBarMessage in WinTaskbarService only know the taskbar windows own bounds, not what
     // explorer.exe actually renders inside it
-    // every query can return null at any time (element not found, explorer.exe unresponsive, identifiers changed
-    // on this Windows build); this is optional enrichment only, all taskbar placement logic must keep working
-    // with this returning null forever
+    // every query can return null at any time; this is optional enrichment only, taskbar placement logic must
+    // keep working with this returning null
     public class WinTaskbarUiaProbe
     {
         // === fields ===
@@ -23,26 +22,14 @@ namespace FluentSensors.Core.Taskbar
         // also set as the native ConnectionTimeout/TransactionTimeout on the automation object itself
         private const int QueryTimeoutMs = 500;
 
-        // taskbar UI structure basically never changes while explorer.exe keeps running, no need to re-query more
-        // often than this
+        // taskbar UI structure basically never changes while explorer.exe keeps running, no need to re-query more often
         private const int CacheDurationMs = 5000;
 
         // KNOWN UNRELIABLE:
-        // these class names and automation ids have no official Microsoft documentation, they are internal
-        // implementation details of explorer.exes XAML Islands taskbar UI and are known to shift between Windows
-        // 11 builds
-        // confirmed against a live UIA tree dump on a real Windows 11 machine (WinTaskbarDebugDump.DumpTaskbarTree)
-        // initial guesses came from community reverse engineering and turned out wrong for two of the three:
-        // TaskbarFrame actually carries a real AutomationId, not just a ClassName, and there is no
-        // SystemTray.SystemTrayFrame in the live tree at all, the tray sits in a differently named classic Win32
-        // child window instead
-        // community sources for background, not the actual source of truth here:
-        // https://github.com/ramensoftware/windows-11-taskbar-styling-guide
-        // https://github.com/ramensoftware/windhawk-mods/discussions/679
-        // WidgetsButton was not observed in the tree at all (Widgets was disabled on the test machine), the
-        // automation id here is still unconfirmed but has no counter-evidence either
-        // a null Frame/Tray/WidgetsButton on the debug dump most likely means the identifier changed again on
-        // this Windows build, not that something is broken
+        // these class names and automation IDs have no official Microsoft documentation; they are internal
+        // implementation details of explorer.exes XAML Islands taskbar UI and can shift between Windows 11 builds
+        // confirmed against live UIA tree dumps on real Windows 11 hardware (WinTaskbarDebugDump.DumpTaskbarTree)
+        // TaskbarFrame carries a real AutomationId, TrayNotifyWnd is a classic Win32 child class name
         private const string TaskbarFrameAutomationId = "TaskbarFrame";
         private const string TrayClassName = "TrayNotifyWnd";
         private const string WidgetsButtonAutomationId = "WidgetsButton";
@@ -50,7 +37,7 @@ namespace FluentSensors.Core.Taskbar
         private readonly object _lock = new();
         private readonly Dictionary<IntPtr, (WinTaskbarUiaSnapshot? Snapshot, DateTime QueriedAt)> _cache = new();
 
-        private IUIAutomation2? _automation; // created once, reused for every query
+        private IUIAutomation2? _automation;
 
 
         // === singleton instance ===
@@ -66,8 +53,7 @@ namespace FluentSensors.Core.Taskbar
 
         // === public api ===
 
-        // never throws; a cached null is returned as-is, so a taskbar whose identifiers dont resolve on this
-        // Windows build does not retry a slow cross-process query on every single call
+        // returns cached or fresh snapshot; cached null is returned as-is to avoid continuous slow cross-process retries
         public WinTaskbarUiaSnapshot? Probe(IntPtr taskbarHwnd)
         {
             lock (_lock)
@@ -93,19 +79,15 @@ namespace FluentSensors.Core.Taskbar
         // === private helpers ===
 
         // background-thread timeout wrapper:
-        // UIA calls are synchronous COM with no cancellation support, if explorer.exe is genuinely hung the
-        // worker thread stays blocked forever inside the call, this just stops waiting on it here instead of
-        // trying to cancel it;
-        // a permanently-hung worker thread is a rare, cheap enough cost against never blocking the caller
+        // UIA calls are synchronous COM with no cancellation support; if explorer.exe hangs, the worker thread
+        // stays blocked inside the call, so this stops waiting instead of trying to cancel it
         private static WinTaskbarUiaSnapshot? RunWithTimeout(Func<WinTaskbarUiaSnapshot?> query)
         {
             var task = Task.Run(query);
             return task.Wait(QueryTimeoutMs) ? task.Result : null;
         }
 
-        // catches everything, not just COMException
-        // (this probe is optional enrichment only, every caller must keep working on null regardless of why a
-        // particular query failed)
+        // catches all exceptions; this probe is optional enrichment only
         private WinTaskbarUiaSnapshot? ProbeNow(IntPtr taskbarHwnd)
         {
             try
@@ -131,12 +113,8 @@ namespace FluentSensors.Core.Taskbar
             if (_automation == null)
             {
                 var automation = new CUIAutomation8();
-
-                // an unresponsive explorer.exe should time out instead of hanging every future call made through
-                // this same automation instance
                 automation.ConnectionTimeout = (uint)QueryTimeoutMs;
                 automation.TransactionTimeout = (uint)QueryTimeoutMs;
-
                 _automation = automation;
             }
 
@@ -144,7 +122,6 @@ namespace FluentSensors.Core.Taskbar
         }
 
         // full subtree search instead of just direct children
-        // (the exact tree depth to Frame/Tray/WidgetsButton has shifted between Windows builds before)
         private static IUIAutomationElement? FindDescendant(IUIAutomation2 automation, IUIAutomationElement root, int propertyId, string value)
         {
             var condition = automation.CreatePropertyCondition(propertyId, value);
@@ -155,7 +132,6 @@ namespace FluentSensors.Core.Taskbar
         {
             if (element == null) return null;
 
-            // tagRECT from the UIA typelib, left/top/right/bottom exactly like the native RECT struct
             var rect = element.CurrentBoundingRectangle;
 
             return new WinTaskbarUiaElement(

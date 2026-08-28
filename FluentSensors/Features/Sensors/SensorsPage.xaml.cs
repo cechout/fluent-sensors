@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 
 using FluentSensors.Features.Widget;
+using FluentSensors.Features.TaskbarWidget;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
 
@@ -95,9 +96,37 @@ namespace FluentSensors.Features.Sensors
         {
         }
 
-        // Phase 1: the taskbar widget window itself ships in a later phase, theres no action to perform yet
-        private void PinToTaskbar_Click(object sender, RoutedEventArgs e)
+        private async void PinToTaskbar_Click(object sender, RoutedEventArgs e)
         {
+            // opens or reconfigures the taskbar widget window with whatever is currently checked
+            // persistence already happened live as each checkbox was toggled, this button triggers the visual update
+            var selectedSensors = ViewModel.HardwareGroups
+                .SelectMany(group => group.Sensors)
+                .Where(sensor => sensor.IsSelected)
+                .ToList();
+
+            // show flyout when no sensor was selected
+            if (selectedSensors.Count == 0)
+            {
+                _infoBarTicket++;
+                int currentTicket = _infoBarTicket;
+
+                // show inforbar
+                AnimateInfoBar(-40, true);
+
+                await Task.Delay(2000);
+
+                if (currentTicket == _infoBarTicket)
+                {
+                    // hide infobar
+                    AnimateInfoBar(100, false);
+                }
+                return;
+            }
+
+            // reuses the existing taskbar widget window if one is embedded or was previously hidden, only creates a fresh
+            // native window if none exists yet at all
+            TaskbarWidgetWindow.ShowWithSensors(selectedSensors);
         }
 
         // switches which profile the checkboxes reflect and persist to, and swaps the action button in the command

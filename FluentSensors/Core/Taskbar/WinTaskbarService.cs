@@ -9,16 +9,12 @@ using Windows.Graphics;
 
 namespace FluentSensors.Core.Taskbar
 {
-    // finds every taskbar currently on screen (the primary one, plus one Shell_SecondaryTrayWnd per additional
-    // monitor) and polls their geometry
-    //
-    // pure detection service, knows nothing about FluentSensors itself; callers decide what a discovered taskbar
-    // means for widget placement
+    // finds every taskbar currently on screen (primary Shell_TrayWnd plus Shell_SecondaryTrayWnd per extra monitor)
+    // and polls their geometry
     public class WinTaskbarService
     {
         // === fields ===
 
-        // temp?
         private const int PollIntervalMs = 1000;
 
         private readonly object _lock = new();
@@ -40,9 +36,7 @@ namespace FluentSensors.Core.Taskbar
 
         // === public api ===
 
-        // latest snapshot from the polling loop, or from the most recent DiscoverNow() call if monitoring was never
-        // started;
-        // empty (never null) before the first discovery has run at all
+        // latest snapshot from polling loop or from most recent DiscoverNow call
         public IReadOnlyList<WinTaskbarInfo> CurrentTaskbars
         {
             get { lock (_lock) return _taskbars; }
@@ -50,7 +44,6 @@ namespace FluentSensors.Core.Taskbar
 
         public void StartMonitoring()
         {
-            // prevent double execution
             if (_cts != null) return;
 
             _cts = new CancellationTokenSource();
@@ -62,17 +55,13 @@ namespace FluentSensors.Core.Taskbar
             if (_cts == null) return;
 
             _cts.Cancel();
-
-            // block until the loop has fully exited, so once this method returns, callers can be 100% sure
-            // TaskbarsChanged will never fire again
             _loopTask?.Wait(2000);
 
             _cts = null;
             _loopTask = null;
         }
 
-        // one-shot discovery outside the polling loop; used by the debug dump and by any caller that just needs the
-        // current state once without starting continuous monitoring
+        // one-shot discovery outside polling loop
         public List<WinTaskbarInfo> DiscoverNow()
         {
             var found = FindAllTaskbars();
@@ -86,14 +75,12 @@ namespace FluentSensors.Core.Taskbar
 
         // === events ===
 
-        // fires only when the discovered set actually changed since the previous tick (new/removed taskbar, moved
-        // edge, resized, dpi change, autohide toggled); a tick where nothing changed stays silent
+        // fires only when discovered taskbar set or geometry actually changed since the previous tick
         public event Action<IReadOnlyList<WinTaskbarInfo>>? TaskbarsChanged;
 
 
         // === private helpers ===
 
-        // polling loop
         private async Task LoopAsync(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
@@ -107,8 +94,6 @@ namespace FluentSensors.Core.Taskbar
                     _taskbars = found;
                 }
 
-                // extra guard: skip the event entirely if a shutdown was requested while we were building the
-                // snapshot above
                 if (token.IsCancellationRequested) break;
 
                 if (changed)
@@ -122,15 +107,12 @@ namespace FluentSensors.Core.Taskbar
                 }
                 catch (OperationCanceledException)
                 {
-                    // StopMonitoring cancelled the token while we were waiting; exit the loop cleanly here so the
-                    // task completes normally instead of ending up in the Canceled state
                     break;
                 }
             }
         }
 
-        // discovery: primary taskbar (Shell_TrayWnd, exactly one) plus every secondary taskbar
-        // (Shell_SecondaryTrayWnd, one per additional monitor, zero on a single-monitor system)
+        // queries primary (Shell_TrayWnd) plus every secondary taskbar (Shell_SecondaryTrayWnd)
         private static List<WinTaskbarInfo> FindAllTaskbars()
         {
             var result = new List<WinTaskbarInfo>();
@@ -163,8 +145,6 @@ namespace FluentSensors.Core.Taskbar
             return result;
         }
 
-        // null if the window disappeared between being found and being queried (Explorer restart, monitor unplugged
-        // mid-poll); callers just skip it for this tick rather than throwing
         private static WinTaskbarInfo? BuildTaskbarInfo(IntPtr hwnd)
         {
             if (!NativeMethods.GetWindowRect(hwnd, out var rect)) return null;
@@ -176,10 +156,7 @@ namespace FluentSensors.Core.Taskbar
             };
             NativeMethods.SHAppBarMessage(NativeMethods.ABM_GETTASKBARPOS, ref positionData);
 
-            // ABM_GETSTATE reports the primary taskbars autohide state process-wide;
-            // Windows has no per-monitor variant of this exact call
-            // (ABM_GETAUTOHIDEBAREX exists but takes a monitor rect, not investigated yet);
-            // so every taskbar currently reports the same IsAutoHide value regardless of which monitor its on
+            // ABM_GETSTATE reports primary taskbar autohide state process-wide
             var stateData = new NativeMethods.APPBARDATA
             {
                 cbSize = (uint)Marshal.SizeOf<NativeMethods.APPBARDATA>()
@@ -202,7 +179,7 @@ namespace FluentSensors.Core.Taskbar
             1 => ScreenEdge.Top,
             2 => ScreenEdge.Right,
             3 => ScreenEdge.Bottom,
-            _ => ScreenEdge.Bottom 
+            _ => ScreenEdge.Bottom
         };
     }
 }

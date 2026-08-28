@@ -192,13 +192,6 @@ namespace FluentSensors
             if (_isHardwareServiceLoaded) return;
             _isHardwareServiceLoaded = true;
 
-            // TEMP: shows the taskbar widget skeleton window (step 1 of Phase 3, fixed placeholder
-            // position at screen center, no real taskbar geometry yet); remove once the widget has
-            // a real trigger
-            // deliberately here and not in the constructor: creating a second WinUI Window from
-            // inside another Windows constructor runs before the visual tree exists
-            FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow.ShowWidget();
-
             await StartHardwareServiceAsync(); // load the HardwareMonitorService singleton instance asynchronously
         }
 
@@ -280,6 +273,9 @@ namespace FluentSensors
 
             // re-open the widget window with its previously pinned sensors, if it was still open when the app last closed
             TryRestoreWidgetWindow();
+
+            // re-open the taskbar widget with its pinned sensors if any are configured
+            TryRestoreTaskbarWidgetWindow();
         }
 
         // re-creates the widget window with whichever previously pinned sensors still exist on
@@ -296,6 +292,18 @@ namespace FluentSensors
             if (pinnedSensors.Count == 0) return; // none of them exist on this system anymore
 
             WidgetWindow.ShowWithSensors(pinnedSensors);
+        }
+
+        // re-creates the taskbar widget with whichever sensors are currently pinned under the taskbar profile
+        private void TryRestoreTaskbarWidgetWindow()
+        {
+            var pinnedSensorIds = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.Taskbar);
+            if (pinnedSensorIds.Count == 0) return;
+
+            var pinnedSensors = FindSensorRowsByIds(pinnedSensorIds);
+            if (pinnedSensors.Count == 0) return;
+
+            FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow.ShowWithSensors(pinnedSensors);
         }
 
         // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, preserving the original
