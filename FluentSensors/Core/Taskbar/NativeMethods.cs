@@ -32,6 +32,13 @@ namespace FluentSensors.Core.Taskbar
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        internal struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
         internal struct MONITORINFO
         {
             public uint cbSize;
@@ -159,6 +166,30 @@ namespace FluentSensors.Core.Taskbar
 
         [LibraryImport("user32.dll", EntryPoint = "SetWindowLongW")]
         internal static partial int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+
+        // === window styles (child embedding) ===
+
+        // a window handed to SetParent has to stop being a popup and become a child, otherwise it
+        // keeps behaving like a separate top level window despite having a parent
+        // WS_EX_TOPMOST has to come off at the same time: a child window is ordered inside its parent,
+        // not in the systems topmost band, the two are mutually exclusive
+        internal const int GWL_STYLE = -16;
+        internal const int WS_CHILD = 0x40000000;
+        internal const int WS_POPUP = unchecked((int)0x80000000);
+        internal const int WS_EX_TOPMOST = 0x00000008;
+
+        internal const uint SWP_FRAMECHANGED = 0x0020; // makes a GWL_STYLE change actually take effect
+        internal const uint SWP_SHOWWINDOW = 0x0040;
+
+        [LibraryImport("user32.dll", SetLastError = true)]
+        internal static partial IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+
+        // once embedded, our position counts from the parents client area, not from the screen;
+        // works across processes since it is pure coordinate math, no message is sent to the parent
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
 
 
         // === window z-order (topmost) ===

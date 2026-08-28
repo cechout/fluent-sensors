@@ -11,42 +11,47 @@ using FluentSensors.Core.Taskbar;
 
 namespace FluentSensors.Features.TaskbarWidget
 {
-    // skeleton for the taskbar widget window, step 1 of Phase 3: proves the window shows up, sits
-    // on top, and is clickable without stealing activation, at a fixed placeholder position
-    // real taskbar-anchored placement, the poll loop, and visibility rules come in a later step,
-    // once this shell itself is confirmed working
+    // the taskbar widget window, embedded as a child of Shell_TrayWnd rather than floating above it
+    //
+    // the earlier approach kept the window topmost and corrected its z-order whenever something covered it;
+    // that could not work by design, see WinTaskbarEmbedder for why, and every correction was visible as a
+    // flicker
+    //
+    // still MVP: primary taskbar only, End anchor hardcoded, fixed offset, placement calculated once
+    // not wired in yet, all still on the plan: re-embedding after an explorer restart, reacting to taskbar
+    // geometry changes, and the visibility rules (fullscreen/autohide/vertical bar)
     public sealed partial class TaskbarWidgetWindow : Window
     {
         // === win32 api imports ===
 
-        // TEMP: only for step 1, so a construction failure becomes an unmissable native dialog
-        // instead of silently doing nothing; remove once the window reliably shows
+        // TEMP: so a construction or embedding failure becomes an unmissable native dialog instead of silently
+        // showing nothing, which cost several rounds of guessing before; remove once this is settled
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
 
 
         // === fields ===
 
+        private const int WidgetWidth = 250;
+        private const int WidgetHeight = 48;
+        private const int AnchorOffset = 8; // gap between the widget and the anchored end of the taskbar
+
         private AppWindow _appWindow;
+        private IntPtr _hwnd;
+        private IntPtr _taskbarHwnd; // parent we are embedded into, zero while detached
         private WindowMessageMonitor _nonActivatingMonitor; // see WinNonActivatingWindow.Apply, must stay alive
-        private NativeMethods.WinEventProc _foregroundChangedCallback; // must stay alive, see constructor
-        private IntPtr _foregroundHook; // released in AppWindow_Closing
-        private DispatcherQueueTimer _topmostTimer; // must stay alive, see constructor
-        private bool _isReassertingTopmost; // reentrancy guard, see ReassertTopmost in the constructor
+        private DispatcherQueueTimer _watchdogTimer; // TEMP, see constructor, must stay alive
+        private bool _isEmbedded;
         private static TaskbarWidgetWindow _retainedInstance;
         public static TaskbarWidgetWindow CurrentInstance { get; private set; }
 
-        private int _clickCount = 0; // step 1 only, proves clicks land without needing Debug output
+        private int _clickCount = 0; // proves clicks land without needing Debug output
 
 
         // === constructor ===
 
         public TaskbarWidgetWindow()
         {
-            // TEMP: round 3 wrapped in try/catch, round 1 and 2 both silently showed nothing with no
-            // crash and no error, which is not normal WinUI 3 behavior for a real exception, strong
-            // sign something was throwing during construction and getting swallowed somewhere above
-            // this; this makes any such exception impossible to miss instead of guessing again
             try
             {
                 this.InitializeComponent();
@@ -54,6 +59,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 _appWindow = this.AppWindow;
                 _appWindow.IsShownInSwitchers = false;
+                _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
                 // --- workaround: CreateForContextMenu crashes unpackaged ---
                 // problem: OverlappedPresenter.CreateForContextMenu() throws a TargetInvocationException
@@ -67,110 +73,37 @@ namespace FluentSensors.Features.TaskbarWidget
                 presenter.IsResizable = false;
                 presenter.IsMaximizable = false;
                 presenter.IsMinimizable = false;
-                presenter.IsAlwaysOnTop = true;
+                // deliberately no IsAlwaysOnTop: an embedded child is ordered inside the taskbar and is not
+                // part of the topmost band at all, see WinTaskbarEmbedder
                 _appWindow.SetPresenter(presenter);
-
-                // step 2: real taskbar-anchored placement, replaces the screen-center placeholder
-                // from step 1
-                // still MVP: primary taskbar only (first entry from WinTaskbarService; Shell_TrayWnd
-                // is always found before any Shell_SecondaryTrayWnd, see
-                // WinTaskbarService.FindAllTaskbars), End anchor hardcoded, fixed offset, one-time
-                // placement at construction
-                // not wired in yet, all still on the plan: poll loop, topmost reassertion, and the
-                // visibility rules (fullscreen/autohide/vertical bar/...)
-                const int width = 250;
-                const int height = 48;
-                const int offset = 8;
-                var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
-
-                Windows.Graphics.RectInt32 targetRect;
-                if (primaryTaskbar != null)
-                {
-                    targetRect = TaskbarWidgetPlacement.Calculate(primaryTaskbar, TaskbarAnchor.End, offset, width, height);
-                }
-                else
-                {
-                    // no taskbar found at all (Explorer not running yet, or FindWindowExW failed);
-                    // falls back to the step 1 screen-center placeholder so the window still shows
-                    // up somewhere instead of at 0,0
-                    var workArea = DisplayArea.Primary.WorkArea;
-                    targetRect = new Windows.Graphics.RectInt32(
-                        workArea.X + (workArea.Width - width) / 2,
-                        workArea.Y + (workArea.Height - height) / 2,
-                        width,
-                        height);
-                }
-                _appWindow.MoveAndResize(targetRect);
-
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
                 _appWindow.Closing += AppWindow_Closing;
 
-                // step 3, round 3: the window never actually loses WS_EX_TOPMOST, it gets pushed below
-                // the taskbar inside the topmost band whenever Explorer raises the bar on a foreground
-                // change; listening for WM_WINDOWPOSCHANGED on our own window could never catch that,
-                // since that message only reaches the window whose own position changed, which is why
-                // round 2 did nothing and the flicker still lasted exactly one polling interval
-                // SetWinEventHook fires system-wide the instant the foreground window changes, which
-                // is the actual trigger, so the correction happens in the same moment instead of
-                // however long the next tick takes
-                // reentrancy guard: our own SetWindowPos can re-enter through the hook
-                void ReassertTopmost()
-                {
-                    if (_isReassertingTopmost) return;
+                // embedding waits for Loaded rather than running straight from the constructor: reparenting a
+                // window whose content is not up yet left it invisible in an earlier round, and Loaded is the
+                // signal that the visual tree is actually there, instead of guessing at a delay
+                ((FrameworkElement)this.Content).Loaded += (s, e) => EmbedIntoTaskbar();
 
-                    // skip the actual correction when nothing is above us already; confirmed on
-                    // hardware that calling SetWindowPos unconditionally on every event is what
-                    // caused the brief visible blink on every single window switch
-                    if (NativeMethods.GetWindow(hwnd, NativeMethods.GW_HWNDPREV) == IntPtr.Zero) return;
-
-                    _isReassertingTopmost = true;
-                    try
-                    {
-                        NativeMethods.SetWindowPos(hwnd, NativeMethods.HWND_TOPMOST, 0, 0, 0, 0,
-                            NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE);
-                    }
-                    finally
-                    {
-                        _isReassertingTopmost = false;
-                    }
-                }
-
-                // field, not a local: native code holds the raw pointer, a local would let the GC
-                // collect the delegate while the hook is still installed
-                _foregroundChangedCallback = (hook, eventType, eventHwnd, idObject, idChild, thread, time) => ReassertTopmost();
-                _foregroundHook = NativeMethods.SetWinEventHook(
-                    NativeMethods.EVENT_SYSTEM_FOREGROUND,
-                    NativeMethods.EVENT_SYSTEM_MINIMIZEEND,
-                    IntPtr.Zero,
-                    _foregroundChangedCallback,
-                    0, // all processes
-                    0, // all threads
-                    NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
-
-                // shortened from 2s: covers whatever this widened range still does not catch, kept
-                // tight since a miss should self-heal fast, not visibly stay wrong for seconds
-                _topmostTimer = DispatcherQueue.CreateTimer();
-                _topmostTimer.Interval = TimeSpan.FromMilliseconds(300);
-                _topmostTimer.IsRepeating = true;
-                _topmostTimer.Tick += (s, e) => ReassertTopmost();
-                _topmostTimer.Start();
-
-                // show completely normally first, exactly like WidgetWindow does; apply NOACTIVATE
-                // only once the window is already up, the same order that worked for the MainWindow
-                // test; means a brief, one-time activation flash the first time the widget appears
-                // each session, acceptable for step 1, revisit once the core mechanism is confirmed
                 this.Activate();
-                var tempTimer = DispatcherQueue.CreateTimer();
-                tempTimer.Interval = TimeSpan.FromSeconds(3);
-                tempTimer.IsRepeating = false;
-                tempTimer.Tick += (s, e) =>
+
+                // TEMP: closes the one failure mode that cost the most time before, where nothing happened at
+                // all and there was no way to tell whether the code had even run
+                // remove together with the MessageBox helper once embedding is settled
+                _watchdogTimer = DispatcherQueue.CreateTimer();
+                _watchdogTimer.Interval = TimeSpan.FromSeconds(3);
+                _watchdogTimer.IsRepeating = false;
+                _watchdogTimer.Tick += (s, e) =>
                 {
-                    _nonActivatingMonitor = WinNonActivatingWindow.Apply(hwnd);
-                    TestButton.Content = "Non-activating now, test clicking";
-                    tempTimer.Stop();
+                    _watchdogTimer.Stop();
+                    if (_isEmbedded) return;
+
+                    MessageBoxW(IntPtr.Zero,
+                        "Window was constructed but never got embedded, Loaded probably never fired.\n\n" +
+                        $"hwnd: {_hwnd}\n" +
+                        $"appWindow visible: {_appWindow?.IsVisible}",
+                        "TEMP: taskbar widget", 0);
                 };
-                tempTimer.Start();
+                _watchdogTimer.Start();
             }
             catch (Exception ex)
             {
@@ -193,42 +126,62 @@ namespace FluentSensors.Features.TaskbarWidget
                 _retainedInstance = null;
                 CurrentInstance = window;
 
-                // both were torn down on hide, see AppWindow_Closing; the callback delegate itself
-                // survives on the instance, so reinstalling is enough
-                window._foregroundHook = NativeMethods.SetWinEventHook(
-                    NativeMethods.EVENT_SYSTEM_FOREGROUND,
-                    NativeMethods.EVENT_SYSTEM_MINIMIZEEND,
-                    IntPtr.Zero,
-                    window._foregroundChangedCallback,
-                    0,
-                    0,
-                    NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
-                window._topmostTimer?.Start();
-
-                // not yet verified on hardware: NOACTIVATE is already applied on this hwnd from the
-                // first show, so Show(false) should be safe here even though it was not for the very
-                // first, not-yet-rendered show further up; worth confirming once this path is reached
+                // detached on hide, so this has to embed again rather than just show
+                // not verified on hardware yet, nothing reaches this path while the widget has no close path
                 window._appWindow.Show(false);
+                window.EmbedIntoTaskbar();
                 return;
             }
 
             _ = new TaskbarWidgetWindow();
+        }
 
-            // TEMP: step 1 safety net, three rounds ended in "nothing happens at all" with no way to
-            // tell apart "never ran", "threw", and "ran but stayed invisible"; the constructor
-            // catches its own exceptions, this covers the remaining silent case
-            // fully null safe on purpose: if construction aborted midway, _appWindow can still be null
-            // while CurrentInstance is already set
-            var w = CurrentInstance;
-            if (w?._appWindow == null || !w._appWindow.IsVisible)
+
+        // === embedding ===
+
+        // finds the primary taskbar, works out where on it the widget belongs, and reparents into it
+        private void EmbedIntoTaskbar()
+        {
+            try
             {
-                MessageBoxW(IntPtr.Zero,
-                    $"instance created: {w != null}\n" +
-                    $"appWindow created: {w?._appWindow != null}\n" +
-                    $"appWindow visible: {w?._appWindow?.IsVisible}\n" +
-                    $"position: {w?._appWindow?.Position}\n" +
-                    $"size: {w?._appWindow?.Size}",
-                    "TEMP: widget did not become visible", 0);
+                // Shell_TrayWnd is always found before any Shell_SecondaryTrayWnd, see
+                // WinTaskbarService.FindAllTaskbars, so the first entry is the primary bar
+                var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
+                if (primaryTaskbar == null)
+                {
+                    MessageBoxW(IntPtr.Zero,
+                        "No taskbar found, nothing to embed into.",
+                        "TEMP: taskbar widget", 0);
+                    return;
+                }
+
+                _taskbarHwnd = primaryTaskbar.Hwnd;
+                var screenRect = TaskbarWidgetPlacement.Calculate(
+                    primaryTaskbar, TaskbarAnchor.End, AnchorOffset, WidgetWidth, WidgetHeight);
+
+                if (!WinTaskbarEmbedder.Embed(_hwnd, _taskbarHwnd, screenRect, out int errorCode))
+                {
+                    _taskbarHwnd = IntPtr.Zero;
+                    MessageBoxW(IntPtr.Zero,
+                        $"SetParent into the taskbar failed.\n\n" +
+                        $"win32 error: {errorCode}\n" +
+                        $"taskbar hwnd: {primaryTaskbar.Hwnd}\n" +
+                        $"target rect: {screenRect.X},{screenRect.Y} {screenRect.Width}x{screenRect.Height}",
+                        "TEMP: taskbar widget", 0);
+                    return;
+                }
+
+                // possibly redundant now: a child windows clicks activate its top level ancestor, which is the
+                // taskbar rather than us, so there may be no activation left to suppress
+                // kept because it is verified working and costs one call, worth removing once confirmed unneeded
+                _nonActivatingMonitor = WinNonActivatingWindow.Apply(_hwnd);
+
+                _isEmbedded = true;
+                TestButton.Content = "Embedded, test clicking";
+            }
+            catch (Exception ex)
+            {
+                MessageBoxW(IntPtr.Zero, ex.ToString(), "TEMP: embedding failed", 0);
             }
         }
 
@@ -256,12 +209,13 @@ namespace FluentSensors.Features.TaskbarWidget
             CurrentInstance = null;
             _retainedInstance = this;
 
-            // stop correcting z-order while hidden; both get set up again on the next ShowWidget
-            _topmostTimer?.Stop();
-            if (_foregroundHook != IntPtr.Zero)
+            // detach before hiding so AppWindow keeps operating on a plain top level window while the widget
+            // is away; ShowWidget embeds again on the way back
+            if (_taskbarHwnd != IntPtr.Zero)
             {
-                NativeMethods.UnhookWinEvent(_foregroundHook);
-                _foregroundHook = IntPtr.Zero;
+                WinTaskbarEmbedder.Detach(_hwnd);
+                _taskbarHwnd = IntPtr.Zero;
+                _isEmbedded = false;
             }
 
             _appWindow.Hide();
