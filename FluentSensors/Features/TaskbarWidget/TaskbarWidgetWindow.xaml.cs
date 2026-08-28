@@ -32,9 +32,14 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === fields ===
 
-        private const int WidgetWidth = 250;
-        private const int WidgetHeight = 48;
-        private const int AnchorOffset = 8; // gap between the widget and the anchored end of the taskbar
+        // logical pixels, scaled to the taskbars DPI before use, so these read the same at any scaling
+        private const int WidgetWidthDip = 250;
+        private const int AnchorOffsetDip = 8; // gap between the widget and the anchored end of the taskbar
+        private const int VerticalMarginDip = 2; // gap above and below the widget, the height follows from it
+
+        // TEMP: Start while testing, so the widget sits on the empty left side instead of fighting the system
+        // tray on the right; becomes a user setting later
+        private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
 
         private AppWindow _appWindow;
         private IntPtr _hwnd;
@@ -156,8 +161,16 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
 
                 _taskbarHwnd = primaryTaskbar.Hwnd;
+
+                // everything below works in physical pixels, which is what the taskbar rect and SetWindowPos
+                // both use, so the logical constants get scaled once here
+                double scale = primaryTaskbar.Dpi / 96.0;
                 var screenRect = TaskbarWidgetPlacement.Calculate(
-                    primaryTaskbar, TaskbarAnchor.End, AnchorOffset, WidgetWidth, WidgetHeight);
+                    primaryTaskbar,
+                    Anchor,
+                    (int)(AnchorOffsetDip * scale),
+                    (int)(WidgetWidthDip * scale),
+                    (int)(VerticalMarginDip * scale));
 
                 if (!WinTaskbarEmbedder.Embed(_hwnd, _taskbarHwnd, screenRect, out int errorCode))
                 {
