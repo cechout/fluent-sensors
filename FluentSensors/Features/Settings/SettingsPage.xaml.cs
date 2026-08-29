@@ -508,6 +508,7 @@ namespace FluentSensors.Features.Settings
             if (await ConfirmReset("Sensor States"))
             {
                 PersistenceService.Instance.ResetSensorStates();
+                PersistenceService.Instance.ResetSensorSelections();
                 RestartApp();
             }
         }
