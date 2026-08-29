@@ -215,5 +215,9 @@ namespace FluentSensors.Core.Taskbar
         [LibraryImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool TrackMouseEvent(ref TRACKMOUSEEVENT lpEventTrack);
+
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool GetCursorPos(out POINT lpPoint);
     }
 }

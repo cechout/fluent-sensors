@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Windows.Graphics;
 using WinUIEx;
 using WinUIEx.Messaging;
 
@@ -38,6 +39,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // logical pixels, scaled to the taskbars DPI before use, so these read the same at any scaling
         private const int VerticalMarginDip = 2; // gap above and below the widget; height follows from it
         private const int AnchorOffsetDip = 8; // gap between the widget and the anchored end of the taskbar
+        private const int TaskbarHorizontalPaddingDip = 8; // minimum margin to the outer left/right edges of the taskbar
         private const int SensorSlotWidthDip = 120; // width per pinned sensor slot
         private const int SensorSlotSpacingDip = 8; // spacing between sensor slots
         private const int ButtonPaddingDip = 0; // inner horizontal padding of the taskbar button
@@ -45,6 +47,18 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // Start while testing; will become a user setting later
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
+
+        // --- drag-to-reposition settings ---
+        private const int DragThresholdPixels = 4; // minimum movement in physical pixels before entering drag mode
+        private bool _isPotentialDrag;
+        private bool _isDragging;
+        private bool _suppressClick;
+        private int _dragStartCursorScreenX;
+        private int _dragStartWindowScreenX;
+        private RectInt32 _dragTaskbarRect;
+        private uint _dragTaskbarDpi;
+        private RectInt32 _currentScreenRect;
+        private int _currentOffsetDip = AnchorOffsetDip;
 
         // --- taskbar button animation timings (in milliseconds) ---
         private const int HoverBackgroundDelayMs = 0; // delay before hover background starts (Standard Windows: 0ms)
@@ -113,9 +127,11 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 _appWindow.Closing += AppWindow_Closing;
 
-                // wire left-button press/release animations even when Button internally handles clicks
+                // wire left-button press/release/drag animations and movement even when Button internally handles clicks
                 TaskbarButton.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(TaskbarButton_PointerPressed), true);
                 TaskbarButton.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(TaskbarButton_PointerReleased), true);
+                TaskbarButton.AddHandler(UIElement.PointerMovedEvent, new PointerEventHandler(TaskbarButton_PointerMoved), true);
+                TaskbarButton.AddHandler(UIElement.PointerCaptureLostEvent, new PointerEventHandler(TaskbarButton_PointerCaptureLost), true);
 
                 TaskbarButton.Loaded += (s, e) =>
                 {
@@ -206,13 +222,15 @@ namespace FluentSensors.Features.TaskbarWidget
                 _taskbarHwnd = primaryTaskbar.Hwnd;
 
                 int widthDip = CalculateWidgetWidthDip(ViewModel.PinnedSensors.Count);
-                double scale = primaryTaskbar.Dpi / 96.6;
+                double scale = primaryTaskbar.Dpi / 96.0;
                 var screenRect = TaskbarWidgetPlacement.Calculate(
                     primaryTaskbar,
                     Anchor,
-                    (int)(AnchorOffsetDip * scale),
+                    (int)(_currentOffsetDip * scale),
                     (int)(widthDip * scale),
                     (int)(VerticalMarginDip * scale));
+
+                _currentScreenRect = screenRect;
 
                 if (!WinTaskbarEmbedder.Embed(_hwnd, _taskbarHwnd, screenRect, out int errorCode))
                 {
@@ -282,10 +300,11 @@ namespace FluentSensors.Features.TaskbarWidget
             var screenRect = TaskbarWidgetPlacement.Calculate(
                 primaryTaskbar,
                 Anchor,
-                (int)(AnchorOffsetDip * scale),
+                (int)(_currentOffsetDip * scale),
                 (int)(widthDip * scale),
                 (int)(VerticalMarginDip * scale));
 
+            _currentScreenRect = screenRect;
             WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
         }
 
@@ -437,6 +456,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void TaskbarButton_PointerExited(object sender, PointerRoutedEventArgs e)
         {
+            if (_isDragging) return;
+
             _isPointerOver = false;
             EnsureCompositionElements();
             if (_compositor == null) return;
@@ -475,6 +496,22 @@ namespace FluentSensors.Features.TaskbarWidget
             var ptr = e?.GetCurrentPoint(TaskbarButton);
             if (ptr != null && !ptr.Properties.IsLeftButtonPressed) return;
 
+            if (NativeMethods.GetCursorPos(out var cursorPos))
+            {
+                _dragStartCursorScreenX = cursorPos.X;
+                _dragStartWindowScreenX = _currentScreenRect.X;
+                _isPotentialDrag = true;
+                _isDragging = false;
+                _suppressClick = false;
+
+                var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
+                if (primaryTaskbar != null)
+                {
+                    _dragTaskbarRect = primaryTaskbar.Rect;
+                    _dragTaskbarDpi = primaryTaskbar.Dpi;
+                }
+            }
+
             EnsureCompositionElements();
 
             // hide hover background so ONLY the pressed background is rendered (prevents double-layering)
@@ -499,8 +536,61 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        private void TaskbarButton_PointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_isPotentialDrag || !_isEmbedded || _taskbarHwnd == IntPtr.Zero) return;
+
+            if (!NativeMethods.GetCursorPos(out var currentCursorPos)) return;
+
+            int deltaX = currentCursorPos.X - _dragStartCursorScreenX;
+
+            if (!_isDragging && Math.Abs(deltaX) >= DragThresholdPixels)
+            {
+                _isDragging = true;
+                if (e != null)
+                {
+                    TaskbarButton.CapturePointer(e.Pointer);
+                }
+            }
+
+            if (_isDragging && _dragTaskbarRect.Width > 0)
+            {
+                double scale = (_dragTaskbarDpi > 0 ? _dragTaskbarDpi : 96.0) / 96.0;
+                int paddingPx = (int)Math.Round(TaskbarHorizontalPaddingDip * scale);
+
+                int minX = _dragTaskbarRect.X + paddingPx;
+                int maxX = _dragTaskbarRect.X + _dragTaskbarRect.Width - _currentScreenRect.Width - paddingPx;
+                if (maxX < minX) maxX = minX;
+
+                int targetScreenX = Math.Clamp(_dragStartWindowScreenX + deltaX, minX, maxX);
+
+                if (targetScreenX != _currentScreenRect.X)
+                {
+                    _currentScreenRect = new RectInt32(targetScreenX, _currentScreenRect.Y, _currentScreenRect.Width, _currentScreenRect.Height);
+                    WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, _currentScreenRect);
+
+                    _currentOffsetDip = (int)Math.Round((targetScreenX - _dragTaskbarRect.X) / scale);
+                }
+            }
+        }
+
         private void TaskbarButton_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
+            if (_isDragging)
+            {
+                if (e != null)
+                {
+                    try { TaskbarButton.ReleasePointerCapture(e.Pointer); } catch { }
+                }
+                _isDragging = false;
+                _isPotentialDrag = false;
+                _suppressClick = true;
+            }
+            else
+            {
+                _isPotentialDrag = false;
+            }
+
             EnsureCompositionElements();
 
             if (_pressedVisual != null)
@@ -508,10 +598,43 @@ namespace FluentSensors.Features.TaskbarWidget
                 _pressedVisual.Opacity = 0.0f;
             }
 
-            // restore hover background if still hovered
-            if (_backgroundVisual != null && _isPointerOver)
+            // determine if pointer is still over the button in its new position
+            bool isOverNow = false;
+            if (NativeMethods.GetCursorPos(out var pt))
             {
-                _backgroundVisual.Opacity = 1.0f;
+                isOverNow = (pt.X >= _currentScreenRect.X && pt.X <= _currentScreenRect.X + _currentScreenRect.Width &&
+                             pt.Y >= _currentScreenRect.Y && pt.Y <= _currentScreenRect.Y + _currentScreenRect.Height);
+            }
+            _isPointerOver = isOverNow;
+
+            // restore hover background if still hovered, else fade out stroke
+            if (_backgroundVisual != null)
+            {
+                if (isOverNow)
+                {
+                    _backgroundVisual.Opacity = 1.0f;
+                }
+                else
+                {
+                    var bgAnim = _compositor?.CreateScalarKeyFrameAnimation();
+                    if (bgAnim != null)
+                    {
+                        bgAnim.InsertKeyFrame(1.0f, 0.0f);
+                        bgAnim.Duration = TimeSpan.FromMilliseconds(ExitBackgroundDurationMs);
+                        _backgroundVisual.StartAnimation("Opacity", bgAnim);
+                    }
+                }
+            }
+
+            if (_strokeVisual != null && !isOverNow)
+            {
+                var strokeAnim = _compositor?.CreateScalarKeyFrameAnimation();
+                if (strokeAnim != null)
+                {
+                    strokeAnim.InsertKeyFrame(1.0f, 0.0f);
+                    strokeAnim.Duration = TimeSpan.FromMilliseconds(ExitStrokeDurationMs);
+                    _strokeVisual.StartAnimation("Opacity", strokeAnim);
+                }
             }
 
             if (_contentVisual != null && _compositor != null)
@@ -523,13 +646,30 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        private void TaskbarButton_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
+        {
+            _isDragging = false;
+            _isPotentialDrag = false;
+            _suppressClick = false;
+            TaskbarButton_PointerExited(sender, e);
+        }
+
         private void TaskbarButton_PointerCanceled(object sender, PointerRoutedEventArgs e)
         {
+            _isDragging = false;
+            _isPotentialDrag = false;
+            _suppressClick = false;
             TaskbarButton_PointerExited(sender, e);
         }
 
         private void TaskbarButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_suppressClick)
+            {
+                _suppressClick = false;
+                return;
+            }
+
             // opens animated popup flyout window above taskbar widget
         }
 
