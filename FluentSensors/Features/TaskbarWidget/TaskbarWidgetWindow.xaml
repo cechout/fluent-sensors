@@ -33,17 +33,31 @@
             <Button.Template>
                 <ControlTemplate TargetType="Button">
                     <Grid>
-                        <!--  background fill layer (animated via DirectComposition)  -->
+                        <!--  normal hover fill layer (animated via DirectComposition)  -->
                         <Border
                             x:Name="BackgroundBorder"
                             Background="{ThemeResource TaskbarButtonHoverBackground}"
                             CornerRadius="4"
                             Opacity="0" />
 
-                        <!--  pressed fill overlay layer (instant feedback via DirectComposition)  -->
+                        <!--  normal pressed fill overlay layer  -->
                         <Border
                             x:Name="PressedBorder"
                             Background="{ThemeResource TaskbarButtonPressedBackground}"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  active flyout hover fill layer (#323232 on-screen, DWM compensated)  -->
+                        <Border
+                            x:Name="ActiveHoverBorder"
+                            Background="{ThemeResource TaskbarButtonActiveHoverBackground}"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  active flyout pressed fill layer (#2a2a2a on-screen, DWM compensated)  -->
+                        <Border
+                            x:Name="ActivePressedBorder"
+                            Background="{ThemeResource TaskbarButtonActivePressedBackground}"
                             CornerRadius="4"
                             Opacity="0" />
 

@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Windows.Graphics;
 using WinUIEx;
@@ -47,6 +48,17 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // Start while testing; will become a user setting later
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
+
+        // --- Taskbar Startup Animation Settings ---
+
+        // startup slide distance in DIP/pixels (e.g. 30 to 60)
+        public const int TaskbarStartupSlideDistanceDip = 40;
+
+        // startup animation duration in milliseconds
+        public const int TaskbarStartupDurationMs = 260;
+
+        // startup fade opacity (0.0f = full fade in, 1.0f = no fade)
+        public const float TaskbarStartupStartOpacity = 0.0f;
 
         // --- drag-to-reposition settings ---
         private const int DragThresholdPixels = 4; // minimum movement in physical pixels before entering drag mode
@@ -127,6 +139,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 _appWindow.Closing += AppWindow_Closing;
 
+                SettingsService.Instance.TaskbarGraphWidthChanged += OnTaskbarGraphWidthChanged;
+
                 // wire left-button press/release/drag animations and movement even when Button internally handles clicks
                 TaskbarButton.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(TaskbarButton_PointerPressed), true);
                 TaskbarButton.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(TaskbarButton_PointerReleased), true);
@@ -201,6 +215,9 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 PositionOnTaskbar();
             }
+
+            // reset flyout size on button click so it is cleanly recalculated
+            TaskbarFlyoutWindow.ResetGeometry();
         }
 
 
@@ -283,6 +300,9 @@ namespace FluentSensors.Features.TaskbarWidget
                 _embedAttempt = 0;
                 _isEmbedded = true;
 
+                // play smooth slide-up startup animation on TaskbarButton
+                PlayStartupAnimation();
+
                 // preload flyout window into memory to eliminate first-open latency
                 TaskbarFlyoutWindow.Preload(this);
             }
@@ -321,42 +341,86 @@ namespace FluentSensors.Features.TaskbarWidget
                 var retryTimer = DispatcherQueue.CreateTimer();
                 retryTimer.Interval = EmbedRetryDelay;
                 retryTimer.IsRepeating = false;
-                retryTimer.Tick += (s, e) =>
-                {
-                    retryTimer.Stop();
-                    EmbedIntoTaskbar();
-                };
+                retryTimer.Tick += (s, e) => EmbedIntoTaskbar();
                 retryTimer.Start();
-                return;
+            }
+            else
+            {
+                _embedGaveUp = true;
+                ShowErrorMessage("Fluent Sensors", $"Taskbar widget embedding failed after {MaxEmbedAttempts} attempts:\n\n{reason}");
+            }
+        }
+
+        // closes both the taskbar widget and flyout cleanly, detaching from the taskbar shell
+        public void CloseWidget()
+        {
+            TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
+
+            CurrentInstance = null;
+            _retainedInstance = this;
+
+            SetGraphsRenderingActive(false);
+            ViewModel?.SetLiveDataActive(false);
+
+            if (_taskbarHwnd != IntPtr.Zero)
+            {
+                WinTaskbarEmbedder.Detach(_hwnd);
+                _taskbarHwnd = IntPtr.Zero;
+                _isEmbedded = false;
             }
 
-            ShowErrorMessage("Fluent Sensors", $"The taskbar widget could not be attached to the taskbar.\n\nDetails: {reason}");
-            _embedGaveUp = true;
+            _appWindow.Hide();
         }
 
-        private static void ShowErrorMessage(string title, string message)
+        // --- memory leak: TaskbarWidgetWindow never released after close ---
+        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
+        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
+        // fix: hide instead of actually closing, and keep this instance around (_retainedInstance) for reuse
+        // same approach as WidgetWindow
+        private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
-            MessageBoxW(IntPtr.Zero, message, title, 0x00000010 /* MB_ICONERROR */);
+            args.Cancel = true;
+            CloseWidget();
         }
 
-        // calculates total DIP width: sensor slots + inter-slot spacing + button padding + extra buffer for chart margins and DPI scaling
-        private int CalculateWidgetWidthDip(int sensorCount)
+        private void OnTaskbarGraphWidthChanged(int newWidth)
         {
-            if (sensorCount <= 0) return MinimumWidgetWidthDip;
-            int itemsWidth = (sensorCount * SensorSlotWidthDip) + (Math.Max(0, sensorCount - 1) * SensorSlotSpacingDip);
-            return itemsWidth + (ButtonPaddingDip * 2) + 8;
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_isEmbedded && _taskbarHwnd != IntPtr.Zero)
+                {
+                    PositionOnTaskbar();
+                }
+            });
         }
 
-        private static List<SensorRowViewModel> ResolveSensors(IReadOnlyList<string> ids)
+        // maps sensor count to total DIP width, including button padding, slot widths, and slot gaps
+        private static int CalculateWidgetWidthDip(int sensorCount)
         {
-            if (ids == null || ids.Count == 0) return new List<SensorRowViewModel>();
+            if (sensorCount <= 0)
+            {
+                return MinimumWidgetWidthDip;
+            }
+
+            int slotWidth = SettingsService.Instance.TaskbarGraphWidthDip;
+            int contentWidth = (sensorCount * slotWidth) + ((sensorCount - 1) * SensorSlotSpacingDip);
+            return contentWidth + (ButtonPaddingDip * 2);
+        }
+
+        private static List<SensorRowViewModel> ResolveSensors(IReadOnlyList<string> sensorIds)
+        {
+            if (sensorIds == null || sensorIds.Count == 0 || SensorsViewModel.Instance == null)
+            {
+                return new List<SensorRowViewModel>();
+            }
 
             var allSensors = SensorsViewModel.Instance.HardwareGroups
                 .SelectMany(g => g.Sensors.Concat(g.HiddenSensors));
 
-            return ids
+            return sensorIds
                 .Select(id => allSensors.FirstOrDefault(s => s.Id == id))
-                .Where(s => s != null)
+                .Where(sensor => sensor != null)
                 .ToList();
         }
 
@@ -369,14 +433,58 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
 
-        // === user interaction & directcomposition animations ===
+        // === user interaction & directcomposition visual states ===
 
         private Visual _backgroundVisual;
         private Visual _pressedVisual;
+        private Visual _activeHoverVisual;
+        private Visual _activePressedVisual;
         private Visual _strokeVisual;
         private Visual _contentVisual;
         private Compositor _compositor;
+
+        private bool _isFlyoutActive;
         private bool _isPointerOver;
+        private bool _isPressed;
+
+        public void SetFlyoutActive(bool active)
+        {
+            if (_isFlyoutActive == active) return;
+            _isFlyoutActive = active;
+            this.DispatcherQueue.TryEnqueue(UpdateVisualState);
+        }
+
+        private void PlayStartupAnimation()
+        {
+            if (TaskbarButton == null) return;
+            var visual = ElementCompositionPreview.GetElementVisual(TaskbarButton);
+            var compositor = visual?.Compositor;
+            if (compositor == null) return;
+
+            var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
+            double scale = primaryTaskbar != null ? (primaryTaskbar.Dpi / 96.0) : 1.0;
+            float slideDistPx = (float)(TaskbarStartupSlideDistanceDip * scale);
+
+            // Fluent 2 Decelerate Curve: cubic-bezier(0, 0, 0, 1)
+            var easeOut = compositor.CreateCubicBezierEasingFunction(
+                new Vector2(0.0f, 0.0f),
+                new Vector2(0.0f, 1.0f));
+
+            var offsetAnim = compositor.CreateVector3KeyFrameAnimation();
+            offsetAnim.InsertKeyFrame(0.0f, new Vector3(0, slideDistPx, 0));
+            offsetAnim.InsertKeyFrame(1.0f, new Vector3(0, 0, 0), easeOut);
+            offsetAnim.Duration = TimeSpan.FromMilliseconds(TaskbarStartupDurationMs);
+            visual.StartAnimation("Offset", offsetAnim);
+
+            if (TaskbarStartupStartOpacity < 1.0f)
+            {
+                var opacityAnim = compositor.CreateScalarKeyFrameAnimation();
+                opacityAnim.InsertKeyFrame(0.0f, TaskbarStartupStartOpacity);
+                opacityAnim.InsertKeyFrame(1.0f, 1.0f, easeOut);
+                opacityAnim.Duration = TimeSpan.FromMilliseconds(TaskbarStartupDurationMs);
+                visual.StartAnimation("Opacity", opacityAnim);
+            }
+        }
 
         private void EnsureCompositionElements()
         {
@@ -386,6 +494,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
             var bgBorder = FindVisualChild<Border>(TaskbarButton, "BackgroundBorder");
             var pressedBorder = FindVisualChild<Border>(TaskbarButton, "PressedBorder");
+            var activeHoverBorder = FindVisualChild<Border>(TaskbarButton, "ActiveHoverBorder");
+            var activePressedBorder = FindVisualChild<Border>(TaskbarButton, "ActivePressedBorder");
             var strokeBorder = FindVisualChild<Border>(TaskbarButton, "StrokeBorder");
             var contentPresenter = FindVisualChild<ContentPresenter>(TaskbarButton, "ContentPresenter");
 
@@ -398,6 +508,14 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 _pressedVisual = ElementCompositionPreview.GetElementVisual(pressedBorder);
             }
+            if (activeHoverBorder != null)
+            {
+                _activeHoverVisual = ElementCompositionPreview.GetElementVisual(activeHoverBorder);
+            }
+            if (activePressedBorder != null)
+            {
+                _activePressedVisual = ElementCompositionPreview.GetElementVisual(activePressedBorder);
+            }
             if (strokeBorder != null)
             {
                 _strokeVisual = ElementCompositionPreview.GetElementVisual(strokeBorder);
@@ -405,6 +523,80 @@ namespace FluentSensors.Features.TaskbarWidget
             if (contentPresenter != null)
             {
                 _contentVisual = ElementCompositionPreview.GetElementVisual(contentPresenter);
+            }
+        }
+
+        private void UpdateVisualState()
+        {
+            EnsureCompositionElements();
+            if (_compositor == null) return;
+
+            if (!_isFlyoutActive)
+            {
+                // === Flyout Closed ===
+                if (_isPressed)
+                {
+                    SetVisualOpacity(_backgroundVisual, 0.0f);
+                    SetVisualOpacity(_activeHoverVisual, 0.0f);
+                    SetVisualOpacity(_activePressedVisual, 0.0f);
+                    SetVisualOpacity(_pressedVisual, 1.0f);
+                    SetVisualOpacity(_strokeVisual, 1.0f);
+                }
+                else if (_isPointerOver)
+                {
+                    SetVisualOpacity(_backgroundVisual, 1.0f);
+                    SetVisualOpacity(_activeHoverVisual, 0.0f);
+                    SetVisualOpacity(_activePressedVisual, 0.0f);
+                    SetVisualOpacity(_pressedVisual, 0.0f);
+                    SetVisualOpacity(_strokeVisual, 1.0f);
+                }
+                else
+                {
+                    SetVisualOpacity(_backgroundVisual, 0.0f);
+                    SetVisualOpacity(_activeHoverVisual, 0.0f);
+                    SetVisualOpacity(_activePressedVisual, 0.0f);
+                    SetVisualOpacity(_pressedVisual, 0.0f);
+                    SetVisualOpacity(_strokeVisual, 0.0f);
+                }
+            }
+            else
+            {
+                // === Flyout Open ===
+                if (_isPressed)
+                {
+                    // Active Pressed: background #2a2a2a, no border (transparent)
+                    SetVisualOpacity(_backgroundVisual, 0.0f);
+                    SetVisualOpacity(_activeHoverVisual, 0.0f);
+                    SetVisualOpacity(_activePressedVisual, 1.0f);
+                    SetVisualOpacity(_pressedVisual, 0.0f);
+                    SetVisualOpacity(_strokeVisual, 0.0f);
+                }
+                else if (_isPointerOver)
+                {
+                    // Active Hover: background #323232, border matching background (no stroke)
+                    SetVisualOpacity(_backgroundVisual, 0.0f);
+                    SetVisualOpacity(_activeHoverVisual, 1.0f);
+                    SetVisualOpacity(_activePressedVisual, 0.0f);
+                    SetVisualOpacity(_pressedVisual, 0.0f);
+                    SetVisualOpacity(_strokeVisual, 0.0f);
+                }
+                else
+                {
+                    // Active Rest: stays in visual state "hover"
+                    SetVisualOpacity(_backgroundVisual, 1.0f);
+                    SetVisualOpacity(_activeHoverVisual, 0.0f);
+                    SetVisualOpacity(_activePressedVisual, 0.0f);
+                    SetVisualOpacity(_pressedVisual, 0.0f);
+                    SetVisualOpacity(_strokeVisual, 1.0f);
+                }
+            }
+        }
+
+        private static void SetVisualOpacity(Visual visual, float targetOpacity)
+        {
+            if (visual != null)
+            {
+                visual.Opacity = targetOpacity;
             }
         }
 
@@ -435,26 +627,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
 
             _isPointerOver = true;
-
-            // instant crisp border stroke on hover (0ms)
-            if (_strokeVisual != null)
-            {
-                _strokeVisual.Opacity = 1.0f;
-            }
-
-            // smooth background fade-in with configurable delay and duration
-            if (_backgroundVisual != null)
-            {
-                var anim = _compositor.CreateScalarKeyFrameAnimation();
-                anim.InsertKeyFrame(0.0f, 0.0f);
-                anim.InsertKeyFrame(1.0f, 1.0f);
-                if (HoverBackgroundDelayMs > 0)
-                {
-                    anim.DelayTime = TimeSpan.FromMilliseconds(HoverBackgroundDelayMs);
-                }
-                anim.Duration = TimeSpan.FromMilliseconds(HoverBackgroundDurationMs);
-                _backgroundVisual.StartAnimation("Opacity", anim);
-            }
+            UpdateVisualState();
         }
 
         private void TaskbarButton_PointerExited(object sender, PointerRoutedEventArgs e)
@@ -462,31 +635,8 @@ namespace FluentSensors.Features.TaskbarWidget
             if (_isDragging) return;
 
             _isPointerOver = false;
-            EnsureCompositionElements();
-            if (_compositor == null) return;
-
-            if (_pressedVisual != null)
-            {
-                _pressedVisual.Opacity = 0.0f;
-            }
-
-            // smooth background fade-out on exit
-            if (_backgroundVisual != null)
-            {
-                var bgAnim = _compositor.CreateScalarKeyFrameAnimation();
-                bgAnim.InsertKeyFrame(1.0f, 0.0f);
-                bgAnim.Duration = TimeSpan.FromMilliseconds(ExitBackgroundDurationMs);
-                _backgroundVisual.StartAnimation("Opacity", bgAnim);
-            }
-
-            // smooth stroke fade-out on exit
-            if (_strokeVisual != null)
-            {
-                var strokeAnim = _compositor.CreateScalarKeyFrameAnimation();
-                strokeAnim.InsertKeyFrame(1.0f, 0.0f);
-                strokeAnim.Duration = TimeSpan.FromMilliseconds(ExitStrokeDurationMs);
-                _strokeVisual.StartAnimation("Opacity", strokeAnim);
-            }
+            _isPressed = false;
+            UpdateVisualState();
 
             if (_contentVisual != null)
             {
@@ -515,19 +665,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
             }
 
-            EnsureCompositionElements();
-
-            // hide hover background so ONLY the pressed background is rendered (prevents double-layering)
-            if (_backgroundVisual != null)
-            {
-                _backgroundVisual.Opacity = 0.0f;
-            }
-
-            // show pressed background
-            if (_pressedVisual != null)
-            {
-                _pressedVisual.Opacity = 1.0f;
-            }
+            _isPressed = true;
+            UpdateVisualState();
 
             // content press feedback: 95% opacity
             if (_contentVisual != null && _compositor != null)
@@ -594,12 +733,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 _isPotentialDrag = false;
             }
 
-            EnsureCompositionElements();
-
-            if (_pressedVisual != null)
-            {
-                _pressedVisual.Opacity = 0.0f;
-            }
+            _isPressed = false;
 
             // determine if pointer is still over the button in its new position
             bool isOverNow = false;
@@ -609,36 +743,7 @@ namespace FluentSensors.Features.TaskbarWidget
                              pt.Y >= _currentScreenRect.Y && pt.Y <= _currentScreenRect.Y + _currentScreenRect.Height);
             }
             _isPointerOver = isOverNow;
-
-            // restore hover background if still hovered, else fade out stroke
-            if (_backgroundVisual != null)
-            {
-                if (isOverNow)
-                {
-                    _backgroundVisual.Opacity = 1.0f;
-                }
-                else
-                {
-                    var bgAnim = _compositor?.CreateScalarKeyFrameAnimation();
-                    if (bgAnim != null)
-                    {
-                        bgAnim.InsertKeyFrame(1.0f, 0.0f);
-                        bgAnim.Duration = TimeSpan.FromMilliseconds(ExitBackgroundDurationMs);
-                        _backgroundVisual.StartAnimation("Opacity", bgAnim);
-                    }
-                }
-            }
-
-            if (_strokeVisual != null && !isOverNow)
-            {
-                var strokeAnim = _compositor?.CreateScalarKeyFrameAnimation();
-                if (strokeAnim != null)
-                {
-                    strokeAnim.InsertKeyFrame(1.0f, 0.0f);
-                    strokeAnim.Duration = TimeSpan.FromMilliseconds(ExitStrokeDurationMs);
-                    _strokeVisual.StartAnimation("Opacity", strokeAnim);
-                }
-            }
+            UpdateVisualState();
 
             if (_contentVisual != null && _compositor != null)
             {
@@ -673,44 +778,12 @@ namespace FluentSensors.Features.TaskbarWidget
                 return;
             }
 
-            // opens or toggles flyout window directly above the taskbar widget
             TaskbarFlyoutWindow.Toggle(this);
         }
 
-
-        // === lifecycle ===
-
-        // closes both the taskbar widget and flyout cleanly, detaching from the taskbar shell
-        public void CloseWidget()
+        private void ShowErrorMessage(string title, string message)
         {
-            TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
-
-            CurrentInstance = null;
-            _retainedInstance = this;
-
-            SetGraphsRenderingActive(false);
-            ViewModel?.SetLiveDataActive(false);
-
-            if (_taskbarHwnd != IntPtr.Zero)
-            {
-                WinTaskbarEmbedder.Detach(_hwnd);
-                _taskbarHwnd = IntPtr.Zero;
-                _isEmbedded = false;
-            }
-
-            _appWindow.Hide();
-        }
-
-        // --- memory leak: TaskbarWidgetWindow never released after close ---
-        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
-        // confirmed, still-open platform bug, reproducible even with empty window content:
-        // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
-        // fix: hide instead of actually closing, and keep this instance around (_retainedInstance) for reuse
-        // same approach as WidgetWindow
-        private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
-        {
-            args.Cancel = true;
-            CloseWidget();
+            MessageBoxW(_hwnd, message, title, 0x00000010); // MB_OK | MB_ICONERROR
         }
     }
 }

@@ -284,6 +284,21 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        private int _taskbarGraphWidthDip = 120;
+        public int TaskbarGraphWidthDip
+        {
+            get => _taskbarGraphWidthDip;
+            set
+            {
+                if (_taskbarGraphWidthDip != value)
+                {
+                    _taskbarGraphWidthDip = value;
+                    TaskbarGraphWidthChanged?.Invoke(_taskbarGraphWidthDip);
+                    SaveDebounced();
+                }
+            }
+        }
+
 
         // --- App Behavior Settings ---
 
@@ -356,6 +371,7 @@ namespace FluentSensors.Persistence.Services
             _taskbarUseGraphAccentColor = data.TaskbarUseGraphAccentColor;
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
             _taskbarGraphTimeSpanSeconds = data.TaskbarGraphTimeSpanSeconds;
+            _taskbarGraphWidthDip = data.TaskbarGraphWidthDip;
 
             _minimizeToTray = data.MinimizeToTray;
             _hideSensorsCompletely = data.HideSensorsCompletely;
@@ -388,6 +404,7 @@ namespace FluentSensors.Persistence.Services
                 TaskbarUseGraphAccentColor = _taskbarUseGraphAccentColor,
                 TaskbarGraphCustomColor = _taskbarGraphCustomColor,
                 TaskbarGraphTimeSpanSeconds = _taskbarGraphTimeSpanSeconds,
+                TaskbarGraphWidthDip = _taskbarGraphWidthDip,
 
                 MinimizeToTray = _minimizeToTray,
                 HideSensorsCompletely = _hideSensorsCompletely,
@@ -427,6 +444,7 @@ namespace FluentSensors.Persistence.Services
         public event Action<bool, Color> TaskbarTintColorChanged;
         public event Action<bool, Windows.UI.Color> TaskbarGraphColorChanged;
         public event Action<double> TaskbarGraphTimeSpanChanged;
+        public event Action<int> TaskbarGraphWidthChanged;
 
         public event Action<bool> MinimizeToTrayChanged;
         public event Action<bool> HideSensorsCompletelyChanged;

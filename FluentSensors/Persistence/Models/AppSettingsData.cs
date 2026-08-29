@@ -29,6 +29,7 @@ namespace FluentSensors.Persistence.Models
         public bool TaskbarUseGraphAccentColor { get; set; } = true;
         public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public double TaskbarGraphTimeSpanSeconds { get; set; } = 45;
+        public int TaskbarGraphWidthDip { get; set; } = 120;
 
         public bool MinimizeToTray { get; set; } = true;
         public bool HideSensorsCompletely { get; set; } = true;

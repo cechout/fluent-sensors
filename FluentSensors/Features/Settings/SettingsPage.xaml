@@ -72,15 +72,15 @@
             </controls:SettingsCard>
 
 
-            <!--  widget settings  -->
+            <!--  widget window settings  -->
             <TextBlock
                 Margin="1,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="Widget Appearance" />
+                Text="Widget Window Appearance" />
 
             <!--  background material  -->
             <controls:SettingsExpander
-                Description="Backdrop effect and color for the widget"
+                Description="Backdrop effect and color for the widget window"
                 Header="Background Material"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xEF1F;}"
                 IsExpanded="False">
@@ -95,7 +95,7 @@
                 </ComboBox>
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="Tint strength (Acrylic only)" Header="Tint Opacity">
+                    <controls:SettingsCard Description="(Acrylic only)" Header="Tint Opacity">
                         <Slider
                             x:Name="TintSlider"
                             Width="200"
@@ -106,7 +106,7 @@
                             ValueChanged="TintSlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="Brightness, independent of tint color (Acrylic only)" Header="Luminosity Opacity">
+                    <controls:SettingsCard Description="(Acrylic only)" Header="Luminosity Opacity">
                         <Slider
                             x:Name="LuminositySlider"
                             Width="200"
@@ -117,7 +117,7 @@
                             ValueChanged="LuminositySlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="Accent or custom color (Acrylic and Solid)" Header="Background Color Source">
+                    <controls:SettingsCard Description="(Acrylic and Solid)" Header="Background Color Source">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="BackgroundColorSourceComboBox"
@@ -142,7 +142,7 @@
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="Accent or custom color" Header="Graph Color Source">
+                    <controls:SettingsCard Header="Graph Color Source">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="GraphColorSourceComboBox"
@@ -156,7 +156,7 @@
                         </StackPanel>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="How much history the graph shows" Header="Time Range">
+                    <controls:SettingsCard Header="Time Range">
                         <ComboBox
                             x:Name="GraphTimeSpanComboBox"
                             Width="40"
@@ -175,11 +175,11 @@
             </controls:SettingsExpander>
 
 
-            <!--  taskbar & flyout settings  -->
+            <!--  taskbar widget & flyout settings  -->
             <TextBlock
                 Margin="1,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="Taskbar &amp; Flyout Appearance" />
+                Text="Taskbar Widget &amp; Flyout Appearance" />
 
             <!--  taskbar background material  -->
             <controls:SettingsExpander
@@ -198,7 +198,7 @@
                 </ComboBox>
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="Tint strength (Acrylic only)" Header="Tint Opacity">
+                    <controls:SettingsCard Description="(Acrylic only)" Header="Tint Opacity">
                         <Slider
                             x:Name="TaskbarTintSlider"
                             Width="200"
@@ -209,7 +209,7 @@
                             ValueChanged="TaskbarTintSlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="Brightness, independent of tint color (Acrylic only)" Header="Luminosity Opacity">
+                    <controls:SettingsCard Description="(Acrylic only)" Header="Luminosity Opacity">
                         <Slider
                             x:Name="TaskbarLuminositySlider"
                             Width="200"
@@ -220,7 +220,7 @@
                             ValueChanged="TaskbarLuminositySlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="Accent or custom color (Acrylic and Solid)" Header="Background Color Source">
+                    <controls:SettingsCard Description="(Acrylic and Solid)" Header="Background Color Source">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="TaskbarBackgroundColorSourceComboBox"
@@ -238,13 +238,13 @@
 
             <!--  taskbar graph appearance  -->
             <controls:SettingsExpander
-                Description="Graph color and time range for taskbar widget and flyout"
+                Description="Taskbar graph color, time range and graph Width"
                 Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="Accent or custom color" Header="Graph Color Source">
+                    <controls:SettingsCard Header="Graph Color Source">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="TaskbarGraphColorSourceComboBox"
@@ -258,7 +258,7 @@
                         </StackPanel>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="How much history the taskbar graph shows" Header="Time Range">
+                    <controls:SettingsCard Header="Time Range">
                         <ComboBox
                             x:Name="TaskbarGraphTimeSpanComboBox"
                             Width="40"
@@ -272,6 +272,16 @@
                             <ComboBoxItem Content="120s" Tag="120" />
                             <ComboBoxItem Content="240s" Tag="240" />
                         </ComboBox>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Graph Width">
+                        <Slider
+                            x:Name="TaskbarGraphWidthSlider"
+                            Width="200"
+                            Maximum="240"
+                            Minimum="60"
+                            StepFrequency="5"
+                            TickFrequency="20"
+                            ValueChanged="TaskbarGraphWidthSlider_ValueChanged" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

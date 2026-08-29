@@ -62,8 +62,8 @@
                         VerticalAlignment="Center"
                         SelectedIndex="0"
                         SelectionChanged="SelectionProfileComboBox_SelectionChanged">
-                        <ComboBoxItem Content="Widget Window" Tag="WidgetWindow" />
-                        <ComboBoxItem Content="CSV" Tag="Csv" />
+                        <ComboBoxItem Content="Widget" Tag="WidgetWindow" />
+                        <ComboBoxItem Content="Logging" Tag="Csv" />
                         <ComboBoxItem Content="Taskbar" Tag="Taskbar" />
                     </ComboBox>
 
@@ -97,12 +97,12 @@
                             </AppBarButton.Icon>
                         </AppBarButton>
 
-                        <!--  start csv monitoring button  -->
+                        <!--  start csv logging button  -->
                         <!--  (shown for the Csv profile)  -->
                         <AppBarButton
                             x:Name="StartCsvMonitoringButton"
                             Click="StartCsvMonitoring_Click"
-                            Label="Start CSV Monitoring">
+                            Label="Start CSV Logging">
                             <AppBarButton.Icon>
                                 <FontIcon Glyph="&#xE768;" />
                             </AppBarButton.Icon>

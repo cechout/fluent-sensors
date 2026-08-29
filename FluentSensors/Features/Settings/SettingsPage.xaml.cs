@@ -39,6 +39,7 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarBackgroundMaterialSettings();
             RestoreTaskbarGraphColorSettings();
             RestoreTaskbarGraphTimeSpanSelection();
+            RestoreTaskbarGraphWidthSelection();
 
 
             // event listeners
@@ -382,6 +383,17 @@ namespace FluentSensors.Features.Settings
                     break;
                 }
             }
+        }
+
+        private void TaskbarGraphWidthSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarGraphWidthDip = (int)e.NewValue;
+        }
+
+        private void RestoreTaskbarGraphWidthSelection()
+        {
+            TaskbarGraphWidthSlider.Value = SettingsService.Instance.TaskbarGraphWidthDip;
         }
 
 

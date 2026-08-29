@@ -97,8 +97,9 @@ namespace FluentSensors.Features.TaskbarWidget
         private const int FlyoutMarginToTaskbarDip = 12; // vertical gap between taskbar top and flyout bottom edge
         private const int FlyoutHorizontalOffsetDip = 0; // horizontal offset relative to taskbar widget left
 
-        private const int SingleSensorFlyoutWidthDip = 240; // clean compact width when only 1 sensor is pinned
-        private const int MinFlyoutWidthFloorDip = 200; // absolute minimum width floor
+        // default and minimum width in DIP (matching standard WidgetWindow width)
+        public const int FlyoutDefaultWidthDip = 247;
+        public const int MinFlyoutWidthFloorDip = 247;
 
         private AppWindow _appWindow;
         private IntPtr _hwnd;
@@ -309,6 +310,27 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === public methods ===
 
+        // resets saved flyout dimensions so the size is cleanly recalculated on next open / button click
+        public static void ResetGeometry()
+        {
+            var state = WindowStateService.Instance.GetState(WindowKey);
+            if (state != null)
+            {
+                state.Width = 0;
+                state.Height = 0;
+                WindowStateService.Instance.SetState(WindowKey, state);
+            }
+
+            if (CurrentInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
+            {
+                CurrentInstance.PositionAboveTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+            }
+            else if (_retainedInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
+            {
+                _retainedInstance.PositionAboveTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+            }
+        }
+
         // preloads the flyout instance into memory at taskbar initialization to eliminate first-open latency
         public static void Preload(TaskbarWidgetWindow widgetWindow)
         {
@@ -399,6 +421,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 SetGraphsRenderingActive(false);
                 SaveWindowState();
                 _appWindow.Hide();
+                TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
             });
         }
 
@@ -407,6 +430,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void SlideInFromBottom()
         {
+            TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(true);
+
             // 1. Content Fade (DirectComposition)
             PlayContentFade(EnterFadeStartOpacity, EnterFadeEndOpacity, EnterAnimationDurationMs);
 
@@ -420,6 +445,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void SlideOutToBottom(Action onCompleted)
         {
+            TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
+
             // 1. Content Fade (DirectComposition)
             PlayContentFade(1.0f, ExitFadeEndOpacity, ExitAnimationDurationMs);
 
@@ -506,42 +533,34 @@ namespace FluentSensors.Features.TaskbarWidget
             var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
             double scale = primaryTaskbar != null ? (primaryTaskbar.Dpi / 96.0) : GetScaleFactor();
 
-            int sensorCount = ViewModel.PinnedSensors.Count;
-            int actualWidgetPhysicalWidth = widgetRect.Right - widgetRect.Left;
-
-            // check if sensor count changed since last saved geometry
             var savedState = WindowStateService.Instance.GetState(WindowKey);
-            bool sensorCountChanged = (savedState == null || savedState.SensorCount != sensorCount);
 
-            // width determination:
-            // 1 sensor: 240 DIP
-            // 2+ sensors: matches taskbar widget exact physical width
-            int defaultWidthPx = sensorCount <= 1
-                ? (int)Math.Round(SingleSensorFlyoutWidthDip * scale)
-                : actualWidgetPhysicalWidth;
+            // width is fixed to 310 DIP (matching standard WidgetWindow width)
+            int defaultWidthPx = (int)Math.Round(FlyoutDefaultWidthDip * scale);
+            int minWidthPx = defaultWidthPx;
 
-            int minWidthDip = sensorCount <= 1
-                ? MinFlyoutWidthFloorDip
-                : Math.Min(SingleSensorFlyoutWidthDip, (int)Math.Round(actualWidgetPhysicalWidth / scale));
+            int sensorCount = ViewModel.PinnedSensors.Count;
 
-            // enforce resize constraints
-            ApplyMinimumWindowSize(sensorCount, minWidthDip, scale);
+            // enforce resize constraints: min-width is 310 DIP, min-height is the compact sensor height
+            int minHeightDip = (int)Math.Round(CalculateFlyoutMinHeight(sensorCount, scale) / scale);
+            var manager = WindowManager.Get(this);
+            manager.MinWidth = MinFlyoutWidthFloorDip;
+            manager.MinHeight = minHeightDip;
 
-            int minWidthPx = (int)Math.Round(minWidthDip * scale);
-            int minHeightPx = CalculateFlyoutMinHeight(sensorCount, scale);
-            int defaultHeightPx = CalculateFlyoutDefaultHeight(sensorCount, scale);
+            int minHeightPx = (int)Math.Round(minHeightDip * scale);
+            int defaultHeightPx = minHeightPx; // standard height is now the compact min height
 
             int desiredWidthPx;
             int desiredHeightPx;
 
-            if (!sensorCountChanged && savedState != null && savedState.Width > 0 && savedState.Height > 0)
+            if (savedState != null && savedState.Width > 0 && savedState.Height > 0)
             {
                 desiredWidthPx = Math.Max(savedState.Width, minWidthPx);
                 desiredHeightPx = Math.Max(savedState.Height, minHeightPx);
             }
             else
             {
-                // reset to exact default geometry for new sensor selection
+                // reset to exact default geometry
                 desiredWidthPx = defaultWidthPx;
                 desiredHeightPx = defaultHeightPx;
             }
@@ -588,25 +607,10 @@ namespace FluentSensors.Features.TaskbarWidget
             return dpi / 96.0;
         }
 
-        private int CalculateFlyoutDefaultHeight(int sensorCount, double scaleFactor)
-        {
-            double desiredXamlHeight = 31 + (sensorCount * (104 + 8));
-            int physicalHeight = (int)(desiredXamlHeight * scaleFactor);
-            int screenHeight = DisplayArea.Primary.WorkArea.Height;
-            return Math.Min(physicalHeight, screenHeight - 60);
-        }
-
         private int CalculateFlyoutMinHeight(int sensorCount, double scaleFactor)
         {
             double minXamlHeight = 31 + (sensorCount * (90 + 8));
             return (int)(minXamlHeight * scaleFactor);
-        }
-
-        private void ApplyMinimumWindowSize(int sensorCount, int minWidthDip, double scaleFactor)
-        {
-            var manager = WindowManager.Get(this);
-            manager.MinWidth = minWidthDip;
-            manager.MinHeight = (int)Math.Round(CalculateFlyoutMinHeight(sensorCount, scaleFactor) / scaleFactor);
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)

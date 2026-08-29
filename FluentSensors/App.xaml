@@ -24,6 +24,10 @@
 
                     <StaticResource x:Key="TaskbarButtonHoverBackground" ResourceKey="SubtleFillColorSecondaryBrush" />
                     <StaticResource x:Key="TaskbarButtonPressedBackground" ResourceKey="SubtleFillColorTertiaryBrush" />
+
+                    <!--  Active Flyout States (DWM compensated: -3 offset so rendered on-screen colors match #323232 and #2A2A2A)  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#2F2F2F" />
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#272727" />
                 </ResourceDictionary>
 
                 <!--  Light Mode  -->
@@ -34,6 +38,9 @@
                     <!--  Light Mode hover: ControlFillColorDefaultBrush, pressed: ControlFillColorSecondaryBrush  -->
                     <StaticResource x:Key="TaskbarButtonHoverBackground" ResourceKey="ControlFillColorDefaultBrush" />
                     <StaticResource x:Key="TaskbarButtonPressedBackground" ResourceKey="ControlFillColorSecondaryBrush" />
+
+                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#E5E5E5" />
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#D9D9D9" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
