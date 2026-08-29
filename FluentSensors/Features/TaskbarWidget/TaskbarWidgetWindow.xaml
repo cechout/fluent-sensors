@@ -66,7 +66,8 @@
                 </ControlTemplate>
             </Button.Template>
 
-            <!--  inner horizontal list of compact sensor graphs stretching equally across widget width  -->
+            <!--  inner horizontal list of compact sensor graphs  -->
+            <!--  (stretching equally across widget width)  -->
             <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

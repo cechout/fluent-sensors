@@ -39,7 +39,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // logical pixels, scaled to the taskbars DPI before use, so these read the same at any scaling
         private const int VerticalMarginDip = 2; // gap above and below the widget; height follows from it
         private const int AnchorOffsetDip = 10; // gap between the widget and the anchored end of the taskbar
-        private const int TaskbarHorizontalPaddingDip = 8; // minimum margin to the outer left/right edges of the taskbar
+        private const int TaskbarHorizontalPaddingDip = 10; // minimum margin to the outer left/right edges of the taskbar
         private const int SensorSlotWidthDip = 120; // width per pinned sensor slot
         private const int SensorSlotSpacingDip = 8; // spacing between sensor slots
         private const int ButtonPaddingDip = 0; // inner horizontal padding of the taskbar button
@@ -282,6 +282,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 _embedAttempt = 0;
                 _isEmbedded = true;
+
+                // preload flyout window into memory to eliminate first-open latency
+                TaskbarFlyoutWindow.Preload(this);
             }
             catch (Exception ex)
             {

@@ -20,18 +20,15 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  subtle header bar  -->
+
+        <!--  custom header bar  -->
         <Grid
             x:Name="CustomTitleBar"
             Grid.Row="0"
             Height="auto"
             Background="Transparent">
 
-            <StackPanel
-                Margin="4,4,0,0"
-                HorizontalAlignment="Left"
-                Orientation="Horizontal"
-                Spacing="4">
+            <Grid Margin="6,4,6,0" HorizontalAlignment="Stretch">
 
                 <!--  back to main application button  -->
                 <Button
@@ -53,20 +50,24 @@
                     Width="32"
                     Height="22"
                     Padding="0"
-                    HorizontalAlignment="Left"
+                    HorizontalAlignment="Right"
                     Click="CloseWidget_Click"
                     Style="{StaticResource SubtleButtonStyle}"
                     ToolTipService.ToolTip="Close Taskbar Widget">
                     <FontIcon
-                        FontSize="12"
+                        FontSize="10"
                         FontWeight="SemiLight"
                         Glyph="&#xE8BB;" />
                 </Button>
-            </StackPanel>
+            </Grid>
         </Grid>
 
+
         <!--  vertical list of sensor graphs  -->
-        <Grid Grid.Row="1" Padding="4,0,4,5">
+        <Grid
+            x:Name="GraphsContentGrid"
+            Grid.Row="1"
+            Padding="6,1,6,6">
             <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

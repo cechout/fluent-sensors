@@ -12,6 +12,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Windows.Graphics;
+using Windows.UI.ViewManagement;
 using WinRT;
 using WinUIEx;
 using WinUIEx.Messaging;
@@ -45,8 +46,16 @@ namespace FluentSensors.Features.TaskbarWidget
         [DllImport("dwmapi.dll")]
         private static extern int DwmGetWindowAttribute(IntPtr hwnd, uint dwAttribute, out NativeMethods.RECT pvAttribute, int cbAttribute);
 
+        private const uint DWMWA_NCRENDERING_POLICY = 2;
         private const uint DWMWA_EXTENDED_FRAME_BOUNDS = 9;
         private const uint DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+
+        private enum DWMNCRENDERINGPOLICY
+        {
+            DWMNCRP_USEWINDOWSTYLE = 0,
+            DWMNCRP_DISABLED = 1, // no shadow
+            DWMNCRP_ENABLED = 2   // standard shadow
+        }
 
         private enum DWM_WINDOW_CORNER_PREFERENCE
         {
@@ -57,19 +66,27 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
 
-        // === animation settings ===
+        // --- Animation & Performance Settings ---
 
         // physical window slide distance in DIP/pixels
         public const int WindowSlideDistanceDip = 280;
 
         // animation duration in milliseconds
-        public const int EnterAnimationDurationMs = 280; // duration on open (move-in)
-        public const int ExitAnimationDurationMs = 180;  // duration on close (move-out)
+        public const int EnterAnimationDurationMs = 240; // duration on open (move-in)
+        public const int ExitAnimationDurationMs = 140;  // duration on close (move-out)
 
         // fade opacity (1.0f = no fade, 0.0f = full fade)
         public const float EnterFadeStartOpacity = 0.9f; // initial opacity when opening
-        public const float EnterFadeEndOpacity = 1.0f;   // target opacity when opening
-        public const float ExitFadeEndOpacity = 0.9f;    // target opacity when closing
+        public const float EnterFadeEndOpacity = 1.0f; // target opacity when opening
+        public const float ExitFadeEndOpacity = 0.9f; // target opacity when closing
+
+        // background live graph rendering toggle
+        // keeps graphs rendering continuously in background so they are instantly visible on open
+        public const bool KeepFlyoutGraphsActiveInBackground = true;
+
+        // padding settings for fine-tuning
+        public static readonly Thickness FlyoutRootPadding = new Thickness(0, 0, 0, 0); // man idk why exactly these numbers, but theyre necessary
+        public static readonly Thickness FlyoutGraphsPadding = new Thickness(6, 1, 6, 7);
 
 
         // === fields ===
@@ -77,7 +94,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private const string WindowKey = "TaskbarFlyout";
 
         // Anchor offsets configurable in code-behind
-        private const int FlyoutMarginToTaskbarDip = 8; // vertical gap between taskbar top and flyout bottom edge
+        private const int FlyoutMarginToTaskbarDip = 12; // vertical gap between taskbar top and flyout bottom edge
         private const int FlyoutHorizontalOffsetDip = 0; // horizontal offset relative to taskbar widget left
 
         private const int SingleSensorFlyoutWidthDip = 240; // clean compact width when only 1 sensor is pinned
@@ -86,6 +103,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private AppWindow _appWindow;
         private IntPtr _hwnd;
         private WindowMessageMonitor _messageMonitor;
+        private UISettings? _uiSettings;
 
         private int _bottomAnchorY;
         private int _leftAnchorX;
@@ -153,9 +171,50 @@ namespace FluentSensors.Features.TaskbarWidget
             SettingsService.Instance.TaskbarOpacityChanged += OnOpacityChanged;
             SettingsService.Instance.TaskbarTintColorChanged += OnTintColorChanged;
 
+            // initialize shadow policy based on Windows transparency setting
+            InitializeShadowPolicy();
+
+            // apply configurable paddings
+            RootGrid.Padding = FlyoutRootPadding;
+            GraphsContentGrid.Padding = FlyoutGraphsPadding;
+
             _appWindow.Changed += AppWindow_Changed;
             _appWindow.Closing += AppWindow_Closing;
             this.Activated += Window_Activated;
+        }
+
+
+        // === shadow policy (based on Windows Transparency Effects) ===
+
+        private void InitializeShadowPolicy()
+        {
+            try
+            {
+                _uiSettings = new UISettings();
+                _uiSettings.AdvancedEffectsEnabledChanged += OnAdvancedEffectsEnabledChanged;
+                UpdateShadowPolicy();
+            }
+            catch
+            {
+                // safety guard if UISettings is unavailable
+            }
+        }
+
+        private void OnAdvancedEffectsEnabledChanged(UISettings sender, object args)
+        {
+            this.DispatcherQueue.TryEnqueue(UpdateShadowPolicy);
+        }
+
+        private void UpdateShadowPolicy()
+        {
+            if (_hwnd == IntPtr.Zero) return;
+
+            bool transparencyEnabled = _uiSettings?.AdvancedEffectsEnabled ?? true;
+            int policy = transparencyEnabled
+                ? (int)DWMNCRENDERINGPOLICY.DWMNCRP_ENABLED
+                : (int)DWMNCRENDERINGPOLICY.DWMNCRP_DISABLED;
+
+            DwmSetWindowAttribute(_hwnd, DWMWA_NCRENDERING_POLICY, ref policy, sizeof(int));
         }
 
 
@@ -249,6 +308,21 @@ namespace FluentSensors.Features.TaskbarWidget
 
 
         // === public methods ===
+
+        // preloads the flyout instance into memory at taskbar initialization to eliminate first-open latency
+        public static void Preload(TaskbarWidgetWindow widgetWindow)
+        {
+            if (widgetWindow == null || CurrentInstance != null || _retainedInstance != null) return;
+
+            var window = new TaskbarFlyoutWindow(widgetWindow.ViewModel);
+            _retainedInstance = window;
+            window.PositionAboveTaskbar(widgetWindow, startForSlideAnimation: false);
+
+            if (KeepFlyoutGraphsActiveInBackground)
+            {
+                window.SetGraphsRenderingActive(true);
+            }
+        }
 
         // ensures the flyout is placed directly behind the taskbar shell in Z-order
         private void EnsureBehindTaskbarZOrder()
@@ -567,6 +641,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void SetGraphsRenderingActive(bool active)
         {
+            if (KeepFlyoutGraphsActiveInBackground && !active) return;
+
             if (this.Content is DependencyObject root)
             {
                 SensorGraphRenderingGate.SetActive(root, active);
