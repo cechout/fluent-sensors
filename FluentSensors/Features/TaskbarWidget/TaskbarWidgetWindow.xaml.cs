@@ -93,6 +93,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private bool _embedGaveUp;
         private static TaskbarWidgetWindow _retainedInstance;
         public static TaskbarWidgetWindow CurrentInstance { get; private set; }
+        public static event Action WidgetStateChanged;
 
         public TaskbarWidgetViewModel ViewModel { get; }
 
@@ -157,6 +158,9 @@ namespace FluentSensors.Features.TaskbarWidget
                 // whose content is not up yet left it invisible; Loaded guarantees the visual tree is actually there
                 ((FrameworkElement)this.Content).Loaded += (s, e) => EmbedIntoTaskbar();
 
+                CurrentInstance = this;
+                WidgetStateChanged?.Invoke();
+
                 this.Activate();
             }
             catch (Exception ex)
@@ -192,6 +196,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 // detached on hide, so this embeds again rather than just showing
                 window._appWindow.Show(false);
                 window.EmbedIntoTaskbar();
+                WidgetStateChanged?.Invoke();
                 return;
             }
 
@@ -370,6 +375,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
 
             _appWindow.Hide();
+            WidgetStateChanged?.Invoke();
         }
 
         // --- memory leak: TaskbarWidgetWindow never released after close ---

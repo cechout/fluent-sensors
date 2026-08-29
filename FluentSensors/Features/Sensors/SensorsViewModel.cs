@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Dispatching;
+using Microsoft.UI.Dispatching;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -14,6 +14,7 @@ using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Core.Lhm;
+using FluentSensors.Features.TaskbarWidget;
 
 
 namespace FluentSensors.Features.Sensors
@@ -67,6 +68,7 @@ namespace FluentSensors.Features.Sensors
             // covers the case where a widget auto-reopened (saved state) before this VM was constructed
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
             WidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
+            TaskbarWidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
         }
 
 
@@ -88,12 +90,20 @@ namespace FluentSensors.Features.Sensors
                 OnPropertyChanged(nameof(IsWidgetProfileActive));
                 OnPropertyChanged(nameof(IsCsvProfileActive));
                 OnPropertyChanged(nameof(IsTaskbarProfileActive));
+                OnPropertyChanged(nameof(IsPinnedAvailable));
                 ResyncCheckboxesForActiveProfile();
             }
         }
         public bool IsWidgetProfileActive => ActiveProfile == SensorSelectionProfile.WidgetWindow;
         public bool IsCsvProfileActive => ActiveProfile == SensorSelectionProfile.Csv;
         public bool IsTaskbarProfileActive => ActiveProfile == SensorSelectionProfile.Taskbar;
+
+        public bool IsPinnedAvailable => ActiveProfile switch
+        {
+            SensorSelectionProfile.WidgetWindow => WidgetWindow.CurrentInstance != null,
+            SensorSelectionProfile.Taskbar => TaskbarWidgetWindow.CurrentInstance != null,
+            _ => false
+        };
 
         private bool _isWidgetOpen;
         public bool IsWidgetOpen
@@ -143,10 +153,11 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // keeps IsWidgetOpen in sync whenever the widget window opens or closes
+        // keeps IsWidgetOpen and IsPinnedAvailable in sync whenever widget/taskbar opens or closes
         private void OnWidgetStateChanged()
         {
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
+            OnPropertyChanged(nameof(IsPinnedAvailable));
         }
 
         // persists every genuine checkbox toggle on the active profile immediately; this is purely a data write, it
@@ -291,14 +302,28 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // sets the checkbox exactly on the sensors currently pinned to the active widget window
+        // sets the checkbox exactly on the sensors currently pinned to the active widget or taskbar widget
         // all other visible sensors get deselected so the checkbox state mirrors the widget contents 1:1
         public void SelectPinnedSensors()
         {
-            var widgetViewModel = WidgetWindow.CurrentInstance?.ViewModel;
-            if (widgetViewModel == null) return; // widget is closed, nothing to sync against
+            HashSet<string> pinnedIds = null;
 
-            var pinnedIds = new HashSet<string>(widgetViewModel.PinnedSensors.Select(s => s.SensorId));
+            if (ActiveProfile == SensorSelectionProfile.Taskbar)
+            {
+                var taskbarViewModel = TaskbarWidgetWindow.CurrentInstance?.ViewModel;
+                if (taskbarViewModel == null) return;
+                pinnedIds = new HashSet<string>(taskbarViewModel.PinnedSensors.Select(s => s.SensorId));
+            }
+            else if (ActiveProfile == SensorSelectionProfile.WidgetWindow)
+            {
+                var widgetViewModel = WidgetWindow.CurrentInstance?.ViewModel;
+                if (widgetViewModel == null) return;
+                pinnedIds = new HashSet<string>(widgetViewModel.PinnedSensors.Select(s => s.SensorId));
+            }
+            else
+            {
+                return;
+            }
 
             foreach (var group in HardwareGroups)
             {

@@ -41,35 +41,39 @@
 
                 <Grid x:Name="SensorListHeaderGrid" SizeChanged="SensorListHeaderGrid_SizeChanged">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
+                        <!--  column 0 reserves a fixed minimum width measured from SensorListTitleText  -->
+                        <ColumnDefinition Width="Auto" MinWidth="260" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock
-                        x:Name="SensorListTitleText"
+                    <StackPanel
                         Grid.Column="0"
-                        Margin="4,0,0,0"
                         VerticalAlignment="Center"
-                        Style="{ThemeResource BodyStrongTextBlockStyle}"
-                        Text="Sensor List" />
+                        Orientation="Horizontal">
+                        <TextBlock
+                            x:Name="SensorListTitleText"
+                            Margin="4,0,0,0"
+                            VerticalAlignment="Center"
+                            Style="{ThemeResource BodyStrongTextBlockStyle}"
+                            Text="Sensor List" />
 
-                    <!--  switches which profile the checkboxes below reflect and commit to  -->
-                    <ComboBox
-                        x:Name="SelectionProfileComboBox"
-                        Grid.Column="1"
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        SelectedIndex="0"
-                        SelectionChanged="SelectionProfileComboBox_SelectionChanged">
-                        <ComboBoxItem Content="Widget" Tag="WidgetWindow" />
-                        <ComboBoxItem Content="Logging" Tag="Csv" />
-                        <ComboBoxItem Content="Taskbar" Tag="Taskbar" />
-                    </ComboBox>
+                        <!--  switches which profile the checkboxes below reflect and commit to  -->
+                        <ComboBox
+                            x:Name="SelectionProfileComboBox"
+                            Margin="12,0,0,0"
+                            VerticalAlignment="Center"
+                            SelectedIndex="0"
+                            SelectionChanged="SelectionProfileComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Widget" Tag="WidgetWindow" />
+                            <ComboBoxItem Content="Logging" Tag="Csv" />
+                            <ComboBoxItem Content="Taskbar" Tag="Taskbar" />
+                        </ComboBox>
+                    </StackPanel>
 
+                    <!--  command bar is in column 1, bounded by column 0's minimum distance from title  -->
                     <CommandBar
                         x:Name="SensorListCommandBar"
-                        Grid.Column="2"
+                        Grid.Column="1"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
                         Background="Transparent"
@@ -86,98 +90,73 @@
                             <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
                         </CommandBar.Resources>
 
-                        <!--  pin to widget button  -->
-                        <!--  (shown for the WidgetWindow profile)  -->
-                        <AppBarButton
-                            x:Name="PinToWidgetButton"
-                            Click="PinToWidget_Click"
-                            Label="Pin to Widget">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE718;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
+                        <CommandBar.PrimaryCommands>
+                            <!--  pin to widget button (shown for the Widget profile)  -->
+                            <AppBarButton
+                                x:Name="PinToWidgetButton"
+                                Click="PinToWidget_Click"
+                                Label="Pin to Widget">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xE718;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
 
-                        <!--  start csv logging button  -->
-                        <!--  (shown for the Csv profile)  -->
-                        <AppBarButton
-                            x:Name="StartCsvMonitoringButton"
-                            Click="StartCsvMonitoring_Click"
-                            Label="Start CSV Logging">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE768;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
+                            <!--  start csv logging button (shown for the Logging profile)  -->
+                            <AppBarButton
+                                x:Name="StartCsvMonitoringButton"
+                                Click="StartCsvMonitoring_Click"
+                                Label="Start CSV Logging">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xE768;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
 
-                        <!--  pin to taskbar button  -->
-                        <!--  (shown for the Taskbar profile)  -->
-                        <AppBarButton
-                            x:Name="PinToTaskbarButton"
-                            Click="PinToTaskbar_Click"
-                            Label="Pin to Taskbar">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE840;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
+                            <!--  pin to taskbar button (shown for the Taskbar profile)  -->
+                            <AppBarButton
+                                x:Name="PinToTaskbarButton"
+                                Click="PinToTaskbar_Click"
+                                Label="Pin to Taskbar">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xE840;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
 
-                        <!--  hide sensors button  -->
-                        <AppBarButton
-                            x:Name="HideSensorsButton"
-                            Click="HideSensors_Click"
-                            Label="Hide"
-                            ToolTipService.ToolTip="Hides and stops monitoring the selected sensors">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xED1A;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
+                            <!--  hide sensors button  -->
+                            <AppBarButton
+                                x:Name="HideSensorsButton"
+                                Click="HideSensors_Click"
+                                Label="Hide"
+                                ToolTipService.ToolTip="Hides and stops monitoring the selected sensors">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xED1A;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
 
-                        <AppBarSeparator x:Name="ButtonSeparator" />
+                            <AppBarSeparator x:Name="ButtonSeparator" />
 
-                        <!--  reset min max button  -->
-                        <AppBarButton
-                            x:Name="ResetValuesButton"
-                            Click="ResetMinMax_Click"
-                            Label="Reset Stats">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE72C;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
+                            <!--  reset min max button  -->
+                            <AppBarButton
+                                x:Name="ResetValuesButton"
+                                Click="ResetMinMax_Click"
+                                Label="Reset Stats">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xE72C;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
+                        </CommandBar.PrimaryCommands>
 
-                        <!--  show hidden sensors button  -->
-                        <AppBarButton
-                            x:Name="ShowHiddenSensorsButton"
-                            Click="ShowHiddenSensors_Click"
-                            IsEnabled="{x:Bind ViewModel.HasHiddenSensors, Mode=OneWay}"
-                            Label="Hidden Sensors">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE8A7;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
-
-                        <!--<AppBarSeparator x:Name="ButtonSeparator2" />-->
-
-                        <!--  Select Pinned Sensors button  -->
-                        <!--
-                        <AppBarButton
-                            x:Name="SelectPinnedButton"
-                            Click="SelectPinned_Click"
-                            IsEnabled="{x:Bind ViewModel.IsWidgetOpen, Mode=OneWay}"
-                            Label="Select all Pinned Sensors from Widget Window">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE73A;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
-
-                        -->
-                        <!--  Unselect All Sensors button  -->
-                        <!--
-                        <AppBarButton
-                            x:Name="DeselectAllButton"
-                            Click="DeselectAll_Click"
-                            Label="Deselect All Sensors">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE8E6;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>-->
+                        <CommandBar.SecondaryCommands>
+                            <!--  show hidden sensors button  -->
+                            <AppBarButton
+                                x:Name="ShowHiddenSensorsButton"
+                                Click="ShowHiddenSensors_Click"
+                                IsEnabled="{x:Bind ViewModel.HasHiddenSensors, Mode=OneWay}"
+                                Label="Hidden Sensors">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xE8A7;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
+                        </CommandBar.SecondaryCommands>
                     </CommandBar>
 
                 </Grid>
@@ -441,7 +420,7 @@
                         <AppBarButton
                             x:Name="SelectPinnedButton"
                             Click="SelectPinned_Click"
-                            IsEnabled="{x:Bind ViewModel.IsWidgetOpen, Mode=OneWay}"
+                            IsEnabled="{x:Bind ViewModel.IsPinnedAvailable, Mode=OneWay}"
                             Label="Select Pinned">
                             <AppBarButton.Icon>
                                 <!--<FontIcon Glyph="&#xE73A;" />-->
