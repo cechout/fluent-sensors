@@ -1,6 +1,11 @@
+using Microsoft.UI.Composition;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,11 +40,18 @@ namespace FluentSensors.Features.TaskbarWidget
         private const int AnchorOffsetDip = 8; // gap between the widget and the anchored end of the taskbar
         private const int SensorSlotWidthDip = 120; // width per pinned sensor slot
         private const int SensorSlotSpacingDip = 8; // spacing between sensor slots
-        private const int ButtonPaddingDip = 2; // inner horizontal padding of the taskbar button
+        private const int ButtonPaddingDip = 0; // inner horizontal padding of the taskbar button
         private const int MinimumWidgetWidthDip = 60; // fallback width when no sensors are pinned
 
         // Start while testing; will become a user setting later
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
+
+        // --- taskbar button animation timings (in milliseconds) ---
+        private const int HoverBackgroundDelayMs = 0; // delay before hover background starts (Standard Windows: 0ms)
+        private const int HoverBackgroundDurationMs = 83; // duration of hover background fade-in (Standard Windows: 83ms [ControlFasterAnimationDuration])
+        private const int ExitBackgroundDurationMs = 167; // duration of background fade-out on exit (Standard Windows: 167ms [ControlFastAnimationDuration])
+        private const int ExitStrokeDurationMs = 83; // duration of border stroke fade-out on exit (Standard Windows: 83ms [ControlFasterAnimationDuration])
+        private const int PressDurationMs = 50; // duration of press feedback animation (Standard Windows: 50ms)
 
         // embedding can fail transiently, e.g. while the start menu is open or another app is mid-embed
         // retrying up to 5 times avoids reporting a false failure
@@ -100,6 +112,16 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow.Move(new Windows.Graphics.PointInt32(-10000, -10000));
 
                 _appWindow.Closing += AppWindow_Closing;
+
+                // wire left-button press/release animations even when Button internally handles clicks
+                TaskbarButton.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(TaskbarButton_PointerPressed), true);
+                TaskbarButton.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(TaskbarButton_PointerReleased), true);
+
+                TaskbarButton.Loaded += (s, e) =>
+                {
+                    TaskbarButton.ApplyTemplate();
+                    EnsureCompositionElements();
+                };
 
                 // embedding waits for Loaded rather than running straight from the constructor: reparenting a window
                 // whose content is not up yet left it invisible; Loaded guarantees the visual tree is actually there
@@ -202,6 +224,44 @@ namespace FluentSensors.Features.TaskbarWidget
                 // suppresses focus stealing on click via WM_MOUSEACTIVATE returning MA_NOACTIVATE
                 _nonActivatingMonitor = WinNonActivatingWindow.Apply(_hwnd);
 
+                // Win32-level mouse tracking: ensures the very first hover triggers instantly without needing a prior click
+                _nonActivatingMonitor.WindowMessageReceived += (s, e) =>
+                {
+                    const uint WM_SETCURSOR = 0x0020;
+                    const uint WM_MOUSEMOVE = 0x0200;
+                    const uint WM_MOUSELEAVE = 0x02A3;
+
+                    if (e.Message.MessageId == WM_SETCURSOR || e.Message.MessageId == WM_MOUSEMOVE)
+                    {
+                        if (!_isPointerOver)
+                        {
+                            _isPointerOver = true;
+                            var tme = new NativeMethods.TRACKMOUSEEVENT
+                            {
+                                cbSize = (uint)Marshal.SizeOf<NativeMethods.TRACKMOUSEEVENT>(),
+                                dwFlags = NativeMethods.TME_LEAVE,
+                                hwndTrack = _hwnd
+                            };
+                            NativeMethods.TrackMouseEvent(ref tme);
+                            this.DispatcherQueue.TryEnqueue(() =>
+                            {
+                                TaskbarButton_PointerEntered(TaskbarButton, null);
+                            });
+                        }
+                    }
+                    else if (e.Message.MessageId == WM_MOUSELEAVE)
+                    {
+                        if (_isPointerOver)
+                        {
+                            _isPointerOver = false;
+                            this.DispatcherQueue.TryEnqueue(() =>
+                            {
+                                TaskbarButton_PointerExited(TaskbarButton, null);
+                            });
+                        }
+                    }
+                };
+
                 _embedAttempt = 0;
                 _isEmbedded = true;
             }
@@ -287,7 +347,186 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
 
-        // === user interaction ===
+        // === user interaction & directcomposition animations ===
+
+        private Visual _backgroundVisual;
+        private Visual _pressedVisual;
+        private Visual _strokeVisual;
+        private Visual _contentVisual;
+        private Compositor _compositor;
+        private bool _isPointerOver;
+
+        private void EnsureCompositionElements()
+        {
+            if (_backgroundVisual != null) return;
+
+            TaskbarButton.ApplyTemplate();
+
+            var bgBorder = FindVisualChild<Border>(TaskbarButton, "BackgroundBorder");
+            var pressedBorder = FindVisualChild<Border>(TaskbarButton, "PressedBorder");
+            var strokeBorder = FindVisualChild<Border>(TaskbarButton, "StrokeBorder");
+            var contentPresenter = FindVisualChild<ContentPresenter>(TaskbarButton, "ContentPresenter");
+
+            if (bgBorder != null)
+            {
+                _backgroundVisual = ElementCompositionPreview.GetElementVisual(bgBorder);
+                _compositor = _backgroundVisual?.Compositor;
+            }
+            if (pressedBorder != null)
+            {
+                _pressedVisual = ElementCompositionPreview.GetElementVisual(pressedBorder);
+            }
+            if (strokeBorder != null)
+            {
+                _strokeVisual = ElementCompositionPreview.GetElementVisual(strokeBorder);
+            }
+            if (contentPresenter != null)
+            {
+                _contentVisual = ElementCompositionPreview.GetElementVisual(contentPresenter);
+            }
+        }
+
+        private static T FindVisualChild<T>(DependencyObject parent, string name) where T : FrameworkElement
+        {
+            if (parent == null) return null;
+            int count = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T element && element.Name == name)
+                {
+                    return element;
+                }
+                T result = FindVisualChild<T>(child, name);
+                if (result != null) return result;
+            }
+            return null;
+        }
+
+        private void TaskbarButton_PointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            EnsureCompositionElements();
+            if (_compositor == null)
+            {
+                _isPointerOver = false;
+                return;
+            }
+
+            _isPointerOver = true;
+
+            // instant crisp border stroke on hover (0ms)
+            if (_strokeVisual != null)
+            {
+                _strokeVisual.Opacity = 1.0f;
+            }
+
+            // smooth background fade-in with configurable delay and duration
+            if (_backgroundVisual != null)
+            {
+                var anim = _compositor.CreateScalarKeyFrameAnimation();
+                anim.InsertKeyFrame(0.0f, 0.0f);
+                anim.InsertKeyFrame(1.0f, 1.0f);
+                if (HoverBackgroundDelayMs > 0)
+                {
+                    anim.DelayTime = TimeSpan.FromMilliseconds(HoverBackgroundDelayMs);
+                }
+                anim.Duration = TimeSpan.FromMilliseconds(HoverBackgroundDurationMs);
+                _backgroundVisual.StartAnimation("Opacity", anim);
+            }
+        }
+
+        private void TaskbarButton_PointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            _isPointerOver = false;
+            EnsureCompositionElements();
+            if (_compositor == null) return;
+
+            if (_pressedVisual != null)
+            {
+                _pressedVisual.Opacity = 0.0f;
+            }
+
+            // smooth background fade-out on exit
+            if (_backgroundVisual != null)
+            {
+                var bgAnim = _compositor.CreateScalarKeyFrameAnimation();
+                bgAnim.InsertKeyFrame(1.0f, 0.0f);
+                bgAnim.Duration = TimeSpan.FromMilliseconds(ExitBackgroundDurationMs);
+                _backgroundVisual.StartAnimation("Opacity", bgAnim);
+            }
+
+            // smooth stroke fade-out on exit
+            if (_strokeVisual != null)
+            {
+                var strokeAnim = _compositor.CreateScalarKeyFrameAnimation();
+                strokeAnim.InsertKeyFrame(1.0f, 0.0f);
+                strokeAnim.Duration = TimeSpan.FromMilliseconds(ExitStrokeDurationMs);
+                _strokeVisual.StartAnimation("Opacity", strokeAnim);
+            }
+
+            if (_contentVisual != null)
+            {
+                _contentVisual.Opacity = 1.0f;
+            }
+        }
+
+        private void TaskbarButton_PointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            var ptr = e?.GetCurrentPoint(TaskbarButton);
+            if (ptr != null && !ptr.Properties.IsLeftButtonPressed) return;
+
+            EnsureCompositionElements();
+
+            // hide hover background so ONLY the pressed background is rendered (prevents double-layering)
+            if (_backgroundVisual != null)
+            {
+                _backgroundVisual.Opacity = 0.0f;
+            }
+
+            // show pressed background
+            if (_pressedVisual != null)
+            {
+                _pressedVisual.Opacity = 1.0f;
+            }
+
+            // content press feedback: 95% opacity
+            if (_contentVisual != null && _compositor != null)
+            {
+                var pressAnim = _compositor.CreateScalarKeyFrameAnimation();
+                pressAnim.InsertKeyFrame(1.0f, 0.95f);
+                pressAnim.Duration = TimeSpan.FromMilliseconds(PressDurationMs);
+                _contentVisual.StartAnimation("Opacity", pressAnim);
+            }
+        }
+
+        private void TaskbarButton_PointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            EnsureCompositionElements();
+
+            if (_pressedVisual != null)
+            {
+                _pressedVisual.Opacity = 0.0f;
+            }
+
+            // restore hover background if still hovered
+            if (_backgroundVisual != null && _isPointerOver)
+            {
+                _backgroundVisual.Opacity = 1.0f;
+            }
+
+            if (_contentVisual != null && _compositor != null)
+            {
+                var relAnim = _compositor.CreateScalarKeyFrameAnimation();
+                relAnim.InsertKeyFrame(1.0f, 1.0f);
+                relAnim.Duration = TimeSpan.FromMilliseconds(PressDurationMs);
+                _contentVisual.StartAnimation("Opacity", relAnim);
+            }
+        }
+
+        private void TaskbarButton_PointerCanceled(object sender, PointerRoutedEventArgs e)
+        {
+            TaskbarButton_PointerExited(sender, e);
+        }
 
         private void TaskbarButton_Click(object sender, RoutedEventArgs e)
         {

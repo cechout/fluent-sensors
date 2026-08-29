@@ -353,6 +353,32 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(true));
 
+        // pure visual pass-through to SensorGraphControl.CardBorderOverride (true = standard theme border, false = transparent)
+        public bool ShowGraphCardBorder
+        {
+            get => (bool)GetValue(ShowGraphCardBorderProperty);
+            set => SetValue(ShowGraphCardBorderProperty, value);
+        }
+        public static readonly DependencyProperty ShowGraphCardBorderProperty =
+            DependencyProperty.Register(
+                nameof(ShowGraphCardBorder),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(true));
+
+        // when true, calculates a 10% alpha tint of the graphs own color as the card background
+        public bool UseGraphColorCardBackground
+        {
+            get => (bool)GetValue(UseGraphColorCardBackgroundProperty);
+            set => SetValue(UseGraphColorCardBackgroundProperty, value);
+        }
+        public static readonly DependencyProperty UseGraphColorCardBackgroundProperty =
+            DependencyProperty.Register(
+                nameof(UseGraphColorCardBackground),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(false));
+
         // pure visual pass-through to SensorGraphControl.IsHoverEnabled; default true keeps every existing consumer
         // unchanged, set to false for a purely decorative graph (no hover circle, no value label on pointer move)
         public bool IsGraphHoverEnabled
@@ -556,12 +582,29 @@ namespace FluentSensors.Controls.SensorGraph
         // layout position and ShowFlyout() keeps working), only the visual rendering is toggled here
         private double BoolToOpacity(bool value) => value ? 1.0 : 0.0;
 
-        // translates the panels own simple ShowGraphCardBackground bool into SensorGraphControl.CardBackgroundOverride:
-        // true - keeps the graphs normal themed background (no override, null)
-        // false - hides it via an explicit fully
-        // transparent override - external behavior of ShowGraphCardBackground stays exactly as before
-        private Windows.UI.Color? BoolToCardBackgroundOverride(bool showBackground) =>
-            showBackground ? null : Windows.UI.Color.FromArgb(0, 0, 0, 0);
+        // translates the panels ShowGraphCardBackground and UseGraphColorCardBackground into SensorGraphControl.CardBackgroundOverride:
+        // showBackground = false -> explicit transparent override
+        // useGraphColor = true   -> 10% opacity tint of effective graph color
+        // default                -> null (standard themed card background)
+        private Windows.UI.Color? GetEffectiveCardBackground(bool showBackground, bool useGraphColor, Windows.UI.Color overrideColor, Windows.UI.Color autoColor)
+        {
+            if (!showBackground)
+            {
+                return Windows.UI.Color.FromArgb(0, 0, 0, 0);
+            }
+
+            if (useGraphColor)
+            {
+                Windows.UI.Color effectiveGraphColor = GetEffectiveGraphColor(overrideColor, autoColor);
+                // 10% opacity (alpha 25 / 255 ≈ 10%)
+                return Windows.UI.Color.FromArgb(30, effectiveGraphColor.R, effectiveGraphColor.G, effectiveGraphColor.B);
+            }
+
+            return null;
+        }
+
+        private Windows.UI.Color? BoolToCardBorderOverride(bool showBorder) =>
+            showBorder ? null : Windows.UI.Color.FromArgb(0, 0, 0, 0);
 
 
         // === event handlers ===

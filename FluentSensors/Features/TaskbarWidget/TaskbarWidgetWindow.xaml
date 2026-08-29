@@ -16,63 +16,53 @@
         <!--  the entire taskbar widget is one unified button containing all sensor graphs  -->
         <Button
             x:Name="TaskbarButton"
-            Margin="0,0.5,0,0"
-            Padding="4,0,4,1"
+            Margin="0,0.7,0,0"
+            Padding="4,0.5,4,2.5"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             HorizontalContentAlignment="Stretch"
             VerticalContentAlignment="Stretch"
             Background="Transparent"
             BorderBrush="Transparent"
-            Click="TaskbarButton_Click">
+            BorderThickness="1"
+            Click="TaskbarButton_Click"
+            PointerCanceled="TaskbarButton_PointerCanceled"
+            PointerEntered="TaskbarButton_PointerEntered"
+            PointerExited="TaskbarButton_PointerExited">
 
             <Button.Template>
                 <ControlTemplate TargetType="Button">
-                    <Border
-                        x:Name="ButtonRootBorder"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="4">
+                    <Grid>
+                        <!--  background fill layer (animated via DirectComposition)  -->
+                        <Border
+                            x:Name="BackgroundBorder"
+                            Background="{ThemeResource TaskbarButtonHoverBackground}"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  pressed fill overlay layer (instant feedback via DirectComposition)  -->
+                        <Border
+                            x:Name="PressedBorder"
+                            Background="{ThemeResource TaskbarButtonPressedBackground}"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  border stroke layer (animated via DirectComposition)  -->
+                        <Border
+                            x:Name="StrokeBorder"
+                            BorderBrush="{ThemeResource TaskbarButtonBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  content layer: always visible (Opacity=1.0), never hidden  -->
                         <ContentPresenter
                             x:Name="ContentPresenter"
                             Padding="{TemplateBinding Padding}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             Content="{TemplateBinding Content}" />
-
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup x:Name="CommonStates">
-                                <VisualState x:Name="Normal">
-                                    <VisualState.Setters>
-                                        <Setter Target="ButtonRootBorder.Background" Value="{ThemeResource SubtleFillColorTransparentBrush}" />
-                                        <Setter Target="ButtonRootBorder.BorderBrush" Value="Transparent" />
-                                        <Setter Target="ContentPresenter.Opacity" Value="1.0" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState x:Name="PointerOver">
-                                    <VisualState.Setters>
-                                        <Setter Target="ButtonRootBorder.Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
-                                        <Setter Target="ButtonRootBorder.BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
-                                        <Setter Target="ContentPresenter.Opacity" Value="1.0" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState x:Name="Pressed">
-                                    <VisualState.Setters>
-                                        <Setter Target="ButtonRootBorder.Background" Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
-                                        <Setter Target="ButtonRootBorder.BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
-                                        <Setter Target="ContentPresenter.Opacity" Value="0.7" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState x:Name="Disabled">
-                                    <VisualState.Setters>
-                                        <Setter Target="ButtonRootBorder.Background" Value="Transparent" />
-                                        <Setter Target="ContentPresenter.Opacity" Value="0.5" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
-                    </Border>
+                    </Grid>
                 </ControlTemplate>
             </Button.Template>
 
@@ -92,12 +82,14 @@
                             IsGraphHoverEnabled="False"
                             IsHitTestVisible="False"
                             ShowGraphCardBackground="True"
+                            ShowGraphCardBorder="False"
                             ShowGraphLabel="True"
                             ShowStatusRow="False"
                             ShowThresholdControls="False"
                             ShowThresholdFlyoutIndicator="False"
                             ShowYAxisControls="False"
                             ThresholdLabelAlwaysVisible="False"
+                            UseGraphColorCardBackground="True"
                             ViewModel="{x:Bind}" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

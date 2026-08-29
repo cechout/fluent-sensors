@@ -367,7 +367,8 @@
                 <fhGraph:SensorGraphControl
                     x:Name="GraphControl"
                     AccentColor="{x:Bind GetEffectiveGraphColor(GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
-                    CardBackgroundOverride="{x:Bind BoolToCardBackgroundOverride(ShowGraphCardBackground), Mode=OneWay}"
+                    CardBackgroundOverride="{x:Bind GetEffectiveCardBackground(ShowGraphCardBackground, UseGraphColorCardBackground, GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
+                    CardBorderOverride="{x:Bind BoolToCardBorderOverride(ShowGraphCardBorder), Mode=OneWay}"
                     CurrentValueText="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}"
                     IsAutoScaled="{x:Bind ViewModel.IsAutoScaled, Mode=OneWay}"
                     IsCurrentValueVisible="{x:Bind ShowGraphCurrentValue, Mode=OneWay}"

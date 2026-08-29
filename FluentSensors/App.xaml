@@ -12,7 +12,30 @@
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
 
-            <ResourceDictionary.ThemeDictionaries />
+            <ResourceDictionary.ThemeDictionaries>
+                <!--  Dark Mode (Default)  -->
+                <ResourceDictionary x:Key="Default">
+                    <!--  Taskbar Button Border: #333333 top, #292929 sides & bottom (DWM compensated)  -->
+                    <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#333333" />
+                        <GradientStop Offset="0.15" Color="#292929" />
+                        <GradientStop Offset="1.0" Color="#292929" />
+                    </LinearGradientBrush>
+
+                    <StaticResource x:Key="TaskbarButtonHoverBackground" ResourceKey="SubtleFillColorSecondaryBrush" />
+                    <StaticResource x:Key="TaskbarButtonPressedBackground" ResourceKey="SubtleFillColorTertiaryBrush" />
+                </ResourceDictionary>
+
+                <!--  Light Mode  -->
+                <ResourceDictionary x:Key="Light">
+                    <!--  Light Mode uses standard ControlStrokeColorDefaultBrush  -->
+                    <StaticResource x:Key="TaskbarButtonBorderBrush" ResourceKey="ControlStrokeColorDefaultBrush" />
+
+                    <!--  Light Mode hover: ControlFillColorDefaultBrush, pressed: ControlFillColorSecondaryBrush  -->
+                    <StaticResource x:Key="TaskbarButtonHoverBackground" ResourceKey="ControlFillColorDefaultBrush" />
+                    <StaticResource x:Key="TaskbarButtonPressedBackground" ResourceKey="ControlFillColorSecondaryBrush" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

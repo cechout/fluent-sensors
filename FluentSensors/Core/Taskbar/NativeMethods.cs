@@ -189,8 +189,6 @@ namespace FluentSensors.Core.Taskbar
         internal static partial bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
 
 
-        // === window placement ===
-
         internal const uint SWP_NOACTIVATE = 0x0010;
         internal const uint SWP_FRAMECHANGED = 0x0020; // makes a GWL_STYLE change actually take effect
         internal const uint SWP_SHOWWINDOW = 0x0040;
@@ -198,5 +196,24 @@ namespace FluentSensors.Core.Taskbar
         [LibraryImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+
+        // === mouse tracking ===
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct TRACKMOUSEEVENT
+        {
+            public uint cbSize;
+            public uint dwFlags;
+            public IntPtr hwndTrack;
+            public uint dwHoverTime;
+        }
+
+        internal const uint TME_LEAVE = 0x00000002;
+        internal const uint TME_HOVER = 0x00000001;
+
+        [LibraryImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool TrackMouseEvent(ref TRACKMOUSEEVENT lpEventTrack);
     }
 }

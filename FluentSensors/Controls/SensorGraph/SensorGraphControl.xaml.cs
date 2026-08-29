@@ -126,6 +126,7 @@ namespace FluentSensors.Controls.SensorGraph
             ApplyStroke();
             RebuildSections();
             ApplyCardBackground();
+            ApplyCardBorder();
         }
 
 
@@ -604,6 +605,40 @@ namespace FluentSensors.Controls.SensorGraph
             if (CardBackgroundOverride is Windows.UI.Color color)
             {
                 CardBorder.Background = new SolidColorBrush(color);
+            }
+            else
+            {
+                VisualStateManager.GoToState(this, "CardBackgroundVisible", false);
+            }
+        }
+
+
+        // DependencyProperty: CardBorderOverride
+        // null = no override, uses the normal themed VisualState (ControlStrokeColorSecondaryBrush)
+        // explicit Color (e.g. Colors.Transparent) is applied directly as a SolidColorBrush
+        public Windows.UI.Color? CardBorderOverride
+        {
+            get => (Windows.UI.Color?)GetValue(CardBorderOverrideProperty);
+            set => SetValue(CardBorderOverrideProperty, value);
+        }
+
+        public static readonly DependencyProperty CardBorderOverrideProperty =
+            DependencyProperty.Register(
+                nameof(CardBorderOverride),
+                typeof(Windows.UI.Color?),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(null, OnCardBorderOverrideChanged));
+
+        private static void OnCardBorderOverrideChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SensorGraphControl g) g.ApplyCardBorder();
+        }
+
+        private void ApplyCardBorder()
+        {
+            if (CardBorderOverride is Windows.UI.Color color)
+            {
+                CardBorder.BorderBrush = new SolidColorBrush(color);
             }
             else
             {
