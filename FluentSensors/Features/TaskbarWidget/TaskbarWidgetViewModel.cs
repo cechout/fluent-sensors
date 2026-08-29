@@ -30,7 +30,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             foreach (var sensor in selectedSensors)
             {
-                PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType));
+                PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, scope: SensorGraphScope.Taskbar));
             }
         }
 
@@ -63,7 +63,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 if (!existingIds.Contains(sensor.Id))
                 {
-                    PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType));
+                    PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, scope: SensorGraphScope.Taskbar));
                 }
             }
 

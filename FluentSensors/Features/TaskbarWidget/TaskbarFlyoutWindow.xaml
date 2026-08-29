@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="FluentSensors.Features.TaskbarWidget.TaskbarFlyoutWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Fluent Sensors Flyout"
+    mc:Ignorable="d">
+
+    <Grid
+        x:Name="RootGrid"
+        Background="Transparent"
+        CornerRadius="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  subtle header bar  -->
+        <Grid
+            x:Name="CustomTitleBar"
+            Grid.Row="0"
+            Height="auto"
+            Background="Transparent">
+
+            <StackPanel
+                Margin="4,4,0,0"
+                HorizontalAlignment="Left"
+                Orientation="Horizontal"
+                Spacing="4">
+
+                <!--  back to main application button  -->
+                <Button
+                    Width="32"
+                    Height="22"
+                    Padding="0"
+                    HorizontalAlignment="Left"
+                    Click="BackToDashboard_Click"
+                    Style="{StaticResource SubtleButtonStyle}"
+                    ToolTipService.ToolTip="Back to Main Application">
+                    <FontIcon
+                        FontSize="14"
+                        FontWeight="SemiLight"
+                        Glyph="&#xE944;" />
+                </Button>
+
+                <!--  close taskbar widget button  -->
+                <Button
+                    Width="32"
+                    Height="22"
+                    Padding="0"
+                    HorizontalAlignment="Left"
+                    Click="CloseWidget_Click"
+                    Style="{StaticResource SubtleButtonStyle}"
+                    ToolTipService.ToolTip="Close Taskbar Widget">
+                    <FontIcon
+                        FontSize="12"
+                        FontWeight="SemiLight"
+                        Glyph="&#xE8BB;" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!--  vertical list of sensor graphs  -->
+        <Grid Grid.Row="1" Padding="4,0,4,5">
+            <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <fhControls:VerticalStretchPanel Spacing="8" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
+                        <fhGraph:SensorPanelControl
+                            ShowStatusRow="True"
+                            ShowThresholdControls="True"
+                            ShowYAxisControls="True"
+                            ViewModel="{x:Bind}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+    </Grid>
+</Window>

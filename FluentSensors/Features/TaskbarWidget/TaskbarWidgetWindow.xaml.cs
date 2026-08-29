@@ -38,7 +38,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // logical pixels, scaled to the taskbars DPI before use, so these read the same at any scaling
         private const int VerticalMarginDip = 2; // gap above and below the widget; height follows from it
-        private const int AnchorOffsetDip = 8; // gap between the widget and the anchored end of the taskbar
+        private const int AnchorOffsetDip = 10; // gap between the widget and the anchored end of the taskbar
         private const int TaskbarHorizontalPaddingDip = 8; // minimum margin to the outer left/right edges of the taskbar
         private const int SensorSlotWidthDip = 120; // width per pinned sensor slot
         private const int SensorSlotSpacingDip = 8; // spacing between sensor slots
@@ -670,11 +670,33 @@ namespace FluentSensors.Features.TaskbarWidget
                 return;
             }
 
-            // opens animated popup flyout window above taskbar widget
+            // opens or toggles flyout window directly above the taskbar widget
+            TaskbarFlyoutWindow.Toggle(this);
         }
 
 
         // === lifecycle ===
+
+        // closes both the taskbar widget and flyout cleanly, detaching from the taskbar shell
+        public void CloseWidget()
+        {
+            TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
+
+            CurrentInstance = null;
+            _retainedInstance = this;
+
+            SetGraphsRenderingActive(false);
+            ViewModel?.SetLiveDataActive(false);
+
+            if (_taskbarHwnd != IntPtr.Zero)
+            {
+                WinTaskbarEmbedder.Detach(_hwnd);
+                _taskbarHwnd = IntPtr.Zero;
+                _isEmbedded = false;
+            }
+
+            _appWindow.Hide();
+        }
 
         // --- memory leak: TaskbarWidgetWindow never released after close ---
         // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
@@ -685,21 +707,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
             args.Cancel = true;
-            CurrentInstance = null;
-            _retainedInstance = this;
-
-            SetGraphsRenderingActive(false);
-            ViewModel?.SetLiveDataActive(false);
-
-            // detach before hiding so AppWindow keeps operating on a plain top level window while the widget is away
-            if (_taskbarHwnd != IntPtr.Zero)
-            {
-                WinTaskbarEmbedder.Detach(_hwnd);
-                _taskbarHwnd = IntPtr.Zero;
-                _isEmbedded = false;
-            }
-
-            _appWindow.Hide();
+            CloseWidget();
         }
     }
 }

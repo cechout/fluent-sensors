@@ -175,6 +175,108 @@
             </controls:SettingsExpander>
 
 
+            <!--  taskbar & flyout settings  -->
+            <TextBlock
+                Margin="1,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="Taskbar &amp; Flyout Appearance" />
+
+            <!--  taskbar background material  -->
+            <controls:SettingsExpander
+                Description="Backdrop effect and color for the taskbar flyout"
+                Header="Background Material"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xEF1F;}"
+                IsExpanded="False">
+
+                <ComboBox
+                    x:Name="TaskbarBackdropComboBox"
+                    Width="160"
+                    SelectionChanged="TaskbarBackdropComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Desktop Acrylic" Tag="Acrylic" />
+                    <ComboBoxItem Content="System Mica" Tag="Mica" />
+                    <ComboBoxItem Content="Solid" Tag="None" />
+                </ComboBox>
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Description="Tint strength (Acrylic only)" Header="Tint Opacity">
+                        <Slider
+                            x:Name="TaskbarTintSlider"
+                            Width="200"
+                            Maximum="1"
+                            Minimum="0"
+                            StepFrequency="0.05"
+                            TickFrequency="0.1"
+                            ValueChanged="TaskbarTintSlider_ValueChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Description="Brightness, independent of tint color (Acrylic only)" Header="Luminosity Opacity">
+                        <Slider
+                            x:Name="TaskbarLuminositySlider"
+                            Width="200"
+                            Maximum="1"
+                            Minimum="0"
+                            StepFrequency="0.05"
+                            TickFrequency="0.1"
+                            ValueChanged="TaskbarLuminositySlider_ValueChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Description="Accent or custom color (Acrylic and Solid)" Header="Background Color Source">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox
+                                x:Name="TaskbarBackgroundColorSourceComboBox"
+                                Width="160"
+                                SelectionChanged="TaskbarBackgroundColorSourceComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Windows Accent" Tag="Accent" />
+                                <ComboBoxItem Content="Custom Color" Tag="Custom" />
+                            </ComboBox>
+
+                            <controls:ColorPickerButton x:Name="TaskbarBackgroundColorPicker" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+            <!--  taskbar graph appearance  -->
+            <controls:SettingsExpander
+                Description="Graph color and time range for taskbar widget and flyout"
+                Header="Graph"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Description="Accent or custom color" Header="Graph Color Source">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox
+                                x:Name="TaskbarGraphColorSourceComboBox"
+                                Width="160"
+                                SelectionChanged="TaskbarGraphColorSourceComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Windows Accent" Tag="Accent" />
+                                <ComboBoxItem Content="Custom Color" Tag="Custom" />
+                            </ComboBox>
+
+                            <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Description="How much history the taskbar graph shows" Header="Time Range">
+                        <ComboBox
+                            x:Name="TaskbarGraphTimeSpanComboBox"
+                            Width="40"
+                            SelectionChanged="TaskbarGraphTimeSpanComboBox_SelectionChanged">
+                            <ComboBoxItem Content="15s" Tag="15" />
+                            <ComboBoxItem Content="20s" Tag="20" />
+                            <ComboBoxItem Content="30s" Tag="30" />
+                            <ComboBoxItem Content="45s" Tag="45" />
+                            <ComboBoxItem Content="60s" Tag="60" />
+                            <ComboBoxItem Content="90s" Tag="90" />
+                            <ComboBoxItem Content="120s" Tag="120" />
+                            <ComboBoxItem Content="240s" Tag="240" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+
             <!--  backup and reset  -->
             <TextBlock
                 Margin="1,20,0,6"

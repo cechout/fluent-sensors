@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Windows.UI;
 
 using FluentSensors.Persistence.Models;
@@ -37,6 +37,8 @@ namespace FluentSensors.Persistence.Services
                 }
             }
         }
+
+        // --- Widget Window Appearance Settings ---
 
         private string _backdropType = "Mica";
         public string BackdropType
@@ -159,6 +161,132 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+
+        // --- Taskbar Ecosystem (Widget + Flyout) Appearance Settings ---
+
+        private string _taskbarBackdropType = "Acrylic";
+        public string TaskbarBackdropType
+        {
+            get => _taskbarBackdropType;
+            set
+            {
+                if (_taskbarBackdropType != value)
+                {
+                    _taskbarBackdropType = value;
+                    TaskbarBackdropTypeChanged?.Invoke(_taskbarBackdropType);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private float _taskbarTintOpacity = 0.4f;
+        public float TaskbarTintOpacity
+        {
+            get => _taskbarTintOpacity;
+            set
+            {
+                if (_taskbarTintOpacity != value)
+                {
+                    _taskbarTintOpacity = value;
+                    TaskbarOpacityChanged?.Invoke(_taskbarTintOpacity, _taskbarLuminosityOpacity);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private float _taskbarLuminosityOpacity = 0.2f;
+        public float TaskbarLuminosityOpacity
+        {
+            get => _taskbarLuminosityOpacity;
+            set
+            {
+                if (_taskbarLuminosityOpacity != value)
+                {
+                    _taskbarLuminosityOpacity = value;
+                    TaskbarOpacityChanged?.Invoke(_taskbarTintOpacity, _taskbarLuminosityOpacity);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _taskbarUseAccentColor = true;
+        public bool TaskbarUseAccentColor
+        {
+            get => _taskbarUseAccentColor;
+            set
+            {
+                if (_taskbarUseAccentColor != value)
+                {
+                    _taskbarUseAccentColor = value;
+                    TaskbarTintColorChanged?.Invoke(_taskbarUseAccentColor, _taskbarCustomTintColor);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private Color _taskbarCustomTintColor = Color.FromArgb(255, 25, 25, 25);
+        public Color TaskbarCustomTintColor
+        {
+            get => _taskbarCustomTintColor;
+            set
+            {
+                if (_taskbarCustomTintColor != value)
+                {
+                    _taskbarCustomTintColor = value;
+                    TaskbarTintColorChanged?.Invoke(_taskbarUseAccentColor, _taskbarCustomTintColor);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _taskbarUseGraphAccentColor = true;
+        public bool TaskbarUseGraphAccentColor
+        {
+            get => _taskbarUseGraphAccentColor;
+            set
+            {
+                if (_taskbarUseGraphAccentColor != value)
+                {
+                    _taskbarUseGraphAccentColor = value;
+                    TaskbarGraphColorChanged?.Invoke(_taskbarUseGraphAccentColor, _taskbarGraphCustomColor);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private Windows.UI.Color _taskbarGraphCustomColor = Microsoft.UI.Colors.LightBlue;
+        public Windows.UI.Color TaskbarGraphCustomColor
+        {
+            get => _taskbarGraphCustomColor;
+            set
+            {
+                if (_taskbarGraphCustomColor != value)
+                {
+                    _taskbarGraphCustomColor = value;
+                    TaskbarGraphColorChanged?.Invoke(_taskbarUseGraphAccentColor, _taskbarGraphCustomColor);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private double _taskbarGraphTimeSpanSeconds = 45;
+        public double TaskbarGraphTimeSpanSeconds
+        {
+            get => _taskbarGraphTimeSpanSeconds;
+            set
+            {
+                if (_taskbarGraphTimeSpanSeconds != value)
+                {
+                    _taskbarGraphTimeSpanSeconds = value;
+                    TaskbarGraphTimeSpanChanged?.Invoke(_taskbarGraphTimeSpanSeconds);
+                    SaveDebounced();
+                }
+            }
+        }
+
+
+        // --- App Behavior Settings ---
+
         private bool _minimizeToTray = true;
         public bool MinimizeToTray
         {
@@ -219,6 +347,16 @@ namespace FluentSensors.Persistence.Services
             _useGraphAccentColor = data.UseGraphAccentColor;
             _graphCustomColor = data.GraphCustomColor;
             _graphTimeSpanSeconds = data.GraphTimeSpanSeconds;
+
+            _taskbarBackdropType = data.TaskbarBackdropType;
+            _taskbarTintOpacity = data.TaskbarTintOpacity;
+            _taskbarLuminosityOpacity = data.TaskbarLuminosityOpacity;
+            _taskbarUseAccentColor = data.TaskbarUseAccentColor;
+            _taskbarCustomTintColor = data.TaskbarCustomTintColor;
+            _taskbarUseGraphAccentColor = data.TaskbarUseGraphAccentColor;
+            _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
+            _taskbarGraphTimeSpanSeconds = data.TaskbarGraphTimeSpanSeconds;
+
             _minimizeToTray = data.MinimizeToTray;
             _hideSensorsCompletely = data.HideSensorsCompletely;
             _statusReadoutEnabled = data.StatusReadoutEnabled;
@@ -241,6 +379,16 @@ namespace FluentSensors.Persistence.Services
                 UseGraphAccentColor = _useGraphAccentColor,
                 GraphCustomColor = _graphCustomColor,
                 GraphTimeSpanSeconds = _graphTimeSpanSeconds,
+
+                TaskbarBackdropType = _taskbarBackdropType,
+                TaskbarTintOpacity = _taskbarTintOpacity,
+                TaskbarLuminosityOpacity = _taskbarLuminosityOpacity,
+                TaskbarUseAccentColor = _taskbarUseAccentColor,
+                TaskbarCustomTintColor = _taskbarCustomTintColor,
+                TaskbarUseGraphAccentColor = _taskbarUseGraphAccentColor,
+                TaskbarGraphCustomColor = _taskbarGraphCustomColor,
+                TaskbarGraphTimeSpanSeconds = _taskbarGraphTimeSpanSeconds,
+
                 MinimizeToTray = _minimizeToTray,
                 HideSensorsCompletely = _hideSensorsCompletely,
                 StatusReadoutEnabled = _statusReadoutEnabled,
@@ -273,6 +421,13 @@ namespace FluentSensors.Persistence.Services
         public event Action<bool, Color> TintColorChanged;
         public event Action<bool, Windows.UI.Color> GraphColorChanged;
         public event Action<double> GraphTimeSpanChanged;
+
+        public event Action<string> TaskbarBackdropTypeChanged;
+        public event Action<float, float> TaskbarOpacityChanged;
+        public event Action<bool, Color> TaskbarTintColorChanged;
+        public event Action<bool, Windows.UI.Color> TaskbarGraphColorChanged;
+        public event Action<double> TaskbarGraphTimeSpanChanged;
+
         public event Action<bool> MinimizeToTrayChanged;
         public event Action<bool> HideSensorsCompletelyChanged;
         public event Action<bool> StatusReadoutEnabledChanged;

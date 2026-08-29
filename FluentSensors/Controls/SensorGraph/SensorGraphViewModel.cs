@@ -26,27 +26,45 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === constructor ===
 
-        public SensorGraphViewModel(string sensorId, string sensorName, string sensorType, double? graphTimeSpanSecondsOverride = null)
+        public SensorGraphViewModel(
+            string sensorId,
+            string sensorName,
+            string sensorType,
+            double? graphTimeSpanSecondsOverride = null,
+            SensorGraphScope scope = SensorGraphScope.Widget)
         {
             SensorId = sensorId;
             SensorType = sensorType;
             SensorName = sensorName;
+            Scope = scope;
             Unit = SensorUnitFormatter.GetUnit(sensorType);
             CurrentValueText = "-"; // placeholder text until we have the first value
             CurrentValueColor = DefaultTextColor.Resolve();
 
-            // when set, this instance owns a fixed time span independent of the global GraphTimeSpanSeconds setting
+            // when set, this instance owns a fixed time span independent of the scope GraphTimeSpanSeconds setting
             _timeSpanOverrideSeconds = graphTimeSpanSecondsOverride;
-            double initialTimeSpanSeconds = graphTimeSpanSecondsOverride ?? SettingsService.Instance.GraphTimeSpanSeconds;
+            double initialTimeSpanSeconds = graphTimeSpanSecondsOverride ?? (Scope == SensorGraphScope.Taskbar
+                ? SettingsService.Instance.TaskbarGraphTimeSpanSeconds
+                : SettingsService.Instance.GraphTimeSpanSeconds);
             int initialPointCount = CalculatePointCount(initialTimeSpanSeconds, HardwareMonitorService.Instance.UpdateIntervalMs);
 
             // this raw data list will be plotted by LiveCharts
             // we use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
             SensorData = new ObservableCollection<double?>(Enumerable.Repeat<double?>(0.0, initialPointCount));
 
-            GraphColor = ResolveGraphColor(SettingsService.Instance.UseGraphAccentColor, SettingsService.Instance.GraphCustomColor);
-            SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
-            SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
+            if (Scope == SensorGraphScope.Taskbar)
+            {
+                GraphColor = ResolveGraphColor(SettingsService.Instance.TaskbarUseGraphAccentColor, SettingsService.Instance.TaskbarGraphCustomColor);
+                SettingsService.Instance.TaskbarGraphColorChanged += OnGraphColorChanged;
+                SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnGraphTimeSpanChanged;
+            }
+            else
+            {
+                GraphColor = ResolveGraphColor(SettingsService.Instance.UseGraphAccentColor, SettingsService.Instance.GraphCustomColor);
+                SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
+                SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
+            }
+
             HardwareMonitorService.Instance.UpdateIntervalChanged += OnUpdateIntervalChanged;
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
 
@@ -58,18 +76,19 @@ namespace FluentSensors.Controls.SensorGraph
             var profile = SensorTypeProfiles.GetProfile(sensorType);
             _yMaxStep = profile.YMaxStep;
 
-            // restore this sensors Y-axis state if it was already configured before (e.g. previously pinned, or loaded
-            // from disk at startup); a null ManualYMax means the user never touched it yet, so we fall back to this
-            // sensor types default instead of a generic one
+            // restore this sensors Y-axis state for the current presentation scope
             var existingState = SensorStateService.Instance.GetState(SensorId);
-            _isAutoScaled = existingState.IsAutoScaled;
-            _manualYMax = existingState.ManualYMax ?? profile.YMaxDefault;
+            var yAxisState = existingState.GetYAxis(Scope);
+            _isAutoScaled = yAxisState.IsAutoScaled;
+            _manualYMax = yAxisState.ManualYMax ?? profile.YMaxDefault;
 
             UpdateYMaxDisplay();
         }
 
 
         // === bindable properties ===
+
+        public SensorGraphScope Scope { get; }
 
         // general
         public ObservableCollection<double?> SensorData { get; private set; }
@@ -158,8 +177,9 @@ namespace FluentSensors.Controls.SensorGraph
         private void PushYAxisStateToService()
         {
             var state = SensorStateService.Instance.GetState(SensorId);
-            state.IsAutoScaled = _isAutoScaled;
-            state.ManualYMax = _manualYMax;
+            var yAxisState = state.GetYAxis(Scope);
+            yAxisState.IsAutoScaled = _isAutoScaled;
+            yAxisState.ManualYMax = _manualYMax;
             SensorStateService.Instance.SetState(SensorId, state);
         }
 
@@ -224,8 +244,17 @@ namespace FluentSensors.Controls.SensorGraph
         // still react to graph color / data point / threshold changes after being removed
         public void Cleanup()
         {
-            SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
-            SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+            if (Scope == SensorGraphScope.Taskbar)
+            {
+                SettingsService.Instance.TaskbarGraphColorChanged -= OnGraphColorChanged;
+                SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+            }
+            else
+            {
+                SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
+                SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+            }
+
             HardwareMonitorService.Instance.UpdateIntervalChanged -= OnUpdateIntervalChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             Threshold.PropertyChanged -= OnThresholdPropertyChanged;

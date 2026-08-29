@@ -1,4 +1,4 @@
-﻿using Windows.UI;
+using Windows.UI;
 
 
 namespace FluentSensors.Persistence.Models
@@ -9,6 +9,8 @@ namespace FluentSensors.Persistence.Models
     public class AppSettingsData
     {
         public string AppTheme { get; set; } = "Default";
+
+        // widget window appearance
         public string BackdropType { get; set; } = "Mica";
         public float TintOpacity { get; set; } = 0.4f;
         public float LuminosityOpacity { get; set; } = 0.2f;
@@ -17,6 +19,17 @@ namespace FluentSensors.Persistence.Models
         public bool UseGraphAccentColor { get; set; } = true;
         public Windows.UI.Color GraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public double GraphTimeSpanSeconds { get; set; } = 45;
+
+        // taskbar ecosystem (taskbar widget + flyout window) appearance
+        public string TaskbarBackdropType { get; set; } = "Acrylic";
+        public float TaskbarTintOpacity { get; set; } = 0.4f;
+        public float TaskbarLuminosityOpacity { get; set; } = 0.2f;
+        public bool TaskbarUseAccentColor { get; set; } = true;
+        public Color TaskbarCustomTintColor { get; set; } = Color.FromArgb(255, 25, 25, 25);
+        public bool TaskbarUseGraphAccentColor { get; set; } = true;
+        public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
+        public double TaskbarGraphTimeSpanSeconds { get; set; } = 45;
+
         public bool MinimizeToTray { get; set; } = true;
         public bool HideSensorsCompletely { get; set; } = true;
         public bool StatusReadoutEnabled { get; set; } = true;
