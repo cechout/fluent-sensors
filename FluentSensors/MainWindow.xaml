@@ -40,6 +40,7 @@
             Grid.Row="0"
             Height="48"
             Background="Transparent"
+            Loaded="AppTitleBar_Loaded"
             SizeChanged="AppTitleBar_SizeChanged">
 
             <Grid.ColumnDefinitions>
@@ -78,6 +79,7 @@
                 self-contained runtime
             -->
             <fhInfoPopup:InfoPopupControl
+                x:Name="DotNetRuntimePopup"
                 Grid.Column="2"
                 Margin="8,1,0,0"
                 VerticalAlignment="Center"
@@ -93,6 +95,7 @@
 
             <!--  toggle button for the whole status readout  -->
             <Button
+                x:Name="StatusToggleButton"
                 Grid.Column="3"
                 Width="22"
                 Height="22"
@@ -101,11 +104,12 @@
                 VerticalAlignment="Center"
                 Background="Transparent"
                 BorderThickness="0"
-                Click="StatusToggleButton_Click">
+                Click="StatusToggleButton_Click"
+                Style="{ThemeResource SubtleButtonStyle}">
                 <FontIcon
-                    FontSize="11"
-                    Glyph="&#xE76C;"
-                    Opacity="{x:Bind GetToggleOpacity(AppStatus.IsStatusEnabled), Mode=OneWay}" />
+                    FontSize="12"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Glyph="&#xE76C;" />
             </Button>
 
             <!--  lhm group  -->
@@ -130,6 +134,7 @@
                     Text="{x:Bind AppStatus.PollText, Mode=OneWay}"
                     Typography.NumeralAlignment="Tabular" />
                 <fhInfoPopup:InfoPopupControl
+                    x:Name="LhmInfoPopup"
                     Margin="-2,1,0,0"
                     Description="Sensors (found/rendered) - number of sensors LibreHardwareMonitor found on this system, and how many of those are actively drawn right now&#10;Poll (current/aimed) - how often the polling loop actually manages to update vs. the interval configured in Settings&#10;LibreHardwareMonitorLib is the largest and most established open source hardware monitoring library for Windows"
                     PlacementMode="Below"
@@ -162,27 +167,8 @@
                     Text="{x:Bind AppStatus.RamUsageText, Mode=OneWay}"
                     Typography.NumeralAlignment="Tabular" />
 
-                <!--  (handle + gc memory; currently not displayed)  -->
-                <!--<TextBlock
-                    VerticalAlignment="Center"
-                    Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.HandleCountText, Mode=OneWay}" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.GcMemoryText, Mode=OneWay}" />-->
-                <!--<fhInfoPopup:InfoPopupControl
-                    Margin="-2,1,0,0"
-                    Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)&#10;Handles - open OS handles held by this app, useful for spotting leaks&#10;GC Memory - size of the managed heap tracked by the .NET garbage collector"
-                    PlacementMode="Below"
-                    SourceIntro="Source:">
-                    <fhInfoPopup:InfoPopupControl.SourceLinks>
-                        <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
-                        <fhInfoPopup:SourceLink Label=".NET Garbage Collector" Url="https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/" />
-                    </fhInfoPopup:InfoPopupControl.SourceLinks>
-                </fhInfoPopup:InfoPopupControl>-->
-
                 <fhInfoPopup:InfoPopupControl
+                    x:Name="WindowsInfoPopup"
                     Margin="-2,1,0,0"
                     Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)"
                     PlacementMode="Below"

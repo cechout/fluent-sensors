@@ -1,7 +1,5 @@
 using System;
-
 using UIAutomationClient;
-
 using Windows.Graphics;
 
 using FluentSensors.Core.Taskbar;
@@ -9,17 +7,12 @@ using FluentSensors.Core.Taskbar;
 
 namespace FluentSensors.Diagnostics
 {
-    // developer diagnostic tool (not part of any feature):
-    // dumps everything the taskbar detection backend (WinTaskbarService, WinTaskbarUiaProbe, WinShellStateWatcher)
-    // currently sees to the Debug output window, to verify the native/UIA queries actually return plausible data
-    // before Phase 3 invests any time in an actual widget window
-    // directly answers the two open Phase 2 questions: whether UIA gets through at all from this elevated process,
-    // and whether the TaskbarFrame/SystemTrayFrame/WidgetsButton identifiers still match on this Windows build
-    //
-    // Call this manually from anywhere (e.g. MainWindow constructor, wrapped in Task.Run since WinTaskbarUiaProbe
-    // blocks on cross-process COM calls) whenever the taskbar backend needs re-checking
+    // developer diagnostics for taskbar detection backend
     public static class WinTaskbarDebugDump
     {
+        // === public api ===
+
+        // outputs discovered taskbars, UIA element insets, and fullscreen state to debug console
         public static void Dump()
         {
             System.Diagnostics.Debug.WriteLine("========== WinTaskbarService Dump ==========");
@@ -38,20 +31,15 @@ namespace FluentSensors.Diagnostics
                 var uia = WinTaskbarUiaProbe.Instance.Probe(taskbar.Hwnd);
                 if (uia == null)
                 {
-                    // open point 1: couldnt even reach the root element, either UIPI blocked the elevated-process
-                    // call or the query timed out
-                    System.Diagnostics.Debug.WriteLine("  UIA: root element unreachable (timeout, or UIPI blocked the elevated process, see open point 1)");
+                    System.Diagnostics.Debug.WriteLine("  UIA: root element unreachable");
                     continue;
                 }
 
-                System.Diagnostics.Debug.WriteLine("  UIA: root element reached (open point 1 answered: yes, UIA gets through)");
+                System.Diagnostics.Debug.WriteLine("  UIA: root element reached");
                 DumpUiaElement("Frame", uia.Frame, taskbar.Rect);
                 DumpUiaElement("Tray", uia.Tray, taskbar.Rect);
                 DumpUiaElement("WidgetsButton", uia.WidgetsButton, taskbar.Rect);
 
-                // none of the three targeted lookups matched: dump the actual live tree instead of guessing again
-                // from the same outdated community sources, this shows the real ClassName/AutomationId values on
-                // this exact Windows build (open point 2)
                 if (uia.Frame == null && uia.Tray == null && uia.WidgetsButton == null)
                 {
                     DumpTaskbarTree(taskbar.Hwnd);
@@ -64,20 +52,18 @@ namespace FluentSensors.Diagnostics
             System.Diagnostics.Debug.WriteLine("========== End Dump ==========");
         }
 
-        // a missing element here is open point 2: the ClassName/AutomationId may have shifted on this Windows
-        // build, see the KNOWN UNRELIABLE note in WinTaskbarUiaProbe
+
+        // === private helpers ===
+
         private static void DumpUiaElement(string label, WinTaskbarUiaElement? element, RectInt32 taskbarRect)
         {
             if (element == null)
             {
-                System.Diagnostics.Debug.WriteLine($"  UIA {label}: not found (see open point 2)");
+                System.Diagnostics.Debug.WriteLine($"  UIA {label}: not found");
                 return;
             }
 
             var rect = element.BoundingRectangle;
-
-            // the "invisible border" the plan wants to see: how far the UIA bounds sit inside the raw
-            // GetWindowRect bounds on all four sides
             int leftInset = rect.X - taskbarRect.X;
             int topInset = rect.Y - taskbarRect.Y;
             int rightInset = (taskbarRect.X + taskbarRect.Width) - (rect.X + rect.Width);
@@ -89,11 +75,6 @@ namespace FluentSensors.Diagnostics
                 $"    Inset vs GetWindowRect: Left={leftInset} Top={topInset} Right={rightInset} Bottom={bottomInset}");
         }
 
-        // one-off diagnostic pass, gets its own CUIAutomation8 instance rather than reusing WinTaskbarUiaProbes:
-        // that one is scoped to exactly three targeted lookups with cache+timeout, this is a much wider,
-        // occasional exploratory walk, mixing the two concerns into one class would blur both
-        // 5 levels down is comfortably past where TaskbarFrame sits (2 levels under the taskbar hwnd itself per
-        // community findings), with room to spare for whatever this Windows build actually does
         private static void DumpTaskbarTree(IntPtr taskbarHwnd)
         {
             System.Diagnostics.Debug.WriteLine("  --- raw UIA tree (ClassName / AutomationId / Name), up to 5 levels ---");
@@ -112,7 +93,6 @@ namespace FluentSensors.Diagnostics
             }
             catch (Exception ex)
             {
-                // diagnostic-only, never worth taking the whole dump down over
                 System.Diagnostics.Debug.WriteLine($"  (tree dump failed: {ex.Message})");
             }
         }
@@ -126,9 +106,6 @@ namespace FluentSensors.Diagnostics
             if (depth >= maxDepth) return;
 
             var children = element.FindAll(TreeScope.TreeScope_Children, automation.CreateTrueCondition());
-
-            // safety cap, taskbar trees shouldnt realistically be this wide, just guarding against flooding the
-            // output if something unexpected does show up
             int count = Math.Min(children.Length, 40);
             for (int i = 0; i < count; i++)
             {
@@ -137,3 +114,4 @@ namespace FluentSensors.Diagnostics
         }
     }
 }
+

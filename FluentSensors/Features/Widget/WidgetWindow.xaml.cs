@@ -14,6 +14,9 @@ using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Controls.SensorGraph;
+using FluentSensors.Features.Sensors;
+using FluentSensors.Common.Sensors;
+using FluentSensors.Features.TaskbarWidget;
 
 
 namespace FluentSensors.Features.Widget
@@ -46,6 +49,8 @@ namespace FluentSensors.Features.Widget
         private DesktopAcrylicController _acrylicController;
         private MicaController _micaController;
         private SystemBackdropConfiguration _configurationSource;
+        private Windows.UI.ViewManagement.UISettings? _uiSettings;
+        private static bool _lastAdvancedEffects = true;
 
 
         // === constructor ===
@@ -109,9 +114,19 @@ namespace FluentSensors.Features.Widget
             SettingsService.Instance.OpacityChanged += OnOpacityChanged;
             SettingsService.Instance.TintColorChanged += OnTintColorChanged;
 
+            try
+            {
+                _uiSettings = new Windows.UI.ViewManagement.UISettings();
+                _uiSettings.AdvancedEffectsEnabledChanged += (s, e) => TaskbarFlyoutWindow.ScheduleRecreation();
+                _uiSettings.ColorValuesChanged += (s, e) => TaskbarFlyoutWindow.ScheduleRecreation();
+            }
+            catch { }
+
             this.Closed += WidgetWindow_Closed;
             _appWindow.Changed += AppWindow_Changed;
             _appWindow.Closing += AppWindow_Closing;
+
+            KickBackdropRefresh();
         }
 
 
@@ -167,6 +182,96 @@ namespace FluentSensors.Features.Widget
             }
             CurrentInstance._appWindow.Show();
             CurrentInstance.Activate();
+        }
+
+        private bool _isClosed = false;
+
+        public void SafeDestroy()
+        {
+            if (_isClosed) return;
+            _isClosed = true;
+
+            try
+            {
+                SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+                SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
+                SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
+                SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
+            }
+            catch { }
+
+            try
+            {
+                _acrylicController?.Dispose();
+                _acrylicController = null;
+                _micaController?.Dispose();
+                _micaController = null;
+                this.Close();
+            }
+            catch { }
+        }
+
+        private static bool _isRecreating = false;
+
+        // fully destroys and recreates the widget window when Windows global transparency or theme is toggled
+        public static void RecreateWindow()
+        {
+            if (_isRecreating) return;
+            if (CurrentInstance == null && _retainedInstance == null) return;
+            _isRecreating = true;
+
+            var ids = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetWindow);
+            var sensors = ResolveSensors(ids);
+            bool wasVisible = CurrentInstance != null && CurrentInstance._appWindow != null && CurrentInstance._appWindow.IsVisible;
+
+            if (CurrentInstance != null)
+            {
+                var old = CurrentInstance;
+                CurrentInstance = null;
+                old.SafeDestroy();
+            }
+
+            if (_retainedInstance != null)
+            {
+                var old = _retainedInstance;
+                _retainedInstance = null;
+                old.SafeDestroy();
+            }
+
+            if (sensors.Count > 0 && wasVisible)
+            {
+                MainWindow.CurrentInstance?.DispatcherQueue.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        ShowWithSensors(sensors);
+                    }
+                    finally
+                    {
+                        _isRecreating = false;
+                    }
+                });
+            }
+            else
+            {
+                _isRecreating = false;
+            }
+        }
+
+        private static List<SensorRowViewModel> ResolveSensors(IReadOnlyList<string> sensorIds)
+        {
+            if (sensorIds == null || sensorIds.Count == 0 || SensorsViewModel.Instance == null)
+            {
+                return new List<SensorRowViewModel>();
+            }
+
+            var allSensors = SensorsViewModel.Instance.HardwareGroups
+                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors));
+
+            return sensorIds
+                .Select(id => allSensors.FirstOrDefault(s => s.Id == id))
+                .Where(sensor => sensor != null)
+                .ToList();
         }
 
 
@@ -298,6 +403,22 @@ namespace FluentSensors.Features.Widget
             {
                 UpdateAcrylicProperties();
                 UpdateSolidBackground();
+            });
+        }
+
+        private void OnAdvancedEffectsEnabledChanged(Windows.UI.ViewManagement.UISettings sender, object args)
+        {
+            try
+            {
+                bool current = sender.AdvancedEffectsEnabled;
+                if (current == _lastAdvancedEffects) return; // ignore spurious theme change events
+                _lastAdvancedEffects = current;
+            }
+            catch { }
+
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                SetBackdrop(SettingsService.Instance.BackdropType);
             });
         }
 
@@ -492,6 +613,8 @@ namespace FluentSensors.Features.Widget
 
         private void ApplyTheme(string themeTag)
         {
+            if (_isClosed) return;
+
             if (this.Content is FrameworkElement rootElement)
             {
                 rootElement.RequestedTheme = themeTag switch
@@ -515,6 +638,8 @@ namespace FluentSensors.Features.Widget
 
         private void UpdateAcrylicProperties()
         {
+            if (_isClosed) return;
+
             if (_acrylicController != null)
             {
                 // determine the correct color
@@ -538,6 +663,8 @@ namespace FluentSensors.Features.Widget
 
         private void UpdateSolidBackground()
         {
+            if (_isClosed) return;
+
             // we intervene only, if "solid" is selected
             if (SettingsService.Instance.BackdropType == "None")
             {
@@ -557,6 +684,8 @@ namespace FluentSensors.Features.Widget
         // https://learn.microsoft.com/en-us/windows/apps/develop/ui/system-backdrops
         public void SetBackdrop(string backdropType)
         {
+            if (_isClosed) return;
+
             // ensure the system dispatcher queue is ready
             DispatcherQueue.EnsureSystemDispatcherQueue();
 
@@ -620,6 +749,30 @@ namespace FluentSensors.Features.Widget
                     ElementTheme.Light => SystemBackdropTheme.Light,
                     _ => SystemBackdropTheme.Default
                 };
+            }
+        }
+
+        // --- workaround: DWM backdrop swapchain kick ---
+        // problem: when Windows transparency/theme changes, WinUI 3 DesktopAcrylicController needs a backdrop re-bind
+        // to attach its blur shader to the newly created DWM swapchain.
+        // fix: after window recreation, briefly kick the backdrop pipeline (None -> Mica/Acrylic) to force DWM compositor refresh.
+        private void KickBackdropRefresh()
+        {
+            if (_isClosed) return;
+
+            string currentBackdrop = SettingsService.Instance.BackdropType;
+            if (currentBackdrop == "Mica" || currentBackdrop == "Acrylic")
+            {
+                var timer = this.DispatcherQueue.CreateTimer();
+                timer.Interval = TimeSpan.FromMilliseconds(80);
+                timer.IsRepeating = false;
+                timer.Tick += (s, e) =>
+                {
+                    if (_isClosed) return;
+                    SetBackdrop("None");
+                    SetBackdrop(currentBackdrop);
+                };
+                timer.Start();
             }
         }
     }

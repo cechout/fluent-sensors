@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 
 using FluentSensors.Features.Widget;
+using FluentSensors.Features.TaskbarWidget;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
 
@@ -38,8 +39,8 @@ namespace FluentSensors.Features.Sensors
         private HashSet<ICommandBarElement> _forcedOverflowElements;
         private bool _commandBarWidthsCached = false;
         private const double OverflowButtonReservedWidth = 48;
-        private const double HeaderSpacingBuffer = 80;
-        private int _commandBarOverflowStartIndex = -1; // -1 means "not computed yet" so the very first call always applies once, indexes into the grouped units, not raw elements
+        private const double LeftSectionMinWidth = 260; // minimum width measured from SensorListTitleText
+        private int _commandBarOverflowStartIndex = -1;
 
         // info bar
         private bool _infoBarClipHandlersAttached = false;
@@ -95,13 +96,41 @@ namespace FluentSensors.Features.Sensors
         {
         }
 
-        // Phase 1: the taskbar widget window itself ships in a later phase, theres no action to perform yet
-        private void PinToTaskbar_Click(object sender, RoutedEventArgs e)
+        private async void PinToTaskbar_Click(object sender, RoutedEventArgs e)
         {
+            // opens or reconfigures the taskbar widget window with whatever is currently checked
+            // persistence already happened live as each checkbox was toggled, this button triggers the visual update
+            var selectedSensors = ViewModel.HardwareGroups
+                .SelectMany(group => group.Sensors)
+                .Where(sensor => sensor.IsSelected)
+                .ToList();
+
+            // show flyout when no sensor was selected
+            if (selectedSensors.Count == 0)
+            {
+                _infoBarTicket++;
+                int currentTicket = _infoBarTicket;
+
+                // show inforbar
+                AnimateInfoBar(-40, true);
+
+                await Task.Delay(2000);
+
+                if (currentTicket == _infoBarTicket)
+                {
+                    // hide infobar
+                    AnimateInfoBar(100, false);
+                }
+                return;
+            }
+
+            // reuses the existing taskbar widget window if one is embedded or was previously hidden, only creates a fresh
+            // native window if none exists yet at all
+            TaskbarWidgetWindow.ShowWithSensors(selectedSensors);
         }
 
         // switches which profile the checkboxes reflect and persist to, and swaps the action button in the command
-        // bar to match (Pin to Widget / Start CSV Monitoring / Pin to Taskbar)
+        // bar to match (Pin to Widget / Start CSV Logging / Pin to Taskbar)
         private void SelectionProfileComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -110,9 +139,6 @@ namespace FluentSensors.Features.Sensors
             if (selectedItem.Tag is not string tag || !Enum.TryParse(tag, out SensorSelectionProfile profile)) return;
 
             ViewModel.ActiveProfile = profile;
-
-            // the commit button occupying the priority orders first slot changed
-            _commandBarPriorityOrder = BuildCommandBarPriorityOrder();
             RebuildCommandBarOverflow();
         }
 
@@ -252,9 +278,6 @@ namespace FluentSensors.Features.Sensors
         // sets the priority order and takes the initial width measurement
         private void SensorListCommandBar_Loaded(object sender, RoutedEventArgs e)
         {
-            _commandBarPriorityOrder = BuildCommandBarPriorityOrder();
-
-            // elements in here always in the overflow menu
             _forcedOverflowElements = new HashSet<ICommandBarElement>
             {
                 ShowHiddenSensorsButton
@@ -266,14 +289,12 @@ namespace FluentSensors.Features.Sensors
         // an AppBarButton that isnt currently a live PrimaryCommand or SecondaryCommand of this CommandBar does not
         // report the same ActualWidth it gets once actually placed and arranged inside it, DefaultLabelPosition and
         // compact rendering only apply to the bars current children
-        // the previous version measured a profiles commit button before it was ever added, giving a wrong (too
-        // small) width and letting too many buttons through as fitting, this hit every profile switch since the
-        // newly swapped-in button had never been a live command yet
         // fix: two phases, first every element goes in as a PrimaryCommand unconditionally so each one gets a real,
-        // correctly labeled layout pass, even ones that were never live before; the actual primary/secondary split
-        // only happens once that has settled (next dispatcher tick), once ActualWidth is trustworthy
+        // correctly labeled layout pass; the actual primary/secondary split only happens once that has settled
+        // (next dispatcher tick), once ActualWidth is trustworthy
         private void RebuildCommandBarOverflow()
         {
+            _commandBarPriorityOrder = BuildCommandBarPriorityOrder();
             _commandBarOverflowStartIndex = -1;
 
             SensorListCommandBar.PrimaryCommands.Clear();
@@ -307,11 +328,7 @@ namespace FluentSensors.Features.Sensors
                 HideSensorsButton,
                 ButtonSeparator,
                 ResetValuesButton,
-                ShowHiddenSensorsButton,
-
-                //ButtonSeparator2,
-                //SelectPinnedButton,
-                //DeselectAllButton
+                ShowHiddenSensorsButton
             };
         }
 
@@ -330,12 +347,9 @@ namespace FluentSensors.Features.Sensors
         {
             foreach (var element in _commandBarPriorityOrder)
             {
-                if (element is FrameworkElement frameworkElement)
+                if (element is FrameworkElement frameworkElement && frameworkElement.ActualWidth > 0)
                 {
                     _commandBarButtonWidths[element] = frameworkElement.ActualWidth;
-
-                    // TEMP DIAGNOSTIC: remove once the overflow width calculation is confirmed correct again
-                    Debug.WriteLine($"[CommandBarOverflow] cached {frameworkElement.Name}={frameworkElement.ActualWidth:F0}");
                 }
             }
 
@@ -348,18 +362,17 @@ namespace FluentSensors.Features.Sensors
         // would rebuild the buttons and cause label flicker
         private void UpdateCommandBarOverflow()
         {
-            double availableWidth = SensorListHeaderGrid.ActualWidth - SensorListTitleText.ActualWidth
-                - SelectionProfileComboBox.ActualWidth - HeaderSpacingBuffer;
+            double leftSectionWidth = Math.Max(LeftSectionMinWidth, SensorListTitleText.ActualWidth + SelectionProfileComboBox.ActualWidth + 16);
+            double availableWidth = SensorListHeaderGrid.ActualWidth - leftSectionWidth;
 
-            // TEMP DIAGNOSTIC: remove once the overflow width calculation is confirmed correct again
-            Debug.WriteLine($"[CommandBarOverflow] grid={SensorListHeaderGrid.ActualWidth:F0} title={SensorListTitleText.ActualWidth:F0} combo={SelectionProfileComboBox.ActualWidth:F0} available={availableWidth:F0}");
+            if (availableWidth <= 0) return;
 
             // (only elements not permanently pinned to overflow take part in the width fit, grouped into units so a
             // separator can never end up dangling alone)
             var fittableUnits = GroupIntoOverflowUnits(
                 _commandBarPriorityOrder.Where(element => !_forcedOverflowElements.Contains(element)));
 
-            double totalWidth = fittableUnits.Sum(unit => unit.Sum(element => _commandBarButtonWidths[element]));
+            double totalWidth = fittableUnits.Sum(unit => unit.Sum(element => _commandBarButtonWidths.GetValueOrDefault(element, 40)));
 
             // overflow button is needed if the fittable elements alone overflow,
             // or if theres at least one forced element that needs it regardless
@@ -373,7 +386,7 @@ namespace FluentSensors.Features.Sensors
 
             for (int i = 0; i < fittableUnits.Count; i++)
             {
-                double unitWidth = fittableUnits[i].Sum(element => _commandBarButtonWidths[element]);
+                double unitWidth = fittableUnits[i].Sum(element => _commandBarButtonWidths.GetValueOrDefault(element, 40));
 
                 if (runningWidth + unitWidth > budget)
                 {

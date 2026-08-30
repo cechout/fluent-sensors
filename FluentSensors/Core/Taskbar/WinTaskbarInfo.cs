@@ -4,8 +4,7 @@ using Windows.Graphics;
 
 namespace FluentSensors.Core.Taskbar
 {
-    // which side of the screen a taskbar is docked to; mirrors the raw ABE_LEFT/TOP/RIGHT/BOTTOM values
-    // SHAppBarMessage reports
+    // screen edge a taskbar is docked to
     public enum ScreenEdge
     {
         Left,
@@ -14,21 +13,14 @@ namespace FluentSensors.Core.Taskbar
         Bottom
     }
 
-    // one taskbar as discovered on a poll tick, the primary one or a secondary one on another monitor
-    // a plain snapshot, not a live-updating object; two of these compare equal via normal record equality, thats
-    // how WinTaskbarService decides whether anything actually changed since the previous tick
+    // snapshot of a discovered taskbar
     public record WinTaskbarInfo(
-        IntPtr Hwnd,
-
-        // raw GetWindowRect bounds, includes the invisible DWM frame margin; see WinTaskbarUiaProbe (next phase)
-        // for the visible-bounds comparison against this
-        RectInt32 Rect,
-
-        ScreenEdge Edge,
-        uint Dpi,
-        bool IsAutoHide,
-
-        // HMONITOR handle
-        IntPtr Monitor
+        IntPtr Hwnd, // native window handle of the taskbar (Shell_TrayWnd or Shell_SecondaryTrayWnd)
+        RectInt32 Rect, // outer bounding box in physical screen coordinates
+        ScreenEdge Edge, // screen edge where the taskbar is currently docked
+        uint Dpi, // DPI value of the monitor containing the taskbar
+        bool IsAutoHide, // whether auto-hide taskbar behavior is enabled
+        IntPtr Monitor // native monitor handle hosting this taskbar
     );
 }
+

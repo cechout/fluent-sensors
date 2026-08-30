@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 
 namespace FluentSensors.Persistence.Models
@@ -12,6 +12,9 @@ namespace FluentSensors.Persistence.Models
         public int Width { get; set; }
         public int Height { get; set; }
         public bool IsMaximized { get; set; }
+
+        // number of pinned sensors when size was saved (used by TaskbarFlyoutWindow to reset on count change)
+        public int? SensorCount { get; set; }
 
         // WidgetWindow only: whether it was open when the app last closed, so it can be automatically restored on
         // next launch; which sensors to restore it with comes from SensorSelectionService, not from here

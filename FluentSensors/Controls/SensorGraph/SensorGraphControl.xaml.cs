@@ -126,6 +126,7 @@ namespace FluentSensors.Controls.SensorGraph
             ApplyStroke();
             RebuildSections();
             ApplyCardBackground();
+            ApplyCardBorder();
         }
 
 
@@ -461,6 +462,36 @@ namespace FluentSensors.Controls.SensorGraph
                 new PropertyMetadata(string.Empty, OnLabelChanged));
 
 
+        // DependencyProperty: CurrentValueText
+        public string CurrentValueText
+        {
+            get => (string)GetValue(CurrentValueTextProperty);
+            set => SetValue(CurrentValueTextProperty, value);
+        }
+
+        public static readonly DependencyProperty CurrentValueTextProperty =
+            DependencyProperty.Register(
+                nameof(CurrentValueText),
+                typeof(string),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(string.Empty, OnCurrentValueChanged));
+
+
+        // DependencyProperty: CurrentValueColor
+        public Microsoft.UI.Xaml.Media.Brush CurrentValueColor
+        {
+            get => (Microsoft.UI.Xaml.Media.Brush)GetValue(CurrentValueColorProperty);
+            set => SetValue(CurrentValueColorProperty, value);
+        }
+
+        public static readonly DependencyProperty CurrentValueColorProperty =
+            DependencyProperty.Register(
+                nameof(CurrentValueColor),
+                typeof(Microsoft.UI.Xaml.Media.Brush),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(null, OnCurrentValueColorChanged));
+
+
         // DependencyProperty: IsLabelVisible
         public bool IsLabelVisible
         {
@@ -475,15 +506,70 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorGraphControl),
                 new PropertyMetadata(false, OnLabelChanged));
 
-        // shared callback for LabelText and IsLabelVisible: purely a static text overlay, no chart repaint needed
+
+        // DependencyProperty: IsNameVisible
+        public bool IsNameVisible
+        {
+            get => (bool)GetValue(IsNameVisibleProperty);
+            set => SetValue(IsNameVisibleProperty, value);
+        }
+
+        public static readonly DependencyProperty IsNameVisibleProperty =
+            DependencyProperty.Register(
+                nameof(IsNameVisible),
+                typeof(bool),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(true, OnLabelChanged));
+
+
+        // DependencyProperty: IsCurrentValueVisible
+        public bool IsCurrentValueVisible
+        {
+            get => (bool)GetValue(IsCurrentValueVisibleProperty);
+            set => SetValue(IsCurrentValueVisibleProperty, value);
+        }
+
+        public static readonly DependencyProperty IsCurrentValueVisibleProperty =
+            DependencyProperty.Register(
+                nameof(IsCurrentValueVisible),
+                typeof(bool),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(true, OnLabelChanged));
+
+        // shared callback for LabelText, CurrentValueText, IsLabelVisible, IsNameVisible, IsCurrentValueVisible
         private static void OnLabelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is not SensorGraphControl g) return;
 
-            g.GraphLabelText.Text = g.LabelText;
-            g.GraphLabelText.Visibility = g.IsLabelVisible && !string.IsNullOrEmpty(g.LabelText)
+            g.GraphLabelText.Text = g.LabelText ?? string.Empty;
+            g.GraphLabelText.Visibility = g.IsLabelVisible && g.IsNameVisible && !string.IsNullOrEmpty(g.LabelText)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+
+            g.GraphCurrentValueText.Text = g.CurrentValueText ?? string.Empty;
+            g.GraphCurrentValueText.Visibility = g.IsLabelVisible && g.IsCurrentValueVisible && !string.IsNullOrEmpty(g.CurrentValueText)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        private static void OnCurrentValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not SensorGraphControl g) return;
+
+            g.GraphCurrentValueText.Text = g.CurrentValueText ?? string.Empty;
+            g.GraphCurrentValueText.Visibility = g.IsLabelVisible && g.IsCurrentValueVisible && !string.IsNullOrEmpty(g.CurrentValueText)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        private static void OnCurrentValueColorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not SensorGraphControl g) return;
+
+            if (g.CurrentValueColor != null)
+            {
+                g.GraphCurrentValueText.Foreground = g.CurrentValueColor;
+            }
         }
 
 
@@ -519,6 +605,40 @@ namespace FluentSensors.Controls.SensorGraph
             if (CardBackgroundOverride is Windows.UI.Color color)
             {
                 CardBorder.Background = new SolidColorBrush(color);
+            }
+            else
+            {
+                VisualStateManager.GoToState(this, "CardBackgroundVisible", false);
+            }
+        }
+
+
+        // DependencyProperty: CardBorderOverride
+        // null = no override, uses the normal themed VisualState (ControlStrokeColorSecondaryBrush)
+        // explicit Color (e.g. Colors.Transparent) is applied directly as a SolidColorBrush
+        public Windows.UI.Color? CardBorderOverride
+        {
+            get => (Windows.UI.Color?)GetValue(CardBorderOverrideProperty);
+            set => SetValue(CardBorderOverrideProperty, value);
+        }
+
+        public static readonly DependencyProperty CardBorderOverrideProperty =
+            DependencyProperty.Register(
+                nameof(CardBorderOverride),
+                typeof(Windows.UI.Color?),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(null, OnCardBorderOverrideChanged));
+
+        private static void OnCardBorderOverrideChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SensorGraphControl g) g.ApplyCardBorder();
+        }
+
+        private void ApplyCardBorder()
+        {
+            if (CardBorderOverride is Windows.UI.Color color)
+            {
+                CardBorder.BorderBrush = new SolidColorBrush(color);
             }
             else
             {

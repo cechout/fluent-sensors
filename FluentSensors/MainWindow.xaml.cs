@@ -273,6 +273,9 @@ namespace FluentSensors
 
             // re-open the widget window with its previously pinned sensors, if it was still open when the app last closed
             TryRestoreWidgetWindow();
+
+            // re-open the taskbar widget with its pinned sensors if any are configured
+            TryRestoreTaskbarWidgetWindow();
         }
 
         // re-creates the widget window with whichever previously pinned sensors still exist on
@@ -291,6 +294,18 @@ namespace FluentSensors
             WidgetWindow.ShowWithSensors(pinnedSensors);
         }
 
+        // re-creates the taskbar widget with whichever sensors are currently pinned under the taskbar profile
+        private void TryRestoreTaskbarWidgetWindow()
+        {
+            var pinnedSensorIds = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.Taskbar);
+            if (pinnedSensorIds.Count == 0) return;
+
+            var pinnedSensors = FindSensorRowsByIds(pinnedSensorIds);
+            if (pinnedSensors.Count == 0) return;
+
+            FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow.ShowWithSensors(pinnedSensors);
+        }
+
         // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, preserving the original
         // pin order rather than whatever order the hardware groups produce
         private List<SensorRowViewModel> FindSensorRowsByIds(IReadOnlyList<string> ids)
@@ -307,17 +322,74 @@ namespace FluentSensors
 
         // === app status readout ===
 
+        private void AppTitleBar_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+        }
+
         // feeds AppStatus.HasEnoughWidthForFull, which decides whether the windows group still fits next to the
         // lhm group; fires on every window resize, see AppStatusViewModel.UpdateVisibility for the combined logic
         private void AppTitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             AppStatus.UpdateAvailableWidth(e.NewSize.Width);
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+        }
+
+        // registers interactive titlebar elements as client passthrough regions so pointer events (pressed visual state)
+        // are consumed by the controls themselves rather than initiating a window drag
+        private void UpdateTitleBarPassthroughRegions()
+        {
+            if (AppTitleBar == null || !AppTitleBar.IsLoaded) return;
+
+            try
+            {
+                var nonClientInputSrc = Microsoft.UI.Input.InputNonClientPointerSource.GetForWindowId(this.AppWindow.Id);
+                if (nonClientInputSrc == null) return;
+
+                double scale = AppTitleBar.XamlRoot?.RasterizationScale ?? 1.0;
+                var rects = new List<Windows.Graphics.RectInt32>();
+
+                AddPassthroughRect(rects, DotNetRuntimePopup, scale);
+                AddPassthroughRect(rects, StatusToggleButton, scale);
+                AddPassthroughRect(rects, LhmInfoPopup, scale);
+                AddPassthroughRect(rects, WindowsInfoPopup, scale);
+
+                nonClientInputSrc.SetRegionRects(Microsoft.UI.Input.NonClientRegionKind.Passthrough, rects.ToArray());
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[UpdateTitleBarPassthroughRegions] failed: {ex.Message}");
+            }
+        }
+
+        private void AddPassthroughRect(List<Windows.Graphics.RectInt32> rects, FrameworkElement element, double scale)
+        {
+            if (element == null || element.Visibility != Visibility.Visible || !element.IsLoaded) return;
+
+            try
+            {
+                var transform = element.TransformToVisual(null);
+                var bounds = transform.TransformBounds(new Windows.Foundation.Rect(0, 0, element.ActualWidth, element.ActualHeight));
+                if (bounds.Width > 0 && bounds.Height > 0)
+                {
+                    rects.Add(new Windows.Graphics.RectInt32(
+                        (int)Math.Round(bounds.X * scale),
+                        (int)Math.Round(bounds.Y * scale),
+                        (int)Math.Round(bounds.Width * scale),
+                        (int)Math.Round(bounds.Height * scale)
+                    ));
+                }
+            }
+            catch
+            {
+            }
         }
 
         // plain Button standing in for a real ToggleButton, see the XAML comment on it for why
         private void StatusToggleButton_Click(object sender, RoutedEventArgs e)
         {
             AppStatus.IsStatusEnabled = !AppStatus.IsStatusEnabled;
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
         }
 
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
