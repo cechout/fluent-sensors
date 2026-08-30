@@ -145,8 +145,8 @@ namespace FluentSensors.Features.TaskbarWidget
         public const bool KeepFlyoutGraphsActiveInBackground = true;
 
         // padding settings for fine-tuning
-        public static readonly Thickness FlyoutRootPadding = new Thickness(0, 0, 0, 0); // padding applied to flyout root border
-        public static readonly Thickness FlyoutGraphsPadding = new Thickness(5, 1, 5, 6);
+        public static readonly Thickness FlyoutRootPadding = new Thickness(0, -1, 0, 0); // padding applied to flyout root border
+        public static readonly Thickness FlyoutGraphsPadding = new Thickness(4.5, 1, 4.5, 6);
 
         // --- Mica Flyout Blur Preset Settings (used when BackdropType == "Mica" and Transparency is ON) ---
         // Dark Mode Preset (#292929, Luminosity 0.90, Tint 0.70):
