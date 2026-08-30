@@ -38,7 +38,8 @@ namespace FluentSensors.Features.TaskbarWidget
         // === fields ===
 
         // logical pixels, scaled to the taskbars DPI before use, so these read the same at any scaling
-        private const int VerticalMarginDip = 2; // gap above and below the widget; height follows from it
+        public const double VerticalMarginTopDip = 2.5; // gap above widget in DIP (1 mm = 3.78 DIP)
+        public const double VerticalMarginBottomDip = 2.0; // gap below widget in DIP (1 mm = 3.78 DIP)
         private const int AnchorOffsetDip = 10; // gap between the widget and the anchored end of the taskbar
         private const int TaskbarHorizontalPaddingDip = 10; // minimum margin to the outer left/right edges of the taskbar
         private const int SensorSlotWidthDip = 120; // width per pinned sensor slot
@@ -46,22 +47,14 @@ namespace FluentSensors.Features.TaskbarWidget
         private const int ButtonPaddingDip = 0; // inner horizontal padding of the taskbar button
         private const int MinimumWidgetWidthDip = 60; // fallback width when no sensors are pinned
 
-        // Start while testing; will become a user setting later
+        // maybe a user setting?
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
 
         // --- Taskbar Startup Animation Settings ---
-
-        // startup slide distance in DIP/pixels (e.g. 30 to 60)
-        public const int TaskbarStartupSlideDistanceDip = 40;
-
-        // startup animation duration in milliseconds
-        public const int TaskbarStartupDurationMs = 260;
-
-        // startup animation delay in milliseconds (delays animation until window creation/charts finish)
-        public const int TaskbarStartupDelayMs = 1200;
-
-        // startup fade opacity (0.0f = full fade in, 1.0f = no fade)
-        public const float TaskbarStartupStartOpacity = 0.0f;
+        public const int TaskbarStartupSlideDistanceDip = 40; // startup slide distance in DIP/pixels (e.g. 30 to 60)
+        public const int TaskbarStartupDurationMs = 260; // startup animation duration in milliseconds
+        public const int TaskbarStartupDelayMs = 1200; // startup animation delay in milliseconds (delays animation until window creation/charts finish)
+        public const float TaskbarStartupStartOpacity = 0.0f; // startup fade opacity (0.0f = full fade in, 1.0f = no fade)
 
         // --- drag-to-reposition settings ---
         private const int DragThresholdPixels = 4; // minimum movement in physical pixels before entering drag mode
@@ -77,9 +70,10 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // --- taskbar button animation timings (in milliseconds) ---
         private const int HoverBackgroundDelayMs = 0; // delay before hover background starts (Standard Windows: 0ms)
-        private const int HoverBackgroundDurationMs = 83; // duration of hover background fade-in (Standard Windows: 83ms [ControlFasterAnimationDuration])
-        private const int ExitBackgroundDurationMs = 167; // duration of background fade-out on exit (Standard Windows: 167ms [ControlFastAnimationDuration])
-        private const int ExitStrokeDurationMs = 83; // duration of border stroke fade-out on exit (Standard Windows: 83ms [ControlFasterAnimationDuration])
+        private const int HoverBackgroundDurationMs = 167; // duration of hover background fade-in (Standard Windows: 83ms [ControlFasterAnimationDuration])
+        private const int HoverStrokeDurationMs = 0; // duration of border stroke appearance on hover (Standard Windows: 0ms instant)
+        private const int ExitBackgroundDurationMs = 240; // duration of background fade-out on exit (Standard Windows: 167ms [ControlFastAnimationDuration])
+        private const int ExitStrokeDurationMs = 40; // duration of border stroke fade-out on exit (Standard Windows: 83ms [ControlFasterAnimationDuration])
         private const int PressDurationMs = 50; // duration of press feedback animation (Standard Windows: 50ms)
 
         // embedding can fail transiently, e.g. while the start menu is open or another app is mid-embed
@@ -253,12 +247,16 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 int widthDip = CalculateWidgetWidthDip(ViewModel.PinnedSensors.Count);
                 double scale = primaryTaskbar.Dpi / 96.0;
+                int topMarginPx = (int)Math.Round(VerticalMarginTopDip * scale);
+                int bottomMarginPx = (int)Math.Round(VerticalMarginBottomDip * scale);
+
                 var screenRect = TaskbarWidgetPlacement.Calculate(
                     primaryTaskbar,
                     Anchor,
                     (int)(_currentOffsetDip * scale),
                     (int)(widthDip * scale),
-                    (int)(VerticalMarginDip * scale));
+                    topMarginPx,
+                    bottomMarginPx);
 
                 _currentScreenRect = screenRect;
 
@@ -316,13 +314,18 @@ namespace FluentSensors.Features.TaskbarWidget
                 // hide TaskbarButton initially before the delayed startup animation begins
                 if (TaskbarButton != null)
                 {
-                    var visual = ElementCompositionPreview.GetElementVisual(TaskbarButton);
-                    if (visual != null)
+                    try
                     {
-                        float slideDistPx = (float)(TaskbarStartupSlideDistanceDip * scale);
-                        visual.Offset = new Vector3(0, slideDistPx, 0);
-                        visual.Opacity = TaskbarStartupStartOpacity;
+                        TaskbarButton.ApplyTemplate();
+                        var visual = ElementCompositionPreview.GetElementVisual(TaskbarButton);
+                        if (visual != null)
+                        {
+                            float slideDistPx = (float)(TaskbarStartupSlideDistanceDip * scale);
+                            visual.Offset = new Vector3(0, slideDistPx, 0);
+                            visual.Opacity = TaskbarStartupStartOpacity;
+                        }
                     }
+                    catch { }
                 }
 
                 // play smooth slide-up startup animation on TaskbarButton after the specified startup delay
@@ -358,12 +361,16 @@ namespace FluentSensors.Features.TaskbarWidget
 
             int widthDip = CalculateWidgetWidthDip(ViewModel.PinnedSensors.Count);
             double scale = primaryTaskbar.Dpi / 96.0;
+            int topMarginPx = (int)Math.Round(VerticalMarginTopDip * scale);
+            int bottomMarginPx = (int)Math.Round(VerticalMarginBottomDip * scale);
+
             var screenRect = TaskbarWidgetPlacement.Calculate(
                 primaryTaskbar,
                 Anchor,
                 (int)(_currentOffsetDip * scale),
                 (int)(widthDip * scale),
-                (int)(VerticalMarginDip * scale));
+                topMarginPx,
+                bottomMarginPx);
 
             _currentScreenRect = screenRect;
             WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
@@ -589,72 +596,70 @@ namespace FluentSensors.Features.TaskbarWidget
             if (!_isFlyoutActive)
             {
                 // === Flyout Closed ===
-                SetVisualOpacity(_activeHoverStrokeVisual, 0.0f);
-                SetVisualOpacity(_activePressedStrokeVisual, 0.0f);
+                AnimateVisualOpacity(_activeHoverStrokeVisual, 0.0f, ExitStrokeDurationMs);
+                AnimateVisualOpacity(_activePressedStrokeVisual, 0.0f, ExitStrokeDurationMs);
 
                 if (_isPressed)
                 {
-                    SetVisualOpacity(_backgroundVisual, 0.0f);
-                    SetVisualOpacity(_activeHoverVisual, 0.0f);
-                    SetVisualOpacity(_activePressedVisual, 0.0f);
-                    SetVisualOpacity(_pressedVisual, 1.0f);
-                    SetVisualOpacity(_strokeVisual, 1.0f);
+                    AnimateVisualOpacity(_backgroundVisual, 0.0f, PressDurationMs);
+                    AnimateVisualOpacity(_activeHoverVisual, 0.0f, PressDurationMs);
+                    AnimateVisualOpacity(_activePressedVisual, 0.0f, PressDurationMs);
+                    AnimateVisualOpacity(_pressedVisual, 1.0f, PressDurationMs);
+                    AnimateVisualOpacity(_strokeVisual, 1.0f, PressDurationMs);
                 }
                 else if (_isPointerOver)
                 {
-                    SetVisualOpacity(_backgroundVisual, 1.0f);
-                    SetVisualOpacity(_activeHoverVisual, 0.0f);
-                    SetVisualOpacity(_activePressedVisual, 0.0f);
-                    SetVisualOpacity(_pressedVisual, 0.0f);
-                    SetVisualOpacity(_strokeVisual, 1.0f);
+                    AnimateVisualOpacity(_backgroundVisual, 1.0f, HoverBackgroundDurationMs, HoverBackgroundDelayMs);
+                    AnimateVisualOpacity(_activeHoverVisual, 0.0f, HoverBackgroundDurationMs);
+                    AnimateVisualOpacity(_activePressedVisual, 0.0f, HoverBackgroundDurationMs);
+                    AnimateVisualOpacity(_pressedVisual, 0.0f, HoverBackgroundDurationMs);
+                    AnimateVisualOpacity(_strokeVisual, 1.0f, HoverStrokeDurationMs);
                 }
                 else
                 {
-                    SetVisualOpacity(_backgroundVisual, 0.0f);
-                    SetVisualOpacity(_activeHoverVisual, 0.0f);
-                    SetVisualOpacity(_activePressedVisual, 0.0f);
-                    SetVisualOpacity(_pressedVisual, 0.0f);
-                    SetVisualOpacity(_strokeVisual, 0.0f);
+                    AnimateVisualOpacity(_backgroundVisual, 0.0f, ExitBackgroundDurationMs);
+                    AnimateVisualOpacity(_activeHoverVisual, 0.0f, ExitBackgroundDurationMs);
+                    AnimateVisualOpacity(_activePressedVisual, 0.0f, ExitBackgroundDurationMs);
+                    AnimateVisualOpacity(_pressedVisual, 0.0f, ExitBackgroundDurationMs);
+                    AnimateVisualOpacity(_strokeVisual, 0.0f, ExitStrokeDurationMs);
                 }
             }
             else
             {
                 // === Flyout Open ===
-                SetVisualOpacity(_strokeVisual, 0.0f);
+                AnimateVisualOpacity(_strokeVisual, 0.0f, ExitStrokeDurationMs);
 
                 if (_isPressed)
                 {
-                    // Active Pressed: background #2a2a2a (dark) or #F3F3F3 (light)
-                    SetVisualOpacity(_backgroundVisual, 0.0f);
-                    SetVisualOpacity(_activeHoverVisual, 0.0f);
-                    SetVisualOpacity(_activePressedVisual, 1.0f);
-                    SetVisualOpacity(_pressedVisual, 0.0f);
+                    AnimateVisualOpacity(_backgroundVisual, 0.0f, PressDurationMs);
+                    AnimateVisualOpacity(_activeHoverVisual, 0.0f, PressDurationMs);
+                    AnimateVisualOpacity(_activePressedVisual, 1.0f, PressDurationMs);
+                    AnimateVisualOpacity(_pressedVisual, 0.0f, PressDurationMs);
 
-                    SetVisualOpacity(_activeHoverStrokeVisual, 0.0f);
-                    SetVisualOpacity(_activePressedStrokeVisual, 1.0f);
+                    AnimateVisualOpacity(_activeHoverStrokeVisual, 0.0f, PressDurationMs);
+                    AnimateVisualOpacity(_activePressedStrokeVisual, 1.0f, PressDurationMs);
                 }
                 else if (_isPointerOver)
                 {
-                    // Active Hover: background #323232 (dark) or #FAFAFA (light)
-                    SetVisualOpacity(_backgroundVisual, 0.0f);
-                    SetVisualOpacity(_activeHoverVisual, 1.0f);
-                    SetVisualOpacity(_activePressedVisual, 0.0f);
-                    SetVisualOpacity(_pressedVisual, 0.0f);
+                    AnimateVisualOpacity(_backgroundVisual, 0.0f, HoverBackgroundDurationMs, HoverBackgroundDelayMs);
+                    AnimateVisualOpacity(_activeHoverVisual, 1.0f, HoverBackgroundDurationMs, HoverBackgroundDelayMs);
+                    AnimateVisualOpacity(_activePressedVisual, 0.0f, HoverBackgroundDurationMs);
+                    AnimateVisualOpacity(_pressedVisual, 0.0f, HoverBackgroundDurationMs);
 
-                    SetVisualOpacity(_activeHoverStrokeVisual, 1.0f);
-                    SetVisualOpacity(_activePressedStrokeVisual, 0.0f);
+                    AnimateVisualOpacity(_activeHoverStrokeVisual, 1.0f, HoverStrokeDurationMs);
+                    AnimateVisualOpacity(_activePressedStrokeVisual, 0.0f, HoverStrokeDurationMs);
                 }
                 else
                 {
                     // Active Rest: stays in visual state "hover"
-                    SetVisualOpacity(_backgroundVisual, 1.0f);
-                    SetVisualOpacity(_activeHoverVisual, 0.0f);
-                    SetVisualOpacity(_activePressedVisual, 0.0f);
-                    SetVisualOpacity(_pressedVisual, 0.0f);
+                    AnimateVisualOpacity(_backgroundVisual, 1.0f, ExitBackgroundDurationMs);
+                    AnimateVisualOpacity(_activeHoverVisual, 0.0f, ExitBackgroundDurationMs);
+                    AnimateVisualOpacity(_activePressedVisual, 0.0f, ExitBackgroundDurationMs);
+                    AnimateVisualOpacity(_pressedVisual, 0.0f, ExitBackgroundDurationMs);
 
-                    SetVisualOpacity(_strokeVisual, 1.0f);
-                    SetVisualOpacity(_activeHoverStrokeVisual, 0.0f);
-                    SetVisualOpacity(_activePressedStrokeVisual, 0.0f);
+                    AnimateVisualOpacity(_strokeVisual, 1.0f, ExitStrokeDurationMs);
+                    AnimateVisualOpacity(_activeHoverStrokeVisual, 0.0f, ExitStrokeDurationMs);
+                    AnimateVisualOpacity(_activePressedStrokeVisual, 0.0f, ExitStrokeDurationMs);
                 }
             }
 
@@ -663,21 +668,34 @@ namespace FluentSensors.Features.TaskbarWidget
                 if (_isPressed)
                 {
                     bool isLight = ((FrameworkElement)this.Content).ActualTheme == ElementTheme.Light;
-                    _contentVisual.Opacity = isLight ? 0.70f : 0.95f;
+                    float targetOpacity = isLight ? 0.70f : 0.95f;
+                    AnimateVisualOpacity(_contentVisual, targetOpacity, PressDurationMs);
                 }
                 else
                 {
-                    _contentVisual.Opacity = 1.0f;
+                    AnimateVisualOpacity(_contentVisual, 1.0f, PressDurationMs);
                 }
             }
         }
 
-        private static void SetVisualOpacity(Visual visual, float targetOpacity)
+        private void AnimateVisualOpacity(Visual visual, float targetOpacity, int durationMs, int delayMs = 0)
         {
-            if (visual != null)
+            if (visual == null || _compositor == null) return;
+
+            if (durationMs <= 0)
             {
                 visual.Opacity = targetOpacity;
+                return;
             }
+
+            var anim = _compositor.CreateScalarKeyFrameAnimation();
+            anim.InsertKeyFrame(1.0f, targetOpacity);
+            anim.Duration = TimeSpan.FromMilliseconds(durationMs);
+            if (delayMs > 0)
+            {
+                anim.DelayTime = TimeSpan.FromMilliseconds(delayMs);
+            }
+            visual.StartAnimation("Opacity", anim);
         }
 
         private static T FindVisualChild<T>(DependencyObject parent, string name) where T : FrameworkElement

@@ -9,18 +9,17 @@ namespace FluentSensors.Features.TaskbarWidget
     public static class TaskbarWidgetPlacement
     {
         // all dimensions and offsets are physical pixels scaled to taskbar DPI
-        public static RectInt32 Calculate(WinTaskbarInfo taskbar, TaskbarAnchor anchor, int offset, int width, int verticalMargin)
+        public static RectInt32 Calculate(WinTaskbarInfo taskbar, TaskbarAnchor anchor, int offset, int width, int topMarginPx, int bottomMarginPx)
         {
             var bar = taskbar.Rect;
 
-            int height = bar.Height - (verticalMargin * 2);
+            int height = bar.Height - topMarginPx - bottomMarginPx;
             if (height < 1)
             {
                 height = 1;
             }
 
-            // vertically centered inside the taskbar thickness
-            int y = bar.Y + (bar.Height - height) / 2;
+            int y = bar.Y + topMarginPx;
 
             int x = anchor switch
             {

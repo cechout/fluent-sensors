@@ -16,6 +16,7 @@ using Windows.UI.ViewManagement;
 using WinRT;
 using WinUIEx;
 using WinUIEx.Messaging;
+using Microsoft.UI.Xaml.Controls;
 
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
@@ -23,6 +24,7 @@ using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core.Taskbar;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
+using FluentSensors.Features.Widget;
 
 
 namespace FluentSensors.Features.TaskbarWidget
@@ -128,7 +130,18 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // padding settings for fine-tuning
         public static readonly Thickness FlyoutRootPadding = new Thickness(0, 0, 0, 0); // man idk why exactly these numbers, but theyre necessary
-        public static readonly Thickness FlyoutGraphsPadding = new Thickness(6, 1, 6, 7);
+        public static readonly Thickness FlyoutGraphsPadding = new Thickness(5, 1, 5, 6);
+
+        // --- Mica Flyout Blur Preset Settings (used when BackdropType == "Mica" and Transparency is ON) ---
+        // Dark Mode Preset (#292929, Luminosity 0.90, Tint 0.70):
+        public static readonly Windows.UI.Color MicaPresetDarkTintColor = Windows.UI.Color.FromArgb(255, 0x29, 0x29, 0x29);
+        public const float MicaPresetDarkLuminosity = 0.90f;
+        public const float MicaPresetDarkTintOpacity = 0.70f;
+
+        // Light Mode Preset (#F2F2F2, Luminosity 0.90, Tint 0.60):
+        public static readonly Windows.UI.Color MicaPresetLightTintColor = Windows.UI.Color.FromArgb(255, 0xF2, 0xF2, 0xF2);
+        public const float MicaPresetLightLuminosity = 0.90f;
+        public const float MicaPresetLightTintOpacity = 0.60f;
 
 
         // === fields ===
@@ -136,12 +149,18 @@ namespace FluentSensors.Features.TaskbarWidget
         private const string WindowKey = "TaskbarFlyout";
 
         // Anchor offsets configurable in code-behind
-        private const int FlyoutMarginToTaskbarDip = 12; // vertical gap between taskbar top and flyout bottom edge
-        private const int FlyoutHorizontalOffsetDip = 0; // horizontal offset relative to taskbar widget left
+        public const int FlyoutMarginToTaskbarDip = 12; // vertical gap between taskbar top and flyout bottom edge
+        public const int FlyoutHorizontalOffsetDip = 2; // horizontal offset relative to taskbar widget left (negative = left, positive = right)
 
         // default and minimum width in DIP (matching standard WidgetWindow width)
-        public const int FlyoutDefaultWidthDip = 247;
-        public const int MinFlyoutWidthFloorDip = 247;
+        public const int FlyoutDefaultWidthDip = 250;
+        public const int MinFlyoutWidthFloorDip = 250;
+
+        // default and minimum height per graph slot in DIP
+        public const int FlyoutDefaultGraphHeightDip = 100;
+        public const int MinFlyoutGraphHeightDip = 90;
+        public const int FlyoutHeaderHeightDip = 31;
+        public const int FlyoutGraphSpacingDip = 8;
 
         private AppWindow _appWindow;
         private IntPtr _hwnd;
@@ -228,6 +247,11 @@ namespace FluentSensors.Features.TaskbarWidget
             SettingsService.Instance.TaskbarOpacityChanged += OnOpacityChanged;
             SettingsService.Instance.TaskbarTintColorChanged += OnTintColorChanged;
 
+            ((FrameworkElement)this.Content).ActualThemeChanged += (s, e) =>
+            {
+                this.DispatcherQueue.TryEnqueue(UpdateSolidBackground);
+            };
+
             // initialize shadow policy based on Windows transparency setting
             InitializeShadowPolicy();
 
@@ -238,6 +262,8 @@ namespace FluentSensors.Features.TaskbarWidget
             _appWindow.Changed += AppWindow_Changed;
             _appWindow.Closing += AppWindow_Closing;
             this.Activated += Window_Activated;
+
+            KickBackdropRefresh();
         }
 
 
@@ -248,7 +274,8 @@ namespace FluentSensors.Features.TaskbarWidget
             try
             {
                 _uiSettings = new UISettings();
-                _uiSettings.AdvancedEffectsEnabledChanged += OnAdvancedEffectsEnabledChanged;
+                _uiSettings.AdvancedEffectsEnabledChanged += (s, e) => ScheduleRecreation();
+                _uiSettings.ColorValuesChanged += (s, e) => ScheduleRecreation();
                 UpdateShadowPolicy();
             }
             catch
@@ -257,26 +284,39 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        private void OnAdvancedEffectsEnabledChanged(UISettings sender, object args)
-        {
-            this.DispatcherQueue.TryEnqueue(UpdateShadowPolicy);
-        }
-
         private void UpdateShadowPolicy()
         {
             if (_hwnd == IntPtr.Zero) return;
 
-            // Apply standard Windows 11 rounded window corners (8px) for native flyout presentation
-            int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
-            DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPreference, sizeof(int));
+            bool isTransparencyEnabled = _uiSettings != null && _uiSettings.AdvancedEffectsEnabled;
 
-            // Extend 1-pixel frame into client area and disable non-client rendering policy to render
-            // the subtle, native Windows 11 flyout shadow
-            var margins = new MARGINS { cxLeftWidth = 0, cxRightWidth = 0, cyTopHeight = 1, cyBottomHeight = 0 };
-            DwmExtendFrameIntoClientArea(_hwnd, ref margins);
+            if (isTransparencyEnabled)
+            {
+                // Transparency ON: Native Windows 11 rounded window corners (8px) with GPU DWM clipping (eliminates black box)
+                int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
+                DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPreference, sizeof(int));
 
-            int policy = (int)DWMNCRENDERINGPOLICY.DWMNCRP_DISABLED;
-            DwmSetWindowAttribute(_hwnd, DWMWA_NCRENDERING_POLICY, ref policy, sizeof(int));
+                var margins = new MARGINS { cxLeftWidth = 0, cxRightWidth = 0, cyTopHeight = 1, cyBottomHeight = 0 };
+                DwmExtendFrameIntoClientArea(_hwnd, ref margins);
+
+                int policy = (int)DWMNCRENDERINGPOLICY.DWMNCRP_DISABLED;
+                DwmSetWindowAttribute(_hwnd, DWMWA_NCRENDERING_POLICY, ref policy, sizeof(int));
+            }
+            else
+            {
+                // Transparency OFF: 100% transparent HWND with zero DWM drop shadow and XAML 8px rounded solid canvas
+                int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DONOTROUND;
+                DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPreference, sizeof(int));
+
+                var margins = new MARGINS { cxLeftWidth = 0, cxRightWidth = 0, cyTopHeight = 0, cyBottomHeight = 0 };
+                DwmExtendFrameIntoClientArea(_hwnd, ref margins);
+
+                int policy = (int)DWMNCRENDERINGPOLICY.DWMNCRP_DISABLED;
+                DwmSetWindowAttribute(_hwnd, DWMWA_NCRENDERING_POLICY, ref policy, sizeof(int));
+
+                int borderColor = DWMWA_COLOR_NONE;
+                DwmSetWindowAttribute(_hwnd, DWMWA_BORDER_COLOR, ref borderColor, sizeof(int));
+            }
 
             SetWindowPos(_hwnd, IntPtr.Zero, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
         }
@@ -489,6 +529,133 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
+        private bool _isClosed = false;
+
+        public void SafeDestroy()
+        {
+            if (_isClosed) return;
+            _isClosed = true;
+
+            try
+            {
+                SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+                SettingsService.Instance.TaskbarBackdropTypeChanged -= OnBackdropTypeChanged;
+                SettingsService.Instance.TaskbarOpacityChanged -= OnOpacityChanged;
+                SettingsService.Instance.TaskbarTintColorChanged -= OnTintColorChanged;
+            }
+            catch { }
+
+            try
+            {
+                _messageMonitor?.Dispose();
+                _messageMonitor = null;
+                _acrylicController?.Dispose();
+                _acrylicController = null;
+                _micaController?.Dispose();
+                _micaController = null;
+                this.Close();
+            }
+            catch { }
+        }
+
+        private static Microsoft.UI.Dispatching.DispatcherQueueTimer? _recreateDebounceTimer;
+
+        // --- workaround: window recreation and backdrop toggle on global OS theme/transparency change ---
+        // why: the exact underlying reason why Windows DWM fails to bind DesktopAcrylicController blur properly
+        // without a complete window recreation and a brief material toggle (None -> Mica) is not fully clear and is
+        // based purely on empirical observation
+        // fix: upon receiving a global theme or transparency change from Windows, both windows (TaskbarFlyoutWindow
+        // and WidgetWindow, if open) are fully destroyed and rebuilt, and if Mica was selected, the backdrop material
+        // setting is briefly toggled to None (Solid) and immediately back to Mica to force a full DWM compositor refresh
+        public static void ScheduleRecreation()
+        {
+            var queue = TaskbarWidgetWindow.CurrentInstance?.DispatcherQueue
+                ?? MainWindow.CurrentInstance?.DispatcherQueue
+                ?? DispatcherQueue.GetForCurrentThread();
+
+            if (queue == null) return;
+
+            queue.TryEnqueue(() =>
+            {
+                if (_recreateDebounceTimer != null)
+                {
+                    _recreateDebounceTimer.Stop();
+                    _recreateDebounceTimer = null;
+                }
+
+                _recreateDebounceTimer = queue.CreateTimer();
+                _recreateDebounceTimer.Interval = TimeSpan.FromMilliseconds(150);
+                _recreateDebounceTimer.IsRepeating = false;
+                _recreateDebounceTimer.Tick += (s, e) =>
+                {
+                    _recreateDebounceTimer?.Stop();
+                    _recreateDebounceTimer = null;
+                    ExecuteFullRebuild();
+                };
+                _recreateDebounceTimer.Start();
+            });
+        }
+
+        private static void ExecuteFullRebuild()
+        {
+            var widgetWindow = TaskbarWidgetWindow.CurrentInstance;
+            bool flyoutWasVisible = CurrentInstance != null && CurrentInstance._appWindow != null && CurrentInstance._appWindow.IsVisible;
+
+            // 1. Safely destroy existing TaskbarFlyoutWindow instances
+            if (CurrentInstance != null)
+            {
+                var old = CurrentInstance;
+                CurrentInstance = null;
+                old.SafeDestroy();
+            }
+
+            if (_retainedInstance != null)
+            {
+                var old = _retainedInstance;
+                _retainedInstance = null;
+                old.SafeDestroy();
+            }
+
+            // 2. Safely destroy and rebuild WidgetWindow if open
+            WidgetWindow.RecreateWindow();
+
+            // 3. Rebuild TaskbarFlyoutWindow
+            if (widgetWindow != null)
+            {
+                widgetWindow.DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (flyoutWasVisible)
+                    {
+                        ShowFlyout(widgetWindow);
+                    }
+                    else
+                    {
+                        Preload(widgetWindow);
+                    }
+
+                    // 4. Force SettingsService backdrop material toggle (Solid -> Mica)
+                    var kickTimer = widgetWindow.DispatcherQueue.CreateTimer();
+                    kickTimer.Interval = TimeSpan.FromMilliseconds(80);
+                    kickTimer.IsRepeating = false;
+                    kickTimer.Tick += (s, e) =>
+                    {
+                        kickTimer.Stop();
+                        if (SettingsService.Instance.TaskbarBackdropType == "Mica")
+                        {
+                            SettingsService.Instance.TaskbarBackdropType = "None";
+                            SettingsService.Instance.TaskbarBackdropType = "Mica";
+                        }
+                        if (SettingsService.Instance.BackdropType == "Mica")
+                        {
+                            SettingsService.Instance.BackdropType = "None";
+                            SettingsService.Instance.BackdropType = "Mica";
+                        }
+                    };
+                    kickTimer.Start();
+                });
+            }
+        }
+
 
         // === physical window slide & content fade animations ===
 
@@ -612,7 +779,7 @@ namespace FluentSensors.Features.TaskbarWidget
             manager.MinHeight = minHeightDip;
 
             int minHeightPx = (int)Math.Round(minHeightDip * scale);
-            int defaultHeightPx = minHeightPx; // standard height is now the compact min height
+            int defaultHeightPx = CalculateFlyoutDefaultHeight(sensorCount, scale);
 
             int desiredWidthPx;
             int desiredHeightPx;
@@ -674,8 +841,14 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private int CalculateFlyoutMinHeight(int sensorCount, double scaleFactor)
         {
-            double minXamlHeight = 31 + (sensorCount * (90 + 8));
+            double minXamlHeight = FlyoutHeaderHeightDip + (sensorCount * (MinFlyoutGraphHeightDip + FlyoutGraphSpacingDip));
             return (int)(minXamlHeight * scaleFactor);
+        }
+
+        private int CalculateFlyoutDefaultHeight(int sensorCount, double scaleFactor)
+        {
+            double defaultXamlHeight = FlyoutHeaderHeightDip + (sensorCount * (FlyoutDefaultGraphHeightDip + FlyoutGraphSpacingDip));
+            return (int)(defaultXamlHeight * scaleFactor);
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
@@ -812,15 +985,28 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void ApplyTheme(string themeTag)
         {
+            if (_isClosed) return;
+
+            var elementTheme = themeTag switch
+            {
+                "Light" => ElementTheme.Light,
+                "Dark" => ElementTheme.Dark,
+                _ => ElementTheme.Default
+            };
+
             if (this.Content is FrameworkElement rootElement)
             {
-                rootElement.RequestedTheme = themeTag switch
-                {
-                    "Light" => ElementTheme.Light,
-                    "Dark" => ElementTheme.Dark,
-                    _ => ElementTheme.Default
-                };
+                rootElement.RequestedTheme = elementTheme;
             }
+
+            if (FlyoutRootBorder != null)
+            {
+                FlyoutRootBorder.RequestedTheme = elementTheme;
+            }
+
+            SetConfigurationSourceTheme();
+            UpdateAcrylicProperties();
+            UpdateSolidBackground();
 
             if (_appWindow != null && _appWindow.TitleBar != null)
             {
@@ -835,70 +1021,126 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void UpdateAcrylicProperties()
         {
+            if (_isClosed) return;
+
             if (_acrylicController != null)
             {
-                Windows.UI.Color targetColor = SettingsService.Instance.TaskbarUseAccentColor
-                    ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
-                    : SettingsService.Instance.TaskbarCustomTintColor;
+                bool isLight = this.Content is FrameworkElement fe && fe.ActualTheme == ElementTheme.Light;
+                string backdropType = SettingsService.Instance.TaskbarBackdropType;
 
-                _acrylicController.TintColor = targetColor;
-                _acrylicController.TintOpacity = SettingsService.Instance.TaskbarTintOpacity;
-                _acrylicController.LuminosityOpacity = SettingsService.Instance.TaskbarLuminosityOpacity;
+                if (backdropType == "Mica")
+                {
+                    // Use dedicated custom Mica blur preset
+                    if (isLight)
+                    {
+                        _acrylicController.TintColor = MicaPresetLightTintColor;
+                        _acrylicController.TintOpacity = MicaPresetLightTintOpacity;
+                        _acrylicController.LuminosityOpacity = MicaPresetLightLuminosity;
+                        _acrylicController.FallbackColor = MicaPresetLightTintColor;
+                    }
+                    else
+                    {
+                        _acrylicController.TintColor = MicaPresetDarkTintColor;
+                        _acrylicController.TintOpacity = MicaPresetDarkTintOpacity;
+                        _acrylicController.LuminosityOpacity = MicaPresetDarkLuminosity;
+                        _acrylicController.FallbackColor = MicaPresetDarkTintColor;
+                    }
+                }
+                else
+                {
+                    // "Acrylic" uses user-configured settings sliders
+                    Windows.UI.Color defaultTint = isLight
+                        ? Windows.UI.Color.FromArgb(255, 0xF9, 0xF9, 0xF9)
+                        : Windows.UI.Color.FromArgb(255, 0x20, 0x20, 0x20);
+
+                    Windows.UI.Color targetColor = SettingsService.Instance.TaskbarUseAccentColor
+                        ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
+                        : (SettingsService.Instance.TaskbarCustomTintColor.A > 0 ? SettingsService.Instance.TaskbarCustomTintColor : defaultTint);
+
+                    _acrylicController.TintColor = targetColor;
+                    _acrylicController.TintOpacity = SettingsService.Instance.TaskbarTintOpacity;
+                    _acrylicController.LuminosityOpacity = SettingsService.Instance.TaskbarLuminosityOpacity;
+                    _acrylicController.FallbackColor = defaultTint;
+                }
             }
         }
 
         private void UpdateSolidBackground()
         {
-            if (SettingsService.Instance.TaskbarBackdropType == "None")
+            if (_isClosed || FlyoutRootBorder == null) return;
+
+            bool isLight = this.Content is FrameworkElement fe && fe.ActualTheme == ElementTheme.Light;
+            string backdropType = SettingsService.Instance.TaskbarBackdropType;
+
+            if (backdropType == "None")
             {
                 Windows.UI.Color targetColor = SettingsService.Instance.TaskbarUseAccentColor
                     ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
                     : SettingsService.Instance.TaskbarCustomTintColor;
 
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(targetColor);
+                FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(targetColor);
             }
+            else if (_acrylicController == null && _micaController == null)
+            {
+                // Native Windows 11 flyout background: #F9F9F9 for Light, #202020 for Dark
+                Windows.UI.Color bgColor = isLight
+                    ? Windows.UI.Color.FromArgb(255, 0xF9, 0xF9, 0xF9)
+                    : Windows.UI.Color.FromArgb(255, 0x20, 0x20, 0x20);
+
+                FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(bgColor);
+            }
+            else
+            {
+                // Backdrop controller (Acrylic/Mica) handles the translucent background
+                FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            }
+
+            // Native Windows 11 flyout border: #BFBFBF for Light, #383838 for Dark
+            Windows.UI.Color borderColor = isLight
+                ? Windows.UI.Color.FromArgb(255, 0xBF, 0xBF, 0xBF)
+                : Windows.UI.Color.FromArgb(255, 0x38, 0x38, 0x38);
+
+            FlyoutRootBorder.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(borderColor);
         }
 
         public void SetBackdrop(string backdropType)
         {
+            if (_isClosed) return;
             DispatcherQueue.EnsureSystemDispatcherQueue();
+
+            bool isTransparencyEnabled = _uiSettings != null && _uiSettings.AdvancedEffectsEnabled;
 
             if (_configurationSource == null)
             {
                 _configurationSource = new SystemBackdropConfiguration();
                 this.Activated += (s, e) => { if (_configurationSource != null) _configurationSource.IsInputActive = true; };
-                ((FrameworkElement)this.Content).ActualThemeChanged += (s, e) => SetConfigurationSourceTheme();
-
                 _configurationSource.IsInputActive = true;
-                SetConfigurationSourceTheme();
             }
+
+            SetConfigurationSourceTheme();
 
             _acrylicController?.Dispose();
             _acrylicController = null;
             _micaController?.Dispose();
             _micaController = null;
+            this.SystemBackdrop = null;
 
-            if (backdropType == "Acrylic" && DesktopAcrylicController.IsSupported())
+            if (isTransparencyEnabled && (backdropType == "Acrylic" || backdropType == "Mica") && DesktopAcrylicController.IsSupported())
             {
                 _acrylicController = new DesktopAcrylicController();
                 _acrylicController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
                 _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
 
                 UpdateAcrylicProperties();
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-            }
-            else if (backdropType == "Mica" && MicaController.IsSupported())
-            {
-                _micaController = new MicaController();
-                _micaController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
-                _micaController.SetSystemBackdropConfiguration(_configurationSource);
-
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
             else
             {
+                this.SystemBackdrop = new TransparentTintBackdrop();
                 UpdateSolidBackground();
             }
+
+            UpdateShadowPolicy();
         }
 
         private void SetConfigurationSourceTheme()
@@ -911,6 +1153,30 @@ namespace FluentSensors.Features.TaskbarWidget
                     ElementTheme.Light => SystemBackdropTheme.Light,
                     _ => SystemBackdropTheme.Default
                 };
+            }
+        }
+
+        // --- workaround: DWM backdrop swapchain kick ---
+        // problem: when Windows transparency/theme changes, WinUI 3 DesktopAcrylicController needs a backdrop re-bind
+        // to attach its blur shader to the newly created DWM swapchain.
+        // fix: after window recreation, briefly kick the backdrop pipeline (None -> Mica/Acrylic) to force DWM compositor refresh.
+        private void KickBackdropRefresh()
+        {
+            if (_isClosed) return;
+
+            string currentBackdrop = SettingsService.Instance.TaskbarBackdropType;
+            if (currentBackdrop == "Mica" || currentBackdrop == "Acrylic")
+            {
+                var timer = this.DispatcherQueue.CreateTimer();
+                timer.Interval = TimeSpan.FromMilliseconds(80);
+                timer.IsRepeating = false;
+                timer.Tick += (s, e) =>
+                {
+                    if (_isClosed) return;
+                    SetBackdrop("None");
+                    SetBackdrop(currentBackdrop);
+                };
+                timer.Start();
             }
         }
     }

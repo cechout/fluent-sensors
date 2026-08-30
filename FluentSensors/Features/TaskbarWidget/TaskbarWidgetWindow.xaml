@@ -16,7 +16,6 @@
         <!--  the entire taskbar widget is one unified button containing all sensor graphs  -->
         <Button
             x:Name="TaskbarButton"
-            Margin="0,0.7,0,0"
             Padding="4,0.5,4,2.5"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"

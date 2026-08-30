@@ -11,80 +11,84 @@
     Title="Fluent Sensors Flyout"
     mc:Ignorable="d">
 
-    <Grid
-        x:Name="RootGrid"
-        Background="Transparent"
+    <Border
+        x:Name="FlyoutRootBorder"
+        Background="{ThemeResource FlyoutWindowBackground}"
+        BorderBrush="{ThemeResource FlyoutWindowBorderBrush}"
+        BorderThickness="1"
         CornerRadius="8">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+        <Grid x:Name="RootGrid" Background="Transparent">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
 
-        <!--  custom header bar  -->
-        <Grid
-            x:Name="CustomTitleBar"
-            Grid.Row="0"
-            Height="auto"
-            Background="Transparent">
+            <!--  custom header bar  -->
+            <Grid
+                x:Name="CustomTitleBar"
+                Grid.Row="0"
+                Height="auto"
+                Background="Transparent">
 
-            <Grid Margin="6,4,6,0" HorizontalAlignment="Stretch">
+                <Grid Margin="6,4,6,0" HorizontalAlignment="Stretch">
 
-                <!--  back to main application button  -->
-                <Button
-                    Width="32"
-                    Height="22"
-                    Padding="0"
-                    HorizontalAlignment="Left"
-                    Click="BackToDashboard_Click"
-                    Style="{StaticResource SubtleButtonStyle}"
-                    ToolTipService.ToolTip="Back to Main Application">
-                    <FontIcon
-                        FontSize="14"
-                        FontWeight="SemiLight"
-                        Glyph="&#xE944;" />
-                </Button>
+                    <!--  back to main application button  -->
+                    <Button
+                        Width="32"
+                        Height="22"
+                        Padding="0"
+                        HorizontalAlignment="Left"
+                        Click="BackToDashboard_Click"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="Back to Main Application">
+                        <FontIcon
+                            FontSize="14"
+                            FontWeight="SemiLight"
+                            Glyph="&#xE944;" />
+                    </Button>
 
-                <!--  close taskbar widget button  -->
-                <Button
-                    Width="32"
-                    Height="22"
-                    Padding="0"
-                    HorizontalAlignment="Right"
-                    Click="CloseWidget_Click"
-                    Style="{StaticResource SubtleButtonStyle}"
-                    ToolTipService.ToolTip="Close Taskbar Widget">
-                    <FontIcon
-                        FontSize="10"
-                        FontWeight="SemiLight"
-                        Glyph="&#xE8BB;" />
-                </Button>
+                    <!--  close taskbar widget button  -->
+                    <Button
+                        Width="32"
+                        Height="22"
+                        Padding="0"
+                        HorizontalAlignment="Right"
+                        Click="CloseWidget_Click"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="Close Taskbar Widget">
+                        <FontIcon
+                            FontSize="10"
+                            FontWeight="SemiLight"
+                            Glyph="&#xE8BB;" />
+                    </Button>
+                </Grid>
+            </Grid>
+
+
+            <!--  vertical list of sensor graphs  -->
+            <Grid
+                x:Name="GraphsContentGrid"
+                Grid.Row="1"
+                Padding="6,1,6,6">
+                <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <fhControls:VerticalStretchPanel Spacing="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
+                            <fhGraph:SensorPanelControl
+                                ShowStatusRow="True"
+                                ShowThresholdControls="True"
+                                ShowYAxisControls="True"
+                                ViewModel="{x:Bind}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </Grid>
         </Grid>
-
-
-        <!--  vertical list of sensor graphs  -->
-        <Grid
-            x:Name="GraphsContentGrid"
-            Grid.Row="1"
-            Padding="6,1,6,6">
-            <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <fhControls:VerticalStretchPanel Spacing="8" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
-                        <fhGraph:SensorPanelControl
-                            ShowStatusRow="True"
-                            ShowThresholdControls="True"
-                            ShowYAxisControls="True"
-                            ViewModel="{x:Bind}" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </Grid>
-    </Grid>
+    </Border>
 </Window>
