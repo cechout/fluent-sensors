@@ -66,6 +66,7 @@ namespace FluentSensors.Features.TaskbarWidget
         public const float TaskbarStartupStartOpacity = 0.0f; // startup fade opacity (0.0f = full fade in, 1.0f = no fade)
 
         // --- drag-to-reposition settings ---
+        private const string WindowKey = "TaskbarWidget";
         private const int DragThresholdPixels = 4; // minimum movement in physical pixels before entering drag mode
         private bool _isPotentialDrag;
         private bool _isDragging;
@@ -122,6 +123,13 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow = this.AppWindow;
                 _appWindow.IsShownInSwitchers = false;
                 _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+
+                // restore previously saved drag offset along the taskbar if available
+                var savedState = WindowStateService.Instance.GetState(WindowKey);
+                if (savedState != null && savedState.X > 0)
+                {
+                    _currentOffsetDip = savedState.X;
+                }
 
                 // --- workaround: CreateForContextMenu crashes unpackaged ---
                 // problem: OverlappedPresenter.CreateForContextMenu() throws a TargetInvocationException
@@ -355,6 +363,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 _embedAttempt = 0;
                 _isEmbedded = true;
+                SaveWindowState(wasOpen: true);
 
                 // hide TaskbarButton initially before the delayed startup animation begins
                 if (TaskbarButton != null)
@@ -470,8 +479,18 @@ namespace FluentSensors.Features.TaskbarWidget
                 _isEmbedded = false;
             }
 
+            SaveWindowState(wasOpen: false);
             _appWindow.Hide();
             WidgetStateChanged?.Invoke();
+        }
+
+        // writes the current taskbar offset and open state to the window state store
+        private void SaveWindowState(bool wasOpen = true)
+        {
+            var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
+            state.X = _currentOffsetDip;
+            state.WasOpen = wasOpen;
+            WindowStateService.Instance.SetState(WindowKey, state);
         }
 
         // --- memory leak: TaskbarWidgetWindow never released after close ---
@@ -883,6 +902,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 _isDragging = false;
                 _isPotentialDrag = false;
                 _suppressClick = true;
+                SaveWindowState(wasOpen: true);
             }
             else
             {

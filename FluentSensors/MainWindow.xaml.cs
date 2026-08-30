@@ -294,9 +294,13 @@ namespace FluentSensors
             WidgetWindow.ShowWithSensors(pinnedSensors);
         }
 
-        // re-creates the taskbar widget with whichever sensors are currently pinned under the taskbar profile
+        // re-creates the taskbar widget with whichever sensors are currently pinned under the taskbar profile,
+        // but only if it was actually open when the app last closed
         private void TryRestoreTaskbarWidgetWindow()
         {
+            var taskbarState = WindowStateService.Instance.GetState("TaskbarWidget");
+            if (taskbarState == null || !taskbarState.WasOpen) return;
+
             var pinnedSensorIds = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.Taskbar);
             if (pinnedSensorIds.Count == 0) return;
 
