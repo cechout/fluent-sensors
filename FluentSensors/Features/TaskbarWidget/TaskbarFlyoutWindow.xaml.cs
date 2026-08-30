@@ -40,11 +40,53 @@ namespace FluentSensors.Features.TaskbarWidget
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongW")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MARGINS
+        {
+            public int cxLeftWidth;
+            public int cxRightWidth;
+            public int cyTopHeight;
+            public int cyBottomHeight;
+        }
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmExtendFrameIntoClientArea(IntPtr hWnd, ref MARGINS pMarInset);
+
         [DllImport("dwmapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, uint dwAttribute, ref int pvAttribute, uint cbAttribute);
 
         [DllImport("dwmapi.dll")]
         private static extern int DwmGetWindowAttribute(IntPtr hwnd, uint dwAttribute, out NativeMethods.RECT pvAttribute, int cbAttribute);
+
+        [DllImport("user32.dll", EntryPoint = "GetClassLongPtrW")]
+        private static extern IntPtr GetClassLongPtr(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "SetClassLongPtrW")]
+        private static extern IntPtr SetClassLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+        private const int GCL_STYLE = -26;
+        private const int CS_DROPSHADOW = 0x00020000;
+        private const int GWL_EXSTYLE = -20;
+        private const int WS_EX_TOOLWINDOW = 0x00000080;
+        private const int WS_POPUP = unchecked((int)0x80000000);
+        private const uint DWMWA_BORDER_COLOR = 34;
+        private const int DWMWA_COLOR_NONE = unchecked((int)0xFFFFFFFE);
+
+        private const int GWL_STYLE = -16;
+        private const int WS_THICKFRAME = 0x00040000;
+        private const int WS_CAPTION = 0x00C00000;
+
+        private const uint SWP_NOMOVE = 0x0002;
+        private const uint SWP_NOSIZE = 0x0001;
+        private const uint SWP_NOZORDER = 0x0004;
+        private const uint SWP_NOACTIVATE = 0x0010;
+        private const uint SWP_FRAMECHANGED = 0x0020;
 
         private const uint DWMWA_NCRENDERING_POLICY = 2;
         private const uint DWMWA_EXTENDED_FRAME_BOUNDS = 9;
@@ -142,18 +184,32 @@ namespace FluentSensors.Features.TaskbarWidget
             _appWindow.SetIcon("Assets\\Icon\\Icon.ico");
             _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-            // frameless resizable presenter without default OS caption buttons (no top-right close/min/max)
+            // frameless presenter without default OS caption buttons (no top-right close/min/max)
             var presenter = OverlappedPresenter.Create();
             presenter.SetBorderAndTitleBar(false, false);
             presenter.IsAlwaysOnTop = false; // do not force topmost above taskbar shell
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = false;
-            presenter.IsResizable = true;
+            presenter.IsResizable = false; // resize is handled via InputNonClientPointerSource, keeping WS_THICKFRAME off
             _appWindow.SetPresenter(presenter);
 
-            // apply Windows 11 rounded window corners (DWMWA_WINDOW_CORNER_PREFERENCE = 33)
-            int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
-            DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPreference, sizeof(int));
+            // remove WS_THICKFRAME and WS_CAPTION and apply WS_POPUP and WS_EX_TOOLWINDOW
+            int style = GetWindowLong(_hwnd, GWL_STYLE);
+            SetWindowLong(_hwnd, GWL_STYLE, (style | WS_POPUP) & ~WS_THICKFRAME & ~WS_CAPTION);
+
+            int exStyle = GetWindowLong(_hwnd, GWL_EXSTYLE);
+            SetWindowLong(_hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW);
+
+            // strip CS_DROPSHADOW class style
+            try
+            {
+                IntPtr classStyle = GetClassLongPtr(_hwnd, GCL_STYLE);
+                long newClassStyle = classStyle.ToInt64() & ~CS_DROPSHADOW;
+                SetClassLongPtr(_hwnd, GCL_STYLE, new IntPtr(newClassStyle));
+            }
+            catch { }
+
+            SetWindowPos(_hwnd, IntPtr.Zero, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
             // hook win32 messages:
             // 1. WM_NCCALCSIZE (0x0083): eliminates the 8px non-client white titlebar stripe completely
@@ -210,12 +266,19 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             if (_hwnd == IntPtr.Zero) return;
 
-            bool transparencyEnabled = _uiSettings?.AdvancedEffectsEnabled ?? true;
-            int policy = transparencyEnabled
-                ? (int)DWMNCRENDERINGPOLICY.DWMNCRP_ENABLED
-                : (int)DWMNCRENDERINGPOLICY.DWMNCRP_DISABLED;
+            // Apply standard Windows 11 rounded window corners (8px) for native flyout presentation
+            int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
+            DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPreference, sizeof(int));
 
+            // Extend 1-pixel frame into client area and disable non-client rendering policy to render
+            // the subtle, native Windows 11 flyout shadow
+            var margins = new MARGINS { cxLeftWidth = 0, cxRightWidth = 0, cyTopHeight = 1, cyBottomHeight = 0 };
+            DwmExtendFrameIntoClientArea(_hwnd, ref margins);
+
+            int policy = (int)DWMNCRENDERINGPOLICY.DWMNCRP_DISABLED;
             DwmSetWindowAttribute(_hwnd, DWMWA_NCRENDERING_POLICY, ref policy, sizeof(int));
+
+            SetWindowPos(_hwnd, IntPtr.Zero, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
         }
 
 
@@ -295,6 +358,7 @@ namespace FluentSensors.Features.TaskbarWidget
             else if (e.Message.MessageId == 0x0232) // WM_EXITSIZEMOVE
             {
                 UpdateNonClientResizeRegions();
+                UpdateShadowPolicy();
                 SaveWindowState();
             }
             else if (e.Message.MessageId == 0x0112) // WM_SYSCOMMAND
@@ -599,6 +663,7 @@ namespace FluentSensors.Features.TaskbarWidget
             _isAdjustingPosition = false;
 
             UpdateNonClientResizeRegions();
+            UpdateShadowPolicy();
         }
 
         private double GetScaleFactor()
@@ -620,6 +685,7 @@ namespace FluentSensors.Features.TaskbarWidget
             if (args.DidSizeChange && _bottomAnchorY > 0)
             {
                 UpdateNonClientResizeRegions();
+                UpdateShadowPolicy();
                 SaveWindowState();
             }
             else if (args.DidPositionChange && _appWindow.IsVisible)

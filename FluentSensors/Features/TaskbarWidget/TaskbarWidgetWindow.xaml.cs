@@ -57,6 +57,9 @@ namespace FluentSensors.Features.TaskbarWidget
         // startup animation duration in milliseconds
         public const int TaskbarStartupDurationMs = 260;
 
+        // startup animation delay in milliseconds (delays animation until window creation/charts finish)
+        public const int TaskbarStartupDelayMs = 1200;
+
         // startup fade opacity (0.0f = full fade in, 1.0f = no fade)
         public const float TaskbarStartupStartOpacity = 0.0f;
 
@@ -152,6 +155,11 @@ namespace FluentSensors.Features.TaskbarWidget
                 {
                     TaskbarButton.ApplyTemplate();
                     EnsureCompositionElements();
+                };
+
+                ((FrameworkElement)this.Content).ActualThemeChanged += (s, e) =>
+                {
+                    this.DispatcherQueue.TryEnqueue(UpdateVisualState);
                 };
 
                 // embedding waits for Loaded rather than running straight from the constructor: reparenting a window
@@ -305,8 +313,33 @@ namespace FluentSensors.Features.TaskbarWidget
                 _embedAttempt = 0;
                 _isEmbedded = true;
 
-                // play smooth slide-up startup animation on TaskbarButton
-                PlayStartupAnimation();
+                // hide TaskbarButton initially before the delayed startup animation begins
+                if (TaskbarButton != null)
+                {
+                    var visual = ElementCompositionPreview.GetElementVisual(TaskbarButton);
+                    if (visual != null)
+                    {
+                        float slideDistPx = (float)(TaskbarStartupSlideDistanceDip * scale);
+                        visual.Offset = new Vector3(0, slideDistPx, 0);
+                        visual.Opacity = TaskbarStartupStartOpacity;
+                    }
+                }
+
+                // play smooth slide-up startup animation on TaskbarButton after the specified startup delay
+                if (TaskbarStartupDelayMs > 0)
+                {
+                    var animTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(TaskbarStartupDelayMs) };
+                    animTimer.Tick += (s, e) =>
+                    {
+                        animTimer.Stop();
+                        PlayStartupAnimation();
+                    };
+                    animTimer.Start();
+                }
+                else
+                {
+                    this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, PlayStartupAnimation);
+                }
 
                 // preload flyout window into memory to eliminate first-open latency
                 TaskbarFlyoutWindow.Preload(this);
@@ -446,6 +479,8 @@ namespace FluentSensors.Features.TaskbarWidget
         private Visual _activeHoverVisual;
         private Visual _activePressedVisual;
         private Visual _strokeVisual;
+        private Visual _activeHoverStrokeVisual;
+        private Visual _activePressedStrokeVisual;
         private Visual _contentVisual;
         private Compositor _compositor;
 
@@ -490,6 +525,10 @@ namespace FluentSensors.Features.TaskbarWidget
                 opacityAnim.Duration = TimeSpan.FromMilliseconds(TaskbarStartupDurationMs);
                 visual.StartAnimation("Opacity", opacityAnim);
             }
+            else
+            {
+                visual.Opacity = 1.0f;
+            }
         }
 
         private void EnsureCompositionElements()
@@ -503,6 +542,8 @@ namespace FluentSensors.Features.TaskbarWidget
             var activeHoverBorder = FindVisualChild<Border>(TaskbarButton, "ActiveHoverBorder");
             var activePressedBorder = FindVisualChild<Border>(TaskbarButton, "ActivePressedBorder");
             var strokeBorder = FindVisualChild<Border>(TaskbarButton, "StrokeBorder");
+            var activeHoverStrokeBorder = FindVisualChild<Border>(TaskbarButton, "ActiveHoverStrokeBorder");
+            var activePressedStrokeBorder = FindVisualChild<Border>(TaskbarButton, "ActivePressedStrokeBorder");
             var contentPresenter = FindVisualChild<ContentPresenter>(TaskbarButton, "ContentPresenter");
 
             if (bgBorder != null)
@@ -526,6 +567,14 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 _strokeVisual = ElementCompositionPreview.GetElementVisual(strokeBorder);
             }
+            if (activeHoverStrokeBorder != null)
+            {
+                _activeHoverStrokeVisual = ElementCompositionPreview.GetElementVisual(activeHoverStrokeBorder);
+            }
+            if (activePressedStrokeBorder != null)
+            {
+                _activePressedStrokeVisual = ElementCompositionPreview.GetElementVisual(activePressedStrokeBorder);
+            }
             if (contentPresenter != null)
             {
                 _contentVisual = ElementCompositionPreview.GetElementVisual(contentPresenter);
@@ -540,6 +589,9 @@ namespace FluentSensors.Features.TaskbarWidget
             if (!_isFlyoutActive)
             {
                 // === Flyout Closed ===
+                SetVisualOpacity(_activeHoverStrokeVisual, 0.0f);
+                SetVisualOpacity(_activePressedStrokeVisual, 0.0f);
+
                 if (_isPressed)
                 {
                     SetVisualOpacity(_backgroundVisual, 0.0f);
@@ -568,23 +620,29 @@ namespace FluentSensors.Features.TaskbarWidget
             else
             {
                 // === Flyout Open ===
+                SetVisualOpacity(_strokeVisual, 0.0f);
+
                 if (_isPressed)
                 {
-                    // Active Pressed: background #2a2a2a, no border (transparent)
+                    // Active Pressed: background #2a2a2a (dark) or #F3F3F3 (light)
                     SetVisualOpacity(_backgroundVisual, 0.0f);
                     SetVisualOpacity(_activeHoverVisual, 0.0f);
                     SetVisualOpacity(_activePressedVisual, 1.0f);
                     SetVisualOpacity(_pressedVisual, 0.0f);
-                    SetVisualOpacity(_strokeVisual, 0.0f);
+
+                    SetVisualOpacity(_activeHoverStrokeVisual, 0.0f);
+                    SetVisualOpacity(_activePressedStrokeVisual, 1.0f);
                 }
                 else if (_isPointerOver)
                 {
-                    // Active Hover: background #323232, border matching background (no stroke)
+                    // Active Hover: background #323232 (dark) or #FAFAFA (light)
                     SetVisualOpacity(_backgroundVisual, 0.0f);
                     SetVisualOpacity(_activeHoverVisual, 1.0f);
                     SetVisualOpacity(_activePressedVisual, 0.0f);
                     SetVisualOpacity(_pressedVisual, 0.0f);
-                    SetVisualOpacity(_strokeVisual, 0.0f);
+
+                    SetVisualOpacity(_activeHoverStrokeVisual, 1.0f);
+                    SetVisualOpacity(_activePressedStrokeVisual, 0.0f);
                 }
                 else
                 {
@@ -593,7 +651,23 @@ namespace FluentSensors.Features.TaskbarWidget
                     SetVisualOpacity(_activeHoverVisual, 0.0f);
                     SetVisualOpacity(_activePressedVisual, 0.0f);
                     SetVisualOpacity(_pressedVisual, 0.0f);
+
                     SetVisualOpacity(_strokeVisual, 1.0f);
+                    SetVisualOpacity(_activeHoverStrokeVisual, 0.0f);
+                    SetVisualOpacity(_activePressedStrokeVisual, 0.0f);
+                }
+            }
+
+            if (_contentVisual != null)
+            {
+                if (_isPressed)
+                {
+                    bool isLight = ((FrameworkElement)this.Content).ActualTheme == ElementTheme.Light;
+                    _contentVisual.Opacity = isLight ? 0.70f : 0.95f;
+                }
+                else
+                {
+                    _contentVisual.Opacity = 1.0f;
                 }
             }
         }
@@ -674,11 +748,13 @@ namespace FluentSensors.Features.TaskbarWidget
             _isPressed = true;
             UpdateVisualState();
 
-            // content press feedback: 95% opacity
+            // content press feedback: 70% opacity in Light mode, 95% opacity in Dark mode
             if (_contentVisual != null && _compositor != null)
             {
+                bool isLight = ((FrameworkElement)this.Content).ActualTheme == ElementTheme.Light;
+                float targetOpacity = isLight ? 0.70f : 0.95f;
                 var pressAnim = _compositor.CreateScalarKeyFrameAnimation();
-                pressAnim.InsertKeyFrame(1.0f, 0.95f);
+                pressAnim.InsertKeyFrame(1.0f, targetOpacity);
                 pressAnim.Duration = TimeSpan.FromMilliseconds(PressDurationMs);
                 _contentVisual.StartAnimation("Opacity", pressAnim);
             }

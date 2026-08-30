@@ -61,10 +61,26 @@
                             CornerRadius="4"
                             Opacity="0" />
 
-                        <!--  border stroke layer (animated via DirectComposition)  -->
+                        <!--  border stroke layer for normal hover & pressed (animated via DirectComposition)  -->
                         <Border
                             x:Name="StrokeBorder"
                             BorderBrush="{ThemeResource TaskbarButtonBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  border stroke layer for active hover  -->
+                        <Border
+                            x:Name="ActiveHoverStrokeBorder"
+                            BorderBrush="{ThemeResource TaskbarButtonActiveHoverBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  border stroke layer for active pressed  -->
+                        <Border
+                            x:Name="ActivePressedStrokeBorder"
+                            BorderBrush="{ThemeResource TaskbarButtonActivePressedBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
                             Opacity="0" />

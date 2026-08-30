@@ -21,6 +21,8 @@
                         <GradientStop Offset="0.15" Color="#292929" />
                         <GradientStop Offset="1.0" Color="#292929" />
                     </LinearGradientBrush>
+                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBorderBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="Transparent" />
 
                     <StaticResource x:Key="TaskbarButtonHoverBackground" ResourceKey="SubtleFillColorSecondaryBrush" />
                     <StaticResource x:Key="TaskbarButtonPressedBackground" ResourceKey="SubtleFillColorTertiaryBrush" />
@@ -32,15 +34,30 @@
 
                 <!--  Light Mode  -->
                 <ResourceDictionary x:Key="Light">
-                    <!--  Light Mode uses standard ControlStrokeColorDefaultBrush  -->
-                    <StaticResource x:Key="TaskbarButtonBorderBrush" ResourceKey="ControlStrokeColorDefaultBrush" />
+                    <!--  Light Mode normal hover & normal pressed border: #E8E8E8 sides, #DEDEDE bottom  -->
+                    <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#E8E8E8" />
+                        <GradientStop Offset="0.75" Color="#E8E8E8" />
+                        <GradientStop Offset="1.0" Color="#DEDEDE" />
+                    </LinearGradientBrush>
 
-                    <!--  Light Mode hover: ControlFillColorDefaultBrush, pressed: ControlFillColorSecondaryBrush  -->
-                    <StaticResource x:Key="TaskbarButtonHoverBackground" ResourceKey="ControlFillColorDefaultBrush" />
-                    <StaticResource x:Key="TaskbarButtonPressedBackground" ResourceKey="ControlFillColorSecondaryBrush" />
+                    <!--  Light Mode active hover border: #E5E5E5 sides, #D4D4D4 bottom  -->
+                    <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#E5E5E5" />
+                        <GradientStop Offset="0.75" Color="#E5E5E5" />
+                        <GradientStop Offset="1.0" Color="#D4D4D4" />
+                    </LinearGradientBrush>
 
-                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#E5E5E5" />
-                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#D9D9D9" />
+                    <!--  Light Mode active pressed border: #E8E8E8 solid  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#E8E8E8" />
+
+                    <!--  Light Mode normal hover: #F7F7F7, normal pressed: #F3F3F3  -->
+                    <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="#F7F7F7" />
+                    <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#F3F3F3" />
+
+                    <!--  Light Mode active hover: #FAFAFA, active pressed: #F3F3F3  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#FAFAFA" />
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#F3F3F3" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
