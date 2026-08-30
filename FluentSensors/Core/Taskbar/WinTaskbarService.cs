@@ -42,6 +42,7 @@ namespace FluentSensors.Core.Taskbar
             get { lock (_lock) return _taskbars; }
         }
 
+        // starts the background polling loop to track taskbar geometry changes
         public void StartMonitoring()
         {
             if (_cts != null) return;
@@ -50,6 +51,7 @@ namespace FluentSensors.Core.Taskbar
             _loopTask = Task.Run(() => LoopAsync(_cts.Token));
         }
 
+        // stops the background polling loop
         public void StopMonitoring()
         {
             if (_cts == null) return;
@@ -183,3 +185,4 @@ namespace FluentSensors.Core.Taskbar
         };
     }
 }
+

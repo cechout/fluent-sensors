@@ -10,6 +10,7 @@ namespace FluentSensors.Core.Taskbar
     // StartWatching must be called from the UI thread, not from a background Task:
     // the TaskbarCreated broadcast only reaches this class through the calling threads Win32 message pump;
     // a message-only window on a thread pool thread has no pump and would never receive messages
+    // https://learn.microsoft.com/en-us/windows/win32/shell/taskbar#taskbar-creation-notification
     public class WinShellStateWatcher
     {
         // === fields ===
@@ -37,6 +38,7 @@ namespace FluentSensors.Core.Taskbar
 
         // === public api ===
 
+        // registers a message-only window and begins listening for the system TaskbarCreated broadcast
         public void StartWatching()
         {
             if (_messageWindowHwnd != IntPtr.Zero) return;
@@ -60,6 +62,7 @@ namespace FluentSensors.Core.Taskbar
                 NativeMethods.HWND_MESSAGE, IntPtr.Zero, wndClass.hInstance, IntPtr.Zero);
         }
 
+        // tears down the message-only window and stops listening for broadcast messages
         public void StopWatching()
         {
             if (_messageWindowHwnd == IntPtr.Zero) return;
@@ -128,3 +131,4 @@ namespace FluentSensors.Core.Taskbar
         }
     }
 }
+

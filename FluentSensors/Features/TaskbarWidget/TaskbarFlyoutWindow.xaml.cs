@@ -29,6 +29,16 @@ using FluentSensors.Features.Widget;
 
 namespace FluentSensors.Features.TaskbarWidget
 {
+    // companion flyout window displaying live telemetry graphs directly anchored above the taskbar widget
+    //
+    // WinUI 3 has no built-in support for anchoring a borderless, non-activating window to an external Win32 shell
+    // window; this window combines several low-level techniques:
+    // 1. eliminates the non-client titlebar stripe via WM_NCCALCSIZE (0x0083) returning 0
+    // 2. supports asymmetric top-and-right resizing via InputNonClientPointerSource while locking bottom-left anchors in WM_SIZING (0x0214)
+    // 3. places the window directly beneath Shell_TrayWnd in Z-order so it slides out from under the taskbar
+    // 4. coordinates a physical window slide via DispatcherTimer with direct composition opacity fading
+    // 5. applies dynamic DWM corner preferences and shadow suppression depending on the Windows transparency setting
+    // 6. integrates DesktopAcrylicController / Mica system backdrop with a swapchain kick on theme changes
     public sealed partial class TaskbarFlyoutWindow : Window
     {
         // === win32 api imports ===
@@ -110,7 +120,7 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
 
-        // --- Animation & Performance Settings ---
+        // --- animation & performance settings ---
 
         // physical window slide distance in DIP/pixels
         public const int WindowSlideDistanceDip = 280;
@@ -129,7 +139,7 @@ namespace FluentSensors.Features.TaskbarWidget
         public const bool KeepFlyoutGraphsActiveInBackground = true;
 
         // padding settings for fine-tuning
-        public static readonly Thickness FlyoutRootPadding = new Thickness(0, 0, 0, 0); // man idk why exactly these numbers, but theyre necessary
+        public static readonly Thickness FlyoutRootPadding = new Thickness(0, 0, 0, 0); // padding applied to flyout root border
         public static readonly Thickness FlyoutGraphsPadding = new Thickness(5, 1, 5, 6);
 
         // --- Mica Flyout Blur Preset Settings (used when BackdropType == "Mica" and Transparency is ON) ---
@@ -561,7 +571,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private static Microsoft.UI.Dispatching.DispatcherQueueTimer? _recreateDebounceTimer;
 
         // --- workaround: window recreation and backdrop toggle on global OS theme/transparency change ---
-        // why: the exact underlying reason why Windows DWM fails to bind DesktopAcrylicController blur properly
+        // problem: the exact underlying reason why Windows DWM fails to bind DesktopAcrylicController blur properly
         // without a complete window recreation and a brief material toggle (None -> Mica) is not fully clear and is
         // based purely on empirical observation
         // fix: upon receiving a global theme or transparency change from Windows, both windows (TaskbarFlyoutWindow
@@ -1158,8 +1168,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // --- workaround: DWM backdrop swapchain kick ---
         // problem: when Windows transparency/theme changes, WinUI 3 DesktopAcrylicController needs a backdrop re-bind
-        // to attach its blur shader to the newly created DWM swapchain.
-        // fix: after window recreation, briefly kick the backdrop pipeline (None -> Mica/Acrylic) to force DWM compositor refresh.
+        // to attach its blur shader to the newly created DWM swapchain
+        // fix: after window recreation, briefly kick the backdrop pipeline (None -> Mica/Acrylic) to force DWM compositor refresh
         private void KickBackdropRefresh()
         {
             if (_isClosed) return;

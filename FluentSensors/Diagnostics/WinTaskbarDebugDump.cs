@@ -10,6 +10,9 @@ namespace FluentSensors.Diagnostics
     // developer diagnostics for taskbar detection backend
     public static class WinTaskbarDebugDump
     {
+        // === public api ===
+
+        // outputs discovered taskbars, UIA element insets, and fullscreen state to debug console
         public static void Dump()
         {
             System.Diagnostics.Debug.WriteLine("========== WinTaskbarService Dump ==========");
@@ -48,6 +51,9 @@ namespace FluentSensors.Diagnostics
 
             System.Diagnostics.Debug.WriteLine("========== End Dump ==========");
         }
+
+
+        // === private helpers ===
 
         private static void DumpUiaElement(string label, WinTaskbarUiaElement? element, RectInt32 taskbarRect)
         {
@@ -108,3 +114,4 @@ namespace FluentSensors.Diagnostics
         }
     }
 }
+

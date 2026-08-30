@@ -11,6 +11,8 @@ using FluentSensors.Core;
 
 namespace FluentSensors.Features.TaskbarWidget
 {
+    // ViewModel managing pinned sensor graphs displayed in the taskbar widget and companion flyout
+    // handles live sensor subscriptions, background pause/resume, and in-place collection reconciliation
     public class TaskbarWidgetViewModel
     {
         // === fields ===
@@ -42,12 +44,13 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === public methods ===
 
-        // syncs pinned sensors with updated selection without recreating existing graphs
+        // clears out sensors that are no longer selected, adds newly selected ones, and reorders to match selectedSensors exactly
+        // existing unchanged sensors keep their history and are not recreated
         public void Reconfigure(List<SensorRowViewModel> selectedSensors)
         {
             var newIds = new HashSet<string>(selectedSensors.Select(s => s.Id));
 
-            // remove unselected sensors
+            // remove sensors that are no longer part of the selection
             for (int i = PinnedSensors.Count - 1; i >= 0; i--)
             {
                 if (!newIds.Contains(PinnedSensors[i].SensorId))
@@ -57,7 +60,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
             }
 
-            // add newly selected sensors
+            // add newly selected sensors that are not pinned yet; already-pinned sensors are left alone
             var existingIds = new HashSet<string>(PinnedSensors.Select(s => s.SensorId));
             foreach (var sensor in selectedSensors)
             {
@@ -67,7 +70,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
             }
 
-            // reorder to match selection order
+            // reorder to match selectedSensors exactly, moving existing items into place instead of recreating them
             for (int targetIndex = 0; targetIndex < selectedSensors.Count; targetIndex++)
             {
                 string id = selectedSensors[targetIndex].Id;
@@ -146,3 +149,4 @@ namespace FluentSensors.Features.TaskbarWidget
         }
     }
 }
+

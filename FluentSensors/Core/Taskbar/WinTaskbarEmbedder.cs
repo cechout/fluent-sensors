@@ -19,6 +19,8 @@ namespace FluentSensors.Core.Taskbar
     // integrity parents to higher integrity children; TrafficMonitor successfully ships this combination
     internal static class WinTaskbarEmbedder
     {
+        // === public methods ===
+
         // turns hwnd into a child of taskbarHwnd and places it at screenRect;
         // errorCode carries the Win32 error when this returns false, so callers can report details
         internal static bool Embed(IntPtr hwnd, IntPtr taskbarHwnd, RectInt32 screenRect, out int errorCode)
@@ -78,3 +80,4 @@ namespace FluentSensors.Core.Taskbar
         }
     }
 }
+

@@ -26,7 +26,10 @@ using FluentSensors.Persistence.Services;
 namespace FluentSensors.Features.TaskbarWidget
 {
     // the taskbar widget window, embedded as a direct child of Shell_TrayWnd rather than floating above it
-    // as a child of the taskbar there is no z-order contest; the window belongs to the taskbar directly
+    //
+    // as a direct child of the taskbar (WS_CHILD via SetParent), there is no z-order contest with other windows
+    // and the widget belongs to the taskbar directly without flickering
+    // clicking the widget button toggles the companion TaskbarFlyoutWindow positioned above it
     public sealed partial class TaskbarWidgetWindow : Window
     {
         // === win32 api imports ===
@@ -50,7 +53,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // maybe a user setting?
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
 
-        // --- Taskbar Startup Animation Settings ---
+        // --- taskbar startup animation settings ---
         public const int TaskbarStartupSlideDistanceDip = 40; // startup slide distance in DIP/pixels (e.g. 30 to 60)
         public const int TaskbarStartupDurationMs = 260; // startup animation duration in milliseconds
         public const int TaskbarStartupDelayMs = 1200; // startup animation delay in milliseconds (delays animation until window creation/charts finish)
@@ -70,10 +73,10 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // --- taskbar button animation timings (in milliseconds) ---
         private const int HoverBackgroundDelayMs = 0; // delay before hover background starts (Standard Windows: 0ms)
-        private const int HoverBackgroundDurationMs = 167; // duration of hover background fade-in (Standard Windows: 83ms [ControlFasterAnimationDuration])
+        private const int HoverBackgroundDurationMs = 167; // duration of hover background fade-in (Standard Windows: 167ms [ControlFastAnimationDuration])
         private const int HoverStrokeDurationMs = 0; // duration of border stroke appearance on hover (Standard Windows: 0ms instant)
-        private const int ExitBackgroundDurationMs = 240; // duration of background fade-out on exit (Standard Windows: 167ms [ControlFastAnimationDuration])
-        private const int ExitStrokeDurationMs = 40; // duration of border stroke fade-out on exit (Standard Windows: 83ms [ControlFasterAnimationDuration])
+        private const int ExitBackgroundDurationMs = 240; // duration of background fade-out on exit (Standard Windows: 240ms [ControlNormalAnimationDuration])
+        private const int ExitStrokeDurationMs = 40; // duration of border stroke fade-out on exit (Standard Windows: 40ms [ControlFasterAnimationDuration])
         private const int PressDurationMs = 50; // duration of press feedback animation (Standard Windows: 50ms)
 
         // embedding can fail transiently, e.g. while the start menu is open or another app is mid-embed
@@ -128,7 +131,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow.SetPresenter(presenter);
 
                 // the widget sits on the taskbar, so it has to let the bar show through instead of painting a rectangle of its own
-                // set here, while the window is still a normal top level one: WinUIExs TransparentTintBackdrop
+                // set here, while the window is still a normal top level one: WinUIEx TransparentTintBackdrop
                 // is built on DwmExtendFrameIntoClientArea and DwmEnableBlurBehindWindow, and DWM only manages top level windows
                 this.SystemBackdrop = new TransparentTintBackdrop();
 
@@ -248,6 +251,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 int widthDip = CalculateWidgetWidthDip(ViewModel.PinnedSensors.Count);
                 double scale = primaryTaskbar.Dpi / 96.0;
                 int topMarginPx = (int)Math.Round(VerticalMarginTopDip * scale);
+
                 int bottomMarginPx = (int)Math.Round(VerticalMarginBottomDip * scale);
 
                 var screenRect = TaskbarWidgetPlacement.Calculate(
