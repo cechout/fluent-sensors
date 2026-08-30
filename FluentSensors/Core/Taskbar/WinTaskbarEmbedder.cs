@@ -39,7 +39,7 @@ namespace FluentSensors.Core.Taskbar
             // popup and child are alternatives, not additions; leaving WS_POPUP on keeps the window behaving
             // like a top level window even after it has a parent
             int style = NativeMethods.GetWindowLong(hwnd, NativeMethods.GWL_STYLE);
-            NativeMethods.SetWindowLong(hwnd, NativeMethods.GWL_STYLE, (style & ~NativeMethods.WS_POPUP) | NativeMethods.WS_CHILD);
+            NativeMethods.SetWindowLong(hwnd, NativeMethods.GWL_STYLE, (style & ~NativeMethods.WS_POPUP) | NativeMethods.WS_CHILD | NativeMethods.WS_CLIPSIBLINGS);
 
             // style change first, then reparent
             if (NativeMethods.SetParent(hwnd, taskbarHwnd) == IntPtr.Zero)

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Windows.Graphics;
 using WinUIEx;
 using WinUIEx.Messaging;
@@ -91,6 +92,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private WindowMessageMonitor _nonActivatingMonitor; // see WinNonActivatingWindow.Apply; must stay alive in field
         private bool _isEmbedded;
         private bool _embedGaveUp;
+        public bool IsEmbedded => _isEmbedded;
         private static TaskbarWidgetWindow _retainedInstance;
         public static TaskbarWidgetWindow CurrentInstance { get; private set; }
         public static event Action WidgetStateChanged;
@@ -159,9 +161,23 @@ namespace FluentSensors.Features.TaskbarWidget
                     this.DispatcherQueue.TryEnqueue(UpdateVisualState);
                 };
 
-                // embedding waits for Loaded rather than running straight from the constructor: reparenting a window
-                // whose content is not up yet left it invisible; Loaded guarantees the visual tree is actually there
-                ((FrameworkElement)this.Content).Loaded += (s, e) => EmbedIntoTaskbar();
+                // embedding is queued immediately and also guarded via Loaded and a watchdog timer
+                // ensuring offscreen windows during cold startup never miss initialization
+                ((FrameworkElement)this.Content).Loaded += (s, e) =>
+                {
+                    if (!_isEmbedded && !_embedGaveUp)
+                    {
+                        EmbedIntoTaskbar();
+                    }
+                };
+
+                this.DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (!_isEmbedded && !_embedGaveUp)
+                    {
+                        EmbedIntoTaskbar();
+                    }
+                });
 
                 CurrentInstance = this;
                 WidgetStateChanged?.Invoke();
@@ -184,7 +200,24 @@ namespace FluentSensors.Features.TaskbarWidget
             if (CurrentInstance != null)
             {
                 CurrentInstance.ReconfigureFor(selectedSensors);
-                CurrentInstance.Activate();
+                CurrentInstance.ViewModel.SetLiveDataActive(true);
+                CurrentInstance.SetGraphsRenderingActive(true);
+
+                // if the window was never successfully embedded (e.g. startup failed or previously gave up),
+                // reset attempt counters and trigger embedding cleanly
+                if (!CurrentInstance._isEmbedded || CurrentInstance._embedGaveUp)
+                {
+                    CurrentInstance._embedAttempt = 0;
+                    CurrentInstance._embedGaveUp = false;
+                    CurrentInstance._appWindow.Show(false);
+                    CurrentInstance.EmbedIntoTaskbar();
+                }
+                else
+                {
+                    CurrentInstance.Activate();
+                }
+
+                WidgetStateChanged?.Invoke();
                 return;
             }
 
@@ -194,6 +227,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 _retainedInstance = null;
                 CurrentInstance = window;
 
+                window._embedAttempt = 0;
+                window._embedGaveUp = false;
                 window.ReconfigureFor(selectedSensors);
                 window.ViewModel.SetLiveDataActive(true);
                 window.SetGraphsRenderingActive(true);
@@ -380,13 +415,23 @@ namespace FluentSensors.Features.TaskbarWidget
             WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
         }
 
-        // retries embedding a few times before giving up: a transient failure (start menu open, another app mid-embed)
-        // usually clears up a moment later on its own
+        // retries embedding a few times before giving up: a transient failure (start menu open, another app mid-embed,
+        // or dormant Windows 11 Widgets shell host) usually clears up a moment later on its own
         private void RetryOrReportFailure(string reason)
         {
             _embedAttempt++;
             if (_embedAttempt < MaxEmbedAttempts)
             {
+                // on the first failed attempt, wake the dormant Windows 11 Widgets shell host
+                // to ensure Shell_TrayWnd initializes its XAML Island composition tree
+                if (_embedAttempt == 1)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        await WinShellHelper.WakeWidgetsSubsystemAsync();
+                    });
+                }
+
                 var retryTimer = DispatcherQueue.CreateTimer();
                 retryTimer.Interval = EmbedRetryDelay;
                 retryTimer.IsRepeating = false;
@@ -396,6 +441,7 @@ namespace FluentSensors.Features.TaskbarWidget
             else
             {
                 _embedGaveUp = true;
+                WidgetStateChanged?.Invoke();
                 ShowErrorMessage("Fluent Sensors", $"Taskbar widget embedding failed after {MaxEmbedAttempts} attempts:\n\n{reason}");
             }
         }

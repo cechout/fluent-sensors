@@ -101,7 +101,7 @@ namespace FluentSensors.Features.Sensors
         public bool IsPinnedAvailable => ActiveProfile switch
         {
             SensorSelectionProfile.WidgetWindow => WidgetWindow.CurrentInstance != null,
-            SensorSelectionProfile.Taskbar => TaskbarWidgetWindow.CurrentInstance != null,
+            SensorSelectionProfile.Taskbar => TaskbarWidgetWindow.CurrentInstance != null && TaskbarWidgetWindow.CurrentInstance.IsEmbedded,
             _ => false
         };
 

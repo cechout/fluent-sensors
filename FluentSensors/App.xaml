@@ -24,26 +24,26 @@
                     <!--  Pressed -> Target #2A2A2A (42): Alpha 11 (0x0B) -> #0BFFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#0BFFFFFF" />
 
-                    <!-- 2. Taskbar Button Borders (Dark Mode: Only TOP border in Normal Hover, ALL 4 in Normal Pressed) -->
-                    <!-- Normal Hover Border: Top #16FFFFFF (Target #333333), sides & bottom Transparent -->
+                    <!--  2. Taskbar Button Borders (Dark Mode: Only TOP border in Normal Hover, ALL 4 in Normal Pressed)  -->
+                    <!--  Normal Hover Border: Top #16FFFFFF (Target #333333), sides & bottom Transparent  -->
                     <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Offset="0.0" Color="#16FFFFFF" />
                         <GradientStop Offset="0.10" Color="Transparent" />
                         <GradientStop Offset="1.0" Color="Transparent" />
                     </LinearGradientBrush>
-                    <!-- Normal Pressed Border: All 4 borders visible with #0AFFFFFF (Target #292929 on sides/bottom) -->
+                    <!--  Normal Pressed Border: All 4 borders visible with #0AFFFFFF (Target #292929 on sides/bottom)  -->
                     <SolidColorBrush x:Key="TaskbarButtonPressedBorderBrush" Color="#0AFFFFFF" />
 
-                    <!-- 3. Active Flyout State (When Flyout is currently OPEN) -->
-                    <!-- Active Hover -> Target #323232 (50): Alpha 21 (0x15) -> #15FFFFFF -->
+                    <!--  3. Active Flyout State (When Flyout is currently OPEN)  -->
+                    <!--  Active Hover -> Target #323232 (50): Alpha 21 (0x15) -> #15FFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#15FFFFFF" />
-                    <!-- Active Hover Border: Keep top border #16FFFFFF, sides & bottom Transparent -->
+                    <!--  Active Hover Border: Keep top border #16FFFFFF, sides & bottom Transparent  -->
                     <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Offset="0.0" Color="#16FFFFFF" />
                         <GradientStop Offset="0.10" Color="Transparent" />
                         <GradientStop Offset="1.0" Color="Transparent" />
                     </LinearGradientBrush>
-                    <!-- Active Pressed -> Target #2A2A2A (42): Alpha 11 (0x0B) -> #0BFFFFFF -->
+                    <!--  Active Pressed -> Target #2A2A2A (42): Alpha 11 (0x0B) -> #0BFFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#0BFFFFFF" />
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="Transparent" />
 

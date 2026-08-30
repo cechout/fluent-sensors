@@ -217,6 +217,7 @@ namespace FluentSensors.Core.Taskbar
         // not in the systems topmost band, the two are mutually exclusive
         internal const int GWL_STYLE = -16;
         internal const int WS_CHILD = 0x40000000;
+        internal const int WS_CLIPSIBLINGS = 0x04000000;
         internal const int WS_POPUP = unchecked((int)0x80000000);
         internal const int WS_EX_TOPMOST = 0x00000008;
 
