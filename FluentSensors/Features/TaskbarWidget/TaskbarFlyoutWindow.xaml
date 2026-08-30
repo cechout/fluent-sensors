@@ -31,7 +31,7 @@
                 Height="auto"
                 Background="Transparent">
 
-                <Grid Margin="6,4,6,0" HorizontalAlignment="Stretch">
+                <Grid Margin="4,4,4,0" HorizontalAlignment="Stretch">
 
                     <!--  back to main application button  -->
                     <Button
