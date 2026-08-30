@@ -10,6 +10,8 @@ namespace FluentSensors.Core.Taskbar
     // WM_MOUSEACTIVATE answered with MA_NOACTIVATE (value 3) is what actually works, the same mechanism used by
     // on-screen keyboards and game overlays
     // shared by TaskbarWidgetWindow and TaskbarFlyoutWindow
+    //
+    // references:
     // https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-mouseactivate
     internal static class WinNonActivatingWindow
     {

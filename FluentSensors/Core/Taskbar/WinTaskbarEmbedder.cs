@@ -12,6 +12,10 @@ namespace FluentSensors.Core.Taskbar
     // every correction after the fact was visible as a flicker
     // as a child there is no ordering contest left to lose, the window belongs to the taskbar directly
     //
+    // references:
+    // https://github.com/zhongyang219/TrafficMonitor (proven taskbar embedding in production)
+    // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setparent
+    //
     // KNOWN RISK:
     // SetParent across processes attaches the input queues of both threads, so a hang on our UI thread can
     // freeze the taskbar with it; anything long running must stay off the UI thread once this is in use
@@ -54,6 +58,7 @@ namespace FluentSensors.Core.Taskbar
 
         // moves an already embedded window, translating from screen coordinates to the parents client area;
         // AppWindow.MoveAndResize must not be used once embedded, it works in screen coordinates
+        // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-screentoclient
         internal static void Position(IntPtr hwnd, IntPtr taskbarHwnd, RectInt32 screenRect)
         {
             var origin = new NativeMethods.POINT { X = screenRect.X, Y = screenRect.Y };

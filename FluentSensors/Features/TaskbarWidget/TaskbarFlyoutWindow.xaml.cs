@@ -39,6 +39,12 @@ namespace FluentSensors.Features.TaskbarWidget
     // 4. coordinates a physical window slide via DispatcherTimer with direct composition opacity fading
     // 5. applies dynamic DWM corner preferences and shadow suppression depending on the Windows transparency setting
     // 6. integrates DesktopAcrylicController / Mica system backdrop with a swapchain kick on theme changes
+    //
+    // references:
+    // https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.input.inputnonclientpointersource
+    // https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-nccalcsize
+    // https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
+    // https://learn.microsoft.com/en-us/windows/apps/develop/ui/system-backdrops
     public sealed partial class TaskbarFlyoutWindow : Window
     {
         // === win32 api imports ===

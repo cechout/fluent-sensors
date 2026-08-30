@@ -31,6 +31,11 @@ namespace FluentSensors.Features.TaskbarWidget
     // as a direct child of the taskbar (WS_CHILD via SetParent), there is no z-order contest with other windows
     // and the widget belongs to the taskbar directly without flickering
     // clicking the widget button toggles the companion TaskbarFlyoutWindow positioned above it
+    //
+    // references:
+    // https://devblogs.microsoft.com/oldnewthing/20130605-00/?p=4183 (cross-process child window embedding)
+    // https://github.com/zhongyang219/TrafficMonitor (taskbar telemetry embedding reference)
+    // https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-mouseactivate
     public sealed partial class TaskbarWidgetWindow : Window
     {
         // === win32 api imports ===
@@ -310,6 +315,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 _nonActivatingMonitor = WinNonActivatingWindow.Apply(_hwnd);
 
                 // Win32-level mouse tracking: ensures the very first hover triggers instantly without needing a prior click
+                // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-trackmouseevent
                 _nonActivatingMonitor.WindowMessageReceived += (s, e) =>
                 {
                     const uint WM_SETCURSOR = 0x0020;

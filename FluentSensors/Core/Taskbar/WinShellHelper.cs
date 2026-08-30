@@ -12,6 +12,9 @@ namespace FluentSensors.Core.Taskbar
     // on Windows 11, Shell_TrayWnd hosts XAML Islands for taskbar elements (like Widgets)
     // if the Widgets feature has not been initialized since boot, Shell_TrayWnd composition structures
     // may reject foreign SetParent calls until the shell host is prompted to initialize
+    //
+    // reference:
+    // https://learn.microsoft.com/en-us/windows/apps/develop/widgets/
     internal static class WinShellHelper
     {
         // === win32 api imports ===
