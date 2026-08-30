@@ -43,6 +43,8 @@
                         <Border
                             x:Name="PressedBorder"
                             Background="{ThemeResource TaskbarButtonPressedBackground}"
+                            BorderBrush="{ThemeResource TaskbarButtonPressedBorderBrush}"
+                            BorderThickness="1"
                             CornerRadius="4"
                             Opacity="0" />
 

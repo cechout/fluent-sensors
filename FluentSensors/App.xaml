@@ -13,59 +13,84 @@
             </ResourceDictionary.MergedDictionaries>
 
             <ResourceDictionary.ThemeDictionaries>
-                <!--  Dark Mode (Default)  -->
+                <!--  ===================================================================  -->
+                <!--  DARK MODE (Default Theme Dictionary)  -->
+                <!--  Base Taskbar Background: #202020 (32)  -->
+                <!--  ===================================================================  -->
                 <ResourceDictionary x:Key="Default">
-                    <!--  Taskbar Button Border: #333333 top, #292929 sides & bottom (DWM compensated)  -->
+                    <!--  1. Taskbar Button Normal Hover & Pressed Backgrounds (Alpha White on #202020)  -->
+                    <!--  Hover -> Target #2D2D2D (45): Alpha 15 (0x0F) -> #0FFFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="#0FFFFFFF" />
+                    <!--  Pressed -> Target #2A2A2A (42): Alpha 11 (0x0B) -> #0BFFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#0BFFFFFF" />
+
+                    <!-- 2. Taskbar Button Borders (Dark Mode: Only TOP border in Normal Hover, ALL 4 in Normal Pressed) -->
+                    <!-- Normal Hover Border: Top #16FFFFFF (Target #333333), sides & bottom Transparent -->
                     <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#333333" />
-                        <GradientStop Offset="0.15" Color="#292929" />
-                        <GradientStop Offset="1.0" Color="#292929" />
+                        <GradientStop Offset="0.0" Color="#16FFFFFF" />
+                        <GradientStop Offset="0.10" Color="Transparent" />
+                        <GradientStop Offset="1.0" Color="Transparent" />
                     </LinearGradientBrush>
-                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBorderBrush" Color="Transparent" />
+                    <!-- Normal Pressed Border: All 4 borders visible with #0AFFFFFF (Target #292929 on sides/bottom) -->
+                    <SolidColorBrush x:Key="TaskbarButtonPressedBorderBrush" Color="#0AFFFFFF" />
+
+                    <!-- 3. Active Flyout State (When Flyout is currently OPEN) -->
+                    <!-- Active Hover -> Target #323232 (50): Alpha 21 (0x15) -> #15FFFFFF -->
+                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#15FFFFFF" />
+                    <!-- Active Hover Border: Keep top border #16FFFFFF, sides & bottom Transparent -->
+                    <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#16FFFFFF" />
+                        <GradientStop Offset="0.10" Color="Transparent" />
+                        <GradientStop Offset="1.0" Color="Transparent" />
+                    </LinearGradientBrush>
+                    <!-- Active Pressed -> Target #2A2A2A (42): Alpha 11 (0x0B) -> #0BFFFFFF -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#0BFFFFFF" />
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="Transparent" />
 
-                    <StaticResource x:Key="TaskbarButtonHoverBackground" ResourceKey="SubtleFillColorSecondaryBrush" />
-                    <StaticResource x:Key="TaskbarButtonPressedBackground" ResourceKey="SubtleFillColorTertiaryBrush" />
-
-                    <!--  Active Flyout States (DWM compensated: -3 offset so rendered on-screen colors match #323232 and #2A2A2A)  -->
-                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#2F2F2F" />
-                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#272727" />
-
-                    <!--  Flyout Window Styling (Dark Mode)  -->
+                    <!--  4. Flyout Window Styling (Dark Mode)  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#202020" />
                     <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#383838" />
                 </ResourceDictionary>
 
-                <!--  Light Mode  -->
+                <!--  ===================================================================  -->
+                <!--  LIGHT MODE Theme Dictionary  -->
+                <!--  Base Taskbar Background: #EDEDED (237)  -->
+                <!--  ===================================================================  -->
                 <ResourceDictionary x:Key="Light">
-                    <!--  Flyout Window Styling (Light Mode)  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
-                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#BFBFBF" />
+                    <!--  1. Taskbar Button Normal Hover & Pressed Backgrounds (Alpha White on #EDEDED)  -->
+                    <!--  Hover -> Target #F7F7F7 (247): Alpha 142 (0x8E) -> #8EFFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="#8EFFFFFF" />
+                    <!--  Pressed -> Target #F3F3F3 (243): Alpha 85 (0x55) -> #55FFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#55FFFFFF" />
 
-                    <!--  Light Mode normal hover & normal pressed border: #E8E8E8 sides, #DEDEDE bottom  -->
+                    <!--  2. Taskbar Button Border (Solid: Normal Hover & Pressed)  -->
+                    <!--  Top & Sides: #E7E7E7, Bottom: #DDDDDD  -->
                     <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#E8E8E8" />
-                        <GradientStop Offset="0.75" Color="#E8E8E8" />
-                        <GradientStop Offset="1.0" Color="#DEDEDE" />
+                        <GradientStop Offset="0.0" Color="#E7E7E7" />
+                        <GradientStop Offset="0.75" Color="#E7E7E7" />
+                        <GradientStop Offset="1.0" Color="#DDDDDD" />
                     </LinearGradientBrush>
+                    <!--  Normal Pressed Border: Transparent (StrokeBorder already covers it)  -->
+                    <SolidColorBrush x:Key="TaskbarButtonPressedBorderBrush" Color="Transparent" />
 
-                    <!--  Light Mode active hover border: #E5E5E5 sides, #D4D4D4 bottom  -->
+                    <!--  3. Active Flyout State (When Flyout is currently OPEN)  -->
+                    <!--  Active Hover -> Target #FAFAFA (250): Alpha 184 (0xB8) -> #B8FFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#B8FFFFFF" />
+                    <!--  Active Hover Border (Solid) -> Top & Sides: #E5E5E5, Bottom: #D4D4D4  -->
                     <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Offset="0.0" Color="#E5E5E5" />
                         <GradientStop Offset="0.75" Color="#E5E5E5" />
                         <GradientStop Offset="1.0" Color="#D4D4D4" />
                     </LinearGradientBrush>
 
-                    <!--  Light Mode active pressed border: #E8E8E8 solid  -->
-                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#E8E8E8" />
+                    <!--  Active Pressed -> Target #F3F3F3 (243): Alpha 85 (0x55) -> #55FFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#55FFFFFF" />
+                    <!--  Active Pressed Border (Solid) -> #E7E7E7 on all 4 sides  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#E7E7E7" />
 
-                    <!--  Light Mode normal hover: #F7F7F7, normal pressed: #F3F3F3  -->
-                    <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="#F7F7F7" />
-                    <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#F3F3F3" />
-
-                    <!--  Light Mode active hover: #FAFAFA, active pressed: #F3F3F3  -->
-                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#FAFAFA" />
-                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#F3F3F3" />
+                    <!--  4. Flyout Window Styling (Light Mode)  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#BFBFBF" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>

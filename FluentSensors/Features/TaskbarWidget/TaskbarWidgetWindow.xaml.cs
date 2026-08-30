@@ -73,9 +73,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // --- taskbar button animation timings (in milliseconds) ---
         private const int HoverBackgroundDelayMs = 0; // delay before hover background starts (Standard Windows: 0ms)
-        private const int HoverBackgroundDurationMs = 167; // duration of hover background fade-in (Standard Windows: 167ms [ControlFastAnimationDuration])
+        private const int HoverBackgroundDurationMs = 120; // duration of hover background fade-in (Standard Windows: 83ms [ControlFastAnimationDuration])
         private const int HoverStrokeDurationMs = 0; // duration of border stroke appearance on hover (Standard Windows: 0ms instant)
-        private const int ExitBackgroundDurationMs = 240; // duration of background fade-out on exit (Standard Windows: 240ms [ControlNormalAnimationDuration])
+        private const int ExitBackgroundDurationMs = 180; // duration of background fade-out on exit (Standard Windows: 167ms [ControlNormalAnimationDuration])
         private const int ExitStrokeDurationMs = 40; // duration of border stroke fade-out on exit (Standard Windows: 40ms [ControlFasterAnimationDuration])
         private const int PressDurationMs = 50; // duration of press feedback animation (Standard Windows: 50ms)
 
