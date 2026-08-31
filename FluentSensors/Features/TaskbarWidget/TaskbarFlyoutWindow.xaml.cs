@@ -202,8 +202,8 @@ namespace FluentSensors.Features.TaskbarWidget
         private static TaskbarFlyoutWindow? _retainedInstance;
 
         // system backdrop controllers
+        // no MicaController here on purpose: material "Mica" is served by _acrylicController too, see SetBackdrop
         private DesktopAcrylicController? _acrylicController;
-        private MicaController? _micaController;
         private SystemBackdropConfiguration? _configurationSource;
 
 
@@ -462,6 +462,8 @@ namespace FluentSensors.Features.TaskbarWidget
         // preloads the flyout instance into memory at taskbar initialization to eliminate first-open latency
         public static void Preload(TaskbarWidgetWindow widgetWindow)
         {
+            // a retained instance is assumed to be a live window; if a destroyed one ever sits there this silently
+            // skips the rebuild and the flyout stays dead for the rest of the session, see AppWindow_Closing
             if (widgetWindow == null || CurrentInstance != null || _retainedInstance != null) return;
 
             var window = new TaskbarFlyoutWindow(widgetWindow.ViewModel);
@@ -558,6 +560,17 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private bool _isClosed = false;
 
+        // --- memory leak: flyout instance never released after a real close ---
+        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
+        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
+        // everywhere else in this project the answer is hide-and-reuse (_retainedInstance); this method is the one
+        // place that deliberately does the opposite and destroys the window for real, because DWM does not rebind
+        // DesktopAcrylicController to a fresh swapchain without a full recreation, see ScheduleRecreation below
+        // price: one leaked CCW per OS theme or transparency change, knowingly paid, because the alternative was a
+        // flyout that silently stopped repainting and switching theme for the rest of the session
+        //
+        // only ever call this from ExecuteFullRebuild, never from the normal hide path
         public void SafeDestroy()
         {
             if (_isClosed) return;
@@ -588,8 +601,6 @@ namespace FluentSensors.Features.TaskbarWidget
                 _messageMonitor = null;
                 _acrylicController?.Dispose();
                 _acrylicController = null;
-                _micaController?.Dispose();
-                _micaController = null;
                 this.Close();
             }
             catch { }
@@ -636,6 +647,11 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
+        // tears both flyout instances down for real and builds a fresh one, the destructive half of the workaround
+        // documented on ScheduleRecreation above
+        //
+        // the only caller of SafeDestroy; the widget window is rebuilt in between on purpose, the flyout anchors its
+        // geometry to it and needs the new one to already exist
         private static void ExecuteFullRebuild()
         {
             var widgetWindow = TaskbarWidgetWindow.CurrentInstance;
@@ -917,6 +933,10 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void Window_Activated(object sender, WindowActivatedEventArgs args)
         {
+            // deliberately always true, instead of the usual
+            // IsInputActive = args.WindowActivationState != WindowActivationState.Deactivated
+            // a light-dismiss flyout counts as deactivated the moment focus leaves it, which would drop the blur while
+            // the window is still on screen; same reasoning as WidgetWindow.Window_Activated
             if (_configurationSource != null)
             {
                 _configurationSource.IsInputActive = true;
@@ -968,6 +988,12 @@ namespace FluentSensors.Features.TaskbarWidget
             TaskbarWidgetWindow.CurrentInstance?.CloseWidget();
         }
 
+        // --- memory leak: TaskbarFlyoutWindow never released after close ---
+        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
+        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
+        // fix: hide instead of actually closing, and keep this instance around (_retainedInstance) for reuse
+        // same approach as WidgetWindow and TaskbarWidgetWindow
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
             // SafeDestroy is tearing this instance down: let the close proceed, and above all do not hand a window
@@ -1130,7 +1156,7 @@ namespace FluentSensors.Features.TaskbarWidget
             var themeDictionary = (ResourceDictionary)Application.Current.Resources
                 .ThemeDictionaries[isLight ? "Light" : "Default"];
 
-            if (_acrylicController != null || _micaController != null)
+            if (_acrylicController != null)
             {
                 FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
@@ -1150,6 +1176,13 @@ namespace FluentSensors.Features.TaskbarWidget
             FlyoutRootBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutWindowBorderBrush"];
         }
 
+        // applies the backdrop material for the current setting and the Windows transparency state
+        //
+        // "Mica" deliberately runs through DesktopAcrylicController as well, with the MicaPreset constants at the top
+        // of this file instead of the settings sliders: real Mica only samples the wallpaper and shows next to nothing
+        // on a small flyout sitting above the taskbar, while acrylic blurs what is actually behind the window
+        // WidgetWindow uses a real MicaController for the same setting name, so the two windows differ on purpose
+        // the tint and luminosity sliders from settings only reach the "Acrylic" branch of UpdateAcrylicProperties
         public void SetBackdrop(string backdropType)
         {
             if (_isClosed) return;
@@ -1168,8 +1201,6 @@ namespace FluentSensors.Features.TaskbarWidget
 
             _acrylicController?.Dispose();
             _acrylicController = null;
-            _micaController?.Dispose();
-            _micaController = null;
             this.SystemBackdrop = null;
 
             if (isTransparencyEnabled && (backdropType == "Acrylic" || backdropType == "Mica") && DesktopAcrylicController.IsSupported())
