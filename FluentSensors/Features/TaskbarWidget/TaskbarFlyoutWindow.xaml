@@ -17,60 +17,75 @@
         BorderBrush="{ThemeResource FlyoutWindowBorderBrush}"
         BorderThickness="1"
         CornerRadius="8">
+
+        <Border.Resources>
+
+            <!--  bottom bar action button: flat and transparent at rest, subtle fill on hover and press  -->
+            <Style x:Key="FlyoutBottomBarButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                <Setter Property="Padding" Value="10,5" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border
+                                x:Name="RootBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{TemplateBinding CornerRadius}">
+                                <ContentPresenter
+                                    x:Name="ContentPresenter"
+                                    Padding="{TemplateBinding Padding}"
+                                    HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    Foreground="{TemplateBinding Foreground}" />
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootBorder.Background" Value="{ThemeResource ControlFillColorTertiaryBrush}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters>
+                                                <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource TextFillColorDisabledBrush}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Border.Resources>
+
         <Grid x:Name="RootGrid" Background="Transparent">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-
-
-            <!--  custom header bar  -->
-            <Grid
-                x:Name="CustomTitleBar"
-                Grid.Row="0"
-                Height="auto"
-                Background="Transparent">
-
-                <Grid Margin="4,4,4,0" HorizontalAlignment="Stretch">
-
-                    <!--  back to main application button  -->
-                    <Button
-                        Width="32"
-                        Height="22"
-                        Padding="0"
-                        HorizontalAlignment="Left"
-                        Click="BackToDashboard_Click"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="Back to Main Application">
-                        <FontIcon
-                            FontSize="14"
-                            FontWeight="SemiLight"
-                            Glyph="&#xE944;" />
-                    </Button>
-
-                    <!--  close taskbar widget button  -->
-                    <Button
-                        Width="32"
-                        Height="22"
-                        Padding="0"
-                        HorizontalAlignment="Right"
-                        Click="CloseWidget_Click"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="Close Taskbar Widget">
-                        <FontIcon
-                            FontSize="10"
-                            FontWeight="SemiLight"
-                            Glyph="&#xE8BB;" />
-                    </Button>
-                </Grid>
-            </Grid>
 
 
             <!--  vertical list of sensor graphs  -->
             <Grid
                 x:Name="GraphsContentGrid"
-                Grid.Row="1"
-                Padding="6,1,6,6">
+                Grid.Row="0"
+                Padding="6,1,6,6"
+                Background="{ThemeResource FlyoutGraphsBackground}"
+                CornerRadius="7,7,0,0">
                 <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -89,6 +104,46 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </Grid>
+
+
+            <!--  bottom bar: navigation actions  -->
+            <Border
+                Grid.Row="1"
+                Background="{ThemeResource FlyoutBottomBarBackground}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                CornerRadius="0,0,7,7">
+
+                <Grid>
+
+                    <!--  back to main window (icon and label)  -->
+                    <Button
+                        HorizontalAlignment="Left"
+                        Click="BackToDashboard_Click"
+                        Style="{StaticResource FlyoutBottomBarButtonStyle}"
+                        ToolTipService.ToolTip="Back to Main Window">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon
+                                FontSize="14"
+                                FontWeight="SemiLight"
+                                Glyph="&#xE944;" />
+                            <TextBlock Text="Back to Main Window" />
+                        </StackPanel>
+                    </Button>
+
+                    <!--  close taskbar widget (icon only)  -->
+                    <Button
+                        HorizontalAlignment="Right"
+                        Click="CloseWidget_Click"
+                        Style="{StaticResource FlyoutBottomBarButtonStyle}"
+                        ToolTipService.ToolTip="Close Taskbar Widget">
+                        <FontIcon
+                            FontSize="10"
+                            FontWeight="SemiLight"
+                            Glyph="&#xE8BB;" />
+                    </Button>
+                </Grid>
+            </Border>
         </Grid>
     </Border>
 </Window>

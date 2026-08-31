@@ -13,10 +13,9 @@
             </ResourceDictionary.MergedDictionaries>
 
             <ResourceDictionary.ThemeDictionaries>
-                <!--  ===================================================================  -->
-                <!--  DARK MODE (Default Theme Dictionary)  -->
+                <!--  === DARK MODE (Default Theme Dictionary) ===  -->
+
                 <!--  Base Taskbar Background: #202020 (32)  -->
-                <!--  ===================================================================  -->
                 <ResourceDictionary x:Key="Default">
                     <!--  1. Taskbar Button Normal Hover & Pressed Backgrounds (Alpha White on #202020)  -->
                     <!--  Hover -> Target #2D2D2D (45): Alpha 15 (0x0F) -> #0FFFFFFF  -->
@@ -48,14 +47,23 @@
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="Transparent" />
 
                     <!--  4. Flyout Window Styling (Dark Mode)  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#202020" />
+                    <!--  Window Base -> Target #222222  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#222222" />
                     <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#383838" />
+
+                    <!--  5. Flyout Graphs Content Background (Dark Mode)  -->
+                    <!--  Graphs Content -> Target #292929 (41) over window base #222222 (34): Alpha 8 (0x08) White -> #08FFFFFF  -->
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#08FFFFFF" />
+
+                    <!--  6. Flyout Bottom Bar (Dark Mode)  -->
+                    <!--  Bottom Bar directly uses window base #222222  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="Transparent" />
                 </ResourceDictionary>
 
-                <!--  ===================================================================  -->
-                <!--  LIGHT MODE Theme Dictionary  -->
+
+                <!--  === LIGHT MODE Theme Dictionary ===  -->
+
                 <!--  Base Taskbar Background: #EDEDED (237)  -->
-                <!--  ===================================================================  -->
                 <ResourceDictionary x:Key="Light">
                     <!--  1. Taskbar Button Normal Hover & Pressed Backgrounds (Alpha White on #EDEDED)  -->
                     <!--  Hover -> Target #F7F7F7 (247): Alpha 142 (0x8E) -> #8EFFFFFF  -->
@@ -89,8 +97,15 @@
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#E7E7E7" />
 
                     <!--  4. Flyout Window Styling (Light Mode)  -->
+                    <!--  Window Base -> Target #F2F2F2  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
                     <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#BFBFBF" />
+
+                    <!--  5. Flyout Graphs Content Background (Light Mode)  -->
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="Transparent" />
+
+                    <!--  6. Flyout Bottom Bar (Light Mode)  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="Transparent" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
