@@ -1138,16 +1138,21 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // paints the flyout base for the current backdrop mode
+        // paints every visible flyout surface for the current backdrop mode
         //
         // three mutually exclusive cases, in this order:
-        // 1. a backdrop controller is attached: the border stays transparent, anything else paints over the blur
-        // 2. material "None" (Solid): the color is the users own pick in settings, accent or custom, theme independent
-        // 3. otherwise (Mica/Acrylic while Windows transparency is off): the flyout draws its own theme background
+        // 1. a backdrop controller is attached: root and bar stay transparent so the blur comes through, the graphs
+        //    area keeps its semi-transparent lift so the hierarchy survives on glass
+        // 2. material "None" (Solid): the root takes the users own pick from settings, accent or custom and theme
+        //    independent, the graphs area keeps the same lift on top of it
+        // 3. otherwise (Mica/Acrylic while Windows transparency is off): every surface is its own flat opaque color
+        //    and the graphs area carries no overlay at all
         //
-        // case 3 reads its brushes straight out of the App.xaml theme dictionary, so every hex value lives in exactly
-        // one place; the {ThemeResource} markup on FlyoutRootBorder is the first paint only, every later value is a
-        // local assignment from here and a local value permanently outranks the markup expression
+        // case 3 is deliberately alpha free: bar and content used to be coupled through that overlay, so correcting
+        // the base moved both at once and no measurement could be attributed to a single surface
+        // all colors come out of the App.xaml theme dictionary, so every hex value lives in exactly one place; the
+        // {ThemeResource} markup in the XAML is the first paint only, every later value is a local assignment from
+        // here and a local value permanently outranks the markup expression
         private void UpdateSolidBackground()
         {
             if (_isClosed || FlyoutRootBorder == null) return;
@@ -1156,9 +1161,14 @@ namespace FluentSensors.Features.TaskbarWidget
             var themeDictionary = (ResourceDictionary)Application.Current.Resources
                 .ThemeDictionaries[isLight ? "Light" : "Default"];
 
+            var transparent = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            var graphsOverlay = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutGraphsBackground"];
+
             if (_acrylicController != null)
             {
-                FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                FlyoutRootBorder.Background = transparent;
+                FlyoutBottomBarBorder.Background = transparent;
+                GraphsContentGrid.Background = graphsOverlay;
             }
             else if (SettingsService.Instance.TaskbarBackdropType == "None")
             {
@@ -1167,13 +1177,19 @@ namespace FluentSensors.Features.TaskbarWidget
                     : SettingsService.Instance.TaskbarCustomTintColor;
 
                 FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(targetColor);
+                FlyoutBottomBarBorder.Background = transparent;
+                GraphsContentGrid.Background = graphsOverlay;
             }
             else
             {
                 FlyoutRootBorder.Background = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutWindowBackground"];
+                FlyoutBottomBarBorder.Background = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutBottomBarBackground"];
+                GraphsContentGrid.Background = transparent;
             }
 
+            // both strokes are solid in every mode, unlike the fills above
             FlyoutRootBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutWindowBorderBrush"];
+            FlyoutBottomBarBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutBottomBarSeparatorBrush"];
         }
 
         // applies the backdrop material for the current setting and the Windows transparency state

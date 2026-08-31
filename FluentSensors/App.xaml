@@ -13,6 +13,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <ResourceDictionary.ThemeDictionaries>
+
                 <!--  === DARK MODE (Default Theme Dictionary) ===  -->
 
                 <!--  Base Taskbar Background: #202020 (32)  -->
@@ -47,17 +48,33 @@
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="Transparent" />
 
                     <!--  4. Flyout Window Styling (Dark Mode)  -->
-                    <!--  Window Base -> Target #222222  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#222222" />
-                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#383838" />
+                    <!--
+                        the dark literals sit a few levels below the tone they actually show; they were dialed in
+                        by comparing screenshots with the native Windows surfaces, where dark values read back
+                        lighter than they were written
+                        that offset belongs to the display it was tuned on; another monitor measures its own
+                        numbers, so the second value on each line is what was seen here and not a spec
+                    -->
+                    <!--  Content Area -> literal #242424, reads as #292929 here, opaque  -->
+                    <!--  (the bottom bar paints its own color, see 6)  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#242424" />
+                    <!--  Window Border -> literal #464646, reads as #484848 here  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#464646" />
 
-                    <!--  5. Flyout Graphs Content Background (Dark Mode)  -->
-                    <!--  Graphs Content -> Target #292929 (41) over window base #222222 (34): Alpha 8 (0x08) White -> #08FFFFFF  -->
+                    <!--  5. Flyout Graphs Overlay (Dark Mode)  -->
+                    <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
+                    <!--  (the opaque mode takes its content color from FlyoutWindowBackground and uses no overlay)  -->
                     <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#08FFFFFF" />
 
                     <!--  6. Flyout Bottom Bar (Dark Mode)  -->
-                    <!--  Bottom Bar directly uses window base #222222  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="Transparent" />
+                    <!--  Bottom Bar -> literal #1C1C1C, reads as #222222 here  -->
+                    <!--  opaque and independent of the content area  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#1C1C1C" />
+
+                    <!--  7. Flyout Bottom Bar Separator (Dark Mode)  -->
+                    <!--  1px stroke between content area and bottom bar, solid in every backdrop mode  -->
+                    <!--  literal #181818, reads as #1E1E1E here  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#181818" />
                 </ResourceDictionary>
 
 
@@ -97,17 +114,28 @@
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#E7E7E7" />
 
                     <!--  4. Flyout Window Styling (Light Mode)  -->
-                    <!--  Window Base -> Target #EDEDED (237)  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#EDEDED" />
-                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#BFBFBF" />
+                    <!--
+                        light barely needs the correction described in the dark section, the offset stays under
+                        one level above roughly 230
+                    -->
+                    <!--  Content Area -> #F2F2F2, opaque; the bottom bar paints its own color, see 6  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
+                    <!--  Window Border -> literal #C0C0C0, reads as #BFBFBF here  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#C0C0C0" />
 
-                    <!--  5. Flyout Graphs Content Background (Light Mode)  -->
-                    <!--  Graphs Content -> Target #F2F2F2 (242) over window base #EDEDED (237): Alpha 71 (0x47) White -> #47FFFFFF  -->
+                    <!--  5. Flyout Graphs Overlay (Light Mode)  -->
+                    <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
+                    <!--  (the opaque mode takes its content color from FlyoutWindowBackground and uses no overlay)  -->
                     <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#47FFFFFF" />
 
                     <!--  6. Flyout Bottom Bar (Light Mode)  -->
-                    <!--  Bottom Bar directly uses window base #EDEDED  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="Transparent" />
+                    <!--  Bottom Bar -> Target #EDEDED (237), opaque and independent of the content area  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#EDEDED" />
+
+                    <!--  7. Flyout Bottom Bar Separator (Light Mode)  -->
+                    <!--  1px stroke between content area and bottom bar, solid in every backdrop mode  -->
+                    <!--  literal #DEDEDE, reads as #DDDDDD here  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#DEDEDE" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>

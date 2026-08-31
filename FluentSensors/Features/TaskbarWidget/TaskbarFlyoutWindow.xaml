@@ -108,9 +108,10 @@
 
             <!--  bottom bar: navigation actions  -->
             <Border
+                x:Name="FlyoutBottomBarBorder"
                 Grid.Row="1"
                 Background="{ThemeResource FlyoutBottomBarBackground}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderBrush="{ThemeResource FlyoutBottomBarSeparatorBrush}"
                 BorderThickness="0,1,0,0"
                 CornerRadius="0,0,7,7">
 
