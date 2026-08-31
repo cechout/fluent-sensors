@@ -200,6 +200,16 @@ namespace FluentSensors.Features.Widget
             }
             catch { }
 
+            // AppWindow_Closing cancels the close and re-registers this instance as _retainedInstance; detaching it
+            // here is what lets the Close below go through instead of resurrecting a window that is already torn down
+            // WidgetWindow_Closed stays attached, it carries the real teardown once the close completes
+            try
+            {
+                _appWindow.Closing -= AppWindow_Closing;
+                _appWindow.Changed -= AppWindow_Changed;
+            }
+            catch { }
+
             try
             {
                 _acrylicController?.Dispose();
@@ -333,6 +343,10 @@ namespace FluentSensors.Features.Widget
         // command); this window never decides to quit on its own
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
+            // SafeDestroy is tearing this instance down: let the close proceed instead of handing a window with
+            // _isClosed set back to _retainedInstance, where every later SetBackdrop and ApplyTheme returns early
+            if (_isClosed) return;
+
             args.Cancel = true;
 
             SaveWindowState(wasOpen: false);

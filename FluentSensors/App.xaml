@@ -97,14 +97,16 @@
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#E7E7E7" />
 
                     <!--  4. Flyout Window Styling (Light Mode)  -->
-                    <!--  Window Base -> Target #F2F2F2  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
+                    <!--  Window Base -> Target #EDEDED (237)  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#EDEDED" />
                     <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#BFBFBF" />
 
                     <!--  5. Flyout Graphs Content Background (Light Mode)  -->
-                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="Transparent" />
+                    <!--  Graphs Content -> Target #F2F2F2 (242) over window base #EDEDED (237): Alpha 71 (0x47) White -> #47FFFFFF  -->
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#47FFFFFF" />
 
                     <!--  6. Flyout Bottom Bar (Light Mode)  -->
+                    <!--  Bottom Bar directly uses window base #EDEDED  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="Transparent" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>

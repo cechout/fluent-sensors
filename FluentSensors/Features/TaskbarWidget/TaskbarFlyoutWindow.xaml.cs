@@ -149,13 +149,14 @@ namespace FluentSensors.Features.TaskbarWidget
         public static readonly Thickness FlyoutGraphsPadding = new Thickness(4.5, 1, 4.5, 6);
 
         // --- Mica Flyout Blur Preset Settings (used when BackdropType == "Mica" and Transparency is ON) ---
+        // the tint colors match the opaque theme base, so both modes aim at the same tone
         // Dark Mode Preset (Target #222222 on-screen):
-        public static readonly Windows.UI.Color MicaPresetDarkTintColor = Windows.UI.Color.FromArgb(255, 0x1A, 0x1A, 0x1A);
-        public const float MicaPresetDarkLuminosity = 0.0f;
-        public const float MicaPresetDarkTintOpacity = 0.85f;
+        public static readonly Windows.UI.Color MicaPresetDarkTintColor = Windows.UI.Color.FromArgb(255, 0x22, 0x22, 0x22);
+        public const float MicaPresetDarkLuminosity = 0.90f;
+        public const float MicaPresetDarkTintOpacity = 0.70f;
 
-        // Light Mode Preset (Target #F2F2F2 on-screen):
-        public static readonly Windows.UI.Color MicaPresetLightTintColor = Windows.UI.Color.FromArgb(255, 0xF2, 0xF2, 0xF2);
+        // Light Mode Preset (Target #EDEDED on-screen):
+        public static readonly Windows.UI.Color MicaPresetLightTintColor = Windows.UI.Color.FromArgb(255, 0xED, 0xED, 0xED);
         public const float MicaPresetLightLuminosity = 0.90f;
         public const float MicaPresetLightTintOpacity = 0.70f;
 
@@ -211,7 +212,6 @@ namespace FluentSensors.Features.TaskbarWidget
         public TaskbarFlyoutWindow(TaskbarWidgetViewModel viewModel)
         {
             ViewModel = viewModel;
-            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === Constructor ENTER. HashCode={this.GetHashCode()} AppTheme={SettingsService.Instance.AppTheme} Backdrop={SettingsService.Instance.TaskbarBackdropType}");
             this.InitializeComponent();
             CurrentInstance = this;
 
@@ -502,7 +502,6 @@ namespace FluentSensors.Features.TaskbarWidget
         public static void ShowFlyout(TaskbarWidgetWindow widgetWindow)
         {
             if (widgetWindow == null) return;
-            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === ShowFlyout: CurrentInstance={(CurrentInstance != null ? CurrentInstance.GetHashCode() : 0)}, Retained={(_retainedInstance != null ? _retainedInstance.GetHashCode() : 0)}, AppTheme={SettingsService.Instance.AppTheme}");
 
             if (CurrentInstance != null)
             {
@@ -573,6 +572,16 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             catch { }
 
+            // AppWindow_Closing cancels the close and re-registers this instance as _retainedInstance; detaching it
+            // here is what lets the Close below go through instead of resurrecting a window that is already torn down
+            try
+            {
+                _appWindow.Closing -= AppWindow_Closing;
+                _appWindow.Changed -= AppWindow_Changed;
+                this.Activated -= Window_Activated;
+            }
+            catch { }
+
             try
             {
                 _messageMonitor?.Dispose();
@@ -588,16 +597,18 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private static Microsoft.UI.Dispatching.DispatcherQueueTimer? _recreateDebounceTimer;
 
-        // --- workaround: window recreation and backdrop toggle on global OS theme/transparency change ---
+        // --- workaround: window recreation on global OS theme/transparency change ---
         // problem: the exact underlying reason why Windows DWM fails to bind DesktopAcrylicController blur properly
-        // without a complete window recreation and a brief material toggle (None -> Mica) is not fully clear and is
-        // based purely on empirical observation
+        // without a complete window recreation is not fully clear and is based purely on empirical observation
         // fix: upon receiving a global theme or transparency change from Windows, both windows (TaskbarFlyoutWindow
-        // and WidgetWindow, if open) are fully destroyed and rebuilt, and if Mica was selected, the backdrop material
-        // setting is briefly toggled to None (Solid) and immediately back to Mica to force a full DWM compositor refresh
+        // and WidgetWindow, if open) are fully destroyed and rebuilt; each rebuilt window then kicks its own backdrop
+        // from its constructor via KickBackdropRefresh, which goes through SetBackdrop parameters only
+        //
+        // only ever driven by the Windows-level UISettings events; an in-app theme switch must not land here, and a
+        // persisted SettingsService property must never be toggled to force a repaint: every setter snapshots the whole
+        // settings object into the debounced writer, so an interrupted toggle persists its intermediate value
         public static void ScheduleRecreation()
         {
-            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === ScheduleRecreation called.");
             var queue = TaskbarWidgetWindow.CurrentInstance?.DispatcherQueue
                 ?? MainWindow.CurrentInstance?.DispatcherQueue
                 ?? DispatcherQueue.GetForCurrentThread();
@@ -627,7 +638,6 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private static void ExecuteFullRebuild()
         {
-            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === ExecuteFullRebuild called.");
             var widgetWindow = TaskbarWidgetWindow.CurrentInstance;
             bool flyoutWasVisible = CurrentInstance != null && CurrentInstance._appWindow != null && CurrentInstance._appWindow.IsVisible;
 
@@ -662,26 +672,6 @@ namespace FluentSensors.Features.TaskbarWidget
                     {
                         Preload(widgetWindow);
                     }
-
-                    // 4. Force SettingsService backdrop material toggle (Solid -> Mica)
-                    var kickTimer = widgetWindow.DispatcherQueue.CreateTimer();
-                    kickTimer.Interval = TimeSpan.FromMilliseconds(80);
-                    kickTimer.IsRepeating = false;
-                    kickTimer.Tick += (s, e) =>
-                    {
-                        kickTimer.Stop();
-                        if (SettingsService.Instance.TaskbarBackdropType == "Mica")
-                        {
-                            SettingsService.Instance.TaskbarBackdropType = "None";
-                            SettingsService.Instance.TaskbarBackdropType = "Mica";
-                        }
-                        if (SettingsService.Instance.BackdropType == "Mica")
-                        {
-                            SettingsService.Instance.BackdropType = "None";
-                            SettingsService.Instance.BackdropType = "Mica";
-                        }
-                    };
-                    kickTimer.Start();
                 });
             }
         }
@@ -980,6 +970,11 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
+            // SafeDestroy is tearing this instance down: let the close proceed, and above all do not hand a window
+            // with _isClosed set back to _retainedInstance, which makes Preload skip building a live one and leaves
+            // the flyout permanently unable to repaint or switch theme
+            if (_isClosed) return;
+
             args.Cancel = true;
             HideFlyout();
             CurrentInstance = null;
@@ -989,15 +984,12 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === theme and backdrop application (Taskbar Ecosystem) ===
 
+        // ApplyTheme already re-runs SetConfigurationSourceTheme, UpdateAcrylicProperties and UpdateSolidBackground,
+        // so an in-app theme switch is a plain repaint; recreating the window here tore down the live instance
+        // mid-switch, which is what produced the closed-window COMException
         private void OnThemeChanged(string newTheme)
         {
-            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === OnThemeChanged ENTER: newTheme={newTheme}, HashCode={this.GetHashCode()}");
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                ApplyTheme(newTheme);
-                UpdateSolidBackground();
-                ScheduleRecreation();
-            });
+            this.DispatcherQueue.TryEnqueue(() => ApplyTheme(newTheme));
         }
 
         private void OnBackdropTypeChanged(string newType)
@@ -1022,7 +1014,6 @@ namespace FluentSensors.Features.TaskbarWidget
         private void ApplyTheme(string themeTag)
         {
             if (_isClosed) return;
-            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === ApplyTheme ENTER: themeTag={themeTag}, HashCode={this.GetHashCode()}");
 
             var elementTheme = themeTag switch
             {
@@ -1104,9 +1095,9 @@ namespace FluentSensors.Features.TaskbarWidget
                 else
                 {
                     // "Acrylic" uses user-configured settings sliders
-                    // fallback tint when no accent/custom color applies: #F2F2F2 Light, #222222 Dark (matches the opaque path)
+                    // fallback tint when no accent/custom color applies: #EDEDED Light, #222222 Dark (matches the opaque path)
                     Windows.UI.Color defaultTint = isLight
-                        ? Windows.UI.Color.FromArgb(255, 0xF2, 0xF2, 0xF2)
+                        ? Windows.UI.Color.FromArgb(255, 0xED, 0xED, 0xED)
                         : Windows.UI.Color.FromArgb(255, 0x22, 0x22, 0x22);
 
                     Windows.UI.Color targetColor = SettingsService.Instance.TaskbarUseAccentColor
@@ -1121,14 +1112,29 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        // paints the flyout base for the current backdrop mode
+        //
+        // three mutually exclusive cases, in this order:
+        // 1. a backdrop controller is attached: the border stays transparent, anything else paints over the blur
+        // 2. material "None" (Solid): the color is the users own pick in settings, accent or custom, theme independent
+        // 3. otherwise (Mica/Acrylic while Windows transparency is off): the flyout draws its own theme background
+        //
+        // case 3 reads its brushes straight out of the App.xaml theme dictionary, so every hex value lives in exactly
+        // one place; the {ThemeResource} markup on FlyoutRootBorder is the first paint only, every later value is a
+        // local assignment from here and a local value permanently outranks the markup expression
         private void UpdateSolidBackground()
         {
             if (_isClosed || FlyoutRootBorder == null) return;
 
             bool isLight = IsCurrentThemeLight();
-            string backdropType = SettingsService.Instance.TaskbarBackdropType;
+            var themeDictionary = (ResourceDictionary)Application.Current.Resources
+                .ThemeDictionaries[isLight ? "Light" : "Default"];
 
-            if (backdropType == "None" && (SettingsService.Instance.TaskbarUseAccentColor || SettingsService.Instance.TaskbarCustomTintColor.A > 0))
+            if (_acrylicController != null || _micaController != null)
+            {
+                FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            }
+            else if (SettingsService.Instance.TaskbarBackdropType == "None")
             {
                 Windows.UI.Color targetColor = SettingsService.Instance.TaskbarUseAccentColor
                     ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
@@ -1136,27 +1142,12 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(targetColor);
             }
-            else if (_acrylicController == null && _micaController == null)
-            {
-                // Solid Mode (Transparency OFF or Solid material): #F2F2F2 Light, #222222 Dark
-                Windows.UI.Color bgColor = isLight
-                    ? Windows.UI.Color.FromArgb(255, 0xF2, 0xF2, 0xF2)
-                    : Windows.UI.Color.FromArgb(255, 0x22, 0x22, 0x22);
-
-                FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(bgColor);
-            }
             else
             {
-                // Translucent Mode: FlyoutRootBorder is transparent to let Acrylic backdrop show through
-                FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                FlyoutRootBorder.Background = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutWindowBackground"];
             }
 
-            // Real border: #BFBFBF for Light, #383838 for Dark
-            Windows.UI.Color borderColor = isLight
-                ? Windows.UI.Color.FromArgb(255, 0xBF, 0xBF, 0xBF)
-                : Windows.UI.Color.FromArgb(255, 0x38, 0x38, 0x38);
-
-            FlyoutRootBorder.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(borderColor);
+            FlyoutRootBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutWindowBorderBrush"];
         }
 
         public void SetBackdrop(string backdropType)
@@ -1188,13 +1179,14 @@ namespace FluentSensors.Features.TaskbarWidget
                 _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
 
                 UpdateAcrylicProperties();
-                FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
             else
             {
                 this.SystemBackdrop = new TransparentTintBackdrop();
-                UpdateSolidBackground();
             }
+
+            // single entry point for the base color, it reads the controller fields set just above
+            UpdateSolidBackground();
 
             UpdateShadowPolicy();
         }
