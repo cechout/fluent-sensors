@@ -145,10 +145,6 @@ namespace FluentSensors.Features.TaskbarWidget
         // keeps graphs rendering continuously in background so they are instantly visible on open
         public const bool KeepFlyoutGraphsActiveInBackground = true;
 
-        // padding settings for fine-tuning
-        public static readonly Thickness FlyoutRootPadding = new Thickness(0, -1, 0, 0); // padding applied to flyout root border
-        public static readonly Thickness FlyoutGraphsPadding = new Thickness(4.5, 1, 4.5, 6);
-
         // --- Mica Flyout Blur Preset Settings (used when BackdropType == "Mica" and Transparency is ON) ---
         // over a flat backdrop the controller resolves to lerp(backdrop, tint, luminosity), so measuring one
         // surface over a dark and over a bright background yields both unknowns; run against the native shell
@@ -187,9 +183,29 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // default and minimum height per graph slot in DIP
         public const int FlyoutDefaultGraphHeightDip = 100;
-        public const int MinFlyoutGraphHeightDip = 90;
-        public const int FlyoutBottomBarHeightDip = 48; // bottom action bar strip; fixed height added on top of the graph slots in the window height math
-        public const int FlyoutGraphSpacingDip = 8;
+        public const int MinFlyoutGraphHeightDip = 100;
+
+        // --- flyout layout ---
+
+        // the two knobs for the interior; every visible inset inside the window comes from one of them
+        public static readonly Thickness FlyoutGraphsPadding = new Thickness(6, 9, 6, 7);
+        public static readonly Thickness FlyoutBottomBarPadding = new Thickness(0, 0, 0, 0);
+
+        // gap between two stacked graphs
+        public const double FlyoutGraphSpacingDip = 8;
+
+        // (AppBarButton renders at the platform AppBarThemeCompactHeight; mirrored here because the window height
+        // math runs long before the bar is ever measured)
+        public const double FlyoutBottomBarButtonHeightDip = 48;
+
+        // separator drawn as the top border of FlyoutBottomBarBorder
+        private const double FlyoutBottomBarSeparatorDip = 1;
+
+        // bottom action bar strip, added on top of the graph slots in the window height math; derived, so
+        // changing FlyoutBottomBarPadding corrects that math on its own
+        private static double FlyoutBottomBarHeightDip =>
+            FlyoutBottomBarSeparatorDip + FlyoutBottomBarPadding.Top
+            + FlyoutBottomBarButtonHeightDip + FlyoutBottomBarPadding.Bottom;
 
         private AppWindow _appWindow;
         private IntPtr _hwnd;
@@ -291,9 +307,10 @@ namespace FluentSensors.Features.TaskbarWidget
                 });
             };
 
-            // apply configurable paddings
-            RootGrid.Padding = FlyoutRootPadding;
+            // the interior is driven entirely from the layout metrics above, the XAML carries no numbers of its own
             GraphsContentGrid.Padding = FlyoutGraphsPadding;
+            BottomBarContentGrid.Padding = FlyoutBottomBarPadding;
+            GraphsItemsControl.LayoutUpdated += OnGraphsItemsControlLayoutUpdated;
 
             _appWindow.Changed += AppWindow_Changed;
             FlyoutRootBorder.SizeChanged += FlyoutRootBorder_SizeChanged;
@@ -891,14 +908,23 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private int CalculateFlyoutMinHeight(int sensorCount, double scaleFactor)
         {
-            double minXamlHeight = FlyoutBottomBarHeightDip + (sensorCount * (MinFlyoutGraphHeightDip + FlyoutGraphSpacingDip));
-            return (int)(minXamlHeight * scaleFactor);
+            return (int)(CalculateFlyoutContentHeight(sensorCount, MinFlyoutGraphHeightDip) * scaleFactor);
         }
 
         private int CalculateFlyoutDefaultHeight(int sensorCount, double scaleFactor)
         {
-            double defaultXamlHeight = FlyoutBottomBarHeightDip + (sensorCount * (FlyoutDefaultGraphHeightDip + FlyoutGraphSpacingDip));
-            return (int)(defaultXamlHeight * scaleFactor);
+            return (int)(CalculateFlyoutContentHeight(sensorCount, FlyoutDefaultGraphHeightDip) * scaleFactor);
+        }
+
+        // window height for n graph slots: the bar strip, the graphs padding, n slots and the n-1 gaps between them
+        private static double CalculateFlyoutContentHeight(int sensorCount, double graphHeightDip)
+        {
+            if (sensorCount <= 0) return FlyoutBottomBarHeightDip;
+
+            return FlyoutBottomBarHeightDip
+                + FlyoutGraphsPadding.Top + FlyoutGraphsPadding.Bottom
+                + (sensorCount * graphHeightDip)
+                + ((sensorCount - 1) * FlyoutGraphSpacingDip);
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
@@ -930,6 +956,17 @@ namespace FluentSensors.Features.TaskbarWidget
             state.WasOpen = false;
 
             WindowStateService.Instance.SetState(WindowKey, state);
+        }
+
+        // the graph panel sits inside an ItemsPanelTemplate and cannot be named, so FlyoutGraphSpacingDip is
+        // pushed onto it from here; the items host only exists after the first layout pass, hence the retry
+        private void OnGraphsItemsControlLayoutUpdated(object? sender, object e)
+        {
+            if (GraphsItemsControl.ItemsPanelRoot is FluentSensors.Controls.VerticalStretchPanel panel)
+            {
+                panel.Spacing = FlyoutGraphSpacingDip;
+                GraphsItemsControl.LayoutUpdated -= OnGraphsItemsControlLayoutUpdated;
+            }
         }
 
         private void SetGraphsRenderingActive(bool active)
