@@ -156,6 +156,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow.Closing += AppWindow_Closing;
 
                 SettingsService.Instance.TaskbarGraphWidthChanged += OnTaskbarGraphWidthChanged;
+                SettingsService.Instance.ThemeChanged += OnThemeChanged;
+                ApplyTheme(SettingsService.Instance.AppTheme);
 
                 // wire left-button press/release/drag animations and movement even when Button internally handles clicks
                 TaskbarButton.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(TaskbarButton_PointerPressed), true);
@@ -503,6 +505,25 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             args.Cancel = true;
             CloseWidget();
+        }
+
+        private void OnThemeChanged(string newTheme)
+        {
+            this.DispatcherQueue.TryEnqueue(() => ApplyTheme(newTheme));
+        }
+
+        private void ApplyTheme(string themeTag)
+        {
+            if (this.Content is FrameworkElement rootElement)
+            {
+                rootElement.RequestedTheme = themeTag switch
+                {
+                    "Light" => ElementTheme.Light,
+                    "Dark" => ElementTheme.Dark,
+                    _ => ElementTheme.Default
+                };
+            }
+            UpdateVisualState();
         }
 
         private void OnTaskbarGraphWidthChanged(int newWidth)

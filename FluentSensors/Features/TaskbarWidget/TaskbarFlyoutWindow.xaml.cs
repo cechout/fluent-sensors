@@ -149,15 +149,15 @@ namespace FluentSensors.Features.TaskbarWidget
         public static readonly Thickness FlyoutGraphsPadding = new Thickness(4.5, 1, 4.5, 6);
 
         // --- Mica Flyout Blur Preset Settings (used when BackdropType == "Mica" and Transparency is ON) ---
-        // Dark Mode Preset (#292929, Luminosity 0.90, Tint 0.70):
-        public static readonly Windows.UI.Color MicaPresetDarkTintColor = Windows.UI.Color.FromArgb(255, 0x29, 0x29, 0x29);
-        public const float MicaPresetDarkLuminosity = 0.90f;
-        public const float MicaPresetDarkTintOpacity = 0.70f;
+        // Dark Mode Preset (Target #222222 on-screen):
+        public static readonly Windows.UI.Color MicaPresetDarkTintColor = Windows.UI.Color.FromArgb(255, 0x1A, 0x1A, 0x1A);
+        public const float MicaPresetDarkLuminosity = 0.0f;
+        public const float MicaPresetDarkTintOpacity = 0.85f;
 
-        // Light Mode Preset (#F2F2F2, Luminosity 0.90, Tint 0.60):
+        // Light Mode Preset (Target #F2F2F2 on-screen):
         public static readonly Windows.UI.Color MicaPresetLightTintColor = Windows.UI.Color.FromArgb(255, 0xF2, 0xF2, 0xF2);
         public const float MicaPresetLightLuminosity = 0.90f;
-        public const float MicaPresetLightTintOpacity = 0.60f;
+        public const float MicaPresetLightTintOpacity = 0.70f;
 
 
         // === fields ===
@@ -175,7 +175,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // default and minimum height per graph slot in DIP
         public const int FlyoutDefaultGraphHeightDip = 100;
         public const int MinFlyoutGraphHeightDip = 90;
-        public const int FlyoutHeaderHeightDip = 31;
+        public const int FlyoutBottomBarHeightDip = 48; // bottom action bar strip; fixed height added on top of the graph slots in the window height math
         public const int FlyoutGraphSpacingDip = 8;
 
         private AppWindow _appWindow;
@@ -211,6 +211,7 @@ namespace FluentSensors.Features.TaskbarWidget
         public TaskbarFlyoutWindow(TaskbarWidgetViewModel viewModel)
         {
             ViewModel = viewModel;
+            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === Constructor ENTER. HashCode={this.GetHashCode()} AppTheme={SettingsService.Instance.AppTheme} Backdrop={SettingsService.Instance.TaskbarBackdropType}");
             this.InitializeComponent();
             CurrentInstance = this;
 
@@ -254,6 +255,9 @@ namespace FluentSensors.Features.TaskbarWidget
             _messageMonitor = new WindowMessageMonitor(_hwnd);
             _messageMonitor.WindowMessageReceived += OnWindowMessageReceived;
 
+            // initialize shadow policy & UISettings based on Windows transparency setting
+            InitializeShadowPolicy();
+
             // theming & backdrop (Taskbar ecosystem)
             SetBackdrop(SettingsService.Instance.TaskbarBackdropType);
             ApplyTheme(SettingsService.Instance.AppTheme);
@@ -265,11 +269,15 @@ namespace FluentSensors.Features.TaskbarWidget
 
             ((FrameworkElement)this.Content).ActualThemeChanged += (s, e) =>
             {
-                this.DispatcherQueue.TryEnqueue(UpdateSolidBackground);
+                if (_isClosed) return;
+                this.DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (_isClosed) return;
+                    SetConfigurationSourceTheme();
+                    UpdateAcrylicProperties();
+                    UpdateSolidBackground();
+                });
             };
-
-            // initialize shadow policy based on Windows transparency setting
-            InitializeShadowPolicy();
 
             // apply configurable paddings
             RootGrid.Padding = FlyoutRootPadding;
@@ -494,9 +502,11 @@ namespace FluentSensors.Features.TaskbarWidget
         public static void ShowFlyout(TaskbarWidgetWindow widgetWindow)
         {
             if (widgetWindow == null) return;
+            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === ShowFlyout: CurrentInstance={(CurrentInstance != null ? CurrentInstance.GetHashCode() : 0)}, Retained={(_retainedInstance != null ? _retainedInstance.GetHashCode() : 0)}, AppTheme={SettingsService.Instance.AppTheme}");
 
             if (CurrentInstance != null)
             {
+                CurrentInstance.ApplyTheme(SettingsService.Instance.AppTheme);
                 CurrentInstance.PositionAboveTaskbar(widgetWindow, startForSlideAnimation: true);
                 CurrentInstance.SetGraphsRenderingActive(true);
                 CurrentInstance._appWindow.Show();
@@ -512,6 +522,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 _retainedInstance = null;
                 CurrentInstance = window;
 
+                window.ApplyTheme(SettingsService.Instance.AppTheme);
                 window.PositionAboveTaskbar(widgetWindow, startForSlideAnimation: true);
                 window.SetGraphsRenderingActive(true);
                 window._appWindow.Show();
@@ -522,6 +533,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
 
             var newWindow = new TaskbarFlyoutWindow(widgetWindow.ViewModel);
+            newWindow.ApplyTheme(SettingsService.Instance.AppTheme);
             newWindow.PositionAboveTaskbar(widgetWindow, startForSlideAnimation: true);
             newWindow.SetGraphsRenderingActive(true);
             newWindow._appWindow.Show();
@@ -585,6 +597,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // setting is briefly toggled to None (Solid) and immediately back to Mica to force a full DWM compositor refresh
         public static void ScheduleRecreation()
         {
+            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === ScheduleRecreation called.");
             var queue = TaskbarWidgetWindow.CurrentInstance?.DispatcherQueue
                 ?? MainWindow.CurrentInstance?.DispatcherQueue
                 ?? DispatcherQueue.GetForCurrentThread();
@@ -614,6 +627,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private static void ExecuteFullRebuild()
         {
+            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === ExecuteFullRebuild called.");
             var widgetWindow = TaskbarWidgetWindow.CurrentInstance;
             bool flyoutWasVisible = CurrentInstance != null && CurrentInstance._appWindow != null && CurrentInstance._appWindow.IsVisible;
 
@@ -857,13 +871,13 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private int CalculateFlyoutMinHeight(int sensorCount, double scaleFactor)
         {
-            double minXamlHeight = FlyoutHeaderHeightDip + (sensorCount * (MinFlyoutGraphHeightDip + FlyoutGraphSpacingDip));
+            double minXamlHeight = FlyoutBottomBarHeightDip + (sensorCount * (MinFlyoutGraphHeightDip + FlyoutGraphSpacingDip));
             return (int)(minXamlHeight * scaleFactor);
         }
 
         private int CalculateFlyoutDefaultHeight(int sensorCount, double scaleFactor)
         {
-            double defaultXamlHeight = FlyoutHeaderHeightDip + (sensorCount * (FlyoutDefaultGraphHeightDip + FlyoutGraphSpacingDip));
+            double defaultXamlHeight = FlyoutBottomBarHeightDip + (sensorCount * (FlyoutDefaultGraphHeightDip + FlyoutGraphSpacingDip));
             return (int)(defaultXamlHeight * scaleFactor);
         }
 
@@ -977,7 +991,13 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void OnThemeChanged(string newTheme)
         {
-            this.DispatcherQueue.TryEnqueue(() => ApplyTheme(newTheme));
+            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === OnThemeChanged ENTER: newTheme={newTheme}, HashCode={this.GetHashCode()}");
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                ApplyTheme(newTheme);
+                UpdateSolidBackground();
+                ScheduleRecreation();
+            });
         }
 
         private void OnBackdropTypeChanged(string newType)
@@ -1002,6 +1022,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private void ApplyTheme(string themeTag)
         {
             if (_isClosed) return;
+            System.Diagnostics.Debug.WriteLine($"[FlyoutDebug] === ApplyTheme ENTER: themeTag={themeTag}, HashCode={this.GetHashCode()}");
 
             var elementTheme = themeTag switch
             {
@@ -1035,13 +1056,31 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        private bool IsCurrentThemeLight()
+        {
+            if (_isClosed) return false;
+
+            string themeTag = SettingsService.Instance.AppTheme;
+            if (themeTag == "Light") return true;
+            if (themeTag == "Dark") return false;
+
+            try
+            {
+                return this.Content is FrameworkElement fe && fe.ActualTheme == ElementTheme.Light;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private void UpdateAcrylicProperties()
         {
             if (_isClosed) return;
 
             if (_acrylicController != null)
             {
-                bool isLight = this.Content is FrameworkElement fe && fe.ActualTheme == ElementTheme.Light;
+                bool isLight = IsCurrentThemeLight();
                 string backdropType = SettingsService.Instance.TaskbarBackdropType;
 
                 if (backdropType == "Mica")
@@ -1065,9 +1104,10 @@ namespace FluentSensors.Features.TaskbarWidget
                 else
                 {
                     // "Acrylic" uses user-configured settings sliders
+                    // fallback tint when no accent/custom color applies: #F2F2F2 Light, #222222 Dark (matches the opaque path)
                     Windows.UI.Color defaultTint = isLight
-                        ? Windows.UI.Color.FromArgb(255, 0xF9, 0xF9, 0xF9)
-                        : Windows.UI.Color.FromArgb(255, 0x20, 0x20, 0x20);
+                        ? Windows.UI.Color.FromArgb(255, 0xF2, 0xF2, 0xF2)
+                        : Windows.UI.Color.FromArgb(255, 0x22, 0x22, 0x22);
 
                     Windows.UI.Color targetColor = SettingsService.Instance.TaskbarUseAccentColor
                         ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
@@ -1085,10 +1125,10 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             if (_isClosed || FlyoutRootBorder == null) return;
 
-            bool isLight = this.Content is FrameworkElement fe && fe.ActualTheme == ElementTheme.Light;
+            bool isLight = IsCurrentThemeLight();
             string backdropType = SettingsService.Instance.TaskbarBackdropType;
 
-            if (backdropType == "None")
+            if (backdropType == "None" && (SettingsService.Instance.TaskbarUseAccentColor || SettingsService.Instance.TaskbarCustomTintColor.A > 0))
             {
                 Windows.UI.Color targetColor = SettingsService.Instance.TaskbarUseAccentColor
                     ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
@@ -1098,20 +1138,20 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             else if (_acrylicController == null && _micaController == null)
             {
-                // Native Windows 11 flyout background: #F9F9F9 for Light, #202020 for Dark
+                // Solid Mode (Transparency OFF or Solid material): #F2F2F2 Light, #222222 Dark
                 Windows.UI.Color bgColor = isLight
-                    ? Windows.UI.Color.FromArgb(255, 0xF9, 0xF9, 0xF9)
-                    : Windows.UI.Color.FromArgb(255, 0x20, 0x20, 0x20);
+                    ? Windows.UI.Color.FromArgb(255, 0xF2, 0xF2, 0xF2)
+                    : Windows.UI.Color.FromArgb(255, 0x22, 0x22, 0x22);
 
                 FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(bgColor);
             }
             else
             {
-                // Backdrop controller (Acrylic/Mica) handles the translucent background
+                // Translucent Mode: FlyoutRootBorder is transparent to let Acrylic backdrop show through
                 FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
 
-            // Native Windows 11 flyout border: #BFBFBF for Light, #383838 for Dark
+            // Real border: #BFBFBF for Light, #383838 for Dark
             Windows.UI.Color borderColor = isLight
                 ? Windows.UI.Color.FromArgb(255, 0xBF, 0xBF, 0xBF)
                 : Windows.UI.Color.FromArgb(255, 0x38, 0x38, 0x38);
@@ -1161,15 +1201,11 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void SetConfigurationSourceTheme()
         {
-            if (_configurationSource != null && this.Content is FrameworkElement frameworkElement)
-            {
-                _configurationSource.Theme = frameworkElement.ActualTheme switch
-                {
-                    ElementTheme.Dark => SystemBackdropTheme.Dark,
-                    ElementTheme.Light => SystemBackdropTheme.Light,
-                    _ => SystemBackdropTheme.Default
-                };
-            }
+            if (_isClosed || _configurationSource == null) return;
+
+            _configurationSource.Theme = IsCurrentThemeLight()
+                ? SystemBackdropTheme.Light
+                : SystemBackdropTheme.Dark;
         }
 
         // --- workaround: DWM backdrop swapchain kick ---
