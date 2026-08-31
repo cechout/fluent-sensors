@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Graphics;
 using Windows.UI.ViewManagement;
 using WinRT;
@@ -149,16 +150,27 @@ namespace FluentSensors.Features.TaskbarWidget
         public static readonly Thickness FlyoutGraphsPadding = new Thickness(4.5, 1, 4.5, 6);
 
         // --- Mica Flyout Blur Preset Settings (used when BackdropType == "Mica" and Transparency is ON) ---
-        // the tint colors match the opaque theme base, so both modes aim at the same tone
-        // Dark Mode Preset (Target #222222 on-screen):
-        public static readonly Windows.UI.Color MicaPresetDarkTintColor = Windows.UI.Color.FromArgb(255, 0x22, 0x22, 0x22);
-        public const float MicaPresetDarkLuminosity = 0.90f;
-        public const float MicaPresetDarkTintOpacity = 0.70f;
+        // over a flat backdrop the controller resolves to lerp(backdrop, tint, luminosity), so measuring one
+        // surface over a dark and over a bright background yields both unknowns; run against the native shell
+        // flyouts that gives 4 percent backdrop transmission in dark and 9 percent in light
+        //
+        // no TintOpacity here on purpose: the tint sits in a blend that carries hue and saturation only, so a
+        // neutral gray tint turns that layer into a no-op and luminosity is the one knob that moves the result
+        // the effect graph is public; note that the source flags its own BlendEffectMode names as swapped, so the
+        // tint layer reads as Luminosity there while it behaves as a color blend:
+        // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.cpp
+        //
+        // the tints are the Fluent acrylic base tones, AcrylicBackgroundFillColorBaseBrush:
+        // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush_19h1_themeresources.xaml
+        // they are not pre-compensated the way the opaque literals are, because the render shift applies once to
+        // the finished composite and is already contained in the measurements these were derived from
+        // Dark Mode Preset:
+        public static readonly Windows.UI.Color MicaPresetDarkTintColor = Windows.UI.Color.FromArgb(255, 0x20, 0x20, 0x20);
+        public const float MicaPresetDarkLuminosity = 0.96f;
 
-        // Light Mode Preset (Target #EDEDED on-screen):
-        public static readonly Windows.UI.Color MicaPresetLightTintColor = Windows.UI.Color.FromArgb(255, 0xED, 0xED, 0xED);
-        public const float MicaPresetLightLuminosity = 0.90f;
-        public const float MicaPresetLightTintOpacity = 0.70f;
+        // Light Mode Preset:
+        public static readonly Windows.UI.Color MicaPresetLightTintColor = Windows.UI.Color.FromArgb(255, 0xF3, 0xF3, 0xF3);
+        public const float MicaPresetLightLuminosity = 0.91f;
 
 
         // === fields ===
@@ -284,6 +296,7 @@ namespace FluentSensors.Features.TaskbarWidget
             GraphsContentGrid.Padding = FlyoutGraphsPadding;
 
             _appWindow.Changed += AppWindow_Changed;
+            FlyoutRootBorder.SizeChanged += FlyoutRootBorder_SizeChanged;
             _appWindow.Closing += AppWindow_Closing;
             this.Activated += Window_Activated;
 
@@ -601,6 +614,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 _messageMonitor = null;
                 _acrylicController?.Dispose();
                 _acrylicController = null;
+                _noiseBitmap = null;
                 this.Close();
             }
             catch { }
@@ -1106,14 +1120,12 @@ namespace FluentSensors.Features.TaskbarWidget
                     if (isLight)
                     {
                         _acrylicController.TintColor = MicaPresetLightTintColor;
-                        _acrylicController.TintOpacity = MicaPresetLightTintOpacity;
                         _acrylicController.LuminosityOpacity = MicaPresetLightLuminosity;
                         _acrylicController.FallbackColor = MicaPresetLightTintColor;
                     }
                     else
                     {
                         _acrylicController.TintColor = MicaPresetDarkTintColor;
-                        _acrylicController.TintOpacity = MicaPresetDarkTintOpacity;
                         _acrylicController.LuminosityOpacity = MicaPresetDarkLuminosity;
                         _acrylicController.FallbackColor = MicaPresetDarkTintColor;
                     }
@@ -1164,7 +1176,9 @@ namespace FluentSensors.Features.TaskbarWidget
             var transparent = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             var graphsOverlay = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutGraphsBackground"];
 
-            if (_acrylicController != null)
+            bool onGlass = _acrylicController != null;
+
+            if (onGlass)
             {
                 FlyoutRootBorder.Background = transparent;
                 FlyoutBottomBarBorder.Background = transparent;
@@ -1187,9 +1201,113 @@ namespace FluentSensors.Features.TaskbarWidget
                 GraphsContentGrid.Background = transparent;
             }
 
-            // both strokes are solid in every mode, unlike the fills above
+            // the window stroke is one opaque line in every mode
+            // the separator is not: on glass the native line stays translucent and darkens the material rather
+            // than covering it, so an opaque stroke there stands still while everything around it moves
             FlyoutRootBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutWindowBorderBrush"];
-            FlyoutBottomBarBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutBottomBarSeparatorBrush"];
+            FlyoutBottomBarBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary[
+                onGlass ? "FlyoutBottomBarSeparatorOnGlassBrush" : "FlyoutBottomBarSeparatorBrush"];
+
+            // the grain belongs to the material, so it shows in the blur modes only
+            FlyoutNoiseHost.Visibility = onGlass ? Visibility.Visible : Visibility.Collapsed;
+            if (onGlass)
+            {
+                EnsureNoiseBitmap(FlyoutRootBorder.ActualWidth, FlyoutRootBorder.ActualHeight);
+            }
+        }
+
+        // === acrylic grain ===
+
+        // the acrylic recipe composites a noise layer as its final step at 2 percent opacity, but the system
+        // backdrop controller does not draw it, which is why the flyout reads as one perfectly flat tone while
+        // the native shell surfaces scatter across a few levels
+        // sc_noiseOpacity 0.02f and sc_blurRadius 30.0f are the published recipe constants:
+        // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.h
+        // this fills that layer in: one random grayscale bitmap, painted under every surface fill
+        private const int NoiseSeed = 0x5EED;
+
+        // layer opacity stays the recipe constant; how strong the grain reads is set through the value range
+        // instead, which keeps the mean at 128 so tuning the grain never moves the calibrated surface colors
+        private const double NoiseLayerOpacity = 0.02;
+        private const double NoiseSpreadLevels = 3.5;
+
+        private Microsoft.UI.Xaml.Media.Imaging.WriteableBitmap? _noiseBitmap;
+        private double _noiseScale;
+
+        // grows on demand and never shrinks, so only a resize past the current bitmap rebuilds it
+        // sized in physical pixels and scaled back down, so one noise pixel lands on one physical pixel instead
+        // of being smeared across the DPI scale factor, which is what makes the grain look coarse
+        private void EnsureNoiseBitmap(double widthDip, double heightDip)
+        {
+            if (_isClosed || widthDip <= 0 || heightDip <= 0) return;
+
+            double scale = FlyoutRootBorder.XamlRoot?.RasterizationScale ?? 1.0;
+            if (scale <= 0) scale = 1.0;
+
+            int width = (int)Math.Ceiling(widthDip * scale);
+            int height = (int)Math.Ceiling(heightDip * scale);
+
+            bool scaleUnchanged = Math.Abs(scale - _noiseScale) < 0.001;
+            if (_noiseBitmap != null && scaleUnchanged
+                && _noiseBitmap.PixelWidth >= width && _noiseBitmap.PixelHeight >= height)
+            {
+                return;
+            }
+
+            if (scaleUnchanged)
+            {
+                width = Math.Max(width, _noiseBitmap?.PixelWidth ?? 0);
+                height = Math.Max(height, _noiseBitmap?.PixelHeight ?? 0);
+            }
+
+            var bitmap = new Microsoft.UI.Xaml.Media.Imaging.WriteableBitmap(width, height);
+            var random = new Random(NoiseSeed);
+            var pixels = new byte[width * height * 4];
+
+            int half = (int)Math.Round(NoiseSpreadLevels / (2.0 * NoiseLayerOpacity));
+
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                byte level = (byte)(128 - half + random.Next((half * 2) + 1));
+                pixels[i] = level;
+                pixels[i + 1] = level;
+                pixels[i + 2] = level;
+                pixels[i + 3] = 255;
+            }
+
+            using (var stream = bitmap.PixelBuffer.AsStream())
+            {
+                stream.Write(pixels, 0, pixels.Length);
+            }
+            bitmap.Invalidate();
+
+            _noiseBitmap = bitmap;
+            _noiseScale = scale;
+
+            FlyoutNoiseHost.Opacity = NoiseLayerOpacity;
+            FlyoutNoiseOverlay.Width = width;
+            FlyoutNoiseOverlay.Height = height;
+            FlyoutNoiseOverlay.RenderTransform = new Microsoft.UI.Xaml.Media.ScaleTransform
+            {
+                ScaleX = 1.0 / scale,
+                ScaleY = 1.0 / scale
+            };
+
+            // Stretch None keeps one bitmap pixel on one physical pixel, any stretching smears the grain away
+            FlyoutNoiseOverlay.Fill = new Microsoft.UI.Xaml.Media.ImageBrush
+            {
+                ImageSource = bitmap,
+                Stretch = Microsoft.UI.Xaml.Media.Stretch.None,
+                AlignmentX = Microsoft.UI.Xaml.Media.AlignmentX.Left,
+                AlignmentY = Microsoft.UI.Xaml.Media.AlignmentY.Top
+            };
+        }
+
+        private void FlyoutRootBorder_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (_isClosed || FlyoutNoiseHost.Visibility != Visibility.Visible) return;
+
+            EnsureNoiseBitmap(e.NewSize.Width, e.NewSize.Height);
         }
 
         // applies the backdrop material for the current setting and the Windows transparency state
@@ -1222,6 +1340,9 @@ namespace FluentSensors.Features.TaskbarWidget
             if (isTransparencyEnabled && (backdropType == "Acrylic" || backdropType == "Mica") && DesktopAcrylicController.IsSupported())
             {
                 _acrylicController = new DesktopAcrylicController();
+                // Base is the acrylic variant the Windows 11 shell surfaces use; Default lets the system pick
+                // https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.composition.systembackdrops.desktopacrylickind
+                _acrylicController.Kind = DesktopAcrylicKind.Base;
                 _acrylicController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
                 _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
 
