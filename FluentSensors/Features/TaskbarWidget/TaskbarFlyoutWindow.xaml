@@ -79,6 +79,26 @@
             </Grid.RowDefinitions>
 
 
+            <!--  acrylic grain  -->
+            <!--
+                the material composites a noise layer as its last step, the system backdrop controller does not,
+                so this paints the missing one; it stays below every surface fill, so it grains the material and
+                never the text or the graphs on top of it
+            -->
+            <!--
+                the canvas keeps the layer out of the layout: the rectangle is sized in physical pixels and
+                scaled back down from code, which would otherwise stretch the rows
+            -->
+            <Canvas
+                x:Name="FlyoutNoiseHost"
+                Grid.Row="0"
+                Grid.RowSpan="2"
+                IsHitTestVisible="False"
+                Visibility="Collapsed">
+                <Rectangle x:Name="FlyoutNoiseOverlay" />
+            </Canvas>
+
+
             <!--  vertical list of sensor graphs  -->
             <Grid
                 x:Name="GraphsContentGrid"

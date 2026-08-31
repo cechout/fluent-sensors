@@ -64,7 +64,7 @@
                     <!--  5. Flyout Graphs Overlay (Dark Mode)  -->
                     <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
                     <!--  (the opaque mode takes its content color from FlyoutWindowBackground and uses no overlay)  -->
-                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#08FFFFFF" />
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#0AFFFFFF" />
 
                     <!--  6. Flyout Bottom Bar (Dark Mode)  -->
                     <!--  Bottom Bar -> literal #1C1C1C, reads as #222222 here  -->
@@ -72,9 +72,12 @@
                     <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#1C1C1C" />
 
                     <!--  7. Flyout Bottom Bar Separator (Dark Mode)  -->
-                    <!--  1px stroke between content area and bottom bar, solid in every backdrop mode  -->
+                    <!--  1px stroke between content area and bottom bar  -->
                     <!--  literal #181818, reads as #1E1E1E here  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#181818" />
+                    <!--  the same stroke in the blur modes, where the native line is translucent and darkens the  -->
+                    <!--  material instead of covering it, so it keeps letting the backdrop through  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#1F000000" />
                 </ResourceDictionary>
 
 
@@ -126,16 +129,19 @@
                     <!--  5. Flyout Graphs Overlay (Light Mode)  -->
                     <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
                     <!--  (the opaque mode takes its content color from FlyoutWindowBackground and uses no overlay)  -->
-                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#47FFFFFF" />
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#38FFFFFF" />
 
                     <!--  6. Flyout Bottom Bar (Light Mode)  -->
                     <!--  Bottom Bar -> Target #EDEDED (237), opaque and independent of the content area  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#EDEDED" />
 
                     <!--  7. Flyout Bottom Bar Separator (Light Mode)  -->
-                    <!--  1px stroke between content area and bottom bar, solid in every backdrop mode  -->
+                    <!--  1px stroke between content area and bottom bar  -->
                     <!--  literal #DEDEDE, reads as #DDDDDD here  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#DEDEDE" />
+                    <!--  the same stroke in the blur modes, where the native line is translucent and darkens the  -->
+                    <!--  material instead of covering it, so it keeps letting the backdrop through  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#13000000" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
