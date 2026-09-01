@@ -843,7 +843,8 @@ namespace FluentSensors.Features.TaskbarWidget
             var ptr = e?.GetCurrentPoint(TaskbarButton);
             if (ptr != null && !ptr.Properties.IsLeftButtonPressed) return;
 
-            if (NativeMethods.GetCursorPos(out var cursorPos))
+            // skip all drag bookkeeping while the position is locked; press feedback and click-to-toggle stay live
+            if (!SettingsService.Instance.TaskbarWidgetPositionLocked && NativeMethods.GetCursorPos(out var cursorPos))
             {
                 _dragStartCursorScreenX = cursorPos.X;
                 _dragStartWindowScreenX = _currentScreenRect.X;

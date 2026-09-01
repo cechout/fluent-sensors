@@ -175,7 +175,13 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // Anchor offsets configurable in code-behind
         public const int FlyoutMarginToTaskbarDip = 12; // vertical gap between taskbar top and flyout bottom edge
-        public const int FlyoutHorizontalOffsetDip = 2; // horizontal offset relative to taskbar widget left (negative = left, positive = right)
+        public const int FlyoutMarginToScreenEdgeDip = 10; // smallest gap the flyout keeps to the left, right and top screen edges
+
+        // horizontal offset from the aligned edge, meaning depends on TaskbarFlyoutAlignment:
+        // Left = pixels to move right (inward from the widget left edge)
+        // Right = pixels to move left (inward from the widget right edge)
+        // Center = unused
+        public const int FlyoutHorizontalOffsetDip = 2;
 
         // default and minimum width in DIP (matching standard WidgetWindow width)
         public const int FlyoutDefaultWidthDip = 250;
@@ -294,6 +300,7 @@ namespace FluentSensors.Features.TaskbarWidget
             SettingsService.Instance.TaskbarBackdropTypeChanged += OnBackdropTypeChanged;
             SettingsService.Instance.TaskbarOpacityChanged += OnOpacityChanged;
             SettingsService.Instance.TaskbarTintColorChanged += OnTintColorChanged;
+            SettingsService.Instance.TaskbarFlyoutAlignmentChanged += OnFlyoutAlignmentChanged;
 
             ((FrameworkElement)this.Content).ActualThemeChanged += (s, e) =>
             {
@@ -612,6 +619,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 SettingsService.Instance.TaskbarBackdropTypeChanged -= OnBackdropTypeChanged;
                 SettingsService.Instance.TaskbarOpacityChanged -= OnOpacityChanged;
                 SettingsService.Instance.TaskbarTintColorChanged -= OnTintColorChanged;
+                SettingsService.Instance.TaskbarFlyoutAlignmentChanged -= OnFlyoutAlignmentChanged;
             }
             catch { }
 
@@ -822,7 +830,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === window sizing and positioning ===
 
-        // calculates and applies the bottom-left anchored placement directly above the taskbar widget
+        // places the flyout horizontally over the taskbar widget per TaskbarFlyoutAlignment (centered, left or right)
+        // and anchors its bottom edge just above the taskbar, then clamps the result so it never leaves the primary
+        // work area
         private void PositionAboveTaskbar(TaskbarWidgetWindow widgetWindow, bool startForSlideAnimation = false)
         {
             var widgetHwnd = WinRT.Interop.WindowNative.GetWindowHandle(widgetWindow);
@@ -863,30 +873,37 @@ namespace FluentSensors.Features.TaskbarWidget
                 desiredHeightPx = defaultHeightPx;
             }
 
-            // calculate bottom-left anchor
+            // vertical gap above the taskbar, horizontal placement over the widget per TaskbarFlyoutAlignment
             int marginPx = (int)Math.Round(FlyoutMarginToTaskbarDip * scale);
-            int hOffsetPx = (int)Math.Round(FlyoutHorizontalOffsetDip * scale);
+            int offsetPx = (int)Math.Round(FlyoutHorizontalOffsetDip * scale);
+            int edgeMarginPx = (int)Math.Round(FlyoutMarginToScreenEdgeDip * scale);
 
             _bottomAnchorY = primaryTaskbar != null ? (primaryTaskbar.Rect.Y - marginPx) : (widgetRect.Top - marginPx);
-            _leftAnchorX = widgetRect.Left + hOffsetPx;
 
-            _targetX = _leftAnchorX;
+            // Left/Right anchor to the matching widget edge and let the offset pull the flyout inward;
+            // Center ignores the offset and lines the flyout center up with the widget center
+            _targetX = SettingsService.Instance.TaskbarFlyoutAlignment switch
+            {
+                "Left" => widgetRect.Left + offsetPx,
+                "Right" => widgetRect.Right - desiredWidthPx - offsetPx,
+                _ => ((widgetRect.Left + widgetRect.Right) / 2) - (desiredWidthPx / 2)
+            };
             _targetY = _bottomAnchorY - desiredHeightPx;
 
-            // clamp within primary display work area
+            // clamp within the primary work area, never closer than edgeMarginPx to a left, right or top edge;
+            // the left edge wins when the screen is too narrow to honor both sides at once
             var workArea = DisplayArea.Primary.WorkArea;
-            if (_targetX + desiredWidthPx > workArea.X + workArea.Width - 10)
+            int rightLimitX = workArea.X + workArea.Width - desiredWidthPx - edgeMarginPx;
+            int leftLimitX = workArea.X + edgeMarginPx;
+            _targetX = Math.Max(leftLimitX, Math.Min(_targetX, rightLimitX));
+
+            if (_targetY < workArea.Y + edgeMarginPx)
             {
-                _targetX = workArea.X + workArea.Width - desiredWidthPx - 10;
+                _targetY = workArea.Y + edgeMarginPx;
             }
-            if (_targetX < workArea.X + 10)
-            {
-                _targetX = workArea.X + 10;
-            }
-            if (_targetY < workArea.Y + 10)
-            {
-                _targetY = workArea.Y + 10;
-            }
+
+            // the WM_SIZING resize path locks the window left edge to this, so it has to be the clamped value
+            _leftAnchorX = _targetX;
 
             int initialY = startForSlideAnimation
                 ? (_targetY + (int)Math.Round(WindowSlideDistanceDip * scale))
@@ -1085,6 +1102,17 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 UpdateAcrylicProperties();
                 UpdateSolidBackground();
+            });
+        }
+
+        // re-anchors the flyout when the alignment setting changes; the flyout is usually hidden at that point, so
+        // this just refreshes the target for the next open, same as ResetGeometry does after a size reset
+        private void OnFlyoutAlignmentChanged(string newAlignment)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_isClosed || TaskbarWidgetWindow.CurrentInstance == null) return;
+                PositionAboveTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
             });
         }
 

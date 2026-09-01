@@ -181,6 +181,33 @@
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Taskbar Widget &amp; Flyout Appearance" />
 
+            <!--  flyout alignment over the widget  -->
+            <controls:SettingsCard
+                Description="Where the flyout lines up relative to the widget"
+                Header="Flyout Alignment"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE8E3;}">
+                <ComboBox
+                    x:Name="TaskbarFlyoutAlignmentComboBox"
+                    Width="160"
+                    SelectionChanged="TaskbarFlyoutAlignmentComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Centered" Tag="Center" />
+                    <ComboBoxItem Content="Left" Tag="Left" />
+                    <ComboBoxItem Content="Right" Tag="Right" />
+                </ComboBox>
+            </controls:SettingsCard>
+
+            <!--  drag lock for the widget position on the taskbar  -->
+            <controls:SettingsCard
+                Description="Stop the widget from being dragged along the taskbar"
+                Header="Lock Widget Position"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE72E;}">
+                <ToggleSwitch
+                    x:Name="LockWidgetPositionToggle"
+                    OffContent="Off"
+                    OnContent="On"
+                    Toggled="LockWidgetPositionToggle_Toggled" />
+            </controls:SettingsCard>
+
             <!--  taskbar background material  -->
             <controls:SettingsExpander
                 Description="Backdrop effect and color for the taskbar flyout"

@@ -31,6 +31,12 @@ namespace FluentSensors.Persistence.Models
         public double TaskbarGraphTimeSpanSeconds { get; set; } = 45;
         public int TaskbarGraphWidthDip { get; set; } = 120;
 
+        // flyout horizontal placement over the taskbar widget: "Center", "Left" or "Right"
+        public string TaskbarFlyoutAlignment { get; set; } = "Center";
+
+        // when true, the taskbar widget cannot be dragged along the taskbar
+        public bool TaskbarWidgetPositionLocked { get; set; } = false;
+
         public bool MinimizeToTray { get; set; } = true;
         public bool HideSensorsCompletely { get; set; } = true;
         public bool StatusReadoutEnabled { get; set; } = true;

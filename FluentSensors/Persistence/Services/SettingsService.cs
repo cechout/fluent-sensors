@@ -299,6 +299,38 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // flyout horizontal placement over the taskbar widget: "Center", "Left" or "Right"
+        private string _taskbarFlyoutAlignment = "Center";
+        public string TaskbarFlyoutAlignment
+        {
+            get => _taskbarFlyoutAlignment;
+            set
+            {
+                if (_taskbarFlyoutAlignment != value)
+                {
+                    _taskbarFlyoutAlignment = value;
+                    TaskbarFlyoutAlignmentChanged?.Invoke(_taskbarFlyoutAlignment);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // when true, the taskbar widget cannot be dragged along the taskbar
+        private bool _taskbarWidgetPositionLocked = false;
+        public bool TaskbarWidgetPositionLocked
+        {
+            get => _taskbarWidgetPositionLocked;
+            set
+            {
+                if (_taskbarWidgetPositionLocked != value)
+                {
+                    _taskbarWidgetPositionLocked = value;
+                    TaskbarWidgetPositionLockedChanged?.Invoke(_taskbarWidgetPositionLocked);
+                    SaveDebounced();
+                }
+            }
+        }
+
 
         // --- App Behavior Settings ---
 
@@ -372,6 +404,8 @@ namespace FluentSensors.Persistence.Services
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
             _taskbarGraphTimeSpanSeconds = data.TaskbarGraphTimeSpanSeconds;
             _taskbarGraphWidthDip = data.TaskbarGraphWidthDip;
+            _taskbarFlyoutAlignment = data.TaskbarFlyoutAlignment;
+            _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
 
             _minimizeToTray = data.MinimizeToTray;
             _hideSensorsCompletely = data.HideSensorsCompletely;
@@ -405,6 +439,8 @@ namespace FluentSensors.Persistence.Services
                 TaskbarGraphCustomColor = _taskbarGraphCustomColor,
                 TaskbarGraphTimeSpanSeconds = _taskbarGraphTimeSpanSeconds,
                 TaskbarGraphWidthDip = _taskbarGraphWidthDip,
+                TaskbarFlyoutAlignment = _taskbarFlyoutAlignment,
+                TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
 
                 MinimizeToTray = _minimizeToTray,
                 HideSensorsCompletely = _hideSensorsCompletely,
@@ -445,6 +481,8 @@ namespace FluentSensors.Persistence.Services
         public event Action<bool, Windows.UI.Color> TaskbarGraphColorChanged;
         public event Action<double> TaskbarGraphTimeSpanChanged;
         public event Action<int> TaskbarGraphWidthChanged;
+        public event Action<string> TaskbarFlyoutAlignmentChanged;
+        public event Action<bool> TaskbarWidgetPositionLockedChanged;
 
         public event Action<bool> MinimizeToTrayChanged;
         public event Action<bool> HideSensorsCompletelyChanged;
