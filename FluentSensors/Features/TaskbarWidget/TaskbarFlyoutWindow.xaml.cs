@@ -133,7 +133,7 @@ namespace FluentSensors.Features.TaskbarWidget
         public const int WindowSlideDistanceDip = 280;
 
         // animation duration in milliseconds
-        public const int EnterAnimationDurationMs = 240; // duration on open (move-in)
+        public const int EnterAnimationDurationMs = 260; // duration on open (move-in)
         public const int ExitAnimationDurationMs = 140;  // duration on close (move-out)
 
         // fade opacity (1.0f = no fade, 0.0f = full fade)

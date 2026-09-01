@@ -89,7 +89,7 @@
                         <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
                     </Grid.Resources>
 
-                    <!--  back to main window  -->
+                    <!--  open main app window  -->
                     <!--  (icon and label)  -->
                     <CommandBar
                         HorizontalAlignment="Left"
@@ -103,8 +103,8 @@
                                 x:Name="BackToDashboardButton"
                                 Click="BackToDashboard_Click"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Label="Back to Main Window"
-                                ToolTipService.ToolTip="Back to Main Window">
+                                Label="Open App"
+                                ToolTipService.ToolTip="Open the main app window">
                                 <AppBarButton.Icon>
                                     <FontIcon
                                         FontSize="14"

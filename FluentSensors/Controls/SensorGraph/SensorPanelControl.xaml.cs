@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Linq;
 
 using FluentSensors.Common.UI;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Controls.SensorGraph
@@ -28,12 +29,20 @@ namespace FluentSensors.Controls.SensorGraph
         // plain text in that case
         private const bool ShowSwitchUiForSingleCandidate = true;
 
+        // graph-color card background alpha (UseGraphColorCardBackground)
+        private const byte GraphColorCardBackgroundAlphaDark = 44;
+        private const byte GraphColorCardBackgroundAlphaLight = 44; 
+
 
         // === constructor ===
 
         public SensorPanelControl()
         {
             InitializeComponent();
+
+            // the graph-color card background alpha depends on the theme (see GetEffectiveCardBackground), and the
+            // CardBackgroundOverride x:Bind does not otherwise re-run on a theme switch
+            ActualThemeChanged += (s, e) => Bindings.Update();
         }
 
 
@@ -584,7 +593,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         // translates the panels ShowGraphCardBackground and UseGraphColorCardBackground into SensorGraphControl.CardBackgroundOverride:
         // showBackground = false -> explicit transparent override
-        // useGraphColor = true   -> 10% opacity tint of effective graph color
+        // useGraphColor = true   -> theme-dependent alpha tint of effective graph color
         // default                -> null (standard themed card background)
         private Windows.UI.Color? GetEffectiveCardBackground(bool showBackground, bool useGraphColor, Windows.UI.Color overrideColor, Windows.UI.Color autoColor)
         {
@@ -596,11 +605,23 @@ namespace FluentSensors.Controls.SensorGraph
             if (useGraphColor)
             {
                 Windows.UI.Color effectiveGraphColor = GetEffectiveGraphColor(overrideColor, autoColor);
-                // 10% opacity (alpha 25 / 255 ≈ 10%)
-                return Windows.UI.Color.FromArgb(30, effectiveGraphColor.R, effectiveGraphColor.G, effectiveGraphColor.B);
+                byte alpha = IsDarkTheme() ? GraphColorCardBackgroundAlphaDark : GraphColorCardBackgroundAlphaLight;
+                return Windows.UI.Color.FromArgb(alpha, effectiveGraphColor.R, effectiveGraphColor.G, effectiveGraphColor.B);
             }
 
             return null;
+        }
+
+        // same resolution order as DefaultTextColor.Resolve; a code-behind theme-resource lookup would ignore the apps
+        // RequestedTheme override, so the app theme setting is read directly with the OS theme as the fallback
+        private static bool IsDarkTheme()
+        {
+            return SettingsService.Instance.AppTheme switch
+            {
+                "Light" => false,
+                "Dark" => true,
+                _ => Application.Current.RequestedTheme == ApplicationTheme.Dark
+            };
         }
 
         private Windows.UI.Color? BoolToCardBorderOverride(bool showBorder) =>
