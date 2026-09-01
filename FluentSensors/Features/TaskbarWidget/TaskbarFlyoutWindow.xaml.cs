@@ -38,8 +38,9 @@ namespace FluentSensors.Features.TaskbarWidget
     // 2. supports asymmetric top-and-right resizing via InputNonClientPointerSource while locking bottom-left anchors in WM_SIZING (0x0214)
     // 3. places the window directly beneath Shell_TrayWnd in Z-order so it slides out from under the taskbar
     // 4. coordinates a physical window slide via DispatcherTimer with direct composition opacity fading
-    // 5. applies dynamic DWM corner preferences and shadow suppression depending on the Windows transparency setting
+    // 5. rounds itself with a window region and asks DWM for no frame at all, so DWM draws no shadow of its own
     // 6. integrates DesktopAcrylicController / Mica system backdrop with a swapchain kick on theme changes
+    // 7. owns FlyoutShadowWindow, a second window carrying the tunable drop shadow around this one
     //
     // references:
     // https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.input.inputnonclientpointersource
@@ -58,6 +59,15 @@ namespace FluentSensors.Features.TaskbarWidget
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr BeginDeferWindowPos(int nNumWindows);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr DeferWindowPos(IntPtr hWinPosInfo, IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+
+        [DllImport("user32.dll")]
+        private static extern bool EndDeferWindowPos(IntPtr hWinPosInfo);
 
         [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
@@ -82,6 +92,12 @@ namespace FluentSensors.Features.TaskbarWidget
 
         [DllImport("dwmapi.dll")]
         private static extern int DwmGetWindowAttribute(IntPtr hwnd, uint dwAttribute, out NativeMethods.RECT pvAttribute, int cbAttribute);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
+
+        [DllImport("user32.dll")]
+        private static extern int SetWindowRgn(IntPtr hWnd, IntPtr hRgn, bool bRedraw);
 
         [DllImport("user32.dll", EntryPoint = "GetClassLongPtrW")]
         private static extern IntPtr GetClassLongPtr(IntPtr hWnd, int nIndex);
@@ -234,6 +250,9 @@ namespace FluentSensors.Features.TaskbarWidget
         private DesktopAcrylicController? _acrylicController;
         private SystemBackdropConfiguration? _configurationSource;
 
+        // draws the drop shadow around this window; it cannot be part of this window, see FlyoutShadowWindow
+        private FlyoutShadowWindow? _shadowWindow;
+
 
         // === constructor ===
 
@@ -317,6 +336,8 @@ namespace FluentSensors.Features.TaskbarWidget
             _appWindow.Closing += AppWindow_Closing;
             this.Activated += Window_Activated;
 
+            _shadowWindow = new FlyoutShadowWindow();
+
             KickBackdropRefresh();
         }
 
@@ -346,15 +367,25 @@ namespace FluentSensors.Features.TaskbarWidget
 
             if (isTransparencyEnabled)
             {
-                // Transparency ON: Native Windows 11 rounded window corners (8px) with GPU DWM clipping (eliminates black box)
-                int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
+                // Transparency ON: rounded by a window region instead of DWM, see UpdateWindowCornerRegion
+                int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DONOTROUND;
                 DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPreference, sizeof(int));
 
-                var margins = new MARGINS { cxLeftWidth = 0, cxRightWidth = 0, cyTopHeight = 1, cyBottomHeight = 0 };
+                // no extended frame: an extended row makes DWM draw its own window shadow, and that shadow is the
+                // one that cannot be tuned; the rounding does not come from DWM at all, see UpdateWindowCornerRegion
+                var margins = new MARGINS { cxLeftWidth = 0, cxRightWidth = 0, cyTopHeight = 0, cyBottomHeight = 0 };
                 DwmExtendFrameIntoClientArea(_hwnd, ref margins);
 
                 int policy = (int)DWMNCRENDERINGPOLICY.DWMNCRP_DISABLED;
                 DwmSetWindowAttribute(_hwnd, DWMWA_NCRENDERING_POLICY, ref policy, sizeof(int));
+
+                // the same explicit kill the transparency-off branch below has always had: without it DWM paints
+                // its own window frame in the system default, which is light in the light theme and grey in the
+                // dark one, and that frame is what shows around the flyout body
+                int borderColor = DWMWA_COLOR_NONE;
+                DwmSetWindowAttribute(_hwnd, DWMWA_BORDER_COLOR, ref borderColor, sizeof(int));
+
+                UpdateWindowCornerRegion(rounded: true);
             }
             else
             {
@@ -370,9 +401,62 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 int borderColor = DWMWA_COLOR_NONE;
                 DwmSetWindowAttribute(_hwnd, DWMWA_BORDER_COLOR, ref borderColor, sizeof(int));
+
+                // the solid canvas is drawn and rounded by XAML alone, so there is nothing here to clip
+                UpdateWindowCornerRegion(rounded: false);
             }
 
             SetWindowPos(_hwnd, IntPtr.Zero, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+
+            SyncShadowGeometry();
+        }
+
+        // --- workaround: DWMWCP_ROUND and the DWM window shadow are one frame pass ---
+        // problem: the acrylic is composed onto the window itself, so it covers the full window rect and DWM is the
+        // only thing that can round it; DWM draws that rounded frame and its drop shadow together and no attribute
+        // separates the two
+        // measured: with everything else that could cast one already off (no WS_THICKFRAME, no WS_CAPTION, no
+        // CS_DROPSHADOW, DWMNCRP_DISABLED, no frame extension) the corner preference was the only remaining
+        // difference between the shadowed glass modes and the shadow-free solid one
+        // fix: round the window with a GDI region instead; a region suppresses the DWM frame entirely, the shadow
+        // with it, and it clips everything the window presents, the acrylic included
+        // the region is not antialiased, so it cuts the outermost corner pixels of the XAML border; the border keeps
+        // drawing the smooth outline just inside it, which leaves the cut visible only from very close up
+        private void UpdateWindowCornerRegion(bool rounded)
+        {
+            if (_hwnd == IntPtr.Zero) return;
+
+            if (!rounded)
+            {
+                SetWindowRgn(_hwnd, IntPtr.Zero, true);
+                return;
+            }
+
+            int width = _appWindow.Size.Width;
+            int height = _appWindow.Size.Height;
+            if (width <= 0 || height <= 0 || FlyoutRootBorder == null) return;
+
+            // CreateRoundRectRgn takes the ellipse size rather than the radius, and treats right and bottom as exclusive
+            int radius = (int)Math.Round(FlyoutRootBorder.CornerRadius.TopLeft * GetScaleFactor());
+            IntPtr region = CreateRoundRectRgn(0, 0, width + 1, height + 1, (2 * radius) + 1, (2 * radius) + 1);
+
+            // the window owns the region from here on, so it must not be deleted
+            SetWindowRgn(_hwnd, region, true);
+        }
+
+        // the shadow window wraps this one, so every geometry change has to be handed on to it; this method sits
+        // in UpdateShadowPolicy because that already runs on placement, resize and backdrop changes alike
+        private void SyncShadowGeometry()
+        {
+            if (_isClosed || _shadowWindow == null || FlyoutRootBorder == null) return;
+
+            _shadowWindow.UpdateGeometry(
+                _appWindow.Position.X,
+                _appWindow.Position.Y,
+                _appWindow.Size.Width,
+                _appWindow.Size.Height,
+                GetScaleFactor(),
+                (float)FlyoutRootBorder.CornerRadius.TopLeft);
         }
 
 
@@ -515,6 +599,10 @@ namespace FluentSensors.Features.TaskbarWidget
                 // place behind taskbar: SWP_NOSIZE (0x1) | SWP_NOMOVE (0x2) | SWP_NOACTIVATE (0x10) | SWP_NOOWNERZORDER (0x200)
                 SetWindowPos(_hwnd, taskbarHwnd, 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010 | 0x0200);
             }
+
+            // behind the flyout: the corner segments of the ring reach into the body rectangle, and behind the
+            // translucent body that darkening is swallowed by the material instead of being painted on top of it
+            _shadowWindow?.PlaceAfter(_hwnd);
         }
 
         // toggles visibility of the flyout directly above the taskbar widget
@@ -584,6 +672,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 SetGraphsRenderingActive(false);
                 SaveWindowState();
                 _appWindow.Hide();
+                _shadowWindow?.SetVisible(false);
                 TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
             });
         }
@@ -629,6 +718,8 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 _messageMonitor?.Dispose();
                 _messageMonitor = null;
+                _shadowWindow?.SafeDestroy();
+                _shadowWindow = null;
                 _acrylicController?.Dispose();
                 _acrylicController = null;
                 _noiseBitmap = null;
@@ -737,6 +828,9 @@ namespace FluentSensors.Features.TaskbarWidget
             int slideDistPx = (int)Math.Round(WindowSlideDistanceDip * GetScaleFactor());
             int startY = _targetY + slideDistPx;
 
+            // the shadow stays with the transparency-on modes, matching what the native shell surfaces do
+            _shadowWindow?.SetVisible(_uiSettings != null && _uiSettings.AdvancedEffectsEnabled);
+
             EnsureBehindTaskbarZOrder();
             AnimateNativeWindowPosition(_targetX, startY, _targetX, _targetY, EnterAnimationDurationMs, isEntering: true);
         }
@@ -782,9 +876,7 @@ namespace FluentSensors.Features.TaskbarWidget
             _animTargetY = targetY;
             _animOnComplete = onComplete;
 
-            _isAdjustingPosition = true;
-            _appWindow.Move(new PointInt32(startX, startY));
-            _isAdjustingPosition = false;
+            MoveWithShadow(startX, startY);
 
             _animStopwatch = Stopwatch.StartNew();
             _animTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(5) };
@@ -804,9 +896,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 int currentX = (int)Math.Round(_animStartX + ((_animTargetX - _animStartX) * ease));
                 int currentY = (int)Math.Round(_animStartY + ((_animTargetY - _animStartY) * ease));
 
-                _isAdjustingPosition = true;
-                _appWindow.Move(new PointInt32(currentX, currentY));
-                _isAdjustingPosition = false;
+                MoveWithShadow(currentX, currentY);
 
                 if (progress >= 1.0)
                 {
@@ -817,6 +907,47 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
             };
             _animTimer.Start();
+        }
+
+        // moves the flyout and the shadow window as one
+        //
+        // two separate calls can land in different composition frames, which reads as the shadow lagging behind the
+        // body through the 240 and 140 ms slides; a deferred batch commits both positions together
+        private void MoveWithShadow(int x, int y)
+        {
+            _isAdjustingPosition = true;
+
+            bool moved = false;
+
+            if (_shadowWindow != null)
+            {
+                int margin = (int)Math.Round(FlyoutShadowWindow.ShadowMarginDip * GetScaleFactor());
+
+                IntPtr batch = BeginDeferWindowPos(2);
+
+                if (batch != IntPtr.Zero)
+                {
+                    batch = DeferWindowPos(batch, _hwnd, IntPtr.Zero, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+                }
+
+                if (batch != IntPtr.Zero)
+                {
+                    batch = DeferWindowPos(batch, _shadowWindow.Hwnd, IntPtr.Zero, x - margin, y - margin, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+                }
+
+                if (batch != IntPtr.Zero)
+                {
+                    moved = EndDeferWindowPos(batch);
+                }
+            }
+
+            // a deferred batch is all or nothing, so a failed one leaves the flyout standing still
+            if (!moved)
+            {
+                _appWindow.Move(new PointInt32(x, y));
+            }
+
+            _isAdjustingPosition = false;
         }
 
 
@@ -1238,10 +1369,11 @@ namespace FluentSensors.Features.TaskbarWidget
                 GraphsContentGrid.Background = transparent;
             }
 
-            // the window stroke is one opaque line in every mode
-            // the separator is not: on glass the native line stays translucent and darkens the material rather
-            // than covering it, so an opaque stroke there stands still while everything around it moves
-            FlyoutRootBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutWindowBorderBrush"];
+            // both 1px strokes follow the same split as the fills: opaque while the surfaces are opaque, and
+            // translucent on glass, where the native lines stay inside the material and modulate it rather than
+            // covering it, so an opaque stroke there stands still while everything around it moves
+            FlyoutRootBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary[
+                onGlass ? "FlyoutWindowBorderOnGlassBrush" : "FlyoutWindowBorderBrush"];
             FlyoutBottomBarBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary[
                 onGlass ? "FlyoutBottomBarSeparatorOnGlassBrush" : "FlyoutBottomBarSeparatorBrush"];
 

@@ -58,8 +58,38 @@
                     <!--  Content Area -> literal #242424, reads as #292929 here, opaque  -->
                     <!--  (the bottom bar paints its own color, see 6)  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#242424" />
-                    <!--  Window Border -> literal #464646, reads as #484848 here  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#464646" />
+                    <!--
+                        Window Border, semi transparent here too, flat: unlike the on-glass brush below there is
+                        no native bottom-darker reference for opaque mode, just one measured target
+                        white base, alpha fit from two real points instead of an assumed backdrop: alpha 0 is
+                        always the backdrop itself by definition, measured here at #1F1F1F (31), and the old alpha
+                        0x13 measured at #2F2F2F (47) is the second point; interpolating that line out to the
+                        target #444444 (68) gives the alpha below
+                        an earlier pass reused the on-glass alpha directly, which was fit against the acrylic
+                        materials own backdrop, not this modes flat FlyoutWindowBackground, two different
+                        backdrops behind the same alpha land on two different colors
+                    -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#2CFFFFFF" />
+                    <!--
+                        the same stroke in the blur modes, drawn as a hand painted gradient for the same reason as
+                        in the light dictionary, see that comment for why
+                        the flat #66757575 this used to be measured on screen at #4A4A4A (74); solving
+                        composite = alpha*117 + (1-alpha)*backdrop for that one point puts this themes backdrop
+                        near 45, and both native targets below (156, 129) sit above 117, the flat grays own
+                        ceiling at alpha 1.0, unreachable at any alpha
+                        so the base color moves to white here instead of gray: white sits above the backdrop the
+                        same way the light dictionarys 117 sits below its own, which flips which direction darkens
+                        more alpha now means more white, i.e. lighter, so the bottom stop is the lower alpha, not
+                        the higher one
+                        both stops below are a first calculation from that single old measurement, not a fit
+                        against two independently measured targets the way light is, so they are more likely to
+                        need another round of tuning by eye
+                    -->
+                    <LinearGradientBrush x:Key="FlyoutWindowBorderOnGlassBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#87FFFFFF" />
+                        <GradientStop Offset="0.75" Color="#87FFFFFF" />
+                        <GradientStop Offset="1.0" Color="#66FFFFFF" />
+                    </LinearGradientBrush>
 
                     <!--  5. Flyout Graphs Overlay (Dark Mode)  -->
                     <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
@@ -123,8 +153,41 @@
                     -->
                     <!--  Content Area -> #F2F2F2, opaque; the bottom bar paints its own color, see 6  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
-                    <!--  Window Border -> literal #C0C0C0, reads as #BFBFBF here  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#C0C0C0" />
+                    <!--
+                        Window Border, semi transparent here too, flat: unlike the on-glass brush below there is
+                        no native bottom-darker reference for opaque mode, just one measured target
+                        gray base, alpha fit from two real points instead of an assumed backdrop: alpha 0 is
+                        always the backdrop itself by definition, measured here at #F3F3F3 (243), and the old
+                        alpha 0x57 measured at #C1C1C1 (193) is the second point; interpolating that line out to
+                        the target #B9B9B9 (185) gives the alpha below
+                        an earlier pass reused the on-glass alpha directly, which was fit against the acrylic
+                        materials own backdrop, not this modes flat FlyoutWindowBackground, two different
+                        backdrops behind the same alpha land on two different colors
+                    -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#65757575" />
+                    <!--
+                        the same stroke in the blur modes; native flyouts read visibly darker toward the bottom
+                        edge there, from their own DWM shadow sitting behind their equally translucent border, but
+                        that channel measures out unusably weak on ours: the acrylic material blurs its own host
+                        backdrop at a 30px radius (the recipe constant, see the grain section further down),
+                        which flattens anything narrower than that long before luminosity (9 percent transmission
+                        here) and this brushes own alpha get to it, so a shadow-side fix was tried and dropped,
+                        see git history
+                        drawn by hand instead: a two stop gradient, flat near the top and ramping darker over the
+                        last quarter toward the bottom, mirroring the falloff shape without depending on that
+                        channel; composite = alpha*117 + (1-alpha)*backdrop, so raising alpha is what darkens a
+                        stop here, because 117 sits below this themes backdrop (the dark dictionary is the
+                        opposite way round, see that comment)
+                        both stops fit two independently measured points on screen: #66757575 (alpha 0.4) read
+                        back as #BBBBBB (187), #99757575 (alpha 0.6) as #A0A0A0 (160); solving that pair for the
+                        native targets (170 sides, 153 bottom) gives the alphas below directly, no assumed
+                        backdrop value needed
+                    -->
+                    <LinearGradientBrush x:Key="FlyoutWindowBorderOnGlassBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#86757575" />
+                        <GradientStop Offset="0.75" Color="#86757575" />
+                        <GradientStop Offset="1.0" Color="#A6757575" />
+                    </LinearGradientBrush>
 
                     <!--  5. Flyout Graphs Overlay (Light Mode)  -->
                     <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
