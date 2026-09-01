@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="FluentSensors.Features.TaskbarWidget.FlyoutShadowWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Fluent Sensors Flyout Shadow">
+
+    <!--  empty on purpose: FlyoutDropShadow attaches its visuals from code, this grid is only their host  -->
+    <Grid x:Name="ShadowHost" IsHitTestVisible="False" />
+</Window>
