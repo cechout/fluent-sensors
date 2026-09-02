@@ -11,7 +11,8 @@ using FluentSensors.Core.Lhm;
 namespace FluentSensors.Core
 {
     // one snapshot of the apps self status: how many sensors LHM found and how many of them are currently
-    // rendering, this processes own CPU/RAM/handle/GC footprint, plus the actual vs aimed-for polling cadence
+    // rendering, this processes own CPU/RAM/handle/GC footprint, plus the actual vs aimed-for polling cadence and
+    // what a full sensor read costs
     public record AppStatusData(
         int SensorsFound,
         int SensorsRendered,
@@ -20,7 +21,8 @@ namespace FluentSensors.Core
         int HandleCount,
         long GcMemoryBytes,
         double ActualUpdateIntervalMs, // measured, see HardwareMonitorService.ActualUpdateIntervalMs
-        int AimedUpdateIntervalMs // the configured HardwareMonitorService.UpdateIntervalMs, alongside it for display
+        int AimedUpdateIntervalMs, // the configured HardwareMonitorService.UpdateIntervalMs, alongside it for display
+        double ReadDurationMs // how long one full sensor read takes, see HardwareMonitorService.LastReadDurationMs
     );
 
 
@@ -130,7 +132,8 @@ namespace FluentSensors.Core
                     HandleCount: _process.HandleCount,
                     GcMemoryBytes: GC.GetTotalMemory(false),
                     ActualUpdateIntervalMs: HardwareMonitorService.Instance.ActualUpdateIntervalMs,
-                    AimedUpdateIntervalMs: HardwareMonitorService.Instance.UpdateIntervalMs
+                    AimedUpdateIntervalMs: HardwareMonitorService.Instance.UpdateIntervalMs,
+                    ReadDurationMs: HardwareMonitorService.Instance.LastReadDurationMs
                 );
 
                 StatusUpdated?.Invoke(data);
