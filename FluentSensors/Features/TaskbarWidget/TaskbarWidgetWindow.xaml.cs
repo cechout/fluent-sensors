@@ -713,12 +713,14 @@ namespace FluentSensors.Features.TaskbarWidget
                 return new List<SensorRowViewModel>();
             }
 
-            var allSensors = SensorsViewModel.Instance.HardwareGroups
-                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors));
+            // walks the groups rather than the id list so the row order matches what PinToWidget_Click and
+            // PinToTaskbar_Click produce; the persisted list is membership in toggle order, not display order,
+            // and mapping over it put restored graphs in a different order than a live pin of the same sensors
+            var wantedIds = new HashSet<string>(sensorIds);
 
-            return sensorIds
-                .Select(id => allSensors.FirstOrDefault(s => s.Id == id))
-                .Where(sensor => sensor != null)
+            return SensorsViewModel.Instance.HardwareGroups
+                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors))
+                .Where(sensor => wantedIds.Contains(sensor.Id))
                 .ToList();
         }
 

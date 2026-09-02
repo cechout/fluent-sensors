@@ -321,16 +321,17 @@ namespace FluentSensors
             FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow.ShowWithSensors(pinnedSensors);
         }
 
-        // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, preserving the original
-        // pin order rather than whatever order the hardware groups produce
+        // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, in hardware discovery
+        // order so a restored widget shows the same order a live pin of the same sensors would
+        // the saved list is membership in toggle order; mapping over it instead reproduced that toggle order, which
+        // is what made restored graphs come back in a different order than they were pinned in
         private List<SensorRowViewModel> FindSensorRowsByIds(IReadOnlyList<string> ids)
         {
-            var allSensors = SensorsViewModel.Instance.HardwareGroups
-                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors));
+            var wantedIds = new HashSet<string>(ids);
 
-            return ids
-                .Select(id => allSensors.FirstOrDefault(s => s.Id == id))
-                .Where(s => s != null)
+            return SensorsViewModel.Instance.HardwareGroups
+                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors))
+                .Where(s => wantedIds.Contains(s.Id))
                 .ToList();
         }
 
