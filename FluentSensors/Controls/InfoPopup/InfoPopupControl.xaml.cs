@@ -35,10 +35,20 @@ namespace FluentSensors.Controls.InfoPopup
         // pixel gap between the end of the title text and the info button; adjust this to change that spacing
         private const double TitleButtonGap = 4;
 
-        // InfoPopupControl_Loaded can fire more than once per instance, since DetailViews are cached and reattached to
-        // the live tree on repeat navigation instead of recreated
-        // Without this the second run tries to re-add InfoPopup to a host it is already a child of
+        // whether InfoPopup currently sits at the window root instead of inside this control, see
+        // RelocatePopupToWindowRoot
+        // without it every click after the first would try to add the popup to a host it is already a child of, and
+        // the unload that hands it back would run for instances that never moved it in the first place
+        // that unload/reload cycle is real: DetailViews are cached and reattached to the live tree on repeat
+        // navigation instead of recreated
         private bool _popupRelocated;
+
+        // the panel InfoPopup currently hangs in, which is what its offsets are measured against
+        // starts out as the authored ButtonHost and becomes the window root once the relocation below succeeds
+        private Panel _popupHost;
+
+        // set when the popup is opened, cleared once it has been placed for that open, see UpdatePopupPlacement
+        private bool _needsPopupPlacement;
 
         // backing store for SourceLinks below; a plain read-only IList property (not a DependencyProperty) so XAML
         // can populate it via nested <InfoPopupControl.SourceLinks> elements, the same pattern NavigationView uses
@@ -51,6 +61,8 @@ namespace FluentSensors.Controls.InfoPopup
         public InfoPopupControl()
         {
             InitializeComponent();
+
+            _popupHost = ButtonHost;
         }
 
 
@@ -297,24 +309,44 @@ namespace FluentSensors.Controls.InfoPopup
 
         // === Event Handlers ===
 
-        // InfoPopup is authored inside ButtonHost and only actually moved for PlacementMode.TitleAnchored;
-        // simpler than duplicating the popup markup once per host, and PlacementMode is not expected to change
-        // after load
-        private void InfoPopupControl_Loaded(object sender, RoutedEventArgs e)
+        // the popup lives outside this control once it has been opened, so a control that leaves the tree has to
+        // take it back with it; without this every discarded instance would strand its popup in the window root
+        // for good
+        private void InfoPopupControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            if (_popupRelocated || PlacementMode != PopupPlacementMode.TitleAnchored) return;
+            if (!_popupRelocated) return;
 
-            ButtonHost.Children.Remove(InfoPopup);
-            TitleHost.Children.Add(InfoPopup);
-            _popupRelocated = true;
+            InfoPopup.IsOpen = false;
+
+            _popupHost.Children.Remove(InfoPopup);
+            ButtonHost.Children.Add(InfoPopup);
+
+            _popupHost = ButtonHost;
+            _popupRelocated = false;
         }
 
         // PopupContentBorder is x:Load="False"; FindName forces it into the tree on first click and is a cheap no-op
         // every click after that, avoids building the popup content at all for buttons that never get clicked
+        // it has to run before the relocation below, since it resolves against this controls own tree and would come
+        // up empty once the popup has been moved out of it, leaving a popup with no content at all
         private void InfoButton_Click(object sender, RoutedEventArgs e)
         {
             FindName(nameof(PopupContentBorder));
-            InfoPopup.IsOpen = !InfoPopup.IsOpen;
+
+            RelocatePopupToWindowRoot();
+
+            bool isOpening = !InfoPopup.IsOpen;
+
+            // placing before opening rather than after, so the popup never shows up at the spot it was left at last
+            // time and then jumps
+            // the popup no longer follows its button around, so every open has to place it again
+            if (isOpening)
+            {
+                _needsPopupPlacement = true;
+                UpdatePopupPlacement();
+            }
+
+            InfoPopup.IsOpen = isOpening;
         }
 
         // title and button overlap in the same cell instead of separate grid columns; the title reserves room for
@@ -326,65 +358,124 @@ namespace FluentSensors.Controls.InfoPopup
             ButtonHost.Margin = new Thickness(TitleTextBlock.ActualWidth + TitleButtonGap, 0, 0, 0);
         }
 
-        // recomputed on SizeChanged rather than Popup.Opened:
-        // Opened can fire before the popups content has actually been measured, which intermittently read a 0x0
-        // size and left the popup at its XAML-default offset instead of the calculated one; SizeChanged only ever
-        // fires after a real layout pass, so it cannot race like that
+        // the click above does the placing, but on the very first open the content has not been measured yet and
+        // reads 0x0, which the placement cannot work with; this is the callback right after that first real layout
+        // pass, and it finishes the placement the click could not
+        // it does nothing once the popup has been placed for the current open
         private void PopupContent_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            var content = (FrameworkElement)sender;
-
-            if (PlacementMode == PopupPlacementMode.TitleAnchored)
-                PositionPopupTitleAnchored(content);
-            else
-                PositionPopupRelativeToButton(content);
+            UpdatePopupPlacement();
         }
 
 
         // === Private Helpers ===
 
+        // hands InfoPopup over to the window root, which is the whole point of this file:
+        // a Popup measures its offsets against whatever panel it hangs in, so left inside ButtonHost it slides along
+        // with every layout pass that moves this control, and in the title bar that happens several times a second as
+        // the live readouts next to it change width
+        // at the window root nothing moves it, so a placement holds until the popup is opened again
+        //
+        // a root that cannot take children leaves the popup where it was authored; the placement works in window
+        // coordinates either way, it just goes back to riding along with the control
+        private void RelocatePopupToWindowRoot()
+        {
+            if (_popupRelocated || XamlRoot?.Content is not Panel rootPanel) return;
+
+            ButtonHost.Children.Remove(InfoPopup);
+            rootPanel.Children.Add(InfoPopup);
+
+            _popupHost = rootPanel;
+            _popupRelocated = true;
+        }
+
+        // places the popup once per open, in window coordinates
+        //
+        // the anchor position and the wanted popup position are both worked out against the window, and only the last
+        // step converts them into offsets against the panel the popup hangs in; with the popup sitting at the window
+        // root that conversion subtracts nothing, which is exactly what makes the placement outlive later layout
+        // passes
+        private void UpdatePopupPlacement()
+        {
+            if (!_needsPopupPlacement || _popupHost == null) return;
+            if (PopupContentBorder == null || XamlRoot?.Content == null) return;
+
+            // ActualWidth/ActualHeight only hold a real size once the popup has been open and laid out at least
+            // once; before that the content is not live, its bindings have not run, and a Measure here reports a
+            // text block that is still empty, so the size comes out too small
+            //
+            // the first open is therefore placed from that provisional size and stays flagged, so the SizeChanged
+            // right after the real layout pass corrects it; every later open has a real size to work with straight
+            // away and is final immediately
+            bool hasRealSize = PopupContentBorder.ActualWidth > 0 && PopupContentBorder.ActualHeight > 0;
+            Size contentSize;
+
+            if (hasRealSize)
+            {
+                contentSize = new Size(PopupContentBorder.ActualWidth, PopupContentBorder.ActualHeight);
+            }
+            else
+            {
+                PopupContentBorder.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                contentSize = PopupContentBorder.DesiredSize;
+            }
+
+            if (contentSize.Width <= 0 || contentSize.Height <= 0) return;
+
+            Point target = PlacementMode == PopupPlacementMode.TitleAnchored
+                ? GetTitleAnchoredPosition(contentSize)
+                : GetButtonAnchoredPosition(contentSize);
+
+            Point hostOrigin = _popupHost.TransformToVisual(XamlRoot.Content).TransformPoint(new Point(0, 0));
+
+            InfoPopup.HorizontalOffset = target.X - hostOrigin.X;
+            InfoPopup.VerticalOffset = target.Y - hostOrigin.Y;
+
+            _needsPopupPlacement = !hasRealSize;
+        }
+
         // positions the popup relative to the title text (TitleHost), not the button; unchanged from the original
         // InfoGroupHeaderControl logic, this is the one case that still needs it
-        private void PositionPopupTitleAnchored(FrameworkElement content)
+        private Point GetTitleAnchoredPosition(Size content)
         {
-            InfoPopup.HorizontalOffset = -(content.ActualWidth + PopupHorizontalGap);
-
             Point origin = TitleHost.TransformToVisual(XamlRoot.Content).TransformPoint(new Point(0, 0));
             double availableHeightBelow = XamlRoot.Size.Height - origin.Y;
 
-            double verticalOffset = content.ActualHeight + PopupVerticalGap > availableHeightBelow
-                ? -(content.ActualHeight - availableHeightBelow) - PopupVerticalGap
+            double verticalOffset = content.Height + PopupVerticalGap > availableHeightBelow
+                ? -(content.Height - availableHeightBelow) - PopupVerticalGap
                 : PopupVerticalGap;
 
-            InfoPopup.VerticalOffset = Math.Max(verticalOffset, -origin.Y) - PopupVerticalManualAdjustment;
+            // the Max keeps the popup from being pushed off the top edge of the window
+            return new Point(
+                origin.X - (content.Width + PopupHorizontalGap),
+                Math.Max(origin.Y + verticalOffset, 0) - PopupVerticalManualAdjustment);
         }
 
         // simple fixed-direction placement for the four button-anchored modes; no flip or collision handling,
         // unlike TitleAnchored the caller is expected to only pick a direction where there is actually room
-        private void PositionPopupRelativeToButton(FrameworkElement content)
+        private Point GetButtonAnchoredPosition(Size content)
         {
-            switch (PlacementMode)
+            Point origin = ButtonHost.TransformToVisual(XamlRoot.Content).TransformPoint(new Point(0, 0));
+
+            return PlacementMode switch
             {
-                case PopupPlacementMode.Below:
-                    InfoPopup.HorizontalOffset = (ButtonSize - content.ActualWidth) / 2;
-                    InfoPopup.VerticalOffset = ButtonSize + PopupVerticalGap;
-                    break;
+                PopupPlacementMode.Above => new Point(
+                    origin.X + (ButtonSize - content.Width) / 2,
+                    origin.Y - (content.Height + PopupVerticalGap)),
 
-                case PopupPlacementMode.Above:
-                    InfoPopup.HorizontalOffset = (ButtonSize - content.ActualWidth) / 2;
-                    InfoPopup.VerticalOffset = -(content.ActualHeight + PopupVerticalGap);
-                    break;
+                PopupPlacementMode.Left => new Point(
+                    origin.X - (content.Width + PopupHorizontalGap),
+                    origin.Y + (ButtonSize - content.Height) / 2),
 
-                case PopupPlacementMode.Left:
-                    InfoPopup.HorizontalOffset = -(content.ActualWidth + PopupHorizontalGap);
-                    InfoPopup.VerticalOffset = (ButtonSize - content.ActualHeight) / 2;
-                    break;
+                PopupPlacementMode.Right => new Point(
+                    origin.X + ButtonSize + PopupHorizontalGap,
+                    origin.Y + (ButtonSize - content.Height) / 2),
 
-                case PopupPlacementMode.Right:
-                    InfoPopup.HorizontalOffset = ButtonSize + PopupHorizontalGap;
-                    InfoPopup.VerticalOffset = (ButtonSize - content.ActualHeight) / 2;
-                    break;
-            }
+                // Below, which is also the default the DependencyProperty falls back to
+                _ => new Point(
+                    origin.X + (ButtonSize - content.Width) / 2,
+                    origin.Y + ButtonSize + PopupVerticalGap),
+            };
         }
 
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
