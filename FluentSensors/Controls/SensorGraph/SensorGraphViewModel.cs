@@ -39,7 +39,7 @@ namespace FluentSensors.Controls.SensorGraph
             Scope = scope;
             Unit = SensorUnitFormatter.GetUnit(sensorType);
             CurrentValueText = "-"; // placeholder text until we have the first value
-            CurrentValueColor = DefaultTextColor.Resolve();
+            CurrentValueColor = DefaultTextColor.Resolve(FollowsSystemTheme);
 
             // when set, this instance owns a fixed time span independent of the scope GraphTimeSpanSeconds setting
             _timeSpanOverrideSeconds = graphTimeSpanSecondsOverride;
@@ -88,6 +88,10 @@ namespace FluentSensors.Controls.SensorGraph
         // === bindable properties ===
 
         public SensorGraphScope Scope { get; }
+
+        // the taskbar widget window follows the Windows theme rather than the app theme setting, so its graphs have to
+        // resolve their text color the same way or they end up unreadable whenever the two disagree
+        private bool FollowsSystemTheme => Scope == SensorGraphScope.Taskbar;
 
         // general
         public ObservableCollection<double?> SensorData { get; private set; }
@@ -446,7 +450,7 @@ namespace FluentSensors.Controls.SensorGraph
         {
             CurrentValueColor = Threshold.IsBreached(_currentRaw)
                 ? new SolidColorBrush(Threshold.Color)
-                : DefaultTextColor.Resolve();
+                : DefaultTextColor.Resolve(FollowsSystemTheme);
         }
 
         // calculates, what has to be displayed in the UI as the current max value

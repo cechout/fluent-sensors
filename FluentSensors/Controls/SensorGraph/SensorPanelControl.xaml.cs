@@ -7,7 +7,6 @@ using System.ComponentModel;
 using System.Linq;
 
 using FluentSensors.Common.UI;
-using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Controls.SensorGraph
@@ -619,16 +618,13 @@ namespace FluentSensors.Controls.SensorGraph
             return null;
         }
 
-        // same resolution order as DefaultTextColor.Resolve; a code-behind theme-resource lookup would ignore the apps
-        // RequestedTheme override, so the app theme setting is read directly with the OS theme as the fallback
-        private static bool IsDarkTheme()
+        // ActualTheme is whatever this instance actually renders in, so it already accounts for the window it sits
+        // in overriding the theme; reading the app theme setting instead got this wrong in the taskbar widget, which
+        // deliberately follows Windows rather than the setting
+        // the ActualThemeChanged handler in the constructor re-runs the bindings that depend on this
+        private bool IsDarkTheme()
         {
-            return SettingsService.Instance.AppTheme switch
-            {
-                "Light" => false,
-                "Dark" => true,
-                _ => Application.Current.RequestedTheme == ApplicationTheme.Dark
-            };
+            return ActualTheme == ElementTheme.Dark;
         }
 
         private Windows.UI.Color? BoolToCardBorderOverride(bool showBorder) =>
