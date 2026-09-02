@@ -23,7 +23,7 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: setup msbuild
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
 
       # reads the version once so the csproj stays the only place it gets bumped by hand
       - name: read version from csproj
