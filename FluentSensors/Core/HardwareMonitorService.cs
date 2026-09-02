@@ -38,8 +38,31 @@ namespace FluentSensors.Core
         private Task? _loopTask;
         private readonly HashSet<string> _excludedSensorIds = new();
 
-        // measures real time between two successive HardwareDataUpdated broadcasts, see ActualUpdateIntervalMs below
-        private readonly Stopwatch _updateStopwatch = new();
+        // how many recent read durations the broadcast schedule plans against, and how much slack it leaves on top
+        // of them; the margin absorbs the small run-to-run noise a sample window cannot see coming
+        private const int ReadDurationSampleCount = 8;
+        private const double ReadScheduleMarginMs = 5;
+
+        // how long the cached network adapter snapshot may be reused before it gets rebuilt regardless of events
+        private const double NetworkAdapterSnapshotMaxAgeMs = 10000;
+
+        // ring buffer of the last read durations, touched only by the polling loop
+        // the schedule plans against the slowest of them rather than the average: one slow read has to pull the
+        // following reads earlier, and a maximum drops back on its own once that read ages out of the window
+        private readonly double[] _readDurationSamples = new double[ReadDurationSampleCount];
+        private int _readDurationSampleIndex;
+
+        // wakes the polling loop out of a pending wait when the rate changes, so switching from 2000ms to 250ms
+        // takes effect right away instead of after the wait it is already sitting in
+        private readonly SemaphoreSlim _intervalChangedSignal = new(0, 1);
+
+        // set by the NetworkChange handler, consumed by the polling loop; the rebuild itself deliberately runs on the
+        // loop and not on the OS callback thread, see RefreshNetworkAdapters
+        private volatile bool _networkAdaptersDirty = true;
+
+        // currently "up" network adapters, see RefreshNetworkAdapters; touched only by the polling loop
+        private HashSet<string> _activeNetworkAdapters = new();
+        private long _networkAdapterRefreshTimestamp;
 
 
         // === singleton instance ===
@@ -84,14 +107,23 @@ namespace FluentSensors.Core
                 if (_updateIntervalMs != value)
                 {
                     _updateIntervalMs = value;
+
+                    // pull the polling loop out of its current wait so the new rate applies from here instead of once
+                    // the old one runs out; a signal nobody is waiting on only makes the next wait re-evaluate once,
+                    // which is harmless
+                    if (_intervalChangedSignal.CurrentCount == 0)
+                    {
+                        _intervalChangedSignal.Release();
+                    }
+
                     UpdateIntervalChanged?.Invoke(_updateIntervalMs);
                 }
             }
         }
 
-        // measured real cadence of the loop below (hardware.Update() + payload building + the previous Task.Delay
-        // combined), not just the requested UpdateIntervalMs; a short UpdateIntervalMs does not guarantee the loop
-        // can actually keep up, this is how AppStatusService shows the real number next to the aimed-for one
+        // measured real cadence between two broadcasts, not just the requested UpdateIntervalMs; the loop below holds
+        // every broadcast to at least UpdateIntervalMs, so this sits on the aimed-for value while LHM keeps up and
+        // rises above it only once a read alone outruns the interval
         //
         // read cross-thread by AppStatusService; double reads/writes are not guaranteed atomic, Interlocked keeps
         // this lock-free instead of adding a lock for a single number
@@ -100,6 +132,18 @@ namespace FluentSensors.Core
         {
             get => Interlocked.CompareExchange(ref _actualUpdateIntervalMs, 0, 0);
             private set => Interlocked.Exchange(ref _actualUpdateIntervalMs, value);
+        }
+
+        // how long the last full sensor read took (hardware.Update() plus payload building)
+        // this is the number that says whether a rate is reachable at all: once it approaches UpdateIntervalMs there
+        // is no headroom left and the cadence starts slipping, which is why the status bar shows it
+        //
+        // cross-thread like ActualUpdateIntervalMs above, same reasoning for Interlocked
+        private double _lastReadDurationMs;
+        public double LastReadDurationMs
+        {
+            get => Interlocked.CompareExchange(ref _lastReadDurationMs, 0, 0);
+            private set => Interlocked.Exchange(ref _lastReadDurationMs, value);
         }
 
         // asynchronous initialization pipeline:
@@ -150,6 +194,9 @@ namespace FluentSensors.Core
             if (_cts != null) return;
 
             InitAllSensors();
+
+            NetworkChange.NetworkAddressChanged += OnNetworkAddressChanged;
+
             _cts = new CancellationTokenSource();
 
             // task.run() creates a new thread in the background, and puts explicitly the method
@@ -161,6 +208,8 @@ namespace FluentSensors.Core
         public void StopMonitoring()
         {
             if (_cts == null) return;
+
+            NetworkChange.NetworkAddressChanged -= OnNetworkAddressChanged;
 
             _cts.Cancel();
 
@@ -228,20 +277,36 @@ namespace FluentSensors.Core
         // === private helpers ===
 
         // polling loop
-        // fixed-cadence on purpose:
-        // only the leftover of UpdateIntervalMs after the actual work below is spent as delay, instead of always waiting
-        // the full UpdateIntervalMs on top of however long the work took;
+        // every deadline below is anchored to the last broadcast, never to the loop start or to an absolute grid:
+        // the configured rate is the target and the floor at the same time, so a tick that overruns shifts the phase
+        // instead of getting paid back by a too-early next one
         //
-        // workStopwatch measures that work, _updateStopwatch (the field) keeps measuring the externally visible
-        // fire-to-fire cadence for ActualUpdateIntervalMs, unchanged
+        // the read is scheduled to finish just before its deadline rather than starting right after the previous
+        // broadcast, which keeps the published values a few ms old at every rate instead of almost a full interval old
+        // at the slow ones
         private async Task LoopAsync(CancellationToken token)
         {
-            _updateStopwatch.Restart();
-            var workStopwatch = new Stopwatch();
+            RefreshNetworkAdapters();
+
+            // backdated by one interval so the very first tick reads and broadcasts right away, instead of idling
+            // through a full interval before the app shows any data at all
+            long lastBroadcastTimestamp = Stopwatch.GetTimestamp() - (long)(Stopwatch.Frequency * (UpdateIntervalMs / 1000.0));
 
             while (!token.IsCancellationRequested)
             {
-                workStopwatch.Restart();
+                // snapshotted per tick, the settings page can change the property at any point
+                int intervalMs = UpdateIntervalMs;
+
+                // hold the read back so it lands on the deadline instead of running right after the last broadcast
+                double readStartMs = Math.Max(0, intervalMs - PredictReadDurationMs() - ReadScheduleMarginMs);
+                var outcome = await WaitSinceAsync(lastBroadcastTimestamp, readStartMs, token);
+
+                if (outcome == WaitOutcome.Cancelled) break;
+
+                // the rate changed while we were idle, which leaves the schedule above stale; recompute it
+                if (outcome == WaitOutcome.RateChanged) continue;
+
+                long readStartTimestamp = Stopwatch.GetTimestamp();
 
                 // update hardware (lhm fetches new values from the sensor)
                 foreach (var hardware in _computer.Hardware)
@@ -293,17 +358,8 @@ namespace FluentSensors.Core
                 //}
 
 
-                // snapshot of currently "up" network adapters, keyed by NetworkInterface.Name
-                // (matches LHM's Hardware.Name 1:1)
-                // rebuilt every tick since Wi-Fi/Ethernet can connect or disconnect while the app is running
-                // filter layers (QoS Packet Scheduler, WFP, Native/Virtual WiFi Filter Driver) and WAN Miniport stubs as "Up"
-                // even though they carry no real traffic; requiring at least one assigned IP address filters those out, since
-                // only the actual physical/virtual adapter above them gets an address
-                var activeNetworkAdapters = new HashSet<string>(
-                    NetworkInterface.GetAllNetworkInterfaces()
-                        .Where(nic => nic.OperationalStatus == OperationalStatus.Up &&
-                            nic.GetIPProperties().UnicastAddresses.Count > 0)
-                        .Select(nic => nic.Name));
+                // the "up" network adapter snapshot this tick filters against, see RefreshNetworkAdapters
+                var activeNetworkAdapters = _activeNetworkAdapters;
 
                 // this is the exact list for the big event HardwareDataUpdated, we create a new list
                 // and every iteration fill it with the current values of all the sensors we want to monitor
@@ -366,38 +422,133 @@ namespace FluentSensors.Core
                     }
                 }
 
+                RecordReadDuration(Stopwatch.GetElapsedTime(readStartTimestamp).TotalMilliseconds);
+
                 // extra guard: skip the broadcast entirely if a shutdown was requested while we were building the payload above
                 if (token.IsCancellationRequested) break;
 
-                // real time since the previous broadcast; restarting right here means this measures fire-to-fire,
-                // the actual cadence consumers see, not just the delay below
-                ActualUpdateIntervalMs = _updateStopwatch.Elapsed.TotalMilliseconds;
-                _updateStopwatch.Restart();
+                // hold the finished payload until the deadline; a rate change while holding moves that deadline, so
+                // re-evaluate against the new one instead of firing on the old
+                // the wait is already over when the read alone outran the interval, and the tick is then simply late
+                do
+                {
+                    outcome = await WaitSinceAsync(lastBroadcastTimestamp, UpdateIntervalMs, token);
+                }
+                while (outcome == WaitOutcome.RateChanged);
+
+                if (outcome == WaitOutcome.Cancelled) break;
+
+                // real time since the previous broadcast, the actual cadence consumers see
+                long broadcastTimestamp = Stopwatch.GetTimestamp();
+                ActualUpdateIntervalMs = Stopwatch.GetElapsedTime(lastBroadcastTimestamp, broadcastTimestamp).TotalMilliseconds;
+                lastBroadcastTimestamp = broadcastTimestamp;
 
                 // we fire the event with the new list of sensor data
                 HardwareDataUpdated?.Invoke(payload);
 
-                // only wait for whatever is left of UpdateIntervalMs after the work above; if the work alone
-                // already took longer (LHM cannot keep up), skip the delay entirely instead of adding a full
-                // wait on top of an already-late tick; ActualUpdateIntervalMs then honestly shows the overrun
-                // starting exactly here, instead of the fixed ~100ms overshoot the old unconditional delay caused
-                // on every tick regardless of UpdateIntervalMs
-                double remainingMs = UpdateIntervalMs - workStopwatch.Elapsed.TotalMilliseconds;
+                // the gap between this broadcast and the next read is the one place where a rebuild costs nothing,
+                // so the adapter snapshot gets refreshed here rather than in the middle of a read
+                RefreshNetworkAdapters();
+            }
+        }
+
+        // outcome of a wait in the polling loop above; RateChanged means the wait was cut short because the polling
+        // rate changed, so whatever it was waiting for has to be recomputed against the new rate
+        private enum WaitOutcome
+        {
+            Reached,
+            RateChanged,
+            Cancelled
+        }
+
+        // waits until targetMs have passed since anchorTimestamp, coming back early when the rate changes or when
+        // monitoring is cancelled
+        //
+        // re-checks against the anchor in a loop on purpose: waits are bound to the ~15.6ms Windows scheduler
+        // granularity and can come back short of what they were asked for, and coming back short is the one thing this
+        // loop must not do; the re-check turns that into a second short wait instead of an early broadcast
+        private async Task<WaitOutcome> WaitSinceAsync(long anchorTimestamp, double targetMs, CancellationToken token)
+        {
+            while (true)
+            {
+                double remainingMs = targetMs - Stopwatch.GetElapsedTime(anchorTimestamp).TotalMilliseconds;
+                if (remainingMs <= 0) return WaitOutcome.Reached;
+
+                // rounded up because the timeout is taken in whole milliseconds: a fractional remainder truncates to a
+                // zero timeout, comes straight back, and leaves the re-check above spinning through the rest of it
+                var remaining = TimeSpan.FromMilliseconds(Math.Ceiling(remainingMs));
 
                 try
                 {
-                    if (remainingMs > 0)
+                    if (await _intervalChangedSignal.WaitAsync(remaining, token))
                     {
-                        await Task.Delay(TimeSpan.FromMilliseconds(remainingMs), token);
+                        return WaitOutcome.RateChanged;
                     }
                 }
                 catch (OperationCanceledException)
                 {
-                    // StopMonitoring cancelled the token while we were waiting; exit the loop cleanly here so the
-                    // task completes normally instead of ending up in the Canceled state
-                    break;
+                    // StopMonitoring cancelled the token while we were waiting; the caller exits the loop cleanly on
+                    // this, so the task completes normally instead of ending up in the Canceled state
+                    return WaitOutcome.Cancelled;
                 }
             }
+        }
+
+        // the slowest of the recent reads, which is what the schedule has to survive
+        // an average would leave every spike broadcasting late, a permanent worst case would never recover from a
+        // single one
+        private double PredictReadDurationMs()
+        {
+            double slowestMs = 0;
+
+            foreach (double sampleMs in _readDurationSamples)
+            {
+                if (sampleMs > slowestMs) slowestMs = sampleMs;
+            }
+
+            return slowestMs;
+        }
+
+        private void RecordReadDuration(double durationMs)
+        {
+            LastReadDurationMs = durationMs;
+
+            _readDurationSamples[_readDurationSampleIndex] = durationMs;
+            _readDurationSampleIndex = (_readDurationSampleIndex + 1) % ReadDurationSampleCount;
+        }
+
+        // only flags the snapshot as due, the rebuild itself runs on the polling loop; see RefreshNetworkAdapters
+        private void OnNetworkAddressChanged(object? sender, EventArgs e)
+        {
+            _networkAdaptersDirty = true;
+        }
+
+        // rebuilds the "up" network adapter snapshot, which has to stay current because Wi-Fi/Ethernet can connect or
+        // disconnect while the app is running
+        // rebuilt only when an address change flagged it, or when the last rebuild got old enough that a transition
+        // NetworkAddressChanged does not raise would start to show
+        //
+        // called from the polling loops idle window on purpose: GetAllNetworkInterfaces plus GetIPProperties per
+        // adapter is a multi-millisecond roundtrip whose cost spikes, and rebuilding it per tick put that spike
+        // straight into the read window the broadcast schedule has to plan against
+        private void RefreshNetworkAdapters()
+        {
+            bool isStale = Stopwatch.GetElapsedTime(_networkAdapterRefreshTimestamp).TotalMilliseconds >= NetworkAdapterSnapshotMaxAgeMs;
+            if (!_networkAdaptersDirty && !isStale) return;
+
+            _networkAdaptersDirty = false;
+            _networkAdapterRefreshTimestamp = Stopwatch.GetTimestamp();
+
+            // keyed by NetworkInterface.Name
+            // (matches LHM's Hardware.Name 1:1)
+            // filter layers (QoS Packet Scheduler, WFP, Native/Virtual WiFi Filter Driver) and WAN Miniport stubs as "Up"
+            // even though they carry no real traffic; requiring at least one assigned IP address filters those out, since
+            // only the actual physical/virtual adapter above them gets an address
+            _activeNetworkAdapters = new HashSet<string>(
+                NetworkInterface.GetAllNetworkInterfaces()
+                    .Where(nic => nic.OperationalStatus == OperationalStatus.Up &&
+                        nic.GetIPProperties().UnicastAddresses.Count > 0)
+                    .Select(nic => nic.Name));
         }
 
         // sensor discovery:

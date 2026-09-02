@@ -165,7 +165,9 @@ namespace FluentSensors.Features.AppStatus
             _dispatcherQueue.TryEnqueue(() =>
             {
                 SensorsText = $"Sensors: {data.SensorsFound}/{data.SensorsRendered}";
-                PollText = $"Poll: {data.ActualUpdateIntervalMs:0}/{data.AimedUpdateIntervalMs}ms";
+                // the loop holds the configured interval as a floor now, so the measured cadence sits on the aimed-for
+                // value and says nothing; the read duration is what shows whether the rate has any headroom left
+                PollText = $"Poll: {data.AimedUpdateIntervalMs}ms (read {data.ReadDurationMs:0}ms)";
                 CpuUsageText = $"CPU: {data.CpuUsagePercent:0.0}%";
                 RamUsageText = $"RAM: {data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
                 HandleCountText = $"Handles: {data.HandleCount}";
