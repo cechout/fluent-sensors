@@ -1,7 +1,6 @@
 using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Hosting;
@@ -35,7 +34,7 @@ namespace FluentSensors.Features.TaskbarWidget
     // WinUI 3 has no built-in support for anchoring a borderless, non-activating window to an external Win32 shell
     // window; this window combines several low-level techniques:
     // 1. eliminates the non-client titlebar stripe via WM_NCCALCSIZE (0x0083) returning 0
-    // 2. supports asymmetric top-and-right resizing via InputNonClientPointerSource while locking bottom-left anchors in WM_SIZING (0x0214)
+    // 2. caps its own height against the work area and scrolls the graph list rather than growing past it
     // 3. places the window directly beneath Shell_TrayWnd in Z-order so it slides out from under the taskbar
     // 4. coordinates a physical window slide via DispatcherTimer with direct composition opacity fading
     // 5. applies dynamic DWM corner preferences and shadow suppression depending on the Windows transparency setting
@@ -130,11 +129,24 @@ namespace FluentSensors.Features.TaskbarWidget
         // --- animation & performance settings ---
 
         // physical window slide distance in DIP/pixels
-        public const int WindowSlideDistanceDip = 280;
+        public const int WindowSlideDistanceDip = 300;
 
         // animation duration in milliseconds
         public const int EnterAnimationDurationMs = 260; // duration on open (move-in)
         public const int ExitAnimationDurationMs = 140;  // duration on close (move-out)
+
+        // how far the two durations and the slide distance above follow the pinned sensor count: all three are
+        // tuned for AnimationReferenceSensorCount sensors, every sensor above or below scales them by their own factor
+        // these three are the knobs to turn; 0 pins a value to its base, 0.18 makes a three sensor flyout 18 percent
+        // slower than a two sensor one
+        public const int AnimationReferenceSensorCount = 2;
+        public const double EnterDurationPerSensorFactor = 0.20; // scaling per sensor on open
+        public const double ExitDurationPerSensorFactor = 0.14;  // scaling per sensor on close
+        public const double SlideDistancePerSensorFactor = 0.08; // scaling per sensor on the travelled distance
+
+        // keeps a single sensor from snapping open and a full height flyout from crawling
+        public const double MinAnimationScaleFactor = 0.75;
+        public const double MaxAnimationScaleFactor = 3.0;
 
         // fade opacity (1.0f = no fade, 0.0f = full fade)
         public const float EnterFadeStartOpacity = 0.9f; // initial opacity when opening
@@ -174,27 +186,29 @@ namespace FluentSensors.Features.TaskbarWidget
         private const string WindowKey = "TaskbarFlyout";
 
         // Anchor offsets configurable in code-behind
+        // the taskbar gap doubles as the gap to the top of the work area, and that pair is what caps the window
+        // height, see PositionAboveTaskbar
         public const int FlyoutMarginToTaskbarDip = 12; // vertical gap between taskbar top and flyout bottom edge
-        public const int FlyoutMarginToScreenEdgeDip = 10; // smallest gap the flyout keeps to the left, right and top screen edges
+        public const int FlyoutMarginToScreenEdgeDip = 12; // smallest gap the flyout keeps to the left and right screen edges
 
         // horizontal offset from the aligned edge, meaning depends on TaskbarFlyoutAlignment:
         // Left = pixels to move right (inward from the widget left edge)
         // Right = pixels to move left (inward from the widget right edge)
         // Center = unused
-        public const int FlyoutHorizontalOffsetDip = 2;
+        public const int FlyoutHorizontalOffsetDip = 0;
 
-        // default and minimum width in DIP (matching standard WidgetWindow width)
+        // fixed width in DIP (matching standard WidgetWindow width)
         public const int FlyoutDefaultWidthDip = 250;
-        public const int MinFlyoutWidthFloorDip = 250;
 
-        // default and minimum height per graph slot in DIP
+        // height of a single graph slot in DIP
         public const int FlyoutDefaultGraphHeightDip = 100;
-        public const int MinFlyoutGraphHeightDip = 100;
 
         // --- flyout layout ---
 
         // the two knobs for the interior; every visible inset inside the window comes from one of them
-        public static readonly Thickness FlyoutGraphsPadding = new Thickness(6, 9, 6, 7);
+        // the graphs inset is a margin on the list rather than padding on the surface below it, so the scroll region
+        // stays the full width of the window and the scrollbar rides its edge instead of sitting 6px inside
+        public static readonly Thickness FlyoutGraphsMargin = new Thickness(6, 9, 6, 7);
         public static readonly Thickness FlyoutBottomBarPadding = new Thickness(0, 0, 0, 0);
 
         // gap between two stacked graphs
@@ -219,11 +233,19 @@ namespace FluentSensors.Features.TaskbarWidget
         private UISettings? _uiSettings;
 
         private int _bottomAnchorY;
-        private int _leftAnchorX;
         private int _targetX;
         private int _targetY;
         private bool _isAdjustingPosition;
         private bool _isHiding;
+
+        // sensor count the slide durations are scaled by; capped at what still fits once the window reaches its
+        // height cap, because past that point the window stops growing
+        private int _animationSensorCount = AnimationReferenceSensorCount;
+
+        // the graph rows sit in an ItemsPanelTemplate and cannot be named in XAML, so the panel is cached the first
+        // time a layout pass produces it; _isGraphsScrolling holds the mode until then
+        private FluentSensors.Controls.VerticalStretchPanel? _graphsPanel;
+        private bool _isGraphsScrolling;
 
         // native window animation timer
         private DispatcherTimer? _animTimer;
@@ -260,7 +282,7 @@ namespace FluentSensors.Features.TaskbarWidget
             presenter.IsAlwaysOnTop = false; // do not force topmost above taskbar shell
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = false;
-            presenter.IsResizable = false; // resize is handled via InputNonClientPointerSource, keeping WS_THICKFRAME off
+            presenter.IsResizable = false; // the height is always derived from the pinned sensor count, never dragged
             _appWindow.SetPresenter(presenter);
 
             // remove WS_THICKFRAME and WS_CAPTION and apply WS_POPUP and WS_EX_TOOLWINDOW
@@ -283,9 +305,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             // hook win32 messages:
             // 1. WM_NCCALCSIZE (0x0083): eliminates the 8px non-client white titlebar stripe completely
-            // 2. WM_SIZING (0x0214): locks the Bottom-Left anchor coordinates during resizing
-            // 3. WM_EXITSIZEMOVE (0x0232): saves window size when resize ends
-            // 4. WM_SYSCOMMAND (0x0112): prevents dragging/moving the window
+            // 2. WM_SYSCOMMAND (0x0112): prevents dragging/moving the window
             _messageMonitor = new WindowMessageMonitor(_hwnd);
             _messageMonitor.WindowMessageReceived += OnWindowMessageReceived;
 
@@ -315,7 +335,7 @@ namespace FluentSensors.Features.TaskbarWidget
             };
 
             // the interior is driven entirely from the layout metrics above, the XAML carries no numbers of its own
-            GraphsContentGrid.Padding = FlyoutGraphsPadding;
+            GraphsItemsControl.Margin = FlyoutGraphsMargin;
             BottomBarContentGrid.Padding = FlyoutBottomBarPadding;
             GraphsItemsControl.LayoutUpdated += OnGraphsItemsControlLayoutUpdated;
 
@@ -335,14 +355,21 @@ namespace FluentSensors.Features.TaskbarWidget
             try
             {
                 _uiSettings = new UISettings();
-                _uiSettings.AdvancedEffectsEnabledChanged += (s, e) => ScheduleRecreation();
-                _uiSettings.ColorValuesChanged += (s, e) => ScheduleRecreation();
+                _uiSettings.AdvancedEffectsEnabledChanged += OnSystemVisualSettingsChanged;
+                _uiSettings.ColorValuesChanged += OnSystemVisualSettingsChanged;
                 UpdateShadowPolicy();
             }
             catch
             {
                 // safety guard if UISettings is unavailable
             }
+        }
+
+        // a named handler rather than a lambda, so SafeDestroy can detach it again; every rebuilt window subscribes
+        // anew and without the detach the UISettings handler list grows by one per rebuild
+        private void OnSystemVisualSettingsChanged(UISettings sender, object args)
+        {
+            ScheduleRecreation();
         }
 
         private void UpdateShadowPolicy()
@@ -383,37 +410,6 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
 
-        // === non-client resize regions (Top and Right only) ===
-
-        private void UpdateNonClientResizeRegions()
-        {
-            try
-            {
-                var nonClientInput = InputNonClientPointerSource.GetForWindowId(_appWindow.Id);
-                if (nonClientInput == null) return;
-
-                int width = _appWindow.Size.Width;
-                int height = _appWindow.Size.Height;
-                int border = (int)Math.Round(10 * GetScaleFactor());
-
-                // Top border extending full width (including top-right corner)
-                var topRect = new RectInt32(0, 0, width, border);
-                // Right border extending full height (including top-right corner)
-                var rightRect = new RectInt32(Math.Max(0, width - border), 0, border, height);
-
-                nonClientInput.SetRegionRects(NonClientRegionKind.TopBorder, new[] { topRect });
-                nonClientInput.SetRegionRects(NonClientRegionKind.RightBorder, new[] { rightRect });
-
-                nonClientInput.ClearRegionRects(NonClientRegionKind.LeftBorder);
-                nonClientInput.ClearRegionRects(NonClientRegionKind.BottomBorder);
-            }
-            catch
-            {
-                // safety guard if platform version does not support InputNonClientPointerSource
-            }
-        }
-
-
         // === win32 message handling ===
 
         private void OnWindowMessageReceived(object? sender, WindowMessageEventArgs e)
@@ -426,41 +422,6 @@ namespace FluentSensors.Features.TaskbarWidget
                     e.Result = IntPtr.Zero;
                     e.Handled = true;
                 }
-            }
-            else if (e.Message.MessageId == 0x0214) // WM_SIZING
-            {
-                var rect = Marshal.PtrToStructure<NativeMethods.RECT>(e.Message.LParam);
-                double scale = GetScaleFactor();
-
-                // lock bottom and left anchors
-                if (_bottomAnchorY > 0)
-                {
-                    rect.Bottom = _bottomAnchorY;
-                    rect.Left = _leftAnchorX;
-                }
-
-                // enforce minimum width and height constraints
-                int minW = (int)Math.Round(MinFlyoutWidthFloorDip * scale);
-                int minH = CalculateFlyoutMinHeight(ViewModel.PinnedSensors.Count, scale);
-
-                if (rect.Right - rect.Left < minW)
-                {
-                    rect.Right = rect.Left + minW;
-                }
-                if (rect.Bottom - rect.Top < minH)
-                {
-                    rect.Top = rect.Bottom - minH;
-                }
-
-                Marshal.StructureToPtr(rect, e.Message.LParam, false);
-                e.Result = (IntPtr)1; // TRUE
-                e.Handled = true;
-            }
-            else if (e.Message.MessageId == 0x0232) // WM_EXITSIZEMOVE
-            {
-                UpdateNonClientResizeRegions();
-                UpdateShadowPolicy();
-                SaveWindowState();
             }
             else if (e.Message.MessageId == 0x0112) // WM_SYSCOMMAND
             {
@@ -475,17 +436,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === public methods ===
 
-        // resets saved flyout dimensions so the size is cleanly recalculated on next open / button click
+        // recalculates the flyout geometry so the next open reflects the current pinned sensor count
         public static void ResetGeometry()
         {
-            var state = WindowStateService.Instance.GetState(WindowKey);
-            if (state != null)
-            {
-                state.Width = 0;
-                state.Height = 0;
-                WindowStateService.Instance.SetState(WindowKey, state);
-            }
-
             if (CurrentInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
             {
                 CurrentInstance.PositionAboveTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
@@ -623,6 +576,17 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             catch { }
 
+            try
+            {
+                if (_uiSettings != null)
+                {
+                    _uiSettings.AdvancedEffectsEnabledChanged -= OnSystemVisualSettingsChanged;
+                    _uiSettings.ColorValuesChanged -= OnSystemVisualSettingsChanged;
+                    _uiSettings = null;
+                }
+            }
+            catch { }
+
             // AppWindow_Closing cancels the close and re-registers this instance as _retainedInstance; detaching it
             // here is what lets the Close below go through instead of resurrecting a window that is already torn down
             try
@@ -650,9 +614,10 @@ namespace FluentSensors.Features.TaskbarWidget
         // --- workaround: window recreation on global OS theme/transparency change ---
         // problem: the exact underlying reason why Windows DWM fails to bind DesktopAcrylicController blur properly
         // without a complete window recreation is not fully clear and is based purely on empirical observation
-        // fix: upon receiving a global theme or transparency change from Windows, both windows (TaskbarFlyoutWindow
-        // and WidgetWindow, if open) are fully destroyed and rebuilt; each rebuilt window then kicks its own backdrop
-        // from its constructor via KickBackdropRefresh, which goes through SetBackdrop parameters only
+        // fix: upon receiving a global theme or transparency change from Windows, all three windows
+        // (TaskbarFlyoutWindow, WidgetWindow and TaskbarWidgetWindow, each if open) are fully destroyed and rebuilt;
+        // each rebuilt window then kicks its own backdrop from its constructor via KickBackdropRefresh, which goes
+        // through SetBackdrop parameters only
         //
         // only ever driven by the Windows-level UISettings events; an in-app theme switch must not land here, and a
         // persisted SettingsService property must never be toggled to force a repaint: every setter snapshots the whole
@@ -686,14 +651,13 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
-        // tears both flyout instances down for real and builds a fresh one, the destructive half of the workaround
-        // documented on ScheduleRecreation above
+        // tears both flyout instances down for real and rebuilds all three windows, the destructive half of the
+        // workaround documented on ScheduleRecreation above
         //
-        // the only caller of SafeDestroy; the widget window is rebuilt in between on purpose, the flyout anchors its
-        // geometry to it and needs the new one to already exist
+        // the only caller of SafeDestroy; the flyout goes first and comes back last, because it anchors its geometry
+        // to the taskbar widget and the new widget has to sit on the taskbar before the new flyout can be placed
         private static void ExecuteFullRebuild()
         {
-            var widgetWindow = TaskbarWidgetWindow.CurrentInstance;
             bool flyoutWasVisible = CurrentInstance != null && CurrentInstance._appWindow != null && CurrentInstance._appWindow.IsVisible;
 
             // 1. Safely destroy existing TaskbarFlyoutWindow instances
@@ -714,21 +678,9 @@ namespace FluentSensors.Features.TaskbarWidget
             // 2. Safely destroy and rebuild WidgetWindow if open
             WidgetWindow.RecreateWindow();
 
-            // 3. Rebuild TaskbarFlyoutWindow
-            if (widgetWindow != null)
-            {
-                widgetWindow.DispatcherQueue.TryEnqueue(() =>
-                {
-                    if (flyoutWasVisible)
-                    {
-                        ShowFlyout(widgetWindow);
-                    }
-                    else
-                    {
-                        Preload(widgetWindow);
-                    }
-                });
-            }
+            // 3. Safely destroy and rebuild TaskbarWidgetWindow; the rebuilt widget brings the flyout back itself
+            // from the end of its embedding step, see TaskbarWidgetWindow.RecreateWindow
+            TaskbarWidgetWindow.RecreateWindow(restoreFlyout: flyoutWasVisible);
         }
 
 
@@ -738,32 +690,58 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(true);
 
+            int durationMs = ScaleAnimationDuration(EnterAnimationDurationMs, EnterDurationPerSensorFactor);
+
             // 1. Content Fade (DirectComposition)
-            PlayContentFade(EnterFadeStartOpacity, EnterFadeEndOpacity, EnterAnimationDurationMs);
+            PlayContentFade(EnterFadeStartOpacity, EnterFadeEndOpacity, durationMs);
 
             // 2. Physical Window Slide Up
-            int slideDistPx = (int)Math.Round(WindowSlideDistanceDip * GetScaleFactor());
+            int slideDistPx = GetSlideDistancePx(GetScaleFactor());
             int startY = _targetY + slideDistPx;
 
             EnsureBehindTaskbarZOrder();
-            AnimateNativeWindowPosition(_targetX, startY, _targetX, _targetY, EnterAnimationDurationMs, isEntering: true);
+            AnimateNativeWindowPosition(_targetX, startY, _targetX, _targetY, durationMs, isEntering: true);
         }
 
         private void SlideOutToBottom(Action onCompleted)
         {
             TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
 
+            int durationMs = ScaleAnimationDuration(ExitAnimationDurationMs, ExitDurationPerSensorFactor);
+
             // 1. Content Fade (DirectComposition)
-            PlayContentFade(1.0f, ExitFadeEndOpacity, ExitAnimationDurationMs);
+            PlayContentFade(1.0f, ExitFadeEndOpacity, durationMs);
 
             // 2. Physical Window Slide Down
-            int slideDistPx = (int)Math.Round(WindowSlideDistanceDip * GetScaleFactor());
+            int slideDistPx = GetSlideDistancePx(GetScaleFactor());
             int currentX = _appWindow.Position.X;
             int currentY = _appWindow.Position.Y;
             int endY = _targetY + slideDistPx;
 
             EnsureBehindTaskbarZOrder();
-            AnimateNativeWindowPosition(currentX, currentY, currentX, endY, ExitAnimationDurationMs, isEntering: false, onComplete: onCompleted);
+            AnimateNativeWindowPosition(currentX, currentY, currentX, endY, durationMs, isEntering: false, onComplete: onCompleted);
+        }
+
+        // the shared scaling law: how far a value moves from its base with the number of graph rows the flyout is
+        // showing, so a tall window does not open in the time a two row one does
+        private double AnimationScaleFactor(double perSensorFactor)
+        {
+            double factor = 1.0 + ((_animationSensorCount - AnimationReferenceSensorCount) * perSensorFactor);
+
+            return Math.Clamp(factor, MinAnimationScaleFactor, MaxAnimationScaleFactor);
+        }
+
+        private int ScaleAnimationDuration(int baseDurationMs, double perSensorFactor)
+        {
+            return (int)Math.Round(baseDurationMs * AnimationScaleFactor(perSensorFactor));
+        }
+
+        // the distance both slides travel, in physical pixels
+        // PositionAboveTaskbar parks the window on the same value before the enter slide, so it has to come from here
+        // rather than from WindowSlideDistanceDip directly
+        private int GetSlideDistancePx(double scaleFactor)
+        {
+            return (int)Math.Round(WindowSlideDistanceDip * AnimationScaleFactor(SlideDistancePerSensorFactor) * scaleFactor);
         }
 
         private void PlayContentFade(float fromOpacity, float toOpacity, int durationMs)
@@ -841,37 +819,10 @@ namespace FluentSensors.Features.TaskbarWidget
             var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
             double scale = primaryTaskbar != null ? (primaryTaskbar.Dpi / 96.0) : GetScaleFactor();
 
-            var savedState = WindowStateService.Instance.GetState(WindowKey);
-
-            // width is fixed to 310 DIP (matching standard WidgetWindow width)
-            int defaultWidthPx = (int)Math.Round(FlyoutDefaultWidthDip * scale);
-            int minWidthPx = defaultWidthPx;
+            // width is fixed to FlyoutDefaultWidthDip (matching standard WidgetWindow width)
+            int desiredWidthPx = (int)Math.Round(FlyoutDefaultWidthDip * scale);
 
             int sensorCount = ViewModel.PinnedSensors.Count;
-
-            // enforce resize constraints: min-width is 310 DIP, min-height is the compact sensor height
-            int minHeightDip = (int)Math.Round(CalculateFlyoutMinHeight(sensorCount, scale) / scale);
-            var manager = WindowManager.Get(this);
-            manager.MinWidth = MinFlyoutWidthFloorDip;
-            manager.MinHeight = minHeightDip;
-
-            int minHeightPx = (int)Math.Round(minHeightDip * scale);
-            int defaultHeightPx = CalculateFlyoutDefaultHeight(sensorCount, scale);
-
-            int desiredWidthPx;
-            int desiredHeightPx;
-
-            if (savedState != null && savedState.Width > 0 && savedState.Height > 0)
-            {
-                desiredWidthPx = Math.Max(savedState.Width, minWidthPx);
-                desiredHeightPx = Math.Max(savedState.Height, minHeightPx);
-            }
-            else
-            {
-                // reset to exact default geometry
-                desiredWidthPx = defaultWidthPx;
-                desiredHeightPx = defaultHeightPx;
-            }
 
             // vertical gap above the taskbar, horizontal placement over the widget per TaskbarFlyoutAlignment
             int marginPx = (int)Math.Round(FlyoutMarginToTaskbarDip * scale);
@@ -879,6 +830,26 @@ namespace FluentSensors.Features.TaskbarWidget
             int edgeMarginPx = (int)Math.Round(FlyoutMarginToScreenEdgeDip * scale);
 
             _bottomAnchorY = primaryTaskbar != null ? (primaryTaskbar.Rect.Y - marginPx) : (widgetRect.Top - marginPx);
+
+            // the gap that holds the flyout off the taskbar is also the gap it keeps to the top of the work area, and
+            // that pair caps the height; without the cap enough pinned sensors produce a window taller than the screen
+            // whose bottom edge ends up behind the taskbar
+            // one graph slot is the floor, so a taskbar on a very short work area cannot produce a zero height window
+            var workArea = DisplayArea.Primary.WorkArea;
+            int maxHeightPx = Math.Max(
+                CalculateFlyoutDefaultHeight(1, scale),
+                _bottomAnchorY - (workArea.Y + marginPx));
+
+            int desiredHeightPx = CalculateFlyoutDefaultHeight(sensorCount, scale);
+            bool isScrolling = desiredHeightPx > maxHeightPx;
+            if (isScrolling)
+            {
+                desiredHeightPx = maxHeightPx;
+            }
+
+            // once capped the window stops growing, so the slide durations stop growing with it too
+            _animationSensorCount = isScrolling ? CountFittingGraphSlots(maxHeightPx, scale) : sensorCount;
+            ApplyGraphsScrollMode(isScrolling);
 
             // Left/Right anchor to the matching widget edge and let the offset pull the flyout inward;
             // Center ignores the offset and lines the flyout center up with the widget center
@@ -890,30 +861,21 @@ namespace FluentSensors.Features.TaskbarWidget
             };
             _targetY = _bottomAnchorY - desiredHeightPx;
 
-            // clamp within the primary work area, never closer than edgeMarginPx to a left, right or top edge;
+            // clamp within the primary work area, never closer than edgeMarginPx to a left or right screen edge;
             // the left edge wins when the screen is too narrow to honor both sides at once
-            var workArea = DisplayArea.Primary.WorkArea;
+            // the top needs no clamp of its own, the height cap above already lands _targetY on marginPx
             int rightLimitX = workArea.X + workArea.Width - desiredWidthPx - edgeMarginPx;
             int leftLimitX = workArea.X + edgeMarginPx;
             _targetX = Math.Max(leftLimitX, Math.Min(_targetX, rightLimitX));
 
-            if (_targetY < workArea.Y + edgeMarginPx)
-            {
-                _targetY = workArea.Y + edgeMarginPx;
-            }
-
-            // the WM_SIZING resize path locks the window left edge to this, so it has to be the clamped value
-            _leftAnchorX = _targetX;
-
             int initialY = startForSlideAnimation
-                ? (_targetY + (int)Math.Round(WindowSlideDistanceDip * scale))
+                ? (_targetY + GetSlideDistancePx(scale))
                 : _targetY;
 
             _isAdjustingPosition = true;
             _appWindow.MoveAndResize(new RectInt32(_targetX, initialY, desiredWidthPx, desiredHeightPx));
             _isAdjustingPosition = false;
 
-            UpdateNonClientResizeRegions();
             UpdateShadowPolicy();
         }
 
@@ -923,14 +885,21 @@ namespace FluentSensors.Features.TaskbarWidget
             return dpi / 96.0;
         }
 
-        private int CalculateFlyoutMinHeight(int sensorCount, double scaleFactor)
-        {
-            return (int)(CalculateFlyoutContentHeight(sensorCount, MinFlyoutGraphHeightDip) * scaleFactor);
-        }
-
         private int CalculateFlyoutDefaultHeight(int sensorCount, double scaleFactor)
         {
             return (int)(CalculateFlyoutContentHeight(sensorCount, FlyoutDefaultGraphHeightDip) * scaleFactor);
+        }
+
+        // how many graph slots still fit inside a capped window height, at the standard slot height
+        private static int CountFittingGraphSlots(int maxHeightPx, double scaleFactor)
+        {
+            double interiorDip = (maxHeightPx / scaleFactor) - FlyoutBottomBarHeightDip
+                - FlyoutGraphsMargin.Top - FlyoutGraphsMargin.Bottom;
+
+            int slots = (int)Math.Floor(
+                (interiorDip + FlyoutGraphSpacingDip) / (FlyoutDefaultGraphHeightDip + FlyoutGraphSpacingDip));
+
+            return Math.Max(1, slots);
         }
 
         // window height for n graph slots: the bar strip, the graphs padding, n slots and the n-1 gaps between them
@@ -939,7 +908,7 @@ namespace FluentSensors.Features.TaskbarWidget
             if (sensorCount <= 0) return FlyoutBottomBarHeightDip;
 
             return FlyoutBottomBarHeightDip
-                + FlyoutGraphsPadding.Top + FlyoutGraphsPadding.Bottom
+                + FlyoutGraphsMargin.Top + FlyoutGraphsMargin.Bottom
                 + (sensorCount * graphHeightDip)
                 + ((sensorCount - 1) * FlyoutGraphSpacingDip);
         }
@@ -950,7 +919,6 @@ namespace FluentSensors.Features.TaskbarWidget
 
             if (args.DidSizeChange && _bottomAnchorY > 0)
             {
-                UpdateNonClientResizeRegions();
                 UpdateShadowPolicy();
                 SaveWindowState();
             }
@@ -967,22 +935,51 @@ namespace FluentSensors.Features.TaskbarWidget
             var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
             state.X = _appWindow.Position.X;
             state.Y = _appWindow.Position.Y;
-            state.Width = _appWindow.Size.Width;
-            state.Height = _appWindow.Size.Height;
-            state.SensorCount = ViewModel.PinnedSensors.Count;
             state.WasOpen = false;
+
+            // the size is no longer persisted at all, it is derived from the pinned sensor count and the height cap
+            // on every open; clearing it here drops whatever a resizable flyout left behind
+            state.Width = 0;
+            state.Height = 0;
 
             WindowStateService.Instance.SetState(WindowKey, state);
         }
 
-        // the graph panel sits inside an ItemsPanelTemplate and cannot be named, so FlyoutGraphSpacingDip is
-        // pushed onto it from here; the items host only exists after the first layout pass, hence the retry
+        // the graph panel sits inside an ItemsPanelTemplate and cannot be named, so FlyoutGraphSpacingDip and the
+        // scroll mode are pushed onto it from here; the items host only exists after the first layout pass, hence
+        // the retry
         private void OnGraphsItemsControlLayoutUpdated(object? sender, object e)
         {
             if (GraphsItemsControl.ItemsPanelRoot is FluentSensors.Controls.VerticalStretchPanel panel)
             {
+                _graphsPanel = panel;
                 panel.Spacing = FlyoutGraphSpacingDip;
+                ApplyGraphsScrollMode(_isGraphsScrolling);
                 GraphsItemsControl.LayoutUpdated -= OnGraphsItemsControlLayoutUpdated;
+            }
+        }
+
+        // switches the graph list between filling the window and stacking at the standard slot height inside a scroll
+        // region; the fixed height is what the panel needs there, a ScrollViewer measures with infinite height and an
+        // equal split has nothing to divide
+        //
+        // two explicit modes rather than one permanently scrolling viewer, so a rounding difference of a single pixel
+        // cannot put a scrollbar on a window that fits
+        private void ApplyGraphsScrollMode(bool isScrolling)
+        {
+            _isGraphsScrolling = isScrolling;
+
+            if (GraphsScrollViewer != null)
+            {
+                GraphsScrollViewer.VerticalScrollMode = isScrolling ? ScrollMode.Enabled : ScrollMode.Disabled;
+                GraphsScrollViewer.VerticalScrollBarVisibility = isScrolling
+                    ? ScrollBarVisibility.Auto
+                    : ScrollBarVisibility.Disabled;
+            }
+
+            if (_graphsPanel != null)
+            {
+                _graphsPanel.FixedItemHeight = isScrolling ? FlyoutDefaultGraphHeightDip : 0;
             }
         }
 

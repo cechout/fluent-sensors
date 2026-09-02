@@ -99,6 +99,12 @@ namespace FluentSensors.Features.TaskbarWidget
         private bool _isEmbedded;
         private bool _embedGaveUp;
         public bool IsEmbedded => _isEmbedded;
+
+        // set only on the window a rebuild creates to replace a live one: it carries its predecessors drag offset,
+        // skips the startup animation, and reopens the flyout if the rebuild interrupted an open one
+        private bool _isRebuild;
+        private bool _restoreFlyoutAfterEmbed;
+
         private static TaskbarWidgetWindow _retainedInstance;
         public static TaskbarWidgetWindow CurrentInstance { get; private set; }
         public static event Action WidgetStateChanged;
@@ -114,9 +120,26 @@ namespace FluentSensors.Features.TaskbarWidget
 
         public TaskbarWidgetWindow(List<SensorRowViewModel> selectedSensors)
         {
+            ViewModel = new TaskbarWidgetViewModel(selectedSensors);
+            Initialize();
+        }
+
+        // rebuild path: takes over the ViewModel of the window it replaces, so the pinned graphs keep their history
+        // and the old instance leaves no second HardwareDataUpdated subscription behind
+        // see TaskbarFlyoutWindow.ScheduleRecreation for why the window is rebuilt at all
+        private TaskbarWidgetWindow(TaskbarWidgetViewModel viewModel, int offsetDip, bool restoreFlyout)
+        {
+            ViewModel = viewModel;
+            _currentOffsetDip = offsetDip;
+            _isRebuild = true;
+            _restoreFlyoutAfterEmbed = restoreFlyout;
+            Initialize();
+        }
+
+        private void Initialize()
+        {
             try
             {
-                ViewModel = new TaskbarWidgetViewModel(selectedSensors);
                 this.InitializeComponent();
                 CurrentInstance = this;
 
@@ -125,10 +148,14 @@ namespace FluentSensors.Features.TaskbarWidget
                 _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
                 // restore previously saved drag offset along the taskbar if available
-                var savedState = WindowStateService.Instance.GetState(WindowKey);
-                if (savedState != null && savedState.X > 0)
+                // a rebuild already carries the offset of the window it replaces, see the rebuild constructor
+                if (!_isRebuild)
                 {
-                    _currentOffsetDip = savedState.X;
+                    var savedState = WindowStateService.Instance.GetState(WindowKey);
+                    if (savedState != null && savedState.X > 0)
+                    {
+                        _currentOffsetDip = savedState.X;
+                    }
                 }
 
                 // --- workaround: CreateForContextMenu crashes unpackaged ---
@@ -280,6 +307,111 @@ namespace FluentSensors.Features.TaskbarWidget
             TaskbarFlyoutWindow.ResetGeometry();
         }
 
+        private bool _isClosed = false;
+
+        // --- memory leak: taskbar widget instance never released after a real close ---
+        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
+        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
+        // everywhere else the answer is hide-and-reuse (CloseWidget re-registers _retainedInstance); this method is
+        // the one place that deliberately destroys the window, because a global transparency or accent change is only
+        // picked up by a window built after it, see TaskbarFlyoutWindow.ScheduleRecreation
+        // price: one leaked CCW per OS theme or transparency change, knowingly paid
+        //
+        // only ever call this from RecreateWindow, never from the normal close path
+        public void SafeDestroy(bool disposeViewModel)
+        {
+            if (_isClosed) return;
+            _isClosed = true;
+
+            try
+            {
+                SettingsService.Instance.TaskbarGraphWidthChanged -= OnTaskbarGraphWidthChanged;
+                SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+            }
+            catch { }
+
+            // AppWindow_Closing cancels the close and re-registers this instance as _retainedInstance; detaching it
+            // here is what lets the Close below go through instead of resurrecting a window that is already torn down
+            try
+            {
+                _appWindow.Closing -= AppWindow_Closing;
+            }
+            catch { }
+
+            try
+            {
+                if (_taskbarHwnd != IntPtr.Zero)
+                {
+                    WinTaskbarEmbedder.Detach(_hwnd);
+                    _taskbarHwnd = IntPtr.Zero;
+                    _isEmbedded = false;
+                }
+            }
+            catch { }
+
+            try
+            {
+                // only the instance whose ViewModel nobody takes over releases it; the live one hands it to its
+                // replacement, and cleaning it up here would drop the graph history and the sensor subscription
+                if (disposeViewModel)
+                {
+                    ViewModel?.Cleanup();
+                }
+
+                _nonActivatingMonitor?.Dispose();
+                _nonActivatingMonitor = null;
+                this.Close();
+            }
+            catch { }
+        }
+
+        private static bool _isRecreating = false;
+
+        // fully destroys and rebuilds the taskbar widget when Windows global transparency or accent color changes,
+        // and tells the new window whether it has to bring an open flyout back with it
+        public static void RecreateWindow(bool restoreFlyout)
+        {
+            if (_isRecreating) return;
+            if (CurrentInstance == null && _retainedInstance == null) return;
+            _isRecreating = true;
+
+            try
+            {
+                var live = CurrentInstance;
+                var carriedViewModel = live?.ViewModel;
+                int carriedOffsetDip = live?._currentOffsetDip ?? AnchorOffsetDip;
+
+                if (live != null)
+                {
+                    CurrentInstance = null;
+                    live.SafeDestroy(disposeViewModel: false);
+                }
+
+                // a hidden widget has nothing on screen to refresh, so it is dropped rather than rebuilt; the next
+                // ShowWidget then builds one that matches the new OS settings
+                if (_retainedInstance != null)
+                {
+                    var old = _retainedInstance;
+                    _retainedInstance = null;
+                    old.SafeDestroy(disposeViewModel: true);
+                }
+
+                if (carriedViewModel == null) return;
+
+                // one dispatcher hop, so the Close above drains before the replacement window is built
+                var queue = DispatcherQueue.GetForCurrentThread() ?? MainWindow.CurrentInstance?.DispatcherQueue;
+                if (queue == null || !queue.TryEnqueue(() => _ = new TaskbarWidgetWindow(carriedViewModel, carriedOffsetDip, restoreFlyout)))
+                {
+                    _ = new TaskbarWidgetWindow(carriedViewModel, carriedOffsetDip, restoreFlyout);
+                }
+            }
+            finally
+            {
+                _isRecreating = false;
+            }
+        }
+
 
         // === embedding ===
 
@@ -367,41 +499,57 @@ namespace FluentSensors.Features.TaskbarWidget
                 _isEmbedded = true;
                 SaveWindowState(wasOpen: true);
 
-                // hide TaskbarButton initially before the delayed startup animation begins
-                if (TaskbarButton != null)
+                // a rebuild replaces a widget that is already sitting on the taskbar, so it skips the startup
+                // sequence; otherwise every OS accent or transparency change would blank the button for
+                // TaskbarStartupDelayMs and slide it in again
+                if (!_isRebuild)
                 {
-                    try
+                    // hide TaskbarButton initially before the delayed startup animation begins
+                    if (TaskbarButton != null)
                     {
-                        TaskbarButton.ApplyTemplate();
-                        var visual = ElementCompositionPreview.GetElementVisual(TaskbarButton);
-                        if (visual != null)
+                        try
                         {
-                            float slideDistPx = (float)(TaskbarStartupSlideDistanceDip * scale);
-                            visual.Offset = new Vector3(0, slideDistPx, 0);
-                            visual.Opacity = TaskbarStartupStartOpacity;
+                            TaskbarButton.ApplyTemplate();
+                            var visual = ElementCompositionPreview.GetElementVisual(TaskbarButton);
+                            if (visual != null)
+                            {
+                                float slideDistPx = (float)(TaskbarStartupSlideDistanceDip * scale);
+                                visual.Offset = new Vector3(0, slideDistPx, 0);
+                                visual.Opacity = TaskbarStartupStartOpacity;
+                            }
                         }
+                        catch { }
                     }
-                    catch { }
-                }
 
-                // play smooth slide-up startup animation on TaskbarButton after the specified startup delay
-                if (TaskbarStartupDelayMs > 0)
-                {
-                    var animTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(TaskbarStartupDelayMs) };
-                    animTimer.Tick += (s, e) =>
+                    // play smooth slide-up startup animation on TaskbarButton after the specified startup delay
+                    if (TaskbarStartupDelayMs > 0)
                     {
-                        animTimer.Stop();
-                        PlayStartupAnimation();
-                    };
-                    animTimer.Start();
-                }
-                else
-                {
-                    this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, PlayStartupAnimation);
+                        var animTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(TaskbarStartupDelayMs) };
+                        animTimer.Tick += (s, e) =>
+                        {
+                            animTimer.Stop();
+                            PlayStartupAnimation();
+                        };
+                        animTimer.Start();
+                    }
+                    else
+                    {
+                        this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, PlayStartupAnimation);
+                    }
                 }
 
                 // preload flyout window into memory to eliminate first-open latency
-                TaskbarFlyoutWindow.Preload(this);
+                // a rebuild that interrupted an open flyout reopens it here instead: the flyout anchors to the widget
+                // rect, so it can only be placed once the new widget sits on the taskbar again
+                if (_restoreFlyoutAfterEmbed)
+                {
+                    _restoreFlyoutAfterEmbed = false;
+                    TaskbarFlyoutWindow.ShowFlyout(this);
+                }
+                else
+                {
+                    TaskbarFlyoutWindow.Preload(this);
+                }
             }
             catch (Exception ex)
             {
@@ -503,6 +651,10 @@ namespace FluentSensors.Features.TaskbarWidget
         // same approach as WidgetWindow
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
+            // SafeDestroy is tearing this instance down: let the close proceed instead of handing a window that is
+            // already torn down back to _retainedInstance, where the next ShowWithSensors would try to reuse it
+            if (_isClosed) return;
+
             args.Cancel = true;
             CloseWidget();
         }

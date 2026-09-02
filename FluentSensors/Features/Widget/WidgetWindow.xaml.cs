@@ -50,7 +50,6 @@ namespace FluentSensors.Features.Widget
         private MicaController _micaController;
         private SystemBackdropConfiguration _configurationSource;
         private Windows.UI.ViewManagement.UISettings? _uiSettings;
-        private static bool _lastAdvancedEffects = true;
 
 
         // === constructor ===
@@ -117,8 +116,8 @@ namespace FluentSensors.Features.Widget
             try
             {
                 _uiSettings = new Windows.UI.ViewManagement.UISettings();
-                _uiSettings.AdvancedEffectsEnabledChanged += (s, e) => TaskbarFlyoutWindow.ScheduleRecreation();
-                _uiSettings.ColorValuesChanged += (s, e) => TaskbarFlyoutWindow.ScheduleRecreation();
+                _uiSettings.AdvancedEffectsEnabledChanged += OnSystemVisualSettingsChanged;
+                _uiSettings.ColorValuesChanged += OnSystemVisualSettingsChanged;
             }
             catch { }
 
@@ -200,6 +199,17 @@ namespace FluentSensors.Features.Widget
             }
             catch { }
 
+            try
+            {
+                if (_uiSettings != null)
+                {
+                    _uiSettings.AdvancedEffectsEnabledChanged -= OnSystemVisualSettingsChanged;
+                    _uiSettings.ColorValuesChanged -= OnSystemVisualSettingsChanged;
+                    _uiSettings = null;
+                }
+            }
+            catch { }
+
             // AppWindow_Closing cancels the close and re-registers this instance as _retainedInstance; detaching it
             // here is what lets the Close below go through instead of resurrecting a window that is already torn down
             // WidgetWindow_Closed stays attached, it carries the real teardown once the close completes
@@ -250,7 +260,11 @@ namespace FluentSensors.Features.Widget
 
             if (sensors.Count > 0 && wasVisible)
             {
-                MainWindow.CurrentInstance?.DispatcherQueue.TryEnqueue(() =>
+                // the queue has to be resolved with a fallback: closing the main window to the tray leaves
+                // MainWindow.CurrentInstance null, and a null-conditional TryEnqueue there would skip the finally
+                // below and latch _isRecreating for the rest of the session, so the widget would never rebuild again
+                var queue = MainWindow.CurrentInstance?.DispatcherQueue ?? DispatcherQueue.GetForCurrentThread();
+                bool queued = queue != null && queue.TryEnqueue(() =>
                 {
                     try
                     {
@@ -261,6 +275,11 @@ namespace FluentSensors.Features.Widget
                         _isRecreating = false;
                     }
                 });
+
+                if (!queued)
+                {
+                    _isRecreating = false;
+                }
             }
             else
             {
@@ -420,20 +439,11 @@ namespace FluentSensors.Features.Widget
             });
         }
 
-        private void OnAdvancedEffectsEnabledChanged(Windows.UI.ViewManagement.UISettings sender, object args)
+        // a named handler rather than a lambda, so SafeDestroy can detach it again; every rebuilt window subscribes
+        // anew and without the detach the UISettings handler list grows by one per rebuild
+        private void OnSystemVisualSettingsChanged(Windows.UI.ViewManagement.UISettings sender, object args)
         {
-            try
-            {
-                bool current = sender.AdvancedEffectsEnabled;
-                if (current == _lastAdvancedEffects) return; // ignore spurious theme change events
-                _lastAdvancedEffects = current;
-            }
-            catch { }
-
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                SetBackdrop(SettingsService.Instance.BackdropType);
-            });
+            TaskbarFlyoutWindow.ScheduleRecreation();
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)

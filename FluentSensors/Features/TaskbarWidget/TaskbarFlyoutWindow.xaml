@@ -51,23 +51,34 @@
                 Grid.Row="0"
                 Background="{ThemeResource FlyoutGraphsBackground}"
                 CornerRadius="7,7,0,0">
-                <ItemsControl x:Name="GraphsItemsControl" ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <fhControls:VerticalStretchPanel />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
 
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
-                            <fhGraph:SensorPanelControl
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ViewModel="{x:Bind}" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <!--  the graphs scroll only once the pinned sensor count pushes the window past its height cap  -->
+                <!--  (both modes are switched from code, see ApplyGraphsScrollMode)  -->
+                <ScrollViewer
+                    x:Name="GraphsScrollViewer"
+                    HorizontalScrollBarVisibility="Disabled"
+                    HorizontalScrollMode="Disabled"
+                    VerticalScrollBarVisibility="Disabled"
+                    VerticalScrollMode="Disabled"
+                    ZoomMode="Disabled">
+                    <ItemsControl x:Name="GraphsItemsControl" ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <fhControls:VerticalStretchPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
+                                <fhGraph:SensorPanelControl
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ViewModel="{x:Bind}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
             </Grid>
 
 
