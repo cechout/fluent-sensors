@@ -25,6 +25,7 @@ namespace FluentSensors.Common.UI
         private static readonly Windows.UI.Color LightColor = Windows.UI.Color.FromArgb(0xE4, 0x00, 0x00, 0x00);
         private static readonly Windows.UI.Color DarkColor = Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF);
 
+        // for callers with no element to ask, which resolves against the app theme setting
         public static Brush Resolve()
         {
             bool isDark = SettingsService.Instance.AppTheme switch
@@ -35,6 +36,14 @@ namespace FluentSensors.Common.UI
                 _ => Application.Current.RequestedTheme == ApplicationTheme.Dark
             };
 
+            return ForTheme(isDark);
+        }
+
+        // for callers that render in a known theme, which anything with an ActualTheme to read does
+        // more reliable than Resolve() wherever a control can end up in a window that does not follow the app theme
+        // setting, see SensorPanelControl
+        public static Brush ForTheme(bool isDark)
+        {
             return new SolidColorBrush(isDark ? DarkColor : LightColor);
         }
     }

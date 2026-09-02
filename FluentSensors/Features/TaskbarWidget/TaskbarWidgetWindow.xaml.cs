@@ -183,8 +183,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow.Closing += AppWindow_Closing;
 
                 SettingsService.Instance.TaskbarGraphWidthChanged += OnTaskbarGraphWidthChanged;
-                SettingsService.Instance.ThemeChanged += OnThemeChanged;
-                ApplyTheme(SettingsService.Instance.AppTheme);
+                ApplyWindowsTheme();
 
                 // wire left-button press/release/drag animations and movement even when Button internally handles clicks
                 TaskbarButton.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(TaskbarButton_PointerPressed), true);
@@ -327,7 +326,6 @@ namespace FluentSensors.Features.TaskbarWidget
             try
             {
                 SettingsService.Instance.TaskbarGraphWidthChanged -= OnTaskbarGraphWidthChanged;
-                SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             }
             catch { }
 
@@ -663,22 +661,21 @@ namespace FluentSensors.Features.TaskbarWidget
             CloseWidget();
         }
 
-        private void OnThemeChanged(string newTheme)
-        {
-            this.DispatcherQueue.TryEnqueue(() => ApplyTheme(newTheme));
-        }
-
-        private void ApplyTheme(string themeTag)
+        // this window sits inside the Windows taskbar, so it follows the Windows theme and deliberately ignores the
+        // apps own theme setting; every other window (main, widget, hidden sensors, taskbar flyout) keeps following
+        // the setting, so a light app on a dark Windows leaves this one dark and blending into the taskbar
+        //
+        // ElementTheme.Default inherits the app level theme, which is the Windows theme here since the app never
+        // overrides it
+        // set once and never revisited on purpose: Default keeps tracking Windows by itself from there, including a
+        // theme switch while the app is running
+        private void ApplyWindowsTheme()
         {
             if (this.Content is FrameworkElement rootElement)
             {
-                rootElement.RequestedTheme = themeTag switch
-                {
-                    "Light" => ElementTheme.Light,
-                    "Dark" => ElementTheme.Dark,
-                    _ => ElementTheme.Default
-                };
+                rootElement.RequestedTheme = ElementTheme.Default;
             }
+
             UpdateVisualState();
         }
 

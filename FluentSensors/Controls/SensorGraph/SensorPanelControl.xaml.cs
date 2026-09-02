@@ -7,7 +7,6 @@ using System.ComponentModel;
 using System.Linq;
 
 using FluentSensors.Common.UI;
-using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Controls.SensorGraph
@@ -520,7 +519,16 @@ namespace FluentSensors.Controls.SensorGraph
 
         private string GetCurrentValueOrPlaceholder(SensorGraphViewModel viewModel) => GetTextOrPlaceholder(viewModel?.CurrentValueText);
 
-        private Brush GetCurrentValueColorOrDefault(SensorGraphViewModel viewModel) => viewModel?.CurrentValueColor ?? DefaultTextColor.Resolve();
+        // the plain value color comes from this controls own ActualTheme rather than from the view model, because the
+        // taskbar widget and the taskbar flyout render the very same view model instances at the same time and can sit
+        // on different themes: the widget follows Windows, the flyout follows the app theme setting
+        // only a threshold override still comes from the view model, since that color is theme independent
+        private Brush GetCurrentValueColorOrDefault(SensorGraphViewModel viewModel)
+        {
+            if (viewModel != null && viewModel.IsThresholdColorActive) return viewModel.CurrentValueColor;
+
+            return DefaultTextColor.ForTheme(ActualTheme == ElementTheme.Dark);
+        }
 
         private string GetStatusRowTitleOrPlaceholder(bool showUnit, SensorGraphViewModel viewModel) =>
             viewModel == null ? "--" : GetTextOrPlaceholder(GetStatusRowTitle(showUnit, viewModel.SensorName, viewModel.DisplayNameWithUnit));
@@ -619,16 +627,13 @@ namespace FluentSensors.Controls.SensorGraph
             return null;
         }
 
-        // same resolution order as DefaultTextColor.Resolve; a code-behind theme-resource lookup would ignore the apps
-        // RequestedTheme override, so the app theme setting is read directly with the OS theme as the fallback
-        private static bool IsDarkTheme()
+        // ActualTheme is whatever this instance actually renders in, so it already accounts for the window it sits
+        // in overriding the theme; reading the app theme setting instead got this wrong in the taskbar widget, which
+        // deliberately follows Windows rather than the setting
+        // the ActualThemeChanged handler in the constructor re-runs the bindings that depend on this
+        private bool IsDarkTheme()
         {
-            return SettingsService.Instance.AppTheme switch
-            {
-                "Light" => false,
-                "Dark" => true,
-                _ => Application.Current.RequestedTheme == ApplicationTheme.Dark
-            };
+            return ActualTheme == ElementTheme.Dark;
         }
 
         private Windows.UI.Color? BoolToCardBorderOverride(bool showBorder) =>

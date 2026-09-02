@@ -89,6 +89,13 @@ namespace FluentSensors.Controls.SensorGraph
 
         public SensorGraphScope Scope { get; }
 
+        // whether CurrentValueColor currently carries a threshold override rather than the plain default text color
+        // consumers that resolve the default against their own theme instead need to tell the two apart, see
+        // SensorPanelControl.GetCurrentValueColorOrDefault
+        // deliberately no change notification of its own; it is only ever set together with CurrentValueColor below,
+        // whose notification already carries the refresh
+        public bool IsThresholdColorActive { get; private set; }
+
         // general
         public ObservableCollection<double?> SensorData { get; private set; }
         public string SensorId { get; }
@@ -444,7 +451,9 @@ namespace FluentSensors.Controls.SensorGraph
         // re-evaluates the current values color against this sensors own threshold config
         private void RecalculateColor()
         {
-            CurrentValueColor = Threshold.IsBreached(_currentRaw)
+            IsThresholdColorActive = Threshold.IsBreached(_currentRaw);
+
+            CurrentValueColor = IsThresholdColorActive
                 ? new SolidColorBrush(Threshold.Color)
                 : DefaultTextColor.Resolve();
         }
