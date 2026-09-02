@@ -100,8 +100,8 @@
                         <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
                     </Grid.Resources>
 
-                    <!--  open main app window  -->
-                    <!--  (icon and label)  -->
+                    <!--  open the sensor list on the taskbar profile  -->
+                    <!--  (label only)  -->
                     <CommandBar
                         HorizontalAlignment="Left"
                         Background="Transparent"
@@ -114,14 +114,18 @@
                                 x:Name="BackToDashboardButton"
                                 Click="BackToDashboard_Click"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Label="Open App"
-                                ToolTipService.ToolTip="Open the main app window">
-                                <AppBarButton.Icon>
-                                    <FontIcon
-                                        FontSize="14"
-                                        FontWeight="SemiLight"
-                                        Glyph="&#xE944;" />
-                                </AppBarButton.Icon>
+                                Label="Manage Taskbar Sensors">
+
+                                <!--  runs without an icon; the glyph column is sized by the LabelOnRight visual state  -->
+                                <!--
+                                    the label margin itself is unreachable: the LabelOnRight state assigns it from a
+                                    StaticResource, which resolves once inside the platform dictionary and never looks
+                                    at this scope, so its fixed 8,16,12,10 always wins
+                                -->
+                                <AppBarButton.Resources>
+                                    <x:Double x:Key="AppBarButtonContentHeight">0</x:Double>
+                                    <Thickness x:Key="AppBarButtonContentViewboxMargin">5,0,0,0</Thickness>
+                                </AppBarButton.Resources>
                             </AppBarButton>
                         </CommandBar.PrimaryCommands>
                     </CommandBar>

@@ -142,7 +142,7 @@ namespace FluentSensors.Features.TaskbarWidget
         public const int AnimationReferenceSensorCount = 2;
         public const double EnterDurationPerSensorFactor = 0.20; // scaling per sensor on open
         public const double ExitDurationPerSensorFactor = 0.14;  // scaling per sensor on close
-        public const double SlideDistancePerSensorFactor = 0.08; // scaling per sensor on the travelled distance
+        public const double SlideDistancePerSensorFactor = 0.10; // scaling per sensor on the travelled distance
 
         // keeps a single sensor from snapping open and a full height flyout from crawling
         public const double MinAnimationScaleFactor = 0.75;
@@ -1186,18 +1186,21 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        // the bottom bar action lands on the sensor list with the taskbar profile active, because picking which
+        // sensors are pinned is the one thing the flyout itself cannot do
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)
         {
             HideFlyout();
 
             if (MainWindow.CurrentInstance != null)
             {
-                MainWindow.CurrentInstance.OpenDashboard();
+                MainWindow.CurrentInstance.OpenSensorsForProfile(SensorSelectionProfile.Taskbar);
             }
             else
             {
                 var newMainWindow = new MainWindow();
                 newMainWindow.Activate();
+                newMainWindow.OpenSensorsForProfile(SensorSelectionProfile.Taskbar);
             }
         }
 

@@ -142,6 +142,24 @@ namespace FluentSensors.Features.Sensors
             RebuildCommandBarOverflow();
         }
 
+        // entry point for callers outside the page (currently the taskbar flyout) that want the list to open on a
+        // specific profile; drives the ComboBox rather than ViewModel.ActiveProfile so the handler above stays the
+        // single place that pairs the profile switch with the command bar rebuild
+        public void SelectProfile(SensorSelectionProfile profile)
+        {
+            foreach (var item in SelectionProfileComboBox.Items.OfType<ComboBoxItem>())
+            {
+                if (item.Tag is string tag
+                    && Enum.TryParse(tag, out SensorSelectionProfile itemProfile)
+                    && itemProfile == profile)
+                {
+                    // no-op if it is already the selected one, SelectionChanged simply does not fire
+                    SelectionProfileComboBox.SelectedItem = item;
+                    return;
+                }
+            }
+        }
+
         private void ResetMinMax_Click(object sender, RoutedEventArgs e)
         {
             // we iterate through all nested groups and all sensors
