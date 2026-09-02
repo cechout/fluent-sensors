@@ -21,15 +21,22 @@ namespace FluentSensors.Persistence.Models
         public double GraphTimeSpanSeconds { get; set; } = 45;
 
         // taskbar ecosystem (taskbar widget + flyout window) appearance
-        public string TaskbarBackdropType { get; set; } = "Acrylic";
+        public string TaskbarBackdropType { get; set; } = "Mica";
         public float TaskbarTintOpacity { get; set; } = 0.4f;
         public float TaskbarLuminosityOpacity { get; set; } = 0.2f;
         public bool TaskbarUseAccentColor { get; set; } = true;
         public Color TaskbarCustomTintColor { get; set; } = Color.FromArgb(255, 25, 25, 25);
         public bool TaskbarUseGraphAccentColor { get; set; } = true;
         public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
-        public double TaskbarGraphTimeSpanSeconds { get; set; } = 45;
+        public double TaskbarGraphTimeSpanSeconds { get; set; } = 20;
         public int TaskbarGraphWidthDip { get; set; } = 120;
+        public bool TaskbarUseTransparentGraphBackground { get; set; } = false;
+
+        // flyout horizontal placement over the taskbar widget: "Center", "Left" or "Right"
+        public string TaskbarFlyoutAlignment { get; set; } = "Center";
+
+        // when true, the taskbar widget cannot be dragged along the taskbar
+        public bool TaskbarWidgetPositionLocked { get; set; } = false;
 
         public bool MinimizeToTray { get; set; } = true;
         public bool HideSensorsCompletely { get; set; } = true;

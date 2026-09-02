@@ -30,6 +30,30 @@ namespace FluentSensors.Controls
             }
         }
 
+        // fixed height per child in DIP; 0 keeps the equal split
+        // a ScrollViewer measures its content with infinite height, where an equal split has nothing to divide, so a
+        // scrolling host hands the panel the row height to stack at instead
+        public double FixedItemHeight
+        {
+            get => (double)GetValue(FixedItemHeightProperty);
+            set => SetValue(FixedItemHeightProperty, value);
+        }
+
+        public static readonly DependencyProperty FixedItemHeightProperty =
+            DependencyProperty.Register(
+                nameof(FixedItemHeight),
+                typeof(double),
+                typeof(VerticalStretchPanel),
+                new PropertyMetadata(0.0, OnFixedItemHeightChanged));
+
+        private static void OnFixedItemHeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is VerticalStretchPanel panel)
+            {
+                panel.InvalidateMeasure();
+            }
+        }
+
         protected override Size MeasureOverride(Size availableSize)
         {
             int count = Children.Count;
@@ -42,14 +66,20 @@ namespace FluentSensors.Controls
             double measureHeight = double.IsInfinity(availableSize.Height) ? 0 : availableSize.Height;
 
             double totalSpacing = Spacing * (count - 1);
-            double cellHeight = Math.Max(0, (measureHeight - totalSpacing) / count);
+            double cellHeight = FixedItemHeight > 0
+                ? FixedItemHeight
+                : Math.Max(0, (measureHeight - totalSpacing) / count);
 
             foreach (var child in Children)
             {
                 child.Measure(new Size(measureWidth, cellHeight));
             }
 
-            return new Size(measureWidth, measureHeight);
+            // a fixed row height is the one case with a real content height to report, and reporting it is what lets
+            // a scrolling host know there is something to scroll
+            return FixedItemHeight > 0
+                ? new Size(measureWidth, (count * cellHeight) + totalSpacing)
+                : new Size(measureWidth, measureHeight);
         }
 
         protected override Size ArrangeOverride(Size finalSize)
@@ -58,7 +88,9 @@ namespace FluentSensors.Controls
             if (count == 0) return finalSize;
 
             double totalSpacing = Spacing * (count - 1);
-            double cellHeight = Math.Max(0, (finalSize.Height - totalSpacing) / count);
+            double cellHeight = FixedItemHeight > 0
+                ? FixedItemHeight
+                : Math.Max(0, (finalSize.Height - totalSpacing) / count);
 
             double y = 0;
             foreach (var child in Children)

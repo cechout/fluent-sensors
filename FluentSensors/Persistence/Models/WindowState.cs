@@ -13,9 +13,6 @@ namespace FluentSensors.Persistence.Models
         public int Height { get; set; }
         public bool IsMaximized { get; set; }
 
-        // number of pinned sensors when size was saved (used by TaskbarFlyoutWindow to reset on count change)
-        public int? SensorCount { get; set; }
-
         // WidgetWindow only: whether it was open when the app last closed, so it can be automatically restored on
         // next launch; which sensors to restore it with comes from SensorSelectionService, not from here
         public bool WasOpen { get; set; }

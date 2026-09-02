@@ -43,10 +43,7 @@ namespace FluentSensors.Controls.SensorGraph
 
             // when set, this instance owns a fixed time span independent of the scope GraphTimeSpanSeconds setting
             _timeSpanOverrideSeconds = graphTimeSpanSecondsOverride;
-            double initialTimeSpanSeconds = graphTimeSpanSecondsOverride ?? (Scope == SensorGraphScope.Taskbar
-                ? SettingsService.Instance.TaskbarGraphTimeSpanSeconds
-                : SettingsService.Instance.GraphTimeSpanSeconds);
-            int initialPointCount = CalculatePointCount(initialTimeSpanSeconds, HardwareMonitorService.Instance.UpdateIntervalMs);
+            int initialPointCount = CalculatePointCount(ResolveTimeSpanSeconds(), HardwareMonitorService.Instance.UpdateIntervalMs);
 
             // this raw data list will be plotted by LiveCharts
             // we use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
@@ -55,8 +52,10 @@ namespace FluentSensors.Controls.SensorGraph
             if (Scope == SensorGraphScope.Taskbar)
             {
                 GraphColor = ResolveGraphColor(SettingsService.Instance.TaskbarUseGraphAccentColor, SettingsService.Instance.TaskbarGraphCustomColor);
+                _isCardBackgroundVisible = !SettingsService.Instance.TaskbarUseTransparentGraphBackground;
                 SettingsService.Instance.TaskbarGraphColorChanged += OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnGraphTimeSpanChanged;
+                SettingsService.Instance.TaskbarGraphBackgroundChanged += OnGraphBackgroundChanged;
             }
             else
             {
@@ -116,6 +115,21 @@ namespace FluentSensors.Controls.SensorGraph
         {
             get => _graphColor;
             private set { _graphColor = value; OnPropertyChanged(); }
+        }
+
+        // taskbar widget graphs can drop their calculated card tint and go fully transparent
+        // only the widget template binds this; the flyout renders these same instances with its own defaults,
+        // so it keeps its themed card background either way
+        private bool _isCardBackgroundVisible = true;
+        public bool IsCardBackgroundVisible
+        {
+            get => _isCardBackgroundVisible;
+            private set
+            {
+                if (_isCardBackgroundVisible == value) return;
+                _isCardBackgroundVisible = value;
+                OnPropertyChanged();
+            }
         }
 
         // threshold: owned by the shared editor, exposed so views can bind e.g. Threshold.Value, Threshold.IsEnabled
@@ -223,6 +237,11 @@ namespace FluentSensors.Controls.SensorGraph
             GraphColor = ResolveGraphColor(useAccent, customColor);
         }
 
+        private void OnGraphBackgroundChanged(bool useTransparentBackground)
+        {
+            IsCardBackgroundVisible = !useTransparentBackground;
+        }
+
         private void OnGraphTimeSpanChanged(double newTimeSpanSeconds)
         {
             // instances with a fixed override never resize with the global setting
@@ -240,6 +259,16 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === public methods ===
 
+        // re-resolves the graph color against the current settings and the live SystemAccentColor
+        // the constructor resolves it once, and SettingsService only reports the users own accent/custom switch;
+        // a Windows accent change reaches this instance through nothing else
+        public void RefreshGraphColor()
+        {
+            GraphColor = Scope == SensorGraphScope.Taskbar
+                ? ResolveGraphColor(SettingsService.Instance.TaskbarUseGraphAccentColor, SettingsService.Instance.TaskbarGraphCustomColor)
+                : ResolveGraphColor(SettingsService.Instance.UseGraphAccentColor, SettingsService.Instance.GraphCustomColor);
+        }
+
         // unsubscribes from SettingsService events and the threshold editor; without this, disposed sensor rows would
         // still react to graph color / data point / threshold changes after being removed
         public void Cleanup()
@@ -248,6 +277,7 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 SettingsService.Instance.TaskbarGraphColorChanged -= OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+                SettingsService.Instance.TaskbarGraphBackgroundChanged -= OnGraphBackgroundChanged;
             }
             else
             {
@@ -362,9 +392,21 @@ namespace FluentSensors.Controls.SensorGraph
         // the current polling interval, and resizes to it
         private void RecalculatePointCount()
         {
-            double effectiveSeconds = _timeSpanOverrideSeconds ?? SettingsService.Instance.GraphTimeSpanSeconds;
-            int newCount = CalculatePointCount(effectiveSeconds, HardwareMonitorService.Instance.UpdateIntervalMs);
+            int newCount = CalculatePointCount(ResolveTimeSpanSeconds(), HardwareMonitorService.Instance.UpdateIntervalMs);
             ResizeSensorData(newCount);
+        }
+
+        // the time span this instance currently plots: its own fixed override if it has one, otherwise the setting
+        // belonging to its scope
+        // shared by the constructor and every later resize on purpose; resolving it separately in the two places is
+        // what let taskbar graphs get rebuilt against the widget windows range instead of their own
+        private double ResolveTimeSpanSeconds()
+        {
+            if (_timeSpanOverrideSeconds.HasValue) return _timeSpanOverrideSeconds.Value;
+
+            return Scope == SensorGraphScope.Taskbar
+                ? SettingsService.Instance.TaskbarGraphTimeSpanSeconds
+                : SettingsService.Instance.GraphTimeSpanSeconds;
         }
 
         // how many points a graph needs to cover timeSpanSeconds at the given polling interval

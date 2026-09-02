@@ -181,10 +181,98 @@
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Taskbar Widget &amp; Flyout Appearance" />
 
-            <!--  taskbar background material  -->
+            <!--  drag lock for the widget position on the taskbar  -->
+            <controls:SettingsCard
+                Description="Stop the taskbar widget from being dragged along the taskbar"
+                Header="Lock Taskbar Widget Position"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE72E;}">
+                <ToggleSwitch
+                    x:Name="LockWidgetPositionToggle"
+                    OffContent="Off"
+                    OnContent="On"
+                    Toggled="LockWidgetPositionToggle_Toggled" />
+            </controls:SettingsCard>
+
+            <!--  taskbar graph appearance  -->
+            <controls:SettingsExpander
+                Description="Taskbar graph color, background, time range and graph Width"
+                Header="Graph"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Header="Graph Color Source">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox
+                                x:Name="TaskbarGraphColorSourceComboBox"
+                                Width="160"
+                                SelectionChanged="TaskbarGraphColorSourceComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Windows Accent" Tag="Accent" />
+                                <ComboBoxItem Content="Custom Color" Tag="Custom" />
+                            </ComboBox>
+
+                            <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                    <!--  transparent drops the calculated tint so the taskbar shows through the graph cards  -->
+                    <controls:SettingsCard Header="Graph Background Source">
+                        <ComboBox
+                            x:Name="TaskbarGraphBackgroundSourceComboBox"
+                            Width="160"
+                            SelectionChanged="TaskbarGraphBackgroundSourceComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Calculated" Tag="Calculated" />
+                            <ComboBoxItem Content="Transparent" Tag="Transparent" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Header="Time Range">
+                        <ComboBox
+                            x:Name="TaskbarGraphTimeSpanComboBox"
+                            Width="40"
+                            SelectionChanged="TaskbarGraphTimeSpanComboBox_SelectionChanged">
+                            <ComboBoxItem Content="15s" Tag="15" />
+                            <ComboBoxItem Content="20s" Tag="20" />
+                            <ComboBoxItem Content="30s" Tag="30" />
+                            <ComboBoxItem Content="45s" Tag="45" />
+                            <ComboBoxItem Content="60s" Tag="60" />
+                            <ComboBoxItem Content="90s" Tag="90" />
+                            <ComboBoxItem Content="120s" Tag="120" />
+                            <ComboBoxItem Content="240s" Tag="240" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Graph Width">
+                        <Slider
+                            x:Name="TaskbarGraphWidthSlider"
+                            Width="200"
+                            Maximum="240"
+                            Minimum="60"
+                            StepFrequency="5"
+                            TickFrequency="20"
+                            ValueChanged="TaskbarGraphWidthSlider_ValueChanged" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+            <!--  flyout alignment over the widget  -->
+            <controls:SettingsCard
+                Description="Where the flyout lines up relative to the widget"
+                Header="Flyout Alignment"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE8E3;}">
+                <ComboBox
+                    x:Name="TaskbarFlyoutAlignmentComboBox"
+                    Width="160"
+                    SelectionChanged="TaskbarFlyoutAlignmentComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Centered" Tag="Center" />
+                    <ComboBoxItem Content="Left" Tag="Left" />
+                    <ComboBoxItem Content="Right" Tag="Right" />
+                </ComboBox>
+            </controls:SettingsCard>
+
+            <!--  flyout background material  -->
             <controls:SettingsExpander
                 Description="Backdrop effect and color for the taskbar flyout"
-                Header="Background Material"
+                Header="Flyout Background Material"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xEF1F;}"
                 IsExpanded="False">
 
@@ -232,56 +320,6 @@
 
                             <controls:ColorPickerButton x:Name="TaskbarBackgroundColorPicker" />
                         </StackPanel>
-                    </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
-
-            <!--  taskbar graph appearance  -->
-            <controls:SettingsExpander
-                Description="Taskbar graph color, time range and graph Width"
-                Header="Graph"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
-                IsExpanded="False">
-
-                <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Graph Color Source">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <ComboBox
-                                x:Name="TaskbarGraphColorSourceComboBox"
-                                Width="160"
-                                SelectionChanged="TaskbarGraphColorSourceComboBox_SelectionChanged">
-                                <ComboBoxItem Content="Windows Accent" Tag="Accent" />
-                                <ComboBoxItem Content="Custom Color" Tag="Custom" />
-                            </ComboBox>
-
-                            <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" />
-                        </StackPanel>
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard Header="Time Range">
-                        <ComboBox
-                            x:Name="TaskbarGraphTimeSpanComboBox"
-                            Width="40"
-                            SelectionChanged="TaskbarGraphTimeSpanComboBox_SelectionChanged">
-                            <ComboBoxItem Content="15s" Tag="15" />
-                            <ComboBoxItem Content="20s" Tag="20" />
-                            <ComboBoxItem Content="30s" Tag="30" />
-                            <ComboBoxItem Content="45s" Tag="45" />
-                            <ComboBoxItem Content="60s" Tag="60" />
-                            <ComboBoxItem Content="90s" Tag="90" />
-                            <ComboBoxItem Content="120s" Tag="120" />
-                            <ComboBoxItem Content="240s" Tag="240" />
-                        </ComboBox>
-                    </controls:SettingsCard>
-                    <controls:SettingsCard Header="Graph Width">
-                        <Slider
-                            x:Name="TaskbarGraphWidthSlider"
-                            Width="200"
-                            Maximum="240"
-                            Minimum="60"
-                            StepFrequency="5"
-                            TickFrequency="20"
-                            ValueChanged="TaskbarGraphWidthSlider_ValueChanged" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

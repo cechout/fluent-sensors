@@ -3,8 +3,9 @@
 
 namespace FluentSensors.Persistence.Models
 {
-    // persisted ordered sensor ids for the three selection profiles (widget window, csv, taskbar)
-    // order matters here, it is the exact row order each profiles consumer displays
+    // persisted sensor ids for the three selection profiles (widget window, csv, taskbar)
+    // this is membership only, in the order the checkboxes happened to be toggled; the order a consumer displays
+    // is resolved from hardware discovery order at load time, not from this list
     public class SensorSelectionState
     {
         public List<string> WidgetWindow { get; set; } = new();

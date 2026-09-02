@@ -97,6 +97,16 @@ namespace FluentSensors.Features.Widget
         }
 
 
+        // re-resolves every pinned graphs color against the current settings and the live SystemAccentColor
+        public void RefreshGraphColors()
+        {
+            foreach (var sensor in PinnedSensors)
+            {
+                sensor.RefreshGraphColor();
+            }
+        }
+
+
         // fully couples or decouples the widget from the live hardware data stream; used for the closed (hidden) widget,
         // where nothing should run in the background at all
         // off: stops all incoming data (unsubscribes from HardwareMonitorService) and wipes every pinned graphs history

@@ -50,7 +50,6 @@ namespace FluentSensors.Features.Widget
         private MicaController _micaController;
         private SystemBackdropConfiguration _configurationSource;
         private Windows.UI.ViewManagement.UISettings? _uiSettings;
-        private static bool _lastAdvancedEffects = true;
 
 
         // === constructor ===
@@ -117,8 +116,9 @@ namespace FluentSensors.Features.Widget
             try
             {
                 _uiSettings = new Windows.UI.ViewManagement.UISettings();
-                _uiSettings.AdvancedEffectsEnabledChanged += (s, e) => TaskbarFlyoutWindow.ScheduleRecreation();
-                _uiSettings.ColorValuesChanged += (s, e) => TaskbarFlyoutWindow.ScheduleRecreation();
+                TaskbarFlyoutWindow.SeedSystemVisualsSnapshot(_uiSettings);
+                _uiSettings.AdvancedEffectsEnabledChanged += OnSystemVisualSettingsChanged;
+                _uiSettings.ColorValuesChanged += OnSystemVisualSettingsChanged;
             }
             catch { }
 
@@ -202,6 +202,27 @@ namespace FluentSensors.Features.Widget
 
             try
             {
+                if (_uiSettings != null)
+                {
+                    _uiSettings.AdvancedEffectsEnabledChanged -= OnSystemVisualSettingsChanged;
+                    _uiSettings.ColorValuesChanged -= OnSystemVisualSettingsChanged;
+                    _uiSettings = null;
+                }
+            }
+            catch { }
+
+            // AppWindow_Closing cancels the close and re-registers this instance as _retainedInstance; detaching it
+            // here is what lets the Close below go through instead of resurrecting a window that is already torn down
+            // WidgetWindow_Closed stays attached, it carries the real teardown once the close completes
+            try
+            {
+                _appWindow.Closing -= AppWindow_Closing;
+                _appWindow.Changed -= AppWindow_Changed;
+            }
+            catch { }
+
+            try
+            {
                 _acrylicController?.Dispose();
                 _acrylicController = null;
                 _micaController?.Dispose();
@@ -240,7 +261,11 @@ namespace FluentSensors.Features.Widget
 
             if (sensors.Count > 0 && wasVisible)
             {
-                MainWindow.CurrentInstance?.DispatcherQueue.TryEnqueue(() =>
+                // the queue has to be resolved with a fallback: closing the main window to the tray leaves
+                // MainWindow.CurrentInstance null, and a null-conditional TryEnqueue there would skip the finally
+                // below and latch _isRecreating for the rest of the session, so the widget would never rebuild again
+                var queue = MainWindow.CurrentInstance?.DispatcherQueue ?? DispatcherQueue.GetForCurrentThread();
+                bool queued = queue != null && queue.TryEnqueue(() =>
                 {
                     try
                     {
@@ -251,6 +276,11 @@ namespace FluentSensors.Features.Widget
                         _isRecreating = false;
                     }
                 });
+
+                if (!queued)
+                {
+                    _isRecreating = false;
+                }
             }
             else
             {
@@ -265,12 +295,14 @@ namespace FluentSensors.Features.Widget
                 return new List<SensorRowViewModel>();
             }
 
-            var allSensors = SensorsViewModel.Instance.HardwareGroups
-                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors));
+            // walks the groups rather than the id list so the row order matches what PinToWidget_Click and
+            // PinToTaskbar_Click produce; the persisted list is membership in toggle order, not display order,
+            // and mapping over it put restored graphs in a different order than a live pin of the same sensors
+            var wantedIds = new HashSet<string>(sensorIds);
 
-            return sensorIds
-                .Select(id => allSensors.FirstOrDefault(s => s.Id == id))
-                .Where(sensor => sensor != null)
+            return SensorsViewModel.Instance.HardwareGroups
+                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors))
+                .Where(sensor => wantedIds.Contains(sensor.Id))
                 .ToList();
         }
 
@@ -333,6 +365,10 @@ namespace FluentSensors.Features.Widget
         // command); this window never decides to quit on its own
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
+            // SafeDestroy is tearing this instance down: let the close proceed instead of handing a window with
+            // _isClosed set back to _retainedInstance, where every later SetBackdrop and ApplyTheme returns early
+            if (_isClosed) return;
+
             args.Cancel = true;
 
             SaveWindowState(wasOpen: false);
@@ -406,20 +442,14 @@ namespace FluentSensors.Features.Widget
             });
         }
 
-        private void OnAdvancedEffectsEnabledChanged(Windows.UI.ViewManagement.UISettings sender, object args)
+        // a named handler rather than a lambda, so SafeDestroy can detach it again; every rebuilt window subscribes
+        // anew and without the detach the UISettings handler list grows by one per rebuild
+        //
+        // routes to RouteSystemVisualsChange rather than ScheduleRecreation directly, see TaskbarFlyoutWindows own
+        // handler for why: a pure accent change resolves into an in-place refresh instead of a rebuild
+        private void OnSystemVisualSettingsChanged(Windows.UI.ViewManagement.UISettings sender, object args)
         {
-            try
-            {
-                bool current = sender.AdvancedEffectsEnabled;
-                if (current == _lastAdvancedEffects) return; // ignore spurious theme change events
-                _lastAdvancedEffects = current;
-            }
-            catch { }
-
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                SetBackdrop(SettingsService.Instance.BackdropType);
-            });
+            TaskbarFlyoutWindow.RouteSystemVisualsChange(sender);
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
@@ -676,6 +706,14 @@ namespace FluentSensors.Features.Widget
 
                 RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(targetColor);
             }
+        }
+
+        // re-reads the live SystemAccentColor into the acrylic tint and the solid background, for a pure OS
+        // accent change; both already resolve the accent fresh on every call, so no window rebuild is needed
+        public void RefreshAccentSurfaces()
+        {
+            UpdateAcrylicProperties();
+            UpdateSolidBackground();
         }
 
         // dynamically applies the chosen backdrop material to the WidgetWindow based on the users selection in the settings

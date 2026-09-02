@@ -74,6 +74,9 @@ namespace FluentSensors
         private bool _isHardwareServiceLoaded = false;
         private bool _isDashboardClosed = false;
 
+        // profile a caller asked for while the splash was still running; applied once the sensor page exists
+        private SensorSelectionProfile? _pendingSensorProfile = null;
+
         // system tray icon commands
         public XamlUICommand RestoreAppCommand { get; } = new XamlUICommand(); // restore
         public XamlUICommand ShowMainWindowCommand { get; } = new XamlUICommand(); // restore + navigate to SensorPage
@@ -271,6 +274,14 @@ namespace FluentSensors
             AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;
             MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
 
+            // a profile request that arrived before the page existed; the selection above is what finally creates it
+            if (_pendingSensorProfile is SensorSelectionProfile pendingProfile
+                && contentFrame.Content is SensorsPage pendingPage)
+            {
+                pendingPage.SelectProfile(pendingProfile);
+                _pendingSensorProfile = null;
+            }
+
             // re-open the widget window with its previously pinned sensors, if it was still open when the app last closed
             TryRestoreWidgetWindow();
 
@@ -310,16 +321,17 @@ namespace FluentSensors
             FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow.ShowWithSensors(pinnedSensors);
         }
 
-        // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, preserving the original
-        // pin order rather than whatever order the hardware groups produce
+        // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, in hardware discovery
+        // order so a restored widget shows the same order a live pin of the same sensors would
+        // the saved list is membership in toggle order; mapping over it instead reproduced that toggle order, which
+        // is what made restored graphs come back in a different order than they were pinned in
         private List<SensorRowViewModel> FindSensorRowsByIds(IReadOnlyList<string> ids)
         {
-            var allSensors = SensorsViewModel.Instance.HardwareGroups
-                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors));
+            var wantedIds = new HashSet<string>(ids);
 
-            return ids
-                .Select(id => allSensors.FirstOrDefault(s => s.Id == id))
-                .Where(s => s != null)
+            return SensorsViewModel.Instance.HardwareGroups
+                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors))
+                .Where(s => wantedIds.Contains(s.Id))
                 .ToList();
         }
 
@@ -605,6 +617,35 @@ namespace FluentSensors
             }
             this.Activate();
             SetForegroundWindow(hwnd); // see workaround comment on the P/Invoke declaration above
+        }
+
+        // restores the window and lands on the sensor list with a specific profile preselected
+        // used by the taskbar flyout, whose bottom bar action is about the taskbar selection specifically
+        //
+        // deliberately not routed through ShowMainWindowCommand: that one goes via RestoreApp, which is gated on
+        // _isDashboardClosed (so it stays silent after the user closed the window with X) and also drags the
+        // widget window back up, which is not wanted from the taskbar flyout
+        public void OpenSensorsForProfile(SensorSelectionProfile profile)
+        {
+            OpenDashboard();
+
+            // NavigationView raises SelectionChanged only on an actual change, so re-selecting the already active
+            // sensor item would never navigate; the profile below is applied either way
+            var sensorsItem = MainNavigationView.MenuItems[0];
+            if (!ReferenceEquals(MainNavigationView.SelectedItem, sensorsItem))
+            {
+                MainNavigationView.SelectedItem = sensorsItem;
+            }
+
+            if (contentFrame.Content is SensorsPage sensorsPage)
+            {
+                sensorsPage.SelectProfile(profile);
+            }
+            else
+            {
+                // splash is still running, StartHardwareServiceAsync picks this up once it selects the page
+                _pendingSensorProfile = profile;
+            }
         }
 
         private void RestoreApp()

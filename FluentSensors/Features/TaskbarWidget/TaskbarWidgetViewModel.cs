@@ -92,6 +92,16 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        // re-resolves every pinned graphs color against the current settings and the live SystemAccentColor;
+        // the taskbar widget and the flyout share this ViewModel, so one call refreshes both
+        public void RefreshGraphColors()
+        {
+            foreach (var sensor in PinnedSensors)
+            {
+                sensor.RefreshGraphColor();
+            }
+        }
+
         // pauses or resumes live data subscription and resets baseline
         public void SetLiveDataActive(bool active)
         {

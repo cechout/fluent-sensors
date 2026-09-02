@@ -38,8 +38,11 @@ namespace FluentSensors.Features.Settings
 
             RestoreTaskbarBackgroundMaterialSettings();
             RestoreTaskbarGraphColorSettings();
+            RestoreTaskbarGraphBackgroundSourceSelection();
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarGraphWidthSelection();
+            RestoreTaskbarFlyoutAlignmentSelection();
+            RestoreLockWidgetPositionSelection();
 
 
             // event listeners
@@ -352,6 +355,14 @@ namespace FluentSensors.Features.Settings
             }
         }
 
+        private void TaskbarGraphBackgroundSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (TaskbarGraphBackgroundSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarUseTransparentGraphBackground = (tag == "Transparent");
+            }
+        }
+
         private void TaskbarGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -369,6 +380,12 @@ namespace FluentSensors.Features.Settings
         {
             TaskbarGraphColorSourceComboBox.SelectedIndex = SettingsService.Instance.TaskbarUseGraphAccentColor ? 0 : 1;
             TaskbarGraphColorPicker.SelectedColor = SettingsService.Instance.TaskbarGraphCustomColor;
+        }
+
+        private void RestoreTaskbarGraphBackgroundSourceSelection()
+        {
+            TaskbarGraphBackgroundSourceComboBox.SelectedIndex =
+                SettingsService.Instance.TaskbarUseTransparentGraphBackground ? 1 : 0;
         }
 
         private void RestoreTaskbarGraphTimeSpanSelection()
@@ -394,6 +411,43 @@ namespace FluentSensors.Features.Settings
         private void RestoreTaskbarGraphWidthSelection()
         {
             TaskbarGraphWidthSlider.Value = SettingsService.Instance.TaskbarGraphWidthDip;
+        }
+
+        // flyout alignment over the widget
+        private void TaskbarFlyoutAlignmentComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarFlyoutAlignmentComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarFlyoutAlignment = tag;
+            }
+        }
+
+        private void RestoreTaskbarFlyoutAlignmentSelection()
+        {
+            string currentAlignment = SettingsService.Instance.TaskbarFlyoutAlignment;
+
+            foreach (ComboBoxItem item in TaskbarFlyoutAlignmentComboBox.Items)
+            {
+                if (item.Tag?.ToString() == currentAlignment)
+                {
+                    TaskbarFlyoutAlignmentComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        // widget drag lock
+        private void LockWidgetPositionToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarWidgetPositionLocked = LockWidgetPositionToggle.IsOn;
+        }
+
+        private void RestoreLockWidgetPositionSelection()
+        {
+            LockWidgetPositionToggle.IsOn = SettingsService.Instance.TaskbarWidgetPositionLocked;
         }
 
 
