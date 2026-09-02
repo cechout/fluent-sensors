@@ -36,7 +36,7 @@ namespace FluentSensors.Features.TaskbarWidget
     // 1. eliminates the non-client titlebar stripe via WM_NCCALCSIZE (0x0083) returning 0
     // 2. caps its own height against the work area and scrolls the graph list rather than growing past it
     // 3. places the window directly beneath Shell_TrayWnd in Z-order so it slides out from under the taskbar
-    // 4. coordinates a physical window slide via DispatcherTimer with direct composition opacity fading
+    // 4. coordinates a physical window slide via CompositionTarget.Rendering with direct composition opacity fading
     // 5. applies dynamic DWM corner preferences and shadow suppression depending on the Windows transparency setting
     // 6. integrates DesktopAcrylicController / Mica system backdrop with a swapchain kick on theme changes
     //
@@ -149,7 +149,7 @@ namespace FluentSensors.Features.TaskbarWidget
         public const double MaxAnimationScaleFactor = 3.0;
 
         // fade opacity (1.0f = no fade, 0.0f = full fade)
-        public const float EnterFadeStartOpacity = 0.9f; // initial opacity when opening
+        public const float EnterFadeStartOpacity = 0.0f; // initial opacity when opening
         public const float EnterFadeEndOpacity = 1.0f; // target opacity when opening
         public const float ExitFadeEndOpacity = 0.9f; // target opacity when closing
 
@@ -247,11 +247,20 @@ namespace FluentSensors.Features.TaskbarWidget
         private FluentSensors.Controls.VerticalStretchPanel? _graphsPanel;
         private bool _isGraphsScrolling;
 
-        // native window animation timer
-        private DispatcherTimer? _animTimer;
+        // native window animation, ticked from CompositionTarget.Rendering rather than a DispatcherTimer:
+        // a DispatcherTimer cannot go below the ~15.6ms Windows scheduler granularity (~64 fps) regardless of the
+        // requested interval, while the compositor frame tick tracks the displays actual refresh rate
+        private bool _isAnimating;
         private Stopwatch? _animStopwatch;
         private int _animStartX, _animStartY, _animTargetX, _animTargetY;
+        private int _animDurationMs;
+        private bool _animIsEntering;
         private Action? _animOnComplete;
+
+        // both slides travel this many physical pixels; computed once per open in PositionAboveTaskbar from the
+        // taskbars own DPI, and read from here rather than recomputed against the window DPI at slide time, which
+        // could disagree with it on a mixed-DPI setup and jump the first frame
+        private int _slideDistancePx;
 
         public TaskbarWidgetViewModel ViewModel { get; }
         public static TaskbarFlyoutWindow? CurrentInstance { get; private set; }
@@ -355,6 +364,7 @@ namespace FluentSensors.Features.TaskbarWidget
             try
             {
                 _uiSettings = new UISettings();
+                SeedSystemVisualsSnapshot(_uiSettings);
                 _uiSettings.AdvancedEffectsEnabledChanged += OnSystemVisualSettingsChanged;
                 _uiSettings.ColorValuesChanged += OnSystemVisualSettingsChanged;
                 UpdateShadowPolicy();
@@ -367,9 +377,13 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // a named handler rather than a lambda, so SafeDestroy can detach it again; every rebuilt window subscribes
         // anew and without the detach the UISettings handler list grows by one per rebuild
+        //
+        // routes to RouteSystemVisualsChange rather than ScheduleRecreation directly: AdvancedEffectsEnabledChanged
+        // always means a rebuild (the DWM acrylic rebind, see ScheduleRecreation below), but ColorValuesChanged also
+        // fires for a pure accent change, which the router resolves into the cheap in-place refresh instead
         private void OnSystemVisualSettingsChanged(UISettings sender, object args)
         {
-            ScheduleRecreation();
+            RouteSystemVisualsChange(sender);
         }
 
         private void UpdateShadowPolicy()
@@ -566,6 +580,10 @@ namespace FluentSensors.Features.TaskbarWidget
             if (_isClosed) return;
             _isClosed = true;
 
+            // unhooks CompositionTarget.Rendering if a slide is still in flight; that event is static and keeps
+            // firing for the life of the process otherwise, ticking a handler on a window that no longer exists
+            StopSlide();
+
             try
             {
                 SettingsService.Instance.ThemeChanged -= OnThemeChanged;
@@ -610,6 +628,113 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         private static Microsoft.UI.Dispatching.DispatcherQueueTimer? _recreateDebounceTimer;
+        private static Microsoft.UI.Dispatching.DispatcherQueueTimer? _accentRefreshDebounceTimer;
+
+        // last seen OS visual state; ColorValuesChanged fires for an accent change and for a light/dark switch
+        // alike, and the event carries no detail of what changed, so telling them apart means comparing snapshots
+        private static Windows.UI.Color _lastAccentColor;
+        private static Windows.UI.Color _lastBackgroundColor;
+        private static bool _lastAdvancedEffectsEnabled;
+        private static bool _hasVisualSnapshot;
+
+        // establishes the baseline before any UISettings event has fired, so the first real event diffs against
+        // the actual prior state instead of every field reading as changed and forcing a rebuild unconditionally
+        //
+        // both WidgetWindow and TaskbarFlyoutWindow own a UISettings instance and call this from their own
+        // constructor; harmless to call twice, it always just records the current true state
+        public static void SeedSystemVisualsSnapshot(UISettings settings)
+        {
+            _lastAccentColor = settings.GetColorValue(UIColorType.Accent);
+            _lastBackgroundColor = settings.GetColorValue(UIColorType.Background);
+            _lastAdvancedEffectsEnabled = settings.AdvancedEffectsEnabled;
+            _hasVisualSnapshot = true;
+        }
+
+        // routes a Windows-level visual settings change to the cheap in-place accent refresh or the expensive
+        // full rebuild, depending on what actually changed
+        //
+        // WidgetWindow and TaskbarFlyoutWindow each own a UISettings instance and both land here for the same OS
+        // event, so a single accent change calls this twice; the second call sees no further difference and does
+        // nothing, which is also what dedupes a picker being dragged through several colors in quick succession
+        public static void RouteSystemVisualsChange(UISettings sender)
+        {
+            var accent = sender.GetColorValue(UIColorType.Accent);
+            var background = sender.GetColorValue(UIColorType.Background);
+            bool advancedEffects = sender.AdvancedEffectsEnabled;
+
+            if (!_hasVisualSnapshot)
+            {
+                SeedSystemVisualsSnapshot(sender);
+                ScheduleRecreation();
+                return;
+            }
+
+            bool accentChanged = !accent.Equals(_lastAccentColor);
+            bool structuralChanged = !background.Equals(_lastBackgroundColor) || advancedEffects != _lastAdvancedEffectsEnabled;
+
+            _lastAccentColor = accent;
+            _lastBackgroundColor = background;
+            _lastAdvancedEffectsEnabled = advancedEffects;
+
+            if (structuralChanged)
+            {
+                ScheduleRecreation();
+            }
+            else if (accentChanged)
+            {
+                ScheduleAccentRefresh();
+            }
+        }
+
+        // debounced entry point for a pure accent color change: refreshes every accent-driven surface in place,
+        // no window is torn down; the 150ms debounce matches ScheduleRecreation, Windows can raise
+        // ColorValuesChanged repeatedly while a color is being dragged through a picker
+        private static void ScheduleAccentRefresh()
+        {
+            var queue = TaskbarWidgetWindow.CurrentInstance?.DispatcherQueue
+                ?? MainWindow.CurrentInstance?.DispatcherQueue
+                ?? DispatcherQueue.GetForCurrentThread();
+
+            if (queue == null) return;
+
+            queue.TryEnqueue(() =>
+            {
+                if (_accentRefreshDebounceTimer != null)
+                {
+                    _accentRefreshDebounceTimer.Stop();
+                    _accentRefreshDebounceTimer = null;
+                }
+
+                _accentRefreshDebounceTimer = queue.CreateTimer();
+                _accentRefreshDebounceTimer.Interval = TimeSpan.FromMilliseconds(150);
+                _accentRefreshDebounceTimer.IsRepeating = false;
+                _accentRefreshDebounceTimer.Tick += (s, e) =>
+                {
+                    _accentRefreshDebounceTimer?.Stop();
+                    _accentRefreshDebounceTimer = null;
+                    ExecuteAccentRefresh();
+                };
+                _accentRefreshDebounceTimer.Start();
+            });
+        }
+
+        // refreshes every accent-driven surface across all three windows in place: pinned graph colors, and for
+        // the taskbar widget the card tint that rides on the same GraphColor, plus the acrylic tint and solid
+        // background on WidgetWindow and the flyout; none of these need a window rebuild to pick up a new accent
+        //
+        // the taskbar widget and the flyout share one TaskbarWidgetViewModel (see ShowFlyout / Preload), so
+        // refreshing it through TaskbarWidgetWindow.CurrentInstance already covers the flyouts graphs too
+        private static void ExecuteAccentRefresh()
+        {
+            TaskbarWidgetWindow.CurrentInstance?.ViewModel.RefreshGraphColors();
+
+            var widget = WidgetWindow.CurrentInstance;
+            widget?.ViewModel.RefreshGraphColors();
+            widget?.RefreshAccentSurfaces();
+
+            var flyout = CurrentInstance ?? _retainedInstance;
+            flyout?.RefreshAccentSurfaces();
+        }
 
         // --- workaround: window recreation on global OS theme/transparency change ---
         // problem: the exact underlying reason why Windows DWM fails to bind DesktopAcrylicController blur properly
@@ -693,11 +818,10 @@ namespace FluentSensors.Features.TaskbarWidget
             int durationMs = ScaleAnimationDuration(EnterAnimationDurationMs, EnterDurationPerSensorFactor);
 
             // 1. Content Fade (DirectComposition)
-            PlayContentFade(EnterFadeStartOpacity, EnterFadeEndOpacity, durationMs);
+            PlayContentFade(EnterFadeStartOpacity, EnterFadeEndOpacity, durationMs, isEntering: true);
 
             // 2. Physical Window Slide Up
-            int slideDistPx = GetSlideDistancePx(GetScaleFactor());
-            int startY = _targetY + slideDistPx;
+            int startY = _targetY + _slideDistancePx;
 
             EnsureBehindTaskbarZOrder();
             AnimateNativeWindowPosition(_targetX, startY, _targetX, _targetY, durationMs, isEntering: true);
@@ -710,13 +834,12 @@ namespace FluentSensors.Features.TaskbarWidget
             int durationMs = ScaleAnimationDuration(ExitAnimationDurationMs, ExitDurationPerSensorFactor);
 
             // 1. Content Fade (DirectComposition)
-            PlayContentFade(1.0f, ExitFadeEndOpacity, durationMs);
+            PlayContentFade(1.0f, ExitFadeEndOpacity, durationMs, isEntering: false);
 
             // 2. Physical Window Slide Down
-            int slideDistPx = GetSlideDistancePx(GetScaleFactor());
             int currentX = _appWindow.Position.X;
             int currentY = _appWindow.Position.Y;
-            int endY = _targetY + slideDistPx;
+            int endY = _targetY + _slideDistancePx;
 
             EnsureBehindTaskbarZOrder();
             AnimateNativeWindowPosition(currentX, currentY, currentX, endY, durationMs, isEntering: false, onComplete: onCompleted);
@@ -744,65 +867,91 @@ namespace FluentSensors.Features.TaskbarWidget
             return (int)Math.Round(WindowSlideDistanceDip * AnimationScaleFactor(SlideDistancePerSensorFactor) * scaleFactor);
         }
 
-        private void PlayContentFade(float fromOpacity, float toOpacity, int durationMs)
+        // enter and exit share the flyouts native window slide curve so the two never visibly diverge: Fluent 2
+        // Fast-Out-Slow-In on enter (cubic ease-out, 1-(1-p)^3) and Slow-Out-Fast-In on exit (cubic ease-in, p^3);
+        // expressed as the equivalent cubic-bezier control points, since CompositionEasingFunction only takes a
+        // bezier, not an arbitrary polynomial: (1/3,1)/(2/3,1) reduces to exactly 1-(1-p)^3, (1/3,0)/(2/3,0) to p^3
+        private void PlayContentFade(float fromOpacity, float toOpacity, int durationMs, bool isEntering)
         {
             if (RootGrid == null) return;
             var visual = ElementCompositionPreview.GetElementVisual(RootGrid);
             var compositor = visual?.Compositor;
             if (compositor == null) return;
 
+            var easing = isEntering
+                ? compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 1f), new Vector2(2f / 3f, 1f))
+                : compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 0f), new Vector2(2f / 3f, 0f));
+
             // NO inner offset animation on RootGrid - only smooth opacity fade
             var opacityAnim = compositor.CreateScalarKeyFrameAnimation();
             opacityAnim.InsertKeyFrame(0.0f, fromOpacity);
-            opacityAnim.InsertKeyFrame(1.0f, toOpacity);
+            opacityAnim.InsertKeyFrame(1.0f, toOpacity, easing);
             opacityAnim.Duration = TimeSpan.FromMilliseconds(durationMs);
             visual.StartAnimation("Opacity", opacityAnim);
         }
 
         private void AnimateNativeWindowPosition(int startX, int startY, int targetX, int targetY, int durationMs, bool isEntering, Action? onComplete = null)
         {
-            _animTimer?.Stop();
+            StopSlide();
+
             _animStartX = startX;
             _animStartY = startY;
             _animTargetX = targetX;
             _animTargetY = targetY;
+            _animDurationMs = durationMs;
+            _animIsEntering = isEntering;
             _animOnComplete = onComplete;
 
             _isAdjustingPosition = true;
-            _appWindow.Move(new PointInt32(startX, startY));
+            SetWindowPos(_hwnd, IntPtr.Zero, startX, startY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
             _isAdjustingPosition = false;
 
+            _isAnimating = true;
             _animStopwatch = Stopwatch.StartNew();
-            _animTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(5) };
-            _animTimer.Tick += (s, e) =>
+            Microsoft.UI.Xaml.Media.CompositionTarget.Rendering += OnSlideFrame;
+        }
+
+        // ticks with the compositors own frame rate rather than a fixed interval, so the slide keeps pace with
+        // whatever refresh rate the display actually runs at; a DispatcherTimer cannot, see the field comment above
+        private void OnSlideFrame(object? sender, object e)
+        {
+            if (_animStopwatch == null) return;
+
+            double progress = Math.Clamp((double)_animStopwatch.ElapsedMilliseconds / _animDurationMs, 0.0, 1.0);
+
+            // Fluent 2 Easing curves:
+            // Enter: Fast Out, Slow In (Cubic ease-out) = 1 - (1 - p)^3
+            // Exit: Slow Out, Fast In (Cubic ease-in) = p^3
+            double ease = _animIsEntering
+                ? (1.0 - Math.Pow(1.0 - progress, 3))
+                : Math.Pow(progress, 3);
+
+            int currentX = (int)Math.Round(_animStartX + ((_animTargetX - _animStartX) * ease));
+            int currentY = (int)Math.Round(_animStartY + ((_animTargetY - _animStartY) * ease));
+
+            _isAdjustingPosition = true;
+            SetWindowPos(_hwnd, IntPtr.Zero, currentX, currentY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+            _isAdjustingPosition = false;
+
+            if (progress >= 1.0)
             {
-                if (_animStopwatch == null) return;
+                var onComplete = _animOnComplete;
+                _animOnComplete = null;
+                StopSlide();
+                onComplete?.Invoke();
+            }
+        }
 
-                double progress = Math.Clamp((double)_animStopwatch.ElapsedMilliseconds / durationMs, 0.0, 1.0);
-
-                // Fluent 2 Easing curves:
-                // Enter: Fast Out, Slow In (Cubic ease-out) = 1 - (1 - p)^3
-                // Exit: Slow Out, Fast In (Cubic ease-in) = p^3
-                double ease = isEntering
-                    ? (1.0 - Math.Pow(1.0 - progress, 3))
-                    : Math.Pow(progress, 3);
-
-                int currentX = (int)Math.Round(_animStartX + ((_animTargetX - _animStartX) * ease));
-                int currentY = (int)Math.Round(_animStartY + ((_animTargetY - _animStartY) * ease));
-
-                _isAdjustingPosition = true;
-                _appWindow.Move(new PointInt32(currentX, currentY));
-                _isAdjustingPosition = false;
-
-                if (progress >= 1.0)
-                {
-                    _animTimer?.Stop();
-                    _animStopwatch?.Stop();
-                    _animOnComplete?.Invoke();
-                    _animOnComplete = null;
-                }
-            };
-            _animTimer.Start();
+        // unhooks the per-frame handler; CompositionTarget.Rendering is static and keeps firing for the life of
+        // the process once subscribed, so every path that can end a slide (completion, an overlapping new slide,
+        // window teardown in SafeDestroy) has to call this or the compositor never stops ticking a dead flyout
+        private void StopSlide()
+        {
+            if (!_isAnimating) return;
+            _isAnimating = false;
+            Microsoft.UI.Xaml.Media.CompositionTarget.Rendering -= OnSlideFrame;
+            _animStopwatch?.Stop();
+            _animStopwatch = null;
         }
 
 
@@ -851,6 +1000,11 @@ namespace FluentSensors.Features.TaskbarWidget
             _animationSensorCount = isScrolling ? CountFittingGraphSlots(maxHeightPx, scale) : sensorCount;
             ApplyGraphsScrollMode(isScrolling);
 
+            // computed from the taskbars own DPI (scale, above), the same source _targetX/Y and desiredWidthPx/
+            // desiredHeightPx already use; SlideInFromBottom/SlideOutToBottom read this instead of recomputing
+            // against the window DPI, which could disagree with it on a mixed-DPI setup and jump the first frame
+            _slideDistancePx = GetSlideDistancePx(scale);
+
             // Left/Right anchor to the matching widget edge and let the offset pull the flyout inward;
             // Center ignores the offset and lines the flyout center up with the widget center
             _targetX = SettingsService.Instance.TaskbarFlyoutAlignment switch
@@ -869,7 +1023,7 @@ namespace FluentSensors.Features.TaskbarWidget
             _targetX = Math.Max(leftLimitX, Math.Min(_targetX, rightLimitX));
 
             int initialY = startForSlideAnimation
-                ? (_targetY + GetSlideDistancePx(scale))
+                ? (_targetY + _slideDistancePx)
                 : _targetY;
 
             _isAdjustingPosition = true;
@@ -915,7 +1069,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
-            if (_isAdjustingPosition || _animTimer?.IsEnabled == true) return;
+            if (_isAdjustingPosition || _isAnimating) return;
 
             if (args.DidSizeChange && _bottomAnchorY > 0)
             {
@@ -1276,6 +1430,14 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 EnsureNoiseBitmap(FlyoutRootBorder.ActualWidth, FlyoutRootBorder.ActualHeight);
             }
+        }
+
+        // re-reads the live SystemAccentColor into the acrylic tint and the solid background, for a pure OS
+        // accent change; both already resolve the accent fresh on every call, so no window rebuild is needed
+        private void RefreshAccentSurfaces()
+        {
+            UpdateAcrylicProperties();
+            UpdateSolidBackground();
         }
 
         // === acrylic grain ===

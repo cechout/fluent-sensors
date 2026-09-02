@@ -116,6 +116,7 @@ namespace FluentSensors.Features.Widget
             try
             {
                 _uiSettings = new Windows.UI.ViewManagement.UISettings();
+                TaskbarFlyoutWindow.SeedSystemVisualsSnapshot(_uiSettings);
                 _uiSettings.AdvancedEffectsEnabledChanged += OnSystemVisualSettingsChanged;
                 _uiSettings.ColorValuesChanged += OnSystemVisualSettingsChanged;
             }
@@ -441,9 +442,12 @@ namespace FluentSensors.Features.Widget
 
         // a named handler rather than a lambda, so SafeDestroy can detach it again; every rebuilt window subscribes
         // anew and without the detach the UISettings handler list grows by one per rebuild
+        //
+        // routes to RouteSystemVisualsChange rather than ScheduleRecreation directly, see TaskbarFlyoutWindows own
+        // handler for why: a pure accent change resolves into an in-place refresh instead of a rebuild
         private void OnSystemVisualSettingsChanged(Windows.UI.ViewManagement.UISettings sender, object args)
         {
-            TaskbarFlyoutWindow.ScheduleRecreation();
+            TaskbarFlyoutWindow.RouteSystemVisualsChange(sender);
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
@@ -700,6 +704,14 @@ namespace FluentSensors.Features.Widget
 
                 RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(targetColor);
             }
+        }
+
+        // re-reads the live SystemAccentColor into the acrylic tint and the solid background, for a pure OS
+        // accent change; both already resolve the accent fresh on every call, so no window rebuild is needed
+        public void RefreshAccentSurfaces()
+        {
+            UpdateAcrylicProperties();
+            UpdateSolidBackground();
         }
 
         // dynamically applies the chosen backdrop material to the WidgetWindow based on the users selection in the settings

@@ -240,6 +240,16 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === public methods ===
 
+        // re-resolves the graph color against the current settings and the live SystemAccentColor
+        // the constructor resolves it once, and SettingsService only reports the users own accent/custom switch;
+        // a Windows accent change reaches this instance through nothing else
+        public void RefreshGraphColor()
+        {
+            GraphColor = Scope == SensorGraphScope.Taskbar
+                ? ResolveGraphColor(SettingsService.Instance.TaskbarUseGraphAccentColor, SettingsService.Instance.TaskbarGraphCustomColor)
+                : ResolveGraphColor(SettingsService.Instance.UseGraphAccentColor, SettingsService.Instance.GraphCustomColor);
+        }
+
         // unsubscribes from SettingsService events and the threshold editor; without this, disposed sensor rows would
         // still react to graph color / data point / threshold changes after being removed
         public void Cleanup()

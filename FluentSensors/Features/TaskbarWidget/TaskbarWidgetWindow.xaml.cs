@@ -382,6 +382,10 @@ namespace FluentSensors.Features.TaskbarWidget
                 var carriedViewModel = live?.ViewModel;
                 int carriedOffsetDip = live?._currentOffsetDip ?? AnchorOffsetDip;
 
+                // the replacement window otherwise shows the pre-change accent: every rebuild trigger refreshes
+                // everything it rebuilds, and this carried ViewModel is precisely the thing that does not
+                carriedViewModel?.RefreshGraphColors();
+
                 if (live != null)
                 {
                     CurrentInstance = null;
