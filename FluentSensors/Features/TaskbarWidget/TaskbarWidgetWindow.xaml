@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Taskbar Widget"
+    mc:Ignorable="d">
+
+    <!--  background has to stay transparent; an opaque root paints over the backdrop  -->
+    <Grid x:Name="RootGrid" Background="Transparent">
+
+        <!--  the entire taskbar widget is one unified button containing all sensor graphs  -->
+        <Button
+            x:Name="TaskbarButton"
+            Padding="4,0.5,4,2.5"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            HorizontalContentAlignment="Stretch"
+            VerticalContentAlignment="Stretch"
+            Background="Transparent"
+            BorderBrush="Transparent"
+            BorderThickness="1"
+            Click="TaskbarButton_Click"
+            PointerCanceled="TaskbarButton_PointerCanceled"
+            PointerEntered="TaskbarButton_PointerEntered"
+            PointerExited="TaskbarButton_PointerExited">
+
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <!--  normal hover fill layer (animated via DirectComposition)  -->
+                        <Border
+                            x:Name="BackgroundBorder"
+                            Background="{ThemeResource TaskbarButtonHoverBackground}"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  normal pressed fill overlay layer  -->
+                        <Border
+                            x:Name="PressedBorder"
+                            Background="{ThemeResource TaskbarButtonPressedBackground}"
+                            BorderBrush="{ThemeResource TaskbarButtonPressedBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  active flyout hover fill layer (#323232 on-screen, DWM compensated)  -->
+                        <Border
+                            x:Name="ActiveHoverBorder"
+                            Background="{ThemeResource TaskbarButtonActiveHoverBackground}"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  active flyout pressed fill layer (#2a2a2a on-screen, DWM compensated)  -->
+                        <Border
+                            x:Name="ActivePressedBorder"
+                            Background="{ThemeResource TaskbarButtonActivePressedBackground}"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  border stroke layer for normal hover & pressed (animated via DirectComposition)  -->
+                        <Border
+                            x:Name="StrokeBorder"
+                            BorderBrush="{ThemeResource TaskbarButtonBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  border stroke layer for active hover  -->
+                        <Border
+                            x:Name="ActiveHoverStrokeBorder"
+                            BorderBrush="{ThemeResource TaskbarButtonActiveHoverBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  border stroke layer for active pressed  -->
+                        <Border
+                            x:Name="ActivePressedStrokeBorder"
+                            BorderBrush="{ThemeResource TaskbarButtonActivePressedBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  content layer: always visible (Opacity=1.0), never hidden  -->
+                        <ContentPresenter
+                            x:Name="ContentPresenter"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Content="{TemplateBinding Content}" />
+                    </Grid>
+                </ControlTemplate>
+            </Button.Template>
+
+            <!--  inner horizontal list of compact sensor graphs  -->
+            <!--  (stretching equally across widget width)  -->
+            <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <fhControls:HorizontalStretchPanel Spacing="6" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
+                        <fhGraph:SensorPanelControl
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            IsGraphHoverEnabled="False"
+                            IsHitTestVisible="False"
+                            ShowGraphCardBackground="{x:Bind IsCardBackgroundVisible, Mode=OneWay}"
+                            ShowGraphCardBorder="False"
+                            ShowGraphLabel="True"
+                            ShowStatusRow="False"
+                            ShowThresholdControls="False"
+                            ShowThresholdFlyoutIndicator="False"
+                            ShowYAxisControls="False"
+                            ThresholdLabelAlwaysVisible="False"
+                            UseGraphColorCardBackground="True"
+                            ViewModel="{x:Bind}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Button>
+    </Grid>
+</Window>

@@ -201,9 +201,9 @@
                         <!--  current value tiles  -->
                         <Grid x:Name="TilesGrid" Grid.Row="1">
                             <controls:WrapPanel
-                                Margin="4,0,0,12"
-                                HorizontalSpacing="8"
-                                VerticalSpacing="8">
+                                Margin="4,0,4,12"
+                                HorizontalSpacing="16"
+                                VerticalSpacing="0">
                                 <fhTile:SensorTileControl
                                     Title="{x:Bind Storage.TotalActivity.SensorName, Mode=OneWay}"
                                     Width="Auto"

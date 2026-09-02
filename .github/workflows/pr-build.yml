@@ -1,0 +1,59 @@
+# validates that a pull request actually compiles before review
+# deliberately lighter than release.yml: build only, no publish/installer step, not tied to a version tag
+name: pr build check
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7
+
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+          cache: true
+          cache-dependency-path: FluentSensors/FluentSensors.csproj
+
+      - name: setup msbuild
+        uses: microsoft/setup-msbuild@v2
+
+      # --- workaround: dotnet build cannot resolve COMReference ---
+      # problem: ResolveComReference is not implemented in the .NET Core version of MSBuild, only
+      # the full .NET Framework MSBuild (msbuild.exe) supports it, dotnet build fails with MSB4803
+      # https://aka.ms/msbuild/MSB4803
+      # fix: restore via dotnet CLI as usual, then build through msbuild.exe from microsoft/setup-msbuild
+      - name: restore
+        run: dotnet restore FluentSensors/FluentSensors.csproj -p:Platform=x64 -r win-x64 -p:SelfContained=true
+
+      # same build command release.yml relies on, a single full build pass is enough here
+      # since there is no publish step after it
+      - name: build win-x64
+        run: msbuild FluentSensors/FluentSensors.csproj -p:Configuration=Release -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -p:SelfContained=true
+
+  format:
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7
+
+      # no cache here, unlike the build job, dotnet format whitespace does not
+      # reliably populate the nuget packages folder the cache action expects to save
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      # scoped to whitespace only, matches the new .editorconfig, not style/analyzers
+      # non blocking for now, flip continue-on-error to false once confirmed clean against main
+      - name: dotnet format whitespace check
+        continue-on-error: true
+        run: dotnet format whitespace FluentSensors/FluentSensors.csproj -p:Platform=x64 --verify-no-changes --verbosity diagnostic

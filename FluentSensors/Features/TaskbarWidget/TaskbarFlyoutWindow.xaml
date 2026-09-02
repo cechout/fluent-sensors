@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="FluentSensors.Features.TaskbarWidget.TaskbarFlyoutWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Fluent Sensors Flyout"
+    mc:Ignorable="d">
+
+    <Border
+        x:Name="FlyoutRootBorder"
+        Background="{ThemeResource FlyoutWindowBackground}"
+        BorderBrush="{ThemeResource FlyoutWindowBorderBrush}"
+        BorderThickness="1"
+        CornerRadius="8">
+
+        <Grid x:Name="RootGrid" Background="Transparent">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+
+            <!--  acrylic grain  -->
+            <!--
+                the material composites a noise layer as its last step, the system backdrop controller does not,
+                so this paints the missing one; it stays below every surface fill, so it grains the material and
+                never the text or the graphs on top of it
+            -->
+            <!--
+                the canvas keeps the layer out of the layout: the rectangle is sized in physical pixels and
+                scaled back down from code, which would otherwise stretch the rows
+            -->
+            <Canvas
+                x:Name="FlyoutNoiseHost"
+                Grid.Row="0"
+                Grid.RowSpan="2"
+                IsHitTestVisible="False"
+                Visibility="Collapsed">
+                <Rectangle x:Name="FlyoutNoiseOverlay" />
+            </Canvas>
+
+
+            <!--  vertical list of sensor graphs  -->
+            <Grid
+                x:Name="GraphsContentGrid"
+                Grid.Row="0"
+                Background="{ThemeResource FlyoutGraphsBackground}"
+                CornerRadius="7,7,0,0">
+
+                <!--  the graphs scroll only once the pinned sensor count pushes the window past its height cap  -->
+                <!--  (both modes are switched from code, see ApplyGraphsScrollMode)  -->
+                <ScrollViewer
+                    x:Name="GraphsScrollViewer"
+                    HorizontalScrollBarVisibility="Disabled"
+                    HorizontalScrollMode="Disabled"
+                    VerticalScrollBarVisibility="Disabled"
+                    VerticalScrollMode="Disabled"
+                    ZoomMode="Disabled">
+                    <ItemsControl x:Name="GraphsItemsControl" ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <fhControls:VerticalStretchPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
+                                <fhGraph:SensorPanelControl
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ViewModel="{x:Bind}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+
+
+            <!--  bottom bar: navigation actions  -->
+            <Border
+                x:Name="FlyoutBottomBarBorder"
+                Grid.Row="1"
+                Background="{ThemeResource FlyoutBottomBarBackground}"
+                BorderBrush="{ThemeResource FlyoutBottomBarSeparatorBrush}"
+                BorderThickness="0,1,0,0"
+                CornerRadius="0,0,7,7">
+
+                <Grid x:Name="BottomBarContentGrid">
+                    <Grid.Resources>
+                        <SolidColorBrush x:Key="CommandBarBackground" Color="Transparent" />
+                        <SolidColorBrush x:Key="CommandBarBackgroundOpen" Color="Transparent" />
+                        <SolidColorBrush x:Key="CommandBarBorderBrushOpen" Color="Transparent" />
+
+                        <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
+                    </Grid.Resources>
+
+                    <!--  open the sensor list on the taskbar profile  -->
+                    <!--  (label only)  -->
+                    <CommandBar
+                        HorizontalAlignment="Left"
+                        Background="Transparent"
+                        DefaultLabelPosition="Right"
+                        IsDynamicOverflowEnabled="False"
+                        IsOpen="False"
+                        OverflowButtonVisibility="Collapsed">
+                        <CommandBar.PrimaryCommands>
+                            <AppBarButton
+                                x:Name="BackToDashboardButton"
+                                Click="BackToDashboard_Click"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Label="Manage Taskbar Sensors">
+
+                                <!--  runs without an icon; the glyph column is sized by the LabelOnRight visual state  -->
+                                <!--
+                                    the label margin itself is unreachable: the LabelOnRight state assigns it from a
+                                    StaticResource, which resolves once inside the platform dictionary and never looks
+                                    at this scope, so its fixed 8,16,12,10 always wins
+                                -->
+                                <AppBarButton.Resources>
+                                    <x:Double x:Key="AppBarButtonContentHeight">0</x:Double>
+                                    <Thickness x:Key="AppBarButtonContentViewboxMargin">5,0,0,0</Thickness>
+                                </AppBarButton.Resources>
+                            </AppBarButton>
+                        </CommandBar.PrimaryCommands>
+                    </CommandBar>
+
+                    <!--  close taskbar widget  -->
+                    <!--  (icon only)  -->
+                    <CommandBar
+                        HorizontalAlignment="Right"
+                        Background="Transparent"
+                        DefaultLabelPosition="Collapsed"
+                        IsDynamicOverflowEnabled="False"
+                        IsOpen="False"
+                        OverflowButtonVisibility="Collapsed">
+                        <CommandBar.PrimaryCommands>
+                            <AppBarButton
+                                x:Name="CloseWidgetButton"
+                                Width="44"
+                                Click="CloseWidget_Click"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Label="Close Taskbar Widget"
+                                ToolTipService.ToolTip="Close Taskbar Widget">
+                                <AppBarButton.Icon>
+                                    <FontIcon
+                                        FontSize="10.5"
+                                        FontWeight="SemiLight"
+                                        Glyph="&#xE711;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
+                        </CommandBar.PrimaryCommands>
+                    </CommandBar>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

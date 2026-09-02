@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
 	  <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -53,6 +53,8 @@
 		<None Remove="Features\Sensors\HiddenSensorsWindow.xaml" />
 		<None Remove="Features\Sensors\SensorsPage.xaml" />
 		<None Remove="Features\Settings\SettingsPage.xaml" />
+		<None Remove="Features\TaskbarWidget\TaskbarFlyoutWindow.xaml" />
+		<None Remove="Features\TaskbarWidget\TaskbarWidgetWindow.xaml" />
 		<None Remove="Features\Widget\WidgetWindow.xaml" />
 	</ItemGroup>
 
@@ -90,6 +92,34 @@
     <PackageReference Include="System.Management" Version="10.0.10" />
     <PackageReference Include="Vortice.DXGI" Version="3.8.3" />
     <PackageReference Include="WinUIEx" Version="2.9.2" />
+  </ItemGroup>
+  
+  <!--
+    UI Automation, for WinTaskbarUiaProbe (taskbar sub-elements that have no window handle of their own):
+    tlbimp generates a strongly-typed interop assembly from the typelib thats registered on every Windows install,
+    no WPF/UseWpf needed for this
+    UIA is referenced alongside UIAutomationClient because UIAutomationClient.idl itself references types from it
+    (e.g. the UIA_PropertyIds enum used by CreatePropertyCondition)
+  -->
+  <ItemGroup>
+    <COMReference Include="UIAutomationClient">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>944de083-8fb8-45cf-bcb7-c477acb2f897</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="UIA">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>930299ce-9965-4dec-b0f4-a54848d4b667</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <ItemGroup>
     <Content Update="Assets\Icon\Icon.ico">

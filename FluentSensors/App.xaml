@@ -12,7 +12,138 @@
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
 
-            <ResourceDictionary.ThemeDictionaries />
+            <ResourceDictionary.ThemeDictionaries>
+
+                <!--  === DARK MODE (Default Theme Dictionary) ===  -->
+
+                <!--  Base Taskbar Background: #202020 (32)  -->
+                <ResourceDictionary x:Key="Default">
+                    <!--  1. Taskbar Button Normal Hover & Pressed Backgrounds (Alpha White on #202020)  -->
+                    <!--  Hover -> Target #2D2D2D (45): Alpha 15 (0x0F) -> #0FFFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="#0FFFFFFF" />
+                    <!--  Pressed -> Target #2A2A2A (42): Alpha 11 (0x0B) -> #0BFFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#0BFFFFFF" />
+
+                    <!--  2. Taskbar Button Borders (Dark Mode: Only TOP border in Normal Hover, ALL 4 in Normal Pressed)  -->
+                    <!--  Normal Hover Border: Top #16FFFFFF (Target #333333), sides & bottom Transparent  -->
+                    <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#16FFFFFF" />
+                        <GradientStop Offset="0.10" Color="Transparent" />
+                        <GradientStop Offset="1.0" Color="Transparent" />
+                    </LinearGradientBrush>
+                    <!--  Normal Pressed Border: All 4 borders visible with #0AFFFFFF (Target #292929 on sides/bottom)  -->
+                    <SolidColorBrush x:Key="TaskbarButtonPressedBorderBrush" Color="#0AFFFFFF" />
+
+                    <!--  3. Active Flyout State (When Flyout is currently OPEN)  -->
+                    <!--  Active Hover -> Target #323232 (50): Alpha 21 (0x15) -> #15FFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#15FFFFFF" />
+                    <!--  Active Hover Border: Keep top border #16FFFFFF, sides & bottom Transparent  -->
+                    <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#16FFFFFF" />
+                        <GradientStop Offset="0.10" Color="Transparent" />
+                        <GradientStop Offset="1.0" Color="Transparent" />
+                    </LinearGradientBrush>
+                    <!--  Active Pressed -> Target #2A2A2A (42): Alpha 11 (0x0B) -> #0BFFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#0BFFFFFF" />
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="Transparent" />
+
+                    <!--  4. Flyout Window Styling (Dark Mode)  -->
+                    <!--
+                        the dark literals sit a few levels below the tone they actually show; they were dialed in
+                        by comparing screenshots with the native Windows surfaces, where dark values read back
+                        lighter than they were written
+                        that offset belongs to the display it was tuned on; another monitor measures its own
+                        numbers, so the second value on each line is what was seen here and not a spec
+                    -->
+                    <!--  Content Area -> literal #242424, reads as #292929 here, opaque  -->
+                    <!--  (the bottom bar paints its own color, see 6)  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#242424" />
+                    <!--  Window Border -> literal #464646, reads as #484848 here  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#464646" />
+
+                    <!--  5. Flyout Graphs Overlay (Dark Mode)  -->
+                    <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
+                    <!--  (the opaque mode takes its content color from FlyoutWindowBackground and uses no overlay)  -->
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#0AFFFFFF" />
+
+                    <!--  6. Flyout Bottom Bar (Dark Mode)  -->
+                    <!--  Bottom Bar -> literal #1C1C1C, reads as #222222 here  -->
+                    <!--  opaque and independent of the content area  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#1C1C1C" />
+
+                    <!--  7. Flyout Bottom Bar Separator (Dark Mode)  -->
+                    <!--  1px stroke between content area and bottom bar  -->
+                    <!--  literal #181818, reads as #1E1E1E here  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#181818" />
+                    <!--  the same stroke in the blur modes, where the native line is translucent and darkens the  -->
+                    <!--  material instead of covering it, so it keeps letting the backdrop through  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#1F000000" />
+                </ResourceDictionary>
+
+
+                <!--  === LIGHT MODE Theme Dictionary ===  -->
+
+                <!--  Base Taskbar Background: #EDEDED (237)  -->
+                <ResourceDictionary x:Key="Light">
+                    <!--  1. Taskbar Button Normal Hover & Pressed Backgrounds (Alpha White on #EDEDED)  -->
+                    <!--  Hover -> Target #F7F7F7 (247): Alpha 142 (0x8E) -> #8EFFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="#8EFFFFFF" />
+                    <!--  Pressed -> Target #F3F3F3 (243): Alpha 85 (0x55) -> #55FFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#55FFFFFF" />
+
+                    <!--  2. Taskbar Button Border (Solid: Normal Hover & Pressed)  -->
+                    <!--  Top & Sides: #E7E7E7, Bottom: #DDDDDD  -->
+                    <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#E7E7E7" />
+                        <GradientStop Offset="0.75" Color="#E7E7E7" />
+                        <GradientStop Offset="1.0" Color="#DDDDDD" />
+                    </LinearGradientBrush>
+                    <!--  Normal Pressed Border: Transparent (StrokeBorder already covers it)  -->
+                    <SolidColorBrush x:Key="TaskbarButtonPressedBorderBrush" Color="Transparent" />
+
+                    <!--  3. Active Flyout State (When Flyout is currently OPEN)  -->
+                    <!--  Active Hover -> Target #FAFAFA (250): Alpha 184 (0xB8) -> #B8FFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#B8FFFFFF" />
+                    <!--  Active Hover Border (Solid) -> Top & Sides: #E5E5E5, Bottom: #D4D4D4  -->
+                    <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#E5E5E5" />
+                        <GradientStop Offset="0.75" Color="#E5E5E5" />
+                        <GradientStop Offset="1.0" Color="#D4D4D4" />
+                    </LinearGradientBrush>
+
+                    <!--  Active Pressed -> Target #F3F3F3 (243): Alpha 85 (0x55) -> #55FFFFFF  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#55FFFFFF" />
+                    <!--  Active Pressed Border (Solid) -> #E7E7E7 on all 4 sides  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#E7E7E7" />
+
+                    <!--  4. Flyout Window Styling (Light Mode)  -->
+                    <!--
+                        light barely needs the correction described in the dark section, the offset stays under
+                        one level above roughly 230
+                    -->
+                    <!--  Content Area -> #F2F2F2, opaque; the bottom bar paints its own color, see 6  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
+                    <!--  Window Border -> literal #C0C0C0, reads as #BFBFBF here  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#C0C0C0" />
+
+                    <!--  5. Flyout Graphs Overlay (Light Mode)  -->
+                    <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
+                    <!--  (the opaque mode takes its content color from FlyoutWindowBackground and uses no overlay)  -->
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#38FFFFFF" />
+
+                    <!--  6. Flyout Bottom Bar (Light Mode)  -->
+                    <!--  Bottom Bar -> Target #EDEDED (237), opaque and independent of the content area  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#EDEDED" />
+
+                    <!--  7. Flyout Bottom Bar Separator (Light Mode)  -->
+                    <!--  1px stroke between content area and bottom bar  -->
+                    <!--  literal #DEDEDE, reads as #DDDDDD here  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#DEDEDE" />
+                    <!--  the same stroke in the blur modes, where the native line is translucent and darkens the  -->
+                    <!--  material instead of covering it, so it keeps letting the backdrop through  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#13000000" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

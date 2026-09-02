@@ -49,15 +49,6 @@ namespace FluentSensors.Persistence.Services
             SetState(sensorId, state);
         }
 
-        // convenience helper for checkbox selection: flips just the selected flag without touching that
-        // sensors hidden state, threshold, or Y-axis config
-        public void SetSelected(string sensorId, bool isSelected)
-        {
-            var state = GetState(sensorId);
-            state.IsSelected = isSelected;
-            SetState(sensorId, state);
-        }
-
         // persistence
         // returns the live dictionary directly; PersistenceService only reads it when its debounce timer fires, so no
         // snapshot copy is needed here

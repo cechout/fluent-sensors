@@ -138,6 +138,7 @@
                                                     IsAutoScaledOverride="False"
                                                     ManualYMaxOverride="100"
                                                     ShowGraphLabel="True"
+                                                    ShowGraphName="False"
                                                     ShowThresholdFlyoutIndicator="False"
                                                     ShowTitleRow="False"
                                                     ThresholdLabelAlwaysVisible="False"
@@ -155,6 +156,7 @@
                                         IsAutoScaledOverride="False"
                                         ManualYMaxOverride="100"
                                         ShowGraphLabel="True"
+                                        ShowGraphName="False"
                                         ShowThresholdFlyoutIndicator="False"
                                         ShowTitleRow="False"
                                         ThresholdLabelAlwaysVisible="False"
@@ -168,6 +170,7 @@
                                         GraphTapAction="ShowFlyout"
                                         IsAutoScaledOverride="True"
                                         ShowGraphLabel="True"
+                                        ShowGraphName="False"
                                         ShowThresholdFlyoutIndicator="False"
                                         ShowTitleRow="False"
                                         ThresholdLabelAlwaysVisible="False"
@@ -383,8 +386,8 @@
                             <!--  sensor tiles: averages across all cores with threads  -->
                             <controls:WrapPanel
                                 Margin="4,0,4,0"
-                                HorizontalSpacing="8"
-                                VerticalSpacing="8">
+                                HorizontalSpacing="16"
+                                VerticalSpacing="0">
                                 <fhTile:SensorTileControl
                                     Title="Average Load"
                                     Width="90"

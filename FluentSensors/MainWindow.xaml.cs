@@ -19,6 +19,7 @@ using FluentSensors.Features.Sensors;
 using FluentSensors.Features.Settings;
 using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
+using FluentSensors.Common.Sensors;
 
 
 namespace FluentSensors
@@ -72,6 +73,9 @@ namespace FluentSensors
         private bool _isForceClosing = false;
         private bool _isHardwareServiceLoaded = false;
         private bool _isDashboardClosed = false;
+
+        // profile a caller asked for while the splash was still running; applied once the sensor page exists
+        private SensorSelectionProfile? _pendingSensorProfile = null;
 
         // system tray icon commands
         public XamlUICommand RestoreAppCommand { get; } = new XamlUICommand(); // restore
@@ -177,6 +181,10 @@ namespace FluentSensors
 
             // TEMP: uncomment to dump everything WinStaticInfoService collected to the Debug output window
             // _ = Task.Run(FluentSensors.Diagnostics.WinStaticInfoDebugDump.Dump);
+
+            // TEMP: uncomment to dump the taskbar detection backend (WinTaskbarService/WinTaskbarUiaProbe/
+            // WinShellStateWatcher) to the Debug output window
+            _ = Task.Run(FluentSensors.Diagnostics.WinTaskbarDebugDump.Dump);
         }
 
 
@@ -266,8 +274,19 @@ namespace FluentSensors
             AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;
             MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
 
+            // a profile request that arrived before the page existed; the selection above is what finally creates it
+            if (_pendingSensorProfile is SensorSelectionProfile pendingProfile
+                && contentFrame.Content is SensorsPage pendingPage)
+            {
+                pendingPage.SelectProfile(pendingProfile);
+                _pendingSensorProfile = null;
+            }
+
             // re-open the widget window with its previously pinned sensors, if it was still open when the app last closed
             TryRestoreWidgetWindow();
+
+            // re-open the taskbar widget with its pinned sensors if any are configured
+            TryRestoreTaskbarWidgetWindow();
         }
 
         // re-creates the widget window with whichever previously pinned sensors still exist on
@@ -275,41 +294,118 @@ namespace FluentSensors
         private void TryRestoreWidgetWindow()
         {
             var widgetState = WindowStateService.Instance.GetState("Widget");
-            if (widgetState == null || !widgetState.WasOpen || widgetState.PinnedSensorIds.Count == 0) return;
+            if (widgetState == null || !widgetState.WasOpen) return;
 
-            var pinnedSensors = FindSensorRowsByIds(widgetState.PinnedSensorIds);
+            var pinnedSensorIds = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetWindow);
+            if (pinnedSensorIds.Count == 0) return;
+
+            var pinnedSensors = FindSensorRowsByIds(pinnedSensorIds);
             if (pinnedSensors.Count == 0) return; // none of them exist on this system anymore
 
             WidgetWindow.ShowWithSensors(pinnedSensors);
         }
 
-        // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, preserving the original
-        // pin order rather than whatever order the hardware groups produce
-        private List<SensorRowViewModel> FindSensorRowsByIds(List<string> ids)
+        // re-creates the taskbar widget with whichever sensors are currently pinned under the taskbar profile,
+        // but only if it was actually open when the app last closed
+        private void TryRestoreTaskbarWidgetWindow()
         {
-            var allSensors = SensorsViewModel.Instance.HardwareGroups
-                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors));
+            var taskbarState = WindowStateService.Instance.GetState("TaskbarWidget");
+            if (taskbarState == null || !taskbarState.WasOpen) return;
 
-            return ids
-                .Select(id => allSensors.FirstOrDefault(s => s.Id == id))
-                .Where(s => s != null)
+            var pinnedSensorIds = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.Taskbar);
+            if (pinnedSensorIds.Count == 0) return;
+
+            var pinnedSensors = FindSensorRowsByIds(pinnedSensorIds);
+            if (pinnedSensors.Count == 0) return;
+
+            FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow.ShowWithSensors(pinnedSensors);
+        }
+
+        // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, in hardware discovery
+        // order so a restored widget shows the same order a live pin of the same sensors would
+        // the saved list is membership in toggle order; mapping over it instead reproduced that toggle order, which
+        // is what made restored graphs come back in a different order than they were pinned in
+        private List<SensorRowViewModel> FindSensorRowsByIds(IReadOnlyList<string> ids)
+        {
+            var wantedIds = new HashSet<string>(ids);
+
+            return SensorsViewModel.Instance.HardwareGroups
+                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors))
+                .Where(s => wantedIds.Contains(s.Id))
                 .ToList();
         }
 
 
         // === app status readout ===
 
+        private void AppTitleBar_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+        }
+
         // feeds AppStatus.HasEnoughWidthForFull, which decides whether the windows group still fits next to the
         // lhm group; fires on every window resize, see AppStatusViewModel.UpdateVisibility for the combined logic
         private void AppTitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             AppStatus.UpdateAvailableWidth(e.NewSize.Width);
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+        }
+
+        // registers interactive titlebar elements as client passthrough regions so pointer events (pressed visual state)
+        // are consumed by the controls themselves rather than initiating a window drag
+        private void UpdateTitleBarPassthroughRegions()
+        {
+            if (AppTitleBar == null || !AppTitleBar.IsLoaded) return;
+
+            try
+            {
+                var nonClientInputSrc = Microsoft.UI.Input.InputNonClientPointerSource.GetForWindowId(this.AppWindow.Id);
+                if (nonClientInputSrc == null) return;
+
+                double scale = AppTitleBar.XamlRoot?.RasterizationScale ?? 1.0;
+                var rects = new List<Windows.Graphics.RectInt32>();
+
+                AddPassthroughRect(rects, DotNetRuntimePopup, scale);
+                AddPassthroughRect(rects, StatusToggleButton, scale);
+                AddPassthroughRect(rects, LhmInfoPopup, scale);
+                AddPassthroughRect(rects, WindowsInfoPopup, scale);
+
+                nonClientInputSrc.SetRegionRects(Microsoft.UI.Input.NonClientRegionKind.Passthrough, rects.ToArray());
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[UpdateTitleBarPassthroughRegions] failed: {ex.Message}");
+            }
+        }
+
+        private void AddPassthroughRect(List<Windows.Graphics.RectInt32> rects, FrameworkElement element, double scale)
+        {
+            if (element == null || element.Visibility != Visibility.Visible || !element.IsLoaded) return;
+
+            try
+            {
+                var transform = element.TransformToVisual(null);
+                var bounds = transform.TransformBounds(new Windows.Foundation.Rect(0, 0, element.ActualWidth, element.ActualHeight));
+                if (bounds.Width > 0 && bounds.Height > 0)
+                {
+                    rects.Add(new Windows.Graphics.RectInt32(
+                        (int)Math.Round(bounds.X * scale),
+                        (int)Math.Round(bounds.Y * scale),
+                        (int)Math.Round(bounds.Width * scale),
+                        (int)Math.Round(bounds.Height * scale)
+                    ));
+                }
+            }
+            catch
+            {
+            }
         }
 
         // plain Button standing in for a real ToggleButton, see the XAML comment on it for why
         private void StatusToggleButton_Click(object sender, RoutedEventArgs e)
         {
             AppStatus.IsStatusEnabled = !AppStatus.IsStatusEnabled;
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
         }
 
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
@@ -521,6 +617,35 @@ namespace FluentSensors
             }
             this.Activate();
             SetForegroundWindow(hwnd); // see workaround comment on the P/Invoke declaration above
+        }
+
+        // restores the window and lands on the sensor list with a specific profile preselected
+        // used by the taskbar flyout, whose bottom bar action is about the taskbar selection specifically
+        //
+        // deliberately not routed through ShowMainWindowCommand: that one goes via RestoreApp, which is gated on
+        // _isDashboardClosed (so it stays silent after the user closed the window with X) and also drags the
+        // widget window back up, which is not wanted from the taskbar flyout
+        public void OpenSensorsForProfile(SensorSelectionProfile profile)
+        {
+            OpenDashboard();
+
+            // NavigationView raises SelectionChanged only on an actual change, so re-selecting the already active
+            // sensor item would never navigate; the profile below is applied either way
+            var sensorsItem = MainNavigationView.MenuItems[0];
+            if (!ReferenceEquals(MainNavigationView.SelectedItem, sensorsItem))
+            {
+                MainNavigationView.SelectedItem = sensorsItem;
+            }
+
+            if (contentFrame.Content is SensorsPage sensorsPage)
+            {
+                sensorsPage.SelectProfile(profile);
+            }
+            else
+            {
+                // splash is still running, StartHardwareServiceAsync picks this up once it selects the page
+                _pendingSensorProfile = profile;
+            }
         }
 
         private void RestoreApp()

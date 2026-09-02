@@ -78,13 +78,14 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}" />
+                    Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
 
                 <!--  sensor name, or name + unit if ShowUnitInStatusRow  -->
                 <!--  switchable: subtle button with a manual chevron, opens the hidden combobox below in one click  -->
                 <Button
                     Grid.Column="2"
-                    Padding="8,0,8,0"
+                    Padding="4,0,4,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Stretch"
                     HorizontalContentAlignment="Left"
@@ -127,7 +128,8 @@
                     VerticalAlignment="Center"
                     Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetCurrentValueOrPlaceholder(ViewModel), Mode=OneWay}" />
+                    Text="{x:Bind GetCurrentValueOrPlaceholder(ViewModel), Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
             </Grid>
 
 
@@ -150,11 +152,12 @@
                 <!--  current max y-axis value  -->
                 <TextBlock
                     Grid.Column="0"
-                    Margin="7,0,0,0"
+                    Margin="4,0,0,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}" />
+                    Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
 
                 <!--  sensor name, or name + unit if ShowUnitInStatusRow  -->
                 <TextBlock
@@ -173,7 +176,8 @@
                     VerticalAlignment="Center"
                     Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetCurrentValueOrPlaceholder(ViewModel), Mode=OneWay}" />
+                    Text="{x:Bind GetCurrentValueOrPlaceholder(ViewModel), Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
             </Grid>
         </Grid>
 
@@ -363,12 +367,16 @@
                 <fhGraph:SensorGraphControl
                     x:Name="GraphControl"
                     AccentColor="{x:Bind GetEffectiveGraphColor(GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
-                    CardBackgroundOverride="{x:Bind BoolToCardBackgroundOverride(ShowGraphCardBackground), Mode=OneWay}"
+                    CardBackgroundOverride="{x:Bind GetEffectiveCardBackground(ShowGraphCardBackground, UseGraphColorCardBackground, GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
+                    CardBorderOverride="{x:Bind BoolToCardBorderOverride(ShowGraphCardBorder), Mode=OneWay}"
+                    CurrentValueText="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}"
                     IsAutoScaled="{x:Bind ViewModel.IsAutoScaled, Mode=OneWay}"
+                    IsCurrentValueVisible="{x:Bind ShowGraphCurrentValue, Mode=OneWay}"
                     IsHoverEnabled="{x:Bind IsGraphHoverEnabled, Mode=OneWay}"
                     IsLabelVisible="{x:Bind ShowGraphLabel, Mode=OneWay}"
+                    IsNameVisible="{x:Bind ShowGraphName, Mode=OneWay}"
                     LabelFollowsPointer="True"
-                    LabelText="{x:Bind ViewModel.DisplayNameWithUnit, Mode=OneWay}"
+                    LabelText="{x:Bind ViewModel.SensorName, Mode=OneWay}"
                     ManualYMax="{x:Bind ViewModel.ManualYMax, Mode=OneWay}"
                     SensorType="{x:Bind ViewModel.SensorType, Mode=OneWay}"
                     Tapped="GraphControl_Tapped"

@@ -40,6 +40,7 @@
             Grid.Row="0"
             Height="48"
             Background="Transparent"
+            Loaded="AppTitleBar_Loaded"
             SizeChanged="AppTitleBar_SizeChanged">
 
             <Grid.ColumnDefinitions>
@@ -78,8 +79,9 @@
                 self-contained runtime
             -->
             <fhInfoPopup:InfoPopupControl
+                x:Name="DotNetRuntimePopup"
                 Grid.Column="2"
-                Margin="8,0,0,0"
+                Margin="8,1,0,0"
                 VerticalAlignment="Center"
                 ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
                 Description="NET 10 is not installed on this device&#10;LibreHardwareMonitor needs it to access every available sensor, some readings may be missing or incomplete without it"
@@ -93,19 +95,21 @@
 
             <!--  toggle button for the whole status readout  -->
             <Button
+                x:Name="StatusToggleButton"
                 Grid.Column="3"
                 Width="22"
                 Height="22"
-                Margin="8,0,0,0"
+                Margin="8,1,0,0"
                 Padding="0"
                 VerticalAlignment="Center"
                 Background="Transparent"
                 BorderThickness="0"
-                Click="StatusToggleButton_Click">
+                Click="StatusToggleButton_Click"
+                Style="{ThemeResource SubtleButtonStyle}">
                 <FontIcon
-                    FontSize="10"
-                    Glyph="&#xE76C;"
-                    Opacity="{x:Bind GetToggleOpacity(AppStatus.IsStatusEnabled), Mode=OneWay}" />
+                    FontSize="12"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Glyph="&#xE76C;" />
             </Button>
 
             <!--  lhm group  -->
@@ -130,6 +134,7 @@
                     Text="{x:Bind AppStatus.PollText, Mode=OneWay}"
                     Typography.NumeralAlignment="Tabular" />
                 <fhInfoPopup:InfoPopupControl
+                    x:Name="LhmInfoPopup"
                     Margin="-2,1,0,0"
                     Description="Sensors (found/rendered) - sensors found by LibreHardwareMonitor, and how many are actively drawn&#10;Poll (current/aimed) - measured update rate against the rate set in Settings&#10;Read - duration of one full sensor pass, close to the poll rate means no headroom left&#10;LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows"
                     PlacementMode="Below"
@@ -150,14 +155,12 @@
                 Spacing="8"
                 Visibility="{x:Bind BoolToVisibility(AppStatus.IsWindowsGroupVisible), Mode=OneWay}">
                 <TextBlock
-                    MinWidth="55"
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
                     Text="{x:Bind AppStatus.CpuUsageText, Mode=OneWay}"
                     Typography.NumeralAlignment="Tabular" />
                 <TextBlock
-                    MinWidth="65"
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
@@ -185,6 +188,7 @@
                 </fhInfoPopup:InfoPopupControl>-->
 
                 <fhInfoPopup:InfoPopupControl
+                    x:Name="WindowsInfoPopup"
                     Margin="-2,1,0,0"
                     Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)"
                     PlacementMode="Below"

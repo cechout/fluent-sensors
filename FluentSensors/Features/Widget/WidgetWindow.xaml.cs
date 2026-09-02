@@ -14,6 +14,9 @@ using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Controls.SensorGraph;
+using FluentSensors.Features.Sensors;
+using FluentSensors.Common.Sensors;
+using FluentSensors.Features.TaskbarWidget;
 
 
 namespace FluentSensors.Features.Widget
@@ -46,6 +49,7 @@ namespace FluentSensors.Features.Widget
         private DesktopAcrylicController _acrylicController;
         private MicaController _micaController;
         private SystemBackdropConfiguration _configurationSource;
+        private Windows.UI.ViewManagement.UISettings? _uiSettings;
 
 
         // === constructor ===
@@ -95,9 +99,9 @@ namespace FluentSensors.Features.Widget
                 ResizeWidgetToFitSensors(selectedSensors.Count);
             }
 
-            // remember this window as open and which sensors are pinned, so it can auto-reopen with the same sensors on
-            // next launch
-            SaveWindowState(selectedSensors);
+            // remember this window as open, so it can auto-reopen on next launch; which sensors to reopen it with comes
+            // from SensorSelectionService, not from here
+            SaveWindowState();
 
             // theming
             SetBackdrop(SettingsService.Instance.BackdropType);
@@ -109,9 +113,20 @@ namespace FluentSensors.Features.Widget
             SettingsService.Instance.OpacityChanged += OnOpacityChanged;
             SettingsService.Instance.TintColorChanged += OnTintColorChanged;
 
+            try
+            {
+                _uiSettings = new Windows.UI.ViewManagement.UISettings();
+                TaskbarFlyoutWindow.SeedSystemVisualsSnapshot(_uiSettings);
+                _uiSettings.AdvancedEffectsEnabledChanged += OnSystemVisualSettingsChanged;
+                _uiSettings.ColorValuesChanged += OnSystemVisualSettingsChanged;
+            }
+            catch { }
+
             this.Closed += WidgetWindow_Closed;
             _appWindow.Changed += AppWindow_Changed;
             _appWindow.Closing += AppWindow_Closing;
+
+            KickBackdropRefresh();
         }
 
 
@@ -169,14 +184,136 @@ namespace FluentSensors.Features.Widget
             CurrentInstance.Activate();
         }
 
+        private bool _isClosed = false;
+
+        public void SafeDestroy()
+        {
+            if (_isClosed) return;
+            _isClosed = true;
+
+            try
+            {
+                SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+                SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
+                SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
+                SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
+            }
+            catch { }
+
+            try
+            {
+                if (_uiSettings != null)
+                {
+                    _uiSettings.AdvancedEffectsEnabledChanged -= OnSystemVisualSettingsChanged;
+                    _uiSettings.ColorValuesChanged -= OnSystemVisualSettingsChanged;
+                    _uiSettings = null;
+                }
+            }
+            catch { }
+
+            // AppWindow_Closing cancels the close and re-registers this instance as _retainedInstance; detaching it
+            // here is what lets the Close below go through instead of resurrecting a window that is already torn down
+            // WidgetWindow_Closed stays attached, it carries the real teardown once the close completes
+            try
+            {
+                _appWindow.Closing -= AppWindow_Closing;
+                _appWindow.Changed -= AppWindow_Changed;
+            }
+            catch { }
+
+            try
+            {
+                _acrylicController?.Dispose();
+                _acrylicController = null;
+                _micaController?.Dispose();
+                _micaController = null;
+                this.Close();
+            }
+            catch { }
+        }
+
+        private static bool _isRecreating = false;
+
+        // fully destroys and recreates the widget window when Windows global transparency or theme is toggled
+        public static void RecreateWindow()
+        {
+            if (_isRecreating) return;
+            if (CurrentInstance == null && _retainedInstance == null) return;
+            _isRecreating = true;
+
+            var ids = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetWindow);
+            var sensors = ResolveSensors(ids);
+            bool wasVisible = CurrentInstance != null && CurrentInstance._appWindow != null && CurrentInstance._appWindow.IsVisible;
+
+            if (CurrentInstance != null)
+            {
+                var old = CurrentInstance;
+                CurrentInstance = null;
+                old.SafeDestroy();
+            }
+
+            if (_retainedInstance != null)
+            {
+                var old = _retainedInstance;
+                _retainedInstance = null;
+                old.SafeDestroy();
+            }
+
+            if (sensors.Count > 0 && wasVisible)
+            {
+                // the queue has to be resolved with a fallback: closing the main window to the tray leaves
+                // MainWindow.CurrentInstance null, and a null-conditional TryEnqueue there would skip the finally
+                // below and latch _isRecreating for the rest of the session, so the widget would never rebuild again
+                var queue = MainWindow.CurrentInstance?.DispatcherQueue ?? DispatcherQueue.GetForCurrentThread();
+                bool queued = queue != null && queue.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        ShowWithSensors(sensors);
+                    }
+                    finally
+                    {
+                        _isRecreating = false;
+                    }
+                });
+
+                if (!queued)
+                {
+                    _isRecreating = false;
+                }
+            }
+            else
+            {
+                _isRecreating = false;
+            }
+        }
+
+        private static List<SensorRowViewModel> ResolveSensors(IReadOnlyList<string> sensorIds)
+        {
+            if (sensorIds == null || sensorIds.Count == 0 || SensorsViewModel.Instance == null)
+            {
+                return new List<SensorRowViewModel>();
+            }
+
+            // walks the groups rather than the id list so the row order matches what PinToWidget_Click and
+            // PinToTaskbar_Click produce; the persisted list is membership in toggle order, not display order,
+            // and mapping over it put restored graphs in a different order than a live pin of the same sensors
+            var wantedIds = new HashSet<string>(sensorIds);
+
+            return SensorsViewModel.Instance.HardwareGroups
+                .SelectMany(g => g.Sensors.Concat(g.HiddenSensors))
+                .Where(sensor => wantedIds.Contains(sensor.Id))
+                .ToList();
+        }
+
 
         // === lifecycle ===
 
         private void WidgetWindow_Closed(object sender, WindowEventArgs args)
         {
-            // mark the widget as closed so it wont auto-reopen on the next launch; keep the last rect and pinned sensors
-            // around in case its simply re-pinned later this session
-            SaveWindowState(pinnedSensors: null, wasOpen: false);
+            // mark the widget as closed so it wont auto-reopen on the next launch; the pinned selection itself is
+            // untouched, its owned by SensorSelectionService, not by window state
+            SaveWindowState(wasOpen: false);
 
             // we detach the event handlers from the settings service
             SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
@@ -228,9 +365,13 @@ namespace FluentSensors.Features.Widget
         // command); this window never decides to quit on its own
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
+            // SafeDestroy is tearing this instance down: let the close proceed instead of handing a window with
+            // _isClosed set back to _retainedInstance, where every later SetBackdrop and ApplyTheme returns early
+            if (_isClosed) return;
+
             args.Cancel = true;
 
-            SaveWindowState(pinnedSensors: null, wasOpen: false);
+            SaveWindowState(wasOpen: false);
             CurrentInstance = null;
             _retainedInstance = this;
             WidgetStateChanged?.Invoke();
@@ -299,6 +440,16 @@ namespace FluentSensors.Features.Widget
                 UpdateAcrylicProperties();
                 UpdateSolidBackground();
             });
+        }
+
+        // a named handler rather than a lambda, so SafeDestroy can detach it again; every rebuilt window subscribes
+        // anew and without the detach the UISettings handler list grows by one per rebuild
+        //
+        // routes to RouteSystemVisualsChange rather than ScheduleRecreation directly, see TaskbarFlyoutWindows own
+        // handler for why: a pure accent change resolves into an in-place refresh instead of a rebuild
+        private void OnSystemVisualSettingsChanged(Windows.UI.ViewManagement.UISettings sender, object args)
+        {
+            TaskbarFlyoutWindow.RouteSystemVisualsChange(sender);
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
@@ -462,13 +613,12 @@ namespace FluentSensors.Features.Widget
                 ResizeWidgetToFitSensors(selectedSensors.Count);
             }
 
-            SaveWindowState(selectedSensors);
+            SaveWindowState();
         }
 
-        // writes the current rect (debounced) to the window state store
-        // pinnedSensors is only passed when the pin selection actually changed (construction); on plain move/resize or close,
-        // passing null keeps whatever IDs were already saved
-        private void SaveWindowState(List<SensorRowViewModel> pinnedSensors = null, bool wasOpen = true)
+        // writes the current rect and open state (debounced) to the window state store
+        // no longer touches which sensors are pinned, SensorSelectionService owns that independently of window state
+        private void SaveWindowState(bool wasOpen = true)
         {
             var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
 
@@ -485,11 +635,6 @@ namespace FluentSensors.Features.Widget
             }
             state.WasOpen = wasOpen;
 
-            if (pinnedSensors != null)
-            {
-                state.PinnedSensorIds = pinnedSensors.Select(s => s.Id).ToList();
-            }
-
             WindowStateService.Instance.SetState(WindowKey, state);
         }
 
@@ -498,6 +643,8 @@ namespace FluentSensors.Features.Widget
 
         private void ApplyTheme(string themeTag)
         {
+            if (_isClosed) return;
+
             if (this.Content is FrameworkElement rootElement)
             {
                 rootElement.RequestedTheme = themeTag switch
@@ -521,6 +668,8 @@ namespace FluentSensors.Features.Widget
 
         private void UpdateAcrylicProperties()
         {
+            if (_isClosed) return;
+
             if (_acrylicController != null)
             {
                 // determine the correct color
@@ -544,6 +693,8 @@ namespace FluentSensors.Features.Widget
 
         private void UpdateSolidBackground()
         {
+            if (_isClosed) return;
+
             // we intervene only, if "solid" is selected
             if (SettingsService.Instance.BackdropType == "None")
             {
@@ -557,12 +708,22 @@ namespace FluentSensors.Features.Widget
             }
         }
 
+        // re-reads the live SystemAccentColor into the acrylic tint and the solid background, for a pure OS
+        // accent change; both already resolve the accent fresh on every call, so no window rebuild is needed
+        public void RefreshAccentSurfaces()
+        {
+            UpdateAcrylicProperties();
+            UpdateSolidBackground();
+        }
+
         // dynamically applies the chosen backdrop material to the WidgetWindow based on the users selection in the settings
         // page
         // setup follows the official Microsoft guide for system backdrops in XAML apps:
         // https://learn.microsoft.com/en-us/windows/apps/develop/ui/system-backdrops
         public void SetBackdrop(string backdropType)
         {
+            if (_isClosed) return;
+
             // ensure the system dispatcher queue is ready
             DispatcherQueue.EnsureSystemDispatcherQueue();
 
@@ -626,6 +787,30 @@ namespace FluentSensors.Features.Widget
                     ElementTheme.Light => SystemBackdropTheme.Light,
                     _ => SystemBackdropTheme.Default
                 };
+            }
+        }
+
+        // --- workaround: DWM backdrop swapchain kick ---
+        // problem: when Windows transparency/theme changes, WinUI 3 DesktopAcrylicController needs a backdrop re-bind
+        // to attach its blur shader to the newly created DWM swapchain.
+        // fix: after window recreation, briefly kick the backdrop pipeline (None -> Mica/Acrylic) to force DWM compositor refresh.
+        private void KickBackdropRefresh()
+        {
+            if (_isClosed) return;
+
+            string currentBackdrop = SettingsService.Instance.BackdropType;
+            if (currentBackdrop == "Mica" || currentBackdrop == "Acrylic")
+            {
+                var timer = this.DispatcherQueue.CreateTimer();
+                timer.Interval = TimeSpan.FromMilliseconds(80);
+                timer.IsRepeating = false;
+                timer.Tick += (s, e) =>
+                {
+                    if (_isClosed) return;
+                    SetBackdrop("None");
+                    SetBackdrop(currentBackdrop);
+                };
+                timer.Start();
             }
         }
     }

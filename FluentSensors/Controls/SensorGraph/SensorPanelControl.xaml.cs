@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Linq;
 
 using FluentSensors.Common.UI;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Controls.SensorGraph
@@ -28,12 +29,20 @@ namespace FluentSensors.Controls.SensorGraph
         // plain text in that case
         private const bool ShowSwitchUiForSingleCandidate = true;
 
+        // graph-color card background alpha (UseGraphColorCardBackground)
+        private const byte GraphColorCardBackgroundAlphaDark = 44;
+        private const byte GraphColorCardBackgroundAlphaLight = 44; 
+
 
         // === constructor ===
 
         public SensorPanelControl()
         {
             InitializeComponent();
+
+            // the graph-color card background alpha depends on the theme (see GetEffectiveCardBackground), and the
+            // CardBackgroundOverride x:Bind does not otherwise re-run on a theme switch
+            ActualThemeChanged += (s, e) => Bindings.Update();
         }
 
 
@@ -240,6 +249,32 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
+        // toggles visibility of sensor name inside graph header overlay
+        public bool ShowGraphName
+        {
+            get => (bool)GetValue(ShowGraphNameProperty);
+            set => SetValue(ShowGraphNameProperty, value);
+        }
+        public static readonly DependencyProperty ShowGraphNameProperty =
+            DependencyProperty.Register(
+                nameof(ShowGraphName),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(true));
+
+        // toggles visibility of current value inside graph header overlay
+        public bool ShowGraphCurrentValue
+        {
+            get => (bool)GetValue(ShowGraphCurrentValueProperty);
+            set => SetValue(ShowGraphCurrentValueProperty, value);
+        }
+        public static readonly DependencyProperty ShowGraphCurrentValueProperty =
+            DependencyProperty.Register(
+                nameof(ShowGraphCurrentValue),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(true));
+
         // overrides the graphs line/section color for this specific instance, regardless of the global accent/custom
         // color setting;
         // Colors.Transparent (Alpha 0) = no override, since a real accent color is never fully transparent
@@ -325,7 +360,40 @@ namespace FluentSensors.Controls.SensorGraph
                 nameof(ShowGraphCardBackground),
                 typeof(bool),
                 typeof(SensorPanelControl),
+                new PropertyMetadata(true, OnCardBackgroundVisibilityChanged));
+
+        // the CardBackgroundOverride x:Bind takes this as an argument, and nothing re-runs it when the property
+        // changes after load; same reason as the ActualThemeChanged refresh in the constructor
+        private static void OnCardBackgroundVisibilityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SensorPanelControl panel) panel.Bindings.Update();
+        }
+
+        // pure visual pass-through to SensorGraphControl.CardBorderOverride (true = standard theme border, false = transparent)
+        public bool ShowGraphCardBorder
+        {
+            get => (bool)GetValue(ShowGraphCardBorderProperty);
+            set => SetValue(ShowGraphCardBorderProperty, value);
+        }
+        public static readonly DependencyProperty ShowGraphCardBorderProperty =
+            DependencyProperty.Register(
+                nameof(ShowGraphCardBorder),
+                typeof(bool),
+                typeof(SensorPanelControl),
                 new PropertyMetadata(true));
+
+        // when true, calculates a 10% alpha tint of the graphs own color as the card background
+        public bool UseGraphColorCardBackground
+        {
+            get => (bool)GetValue(UseGraphColorCardBackgroundProperty);
+            set => SetValue(UseGraphColorCardBackgroundProperty, value);
+        }
+        public static readonly DependencyProperty UseGraphColorCardBackgroundProperty =
+            DependencyProperty.Register(
+                nameof(UseGraphColorCardBackground),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(false));
 
         // pure visual pass-through to SensorGraphControl.IsHoverEnabled; default true keeps every existing consumer
         // unchanged, set to false for a purely decorative graph (no hover circle, no value label on pointer move)
@@ -530,12 +598,41 @@ namespace FluentSensors.Controls.SensorGraph
         // layout position and ShowFlyout() keeps working), only the visual rendering is toggled here
         private double BoolToOpacity(bool value) => value ? 1.0 : 0.0;
 
-        // translates the panels own simple ShowGraphCardBackground bool into SensorGraphControl.CardBackgroundOverride:
-        // true - keeps the graphs normal themed background (no override, null)
-        // false - hides it via an explicit fully
-        // transparent override - external behavior of ShowGraphCardBackground stays exactly as before
-        private Windows.UI.Color? BoolToCardBackgroundOverride(bool showBackground) =>
-            showBackground ? null : Windows.UI.Color.FromArgb(0, 0, 0, 0);
+        // translates the panels ShowGraphCardBackground and UseGraphColorCardBackground into SensorGraphControl.CardBackgroundOverride:
+        // showBackground = false -> explicit transparent override
+        // useGraphColor = true   -> theme-dependent alpha tint of effective graph color
+        // default                -> null (standard themed card background)
+        private Windows.UI.Color? GetEffectiveCardBackground(bool showBackground, bool useGraphColor, Windows.UI.Color overrideColor, Windows.UI.Color autoColor)
+        {
+            if (!showBackground)
+            {
+                return Windows.UI.Color.FromArgb(0, 0, 0, 0);
+            }
+
+            if (useGraphColor)
+            {
+                Windows.UI.Color effectiveGraphColor = GetEffectiveGraphColor(overrideColor, autoColor);
+                byte alpha = IsDarkTheme() ? GraphColorCardBackgroundAlphaDark : GraphColorCardBackgroundAlphaLight;
+                return Windows.UI.Color.FromArgb(alpha, effectiveGraphColor.R, effectiveGraphColor.G, effectiveGraphColor.B);
+            }
+
+            return null;
+        }
+
+        // same resolution order as DefaultTextColor.Resolve; a code-behind theme-resource lookup would ignore the apps
+        // RequestedTheme override, so the app theme setting is read directly with the OS theme as the fallback
+        private static bool IsDarkTheme()
+        {
+            return SettingsService.Instance.AppTheme switch
+            {
+                "Light" => false,
+                "Dark" => true,
+                _ => Application.Current.RequestedTheme == ApplicationTheme.Dark
+            };
+        }
+
+        private Windows.UI.Color? BoolToCardBorderOverride(bool showBorder) =>
+            showBorder ? null : Windows.UI.Color.FromArgb(0, 0, 0, 0);
 
 
         // === event handlers ===

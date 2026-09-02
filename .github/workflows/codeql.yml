@@ -1,0 +1,55 @@
+# security scanning via CodeQL, advanced setup with manual build mode
+#
+# autobuild is not used here, WinUI3 needs the same explicit build pass release.yml documents
+# (MarkupCompilePass2 needs a full Build pass to resolve x:Bind LocalAssembly types)
+name: codeql
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "24 3 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7
+
+      - name: initialize codeql
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          build-mode: manual
+
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: setup msbuild
+        uses: microsoft/setup-msbuild@v2
+
+      # --- workaround: dotnet build cannot resolve COMReference ---
+      # problem: ResolveComReference is not implemented in the .NET Core version of MSBuild, only
+      # the full .NET Framework MSBuild (msbuild.exe) supports it, dotnet build fails with MSB4803
+      # https://aka.ms/msbuild/MSB4803
+      # fix: restore via dotnet CLI as usual, then build through msbuild.exe from microsoft/setup-msbuild
+      - name: restore
+        run: dotnet restore FluentSensors/FluentSensors.csproj -p:Platform=x64 -r win-x64 -p:SelfContained=true
+
+      - name: build win-x64
+        run: msbuild FluentSensors/FluentSensors.csproj -p:Configuration=Release -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -p:SelfContained=true
+
+      - name: perform codeql analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:csharp"

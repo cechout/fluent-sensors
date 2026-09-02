@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Dispatching;
+using Microsoft.UI.Dispatching;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -14,6 +14,7 @@ using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Core.Lhm;
+using FluentSensors.Features.TaskbarWidget;
 
 
 namespace FluentSensors.Features.Sensors
@@ -24,6 +25,10 @@ namespace FluentSensors.Features.Sensors
 
         private TaskCompletionSource<bool> _initialLoadTcs = new TaskCompletionSource<bool>();
         public Task WaitForInitialLoadAsync() => _initialLoadTcs.Task; // MainWindow waits on this
+
+        // guards OnSensorRowSelectionChanged against firing while ResyncCheckboxesForActiveProfile is itself only
+        // mirroring an already-persisted selection back onto the checkboxes, not a genuine user toggle
+        private bool _isResyncingCheckboxes = false;
 
 
         // === singleton instance ===
@@ -63,6 +68,7 @@ namespace FluentSensors.Features.Sensors
             // covers the case where a widget auto-reopened (saved state) before this VM was constructed
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
             WidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
+            TaskbarWidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
         }
 
 
@@ -70,6 +76,35 @@ namespace FluentSensors.Features.Sensors
 
         public ObservableCollection<HardwareGroupViewModel> HardwareGroups { get; set; }
         public bool HasHiddenSensors => HardwareGroups.Any(g => g.HasHiddenSensors);
+
+        // which selection profile the checkboxes currently reflect and persist to
+        private SensorSelectionProfile _activeProfile = SensorSelectionProfile.WidgetWindow;
+        public SensorSelectionProfile ActiveProfile
+        {
+            get => _activeProfile;
+            set
+            {
+                if (_activeProfile == value) return;
+                _activeProfile = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsWidgetProfileActive));
+                OnPropertyChanged(nameof(IsCsvProfileActive));
+                OnPropertyChanged(nameof(IsTaskbarProfileActive));
+                OnPropertyChanged(nameof(IsPinnedAvailable));
+                ResyncCheckboxesForActiveProfile();
+            }
+        }
+        public bool IsWidgetProfileActive => ActiveProfile == SensorSelectionProfile.WidgetWindow;
+        public bool IsCsvProfileActive => ActiveProfile == SensorSelectionProfile.Csv;
+        public bool IsTaskbarProfileActive => ActiveProfile == SensorSelectionProfile.Taskbar;
+
+        public bool IsPinnedAvailable => ActiveProfile switch
+        {
+            SensorSelectionProfile.WidgetWindow => WidgetWindow.CurrentInstance != null,
+            SensorSelectionProfile.Taskbar => TaskbarWidgetWindow.CurrentInstance != null && TaskbarWidgetWindow.CurrentInstance.IsEmbedded,
+            _ => false
+        };
+
         private bool _isWidgetOpen;
         public bool IsWidgetOpen
         {
@@ -118,10 +153,24 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // keeps IsWidgetOpen in sync whenever the widget window opens or closes
+        // keeps IsWidgetOpen and IsPinnedAvailable in sync whenever widget/taskbar opens or closes
         private void OnWidgetStateChanged()
         {
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
+            OnPropertyChanged(nameof(IsPinnedAvailable));
+        }
+
+        // persists every genuine checkbox toggle on the active profile immediately; this is purely a data write, it
+        // never opens or reconfigures anything, that only happens when the corresponding action button is clicked
+        // hidden sensors are excluded: a checkbox toggled from the Hidden Sensors window is the profile-independent
+        // restore selection, not a pin, this is the same distinction ResyncCheckboxesForActiveProfile already makes
+        private void OnSensorRowSelectionChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(SensorRowViewModel.IsSelected)) return;
+            if (_isResyncingCheckboxes) return;
+            if (sender is not SensorRowViewModel row || row.IsHidden) return;
+
+            SensorSelectionService.Instance.SetMembership(ActiveProfile, row.Id, row.IsSelected);
         }
 
 
@@ -175,6 +224,27 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
+        // mirrors every visible sensors checkbox onto the active profiles persisted selection, so switching profiles
+        // always shows exactly what that profile currently contains
+        //
+        // hidden sensors are excluded even though group.Sensors should never contain one
+        // (HideSensorsCompletely=false leaves a soft-hidden sensor (IsHidden=true, IsDisabled=true) sitting right there,
+        // same guard SelectPinnedSensors already relied on)
+        private void ResyncCheckboxesForActiveProfile()
+        {
+            _isResyncingCheckboxes = true;
+
+            foreach (var group in HardwareGroups)
+            {
+                foreach (var sensor in group.Sensors)
+                {
+                    sensor.IsSelected = !sensor.IsHidden && SensorSelectionService.Instance.IsSelected(ActiveProfile, sensor.Id);
+                }
+            }
+
+            _isResyncingCheckboxes = false;
+        }
+
         // creates and places the row for one newly discovered sensor; a sensor discovered for the first time this
         // session may already have persisted state from a previous run (e.g. it was hidden or selected before closing)
         private void OnSensorDiscovered(HardwareGroupViewModel group, LhmSensorEntry entry)
@@ -183,15 +253,17 @@ namespace FluentSensors.Features.Sensors
             bool isHidden = persistedState.IsHidden;
 
             // IsHidden must be set before Entry, and Entry before IsSelected:
-            // Entry's setter does the initial value sync and skips it if IsHidden is already true; IsSelected's setter
+            // Entrys setter does the initial value sync and skips it if IsHidden is already true; IsSelected's setter
             // persists immediately and needs Entry.Id to already be available
+            // checkbox seeds from the active profiles persisted selection, not from persistedState.IsSelected, that
             var newRow = new SensorRowViewModel
             {
                 SortOrder = group.Sensors.Count + group.HiddenSensors.Count,
                 IsHidden = isHidden,
                 Entry = entry,
-                IsSelected = persistedState.IsSelected,
+                IsSelected = !isHidden && SensorSelectionService.Instance.IsSelected(ActiveProfile, entry.Id),
             };
+            newRow.PropertyChanged += OnSensorRowSelectionChanged;
 
             if (isHidden)
             {
@@ -230,14 +302,28 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // sets the checkbox exactly on the sensors currently pinned to the active widget window
+        // sets the checkbox exactly on the sensors currently pinned to the active widget or taskbar widget
         // all other visible sensors get deselected so the checkbox state mirrors the widget contents 1:1
         public void SelectPinnedSensors()
         {
-            var widgetViewModel = WidgetWindow.CurrentInstance?.ViewModel;
-            if (widgetViewModel == null) return; // widget is closed, nothing to sync against
+            HashSet<string> pinnedIds = null;
 
-            var pinnedIds = new HashSet<string>(widgetViewModel.PinnedSensors.Select(s => s.SensorId));
+            if (ActiveProfile == SensorSelectionProfile.Taskbar)
+            {
+                var taskbarViewModel = TaskbarWidgetWindow.CurrentInstance?.ViewModel;
+                if (taskbarViewModel == null) return;
+                pinnedIds = new HashSet<string>(taskbarViewModel.PinnedSensors.Select(s => s.SensorId));
+            }
+            else if (ActiveProfile == SensorSelectionProfile.WidgetWindow)
+            {
+                var widgetViewModel = WidgetWindow.CurrentInstance?.ViewModel;
+                if (widgetViewModel == null) return;
+                pinnedIds = new HashSet<string>(widgetViewModel.PinnedSensors.Select(s => s.SensorId));
+            }
+            else
+            {
+                return;
+            }
 
             foreach (var group in HardwareGroups)
             {

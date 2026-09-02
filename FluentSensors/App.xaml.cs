@@ -21,6 +21,11 @@ namespace FluentSensors
         public App()
         {
             InitializeComponent();
+
+            // settings are written through a 1s debounce, and MainWindow only flushes on its own two exit routes;
+            // an unhandled exception would drop whatever is still pending, so flush here as well
+            // a debugger stop or an external kill still cannot be covered, nothing managed runs on TerminateProcess
+            this.UnhandledException += (s, e) => PersistenceService.Instance.FlushAll();
         }
 
         /// <summary>
@@ -41,6 +46,11 @@ namespace FluentSensors
             SensorStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorStates());
             WindowStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadWindowStates());
             SensorSwitchStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorSwitchStates());
+            SensorSelectionService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorSelections());
+
+            // one-time migration for users updating from a version before selection profiles existed, WindowStateService
+            // is already loaded by this point so the legacy widget pin list is available
+            SensorSelectionService.Instance.MigrateFromLegacyWidgetPins(WindowStateService.Instance.GetState("Widget")?.PinnedSensorIds);
 
             _window = new MainWindow();
             _window.Activate();

@@ -38,6 +38,16 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
+# Google Antigravity & Agent configs
+.agent/
+.antigravity/
+.gemini/
+
+# Claude Code (local agent guidance, not shared)
+/CLAUDE.md
+/CLAUDE.local.md
+.claude/
+
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 # Uncomment if you have tasks that create the project's static files in wwwroot

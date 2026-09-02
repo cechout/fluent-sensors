@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 
 namespace FluentSensors.Persistence.Models
@@ -13,9 +13,13 @@ namespace FluentSensors.Persistence.Models
         public int Height { get; set; }
         public bool IsMaximized { get; set; }
 
-        // WidgetWindow only: whether it was open when the app last closed, and which sensors were pinned, so it can be
-        // automatically restored with the same sensors on next launch
+        // WidgetWindow only: whether it was open when the app last closed, so it can be automatically restored on
+        // next launch; which sensors to restore it with comes from SensorSelectionService, not from here
         public bool WasOpen { get; set; }
+
+        // legacy: kept only so SensorSelectionService.MigrateFromLegacyWidgetPins can still read a pre-update
+        // window-state.json on someone elses first launch after updating
+        // current code never writes this anymore, SensorSelectionService owns the pinned selection now
         public List<string> PinnedSensorIds { get; set; } = new();
     }
 }

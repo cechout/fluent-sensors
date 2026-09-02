@@ -36,6 +36,14 @@ namespace FluentSensors.Features.Settings
             RestoreGraphColorSettings();
             RestoreGraphTimeSpanSelection();
 
+            RestoreTaskbarBackgroundMaterialSettings();
+            RestoreTaskbarGraphColorSettings();
+            RestoreTaskbarGraphBackgroundSourceSelection();
+            RestoreTaskbarGraphTimeSpanSelection();
+            RestoreTaskbarGraphWidthSelection();
+            RestoreTaskbarFlyoutAlignmentSelection();
+            RestoreLockWidgetPositionSelection();
+
 
             // event listeners
             WidgetBackgroundColorPicker.RegisterPropertyChangedCallback(
@@ -45,6 +53,14 @@ namespace FluentSensors.Features.Settings
             GraphColorPicker.RegisterPropertyChangedCallback(
                 CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
                 GraphColorPicker_SelectedColorChanged);
+
+            TaskbarBackgroundColorPicker.RegisterPropertyChangedCallback(
+                CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
+                TaskbarBackgroundColorPicker_SelectedColorChanged);
+
+            TaskbarGraphColorPicker.RegisterPropertyChangedCallback(
+                CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
+                TaskbarGraphColorPicker_SelectedColorChanged);
 
             _isLoading = false;
         }
@@ -258,6 +274,183 @@ namespace FluentSensors.Features.Settings
         }
 
 
+        // === taskbar & flyout appearance settings ===
+
+        // background material
+        private void TaskbarBackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (TaskbarBackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarBackdropType = tag;
+            }
+        }
+
+        private void TaskbarBackgroundColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (TaskbarBackgroundColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarUseAccentColor = (tag == "Accent");
+            }
+        }
+
+        private void TaskbarTintSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            SettingsService.Instance.TaskbarTintOpacity = (float)e.NewValue;
+        }
+
+        private void TaskbarLuminositySlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            SettingsService.Instance.TaskbarLuminosityOpacity = (float)e.NewValue;
+        }
+
+        private void TaskbarBackgroundColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
+        {
+            if (_isLoading) return;
+
+            if (sender is CommunityToolkit.WinUI.Controls.ColorPickerButton colorPicker)
+            {
+                SettingsService.Instance.TaskbarUseAccentColor = false;
+                TaskbarBackgroundColorSourceComboBox.SelectedIndex = 1;
+                SettingsService.Instance.TaskbarCustomTintColor = colorPicker.SelectedColor;
+            }
+        }
+
+        private void RestoreTaskbarBackgroundMaterialSettings()
+        {
+            TaskbarBackgroundColorSourceComboBox.SelectedIndex = SettingsService.Instance.TaskbarUseAccentColor ? 0 : 1;
+
+            string currentBackdrop = SettingsService.Instance.TaskbarBackdropType;
+            foreach (ComboBoxItem item in TaskbarBackdropComboBox.Items)
+            {
+                if (item.Tag?.ToString() == currentBackdrop)
+                {
+                    TaskbarBackdropComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
+            TaskbarTintSlider.Value = SettingsService.Instance.TaskbarTintOpacity;
+            TaskbarLuminositySlider.Value = SettingsService.Instance.TaskbarLuminosityOpacity;
+            TaskbarBackgroundColorPicker.SelectedColor = SettingsService.Instance.TaskbarCustomTintColor;
+        }
+
+        // Graph
+        private void TaskbarGraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (TaskbarGraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarUseGraphAccentColor = (tag == "Accent");
+            }
+        }
+
+        private void TaskbarGraphColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
+        {
+            if (_isLoading) return;
+
+            if (sender is CommunityToolkit.WinUI.Controls.ColorPickerButton colorPicker)
+            {
+                SettingsService.Instance.TaskbarUseGraphAccentColor = false;
+                TaskbarGraphColorSourceComboBox.SelectedIndex = 1;
+                SettingsService.Instance.TaskbarGraphCustomColor = colorPicker.SelectedColor;
+            }
+        }
+
+        private void TaskbarGraphBackgroundSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (TaskbarGraphBackgroundSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarUseTransparentGraphBackground = (tag == "Transparent");
+            }
+        }
+
+        private void TaskbarGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                if (selectedItem.Tag != null && double.TryParse(selectedItem.Tag.ToString(), out double newTimeSpanSeconds))
+                {
+                    SettingsService.Instance.TaskbarGraphTimeSpanSeconds = newTimeSpanSeconds;
+                }
+            }
+        }
+
+        private void RestoreTaskbarGraphColorSettings()
+        {
+            TaskbarGraphColorSourceComboBox.SelectedIndex = SettingsService.Instance.TaskbarUseGraphAccentColor ? 0 : 1;
+            TaskbarGraphColorPicker.SelectedColor = SettingsService.Instance.TaskbarGraphCustomColor;
+        }
+
+        private void RestoreTaskbarGraphBackgroundSourceSelection()
+        {
+            TaskbarGraphBackgroundSourceComboBox.SelectedIndex =
+                SettingsService.Instance.TaskbarUseTransparentGraphBackground ? 1 : 0;
+        }
+
+        private void RestoreTaskbarGraphTimeSpanSelection()
+        {
+            double currentTimeSpanSeconds = SettingsService.Instance.TaskbarGraphTimeSpanSeconds;
+
+            foreach (ComboBoxItem item in TaskbarGraphTimeSpanComboBox.Items)
+            {
+                if (item.Tag?.ToString() == currentTimeSpanSeconds.ToString())
+                {
+                    TaskbarGraphTimeSpanComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        private void TaskbarGraphWidthSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarGraphWidthDip = (int)e.NewValue;
+        }
+
+        private void RestoreTaskbarGraphWidthSelection()
+        {
+            TaskbarGraphWidthSlider.Value = SettingsService.Instance.TaskbarGraphWidthDip;
+        }
+
+        // flyout alignment over the widget
+        private void TaskbarFlyoutAlignmentComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarFlyoutAlignmentComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarFlyoutAlignment = tag;
+            }
+        }
+
+        private void RestoreTaskbarFlyoutAlignmentSelection()
+        {
+            string currentAlignment = SettingsService.Instance.TaskbarFlyoutAlignment;
+
+            foreach (ComboBoxItem item in TaskbarFlyoutAlignmentComboBox.Items)
+            {
+                if (item.Tag?.ToString() == currentAlignment)
+                {
+                    TaskbarFlyoutAlignmentComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        // widget drag lock
+        private void LockWidgetPositionToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarWidgetPositionLocked = LockWidgetPositionToggle.IsOn;
+        }
+
+        private void RestoreLockWidgetPositionSelection()
+        {
+            LockWidgetPositionToggle.IsOn = SettingsService.Instance.TaskbarWidgetPositionLocked;
+        }
+
+
         // === backup and restore settings ===
 
         // export and import
@@ -369,6 +562,7 @@ namespace FluentSensors.Features.Settings
             if (await ConfirmReset("Sensor States"))
             {
                 PersistenceService.Instance.ResetSensorStates();
+                PersistenceService.Instance.ResetSensorSelections();
                 RestartApp();
             }
         }
