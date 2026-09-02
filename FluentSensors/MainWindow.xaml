@@ -129,7 +129,7 @@
                     Text="{x:Bind AppStatus.PollText, Mode=OneWay}" />
                 <fhInfoPopup:InfoPopupControl
                     Margin="-2,1,0,0"
-                    Description="Sensors - number of sensors LibreHardwareMonitor found on this system, and how many of those are actively drawn right now (found/rendered)&#10;Poll - the update interval configured in Settings, and how long one full sensor read actually takes (aimed/read); a read approaching the interval means there is no headroom left&#10;LibreHardwareMonitorLib is the largest and most established open source hardware monitoring library for Windows"
+                    Description="Sensors - number of sensors LibreHardwareMonitor found on this system, and how many of those are actively drawn right now (found/rendered)&#10;Poll - measured broadcast cadence against the update interval configured in Settings, plus how long one full sensor read takes (current/aimed); the loop never broadcasts faster than the configured interval, so a read approaching it means there is no headroom left&#10;LibreHardwareMonitorLib is the largest and most established open source hardware monitoring library for Windows"
                     PlacementMode="Below"
                     SourceIntro="This App is powered by the open source LibreHardwareMonitor project:">
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
