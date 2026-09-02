@@ -7,6 +7,7 @@
     xmlns:local="using:FluentSensors.Controls.InfoPopup"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Loaded="InfoPopupControl_Loaded"
+    Unloaded="InfoPopupControl_Unloaded"
     mc:Ignorable="d">
 
 
