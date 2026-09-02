@@ -164,7 +164,7 @@ namespace FluentSensors.Persistence.Services
 
         // --- Taskbar Ecosystem (Widget + Flyout) Appearance Settings ---
 
-        private string _taskbarBackdropType = "Acrylic";
+        private string _taskbarBackdropType = "Mica";
         public string TaskbarBackdropType
         {
             get => _taskbarBackdropType;
@@ -269,7 +269,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private double _taskbarGraphTimeSpanSeconds = 45;
+        private double _taskbarGraphTimeSpanSeconds = 20;
         public double TaskbarGraphTimeSpanSeconds
         {
             get => _taskbarGraphTimeSpanSeconds;

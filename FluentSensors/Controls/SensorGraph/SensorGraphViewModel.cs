@@ -43,10 +43,7 @@ namespace FluentSensors.Controls.SensorGraph
 
             // when set, this instance owns a fixed time span independent of the scope GraphTimeSpanSeconds setting
             _timeSpanOverrideSeconds = graphTimeSpanSecondsOverride;
-            double initialTimeSpanSeconds = graphTimeSpanSecondsOverride ?? (Scope == SensorGraphScope.Taskbar
-                ? SettingsService.Instance.TaskbarGraphTimeSpanSeconds
-                : SettingsService.Instance.GraphTimeSpanSeconds);
-            int initialPointCount = CalculatePointCount(initialTimeSpanSeconds, HardwareMonitorService.Instance.UpdateIntervalMs);
+            int initialPointCount = CalculatePointCount(ResolveTimeSpanSeconds(), HardwareMonitorService.Instance.UpdateIntervalMs);
 
             // this raw data list will be plotted by LiveCharts
             // we use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
@@ -395,9 +392,21 @@ namespace FluentSensors.Controls.SensorGraph
         // the current polling interval, and resizes to it
         private void RecalculatePointCount()
         {
-            double effectiveSeconds = _timeSpanOverrideSeconds ?? SettingsService.Instance.GraphTimeSpanSeconds;
-            int newCount = CalculatePointCount(effectiveSeconds, HardwareMonitorService.Instance.UpdateIntervalMs);
+            int newCount = CalculatePointCount(ResolveTimeSpanSeconds(), HardwareMonitorService.Instance.UpdateIntervalMs);
             ResizeSensorData(newCount);
+        }
+
+        // the time span this instance currently plots: its own fixed override if it has one, otherwise the setting
+        // belonging to its scope
+        // shared by the constructor and every later resize on purpose; resolving it separately in the two places is
+        // what let taskbar graphs get rebuilt against the widget windows range instead of their own
+        private double ResolveTimeSpanSeconds()
+        {
+            if (_timeSpanOverrideSeconds.HasValue) return _timeSpanOverrideSeconds.Value;
+
+            return Scope == SensorGraphScope.Taskbar
+                ? SettingsService.Instance.TaskbarGraphTimeSpanSeconds
+                : SettingsService.Instance.GraphTimeSpanSeconds;
         }
 
         // how many points a graph needs to cover timeSpanSeconds at the given polling interval
