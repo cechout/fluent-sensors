@@ -39,7 +39,7 @@ namespace FluentSensors.Controls.SensorGraph
             Scope = scope;
             Unit = SensorUnitFormatter.GetUnit(sensorType);
             CurrentValueText = "-"; // placeholder text until we have the first value
-            CurrentValueColor = DefaultTextColor.Resolve(FollowsSystemTheme);
+            CurrentValueColor = DefaultTextColor.Resolve();
 
             // when set, this instance owns a fixed time span independent of the scope GraphTimeSpanSeconds setting
             _timeSpanOverrideSeconds = graphTimeSpanSecondsOverride;
@@ -89,9 +89,12 @@ namespace FluentSensors.Controls.SensorGraph
 
         public SensorGraphScope Scope { get; }
 
-        // the taskbar widget window follows the Windows theme rather than the app theme setting, so its graphs have to
-        // resolve their text color the same way or they end up unreadable whenever the two disagree
-        private bool FollowsSystemTheme => Scope == SensorGraphScope.Taskbar;
+        // whether CurrentValueColor currently carries a threshold override rather than the plain default text color
+        // consumers that resolve the default against their own theme instead need to tell the two apart, see
+        // SensorPanelControl.GetCurrentValueColorOrDefault
+        // deliberately no change notification of its own; it is only ever set together with CurrentValueColor below,
+        // whose notification already carries the refresh
+        public bool IsThresholdColorActive { get; private set; }
 
         // general
         public ObservableCollection<double?> SensorData { get; private set; }
@@ -448,9 +451,11 @@ namespace FluentSensors.Controls.SensorGraph
         // re-evaluates the current values color against this sensors own threshold config
         private void RecalculateColor()
         {
-            CurrentValueColor = Threshold.IsBreached(_currentRaw)
+            IsThresholdColorActive = Threshold.IsBreached(_currentRaw);
+
+            CurrentValueColor = IsThresholdColorActive
                 ? new SolidColorBrush(Threshold.Color)
-                : DefaultTextColor.Resolve(FollowsSystemTheme);
+                : DefaultTextColor.Resolve();
         }
 
         // calculates, what has to be displayed in the UI as the current max value

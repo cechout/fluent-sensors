@@ -665,10 +665,10 @@ namespace FluentSensors.Features.TaskbarWidget
         // apps own theme setting; every other window (main, widget, hidden sensors, taskbar flyout) keeps following
         // the setting, so a light app on a dark Windows leaves this one dark and blending into the taskbar
         //
-        // ElementTheme.Default inherits Application.Current.RequestedTheme, which is the Windows theme here since the
-        // app never overrides it
-        // it is set once and never revisited: nothing in the app can change it, and a Windows theme switch at runtime
-        // does not update Application.Current.RequestedTheme either, exactly as for every other window
+        // ElementTheme.Default inherits the app level theme, which is the Windows theme here since the app never
+        // overrides it
+        // set once and never revisited on purpose: Default keeps tracking Windows by itself from there, including a
+        // theme switch while the app is running
         private void ApplyWindowsTheme()
         {
             if (this.Content is FrameworkElement rootElement)

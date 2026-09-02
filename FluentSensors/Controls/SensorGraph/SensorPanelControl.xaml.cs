@@ -519,7 +519,16 @@ namespace FluentSensors.Controls.SensorGraph
 
         private string GetCurrentValueOrPlaceholder(SensorGraphViewModel viewModel) => GetTextOrPlaceholder(viewModel?.CurrentValueText);
 
-        private Brush GetCurrentValueColorOrDefault(SensorGraphViewModel viewModel) => viewModel?.CurrentValueColor ?? DefaultTextColor.Resolve();
+        // the plain value color comes from this controls own ActualTheme rather than from the view model, because the
+        // taskbar widget and the taskbar flyout render the very same view model instances at the same time and can sit
+        // on different themes: the widget follows Windows, the flyout follows the app theme setting
+        // only a threshold override still comes from the view model, since that color is theme independent
+        private Brush GetCurrentValueColorOrDefault(SensorGraphViewModel viewModel)
+        {
+            if (viewModel != null && viewModel.IsThresholdColorActive) return viewModel.CurrentValueColor;
+
+            return DefaultTextColor.ForTheme(ActualTheme == ElementTheme.Dark);
+        }
 
         private string GetStatusRowTitleOrPlaceholder(bool showUnit, SensorGraphViewModel viewModel) =>
             viewModel == null ? "--" : GetTextOrPlaceholder(GetStatusRowTitle(showUnit, viewModel.SensorName, viewModel.DisplayNameWithUnit));

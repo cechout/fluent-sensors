@@ -25,20 +25,25 @@ namespace FluentSensors.Common.UI
         private static readonly Windows.UI.Color LightColor = Windows.UI.Color.FromArgb(0xE4, 0x00, 0x00, 0x00);
         private static readonly Windows.UI.Color DarkColor = Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF);
 
-        // followSystemTheme skips the app theme setting entirely, for the surfaces that track Windows instead of
-        // the app; the taskbar widget is the only one, see TaskbarWidgetWindow.ApplyWindowsTheme
-        public static Brush Resolve(bool followSystemTheme = false)
+        // for callers with no element to ask, which resolves against the app theme setting
+        public static Brush Resolve()
         {
-            bool isDark = followSystemTheme
-                ? Application.Current.RequestedTheme == ApplicationTheme.Dark
-                : SettingsService.Instance.AppTheme switch
-                {
-                    "Light" => false,
-                    "Dark" => true,
-                    // "Default" follows the OS theme, mirrors ApplyTheme()'s ElementTheme.Default behavior
-                    _ => Application.Current.RequestedTheme == ApplicationTheme.Dark
-                };
+            bool isDark = SettingsService.Instance.AppTheme switch
+            {
+                "Light" => false,
+                "Dark" => true,
+                // "Default" follows the OS theme, mirrors ApplyTheme()'s ElementTheme.Default behavior
+                _ => Application.Current.RequestedTheme == ApplicationTheme.Dark
+            };
 
+            return ForTheme(isDark);
+        }
+
+        // for callers that render in a known theme, which anything with an ActualTheme to read does
+        // more reliable than Resolve() wherever a control can end up in a window that does not follow the app theme
+        // setting, see SensorPanelControl
+        public static Brush ForTheme(bool isDark)
+        {
             return new SolidColorBrush(isDark ? DarkColor : LightColor);
         }
     }
