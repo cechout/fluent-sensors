@@ -113,7 +113,7 @@
                             VerticalAlignment="Stretch"
                             IsGraphHoverEnabled="False"
                             IsHitTestVisible="False"
-                            ShowGraphCardBackground="True"
+                            ShowGraphCardBackground="{x:Bind IsCardBackgroundVisible, Mode=OneWay}"
                             ShowGraphCardBorder="False"
                             ShowGraphLabel="True"
                             ShowStatusRow="False"

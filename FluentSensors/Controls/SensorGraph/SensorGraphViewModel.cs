@@ -55,8 +55,10 @@ namespace FluentSensors.Controls.SensorGraph
             if (Scope == SensorGraphScope.Taskbar)
             {
                 GraphColor = ResolveGraphColor(SettingsService.Instance.TaskbarUseGraphAccentColor, SettingsService.Instance.TaskbarGraphCustomColor);
+                _isCardBackgroundVisible = !SettingsService.Instance.TaskbarUseTransparentGraphBackground;
                 SettingsService.Instance.TaskbarGraphColorChanged += OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnGraphTimeSpanChanged;
+                SettingsService.Instance.TaskbarGraphBackgroundChanged += OnGraphBackgroundChanged;
             }
             else
             {
@@ -116,6 +118,21 @@ namespace FluentSensors.Controls.SensorGraph
         {
             get => _graphColor;
             private set { _graphColor = value; OnPropertyChanged(); }
+        }
+
+        // taskbar widget graphs can drop their calculated card tint and go fully transparent
+        // only the widget template binds this; the flyout renders these same instances with its own defaults,
+        // so it keeps its themed card background either way
+        private bool _isCardBackgroundVisible = true;
+        public bool IsCardBackgroundVisible
+        {
+            get => _isCardBackgroundVisible;
+            private set
+            {
+                if (_isCardBackgroundVisible == value) return;
+                _isCardBackgroundVisible = value;
+                OnPropertyChanged();
+            }
         }
 
         // threshold: owned by the shared editor, exposed so views can bind e.g. Threshold.Value, Threshold.IsEnabled
@@ -223,6 +240,11 @@ namespace FluentSensors.Controls.SensorGraph
             GraphColor = ResolveGraphColor(useAccent, customColor);
         }
 
+        private void OnGraphBackgroundChanged(bool useTransparentBackground)
+        {
+            IsCardBackgroundVisible = !useTransparentBackground;
+        }
+
         private void OnGraphTimeSpanChanged(double newTimeSpanSeconds)
         {
             // instances with a fixed override never resize with the global setting
@@ -258,6 +280,7 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 SettingsService.Instance.TaskbarGraphColorChanged -= OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+                SettingsService.Instance.TaskbarGraphBackgroundChanged -= OnGraphBackgroundChanged;
             }
             else
             {

@@ -38,6 +38,7 @@ namespace FluentSensors.Features.Settings
 
             RestoreTaskbarBackgroundMaterialSettings();
             RestoreTaskbarGraphColorSettings();
+            RestoreTaskbarGraphBackgroundSourceSelection();
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarGraphWidthSelection();
             RestoreTaskbarFlyoutAlignmentSelection();
@@ -354,6 +355,14 @@ namespace FluentSensors.Features.Settings
             }
         }
 
+        private void TaskbarGraphBackgroundSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (TaskbarGraphBackgroundSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarUseTransparentGraphBackground = (tag == "Transparent");
+            }
+        }
+
         private void TaskbarGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -371,6 +380,12 @@ namespace FluentSensors.Features.Settings
         {
             TaskbarGraphColorSourceComboBox.SelectedIndex = SettingsService.Instance.TaskbarUseGraphAccentColor ? 0 : 1;
             TaskbarGraphColorPicker.SelectedColor = SettingsService.Instance.TaskbarGraphCustomColor;
+        }
+
+        private void RestoreTaskbarGraphBackgroundSourceSelection()
+        {
+            TaskbarGraphBackgroundSourceComboBox.SelectedIndex =
+                SettingsService.Instance.TaskbarUseTransparentGraphBackground ? 1 : 0;
         }
 
         private void RestoreTaskbarGraphTimeSpanSelection()

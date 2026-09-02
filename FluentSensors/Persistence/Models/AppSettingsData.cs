@@ -30,6 +30,7 @@ namespace FluentSensors.Persistence.Models
         public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public double TaskbarGraphTimeSpanSeconds { get; set; } = 45;
         public int TaskbarGraphWidthDip { get; set; } = 120;
+        public bool TaskbarUseTransparentGraphBackground { get; set; } = false;
 
         // flyout horizontal placement over the taskbar widget: "Center", "Left" or "Right"
         public string TaskbarFlyoutAlignment { get; set; } = "Center";

@@ -360,7 +360,14 @@ namespace FluentSensors.Controls.SensorGraph
                 nameof(ShowGraphCardBackground),
                 typeof(bool),
                 typeof(SensorPanelControl),
-                new PropertyMetadata(true));
+                new PropertyMetadata(true, OnCardBackgroundVisibilityChanged));
+
+        // the CardBackgroundOverride x:Bind takes this as an argument, and nothing re-runs it when the property
+        // changes after load; same reason as the ActualThemeChanged refresh in the constructor
+        private static void OnCardBackgroundVisibilityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SensorPanelControl panel) panel.Bindings.Update();
+        }
 
         // pure visual pass-through to SensorGraphControl.CardBorderOverride (true = standard theme border, false = transparent)
         public bool ShowGraphCardBorder

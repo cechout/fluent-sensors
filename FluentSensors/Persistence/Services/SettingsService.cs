@@ -299,6 +299,22 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // when true the taskbar widget graphs drop their calculated card tint and stay fully transparent
+        private bool _taskbarUseTransparentGraphBackground = false;
+        public bool TaskbarUseTransparentGraphBackground
+        {
+            get => _taskbarUseTransparentGraphBackground;
+            set
+            {
+                if (_taskbarUseTransparentGraphBackground != value)
+                {
+                    _taskbarUseTransparentGraphBackground = value;
+                    TaskbarGraphBackgroundChanged?.Invoke(_taskbarUseTransparentGraphBackground);
+                    SaveDebounced();
+                }
+            }
+        }
+
         // flyout horizontal placement over the taskbar widget: "Center", "Left" or "Right"
         private string _taskbarFlyoutAlignment = "Center";
         public string TaskbarFlyoutAlignment
@@ -404,6 +420,7 @@ namespace FluentSensors.Persistence.Services
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
             _taskbarGraphTimeSpanSeconds = data.TaskbarGraphTimeSpanSeconds;
             _taskbarGraphWidthDip = data.TaskbarGraphWidthDip;
+            _taskbarUseTransparentGraphBackground = data.TaskbarUseTransparentGraphBackground;
             _taskbarFlyoutAlignment = data.TaskbarFlyoutAlignment;
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
 
@@ -439,6 +456,7 @@ namespace FluentSensors.Persistence.Services
                 TaskbarGraphCustomColor = _taskbarGraphCustomColor,
                 TaskbarGraphTimeSpanSeconds = _taskbarGraphTimeSpanSeconds,
                 TaskbarGraphWidthDip = _taskbarGraphWidthDip,
+                TaskbarUseTransparentGraphBackground = _taskbarUseTransparentGraphBackground,
                 TaskbarFlyoutAlignment = _taskbarFlyoutAlignment,
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
 
@@ -481,6 +499,7 @@ namespace FluentSensors.Persistence.Services
         public event Action<bool, Windows.UI.Color> TaskbarGraphColorChanged;
         public event Action<double> TaskbarGraphTimeSpanChanged;
         public event Action<int> TaskbarGraphWidthChanged;
+        public event Action<bool> TaskbarGraphBackgroundChanged;
         public event Action<string> TaskbarFlyoutAlignmentChanged;
         public event Action<bool> TaskbarWidgetPositionLockedChanged;
 
