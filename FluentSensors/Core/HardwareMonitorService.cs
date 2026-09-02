@@ -20,6 +20,10 @@ namespace FluentSensors.Core
     );
 
 
+    // owns the single background polling loop every sensor value in the app comes from, plus the LHM hardware
+    // discovery behind it
+    // the loop is hand-written rather than timer-driven and its timing is the non-obvious part of this class,
+    // see LoopAsync
     public class HardwareMonitorService
     {
         // === fields ===
@@ -277,13 +281,31 @@ namespace FluentSensors.Core
         // === private helpers ===
 
         // polling loop
-        // every deadline below is anchored to the last broadcast, never to the loop start or to an absolute grid:
-        // the configured rate is the target and the floor at the same time, so a tick that overruns shifts the phase
-        // instead of getting paid back by a too-early next one
         //
-        // the read is scheduled to finish just before its deadline rather than starting right after the previous
-        // broadcast, which keeps the published values a few ms old at every rate instead of almost a full interval old
-        // at the slow ones
+        // the scheduling below is the whole reason this is a hand-written loop and not a plain timer, and it exists to
+        // keep the broadcast cadence off the read duration:
+        // waiting a full interval after the read made the visible cadence interval + read time, so a 250ms setting
+        // broadcast every ~350ms on a machine where a read takes 100ms
+        // sizing that wait from the previous read instead made the cadence interval + (this read minus the previous
+        // read), which drops below the configured rate every time a read comes back faster than the one before it
+        // every graph shifts exactly one point per broadcast (see SensorGraphViewModel.AddDataPoint), so uneven
+        // spacing is directly visible as uneven scroll speed, and a tick that lands early looks worse than a late one
+        //
+        // so the configured rate is the target and the floor at the same time
+        // one tick, at a 250ms rate with a ~100ms read:
+        //
+        //   |.........idle.........|--read--|FIRE
+        //   0                     145      250
+        //                                   ^ deadline = previous FIRE + interval
+        //
+        // the deadline is anchored to the previous broadcast and never to an absolute grid, so an overrun shifts the
+        // phase instead of getting paid back by a too-early next tick
+        // the read is scheduled to end just before the deadline, planned against the slowest of the recent reads plus
+        // a small margin; that keeps broadcast values a few ms old at every rate, instead of almost a full interval
+        // old at the slow ones the way reading right after the previous broadcast would
+        // a read that outruns the interval broadcasts late, and the next deadline counts from that late broadcast
+        // waits only ever overshoot and never undershoot (see WaitSinceAsync), so the real cadence is the configured
+        // interval plus up to one ~15.6ms Windows scheduler tick, never less than the interval
         private async Task LoopAsync(CancellationToken token)
         {
             RefreshNetworkAdapters();
