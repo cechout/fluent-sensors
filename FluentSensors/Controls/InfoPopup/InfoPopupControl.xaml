@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:FluentSensors.Controls.InfoPopup"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Loaded="InfoPopupControl_Loaded"
     Unloaded="InfoPopupControl_Unloaded"
     mc:Ignorable="d">
 
@@ -116,7 +115,6 @@
             <!--  Popup  -->
             <Popup
                 x:Name="InfoPopup"
-                HorizontalOffset="-280"
                 IsLightDismissEnabled="True">
 
                 <Popup.ChildTransitions>
