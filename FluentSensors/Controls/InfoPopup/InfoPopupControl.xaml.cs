@@ -400,12 +400,26 @@ namespace FluentSensors.Controls.InfoPopup
             if (!_needsPopupPlacement || _popupHost == null) return;
             if (PopupContentBorder == null || XamlRoot?.Content == null) return;
 
-            // the content is only laid out once the popup is actually open, so ActualWidth/ActualHeight are still 0
-            // at this point on the first open; measuring it here fills DesiredSize without waiting for that pass, so
-            // the placement never has to be postponed
-            PopupContentBorder.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            // ActualWidth/ActualHeight only hold a real size once the popup has been open and laid out at least
+            // once; before that the content is not live, its bindings have not run, and a Measure here reports a
+            // text block that is still empty, so the size comes out too small
+            //
+            // the first open is therefore placed from that provisional size and stays flagged, so the SizeChanged
+            // right after the real layout pass corrects it; every later open has a real size to work with straight
+            // away and is final immediately
+            bool hasRealSize = PopupContentBorder.ActualWidth > 0 && PopupContentBorder.ActualHeight > 0;
+            Size contentSize;
 
-            Size contentSize = PopupContentBorder.DesiredSize;
+            if (hasRealSize)
+            {
+                contentSize = new Size(PopupContentBorder.ActualWidth, PopupContentBorder.ActualHeight);
+            }
+            else
+            {
+                PopupContentBorder.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                contentSize = PopupContentBorder.DesiredSize;
+            }
+
             if (contentSize.Width <= 0 || contentSize.Height <= 0) return;
 
             Point target = PlacementMode == PopupPlacementMode.TitleAnchored
@@ -417,7 +431,7 @@ namespace FluentSensors.Controls.InfoPopup
             InfoPopup.HorizontalOffset = target.X - hostOrigin.X;
             InfoPopup.VerticalOffset = target.Y - hostOrigin.Y;
 
-            _needsPopupPlacement = false;
+            _needsPopupPlacement = !hasRealSize;
         }
 
         // positions the popup relative to the title text (TitleHost), not the button; unchanged from the original
