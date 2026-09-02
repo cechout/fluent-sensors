@@ -286,18 +286,17 @@ namespace FluentSensors.Core
         // keep the broadcast cadence off the read duration:
         // waiting a full interval after the read made the visible cadence interval + read time, so a 250ms setting
         // broadcast every ~350ms on a machine where a read takes 100ms
-        // sizing that wait from the previous read instead made the cadence interval + (this read minus the previous
+        // Sizing that wait from the previous read instead made the cadence interval + (this read minus the previous
         // read), which drops below the configured rate every time a read comes back faster than the one before it
-        // every graph shifts exactly one point per broadcast (see SensorGraphViewModel.AddDataPoint), so uneven
+        // Every graph shifts exactly one point per broadcast (see SensorGraphViewModel.AddDataPoint), so uneven
         // spacing is directly visible as uneven scroll speed, and a tick that lands early looks worse than a late one
         //
         // so the configured rate is the target and the floor at the same time
         // one tick, at a 250ms rate with a ~100ms read:
         //
-        //   |.........idle.........|--read--|FIRE
-        //   0                     145      250
-        //                                   ^ deadline = previous FIRE + interval
-        //
+        // |.........idle.........|--read--|FIRE
+        // 0                     145      250 <- deadline = previous FIRE + interval
+        //                    
         // the deadline is anchored to the previous broadcast and never to an absolute grid, so an overrun shifts the
         // phase instead of getting paid back by a too-early next tick
         // the read is scheduled to end just before the deadline, planned against the slowest of the recent reads plus
@@ -305,7 +304,10 @@ namespace FluentSensors.Core
         // old at the slow ones the way reading right after the previous broadcast would
         // a read that outruns the interval broadcasts late, and the next deadline counts from that late broadcast
         // waits only ever overshoot and never undershoot (see WaitSinceAsync), so the real cadence is the configured
-        // interval plus up to one ~15.6ms Windows scheduler tick, never less than the interval
+        // interval plus a small overshoot and never below it
+        // measured in the running app that overshoot is 1 to 3ms at every rate (252ms at the 250 setting, 501 at 500,
+        // 2003 at 2000); its ceiling is the systems timer granularity, ~15.6ms unless something in the process holds a
+        // finer resolution, and this process evidently does without asking for it
         private async Task LoopAsync(CancellationToken token)
         {
             RefreshNetworkAdapters();
@@ -486,9 +488,9 @@ namespace FluentSensors.Core
         // waits until targetMs have passed since anchorTimestamp, coming back early when the rate changes or when
         // monitoring is cancelled
         //
-        // re-checks against the anchor in a loop on purpose: waits are bound to the ~15.6ms Windows scheduler
-        // granularity and can come back short of what they were asked for, and coming back short is the one thing this
-        // loop must not do; the re-check turns that into a second short wait instead of an early broadcast
+        // re-checks against the anchor in a loop rather than trusting a single wait: coming back short is the one
+        // thing the polling loop must not do, so a wait that returns early turns into a second short wait here
+        // instead of an early broadcast
         private async Task<WaitOutcome> WaitSinceAsync(long anchorTimestamp, double targetMs, CancellationToken token)
         {
             while (true)
