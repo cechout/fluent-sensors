@@ -121,15 +121,17 @@
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.SensorsText, Mode=OneWay}" />
+                    Text="{x:Bind AppStatus.SensorsText, Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
                 <TextBlock
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.PollText, Mode=OneWay}" />
+                    Text="{x:Bind AppStatus.PollText, Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
                 <fhInfoPopup:InfoPopupControl
                     Margin="-2,1,0,0"
-                    Description="Sensors - sensors found by LibreHardwareMonitor, and how many are actively drawn (found/rendered)&#10;Poll - measured update rate against the rate set in Settings (current/aimed)&#10;Read - duration of one full sensor pass, close to the poll rate means no headroom left&#10;LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows"
+                    Description="Sensors (found/rendered) - sensors found by LibreHardwareMonitor, and how many are actively drawn&#10;Poll (current/aimed) - measured update rate against the rate set in Settings&#10;Read - duration of one full sensor pass, close to the poll rate means no headroom left&#10;LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows"
                     PlacementMode="Below"
                     SourceIntro="This App is powered by the open source LibreHardwareMonitor project:">
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -152,13 +154,15 @@
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.CpuUsageText, Mode=OneWay}" />
+                    Text="{x:Bind AppStatus.CpuUsageText, Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
                 <TextBlock
                     MinWidth="65"
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.RamUsageText, Mode=OneWay}" />
+                    Text="{x:Bind AppStatus.RamUsageText, Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
 
                 <!--  (handle + gc memory; currently not displayed)  -->
                 <!--<TextBlock
