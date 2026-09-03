@@ -52,8 +52,12 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      # scoped to whitespace only, matches the new .editorconfig, not style/analyzers
-      # non blocking for now, flip continue-on-error to false once confirmed clean against main
+      # scoped to whitespace only, matches the .editorconfig, not style/analyzers
+      #
+      # no -p:Platform here, dotnet format has no MSBuild property option and answers one with its
+      # usage help and a non zero exit, so the check would never actually run
+      #
+      # end_of_line = lf only holds because .gitattributes pins the checkout to lf; without it the
+      # runner default core.autocrlf=true hands out a crlf tree and every line fails
       - name: dotnet format whitespace check
-        continue-on-error: true
-        run: dotnet format whitespace FluentSensors/FluentSensors.csproj -p:Platform=x64 --verify-no-changes --verbosity diagnostic
+        run: dotnet format whitespace FluentSensors/FluentSensors.csproj --verify-no-changes --verbosity diagnostic
