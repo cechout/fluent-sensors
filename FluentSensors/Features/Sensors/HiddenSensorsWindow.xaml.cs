@@ -24,7 +24,7 @@ namespace FluentSensors.Features.Sensors
 
         // window fields
         private AppWindow _appWindow;
-        private const string WindowKey = "HiddenSensors"; 
+        private const string WindowKey = "HiddenSensors";
 
         // system backdrop controller and configuration (Mica only)
         private MicaController _micaController;
@@ -32,7 +32,7 @@ namespace FluentSensors.Features.Sensors
 
         // public binding surface
         public static HiddenSensorsWindow CurrentInstance { get; private set; }
-        public HardwareGroupViewModel HardwareGroup { get; } 
+        public HardwareGroupViewModel HardwareGroup { get; }
         public string WindowTitleText { get; }
         public SensorsViewModel ViewModel => SensorsViewModel.Instance;
 
@@ -48,8 +48,8 @@ namespace FluentSensors.Features.Sensors
 
             // window configuration
             _appWindow = this.AppWindow;
-            ExtendsContentIntoTitleBar = true; 
-            SetTitleBar(CustomTitleBar); 
+            ExtendsContentIntoTitleBar = true;
+            SetTitleBar(CustomTitleBar);
             var presenter = OverlappedPresenter.Create();
             presenter.IsAlwaysOnTop = false;
             presenter.IsMaximizable = false;
@@ -116,7 +116,7 @@ namespace FluentSensors.Features.Sensors
             SaveWindowState();
 
             // explicitly unbind from SensorsViewModel.Instance.HardwareGroups
-            HardwareGroupsItemsControl.ItemsSource = null; 
+            HardwareGroupsItemsControl.ItemsSource = null;
 
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             _appWindow.Changed -= AppWindow_Changed;

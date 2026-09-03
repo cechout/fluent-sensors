@@ -30,7 +30,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         // graph-color card background alpha (UseGraphColorCardBackground)
         private const byte GraphColorCardBackgroundAlphaDark = 44;
-        private const byte GraphColorCardBackgroundAlphaLight = 44; 
+        private const byte GraphColorCardBackgroundAlphaLight = 44;
 
 
         // === constructor ===

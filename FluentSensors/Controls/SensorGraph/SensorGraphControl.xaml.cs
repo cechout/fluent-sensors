@@ -790,4 +790,4 @@ namespace FluentSensors.Controls.SensorGraph
         }
     }
 }
-    
+
