@@ -3,6 +3,7 @@ using Windows.UI;
 
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
+using FluentSensors.Common.Sensors;
 
 
 namespace FluentSensors.Persistence.Services
@@ -156,6 +157,22 @@ namespace FluentSensors.Persistence.Services
                 {
                     _graphTimeSpanSeconds = value;
                     GraphTimeSpanChanged?.Invoke(_graphTimeSpanSeconds);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // stepline or smooth line rendering; one global switch for every graph, regardless of scope
+        private GraphLineStyle _graphLineStyle = GraphLineStyle.Stepline;
+        public GraphLineStyle GraphLineStyle
+        {
+            get => _graphLineStyle;
+            set
+            {
+                if (_graphLineStyle != value)
+                {
+                    _graphLineStyle = value;
+                    GraphLineStyleChanged?.Invoke(_graphLineStyle);
                     SaveDebounced();
                 }
             }
@@ -410,6 +427,7 @@ namespace FluentSensors.Persistence.Services
             _useGraphAccentColor = data.UseGraphAccentColor;
             _graphCustomColor = data.GraphCustomColor;
             _graphTimeSpanSeconds = data.GraphTimeSpanSeconds;
+            _graphLineStyle = data.GraphLineStyle;
 
             _taskbarBackdropType = data.TaskbarBackdropType;
             _taskbarTintOpacity = data.TaskbarTintOpacity;
@@ -446,6 +464,7 @@ namespace FluentSensors.Persistence.Services
                 UseGraphAccentColor = _useGraphAccentColor,
                 GraphCustomColor = _graphCustomColor,
                 GraphTimeSpanSeconds = _graphTimeSpanSeconds,
+                GraphLineStyle = _graphLineStyle,
 
                 TaskbarBackdropType = _taskbarBackdropType,
                 TaskbarTintOpacity = _taskbarTintOpacity,
@@ -492,6 +511,7 @@ namespace FluentSensors.Persistence.Services
         public event Action<bool, Color> TintColorChanged;
         public event Action<bool, Windows.UI.Color> GraphColorChanged;
         public event Action<double> GraphTimeSpanChanged;
+        public event Action<GraphLineStyle> GraphLineStyleChanged;
 
         public event Action<string> TaskbarBackdropTypeChanged;
         public event Action<float, float> TaskbarOpacityChanged;

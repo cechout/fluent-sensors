@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
+using FluentSensors.Common.Sensors;
 
 
 namespace FluentSensors.Features.Settings
@@ -31,6 +32,7 @@ namespace FluentSensors.Features.Settings
             RestoreThemeSelection();
             RestoreIntervalSelection();
             RestoreMinimizeToTraySelection();
+            RestoreGraphLineStyleSelection();
 
             RestoreBackgroundMaterialSettings();
             RestoreGraphColorSettings();
@@ -153,6 +155,32 @@ namespace FluentSensors.Features.Settings
         private void RestoreMinimizeToTraySelection()
         {
             MinimizeToTrayToggle.IsOn = SettingsService.Instance.MinimizeToTray;
+        }
+
+        // graph line style (stepline / smooth), one global switch for every graph
+        private void GraphLineStyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (GraphLineStyleComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out GraphLineStyle style))
+            {
+                SettingsService.Instance.GraphLineStyle = style;
+            }
+        }
+
+        private void RestoreGraphLineStyleSelection()
+        {
+            string current = SettingsService.Instance.GraphLineStyle.ToString();
+
+            foreach (ComboBoxItem item in GraphLineStyleComboBox.Items)
+            {
+                if (item.Tag?.ToString() == current)
+                {
+                    GraphLineStyleComboBox.SelectedItem = item;
+                    break;
+                }
+            }
         }
 
 

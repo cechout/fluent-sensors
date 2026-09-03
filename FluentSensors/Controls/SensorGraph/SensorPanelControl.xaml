@@ -377,6 +377,7 @@
                     IsNameVisible="{x:Bind ShowGraphName, Mode=OneWay}"
                     LabelFollowsPointer="True"
                     LabelText="{x:Bind ViewModel.SensorName, Mode=OneWay}"
+                    LineStyle="{x:Bind ViewModel.GraphLineStyle, Mode=OneWay}"
                     ManualYMax="{x:Bind ViewModel.ManualYMax, Mode=OneWay}"
                     SensorType="{x:Bind ViewModel.SensorType, Mode=OneWay}"
                     Tapped="GraphControl_Tapped"
