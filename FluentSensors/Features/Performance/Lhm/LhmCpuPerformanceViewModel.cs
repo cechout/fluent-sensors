@@ -237,7 +237,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
             options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve, isDefault, yMaxOverride));
 
-            if (getActive(cpu) != null) return; 
+            if (getActive(cpu) != null) return;
 
             string persistedId = SensorSwitchStateService.Instance.GetSelectedSensorId(cpu.HardwareName, category);
             if (persistedId == entry.Id || persistedId == null)

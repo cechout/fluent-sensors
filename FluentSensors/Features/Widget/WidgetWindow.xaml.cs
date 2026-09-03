@@ -33,7 +33,7 @@ namespace FluentSensors.Features.Widget
         // === fields ===
 
         private AppWindow _appWindow;
-        private const string WindowKey = "Widget"; 
+        private const string WindowKey = "Widget";
 
         // resize floor in XAML DIP, so the window can never be dragged smaller than this and squeeze the panels
         // unusable; MinPanelHeight is per pinned sensor, MinWidgetWidth is the whole window

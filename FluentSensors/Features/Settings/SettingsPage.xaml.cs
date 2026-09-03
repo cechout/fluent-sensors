@@ -185,7 +185,7 @@ namespace FluentSensors.Features.Settings
 
 
         // === widget appearance settings ===
-        
+
         // background material
         private void BackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

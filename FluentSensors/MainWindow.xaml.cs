@@ -474,7 +474,7 @@ namespace FluentSensors
 
             if (args.SelectedItem is NavigationViewItem selectedItem)
             {
-                string pageTag = selectedItem.Tag.ToString(); 
+                string pageTag = selectedItem.Tag.ToString();
                 switch (pageTag)
                 {
                     case "Sensors":

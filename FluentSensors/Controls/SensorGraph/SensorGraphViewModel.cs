@@ -171,7 +171,7 @@ namespace FluentSensors.Controls.SensorGraph
                 }
             }
         }
-        private double _manualYMax = 100; 
+        private double _manualYMax = 100;
         public double ManualYMax
         {
             get => _manualYMax;
