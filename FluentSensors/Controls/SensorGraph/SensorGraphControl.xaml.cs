@@ -33,7 +33,13 @@ namespace FluentSensors.Controls.SensorGraph
         private readonly Axis _yAxis;
         private readonly Axis _xAxis;
         private readonly SolidColorPaint _crosshairPaint;
-        private readonly StepLineSeries<double?> _lineSeries;
+
+        // the staircase look is not drawn by hand, it is entirely the StepLineSeries type; a smooth line is a
+        // different type (LineSeries with LineSmoothness > 0), so switching style swaps the series object
+        // both are built once, only one is bound to the chart at a time (see ApplyLineStyle)
+        private readonly StepLineSeries<double?> _stepSeries;
+        private readonly LineSeries<double?> _smoothSeries;
+        private ISeries _lineSeries; // whichever of the two is active right now
         private bool _isPointerOverChart = false;
         private Windows.Foundation.Point _lastPointerPosition;
         private readonly DispatcherTimer _thresholdLabelTimer;
@@ -76,13 +82,21 @@ namespace FluentSensors.Controls.SensorGraph
             // starts rendering-active by default (see _isRenderingActive above), counted immediately
             _activeRenderingCount++;
 
-            // the LiveCharts ISeries definition
-            _lineSeries = new StepLineSeries<double?>
+            // the two LiveCharts series; stepline is the default, smooth is swapped in on demand (see ApplyLineStyle)
+            _stepSeries = new StepLineSeries<double?>
             {
                 Values = new ObservableCollection<double?>(),
                 GeometrySize = 0,
                 DataPadding = new LvcPoint(0, 0)
             };
+            _smoothSeries = new LineSeries<double?>
+            {
+                Values = new ObservableCollection<double?>(),
+                GeometrySize = 0,
+                DataPadding = new LvcPoint(0, 0),
+                LineSmoothness = 1.00 // livecharts default; 0 is straight segments, 1 is the most curved
+            };
+            _lineSeries = _stepSeries;
             Series = new ISeries[] { _lineSeries };
 
             // the LiveCharts y-axis definition
@@ -248,6 +262,23 @@ namespace FluentSensors.Controls.SensorGraph
             _lineSeries.Values = _detachedValues;
         }
 
+        // swaps the active series between stepline and smooth, keeping it pointed at the same data and forcing one
+        // repaint; the ApplyStroke paint guard would otherwise see an unchanged signature and leave the freshly
+        // swapped-in series with no stroke or fill
+        private void ApplyLineStyle()
+        {
+            ISeries target = LineStyle == GraphLineStyle.Smooth ? _smoothSeries : _stepSeries;
+            if (ReferenceEquals(target, _lineSeries)) return;
+
+            _lineSeries = target;
+            _lineSeries.Values = _isValuesSubscribed && _boundValues != null ? _boundValues : _detachedValues;
+
+            // Chart.Series is set once from the {Binding Series} in xaml; from here on it is driven imperatively,
+            // same as Chart.Sections in RebuildSections
+            Chart.Series = new ISeries[] { _lineSeries };
+            ForceRepaint();
+        }
+
 
         // DependencyProperty: AccentColor
         public Windows.UI.Color AccentColor
@@ -268,6 +299,28 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 g.ApplyStroke();
             }
+        }
+
+
+        // DependencyProperty: LineStyle
+        // stepline (staircase) or smooth (curved); global setting, flows in from SensorPanelControl via
+        // SensorGraphViewModel.GraphLineStyle
+        public GraphLineStyle LineStyle
+        {
+            get => (GraphLineStyle)GetValue(LineStyleProperty);
+            set => SetValue(LineStyleProperty, value);
+        }
+
+        public static readonly DependencyProperty LineStyleProperty =
+            DependencyProperty.Register(
+                nameof(LineStyle),
+                typeof(GraphLineStyle),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(GraphLineStyle.Stepline, OnLineStyleChanged));
+
+        private static void OnLineStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SensorGraphControl g) g.ApplyLineStyle();
         }
 
 

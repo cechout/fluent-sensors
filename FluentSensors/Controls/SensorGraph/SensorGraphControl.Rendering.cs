@@ -1,4 +1,5 @@
 ﻿using LiveChartsCore.Drawing;
+using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.UI.Xaml;
@@ -113,6 +114,9 @@ namespace FluentSensors.Controls.SensorGraph
         {
             if (_lineSeries == null) return; // guard: called before constructor finishes
 
+            // stroke and fill are the shared surface between the stepline and smooth series types
+            var line = (IStrokedAndFilled)_lineSeries;
+
             bool hasThreshold = ThresholdValue is not null;
             double yMax = hasThreshold ? ComputeCurrentYMax() : 0;
             bool hasAnyRun = hasThreshold && ComputeHasAnyRun();
@@ -126,12 +130,12 @@ namespace FluentSensors.Controls.SensorGraph
             // no threshold set: flat single-color line and area
             if (!hasThreshold)
             {
-                _lineSeries.Fill = new LinearGradientPaint(
+                line.Fill = new LinearGradientPaint(
                     new[] { accent.WithAlpha(38), accent.WithAlpha(38) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1));
 
-                _lineSeries.Stroke = new SolidColorPaint(accent.WithAlpha(204)) { StrokeThickness = 1 };
+                line.Stroke = new SolidColorPaint(accent.WithAlpha(204)) { StrokeThickness = 1 };
                 return;
             }
 
@@ -157,7 +161,7 @@ namespace FluentSensors.Controls.SensorGraph
                 bottomColor = threshold;
             }
 
-            _lineSeries.Stroke = new LinearGradientPaint(
+            line.Stroke = new LinearGradientPaint(
                 new[] { topColor.WithAlpha(204), topColor.WithAlpha(204), bottomColor.WithAlpha(204), bottomColor.WithAlpha(204) },
                 new SKPoint(0.5f, 0),
                 new SKPoint(0.5f, 1),
@@ -174,7 +178,7 @@ namespace FluentSensors.Controls.SensorGraph
             if (runs.Count == 0 || Values is null || Values.Count == 0)
             {
                 // no alarm zones right now: flat area color
-                _lineSeries.Fill = new LinearGradientPaint(
+                line.Fill = new LinearGradientPaint(
                     new[] { accent.WithAlpha(38), accent.WithAlpha(38) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1));
@@ -218,7 +222,7 @@ namespace FluentSensors.Controls.SensorGraph
             colorArr[stopIdx] = accent.WithAlpha(38);
             stopArr[stopIdx] = 1f;
 
-            _lineSeries.Fill = new LinearGradientPaint(
+            line.Fill = new LinearGradientPaint(
                 colorArr,
                 new SKPoint(0, 0.5f), // horizontal gradient: left -> right
                 new SKPoint(1, 0.5f),

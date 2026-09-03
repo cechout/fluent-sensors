@@ -64,8 +64,12 @@ namespace FluentSensors.Controls.SensorGraph
                 SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
             }
 
+            // line style is global; resolved and subscribed the same way for every scope
+            GraphLineStyle = SettingsService.Instance.GraphLineStyle;
+
             HardwareMonitorService.Instance.UpdateIntervalChanged += OnUpdateIntervalChanged;
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
+            SettingsService.Instance.GraphLineStyleChanged += OnGraphLineStyleChanged;
 
             // owns this sensors threshold config; shared logic/state lives there, this VM only reacts to it for coloring
             Threshold = new ThresholdEditorViewModel(sensorId, sensorType);
@@ -122,6 +126,15 @@ namespace FluentSensors.Controls.SensorGraph
         {
             get => _graphColor;
             private set { _graphColor = value; OnPropertyChanged(); }
+        }
+
+        // stepline vs smooth; mirrors the global SettingsService switch, same event -> property -> x:Bind path
+        // as GraphColor above
+        private GraphLineStyle _graphLineStyle;
+        public GraphLineStyle GraphLineStyle
+        {
+            get => _graphLineStyle;
+            private set { _graphLineStyle = value; OnPropertyChanged(); }
         }
 
         // taskbar widget graphs can drop their calculated card tint and go fully transparent
@@ -244,6 +257,11 @@ namespace FluentSensors.Controls.SensorGraph
             GraphColor = ResolveGraphColor(useAccent, customColor);
         }
 
+        private void OnGraphLineStyleChanged(GraphLineStyle style)
+        {
+            GraphLineStyle = style;
+        }
+
         private void OnGraphBackgroundChanged(bool useTransparentBackground)
         {
             IsCardBackgroundVisible = !useTransparentBackground;
@@ -294,6 +312,7 @@ namespace FluentSensors.Controls.SensorGraph
 
             HardwareMonitorService.Instance.UpdateIntervalChanged -= OnUpdateIntervalChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+            SettingsService.Instance.GraphLineStyleChanged -= OnGraphLineStyleChanged;
             Threshold.PropertyChanged -= OnThresholdPropertyChanged;
             Threshold.Cleanup();
         }

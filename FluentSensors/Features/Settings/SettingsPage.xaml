@@ -52,10 +52,29 @@
                     Width="150"
                     SelectionChanged="IntervalComboBox_SelectionChanged">
                     <ComboBoxItem Content="100ms" Tag="100" />
+                    <ComboBoxItem Content="150ms" Tag="150" />
+                    <ComboBoxItem Content="200ms" Tag="200" />
                     <ComboBoxItem Content="250ms" Tag="250" />
+                    <ComboBoxItem Content="300ms" Tag="300" />
+                    <ComboBoxItem Content="400ms" Tag="400" />
                     <ComboBoxItem Content="500ms" Tag="500" />
                     <ComboBoxItem Content="1000ms" Tag="1000" />
                     <ComboBoxItem Content="2000ms" Tag="2000" />
+                    <ComboBoxItem Content="5000ms" Tag="5000" />
+                </ComboBox>
+            </controls:SettingsCard>
+
+            <!--  graph line style: applies to every graph in the app  -->
+            <controls:SettingsCard
+                Description="Staircase steps or a rounded curve between data points"
+                Header="Graph Line Style"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}">
+                <ComboBox
+                    x:Name="GraphLineStyleComboBox"
+                    Width="150"
+                    SelectionChanged="GraphLineStyleComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Stepline" Tag="Stepline" />
+                    <ComboBoxItem Content="Smooth" Tag="Smooth" />
                 </ComboBox>
             </controls:SettingsCard>
 

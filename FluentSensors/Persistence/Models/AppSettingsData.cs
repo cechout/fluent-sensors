@@ -1,5 +1,7 @@
 using Windows.UI;
 
+using FluentSensors.Common.Sensors;
+
 
 namespace FluentSensors.Persistence.Models
 {
@@ -19,6 +21,9 @@ namespace FluentSensors.Persistence.Models
         public bool UseGraphAccentColor { get; set; } = true;
         public Windows.UI.Color GraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public double GraphTimeSpanSeconds { get; set; } = 45;
+
+        // stepline or smooth line rendering; global, applies to every graph in the app
+        public GraphLineStyle GraphLineStyle { get; set; } = GraphLineStyle.Stepline;
 
         // taskbar ecosystem (taskbar widget + flyout window) appearance
         public string TaskbarBackdropType { get; set; } = "Mica";
