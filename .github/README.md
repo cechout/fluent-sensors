@@ -7,16 +7,15 @@ There aren't many hardware monitoring tools that actually look native on Windows
 
 ## ✨ Features
 
-* **The Engine:** Reads all sensors, CPU, GPU, RAM, storage, network, using the open source [LibreHardwareMonitorLib](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) library. *Note: this library has some limitations and can struggle to read certain sensors, like the ones from integrated graphics cards.*
-* **The Interface (WinUI 3 + MVVM):** Built with the Windows App SDK for the native Windows 11 Fluent Design look, and using the Model-View-ViewModel pattern.
-* **Sensors Page:** Shows every sensor found, with the option to pin your most important ones to a separate, always-visible widget window.
+* **Sensors Page:** Shows every sensor found, with the option to pin sensors to a separate, always-visible widget window or to the taskbar.
 * **Hardware View Page:** Shows every hardware component LibreHardwareMonitorLib finds as its own tab, so multiple CPUs, GPUs, or drives each get their own tab. Each tab shows the most important graphs for that component, plus static info like cache size, RAM speed, or storage type.
-* **The Graphs (LiveCharts2 & SkiaSharp):** Sensor graphs are rendered with `LiveCharts2`, which runs on `SkiaSharp`.
+* **The Engine (LibreHardwareMonitorLib):** All sensor data, CPU, GPU, RAM, storage, network, is read using the open source [LibreHardwareMonitorLib](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) library. Note: this library has some limitations and can struggle to read certain sensors, like the ones from integrated graphics cards.
+* **The Interface (WinUI 3 + MVVM):** Built with the Windows App SDK for the native Windows 11 Fluent Design look, using the Model-View-ViewModel pattern to keep the UI cleanly separated from the background logic.
+* **The Graphs (LiveCharts2 & SkiaSharp):** Sensor graphs are rendered with [LiveCharts2](https://github.com/Live-Charts/LiveCharts2), which runs on SkiaSharp.
 
 ## 🔧 Performance
 
 How it currently looks performance-wise:
-* **Polling interval not fully accurate yet:** the configured interval isnt hit exactly, since it starts counting only after the sensor read itself finishes, which already takes some time. How much this matters depends on the interval and the device. Being worked on.
 * **Rendering gates:** only currently visible graphs actually render, hidden ones just keep collecting data in the background.
 * **WinUI 3 memory leaks:** WinUI 3 has known platform-level memory leaks, for example [secondary windows not fully releasing after closing](https://github.com/microsoft/microsoft-ui-xaml/issues/9063). Fluent Sensors works around these by hiding and reusing windows instead of destroying them.
 * **General optimization:** WinUI 3 is not the fastest UI framework, so manual optimization work is ongoing.
