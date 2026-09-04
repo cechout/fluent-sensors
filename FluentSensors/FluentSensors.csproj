@@ -89,6 +89,22 @@
     <PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.5" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+    <!--
+      the metapackage drags in the AI, ML and widgets components, and this app calls none of their APIs
+      each component also contributes an appxfragment that declares regfree WinRT activatable classes into
+      the generated app manifest, so deleting the binaries alone would leave the manifest pointing at files
+      that are gone, which can fail the process start outright
+      excluding all assets keeps the component props out of the build, so payload and manifest entries drop
+      together
+    -->
+    <PackageReference Include="Microsoft.WindowsAppSDK.AI" Version="2.2.3" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.ML" Version="2.1.70" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Widgets" Version="2.0.5" ExcludeAssets="all" />
+    <!--
+      onnxruntime and DirectML ride in transitively through the ML component, and excluding a package does
+      not prune its dependency graph, so this one has to be named on its own
+    -->
+    <PackageReference Include="Microsoft.Windows.AI.MachineLearning" Version="2.1.70" ExcludeAssets="all" />
     <PackageReference Include="System.Management" Version="10.0.10" />
     <PackageReference Include="Vortice.DXGI" Version="3.8.3" />
     <PackageReference Include="WinUIEx" Version="2.9.2" />
@@ -223,7 +239,49 @@
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+    <!--
+      PublishTrimmed stays unset on purpose, trimming strips the WinRT and COM interop types this app needs
+      and the published build then crashes on startup
+    -->
   </PropertyGroup>
+  <!--
+    the self contained publish carries binaries this app never loads
+    the mscordaccore/mscordbi/DiaSymReader set is only ever pulled in by an attached debugger or a dump
+    reader, clrgc and clrgcexp are alternative collectors that stay dormant unless System.GC.Name is set in
+    the runtimeconfig, msquic is HTTP/3, and Mono.Posix is the linux sensor path inside
+    LibreHardwareMonitorLib
+    the pdb is dropped here instead of suppressed via DebugType so the symbols still sit next to the build
+    for local triage
+    this runs after Publish, so the installer and the portable zip both pick up the smaller payload
+
+    do NOT add the mui locale folders here, they look like translations for 83 languages this app does not
+    offer, but Microsoft.ui.xaml.dll keeps its resources only in those mui files with no neutral copy inside
+    the dll, so the resource load fails as soon as the visual tree is built and the process dies with
+    STATUS_STOWED_EXCEPTION (0xc000027b) in Microsoft.UI.Xaml.dll
+    the folder that gets loaded is the one matching the Windows UI language, so trimming this down to en-US
+    breaks every machine that is not running english
+  -->
+  <Target Name="PruneUnusedPublishPayload" AfterTargets="Publish">
+    <ItemGroup>
+      <_PrunedPublishFile Include="$(PublishDir)FluentSensors.pdb" />
+      <_PrunedPublishFile Include="$(PublishDir)Mono.Posix.NETStandard.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)libMonoPosixHelper.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)MonoPosixHelper.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)mscordaccore.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)mscordaccore_*.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)mscordbi.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)Microsoft.DiaSymReader.Native.amd64.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)createdump.exe" />
+      <_PrunedPublishFile Include="$(PublishDir)clretwrc.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)clrgc.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)clrgcexp.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)msquic.dll" />
+      <!--
+        left behind by the excluded ML component, ExcludeAssets drops a package own assets but not the
+        dependencies it declares, and nothing else in the graph references it
+      -->
+      <_PrunedPublishFile Include="$(PublishDir)System.Numerics.Tensors.dll" />
+    </ItemGroup>
+    <Delete Files="@(_PrunedPublishFile)" />
+  </Target>
 </Project>
