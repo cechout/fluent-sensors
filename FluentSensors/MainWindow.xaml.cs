@@ -259,9 +259,6 @@ namespace FluentSensors
             LoadingStatusText.Text = "Ready";
             //await Task.Delay(100);
 
-            // show the main grid
-            MainNavigationView.Visibility = Visibility.Visible;
-
             // manually close navigation pane
             this.DispatcherQueue.TryEnqueue(() =>
             {
@@ -269,6 +266,8 @@ namespace FluentSensors
             });
             await Task.Delay(200);
 
+            // show the main grid, both in the same frame so the transparent splash never uncovers the pane
+            MainNavigationView.Opacity = 1;
             SplashOverlay.Visibility = Visibility.Collapsed;
             AppStatus.IsAppReady = true;
             AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;

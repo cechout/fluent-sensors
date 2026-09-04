@@ -204,12 +204,19 @@
 
 
         <!--  navigation view  -->
+        <!--
+            invisible until loading finishes; the splash below is transparent now and would otherwise show the
+            pane through it
+            Opacity rather than Visibility on purpose: the reveal sequence closes the pane and waits for that to
+            settle, which needs the layout pass a collapsed element does not get
+        -->
         <NavigationView
             x:Name="MainNavigationView"
             Grid.Row="1"
             IsBackButtonVisible="Collapsed"
             IsPaneOpen="False"
             IsSettingsVisible="False"
+            Opacity="0"
             OpenPaneLength="170"
             PaneDisplayMode="Left"
             SelectionChanged="MainNavigationView_SelectionChanged">
@@ -251,7 +258,7 @@
             x:Name="SplashOverlay"
             Grid.Row="1"
             HorizontalAlignment="Stretch"
-            Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+            Background="Transparent">
 
             <StackPanel
                 HorizontalAlignment="Stretch"
