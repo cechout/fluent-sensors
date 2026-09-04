@@ -246,13 +246,20 @@
   </PropertyGroup>
   <!--
     the self contained publish carries binaries this app never loads
-    the mui files are WinUI system strings for 83 languages while this UI is english only, the
-    mscordaccore/mscordbi/DiaSymReader set is only ever pulled in by an attached debugger or a dump reader,
-    clrgc and clrgcexp are alternative collectors that stay dormant unless System.GC.Name is set in the
-    runtimeconfig, msquic is HTTP/3, and Mono.Posix is the linux sensor path inside LibreHardwareMonitorLib
+    the mscordaccore/mscordbi/DiaSymReader set is only ever pulled in by an attached debugger or a dump
+    reader, clrgc and clrgcexp are alternative collectors that stay dormant unless System.GC.Name is set in
+    the runtimeconfig, msquic is HTTP/3, and Mono.Posix is the linux sensor path inside
+    LibreHardwareMonitorLib
     the pdb is dropped here instead of suppressed via DebugType so the symbols still sit next to the build
     for local triage
     this runs after Publish, so the installer and the portable zip both pick up the smaller payload
+
+    do NOT add the mui locale folders here, they look like translations for 83 languages this app does not
+    offer, but Microsoft.ui.xaml.dll keeps its resources only in those mui files with no neutral copy inside
+    the dll, so the resource load fails as soon as the visual tree is built and the process dies with
+    STATUS_STOWED_EXCEPTION (0xc000027b) in Microsoft.UI.Xaml.dll
+    the folder that gets loaded is the one matching the Windows UI language, so trimming this down to en-US
+    breaks every machine that is not running english
   -->
   <Target Name="PruneUnusedPublishPayload" AfterTargets="Publish">
     <ItemGroup>
@@ -274,11 +281,7 @@
         dependencies it declares, and nothing else in the graph references it
       -->
       <_PrunedPublishFile Include="$(PublishDir)System.Numerics.Tensors.dll" />
-      <!--  a locale folder is recognised by the mui files it holds, so new languages need no list update  -->
-      <_PrunedPublishMui Include="$(PublishDir)*\*.mui" />
-      <_PrunedPublishLocaleDir Include="@(_PrunedPublishMui->'%(RootDir)%(Directory)')" />
     </ItemGroup>
     <Delete Files="@(_PrunedPublishFile)" />
-    <RemoveDir Directories="@(_PrunedPublishLocaleDir)" />
   </Target>
 </Project>
