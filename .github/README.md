@@ -20,6 +20,17 @@ How it currently looks performance-wise:
 * **WinUI 3 memory leaks:** WinUI 3 has known platform-level memory leaks, for example [secondary windows not fully releasing after closing](https://github.com/microsoft/microsoft-ui-xaml/issues/9063). Fluent Sensors works around these by hiding and reusing windows instead of destroying them.
 * **General optimization:** WinUI 3 is not the fastest UI framework, so manual optimization work is ongoing.
 
+## 📦 Download
+
+Every release on the [releases page](https://github.com/cechout/fluent-sensors/releases) ships two x64 builds:
+
+* **Installer** (`FluentSensors_Installer.exe`): installs into `Program Files`, creates a start menu entry and an optional desktop shortcut, and registers an uninstall entry. Settings are stored in `%LocalAppData%\FluentHwInfo`.
+* **Portable** (`FluentSensors_Portable_<version>.zip`): unzip it anywhere and run `FluentSensors.exe`. No setup, no uninstall entry. Settings are stored in a `Persistence` folder next to the executable, so the whole folder can be moved between drives or machines, and deleting it removes every trace of the app.
+
+Both builds come from the same compilation and differ only in the `portable.txt` marker file, which is what switches the storage location.
+
+Please note that both builds require administrator rights. Reading hardware sensors relies on a kernel level driver that LibreHardwareMonitorLib registers on startup and removes again on exit. "Portable" here means no setup and no leftover configuration, it does not mean the app runs without elevation.
+
 ## 🛠️ How to Build
 
 ### 1. Prerequisites

@@ -1,0 +1,15 @@
+Fluent Sensors - portable mode
+==============================
+
+As long as this file sits next to FluentSensors.exe, the app keeps all of its settings in the
+"Persistence" folder inside this directory instead of %LocalAppData%\FluentHwInfo.
+
+That means you can move or copy this folder to another drive or machine and your sensor
+selections, window positions and settings travel with it. Deleting the folder removes every
+trace of the app. Delete just this file if you want this copy to use the normal per-user
+location instead.
+
+Please note: Fluent Sensors still requires administrator rights, and it still loads a kernel
+level driver (through LibreHardwareMonitorLib) to read your hardware sensors. That driver is
+registered when the app starts and removed again when it exits. Portable here means "no setup
+and no leftover configuration", it does not mean the app runs without elevation.

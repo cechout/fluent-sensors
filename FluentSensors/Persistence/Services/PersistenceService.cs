@@ -19,8 +19,13 @@ namespace FluentSensors.Persistence.Services
     {
         // === fields ===
 
-        private readonly string _rootFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FluentHwInfo");
+        // portable mode: a marker file next to the exe moves persistence from %LocalAppData% into the app folder,
+        // so a portable copy carries its state on the drive it runs from and leaves nothing behind on the host
+        // the marker ships only in the portable zip, installer builds never contain it
+        private const string PortableMarkerFileName = "portable.txt";
+        private const string PortableFolderName = "Persistence";
+
+        private readonly string _rootFolder = ResolveRootFolder();
         private string SettingsPath => Path.Combine(_rootFolder, "settings.json");
         private string WindowStatePath => Path.Combine(_rootFolder, "window-state.json");
         private string SensorStatePath => Path.Combine(_rootFolder, "sensors.json");
@@ -252,6 +257,33 @@ namespace FluentSensors.Persistence.Services
 
 
         // === private helpers ===
+
+        // decides once at startup where the five json files live; portable builds are detected by the marker file
+        // rather than by a user setting, because such a setting would itself need a location to be stored in
+        private static string ResolveRootFolder()
+        {
+            string localAppData = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FluentHwInfo");
+
+            try
+            {
+                string? appFolder = Path.GetDirectoryName(Environment.ProcessPath);
+                if (string.IsNullOrEmpty(appFolder)) return localAppData;
+                if (!File.Exists(Path.Combine(appFolder, PortableMarkerFileName))) return localAppData;
+
+                // creating the folder here doubles as an early check that the app directory is writable at all;
+                // an unpacked zip sitting in a read-only location would otherwise silently drop every save
+                string portableFolder = Path.Combine(appFolder, PortableFolderName);
+                Directory.CreateDirectory(portableFolder);
+                return portableFolder;
+            }
+            catch
+            {
+                // unreadable app folder, or one that cannot be created: fall back to the per-user location instead
+                // of losing state
+                return localAppData;
+            }
+        }
 
         private void ResetTimer(ref Timer timer, Action save)
         {
