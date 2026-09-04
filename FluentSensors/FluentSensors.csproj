@@ -89,6 +89,22 @@
     <PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.5" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+    <!--
+      the metapackage drags in the AI, ML and widgets components, and this app calls none of their APIs
+      each component also contributes an appxfragment that declares regfree WinRT activatable classes into
+      the generated app manifest, so deleting the binaries alone would leave the manifest pointing at files
+      that are gone, which can fail the process start outright
+      excluding all assets keeps the component props out of the build, so payload and manifest entries drop
+      together
+    -->
+    <PackageReference Include="Microsoft.WindowsAppSDK.AI" Version="2.2.3" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.ML" Version="2.1.70" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Widgets" Version="2.0.5" ExcludeAssets="all" />
+    <!--
+      onnxruntime and DirectML ride in transitively through the ML component, and excluding a package does
+      not prune its dependency graph, so this one has to be named on its own
+    -->
+    <PackageReference Include="Microsoft.Windows.AI.MachineLearning" Version="2.1.70" ExcludeAssets="all" />
     <PackageReference Include="System.Management" Version="10.0.10" />
     <PackageReference Include="Vortice.DXGI" Version="3.8.3" />
     <PackageReference Include="WinUIEx" Version="2.9.2" />
