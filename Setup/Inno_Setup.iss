@@ -52,7 +52,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "..\FluentSensors\bin\x64\Release\net10.0-windows10.0.19041.0\publish\win-x64\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\FluentSensors\bin\x64\Release\net10.0-windows10.0.19041.0\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Excludes keeps a locally created portable marker and its Persistence folder out of the installer, so an
+; installed build can never end up writing its settings into Program Files
+Source: "..\FluentSensors\bin\x64\Release\net10.0-windows10.0.19041.0\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "\portable.txt,\Persistence"
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

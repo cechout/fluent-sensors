@@ -1,4 +1,4 @@
-# builds the win-x64 installer and drafts a GitHub release whenever a version tag is pushed
+# builds the win-x64 installer plus the portable zip and drafts a GitHub release whenever a version tag is pushed
 # csproj Version is the single source of truth, Inno Setup receives it as a command line define
 name: release
 
@@ -63,11 +63,29 @@ jobs:
           /DMyAppVersion=${{ steps.version.outputs.version }}
           Setup\Inno_Setup.iss
 
+      # portable variant: the exact same publish output the installer just consumed, staged into its own folder and
+      # given the marker file that makes the app store its settings next to the exe instead of in %LocalAppData%
+      # staged instead of zipped in place so the marker can never end up in the installer payload
+      - name: package portable zip
+        shell: pwsh
+        run: |
+          $staging = "Setup/Output/FluentSensors_Portable_${{ steps.version.outputs.version }}"
+          New-Item -ItemType Directory -Force -Path $staging | Out-Null
+          Copy-Item -Path "FluentSensors/bin/x64/Release/net10.0-windows10.0.19041.0/publish/win-x64/*" -Destination $staging -Recurse -Force
+          Copy-Item -Path "Setup/Portable/portable.txt" -Destination $staging -Force
+          Compress-Archive -Path $staging -DestinationPath "$staging.zip" -Force
+
       - name: upload installer artifact
         uses: actions/upload-artifact@v7
         with:
           name: FluentSensors_Installer
           path: Setup/Output/FluentSensors_Installer.exe
+
+      - name: upload portable artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: FluentSensors_Portable
+          path: Setup/Output/FluentSensors_Portable_${{ steps.version.outputs.version }}.zip
 
       # create draft only
       - name: create draft release
@@ -76,4 +94,5 @@ jobs:
         run: >
           gh release create ${{ github.ref_name }}
           Setup/Output/FluentSensors_Installer.exe
+          Setup/Output/FluentSensors_Portable_${{ steps.version.outputs.version }}.zip
           --draft --generate-notes --title "FluentSensors ${{ github.ref_name }}"
