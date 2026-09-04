@@ -242,4 +242,41 @@
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
   </PropertyGroup>
+  <!--
+    the self contained publish carries binaries this app never loads
+    the mui files are WinUI system strings for 83 languages while this UI is english only, the
+    mscordaccore/mscordbi/DiaSymReader set is only ever pulled in by an attached debugger or a dump reader,
+    clrgc and clrgcexp are alternative collectors that stay dormant unless System.GC.Name is set in the
+    runtimeconfig, msquic is HTTP/3, and Mono.Posix is the linux sensor path inside LibreHardwareMonitorLib
+    the pdb is dropped here instead of suppressed via DebugType so the symbols still sit next to the build
+    for local triage
+    this runs after Publish, so the installer and the portable zip both pick up the smaller payload
+  -->
+  <Target Name="PruneUnusedPublishPayload" AfterTargets="Publish">
+    <ItemGroup>
+      <_PrunedPublishFile Include="$(PublishDir)FluentSensors.pdb" />
+      <_PrunedPublishFile Include="$(PublishDir)Mono.Posix.NETStandard.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)libMonoPosixHelper.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)MonoPosixHelper.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)mscordaccore.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)mscordaccore_*.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)mscordbi.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)Microsoft.DiaSymReader.Native.amd64.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)createdump.exe" />
+      <_PrunedPublishFile Include="$(PublishDir)clretwrc.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)clrgc.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)clrgcexp.dll" />
+      <_PrunedPublishFile Include="$(PublishDir)msquic.dll" />
+      <!--
+        left behind by the excluded ML component, ExcludeAssets drops a package own assets but not the
+        dependencies it declares, and nothing else in the graph references it
+      -->
+      <_PrunedPublishFile Include="$(PublishDir)System.Numerics.Tensors.dll" />
+      <!--  a locale folder is recognised by the mui files it holds, so new languages need no list update  -->
+      <_PrunedPublishMui Include="$(PublishDir)*\*.mui" />
+      <_PrunedPublishLocaleDir Include="@(_PrunedPublishMui->'%(RootDir)%(Directory)')" />
+    </ItemGroup>
+    <Delete Files="@(_PrunedPublishFile)" />
+    <RemoveDir Directories="@(_PrunedPublishLocaleDir)" />
+  </Target>
 </Project>
