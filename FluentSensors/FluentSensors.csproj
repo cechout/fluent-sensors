@@ -239,8 +239,10 @@
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+    <!--
+      PublishTrimmed stays unset on purpose, trimming strips the WinRT and COM interop types this app needs
+      and the published build then crashes on startup
+    -->
   </PropertyGroup>
   <!--
     the self contained publish carries binaries this app never loads
