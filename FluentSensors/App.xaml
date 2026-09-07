@@ -12,83 +12,114 @@
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
 
+            <!--
+                EXPERIMENT: every surface color below resolves to a native WinUI theme token instead of a
+                hand calibrated literal, to find out where the stock palette runs out
+                each brush notes the literal it replaces and how far the token lands from it, in levels,
+                measured over the transparency-off bar (dark #202020, light #EDEDED)
+                two facts drive the token choice and are worth keeping in mind when reading this:
+                the fill family flips per theme (the Subtle family lightens in dark but darkens in light,
+                so light has to use the Control family instead), and Fluent ships no stroke alpha between
+                24 and 40 in dark or between 15 and 41 in light, which is why the loud edge of every
+                border gradient is the one value that cannot be matched
+            -->
+
             <ResourceDictionary.ThemeDictionaries>
 
                 <!--  === DARK MODE (Default Theme Dictionary) ===  -->
 
                 <!--  Base Taskbar Background: #202020 (32)  -->
                 <ResourceDictionary x:Key="Default">
-                    <!--  1. Taskbar Button Normal Hover & Pressed Backgrounds (Alpha White on #202020)  -->
-                    <!--  Hover -> Target #2D2D2D (45): Alpha 15 (0x0F) -> #0FFFFFFF  -->
-                    <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="#0FFFFFFF" />
-                    <!--  Pressed -> Target #2A2A2A (42): Alpha 11 (0x0B) -> #0BFFFFFF  -->
-                    <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#0BFFFFFF" />
+                    <!--  1. Taskbar Button Normal Hover & Pressed Backgrounds  -->
+                    <!--  the Subtle family is the canonical fill chain for a button that is transparent at rest,
+                          which is exactly what a taskbar button is  -->
+                    <!--  Hover -> was #0FFFFFFF, the token carries the same byte (0 levels)  -->
+                    <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="{ThemeResource SubtleFillColorSecondary}" />
+                    <!--  Pressed -> was #0BFFFFFF, the token is #0A and lands 1 level darker
+                          (#0B exists as ControlFillColorDisabled, but disabled is the wrong meaning for a press)  -->
+                    <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="{ThemeResource SubtleFillColorTertiary}" />
 
                     <!--  2. Taskbar Button Borders (Dark Mode)  -->
-                    <!--  the border is never transparent: it carries the #1DFFFFFF top highlight and the same fill
+                    <!--  the border is never transparent: it carries a bright top highlight and the same fill
                           brush on the sides & bottom, so it always paints its 1px (no size shift between states) but
-                          reads as invisible where it should; #0FFFFFFF over #202020 == the hover fill
-                          top stop is #1D (not #16): the stroke composites over the bare bar now that the fill is
-                          inset, so it needs the higher alpha to land ~#404040 and match the native taskbar highlight  -->
+                          reads as invisible where it should; the side stops therefore stay tied to the fill token and
+                          composite to exactly the fill color over the inset gutter
+                          this is the native ControlElevationBorderBrush shape (bright stroke stop first, quiet stop
+                          for the rest, no ScaleY flip in dark so the highlight sits on top)
+                          top stop -> was #1DFFFFFF (29); dark offers 24, then 25, then nothing until 40, so the
+                          highlight cannot be matched: ControlStrokeColorSecondary (24) reads 4 levels too dark and
+                          this token (40) reads 10 levels too bright, which is the brighter of the two misses  -->
                     <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#1DFFFFFF" />
-                        <GradientStop Offset="0.10" Color="#0FFFFFFF" />
-                        <GradientStop Offset="1.0" Color="#0FFFFFFF" />
+                        <GradientStop Offset="0.0" Color="{ThemeResource ControlStrongStrokeColorDisabled}" />
+                        <GradientStop Offset="0.10" Color="{ThemeResource SubtleFillColorSecondary}" />
+                        <GradientStop Offset="1.0" Color="{ThemeResource SubtleFillColorSecondary}" />
                     </LinearGradientBrush>
                     <!--  Normal Pressed Border: sole source of the pressed border (StrokeBorder is off in this state),
-                          so the top stop is self-sufficient at #1FFFFFFF -> #3B3B3B; sides & bottom #10FFFFFF -> #2E2E2E  -->
+                          so the top stop is self-sufficient; it was #1FFFFFFF (31) and lands 8 levels brighter on the
+                          same 40 as above, the sides & bottom were #10FFFFFF and take the real stroke token at
+                          2 levels lighter  -->
                     <LinearGradientBrush x:Key="TaskbarButtonPressedBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#1FFFFFFF" />
-                        <GradientStop Offset="0.12" Color="#10FFFFFF" />
-                        <GradientStop Offset="1.0" Color="#10FFFFFF" />
+                        <GradientStop Offset="0.0" Color="{ThemeResource ControlStrongStrokeColorDisabled}" />
+                        <GradientStop Offset="0.12" Color="{ThemeResource ControlStrokeColorDefault}" />
+                        <GradientStop Offset="1.0" Color="{ThemeResource ControlStrokeColorDefault}" />
                     </LinearGradientBrush>
 
                     <!--  3. Active Flyout State (When Flyout is currently OPEN)  -->
-                    <!--  Active Hover -> Target #323232 (50): Alpha 21 (0x15) -> #15FFFFFF  -->
-                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#15FFFFFF" />
-                    <!--  Active Hover Border: same #1DFFFFFF top highlight as normal hover (~#404040, native match),
-                          active-hover fill brush on sides & bottom so the 1px there reads as invisible  -->
+                    <!--  Active Hover -> was #15FFFFFF, the token carries the same byte (0 levels)
+                          the Subtle family has no third step upwards, so the louder state moves to the Control
+                          family, which is also the honest reading: with the flyout open the button is a real control  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="{ThemeResource ControlFillColorSecondary}" />
+                    <!--  Active Hover Border: same top highlight as normal hover, active-hover fill token on sides &
+                          bottom so the 1px there reads as invisible  -->
                     <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#1DFFFFFF" />
-                        <GradientStop Offset="0.10" Color="#15FFFFFF" />
-                        <GradientStop Offset="1.0" Color="#15FFFFFF" />
+                        <GradientStop Offset="0.0" Color="{ThemeResource ControlStrongStrokeColorDisabled}" />
+                        <GradientStop Offset="0.10" Color="{ThemeResource ControlFillColorSecondary}" />
+                        <GradientStop Offset="1.0" Color="{ThemeResource ControlFillColorSecondary}" />
                     </LinearGradientBrush>
-                    <!--  Active Pressed -> Target #2A2A2A (42): Alpha 11 (0x0B) -> #0BFFFFFF  -->
-                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#0BFFFFFF" />
-                    <!--  no visible border in this state, so it takes the fill brush (never Transparent) and paints its 1px  -->
-                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#0BFFFFFF" />
+                    <!--  Active Pressed -> was #0BFFFFFF, same token and same 1 level as the normal press  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="{ThemeResource SubtleFillColorTertiary}" />
+                    <!--  no visible border in this state, so it takes the fill token (never Transparent) and paints its 1px  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="{ThemeResource SubtleFillColorTertiary}" />
 
                     <!--  4. Flyout Window Styling (Dark Mode)  -->
                     <!--
-                        the dark literals sit a few levels below the tone they actually show; they were dialed in
-                        by comparing screenshots with the native Windows surfaces, where dark values read back
-                        lighter than they were written
-                        that offset belongs to the display it was tuned on; another monitor measures its own
-                        numbers, so the second value on each line is what was seen here and not a spec
+                        the literals here were pre-compensated for the sRGB vs gamma 2.2 shift, where a dark value
+                        reads back lighter than it was written; the native tokens are not pre-compensated, so the
+                        deltas below are literal against literal and the rendered gap will look the same either way
                     -->
-                    <!--  Content Area -> literal #242424, reads as #292929 here, opaque  -->
-                    <!--  (the bottom bar paints its own color, see 6)  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#242424" />
-                    <!--  Window Border -> literal #464646, reads as #484848 here  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#464646" />
+                    <!--  Content Area -> was #242424, SolidBackgroundFillColorBase is #202020 and lands 4 levels
+                          darker; it is what ContentDialogBackground resolves to, i.e. the normative opaque popup
+                          surface, and the same token serves both themes  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+                    <!--  Window Border -> was #464646, SurfaceStrokeColorDefault (#66757575 over the surface) lands
+                          2 levels darker; this is a real window edge, not an in-app flyout edge, so it takes the
+                          surface stroke rather than SurfaceStrokeColorFlyout  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="{ThemeResource SurfaceStrokeColorDefault}" />
 
                     <!--  5. Flyout Graphs Overlay (Dark Mode)  -->
                     <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
                     <!--  (the opaque mode takes its content color from FlyoutWindowBackground and uses no overlay)  -->
-                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#0AFFFFFF" />
+                    <!--  was #0AFFFFFF, the token is #09 and lands 1 level darker; it is named for exactly this
+                          case, a layer sitting on acrylic  -->
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="{ThemeResource LayerOnAcrylicFillColorDefault}" />
 
                     <!--  6. Flyout Bottom Bar (Dark Mode)  -->
-                    <!--  Bottom Bar -> literal #1C1C1C, reads as #222222 here  -->
+                    <!--  Bottom Bar -> was #1C1C1C, the token carries the same value (0 levels)  -->
                     <!--  opaque and independent of the content area  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#1C1C1C" />
+                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="{ThemeResource SolidBackgroundFillColorSecondary}" />
 
                     <!--  7. Flyout Bottom Bar Separator (Dark Mode)  -->
                     <!--  1px stroke between content area and bottom bar  -->
-                    <!--  literal #181818, reads as #1E1E1E here  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#181818" />
+                    <!--  was #181818, CardStrokeColorDefaultSolid is #1C1C1C and lands 4 levels lighter; it is the
+                          opaque variant of a stroke, which is what this line is
+                          (DividerStrokeColorDefault would be the name to reach for, but in dark it is white alpha
+                          and would turn the shadow gap into a highlight)  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="{ThemeResource CardStrokeColorDefaultSolid}" />
                     <!--  the same stroke in the blur modes, where the native line is translucent and darkens the  -->
                     <!--  material instead of covering it, so it keeps letting the backdrop through  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#1F000000" />
+                    <!--  was #1F000000, SurfaceStrokeColorFlyout is #33000000 and lands 3 levels darker; it is the
+                          only black alpha surface stroke that exists in both themes  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="{ThemeResource SurfaceStrokeColorFlyout}" />
                 </ResourceDictionary>
 
 
@@ -96,71 +127,117 @@
 
                 <!--  Base Taskbar Background: #EDEDED (237)  -->
                 <ResourceDictionary x:Key="Light">
-                    <!--  1. Taskbar Button Normal Hover & Pressed Backgrounds (Alpha White on #EDEDED)  -->
-                    <!--  Hover -> Target #F7F7F7 (247): Alpha 142 (0x8E) -> #8EFFFFFF  -->
-                    <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="#8EFFFFFF" />
-                    <!--  Pressed -> Target #F3F3F3 (243): Alpha 85 (0x55) -> #55FFFFFF  -->
-                    <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#55FFFFFF" />
+                    <!--  1. Taskbar Button Normal Hover & Pressed Backgrounds  -->
+                    <!--  the Subtle family is unusable here: in light it is black alpha and would darken the button
+                          below the bar, while the real taskbar lightens it, so the fills move to the Control family
+                          the three states map onto the canonical Default -> Secondary -> Tertiary chain offset by
+                          one step, since a taskbar button has no visible rest state  -->
+                    <!--  Hover -> was #8EFFFFFF, ControlFillColorSecondary (#80F9F9F9) lands 4 levels darker, which
+                          is the largest fill deviation in the whole set
+                          (LayerFillColorDefault would sit 2 levels off, but a layer token is the wrong group for a
+                          button hover)  -->
+                    <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="{ThemeResource ControlFillColorSecondary}" />
+                    <!--  Pressed -> was #55FFFFFF, ControlFillColorTertiary (#4DF9F9F9) lands 2 levels darker  -->
+                    <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="{ThemeResource ControlFillColorTertiary}" />
 
                     <!--  2. Taskbar Button Border (Normal Hover & Pressed)  -->
-                    <!--  alpha black so it tracks the bar; calibrated against the transparency-on light taskbar (~#F0F0F0)
-                          to land top & sides #E7E7E7, bottom #DDDDDD there; over the #EDEDED solid bar it reads ~2 levels darker  -->
-                    <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#0A000000" />
-                        <GradientStop Offset="0.75" Color="#0A000000" />
-                        <GradientStop Offset="1.0" Color="#14000000" />
+                    <!--  the native ControlElevationBorderBrush shape again, here in its light form: the quiet edge
+                          on top and sides, the loud one at the bottom (WinUI gets that flip from a ScaleY of -1)
+                          the two light stroke tokens are 15 and 41 and both read too dark here, so the stops leave
+                          the stroke group: in light the Subtle family is black alpha, which is exactly the material
+                          a quiet 1px edge needs, and it has the only value near our top stop
+                          top & sides were #0A000000 (10) and land within 1 level on SubtleFillColorSecondary (9),
+                          the bottom was #14000000 (20) and lands 4 levels darker on ControlAltFillColorQuarternary
+                          (24), the closest value below the 41 of ControlStrokeColorSecondary
+                          the geometry is native too: an absolute 3px ramp measured from the flipped end instead of a
+                          fraction of the button height, so the loud edge owns the bottom 1px at full strength and the
+                          ramp above it stays 2px whatever the button is scaled to
+                          this matters for the color, not just the shape: with a relative ramp starting at offset 0
+                          the visible 1px line averages the first third of the ramp and never shows the stop color  -->
+                    <LinearGradientBrush
+                        x:Key="TaskbarButtonBorderBrush"
+                        MappingMode="Absolute"
+                        StartPoint="0,0"
+                        EndPoint="0,3">
+                        <LinearGradientBrush.RelativeTransform>
+                            <ScaleTransform CenterY="0.5" ScaleY="-1" />
+                        </LinearGradientBrush.RelativeTransform>
+                        <LinearGradientBrush.GradientStops>
+                            <GradientStop Offset="0.33" Color="{ThemeResource ControlAltFillColorQuarternary}" />
+                            <GradientStop Offset="1.0" Color="{ThemeResource SubtleFillColorSecondary}" />
+                        </LinearGradientBrush.GradientStops>
                     </LinearGradientBrush>
-                    <!--  Normal Pressed Border: sole source of the pressed border now (StrokeBorder is off in this state),
-                          same alpha-black values as TaskbarButtonBorderBrush -> top & sides #E7E7E7, bottom #DDDDDD  -->
-                    <LinearGradientBrush x:Key="TaskbarButtonPressedBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#0A000000" />
-                        <GradientStop Offset="0.75" Color="#0A000000" />
-                        <GradientStop Offset="1.0" Color="#14000000" />
+                    <!--  Normal Pressed Border: sole source of the pressed border now (StrokeBorder is off in this
+                          state), same tokens as TaskbarButtonBorderBrush, as it was the same literals before  -->
+                    <LinearGradientBrush
+                        x:Key="TaskbarButtonPressedBorderBrush"
+                        MappingMode="Absolute"
+                        StartPoint="0,0"
+                        EndPoint="0,3">
+                        <LinearGradientBrush.RelativeTransform>
+                            <ScaleTransform CenterY="0.5" ScaleY="-1" />
+                        </LinearGradientBrush.RelativeTransform>
+                        <LinearGradientBrush.GradientStops>
+                            <GradientStop Offset="0.33" Color="{ThemeResource ControlAltFillColorQuarternary}" />
+                            <GradientStop Offset="1.0" Color="{ThemeResource SubtleFillColorSecondary}" />
+                        </LinearGradientBrush.GradientStops>
                     </LinearGradientBrush>
 
                     <!--  3. Active Flyout State (When Flyout is currently OPEN)  -->
-                    <!--  Active Hover -> Target #FAFAFA (250): Alpha 184 (0xB8) -> #B8FFFFFF  -->
-                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#B8FFFFFF" />
-                    <!--  Active Hover Border: alpha black, calibrated against the transparency-on light taskbar (~#F0F0F0)
-                          to land top & sides #E5E5E5, bottom #D4D4D4 there  -->
-                    <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#0C000000" />
-                        <GradientStop Offset="0.75" Color="#0C000000" />
-                        <GradientStop Offset="1.0" Color="#1E000000" />
+                    <!--  Active Hover -> was #B8FFFFFF, ControlFillColorDefault (#B3FFFFFF) lands within half a
+                          level; the closest match in the entire comparison  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="{ThemeResource ControlFillColorDefault}" />
+                    <!--  Active Hover Border: was #0C000000 over #1E000000, a slightly louder version of the normal
+                          border; light has no value between 9 and 24 to express that with, so this state collapses
+                          onto the same two tokens and the two borders now render identically
+                          the states still read apart through their fills  -->
+                    <LinearGradientBrush
+                        x:Key="TaskbarButtonActiveHoverBorderBrush"
+                        MappingMode="Absolute"
+                        StartPoint="0,0"
+                        EndPoint="0,3">
+                        <LinearGradientBrush.RelativeTransform>
+                            <ScaleTransform CenterY="0.5" ScaleY="-1" />
+                        </LinearGradientBrush.RelativeTransform>
+                        <LinearGradientBrush.GradientStops>
+                            <GradientStop Offset="0.33" Color="{ThemeResource ControlAltFillColorQuarternary}" />
+                            <GradientStop Offset="1.0" Color="{ThemeResource SubtleFillColorSecondary}" />
+                        </LinearGradientBrush.GradientStops>
                     </LinearGradientBrush>
 
-                    <!--  Active Pressed -> Target #F3F3F3 (243): Alpha 85 (0x55) -> #55FFFFFF  -->
-                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#55FFFFFF" />
-                    <!--  Active Pressed Border: alpha black over the bare bar (the fill layer is inset like the others now),
-                          calibrated against the transparency-on light taskbar (~#F0F0F0) to land #E7E7E7 on all 4 sides  -->
-                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#0A000000" />
+                    <!--  Active Pressed -> was #55FFFFFF, same token and same 2 levels as the normal press  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="{ThemeResource ControlFillColorTertiary}" />
+                    <!--  Active Pressed Border: was #0A000000 on all 4 sides, the token is #09 and lands within
+                          1 level  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="{ThemeResource SubtleFillColorSecondary}" />
 
                     <!--  4. Flyout Window Styling (Light Mode)  -->
-                    <!--
-                        light barely needs the correction described in the dark section, the offset stays under
-                        one level above roughly 230
-                    -->
-                    <!--  Content Area -> #F2F2F2, opaque; the bottom bar paints its own color, see 6  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
-                    <!--  Window Border -> literal #C0C0C0, reads as #BFBFBF here  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#C0C0C0" />
+                    <!--  Content Area -> was #F2F2F2, SolidBackgroundFillColorBase is #F3F3F3, 1 level lighter  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+                    <!--  Window Border -> was #C0C0C0, SurfaceStrokeColorDefault over the content area resolves to
+                          exactly #C0C0C0; the one hit that needs no rounding  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="{ThemeResource SurfaceStrokeColorDefault}" />
 
                     <!--  5. Flyout Graphs Overlay (Light Mode)  -->
                     <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
                     <!--  (the opaque mode takes its content color from FlyoutWindowBackground and uses no overlay)  -->
-                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#38FFFFFF" />
+                    <!--  was #38FFFFFF, the token is #40FFFFFF and renders to the same level  -->
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="{ThemeResource LayerOnAcrylicFillColorDefault}" />
 
                     <!--  6. Flyout Bottom Bar (Light Mode)  -->
-                    <!--  Bottom Bar -> Target #EDEDED (237), opaque and independent of the content area  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#EDEDED" />
+                    <!--  Bottom Bar -> was #EDEDED, SolidBackgroundFillColorSecondary is #EEEEEE, 1 level lighter  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="{ThemeResource SolidBackgroundFillColorSecondary}" />
 
                     <!--  7. Flyout Bottom Bar Separator (Light Mode)  -->
                     <!--  1px stroke between content area and bottom bar  -->
-                    <!--  literal #DEDEDE, reads as #DDDDDD here  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#DEDEDE" />
+                    <!--  was #DEDEDE and lands 4 levels darker; this is the one place where the stroke group loses,
+                          CardStrokeColorDefaultSolid (#EBEBEB) is the light opaque stroke but sits 13 levels off and
+                          would leave the line with 3 levels of contrast against the bar, i.e. no line at all  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="{ThemeResource SolidBackgroundFillColorBaseAlt}" />
                     <!--  the same stroke in the blur modes, where the native line is translucent and darkens the  -->
                     <!--  material instead of covering it, so it keeps letting the backdrop through  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#13000000" />
+                    <!--  was #13000000, SurfaceStrokeColorFlyout is #0F000000 and lands 4 levels lighter  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="{ThemeResource SurfaceStrokeColorFlyout}" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
