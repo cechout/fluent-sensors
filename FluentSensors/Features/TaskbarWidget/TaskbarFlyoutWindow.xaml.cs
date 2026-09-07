@@ -132,7 +132,7 @@ namespace FluentSensors.Features.TaskbarWidget
         public const int WindowSlideDistanceDip = 300;
 
         // animation duration in milliseconds
-        public const int EnterAnimationDurationMs = 260; // duration on open (move-in)
+        public const int EnterAnimationDurationMs = 240; // duration on open (move-in)
         public const int ExitAnimationDurationMs = 140;  // duration on close (move-out)
 
         // how far the two durations and the slide distance above follow the pinned sensor count: all three are

@@ -78,13 +78,14 @@ namespace FluentSensors.Features.TaskbarWidget
         private RectInt32 _currentScreenRect;
         private int _currentOffsetDip = AnchorOffsetDip;
 
-        // --- taskbar button animation timings (in milliseconds) ---
+        // --- taskbar button animation settings ---
         private const int HoverBackgroundDelayMs = 0; // delay before hover background starts (Standard Windows: 0ms)
-        private const int HoverBackgroundDurationMs = 120; // duration of hover background fade-in (Standard Windows: 83ms [ControlFastAnimationDuration])
+        private const int HoverBackgroundDurationMs = 83; // duration of hover background fade-in (Standard Windows: 83ms [ControlFastAnimationDuration])
         private const int HoverStrokeDurationMs = 0; // duration of border stroke appearance on hover (Standard Windows: 0ms instant)
-        private const int ExitBackgroundDurationMs = 180; // duration of background fade-out on exit (Standard Windows: 167ms [ControlNormalAnimationDuration])
+        private const int ExitBackgroundDurationMs = 167; // duration of background fade-out on exit (Standard Windows: 167ms [ControlNormalAnimationDuration])
         private const int ExitStrokeDurationMs = 40; // duration of border stroke fade-out on exit (Standard Windows: 40ms [ControlFasterAnimationDuration])
         private const int PressDurationMs = 50; // duration of press feedback animation (Standard Windows: 50ms)
+        private const float PressContentOpacity = 0.75f; // content dim while the button is held, same value in both themes
 
         // embedding can fail transiently, e.g. while the start menu is open or another app is mid-embed
         // retrying up to 5 times avoids reporting a false failure
@@ -734,6 +735,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private Visual _backgroundVisual;
         private Visual _pressedVisual;
+        private Visual _pressedStrokeVisual;
         private Visual _activeHoverVisual;
         private Visual _activePressedVisual;
         private Visual _strokeVisual;
@@ -797,6 +799,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             var bgBorder = FindVisualChild<Border>(TaskbarButton, "BackgroundBorder");
             var pressedBorder = FindVisualChild<Border>(TaskbarButton, "PressedBorder");
+            var pressedStrokeBorder = FindVisualChild<Border>(TaskbarButton, "PressedStrokeBorder");
             var activeHoverBorder = FindVisualChild<Border>(TaskbarButton, "ActiveHoverBorder");
             var activePressedBorder = FindVisualChild<Border>(TaskbarButton, "ActivePressedBorder");
             var strokeBorder = FindVisualChild<Border>(TaskbarButton, "StrokeBorder");
@@ -812,6 +815,10 @@ namespace FluentSensors.Features.TaskbarWidget
             if (pressedBorder != null)
             {
                 _pressedVisual = ElementCompositionPreview.GetElementVisual(pressedBorder);
+            }
+            if (pressedStrokeBorder != null)
+            {
+                _pressedStrokeVisual = ElementCompositionPreview.GetElementVisual(pressedStrokeBorder);
             }
             if (activeHoverBorder != null)
             {
@@ -839,16 +846,28 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        // previous engagement snapshot; the cross-state fades run only when this flips
+        private bool _wasEngaged;
+
         private void UpdateVisualState()
         {
             EnsureCompositionElements();
             if (_compositor == null) return;
 
+            // the border/stroke layers only fade when the button crosses the rest <-> engaged boundary; between
+            // engaged sub-states they snap, so no two 1px edges ever crossfade through the same tone and flicker
+            // the fill layers (and the content dim) always fade with their normal timing; a fill crossfade blends
+            // smoothly and does not flicker the way a hairline does
+            bool engaged = _isPointerOver || _isPressed || _isFlyoutActive;
+            bool animate = engaged != _wasEngaged;
+            _wasEngaged = engaged;
+            int Dur(int ms) => animate ? ms : 0;
+
             if (!_isFlyoutActive)
             {
                 // === Flyout Closed ===
-                AnimateVisualOpacity(_activeHoverStrokeVisual, 0.0f, ExitStrokeDurationMs);
-                AnimateVisualOpacity(_activePressedStrokeVisual, 0.0f, ExitStrokeDurationMs);
+                AnimateVisualOpacity(_activeHoverStrokeVisual, 0.0f, Dur(ExitStrokeDurationMs));
+                AnimateVisualOpacity(_activePressedStrokeVisual, 0.0f, Dur(ExitStrokeDurationMs));
 
                 if (_isPressed)
                 {
@@ -856,7 +875,10 @@ namespace FluentSensors.Features.TaskbarWidget
                     AnimateVisualOpacity(_activeHoverVisual, 0.0f, PressDurationMs);
                     AnimateVisualOpacity(_activePressedVisual, 0.0f, PressDurationMs);
                     AnimateVisualOpacity(_pressedVisual, 1.0f, PressDurationMs);
-                    AnimateVisualOpacity(_strokeVisual, 1.0f, PressDurationMs);
+                    // the pressed border snaps (gated) while the fill above crossfades; StrokeBorder would shift the
+                    // pressed side target and is off in this state
+                    AnimateVisualOpacity(_pressedStrokeVisual, 1.0f, Dur(PressDurationMs));
+                    AnimateVisualOpacity(_strokeVisual, 0.0f, Dur(PressDurationMs));
                 }
                 else if (_isPointerOver)
                 {
@@ -864,7 +886,8 @@ namespace FluentSensors.Features.TaskbarWidget
                     AnimateVisualOpacity(_activeHoverVisual, 0.0f, HoverBackgroundDurationMs);
                     AnimateVisualOpacity(_activePressedVisual, 0.0f, HoverBackgroundDurationMs);
                     AnimateVisualOpacity(_pressedVisual, 0.0f, HoverBackgroundDurationMs);
-                    AnimateVisualOpacity(_strokeVisual, 1.0f, HoverStrokeDurationMs);
+                    AnimateVisualOpacity(_pressedStrokeVisual, 0.0f, Dur(PressDurationMs));
+                    AnimateVisualOpacity(_strokeVisual, 1.0f, Dur(HoverStrokeDurationMs));
                 }
                 else
                 {
@@ -872,13 +895,15 @@ namespace FluentSensors.Features.TaskbarWidget
                     AnimateVisualOpacity(_activeHoverVisual, 0.0f, ExitBackgroundDurationMs);
                     AnimateVisualOpacity(_activePressedVisual, 0.0f, ExitBackgroundDurationMs);
                     AnimateVisualOpacity(_pressedVisual, 0.0f, ExitBackgroundDurationMs);
-                    AnimateVisualOpacity(_strokeVisual, 0.0f, ExitStrokeDurationMs);
+                    AnimateVisualOpacity(_pressedStrokeVisual, 0.0f, Dur(PressDurationMs));
+                    AnimateVisualOpacity(_strokeVisual, 0.0f, Dur(ExitStrokeDurationMs));
                 }
             }
             else
             {
                 // === Flyout Open ===
-                AnimateVisualOpacity(_strokeVisual, 0.0f, ExitStrokeDurationMs);
+                AnimateVisualOpacity(_strokeVisual, 0.0f, Dur(ExitStrokeDurationMs));
+                AnimateVisualOpacity(_pressedStrokeVisual, 0.0f, Dur(PressDurationMs));
 
                 if (_isPressed)
                 {
@@ -887,8 +912,8 @@ namespace FluentSensors.Features.TaskbarWidget
                     AnimateVisualOpacity(_activePressedVisual, 1.0f, PressDurationMs);
                     AnimateVisualOpacity(_pressedVisual, 0.0f, PressDurationMs);
 
-                    AnimateVisualOpacity(_activeHoverStrokeVisual, 0.0f, PressDurationMs);
-                    AnimateVisualOpacity(_activePressedStrokeVisual, 1.0f, PressDurationMs);
+                    AnimateVisualOpacity(_activeHoverStrokeVisual, 0.0f, Dur(PressDurationMs));
+                    AnimateVisualOpacity(_activePressedStrokeVisual, 1.0f, Dur(PressDurationMs));
                 }
                 else if (_isPointerOver)
                 {
@@ -897,8 +922,8 @@ namespace FluentSensors.Features.TaskbarWidget
                     AnimateVisualOpacity(_activePressedVisual, 0.0f, HoverBackgroundDurationMs);
                     AnimateVisualOpacity(_pressedVisual, 0.0f, HoverBackgroundDurationMs);
 
-                    AnimateVisualOpacity(_activeHoverStrokeVisual, 1.0f, HoverStrokeDurationMs);
-                    AnimateVisualOpacity(_activePressedStrokeVisual, 0.0f, HoverStrokeDurationMs);
+                    AnimateVisualOpacity(_activeHoverStrokeVisual, 1.0f, Dur(HoverStrokeDurationMs));
+                    AnimateVisualOpacity(_activePressedStrokeVisual, 0.0f, Dur(HoverStrokeDurationMs));
                 }
                 else
                 {
@@ -908,9 +933,9 @@ namespace FluentSensors.Features.TaskbarWidget
                     AnimateVisualOpacity(_activePressedVisual, 0.0f, ExitBackgroundDurationMs);
                     AnimateVisualOpacity(_pressedVisual, 0.0f, ExitBackgroundDurationMs);
 
-                    AnimateVisualOpacity(_strokeVisual, 1.0f, ExitStrokeDurationMs);
-                    AnimateVisualOpacity(_activeHoverStrokeVisual, 0.0f, ExitStrokeDurationMs);
-                    AnimateVisualOpacity(_activePressedStrokeVisual, 0.0f, ExitStrokeDurationMs);
+                    AnimateVisualOpacity(_strokeVisual, 1.0f, Dur(ExitStrokeDurationMs));
+                    AnimateVisualOpacity(_activeHoverStrokeVisual, 0.0f, Dur(ExitStrokeDurationMs));
+                    AnimateVisualOpacity(_activePressedStrokeVisual, 0.0f, Dur(ExitStrokeDurationMs));
                 }
             }
 
@@ -918,9 +943,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 if (_isPressed)
                 {
-                    bool isLight = ((FrameworkElement)this.Content).ActualTheme == ElementTheme.Light;
-                    float targetOpacity = isLight ? 0.70f : 0.95f;
-                    AnimateVisualOpacity(_contentVisual, targetOpacity, PressDurationMs);
+                    AnimateVisualOpacity(_contentVisual, PressContentOpacity, PressDurationMs);
                 }
                 else
                 {
@@ -1016,18 +1039,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
 
             _isPressed = true;
+            // UpdateVisualState drives the content press dim (to PressContentOpacity, matched across light and dark)
             UpdateVisualState();
-
-            // content press feedback: 70% opacity in Light mode, 95% opacity in Dark mode
-            if (_contentVisual != null && _compositor != null)
-            {
-                bool isLight = ((FrameworkElement)this.Content).ActualTheme == ElementTheme.Light;
-                float targetOpacity = isLight ? 0.70f : 0.95f;
-                var pressAnim = _compositor.CreateScalarKeyFrameAnimation();
-                pressAnim.InsertKeyFrame(1.0f, targetOpacity);
-                pressAnim.Duration = TimeSpan.FromMilliseconds(PressDurationMs);
-                _contentVisual.StartAnimation("Opacity", pressAnim);
-            }
         }
 
         private void TaskbarButton_PointerMoved(object sender, PointerRoutedEventArgs e)
@@ -1097,14 +1110,6 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             _isPointerOver = isOverNow;
             UpdateVisualState();
-
-            if (_contentVisual != null && _compositor != null)
-            {
-                var relAnim = _compositor.CreateScalarKeyFrameAnimation();
-                relAnim.InsertKeyFrame(1.0f, 1.0f);
-                relAnim.Duration = TimeSpan.FromMilliseconds(PressDurationMs);
-                _contentVisual.StartAnimation("Opacity", relAnim);
-            }
         }
 
         private void TaskbarButton_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
