@@ -24,28 +24,37 @@
                     <!--  Pressed -> Target #2A2A2A (42): Alpha 11 (0x0B) -> #0BFFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#0BFFFFFF" />
 
-                    <!--  2. Taskbar Button Borders (Dark Mode: Only TOP border in Normal Hover, ALL 4 in Normal Pressed)  -->
-                    <!--  Normal Hover Border: Top #16FFFFFF (Target #333333), sides & bottom Transparent  -->
+                    <!--  2. Taskbar Button Borders (Dark Mode)  -->
+                    <!--  the border is never transparent: it carries the #16FFFFFF top highlight and the same fill
+                          brush on the sides & bottom, so it always paints its 1px (no size shift between states) but
+                          reads as invisible where it should; #0FFFFFFF over #202020 == the hover fill  -->
                     <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Offset="0.0" Color="#16FFFFFF" />
-                        <GradientStop Offset="0.10" Color="Transparent" />
-                        <GradientStop Offset="1.0" Color="Transparent" />
+                        <GradientStop Offset="0.10" Color="#0FFFFFFF" />
+                        <GradientStop Offset="1.0" Color="#0FFFFFFF" />
                     </LinearGradientBrush>
-                    <!--  Normal Pressed Border: All 4 borders visible with #0AFFFFFF (Target #292929 on sides/bottom)  -->
-                    <SolidColorBrush x:Key="TaskbarButtonPressedBorderBrush" Color="#0AFFFFFF" />
+                    <!--  Normal Pressed Border: sole source of the pressed border (StrokeBorder is off in this state),
+                          so the top stop is self-sufficient at #1FFFFFFF -> #3B3B3B; sides & bottom #10FFFFFF -> #2E2E2E  -->
+                    <LinearGradientBrush x:Key="TaskbarButtonPressedBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#1FFFFFFF" />
+                        <GradientStop Offset="0.12" Color="#10FFFFFF" />
+                        <GradientStop Offset="1.0" Color="#10FFFFFF" />
+                    </LinearGradientBrush>
 
                     <!--  3. Active Flyout State (When Flyout is currently OPEN)  -->
                     <!--  Active Hover -> Target #323232 (50): Alpha 21 (0x15) -> #15FFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#15FFFFFF" />
-                    <!--  Active Hover Border: Keep top border #16FFFFFF, sides & bottom Transparent  -->
+                    <!--  Active Hover Border: #16FFFFFF top highlight, active-hover fill brush on sides & bottom
+                          (#15FFFFFF over #202020 == the active-hover fill, so the 1px reads as invisible)  -->
                     <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Offset="0.0" Color="#16FFFFFF" />
-                        <GradientStop Offset="0.10" Color="Transparent" />
-                        <GradientStop Offset="1.0" Color="Transparent" />
+                        <GradientStop Offset="0.10" Color="#15FFFFFF" />
+                        <GradientStop Offset="1.0" Color="#15FFFFFF" />
                     </LinearGradientBrush>
                     <!--  Active Pressed -> Target #2A2A2A (42): Alpha 11 (0x0B) -> #0BFFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#0BFFFFFF" />
-                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="Transparent" />
+                    <!--  no visible border in this state, so it takes the fill brush (never Transparent) and paints its 1px  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#0BFFFFFF" />
 
                     <!--  4. Flyout Window Styling (Dark Mode)  -->
                     <!--
@@ -91,30 +100,38 @@
                     <!--  Pressed -> Target #F3F3F3 (243): Alpha 85 (0x55) -> #55FFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#55FFFFFF" />
 
-                    <!--  2. Taskbar Button Border (Solid: Normal Hover & Pressed)  -->
-                    <!--  Top & Sides: #E7E7E7, Bottom: #DDDDDD  -->
+                    <!--  2. Taskbar Button Border (Normal Hover & Pressed)  -->
+                    <!--  alpha black so it tracks the bar; calibrated against the transparency-on light taskbar (~#F0F0F0)
+                          to land top & sides #E7E7E7, bottom #DDDDDD there; over the #EDEDED solid bar it reads ~2 levels darker  -->
                     <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#E7E7E7" />
-                        <GradientStop Offset="0.75" Color="#E7E7E7" />
-                        <GradientStop Offset="1.0" Color="#DDDDDD" />
+                        <GradientStop Offset="0.0" Color="#0A000000" />
+                        <GradientStop Offset="0.75" Color="#0A000000" />
+                        <GradientStop Offset="1.0" Color="#14000000" />
                     </LinearGradientBrush>
-                    <!--  Normal Pressed Border: Transparent (StrokeBorder already covers it)  -->
-                    <SolidColorBrush x:Key="TaskbarButtonPressedBorderBrush" Color="Transparent" />
+                    <!--  Normal Pressed Border: sole source of the pressed border now (StrokeBorder is off in this state),
+                          same alpha-black values as TaskbarButtonBorderBrush -> top & sides #E7E7E7, bottom #DDDDDD  -->
+                    <LinearGradientBrush x:Key="TaskbarButtonPressedBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0.0" Color="#0A000000" />
+                        <GradientStop Offset="0.75" Color="#0A000000" />
+                        <GradientStop Offset="1.0" Color="#14000000" />
+                    </LinearGradientBrush>
 
                     <!--  3. Active Flyout State (When Flyout is currently OPEN)  -->
                     <!--  Active Hover -> Target #FAFAFA (250): Alpha 184 (0xB8) -> #B8FFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#B8FFFFFF" />
-                    <!--  Active Hover Border (Solid) -> Top & Sides: #E5E5E5, Bottom: #D4D4D4  -->
+                    <!--  Active Hover Border: alpha black, calibrated against the transparency-on light taskbar (~#F0F0F0)
+                          to land top & sides #E5E5E5, bottom #D4D4D4 there  -->
                     <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#E5E5E5" />
-                        <GradientStop Offset="0.75" Color="#E5E5E5" />
-                        <GradientStop Offset="1.0" Color="#D4D4D4" />
+                        <GradientStop Offset="0.0" Color="#0C000000" />
+                        <GradientStop Offset="0.75" Color="#0C000000" />
+                        <GradientStop Offset="1.0" Color="#1E000000" />
                     </LinearGradientBrush>
 
                     <!--  Active Pressed -> Target #F3F3F3 (243): Alpha 85 (0x55) -> #55FFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#55FFFFFF" />
-                    <!--  Active Pressed Border (Solid) -> #E7E7E7 on all 4 sides  -->
-                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#E7E7E7" />
+                    <!--  Active Pressed Border: alpha black over the bare bar (the fill layer is inset like the others now),
+                          calibrated against the transparency-on light taskbar (~#F0F0F0) to land #E7E7E7 on all 4 sides  -->
+                    <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#0A000000" />
 
                     <!--  4. Flyout Window Styling (Light Mode)  -->
                     <!--

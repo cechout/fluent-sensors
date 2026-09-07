@@ -80,9 +80,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // --- taskbar button animation settings ---
         private const int HoverBackgroundDelayMs = 0; // delay before hover background starts (Standard Windows: 0ms)
-        private const int HoverBackgroundDurationMs = 120; // duration of hover background fade-in (Standard Windows: 83ms [ControlFastAnimationDuration])
+        private const int HoverBackgroundDurationMs = 83; // duration of hover background fade-in (Standard Windows: 83ms [ControlFastAnimationDuration])
         private const int HoverStrokeDurationMs = 0; // duration of border stroke appearance on hover (Standard Windows: 0ms instant)
-        private const int ExitBackgroundDurationMs = 180; // duration of background fade-out on exit (Standard Windows: 167ms [ControlNormalAnimationDuration])
+        private const int ExitBackgroundDurationMs = 167; // duration of background fade-out on exit (Standard Windows: 167ms [ControlNormalAnimationDuration])
         private const int ExitStrokeDurationMs = 40; // duration of border stroke fade-out on exit (Standard Windows: 40ms [ControlFasterAnimationDuration])
         private const int PressDurationMs = 50; // duration of press feedback animation (Standard Windows: 50ms)
         private const float PressContentOpacity = 0.75f; // content dim while the button is held, same value in both themes
@@ -857,7 +857,9 @@ namespace FluentSensors.Features.TaskbarWidget
                     AnimateVisualOpacity(_activeHoverVisual, 0.0f, PressDurationMs);
                     AnimateVisualOpacity(_activePressedVisual, 0.0f, PressDurationMs);
                     AnimateVisualOpacity(_pressedVisual, 1.0f, PressDurationMs);
-                    AnimateVisualOpacity(_strokeVisual, 1.0f, PressDurationMs);
+                    // PressedBorder carries the whole pressed border (top highlight + sides); StrokeBorder on top
+                    // would composite its side color over PressedBorder and shift the pressed side target
+                    AnimateVisualOpacity(_strokeVisual, 0.0f, PressDurationMs);
                 }
                 else if (_isPointerOver)
                 {

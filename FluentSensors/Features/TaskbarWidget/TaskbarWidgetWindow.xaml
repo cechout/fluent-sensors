@@ -33,9 +33,13 @@
                 <ControlTemplate TargetType="Button">
                     <Grid>
                         <!--  normal hover fill layer (animated via DirectComposition)  -->
+                        <!--  1px transparent inset, like PressedBorder, so the stroke layer above composites over the
+                              taskbar and not over this fill (otherwise the hover border reads far too light)  -->
                         <Border
                             x:Name="BackgroundBorder"
                             Background="{ThemeResource TaskbarButtonHoverBackground}"
+                            BorderBrush="Transparent"
+                            BorderThickness="1"
                             CornerRadius="4"
                             Opacity="0" />
 
@@ -49,16 +53,22 @@
                             Opacity="0" />
 
                         <!--  active flyout hover fill layer (#323232 on-screen, DWM compensated)  -->
+                        <!--  same 1px transparent inset as BackgroundBorder, keeps the stroke off this fill  -->
                         <Border
                             x:Name="ActiveHoverBorder"
                             Background="{ThemeResource TaskbarButtonActiveHoverBackground}"
+                            BorderBrush="Transparent"
+                            BorderThickness="1"
                             CornerRadius="4"
                             Opacity="0" />
 
                         <!--  active flyout pressed fill layer (#2a2a2a on-screen, DWM compensated)  -->
+                        <!--  same 1px transparent inset as the other fill layers, keeps the stroke off this fill  -->
                         <Border
                             x:Name="ActivePressedBorder"
                             Background="{ThemeResource TaskbarButtonActivePressedBackground}"
+                            BorderBrush="Transparent"
+                            BorderThickness="1"
                             CornerRadius="4"
                             Opacity="0" />
 
