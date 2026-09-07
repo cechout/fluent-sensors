@@ -78,13 +78,14 @@ namespace FluentSensors.Features.TaskbarWidget
         private RectInt32 _currentScreenRect;
         private int _currentOffsetDip = AnchorOffsetDip;
 
-        // --- taskbar button animation timings (in milliseconds) ---
+        // --- taskbar button animation settings ---
         private const int HoverBackgroundDelayMs = 0; // delay before hover background starts (Standard Windows: 0ms)
         private const int HoverBackgroundDurationMs = 120; // duration of hover background fade-in (Standard Windows: 83ms [ControlFastAnimationDuration])
         private const int HoverStrokeDurationMs = 0; // duration of border stroke appearance on hover (Standard Windows: 0ms instant)
         private const int ExitBackgroundDurationMs = 180; // duration of background fade-out on exit (Standard Windows: 167ms [ControlNormalAnimationDuration])
         private const int ExitStrokeDurationMs = 40; // duration of border stroke fade-out on exit (Standard Windows: 40ms [ControlFasterAnimationDuration])
         private const int PressDurationMs = 50; // duration of press feedback animation (Standard Windows: 50ms)
+        private const float PressContentOpacity = 0.75f; // content dim while the button is held, same value in both themes
 
         // embedding can fail transiently, e.g. while the start menu is open or another app is mid-embed
         // retrying up to 5 times avoids reporting a false failure
@@ -918,9 +919,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 if (_isPressed)
                 {
-                    bool isLight = ((FrameworkElement)this.Content).ActualTheme == ElementTheme.Light;
-                    float targetOpacity = isLight ? 0.70f : 0.95f;
-                    AnimateVisualOpacity(_contentVisual, targetOpacity, PressDurationMs);
+                    AnimateVisualOpacity(_contentVisual, PressContentOpacity, PressDurationMs);
                 }
                 else
                 {
@@ -1018,13 +1017,11 @@ namespace FluentSensors.Features.TaskbarWidget
             _isPressed = true;
             UpdateVisualState();
 
-            // content press feedback: 70% opacity in Light mode, 95% opacity in Dark mode
+            // content press feedback: dims to PressContentOpacity while held, matched across light and dark
             if (_contentVisual != null && _compositor != null)
             {
-                bool isLight = ((FrameworkElement)this.Content).ActualTheme == ElementTheme.Light;
-                float targetOpacity = isLight ? 0.70f : 0.95f;
                 var pressAnim = _compositor.CreateScalarKeyFrameAnimation();
-                pressAnim.InsertKeyFrame(1.0f, targetOpacity);
+                pressAnim.InsertKeyFrame(1.0f, PressContentOpacity);
                 pressAnim.Duration = TimeSpan.FromMilliseconds(PressDurationMs);
                 _contentVisual.StartAnimation("Opacity", pressAnim);
             }
