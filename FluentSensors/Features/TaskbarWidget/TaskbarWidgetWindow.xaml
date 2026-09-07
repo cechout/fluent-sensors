@@ -44,10 +44,13 @@
                             Opacity="0" />
 
                         <!--  normal pressed fill overlay layer  -->
+                        <!--  fill only; the border moved to PressedStrokeBorder so the fill can crossfade in sync
+                              with the hover fill while the border still snaps (a gated fill on top of a fading fill
+                              double-paints and flashes bright for a few frames)  -->
                         <Border
                             x:Name="PressedBorder"
                             Background="{ThemeResource TaskbarButtonPressedBackground}"
-                            BorderBrush="{ThemeResource TaskbarButtonPressedBorderBrush}"
+                            BorderBrush="Transparent"
                             BorderThickness="1"
                             CornerRadius="4"
                             Opacity="0" />
@@ -72,10 +75,18 @@
                             CornerRadius="4"
                             Opacity="0" />
 
-                        <!--  border stroke layer for normal hover & pressed (animated via DirectComposition)  -->
+                        <!--  border stroke layer for normal hover (animated via DirectComposition)  -->
                         <Border
                             x:Name="StrokeBorder"
                             BorderBrush="{ThemeResource TaskbarButtonBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Opacity="0" />
+
+                        <!--  border stroke layer for normal pressed (gated separately from PressedBorder's fill)  -->
+                        <Border
+                            x:Name="PressedStrokeBorder"
+                            BorderBrush="{ThemeResource TaskbarButtonPressedBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
                             Opacity="0" />

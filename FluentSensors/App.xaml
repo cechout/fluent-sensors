@@ -25,11 +25,13 @@
                     <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#0BFFFFFF" />
 
                     <!--  2. Taskbar Button Borders (Dark Mode)  -->
-                    <!--  the border is never transparent: it carries the #16FFFFFF top highlight and the same fill
+                    <!--  the border is never transparent: it carries the #1DFFFFFF top highlight and the same fill
                           brush on the sides & bottom, so it always paints its 1px (no size shift between states) but
-                          reads as invisible where it should; #0FFFFFFF over #202020 == the hover fill  -->
+                          reads as invisible where it should; #0FFFFFFF over #202020 == the hover fill
+                          top stop is #1D (not #16): the stroke composites over the bare bar now that the fill is
+                          inset, so it needs the higher alpha to land ~#404040 and match the native taskbar highlight  -->
                     <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#16FFFFFF" />
+                        <GradientStop Offset="0.0" Color="#1DFFFFFF" />
                         <GradientStop Offset="0.10" Color="#0FFFFFFF" />
                         <GradientStop Offset="1.0" Color="#0FFFFFFF" />
                     </LinearGradientBrush>
@@ -44,10 +46,10 @@
                     <!--  3. Active Flyout State (When Flyout is currently OPEN)  -->
                     <!--  Active Hover -> Target #323232 (50): Alpha 21 (0x15) -> #15FFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#15FFFFFF" />
-                    <!--  Active Hover Border: #16FFFFFF top highlight, active-hover fill brush on sides & bottom
-                          (#15FFFFFF over #202020 == the active-hover fill, so the 1px reads as invisible)  -->
+                    <!--  Active Hover Border: same #1DFFFFFF top highlight as normal hover (~#404040, native match),
+                          active-hover fill brush on sides & bottom so the 1px there reads as invisible  -->
                     <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0.0" Color="#16FFFFFF" />
+                        <GradientStop Offset="0.0" Color="#1DFFFFFF" />
                         <GradientStop Offset="0.10" Color="#15FFFFFF" />
                         <GradientStop Offset="1.0" Color="#15FFFFFF" />
                     </LinearGradientBrush>
