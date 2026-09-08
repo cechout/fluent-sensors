@@ -9,7 +9,7 @@
     Title="Fluent Sensors"
     mc:Ignorable="d">
 
-    <Grid x:Name="RootGrid" Background="Transparent">
+    <Grid x:Name="RootGrid" Background="{ThemeResource LayerFillColorDefaultBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -59,7 +59,7 @@
         <StackPanel
             x:Name="UpperRegion"
             Grid.Row="1"
-            Margin="4,0,4,4"
+            Margin="4,0,4,5"
             Spacing="4">
 
             <!--  main bar: start and stop share one slot, only one of them is ever up  -->
@@ -74,18 +74,25 @@
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
                     Click="StartLogging_Click"
-                    Content="Start logging"
                     IsEnabled="{x:Bind ViewModel.CanStart, Mode=OneWay}"
-                    Style="{ThemeResource AccentButtonStyle}"
-                    Visibility="{x:Bind ViewModel.StartButtonVisibility, Mode=OneWay}" />
+                    Visibility="{x:Bind ViewModel.StartButtonVisibility, Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontSize="14" Glyph="&#xE768;" />
+                        <TextBlock Text="Start logging" />
+                    </StackPanel>
+                </Button>
 
                 <Button
                     Grid.Column="0"
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
                     Click="StopLogging_Click"
-                    Content="Stop logging"
-                    Visibility="{x:Bind ViewModel.StopButtonVisibility, Mode=OneWay}" />
+                    Visibility="{x:Bind ViewModel.StopButtonVisibility, Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontSize="14" Glyph="&#xE71A;" />
+                        <TextBlock Text="Stop logging" />
+                    </StackPanel>
+                </Button>
 
                 <Button
                     x:Name="ToggleDetailsButton"
@@ -110,6 +117,7 @@
         <!--  divider  -->
         <!--  (deliberately without a margin so it touches both window edges)  -->
         <Border
+            x:Name="Divider"
             Grid.Row="2"
             Height="1"
             HorizontalAlignment="Stretch"
@@ -118,80 +126,94 @@
 
         <!--  lower region  -->
         <!--  the live readout and the save location, collapsed together by the chevron above  -->
-        <StackPanel
+        <!--
+            (the layer brush sits on the row itself instead of on the padded stack inside it, so it fills
+            everything below the divider edge to edge)
+        -->
+        <Grid
             x:Name="LowerRegion"
             Grid.Row="3"
-            Margin="4,10,4,12"
-            Background="{ThemeResource LayerFillColorDefaultBrush}"
-            Spacing="12">
+            Background="{ThemeResource LayerFillColorDefaultBrush}">
 
-            <!--  (same label above value shape the hardware view info panels use)  -->
-            <controls:WrapPanel
-                Padding="4"
-                HorizontalSpacing="12"
-                VerticalSpacing="12">
-                <StackPanel Width="Auto" Spacing="2">
-                    <TextBlock
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="Pinned sensors"
-                        TextWrapping="Wrap" />
-                    <TextBlock
-                        Style="{ThemeResource BodyTextBlockStyle}"
-                        Text="{x:Bind ViewModel.SensorCountText, Mode=OneWay}"
-                        TextWrapping="Wrap" />
-                </StackPanel>
+            <StackPanel Margin="4,4,4,5" Spacing="8">
 
-                <StackPanel Width="Auto" Spacing="2">
-                    <TextBlock
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="Running for"
-                        TextWrapping="Wrap" />
-                    <TextBlock
-                        Style="{ThemeResource BodyTextBlockStyle}"
-                        Text="{x:Bind ViewModel.ElapsedText, Mode=OneWay}"
-                        TextWrapping="Wrap" />
-                </StackPanel>
+                <!--  (same label above value shape the hardware view info panels use)  -->
+                <controls:WrapPanel
+                    Padding="6,4,6,4"
+                    HorizontalSpacing="14"
+                    VerticalSpacing="8">
 
-                <StackPanel Width="Auto" Spacing="2">
-                    <TextBlock
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="Recorded rows"
-                        TextWrapping="Wrap" />
-                    <TextBlock
-                        Style="{ThemeResource BodyTextBlockStyle}"
-                        Text="{x:Bind ViewModel.RowCountText, Mode=OneWay}"
-                        TextWrapping="Wrap" />
-                </StackPanel>
-            </controls:WrapPanel>
+                    <!--  running time  -->
+                    <StackPanel Width="Auto" Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Running for"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Style="{ThemeResource BodyTextBlockStyle}"
+                            Text="{x:Bind ViewModel.ElapsedText, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
 
-            <!--  save location  -->
-            <!--  (picked up front so start never has to ask)  -->
-            <Button
-                HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Left"
-                Click="PickLogFolder_Click"
-                ToolTipService.ToolTip="{x:Bind ViewModel.LogFolderText, Mode=OneWay}">
-                <Grid ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                    <!--  number of recorded rows  -->
+                    <StackPanel Width="Auto" Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Recorded rows"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Style="{ThemeResource BodyTextBlockStyle}"
+                            Text="{x:Bind ViewModel.RowCountText, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
 
-                    <FontIcon
-                        Grid.Column="0"
-                        FontSize="14"
-                        Glyph="&#xE8B7;" />
-                    <TextBlock
-                        Grid.Column="1"
-                        VerticalAlignment="Center"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="{x:Bind ViewModel.LogFolderText, Mode=OneWay}"
-                        TextTrimming="CharacterEllipsis" />
-                </Grid>
-            </Button>
-        </StackPanel>
+                    <!--  number of pinned sensors  -->
+                    <StackPanel Width="Auto" Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Pinned sensors"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Style="{ThemeResource BodyTextBlockStyle}"
+                            Text="{x:Bind ViewModel.SensorCountText, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </controls:WrapPanel>
+
+                <!--  save location  -->
+                <!--  (picked up front so start never has to ask)  -->
+                <!--
+                    (MinHeight is the height a default Button ends up at in the main bar, spelled out here so
+                    both bars stay the same even though this one carries smaller text)
+                -->
+                <Button
+                    MinHeight="32"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left"
+                    Click="PickLogFolder_Click"
+                    ToolTipService.ToolTip="{x:Bind ViewModel.LogFolderText, Mode=OneWay}">
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <FontIcon
+                            Grid.Column="0"
+                            FontSize="14"
+                            Glyph="&#xE8B7;" />
+                        <TextBlock
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="{x:Bind ViewModel.LogFolderText, Mode=OneWay}"
+                            TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                </Button>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

@@ -36,9 +36,10 @@ namespace FluentSensors.Features.CsvLogging
         private AppWindow _appWindow;
         private const string WindowKey = "CsvLogger";
 
-        // fixed window width in XAML DIP; the height is always measured from the content instead, so collapsing the
+        // fixed window width in XAML DIP; the height is read back off the arranged rows instead, so collapsing the
         // lower region, hiding the status line, or a wrap panel that breaks into another row all resize correctly
         // without a second hand-tuned number
+        // the fallback only ever covers a measure that comes back empty, before the content exists at all
         private const double WindowWidthDip = 240;
         private const double FallbackWindowHeightDip = 232;
 
@@ -48,6 +49,10 @@ namespace FluentSensors.Features.CsvLogging
         // whether the lower region (readout and save location) is currently shown; pure view state, the recording
         // itself does not care
         private bool _isExpanded = true;
+
+        // guards ApplyWindowSize against re-entering itself: it resizes the window, that re-lays out both regions,
+        // and that is exactly what raises the SizeChanged which calls it
+        private bool _isApplyingSize;
 
         public CsvLoggerViewModel ViewModel { get; }
         public static CsvLoggerWindow CurrentInstance { get; private set; }
@@ -87,6 +92,11 @@ namespace FluentSensors.Features.CsvLogging
             // content state has to be applied before the first measure, both the status line and the expand state
             // change how tall the window ends up
             StatusTextBlock.Visibility = ShowStatusLine ? Visibility.Visible : Visibility.Collapsed;
+
+            // a StackPanel reserves its Spacing for a collapsed child as well, so dropping the status line has to
+            // drop the gap with it, otherwise a dead strip stays behind above the divider
+            UpperRegion.Spacing = ShowStatusLine ? UpperRegion.Spacing : 0;
+
             ApplyExpandState();
 
             // window size and position:
@@ -116,9 +126,11 @@ namespace FluentSensors.Features.CsvLogging
             }
             catch { }
 
-            // the status line is the one piece of content whose height is not fixed, a long file name wraps it onto
-            // another line; re-measuring on every change keeps the window exactly as tall as it needs to be
-            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+            // both regions sit in Auto rows, so their height is driven by their content and never by how tall the
+            // window is; re-applying the size whenever one of them changes is what keeps the window exactly as tall
+            // as what is in it, a status line that wraps onto a second row included
+            UpperRegion.SizeChanged += OnRegionSizeChanged;
+            LowerRegion.SizeChanged += OnRegionSizeChanged;
 
             this.Closed += CsvLoggerWindow_Closed;
             _appWindow.Changed += AppWindow_Changed;
@@ -214,7 +226,8 @@ namespace FluentSensors.Features.CsvLogging
             {
                 _appWindow.Closing -= AppWindow_Closing;
                 _appWindow.Changed -= AppWindow_Changed;
-                ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+                UpperRegion.SizeChanged -= OnRegionSizeChanged;
+                LowerRegion.SizeChanged -= OnRegionSizeChanged;
             }
             catch { }
 
@@ -298,7 +311,8 @@ namespace FluentSensors.Features.CsvLogging
             SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
 
-            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            UpperRegion.SizeChanged -= OnRegionSizeChanged;
+            LowerRegion.SizeChanged -= OnRegionSizeChanged;
             ViewModel.Cleanup();
 
             _acrylicController?.Dispose();
@@ -347,9 +361,8 @@ namespace FluentSensors.Features.CsvLogging
             ViewModel.SetReadoutActive(false);
         }
 
-        private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void OnRegionSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (e.PropertyName != nameof(CsvLoggerViewModel.StatusText)) return;
             if (_isClosed) return;
 
             ApplyWindowSize();
@@ -491,24 +504,86 @@ namespace FluentSensors.Features.CsvLogging
             ToolTipService.SetToolTip(ToggleDetailsButton, _isExpanded ? "Hide details" : "Show details");
         }
 
-        // measures the content at the fixed window width and sizes the window to exactly that
-        // ResizeClient rather than Resize: with ExtendsContentIntoTitleBar the client area is the whole content, so
-        // this needs no assumption about how thick the window frame currently is
-        private void ApplyWindowSize()
+        // the exact height of one row, taken from the element itself rather than from a number kept in here, so it
+        // is always whatever the xaml currently says
+        // ActualHeight leaves the margin out while the row in RootGrid reserves it, so it has to be added back
+        private static double RowHeightDip(FrameworkElement row)
         {
-            double scaleFactor = GetScaleFactor();
+            if (row.Visibility != Visibility.Visible) return 0;
 
+            return row.ActualHeight + row.Margin.Top + row.Margin.Bottom;
+        }
+
+        // the height the content really needs
+        //
+        // summed from the four arranged rows rather than taken from a standalone RootGrid.Measure: a measure run
+        // outside a layout pass reports what the content would like at an unconstrained height, and for the wrapping
+        // readout and the wrapping status line that comes out taller than what ends up being arranged
+        private double ContentHeightDip()
+        {
+            // --- workaround: CommunityToolkit WrapPanel throws when measured at zero width ---
+            // problem: WrapPanel.MeasureOverride subtracts its Padding from the available size without clamping, so
+            // a measure at width 0 builds a Windows.Foundation.Size with a negative width and throws
+            // ArgumentOutOfRangeException, taking the app down with it
+            // that width is exactly what the xaml island reports while the window has not been shown yet, which is
+            // where the constructor calls this from
+            // fix: force the layout pass only once the content actually has a width, and estimate from a plain
+            // measure at the target width until then
+            if (RootGrid.ActualWidth > 0)
+            {
+                // synchronous, so the rows below report the state after a collapse or a status line change rather
+                // than the one before it
+                RootGrid.UpdateLayout();
+
+                double arranged = RowHeightDip(CustomTitleBar) + RowHeightDip(UpperRegion) +
+                                  RowHeightDip(Divider) + RowHeightDip(LowerRegion);
+                if (arranged > 0) return arranged;
+            }
+
+            // pre-layout estimate; a little generous for content that wraps, but it only ever sizes the window for
+            // the moment before it is shown, and the first real layout pass corrects it through SizeChanged
             RootGrid.InvalidateMeasure();
             RootGrid.Measure(new Windows.Foundation.Size(WindowWidthDip, double.PositiveInfinity));
 
-            // a measure before the content is ready can come back empty; the fallback keeps a usable window instead
-            // of a zero-height one
-            double heightDip = RootGrid.DesiredSize.Height;
-            if (heightDip <= 0) heightDip = FallbackWindowHeightDip;
+            double measured = RootGrid.DesiredSize.Height;
+            return measured > 0 ? measured : FallbackWindowHeightDip;
+        }
 
-            _appWindow.ResizeClient(new Windows.Graphics.SizeInt32(
-                (int)(WindowWidthDip * scaleFactor),
-                (int)(heightDip * scaleFactor)));
+        // sizes the window to exactly the content it has
+        private void ApplyWindowSize()
+        {
+            if (_isApplyingSize) return;
+            _isApplyingSize = true;
+
+            try
+            {
+                double scaleFactor = GetScaleFactor();
+
+                // how much bigger the window is than its client area, read off the window rather than assumed:
+                // ExtendsContentIntoTitleBar pulls the caption into the client area, so the caption height must not
+                // be added on top of the content the way a plain frame calculation would
+                int frameWidthPx = Math.Max(0, _appWindow.Size.Width - _appWindow.ClientSize.Width);
+                int frameHeightPx = Math.Max(0, _appWindow.Size.Height - _appWindow.ClientSize.Height);
+                int widthPx = (int)Math.Round(WindowWidthDip * scaleFactor) + frameWidthPx;
+
+                // the width has to be in place before the height is read; the readout wraps onto a second row at
+                // narrow widths, so reading the height at the old window width would report one the window never
+                // ends up having
+                if (_appWindow.Size.Width != widthPx)
+                {
+                    _appWindow.Resize(new Windows.Graphics.SizeInt32(widthPx, _appWindow.Size.Height));
+                }
+
+                double heightDip = ContentHeightDip();
+
+                _appWindow.Resize(new Windows.Graphics.SizeInt32(
+                    widthPx,
+                    (int)Math.Round(heightDip * scaleFactor) + frameHeightPx));
+            }
+            finally
+            {
+                _isApplyingSize = false;
+            }
         }
 
         private void RestoreWindowPosition()
