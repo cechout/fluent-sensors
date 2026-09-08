@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="FluentSensors.Features.CsvLogging.CsvLoggerWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Fluent Sensors"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid" Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+
+        <!--  custom title bar  -->
+        <!--  (empty space stays the drag region, the system caption buttons sit on the right)  -->
+        <Grid
+            x:Name="CustomTitleBar"
+            Grid.Row="0"
+            Height="32"
+            Background="Transparent">
+
+            <StackPanel
+                Margin="4,0,0,0"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
+
+                <!--  back to main application button (same one the widget window carries)  -->
+                <Button
+                    Width="32"
+                    Height="22"
+                    Padding="0"
+                    Click="BackToDashboard_Click"
+                    Style="{StaticResource SubtleButtonStyle}"
+                    ToolTipService.ToolTip="Back to Main Application">
+                    <FontIcon
+                        FontSize="14"
+                        FontWeight="SemiLight"
+                        Glyph="&#xE944;" />
+                </Button>
+
+                <TextBlock
+                    Margin="6,0,0,0"
+                    VerticalAlignment="Center"
+                    Style="{ThemeResource CaptionTextBlockStyle}"
+                    Text="CSV Logging" />
+            </StackPanel>
+        </Grid>
+
+
+        <!--  upper region: the recording action plus the status line  -->
+        <!--  (margins live on the two regions instead of the whole content, so the divider below can run edge to edge)  -->
+        <StackPanel
+            x:Name="UpperRegion"
+            Grid.Row="1"
+            Margin="4,0,4,4"
+            Spacing="4">
+
+            <!--  main bar: start and stop share one slot, only one of them is ever up  -->
+            <Grid ColumnSpacing="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button
+                    Grid.Column="0"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Click="StartLogging_Click"
+                    Content="Start logging"
+                    IsEnabled="{x:Bind ViewModel.CanStart, Mode=OneWay}"
+                    Style="{ThemeResource AccentButtonStyle}"
+                    Visibility="{x:Bind ViewModel.StartButtonVisibility, Mode=OneWay}" />
+
+                <Button
+                    Grid.Column="0"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Click="StopLogging_Click"
+                    Content="Stop logging"
+                    Visibility="{x:Bind ViewModel.StopButtonVisibility, Mode=OneWay}" />
+
+                <Button
+                    x:Name="ToggleDetailsButton"
+                    Grid.Column="1"
+                    Width="36"
+                    Padding="0"
+                    VerticalAlignment="Stretch"
+                    Click="ToggleDetails_Click">
+                    <FontIcon x:Name="ToggleDetailsIcon" FontSize="12" />
+                </Button>
+            </Grid>
+
+            <TextBlock
+                x:Name="StatusTextBlock"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{ThemeResource CaptionTextBlockStyle}"
+                Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                TextWrapping="Wrap" />
+        </StackPanel>
+
+
+        <!--  divider  -->
+        <!--  (deliberately without a margin so it touches both window edges)  -->
+        <Border
+            Grid.Row="2"
+            Height="1"
+            HorizontalAlignment="Stretch"
+            Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+
+        <!--  lower region  -->
+        <!--  the live readout and the save location, collapsed together by the chevron above  -->
+        <StackPanel
+            x:Name="LowerRegion"
+            Grid.Row="3"
+            Margin="4,10,4,12"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            Spacing="12">
+
+            <!--  (same label above value shape the hardware view info panels use)  -->
+            <controls:WrapPanel
+                Padding="4"
+                HorizontalSpacing="12"
+                VerticalSpacing="12">
+                <StackPanel Width="Auto" Spacing="2">
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Text="Pinned sensors"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{x:Bind ViewModel.SensorCountText, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+
+                <StackPanel Width="Auto" Spacing="2">
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Text="Running for"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{x:Bind ViewModel.ElapsedText, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+
+                <StackPanel Width="Auto" Spacing="2">
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Text="Recorded rows"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{x:Bind ViewModel.RowCountText, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </controls:WrapPanel>
+
+            <!--  save location  -->
+            <!--  (picked up front so start never has to ask)  -->
+            <Button
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Left"
+                Click="PickLogFolder_Click"
+                ToolTipService.ToolTip="{x:Bind ViewModel.LogFolderText, Mode=OneWay}">
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <FontIcon
+                        Grid.Column="0"
+                        FontSize="14"
+                        Glyph="&#xE8B7;" />
+                    <TextBlock
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Text="{x:Bind ViewModel.LogFolderText, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis" />
+                </Grid>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

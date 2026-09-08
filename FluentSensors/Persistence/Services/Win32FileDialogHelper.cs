@@ -20,8 +20,8 @@ namespace FluentSensors.Persistence.Services
     {
         // === public api ===
 
-        // thin synchronous wrappers around the native dialogs; both return the picked path, or null if the user
-        // cancelled or the dialog failed, and release the COM object again immediately after use
+        // thin synchronous wrappers around the native dialogs; all of them return the picked path, or null if the
+        // user cancelled or the dialog failed, and release the COM object again immediately after use
 
         // returns the picked file path, or null if the user cancelled (or the dialog failed)
         public static string PickSaveFile(IntPtr ownerHwnd, string title, string suggestedFileName, string filterName, string filterExtension)
@@ -73,12 +73,61 @@ namespace FluentSensors.Persistence.Services
         }
 
 
+        // picks a folder rather than a file, by putting the same open dialog into folder mode via FOS_PICKFOLDERS
+        // initialFolder is where the dialog opens; ignored when it does not exist anymore, Windows then falls back to
+        // its own last-used location
+        public static string PickFolder(IntPtr ownerHwnd, string title, string initialFolder)
+        {
+            var dialog = (IFileOpenDialog)new FileOpenDialogRCW();
+            try
+            {
+                dialog.SetTitle(title);
+
+                dialog.GetOptions(out uint options);
+                dialog.SetOptions(options | FOS_PICKFOLDERS);
+
+                if (!string.IsNullOrEmpty(initialFolder))
+                {
+                    try
+                    {
+                        var guid = IID_IShellItem;
+                        if (SHCreateItemFromParsingName(initialFolder, IntPtr.Zero, ref guid, out var startItem) == 0)
+                        {
+                            dialog.SetFolder(startItem);
+                            Marshal.ReleaseComObject(startItem);
+                        }
+                    }
+                    catch { /* only the starting location, a failure here still leaves a usable dialog */ }
+                }
+
+                if (dialog.Show(ownerHwnd) != 0) return null; // non-zero HRESULT: user cancelled or dialog failed
+
+                dialog.GetResult(out var item);
+                item.GetDisplayName(SIGDN.FILESYSPATH, out var path);
+                return path;
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(dialog);
+            }
+        }
+
+
         // === com interop declarations ===
 
         // manual COM interop instead of the CsWin32 source generator Microsofts docs suggest, to keep this
         // self-contained
-        // minimal subset of shobjidl_core.h; just enough surface for a single-file save/open dialog, not a general-purpose
-        // wrapper (no multi-select, no folder picking, no custom places)
+        // minimal subset of shobjidl_core.h; just enough surface for a single-file save/open dialog plus folder
+        // picking, not a general-purpose wrapper (no multi-select, no custom places)
+
+        // FOS_PICKFOLDERS, the _FILEOPENDIALOGOPTIONS flag that turns the open dialog into a folder browser
+        private const uint FOS_PICKFOLDERS = 0x00000020;
+
+        private static Guid IID_IShellItem = new Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe");
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = true)]
+        private static extern int SHCreateItemFromParsingName(
+            [MarshalAs(UnmanagedType.LPWStr)] string pszPath, IntPtr pbc, ref Guid riid, out IShellItem ppv);
 
         [ComImport, Guid("42f85136-db7e-439c-85f1-e4075d135fc8"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         private interface IFileDialog

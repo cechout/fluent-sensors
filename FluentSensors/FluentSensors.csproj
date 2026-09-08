@@ -44,6 +44,7 @@
 		<None Remove="Controls\SensorGraph\SensorPanelControl.xaml" />
 		<None Remove="Controls\SensorTile\SensorTileControl.xaml" />
 		<None Remove="Controls\Threshold\ThresholdFlyoutControl.xaml" />
+		<None Remove="Features\CsvLogging\CsvLoggerWindow.xaml" />
 		<None Remove="Features\Performance\HardwareViews\CpuDetailView.xaml" />
 		<None Remove="Features\Performance\HardwareViews\GpuDetailView.xaml" />
 		<None Remove="Features\Performance\HardwareViews\MemoryDetailView.xaml" />
@@ -222,6 +223,11 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Controls\SensorTile\SensorTileControl.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Features\CsvLogging\CsvLoggerWindow.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </Page>
 	</ItemGroup>

@@ -47,6 +47,10 @@ namespace FluentSensors.Persistence.Models
         public bool HideSensorsCompletely { get; set; } = true;
         public bool StatusReadoutEnabled { get; set; } = true;
 
+        // folder csv recordings are written into; empty means the logger falls back to Documents\FluentSensors,
+        // which keeps the default out of the settings file until the user actually picks something
+        public string CsvLogFolder { get; set; } = "";
+
         // lives on HardwareMonitorService at runtime, but conceptually belongs with the rest of the app settings for
         // persistence purposes
         public int UpdateIntervalMs { get; set; } = 500;

@@ -413,6 +413,23 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // folder csv recordings are written into, picked from the logger window itself
+        // deliberately without a change event, unlike every other property here: the logger window is both the only
+        // writer and the only reader, and it refreshes its own button right after setting this
+        private string _csvLogFolder = "";
+        public string CsvLogFolder
+        {
+            get => _csvLogFolder;
+            set
+            {
+                if (_csvLogFolder != value)
+                {
+                    _csvLogFolder = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // persistence
         // writes every property straight to its backing field, skipping change events and the save trigger; used only
         // once at startup, before any window or listener exists yet
@@ -445,6 +462,7 @@ namespace FluentSensors.Persistence.Services
             _minimizeToTray = data.MinimizeToTray;
             _hideSensorsCompletely = data.HideSensorsCompletely;
             _statusReadoutEnabled = data.StatusReadoutEnabled;
+            _csvLogFolder = data.CsvLogFolder ?? "";
 
             // lives on HardwareMonitorService at runtime, not here, but shares this settings file
             HardwareMonitorService.Instance.UpdateIntervalMs = data.UpdateIntervalMs;
@@ -482,6 +500,7 @@ namespace FluentSensors.Persistence.Services
                 MinimizeToTray = _minimizeToTray,
                 HideSensorsCompletely = _hideSensorsCompletely,
                 StatusReadoutEnabled = _statusReadoutEnabled,
+                CsvLogFolder = _csvLogFolder,
                 UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
             };
         }
