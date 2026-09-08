@@ -350,21 +350,100 @@
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="CSV Logging" />
 
-            <!--  separators a csv recording is written with  -->
-            <controls:SettingsCard
-                Description="Decimal and column separators a recording is written with"
+            <!--  everything that shapes a recorded row  -->
+            <!--
+                the format itself sits in the header slot, the way both background material expanders carry their
+                backdrop combo: it is the one choice that decides whether the file opens correctly at all, the three
+                inside are refinements
+            -->
+            <controls:SettingsExpander
+                Description="How values are written into a recording"
                 Header="CSV Format"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE7C3;}">
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE7C3;}"
+                IsExpanded="False">
 
-                <!--  both entries are labelled from code with the sample row they actually produce  -->
                 <ComboBox
                     x:Name="CsvNumberFormatComboBox"
-                    Width="230"
+                    Width="160"
                     SelectionChanged="CsvNumberFormatComboBox_SelectionChanged">
-                    <ComboBoxItem Tag="Local" />
-                    <ComboBoxItem Tag="Invariant" />
+                    <ComboBoxItem Content="Regional" Tag="Local" />
+                    <ComboBoxItem Content="Invariant" Tag="Invariant" />
                 </ComboBox>
-            </controls:SettingsCard>
+
+                <!--
+                    the one element here that is not a setting, so it sits in the one slot that is not a
+                    settings row
+                -->
+                <!--
+                    (same top bar the sensors page puts above its sensor rows; text is built from code, through
+                    the same formatter that writes the file)
+                -->
+                <controls:SettingsExpander.ItemsHeader>
+                    <controls:SettingsCard
+                        MinHeight="0"
+                        Padding="58,12,16,8"
+                        HorizontalContentAlignment="Stretch"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderThickness="0"
+                        ContentAlignment="Vertical"
+                        CornerRadius="0">
+
+                        <Grid HorizontalAlignment="Stretch" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Example row:" />
+
+                            <TextBlock
+                                x:Name="CsvFormatExampleTextBlock"
+                                Grid.Column="1"
+                                IsTextSelectionEnabled="True"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap"
+                                Typography.NumeralAlignment="Tabular" />
+                        </Grid>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.ItemsHeader>
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Header="Decimal Places">
+                        <ComboBox
+                            x:Name="CsvDecimalPlacesComboBox"
+                            Width="70"
+                            SelectionChanged="CsvDecimalPlacesComboBox_SelectionChanged">
+                            <ComboBoxItem Content="0" Tag="0" />
+                            <ComboBoxItem Content="1" Tag="1" />
+                            <ComboBoxItem Content="2" Tag="2" />
+                            <ComboBoxItem Content="3" Tag="3" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Header="Units In Values">
+                        <ToggleSwitch
+                            x:Name="CsvIncludeUnitsToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="CsvIncludeUnitsToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Header="Pause Behavior">
+                        <ComboBox
+                            x:Name="CsvPauseSeamComboBox"
+                            Width="190"
+                            SelectionChanged="CsvPauseSeamComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Leave an empty row" Tag="Gap" />
+                            <ComboBoxItem Content="Continue seamlessly" Tag="Seamless" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+
+            </controls:SettingsExpander>
 
 
             <!--  backup and reset  -->

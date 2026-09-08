@@ -9,7 +9,6 @@ using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
 using FluentSensors.Common.Csv;
-using FluentSensors.Features.CsvLogging;
 using FluentSensors.Common.Sensors;
 
 
@@ -34,7 +33,7 @@ namespace FluentSensors.Features.Settings
             RestoreThemeSelection();
             RestoreIntervalSelection();
             RestoreMinimizeToTraySelection();
-            RestoreCsvNumberFormatSelection();
+            RestoreCsvFormatSelection();
             RestoreGraphLineStyleSelection();
 
             RestoreBackgroundMaterialSettings();
@@ -160,7 +159,8 @@ namespace FluentSensors.Features.Settings
             MinimizeToTrayToggle.IsOn = SettingsService.Instance.MinimizeToTray;
         }
 
-        // csv number format; only read when a recording starts, so switching it never touches an open file
+        // csv format; all four pieces are only read when a recording starts, so switching any of them never
+        // touches an open file
         private void CsvNumberFormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -170,40 +170,79 @@ namespace FluentSensors.Features.Settings
             {
                 SettingsService.Instance.CsvNumberFormat = format;
             }
+
+            UpdateCsvFormatExample();
         }
 
-        // labels both entries with a sample row instead of a name alone, so the decimal separator and the column
-        // separator are visible side by side
-        // the regional sample is built from the machines own settings rather than a fixed german example; on an
-        // english system it comes out identical to the invariant one, which is exactly what that system writes
-        private void BuildCsvNumberFormatSamples()
+        private void CsvDecimalPlacesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            foreach (ComboBoxItem item in CsvNumberFormatComboBox.Items)
+            if (_isLoading) return;
+
+            if (CsvDecimalPlacesComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && int.TryParse(tag, out int places))
             {
-                if (item.Tag is not string tag || !Enum.TryParse(tag, out CsvNumberFormat format)) continue;
+                SettingsService.Instance.CsvDecimalPlaces = places;
+            }
 
-                var (separator, culture) = CsvLoggingService.ResolveFormat(format);
+            UpdateCsvFormatExample();
+        }
 
-                // a value with decimals and a second column, the shortest row that shows both separators
-                string sample = 2515.862.ToString("0.###", culture) + separator + 41.5.ToString("0.###", culture);
-                string name = format == CsvNumberFormat.Invariant ? "Invariant" : "Regional";
+        private void CsvIncludeUnitsToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
 
-                item.Content = $"{name} ({sample})";
+            SettingsService.Instance.CsvIncludeUnits = CsvIncludeUnitsToggle.IsOn;
+
+            UpdateCsvFormatExample();
+        }
+
+        private void CsvPauseSeamComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (CsvPauseSeamComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out CsvPauseSeam seam))
+            {
+                SettingsService.Instance.CsvPauseSeam = seam;
             }
         }
 
-        private void RestoreCsvNumberFormatSelection()
+        private void RestoreCsvFormatSelection()
         {
-            BuildCsvNumberFormatSamples();
+            var settings = SettingsService.Instance;
 
-            string current = SettingsService.Instance.CsvNumberFormat.ToString();
+            SelectByTag(CsvNumberFormatComboBox, settings.CsvNumberFormat.ToString());
+            SelectByTag(CsvDecimalPlacesComboBox, settings.CsvDecimalPlaces.ToString());
+            SelectByTag(CsvPauseSeamComboBox, settings.CsvPauseSeam.ToString());
 
-            foreach (ComboBoxItem item in CsvNumberFormatComboBox.Items)
+            CsvIncludeUnitsToggle.IsOn = settings.CsvIncludeUnits;
+
+            UpdateCsvFormatExample();
+        }
+
+        // one sample row that stands for all four options at once
+        //
+        // built through the same CsvRowFormat a recording uses, so what the expander shows and what lands in the
+        // file can not drift apart; the units come from SensorUnitFormatter for the same reason
+        private void UpdateCsvFormatExample()
+        {
+            var format = CsvRowFormat.Resolve();
+
+            string clock = format.FormatValue(2515.862, SensorUnitFormatter.GetUnit("Clock"));
+            string temperature = format.FormatValue(41.375, SensorUnitFormatter.GetUnit("Temperature"));
+
+            CsvFormatExampleTextBlock.Text = clock + format.Separator + temperature;
+        }
+
+        // picks the entry whose Tag matches, used by every combo box that is restored from a single value
+        private static void SelectByTag(ComboBox comboBox, string tag)
+        {
+            foreach (ComboBoxItem item in comboBox.Items)
             {
-                if (item.Tag?.ToString() == current)
+                if (item.Tag?.ToString() == tag)
                 {
-                    CsvNumberFormatComboBox.SelectedItem = item;
-                    break;
+                    comboBox.SelectedItem = item;
+                    return;
                 }
             }
         }

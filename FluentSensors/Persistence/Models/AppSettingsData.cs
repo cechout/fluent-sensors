@@ -56,6 +56,16 @@ namespace FluentSensors.Persistence.Models
         // than fed to a script, and an invariant point decimal is silently misread by a localized one
         public CsvNumberFormat CsvNumberFormat { get; set; } = CsvNumberFormat.Local;
 
+        // 3 was the effective maximum before this became configurable, so an existing settings file keeps the
+        // precision it recorded with
+        public int CsvDecimalPlaces { get; set; } = 3;
+
+        // off by default: a value with a unit is text and no longer charts, and the unit is in the column header
+        // either way
+        public bool CsvIncludeUnits { get; set; } = false;
+
+        public CsvPauseSeam CsvPauseSeam { get; set; } = CsvPauseSeam.Gap;
+
         // lives on HardwareMonitorService at runtime, but conceptually belongs with the rest of the app settings for
         // persistence purposes
         public int UpdateIntervalMs { get; set; } = 500;

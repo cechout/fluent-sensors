@@ -409,6 +409,11 @@ namespace FluentSensors.Features.CsvLogging
             ViewModel.Stop();
         }
 
+        private void TogglePause_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.TogglePause();
+        }
+
         // collapses the window down to the divider, so a running recording can sit on screen as a thin bar with just
         // the stop button on it
         private void ToggleDetails_Click(object sender, RoutedEventArgs e)

@@ -74,6 +74,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
+                <!--  start button  -->
                 <Button
                     Grid.Column="0"
                     Padding="8,0,11,0"
@@ -90,20 +91,31 @@
                     </StackPanel>
                 </Button>
 
-                <Button
-                    Grid.Column="0"
-                    Padding="8,0,11,0"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
-                    Click="StopLogging_Click"
-                    Style="{StaticResource SubtleBarButtonStyle}"
-                    Visibility="{x:Bind ViewModel.StopButtonVisibility, Mode=OneWay}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+
+                    <!--  stop button  -->
+                    <Button
+                        Width="36"
+                        Padding="0"
+                        VerticalAlignment="Stretch"
+                        Click="StopLogging_Click"
+                        Style="{StaticResource SubtleBarButtonStyle}"
+                        Visibility="{x:Bind ViewModel.StopButtonVisibility, Mode=OneWay}">
                         <FontIcon FontSize="14" Glyph="&#xE71A;" />
-                        <TextBlock Text="Stop" />
-                    </StackPanel>
-                </Button>
+                    </Button>
+
+                    <!--  pause button  -->
+                    <!--  (holds the recording without closing the file)  -->
+                    <Button
+                        Width="36"
+                        Padding="0"
+                        VerticalAlignment="Stretch"
+                        Click="TogglePause_Click"
+                        Style="{StaticResource SubtleBarButtonStyle}"
+                        Visibility="{x:Bind ViewModel.PauseButtonVisibility, Mode=OneWay}">
+                        <FontIcon FontSize="12" Glyph="{x:Bind ViewModel.PauseGlyph, Mode=OneWay}" />
+                    </Button>
+                </StackPanel>
 
                 <!--  raw running clock  -->
                 <TextBlock
@@ -115,7 +127,7 @@
                     Text="{x:Bind ViewModel.ElapsedRowsText, Mode=OneWay}"
                     Typography.NumeralAlignment="Tabular" />
 
-                <!--  collapses the lower region  -->
+                <!--  toggle details button  -->
                 <Button
                     x:Name="ToggleDetailsButton"
                     Grid.Column="2"
@@ -175,7 +187,7 @@
                             TextWrapping="Wrap" />
                         <TextBlock
                             Style="{ThemeResource BodyTextBlockStyle}"
-                            Text="{x:Bind ViewModel.ElapsedText, Mode=OneWay}"
+                            Text="{x:Bind ViewModel.RecordedElapsedText, Mode=OneWay}"
                             TextWrapping="Wrap" />
                     </StackPanel>-->
 
@@ -210,11 +222,39 @@
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Polling Rate"
+                            Text="Polling rate"
                             TextWrapping="Wrap" />
                         <TextBlock
                             Style="{ThemeResource BodyTextBlockStyle}"
                             Text="{x:Bind ViewModel.PollingText, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <!--  wall clock since start, pauses included  -->
+                    <!--  (the main bar shows the recorded stretch instead; this is the one that matches the
+                          elapsed column in the file)  -->
+                    <StackPanel Width="Auto" Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Total elapsed"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Style="{ThemeResource BodyTextBlockStyle}"
+                            Text="{x:Bind ViewModel.TotalElapsedText, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <!--  what explains the difference between the two durations  -->
+                    <StackPanel Width="Auto" Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Pauses"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Style="{ThemeResource BodyTextBlockStyle}"
+                            Text="{x:Bind ViewModel.PauseCountText, Mode=OneWay}"
                             TextWrapping="Wrap" />
                     </StackPanel>
                 </controls:WrapPanel>

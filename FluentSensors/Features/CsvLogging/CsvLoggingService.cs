@@ -20,14 +20,18 @@ namespace FluentSensors.Features.CsvLogging
     // into the first line of the file
     public class CsvLoggedSensor
     {
-        public CsvLoggedSensor(string id, string header)
+        public CsvLoggedSensor(string id, string header, string unit)
         {
             Id = id;
             Header = header;
+            Unit = unit;
         }
 
         public string Id { get; }
         public string Header { get; }
+
+        // written next to every value while that option is on; empty for sensor types that carry no unit
+        public string Unit { get; }
     }
 
 
@@ -47,10 +51,21 @@ namespace FluentSensors.Features.CsvLogging
         // while the sensors page is replacing it
         private CsvLoggedSensor[] _activeColumns;
 
-        // separators the open file was started with, snapshotted the same way _activeColumns is: a format switch
-        // midway through a recording would leave one half of the file unreadable
-        private string _separator = ",";
-        private CultureInfo _valueCulture = CultureInfo.InvariantCulture;
+        // the format the open file was started with, snapshotted the same way _activeColumns is: a switch of the
+        // separators, the decimal count or the units midway through a recording would leave one half of the file
+        // formatted differently from the other, and nothing reading it would notice
+        private CsvRowFormat _rowFormat;
+
+        // how much of Elapsed was spent holding, and how often; both reset with every fresh start
+        private TimeSpan _pausedTotal;
+        private DateTime _pauseStartedAt;
+        private int _pauseCount;
+
+        // set by Pause, cleared by Resume; the file and the column set stay open the whole time, only the rows
+        // stop arriving
+        // volatile because the click that sets it and the monitor thread that reads it never share a lock, and a
+        // resume that the writer only notices two polls later would drop measurements for no reason
+        private volatile bool _isPaused;
 
         private StreamWriter _writer;
         private DateTime _startedAt;
@@ -71,6 +86,10 @@ namespace FluentSensors.Features.CsvLogging
         // === bindable state ===
 
         public bool IsRunning { get; private set; }
+
+        // true only while a recording is open and holding; IsRunning stays true through a pause, so the elapsed
+        // clock keeps counting and the file stays claimed
+        public bool IsPaused { get; private set; }
         public string CurrentFilePath { get; private set; }
         public int SensorCount => _sensors.Count;
         public long RowCount => Interlocked.Read(ref _rowCount);
@@ -103,6 +122,26 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
+        // the stretch that is actually covered by rows, so the main bar readout can never contradict the row
+        // counter sitting next to it: at a 500 ms poll, 1200 rows are ten minutes, and after a pause the wall
+        // clock would claim thirteen
+        // the running pause is subtracted on the fly, so the number freezes the instant the button is hit
+        public TimeSpan RecordedElapsed
+        {
+            get
+            {
+                var paused = _pausedTotal;
+                if (_isPaused) paused += DateTime.UtcNow - _pauseStartedAt;
+
+                var recorded = Elapsed - paused;
+                return recorded > TimeSpan.Zero ? recorded : TimeSpan.Zero;
+            }
+        }
+
+        // what explains the gap between Elapsed and RecordedElapsed, and at the same time how many seam rows the
+        // file carries
+        public int PauseCount => _pauseCount;
+
         // fires on start, stop and on a taken-over selection; always from the UI thread since every caller is a
         // click handler;
         // The row counter deliberately has no event of its own, CsvLoggerViewModel polls it on a timer instead so
@@ -124,7 +163,8 @@ namespace FluentSensors.Features.CsvLogging
             _sensors.Clear();
             foreach (var sensor in selectedSensors)
             {
-                _sensors.Add(new CsvLoggedSensor(sensor.Id, BuildHeader(sensor, hardwareNames)));
+                _sensors.Add(new CsvLoggedSensor(sensor.Id, BuildHeader(sensor, hardwareNames),
+                    SensorUnitFormatter.GetUnit(sensor.SensorType)));
             }
 
             StateChanged?.Invoke();
@@ -140,7 +180,7 @@ namespace FluentSensors.Features.CsvLogging
         {
             if (IsRunning || _sensors.Count == 0) return false;
 
-            var (separator, valueCulture) = ResolveFormat(SettingsService.Instance.CsvNumberFormat);
+            var rowFormat = CsvRowFormat.Resolve();
             string folder = ResolvedLogFolder;
             string path = Path.Combine(folder, $"FluentSensors-Log-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv");
             var columns = _sensors.ToArray();
@@ -154,7 +194,7 @@ namespace FluentSensors.Features.CsvLogging
                 // AutoFlush is not optional: the tray Exit and the settings restart both end in Process.Kill(),
                 // which skips finalizers and every closing handler, so a buffered tail would be lost without a trace
                 _writer = new StreamWriter(path, false, new UTF8Encoding(true)) { AutoFlush = true };
-                _writer.WriteLine(BuildHeaderLine(columns, separator));
+                _writer.WriteLine(BuildHeaderLine(columns, rowFormat.Separator));
             }
             catch
             {
@@ -171,8 +211,11 @@ namespace FluentSensors.Features.CsvLogging
             }
 
             LastError = null;
-            _separator = separator;
-            _valueCulture = valueCulture;
+            _rowFormat = rowFormat;
+            _pausedTotal = TimeSpan.Zero;
+            _pauseCount = 0;
+            _isPaused = false;
+            IsPaused = false;
             _activeColumns = columns;
             CurrentFilePath = path;
             Interlocked.Exchange(ref _rowCount, 0);
@@ -195,6 +238,38 @@ namespace FluentSensors.Features.CsvLogging
             StateChanged?.Invoke();
         }
 
+        // holds the recording without giving up the file: the columns, the header and the row counter all stay,
+        // only the incoming payloads are dropped
+        public void Pause()
+        {
+            if (!IsRunning || _isPaused) return;
+
+            _pauseStartedAt = DateTime.UtcNow;
+            _pauseCount++;
+            _isPaused = true;
+            IsPaused = true;
+
+            StateChanged?.Invoke();
+        }
+
+        public void Resume()
+        {
+            if (!IsRunning || !_isPaused) return;
+
+            // the seam is written before the flag is cleared, so a payload arriving in between cannot slip a real
+            // measurement in front of the gap row
+            if (SettingsService.Instance.CsvPauseSeam == CsvPauseSeam.Gap)
+            {
+                WriteSeamRow();
+            }
+
+            _pausedTotal += DateTime.UtcNow - _pauseStartedAt;
+            _isPaused = false;
+            IsPaused = false;
+
+            StateChanged?.Invoke();
+        }
+
         public void Stop()
         {
             if (!IsRunning) return;
@@ -202,6 +277,15 @@ namespace FluentSensors.Features.CsvLogging
             HardwareMonitorService.Instance.HardwareDataUpdated -= OnHardwareDataUpdated;
             _stoppedAt = DateTime.UtcNow;
             IsRunning = false;
+
+            // a recording stopped while it was holding still has that last interval open; closing it against the
+            // stop instant is what keeps the final recorded duration correct
+            if (_isPaused)
+            {
+                _pausedTotal += _stoppedAt - _pauseStartedAt;
+                _isPaused = false;
+                IsPaused = false;
+            }
 
             // a payload that arrived just before the unsubscribe can still be inside the write below, so closing the
             // file takes the same lock the rows do
@@ -225,8 +309,13 @@ namespace FluentSensors.Features.CsvLogging
             var columns = _activeColumns;
             if (columns == null) return;
 
-            string separator = _separator;
-            var valueCulture = _valueCulture;
+            // a paused recording keeps its file open and simply lets the payload go by
+            if (_isPaused) return;
+
+            var rowFormat = _rowFormat;
+            if (rowFormat == null) return;
+
+            string separator = rowFormat.Separator;
 
             var values = new Dictionary<string, double>(payload.Count);
             foreach (var sensor in payload)
@@ -243,7 +332,11 @@ namespace FluentSensors.Features.CsvLogging
             // through a culture would swap the date and time separators for no gain
             line.Append(nowUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture));
             line.Append(separator);
-            line.Append((nowUtc - _startedAt).TotalSeconds.ToString("0.000", valueCulture));
+
+            // the elapsed column keeps its own fixed three decimals and ignores the configured value precision:
+            // its resolution belongs to the poll interval, and rounded to whole seconds it would be useless at the
+            // 500 ms the monitor runs at by default
+            line.Append((nowUtc - _startedAt).TotalSeconds.ToString("0.000", rowFormat.ValueCulture));
 
             foreach (var column in columns)
             {
@@ -255,7 +348,7 @@ namespace FluentSensors.Features.CsvLogging
                 {
                     // the raw value, never the SensorUnitFormatter scaling: that switches MHz to GHz above 1000 and
                     // would change a columns unit halfway through the file
-                    line.Append(value.ToString("0.###", valueCulture));
+                    line.Append(rowFormat.FormatValue(value, column.Unit));
                 }
             }
 
@@ -275,6 +368,38 @@ namespace FluentSensors.Features.CsvLogging
             }
 
             Interlocked.Increment(ref _rowCount);
+        }
+
+        // one row of empty fields at the point a pause was resumed, so a chart drawn from the file breaks its line
+        // there instead of interpolating across a stretch that was never measured
+        //
+        // deliberately not counted into _rowCount: it carries no measurement, and the readout would otherwise claim
+        // rows the recording never took
+        private void WriteSeamRow()
+        {
+            var columns = _activeColumns;
+            var rowFormat = _rowFormat;
+            if (columns == null || rowFormat == null) return;
+
+            // two fixed columns (timestamp and elapsed) plus one per sensor, so the seam keeps the column count of
+            // every other row and reads back as empty cells rather than as a short row
+            string line = new StringBuilder()
+                .Insert(0, rowFormat.Separator, columns.Length + 1)
+                .ToString();
+
+            lock (_writeLock)
+            {
+                if (_writer == null) return;
+
+                try
+                {
+                    _writer.WriteLine(line);
+                }
+                catch
+                {
+                    // same best-effort rule the rows follow
+                }
+            }
         }
 
 
@@ -305,27 +430,6 @@ namespace FluentSensors.Features.CsvLogging
                 : sensor.Name;
 
             return unit.Length > 0 ? $"{name} [{unit}]" : name;
-        }
-
-        // resolves the configured format into the two things a row actually needs
-        // Local reads the machines own regional settings rather than hardcoding german, so the file matches
-        // whatever spreadsheet app is installed on the system that wrote it
-        // (public so the settings page can label its entries with the row this actually writes)
-        public static (string separator, CultureInfo valueCulture) ResolveFormat(CsvNumberFormat format)
-        {
-            if (format == CsvNumberFormat.Invariant)
-            {
-                return (",", CultureInfo.InvariantCulture);
-            }
-
-            var culture = CultureInfo.CurrentCulture;
-            string separator = culture.TextInfo.ListSeparator;
-
-            // a locale whose list separator is also its decimal separator would write rows nothing can read back;
-            // the semicolon is what every spreadsheet falls back to in that case
-            if (separator == culture.NumberFormat.NumberDecimalSeparator) separator = ";";
-
-            return (separator, culture);
         }
 
         private static string BuildHeaderLine(CsvLoggedSensor[] columns, string separator)

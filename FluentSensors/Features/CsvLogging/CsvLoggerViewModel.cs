@@ -62,6 +62,21 @@ namespace FluentSensors.Features.CsvLogging
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CanStart));
                 OnPropertyChanged(nameof(CanStop));
+                OnPropertyChanged(nameof(PauseButtonVisibility));
+            }
+        }
+
+        private bool _isPaused;
+        public bool IsPaused
+        {
+            get => _isPaused;
+            private set
+            {
+                if (_isPaused == value) return;
+                _isPaused = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PauseGlyph));
+                OnPropertyChanged(nameof(PauseTooltip));
             }
         }
 
@@ -71,6 +86,15 @@ namespace FluentSensors.Features.CsvLogging
         // start and stop share the same slot in the main bar, only one of them is ever up
         public Visibility StartButtonVisibility => CsvLoggingService.Instance.IsRunning ? Visibility.Collapsed : Visibility.Visible;
         public Visibility StopButtonVisibility => CsvLoggingService.Instance.IsRunning ? Visibility.Visible : Visibility.Collapsed;
+
+        // the pause button only exists while there is a recording to hold; unlike start and stop it is a single
+        // button that swaps its glyph, the way the details chevron next to it does
+        public Visibility PauseButtonVisibility => CsvLoggingService.Instance.IsRunning ? Visibility.Visible : Visibility.Collapsed;
+
+        // segoe fluent icons Pause and Play, escaped rather than pasted so this file stays plain ascii like the
+        // rest of the sources
+        public string PauseGlyph => IsPaused ? "\uE768" : "\uE769";
+        public string PauseTooltip => IsPaused ? "Resume" : "Pause";
 
         private string _logFolderText = "";
         public string LogFolderText
@@ -84,14 +108,42 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        private string _elapsedText = "00:00:00";
-        public string ElapsedText
+        // the stretch covered by rows, which is what the main bar shows next to the row counter
+        private string _recordedElapsedText = "00:00:00";
+        public string RecordedElapsedText
         {
-            get => _elapsedText;
+            get => _recordedElapsedText;
             private set
             {
-                if (_elapsedText == value) return;
-                _elapsedText = value;
+                if (_recordedElapsedText == value) return;
+                _recordedElapsedText = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // wall clock since start, pauses included; only shown in the details region, and the value that matches
+        // the elapsed column in the file
+        private string _totalElapsedText = "00:00:00";
+        public string TotalElapsedText
+        {
+            get => _totalElapsedText;
+            private set
+            {
+                if (_totalElapsedText == value) return;
+                _totalElapsedText = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // the reason the two durations above differ
+        private string _pauseCountText = "0";
+        public string PauseCountText
+        {
+            get => _pauseCountText;
+            private set
+            {
+                if (_pauseCountText == value) return;
+                _pauseCountText = value;
                 OnPropertyChanged();
             }
         }
@@ -121,7 +173,7 @@ namespace FluentSensors.Features.CsvLogging
         }
 
         // elapsed clock and row counter in one line, for the main bar where a single value has to carry both
-        private string _elapsedRowsText = "00:00:00|0";
+        private string _elapsedRowsText = "00:00:00 | 0";
         public string ElapsedRowsText
         {
             get => _elapsedRowsText;
@@ -168,6 +220,20 @@ namespace FluentSensors.Features.CsvLogging
         public void Stop()
         {
             CsvLoggingService.Instance.Stop();
+        }
+
+        public void TogglePause()
+        {
+            var service = CsvLoggingService.Instance;
+
+            if (service.IsPaused)
+            {
+                service.Resume();
+            }
+            else
+            {
+                service.Pause();
+            }
         }
 
         // takes over a folder the user just picked and drops any earlier start failure with it
@@ -266,10 +332,12 @@ namespace FluentSensors.Features.CsvLogging
             var service = CsvLoggingService.Instance;
 
             IsRunning = service.IsRunning;
+            IsPaused = service.IsPaused;
             OnPropertyChanged(nameof(CanStart));
             OnPropertyChanged(nameof(CanStop));
             OnPropertyChanged(nameof(StartButtonVisibility));
             OnPropertyChanged(nameof(StopButtonVisibility));
+            OnPropertyChanged(nameof(PauseButtonVisibility));
 
             SensorCountText = service.SensorCount.ToString();
             LogFolderText = service.ResolvedLogFolder;
@@ -281,9 +349,11 @@ namespace FluentSensors.Features.CsvLogging
         {
             var service = CsvLoggingService.Instance;
 
-            ElapsedText = FormatElapsed(service.Elapsed);
+            RecordedElapsedText = FormatElapsed(service.RecordedElapsed);
+            TotalElapsedText = FormatElapsed(service.Elapsed);
+            PauseCountText = service.PauseCount.ToString();
             RowCountText = service.RowCount.ToString("N0");
-            ElapsedRowsText = $"{ElapsedText} | {RowCountText}";
+            ElapsedRowsText = $"{RecordedElapsedText} | {RowCountText}";
             StatusText = BuildStatusText();
         }
 
@@ -307,6 +377,11 @@ namespace FluentSensors.Features.CsvLogging
             var service = CsvLoggingService.Instance;
 
             if (service.LastError != null) return service.LastError;
+
+            if (service.IsPaused)
+            {
+                return $"paused at {service.RowCount:N0} rows";
+            }
 
             if (service.IsRunning)
             {
