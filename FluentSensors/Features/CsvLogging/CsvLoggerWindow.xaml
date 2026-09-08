@@ -45,11 +45,11 @@
                         Glyph="&#xE944;" />
                 </Button>
 
-                <TextBlock
+                <!--<TextBlock
                     Margin="6,0,0,0"
                     VerticalAlignment="Center"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="CSV Logging" />
+                    Text="CSV Logging" />-->
             </StackPanel>
         </Grid>
 
@@ -63,44 +63,64 @@
             Spacing="4">
 
             <!--  main bar: start and stop share one slot, only one of them is ever up  -->
-            <Grid ColumnSpacing="4">
+            <!--
+                (SubtleButtonStyle is the command bar button as a plain Button; its states resolve to the same
+                brushes AppBarButton uses, so it stretches the way any other button does)
+            -->
+            <Grid Height="32" ColumnSpacing="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <Button
                     Grid.Column="0"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Stretch"
+                    HorizontalContentAlignment="Left"
                     Click="StartLogging_Click"
                     IsEnabled="{x:Bind ViewModel.CanStart, Mode=OneWay}"
+                    Style="{StaticResource SubtleButtonStyle}"
                     Visibility="{x:Bind ViewModel.StartButtonVisibility, Mode=OneWay}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon FontSize="14" Glyph="&#xE768;" />
-                        <TextBlock Text="Start logging" />
+                        <TextBlock Text="Start" />
                     </StackPanel>
                 </Button>
 
                 <Button
                     Grid.Column="0"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Stretch"
+                    HorizontalContentAlignment="Left"
                     Click="StopLogging_Click"
+                    Style="{StaticResource SubtleButtonStyle}"
                     Visibility="{x:Bind ViewModel.StopButtonVisibility, Mode=OneWay}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon FontSize="14" Glyph="&#xE71A;" />
-                        <TextBlock Text="Stop logging" />
+                        <TextBlock Text="Stop" />
                     </StackPanel>
                 </Button>
 
+                <!--  raw running clock  -->
+                <TextBlock
+                    Grid.Column="1"
+                    Margin="2,0,2,0"
+                    VerticalAlignment="Center"
+                    FontSize="{ThemeResource ControlContentThemeFontSize}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="{x:Bind ViewModel.ElapsedRowsText, Mode=OneWay}"
+                    Typography.NumeralAlignment="Tabular" />
+
                 <Button
                     x:Name="ToggleDetailsButton"
-                    Grid.Column="1"
+                    Grid.Column="2"
                     Width="36"
                     Padding="0"
                     VerticalAlignment="Stretch"
-                    Click="ToggleDetails_Click">
+                    Click="ToggleDetails_Click"
+                    Style="{StaticResource SubtleButtonStyle}">
                     <FontIcon x:Name="ToggleDetailsIcon" FontSize="12" />
                 </Button>
             </Grid>
@@ -144,7 +164,7 @@
                     VerticalSpacing="8">
 
                     <!--  running time  -->
-                    <StackPanel Width="Auto" Spacing="2">
+                    <!--<StackPanel Width="Auto" Spacing="2">
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
@@ -154,10 +174,10 @@
                             Style="{ThemeResource BodyTextBlockStyle}"
                             Text="{x:Bind ViewModel.ElapsedText, Mode=OneWay}"
                             TextWrapping="Wrap" />
-                    </StackPanel>
+                    </StackPanel>-->
 
                     <!--  number of recorded rows  -->
-                    <StackPanel Width="Auto" Spacing="2">
+                    <!--<StackPanel Width="Auto" Spacing="2">
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
@@ -167,7 +187,7 @@
                             Style="{ThemeResource BodyTextBlockStyle}"
                             Text="{x:Bind ViewModel.RowCountText, Mode=OneWay}"
                             TextWrapping="Wrap" />
-                    </StackPanel>
+                    </StackPanel>-->
 
                     <!--  number of pinned sensors  -->
                     <StackPanel Width="Auto" Spacing="2">
@@ -181,6 +201,19 @@
                             Text="{x:Bind ViewModel.SensorCountText, Mode=OneWay}"
                             TextWrapping="Wrap" />
                     </StackPanel>
+
+                    <!--  polling rate  -->
+                    <StackPanel Width="Auto" Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Polling Rate"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Style="{ThemeResource BodyTextBlockStyle}"
+                            Text="{x:Bind ViewModel.PollingText, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
                 </controls:WrapPanel>
 
                 <!--  save location  -->
@@ -189,30 +222,49 @@
                     (MinHeight is the height a default Button ends up at in the main bar, spelled out here so
                     both bars stay the same even though this one carries smaller text)
                 -->
-                <Button
-                    MinHeight="32"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
-                    Click="PickLogFolder_Click"
-                    ToolTipService.ToolTip="{x:Bind ViewModel.LogFolderText, Mode=OneWay}">
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                <Grid ColumnSpacing="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                        <FontIcon
-                            Grid.Column="0"
-                            FontSize="14"
-                            Glyph="&#xE8B7;" />
-                        <TextBlock
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="{x:Bind ViewModel.LogFolderText, Mode=OneWay}"
-                            TextTrimming="CharacterEllipsis" />
-                    </Grid>
-                </Button>
+                    <Button
+                        Grid.Column="0"
+                        MinHeight="32"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left"
+                        Click="PickLogFolder_Click"
+                        ToolTipService.ToolTip="{x:Bind ViewModel.LogFolderText, Mode=OneWay}">
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <FontIcon
+                                Grid.Column="0"
+                                FontSize="14"
+                                Glyph="&#xE8B7;" />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind ViewModel.LogFolderText, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis" />
+                        </Grid>
+                    </Button>
+
+                    <!--  opens the same folder in the shell, silently doing nothing while it does not exist yet  -->
+                    <Button
+                        Grid.Column="1"
+                        Width="36"
+                        Padding="0"
+                        VerticalAlignment="Stretch"
+                        Click="OpenLogFolder_Click"
+                        ToolTipService.ToolTip="Open in File Explorer">
+                        <FontIcon FontSize="14" Glyph="&#xED25;" />
+                    </Button>
+                </Grid>
             </StackPanel>
         </Grid>
     </Grid>

@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 
+using FluentSensors.Core;
 using FluentSensors.Persistence.Services;
 
 
@@ -41,6 +42,7 @@ namespace FluentSensors.Features.CsvLogging
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
             CsvLoggingService.Instance.StateChanged += OnLoggingStateChanged;
+            HardwareMonitorService.Instance.UpdateIntervalChanged += OnUpdateIntervalChanged;
 
             RefreshAll();
             UpdateTickTimer();
@@ -118,6 +120,31 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
+        // elapsed clock and row counter in one line, for the main bar where a single value has to carry both
+        private string _elapsedRowsText = "00:00:00|0";
+        public string ElapsedRowsText
+        {
+            get => _elapsedRowsText;
+            private set
+            {
+                if (_elapsedRowsText == value) return;
+                _elapsedRowsText = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _pollingText = "0 ms";
+        public string PollingText
+        {
+            get => _pollingText;
+            private set
+            {
+                if (_pollingText == value) return;
+                _pollingText = value;
+                OnPropertyChanged();
+            }
+        }
+
         private string _statusText = "";
         public string StatusText
         {
@@ -178,6 +205,7 @@ namespace FluentSensors.Features.CsvLogging
         public void Cleanup()
         {
             CsvLoggingService.Instance.StateChanged -= OnLoggingStateChanged;
+            HardwareMonitorService.Instance.UpdateIntervalChanged -= OnUpdateIntervalChanged;
 
             _isReadoutActive = false;
             UpdateTickTimer();
@@ -192,6 +220,12 @@ namespace FluentSensors.Features.CsvLogging
 
             RefreshAll();
             UpdateTickTimer();
+        }
+
+        // the polling rate is a setting, so it is picked up when it changes instead of polled on the tick below
+        private void OnUpdateIntervalChanged(int newIntervalMs)
+        {
+            PollingText = FormatPolling();
         }
 
         private void OnTick(DispatcherQueueTimer sender, object args)
@@ -239,6 +273,7 @@ namespace FluentSensors.Features.CsvLogging
 
             SensorCountText = service.SensorCount.ToString();
             LogFolderText = service.ResolvedLogFolder;
+            PollingText = FormatPolling();
             RefreshCounters();
         }
 
@@ -248,7 +283,14 @@ namespace FluentSensors.Features.CsvLogging
 
             ElapsedText = FormatElapsed(service.Elapsed);
             RowCountText = service.RowCount.ToString("N0");
+            ElapsedRowsText = $"{ElapsedText} | {RowCountText}";
             StatusText = BuildStatusText();
+        }
+
+        // the rate the user set, not the measured one; a number that only moves when they move it
+        private static string FormatPolling()
+        {
+            return $"{HardwareMonitorService.Instance.UpdateIntervalMs} ms";
         }
 
         // hours are counted as a running total rather than through a TimeSpan format string; the "hh" specifier wraps

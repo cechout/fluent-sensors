@@ -6,6 +6,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using WinRT;
 
@@ -36,11 +38,13 @@ namespace FluentSensors.Features.CsvLogging
         private AppWindow _appWindow;
         private const string WindowKey = "CsvLogger";
 
-        // fixed window width in XAML DIP; the height is read back off the arranged rows instead, so collapsing the
+        // width the logger opens at when nothing was saved yet, and the narrowest it can be dragged; from there the
+        // width belongs to the user, only the height stays calculated
+        // the height is read back off the arranged rows, so collapsing the
         // lower region, hiding the status line, or a wrap panel that breaks into another row all resize correctly
         // without a second hand-tuned number
         // the fallback only ever covers a measure that comes back empty, before the content exists at all
-        private const double WindowWidthDip = 240;
+        private const double WindowWidthDip = 220;
         private const double FallbackWindowHeightDip = 232;
 
         // status line under main bar
@@ -86,7 +90,7 @@ namespace FluentSensors.Features.CsvLogging
             presenter.IsAlwaysOnTop = true; // same as the widget, a running recording has to stay readable over other apps
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = true;
-            presenter.IsResizable = false;
+            presenter.IsResizable = true; // width only, the height is pinned to the content in ApplyWindowSize
             _appWindow.SetPresenter(presenter);
 
             // content state has to be applied before the first measure, both the status line and the expand state
@@ -98,6 +102,7 @@ namespace FluentSensors.Features.CsvLogging
             UpperRegion.Spacing = ShowStatusLine ? UpperRegion.Spacing : 0;
 
             ApplyExpandState();
+            ApplyInitialWidth();
 
             // window size and position:
             // the width is fixed and the height comes from the content, only the position is restored, and only
@@ -377,6 +382,12 @@ namespace FluentSensors.Features.CsvLogging
                 bool isMinimized = sender.Presenter is OverlappedPresenter presenter &&
                                    presenter.State == OverlappedPresenterState.Minimized;
                 ViewModel.SetReadoutActive(!isMinimized);
+
+                // a width the user dragged has to survive the next launch, same as the position below
+                if (!isMinimized && this.AppWindow.IsVisible)
+                {
+                    SaveWindowState();
+                }
             }
 
             if (args.DidPositionChange && this.AppWindow.IsVisible)
@@ -407,6 +418,25 @@ namespace FluentSensors.Features.CsvLogging
             ApplyExpandState();
             ApplyWindowSize();
             SaveWindowState();
+        }
+
+        // hands the folder to the shell
+        // a folder that does not exist yet is not created here; the first start does that when it actually writes,
+        // so this does nothing rather than leaving empty folders behind
+        private void OpenLogFolder_Click(object sender, RoutedEventArgs e)
+        {
+            string folder = ViewModel.LogFolderText;
+            if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder)) return;
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = folder,
+                    UseShellExecute = true
+                });
+            }
+            catch { /* no handler registered for the path, nothing to do about that from here */ }
         }
 
         private void PickLogFolder_Click(object sender, RoutedEventArgs e)
@@ -549,7 +579,25 @@ namespace FluentSensors.Features.CsvLogging
             return measured > 0 ? measured : FallbackWindowHeightDip;
         }
 
-        // sizes the window to exactly the content it has
+        // opens at the saved width, or at the design width when there is nothing usable saved
+        // runs once from the constructor; every later width comes from the user dragging an edge
+        private void ApplyInitialWidth()
+        {
+            double scaleFactor = GetScaleFactor();
+            int frameWidthPx = Math.Max(0, _appWindow.Size.Width - _appWindow.ClientSize.Width);
+            int defaultWidthPx = (int)Math.Round(WindowWidthDip * scaleFactor) + frameWidthPx;
+
+            // the design width doubles as the lower bound; the readout below the divider starts dropping items onto
+            // extra rows below it and the status line turns into a paragraph
+            WinUIEx.WindowManager.Get(this).MinWidth = defaultWidthPx / scaleFactor;
+
+            var savedState = WindowStateService.Instance.GetState(WindowKey);
+            int widthPx = savedState != null && savedState.Width > defaultWidthPx ? savedState.Width : defaultWidthPx;
+
+            _appWindow.Resize(new Windows.Graphics.SizeInt32(widthPx, _appWindow.Size.Height));
+        }
+
+        // pins the window height to the content, leaving the width alone
         private void ApplyWindowSize()
         {
             if (_isApplyingSize) return;
@@ -562,23 +610,17 @@ namespace FluentSensors.Features.CsvLogging
                 // how much bigger the window is than its client area, read off the window rather than assumed:
                 // ExtendsContentIntoTitleBar pulls the caption into the client area, so the caption height must not
                 // be added on top of the content the way a plain frame calculation would
-                int frameWidthPx = Math.Max(0, _appWindow.Size.Width - _appWindow.ClientSize.Width);
                 int frameHeightPx = Math.Max(0, _appWindow.Size.Height - _appWindow.ClientSize.Height);
-                int widthPx = (int)Math.Round(WindowWidthDip * scaleFactor) + frameWidthPx;
+                int heightPx = (int)Math.Round(ContentHeightDip() * scaleFactor) + frameHeightPx;
 
-                // the width has to be in place before the height is read; the readout wraps onto a second row at
-                // narrow widths, so reading the height at the old window width would report one the window never
-                // ends up having
-                if (_appWindow.Size.Width != widthPx)
-                {
-                    _appWindow.Resize(new Windows.Graphics.SizeInt32(widthPx, _appWindow.Size.Height));
-                }
+                // holds the height through an interactive resize: these end up in WM_GETMINMAXINFO, and the track
+                // sizes there are what the system clamps a drag against, so dragging an edge can only change the
+                // width while this keeps following the content
+                var manager = WinUIEx.WindowManager.Get(this);
+                manager.MinHeight = heightPx / scaleFactor;
+                manager.MaxHeight = heightPx / scaleFactor;
 
-                double heightDip = ContentHeightDip();
-
-                _appWindow.Resize(new Windows.Graphics.SizeInt32(
-                    widthPx,
-                    (int)Math.Round(heightDip * scaleFactor) + frameHeightPx));
+                _appWindow.Resize(new Windows.Graphics.SizeInt32(_appWindow.Size.Width, heightPx));
             }
             finally
             {
