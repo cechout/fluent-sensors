@@ -44,7 +44,7 @@ namespace FluentSensors.Features.CsvLogging
         // lower region, hiding the status line, or a wrap panel that breaks into another row all resize correctly
         // without a second hand-tuned number
         // the fallback only ever covers a measure that comes back empty, before the content exists at all
-        private const double WindowWidthDip = 235;
+        private const double WindowWidthDip = 225;
         private const double FallbackWindowHeightDip = 232;
 
         // status line under main bar

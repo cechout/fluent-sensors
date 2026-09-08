@@ -45,11 +45,11 @@
                         Glyph="&#xE944;" />
                 </Button>
 
-                <TextBlock
+                <!--<TextBlock
                     Margin="4,0,0,0"
                     VerticalAlignment="Center"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="CSV Logging" />
+                    Text="CSV Logging" />-->
             </StackPanel>
         </Grid>
 
