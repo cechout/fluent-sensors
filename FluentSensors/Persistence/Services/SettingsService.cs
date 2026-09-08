@@ -3,6 +3,7 @@ using Windows.UI;
 
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
+using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
 
 
@@ -430,6 +431,23 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // separators a recording is written with
+        // no change event either, for the same reason as the folder above: CsvLoggingService snapshots this once
+        // when a recording starts, since switching separators inside an open file would corrupt it
+        private CsvNumberFormat _csvNumberFormat = CsvNumberFormat.Local;
+        public CsvNumberFormat CsvNumberFormat
+        {
+            get => _csvNumberFormat;
+            set
+            {
+                if (_csvNumberFormat != value)
+                {
+                    _csvNumberFormat = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // persistence
         // writes every property straight to its backing field, skipping change events and the save trigger; used only
         // once at startup, before any window or listener exists yet
@@ -463,6 +481,7 @@ namespace FluentSensors.Persistence.Services
             _hideSensorsCompletely = data.HideSensorsCompletely;
             _statusReadoutEnabled = data.StatusReadoutEnabled;
             _csvLogFolder = data.CsvLogFolder ?? "";
+            _csvNumberFormat = data.CsvNumberFormat;
 
             // lives on HardwareMonitorService at runtime, not here, but shares this settings file
             HardwareMonitorService.Instance.UpdateIntervalMs = data.UpdateIntervalMs;
@@ -501,6 +520,7 @@ namespace FluentSensors.Persistence.Services
                 HideSensorsCompletely = _hideSensorsCompletely,
                 StatusReadoutEnabled = _statusReadoutEnabled,
                 CsvLogFolder = _csvLogFolder,
+                CsvNumberFormat = _csvNumberFormat,
                 UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
             };
         }

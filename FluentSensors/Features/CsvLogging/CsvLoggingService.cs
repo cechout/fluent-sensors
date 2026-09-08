@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
+using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
@@ -45,6 +46,11 @@ namespace FluentSensors.Features.CsvLogging
         // the column set the open file was started with, snapshotted so the monitor thread never reads _sensors
         // while the sensors page is replacing it
         private CsvLoggedSensor[] _activeColumns;
+
+        // separators the open file was started with, snapshotted the same way _activeColumns is: a format switch
+        // midway through a recording would leave one half of the file unreadable
+        private string _separator = ",";
+        private CultureInfo _valueCulture = CultureInfo.InvariantCulture;
 
         private StreamWriter _writer;
         private DateTime _startedAt;
@@ -134,6 +140,7 @@ namespace FluentSensors.Features.CsvLogging
         {
             if (IsRunning || _sensors.Count == 0) return false;
 
+            var (separator, valueCulture) = ResolveFormat(SettingsService.Instance.CsvNumberFormat);
             string folder = ResolvedLogFolder;
             string path = Path.Combine(folder, $"FluentSensors-Log-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv");
             var columns = _sensors.ToArray();
@@ -147,7 +154,7 @@ namespace FluentSensors.Features.CsvLogging
                 // AutoFlush is not optional: the tray Exit and the settings restart both end in Process.Kill(),
                 // which skips finalizers and every closing handler, so a buffered tail would be lost without a trace
                 _writer = new StreamWriter(path, false, new UTF8Encoding(true)) { AutoFlush = true };
-                _writer.WriteLine(BuildHeaderLine(columns));
+                _writer.WriteLine(BuildHeaderLine(columns, separator));
             }
             catch
             {
@@ -164,6 +171,8 @@ namespace FluentSensors.Features.CsvLogging
             }
 
             LastError = null;
+            _separator = separator;
+            _valueCulture = valueCulture;
             _activeColumns = columns;
             CurrentFilePath = path;
             Interlocked.Exchange(ref _rowCount, 0);
@@ -216,18 +225,29 @@ namespace FluentSensors.Features.CsvLogging
             var columns = _activeColumns;
             if (columns == null) return;
 
+            string separator = _separator;
+            var valueCulture = _valueCulture;
+
             var values = new Dictionary<string, double>(payload.Count);
             foreach (var sensor in payload)
             {
                 values[sensor.Id] = sensor.Value;
             }
 
+            // one instant for both time columns, so the wall clock and the elapsed seconds can never disagree by the
+            // few microseconds two separate reads would drift apart
+            DateTime nowUtc = DateTime.UtcNow;
+
             var line = new StringBuilder();
-            line.Append(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture));
+            // the timestamp stays invariant in both formats; its separators are the ISO ones, and running them
+            // through a culture would swap the date and time separators for no gain
+            line.Append(nowUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture));
+            line.Append(separator);
+            line.Append((nowUtc - _startedAt).TotalSeconds.ToString("0.000", valueCulture));
 
             foreach (var column in columns)
             {
-                line.Append(',');
+                line.Append(separator);
 
                 // a sensor missing from this payload (hidden after the recording started, or hardware gone) leaves
                 // the field empty; a zero would read as a real measurement
@@ -235,7 +255,7 @@ namespace FluentSensors.Features.CsvLogging
                 {
                     // the raw value, never the SensorUnitFormatter scaling: that switches MHz to GHz above 1000 and
                     // would change a columns unit halfway through the file
-                    line.Append(value.ToString("0.###", CultureInfo.InvariantCulture));
+                    line.Append(value.ToString("0.###", valueCulture));
                 }
             }
 
@@ -287,23 +307,46 @@ namespace FluentSensors.Features.CsvLogging
             return unit.Length > 0 ? $"{name} [{unit}]" : name;
         }
 
-        private static string BuildHeaderLine(CsvLoggedSensor[] columns)
+        // resolves the configured format into the two things a row actually needs
+        // Local reads the machines own regional settings rather than hardcoding german, so the file matches
+        // whatever spreadsheet app is installed on the system that wrote it
+        // (public so the settings page can label its entries with the row this actually writes)
+        public static (string separator, CultureInfo valueCulture) ResolveFormat(CsvNumberFormat format)
         {
-            var line = new StringBuilder("Timestamp");
+            if (format == CsvNumberFormat.Invariant)
+            {
+                return (",", CultureInfo.InvariantCulture);
+            }
+
+            var culture = CultureInfo.CurrentCulture;
+            string separator = culture.TextInfo.ListSeparator;
+
+            // a locale whose list separator is also its decimal separator would write rows nothing can read back;
+            // the semicolon is what every spreadsheet falls back to in that case
+            if (separator == culture.NumberFormat.NumberDecimalSeparator) separator = ";";
+
+            return (separator, culture);
+        }
+
+        private static string BuildHeaderLine(CsvLoggedSensor[] columns, string separator)
+        {
+            // the elapsed column sits next to the wall clock deliberately: it is what makes two recordings comparable
+            // on one axis without subtracting timestamps first
+            var line = new StringBuilder("Timestamp").Append(separator).Append("Elapsed [s]");
 
             foreach (var column in columns)
             {
-                line.Append(',').Append(EscapeCsvField(column.Header));
+                line.Append(separator).Append(EscapeCsvField(column.Header, separator));
             }
 
             return line.ToString();
         }
 
-        // header text only; hardware names can carry a comma ("AMD Ryzen 7 5800X, 8-Core"), the numeric fields never
-        // need this
-        private static string EscapeCsvField(string field)
+        // header text only; hardware names can carry the separator ("AMD Ryzen 7 5800X, 8-Core"), the numeric
+        // fields never can, their decimal separator is never the field one
+        private static string EscapeCsvField(string field, string separator)
         {
-            if (field.IndexOf(',') < 0 && field.IndexOf('"') < 0) return field;
+            if (!field.Contains(separator) && field.IndexOf('"') < 0) return field;
 
             return $"\"{field.Replace("\"", "\"\"")}\"";
         }

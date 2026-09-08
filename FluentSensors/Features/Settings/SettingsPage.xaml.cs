@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
+using FluentSensors.Common.Csv;
+using FluentSensors.Features.CsvLogging;
 using FluentSensors.Common.Sensors;
 
 
@@ -32,6 +34,7 @@ namespace FluentSensors.Features.Settings
             RestoreThemeSelection();
             RestoreIntervalSelection();
             RestoreMinimizeToTraySelection();
+            RestoreCsvNumberFormatSelection();
             RestoreGraphLineStyleSelection();
 
             RestoreBackgroundMaterialSettings();
@@ -155,6 +158,54 @@ namespace FluentSensors.Features.Settings
         private void RestoreMinimizeToTraySelection()
         {
             MinimizeToTrayToggle.IsOn = SettingsService.Instance.MinimizeToTray;
+        }
+
+        // csv number format; only read when a recording starts, so switching it never touches an open file
+        private void CsvNumberFormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (CsvNumberFormatComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out CsvNumberFormat format))
+            {
+                SettingsService.Instance.CsvNumberFormat = format;
+            }
+        }
+
+        // labels both entries with a sample row instead of a name alone, so the decimal separator and the column
+        // separator are visible side by side
+        // the regional sample is built from the machines own settings rather than a fixed german example; on an
+        // english system it comes out identical to the invariant one, which is exactly what that system writes
+        private void BuildCsvNumberFormatSamples()
+        {
+            foreach (ComboBoxItem item in CsvNumberFormatComboBox.Items)
+            {
+                if (item.Tag is not string tag || !Enum.TryParse(tag, out CsvNumberFormat format)) continue;
+
+                var (separator, culture) = CsvLoggingService.ResolveFormat(format);
+
+                // a value with decimals and a second column, the shortest row that shows both separators
+                string sample = 2515.862.ToString("0.###", culture) + separator + 41.5.ToString("0.###", culture);
+                string name = format == CsvNumberFormat.Invariant ? "Invariant" : "Regional";
+
+                item.Content = $"{name} ({sample})";
+            }
+        }
+
+        private void RestoreCsvNumberFormatSelection()
+        {
+            BuildCsvNumberFormatSamples();
+
+            string current = SettingsService.Instance.CsvNumberFormat.ToString();
+
+            foreach (ComboBoxItem item in CsvNumberFormatComboBox.Items)
+            {
+                if (item.Tag?.ToString() == current)
+                {
+                    CsvNumberFormatComboBox.SelectedItem = item;
+                    break;
+                }
+            }
         }
 
         // graph line style (stepline / smooth), one global switch for every graph

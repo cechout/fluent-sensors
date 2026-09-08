@@ -1,5 +1,6 @@
 using Windows.UI;
 
+using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
 
 
@@ -50,6 +51,10 @@ namespace FluentSensors.Persistence.Models
         // folder csv recordings are written into; empty means the logger falls back to Documents\FluentSensors,
         // which keeps the default out of the settings file until the user actually picks something
         public string CsvLogFolder { get; set; } = "";
+
+        // Local by default: the recording is far more likely to be opened in the spreadsheet app on this machine
+        // than fed to a script, and an invariant point decimal is silently misread by a localized one
+        public CsvNumberFormat CsvNumberFormat { get; set; } = CsvNumberFormat.Local;
 
         // lives on HardwareMonitorService at runtime, but conceptually belongs with the rest of the app settings for
         // persistence purposes

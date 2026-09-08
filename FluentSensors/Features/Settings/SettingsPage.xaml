@@ -344,6 +344,29 @@
             </controls:SettingsExpander>
 
 
+            <!--  csv logging settings  -->
+            <TextBlock
+                Margin="1,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="CSV Logging" />
+
+            <!--  separators a csv recording is written with  -->
+            <controls:SettingsCard
+                Description="Decimal and column separators a recording is written with"
+                Header="CSV Format"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE7C3;}">
+
+                <!--  both entries are labelled from code with the sample row they actually produce  -->
+                <ComboBox
+                    x:Name="CsvNumberFormatComboBox"
+                    Width="230"
+                    SelectionChanged="CsvNumberFormatComboBox_SelectionChanged">
+                    <ComboBoxItem Tag="Local" />
+                    <ComboBoxItem Tag="Invariant" />
+                </ComboBox>
+            </controls:SettingsCard>
+
+
             <!--  backup and reset  -->
             <TextBlock
                 Margin="1,20,0,6"
