@@ -25,6 +25,7 @@ using FluentSensors.Core.Taskbar;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Features.Widget;
+using FluentSensors.Features.CsvLogging;
 
 
 namespace FluentSensors.Features.TaskbarWidget
@@ -806,6 +807,10 @@ namespace FluentSensors.Features.TaskbarWidget
             // 3. Safely destroy and rebuild TaskbarWidgetWindow; the rebuilt widget brings the flyout back itself
             // from the end of its embedding step, see TaskbarWidgetWindow.RecreateWindow
             TaskbarWidgetWindow.RecreateWindow(restoreFlyout: flyoutWasVisible);
+
+            // 4. Safely destroy and rebuild the csv logger window; a running recording is unaffected, it lives in
+            // CsvLoggingService and the rebuilt window just reads it again
+            CsvLoggerWindow.RecreateWindow();
         }
 
 

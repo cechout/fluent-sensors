@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
+using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
 
 
@@ -32,6 +33,7 @@ namespace FluentSensors.Features.Settings
             RestoreThemeSelection();
             RestoreIntervalSelection();
             RestoreMinimizeToTraySelection();
+            RestoreCsvFormatSelection();
             RestoreGraphLineStyleSelection();
 
             RestoreBackgroundMaterialSettings();
@@ -155,6 +157,94 @@ namespace FluentSensors.Features.Settings
         private void RestoreMinimizeToTraySelection()
         {
             MinimizeToTrayToggle.IsOn = SettingsService.Instance.MinimizeToTray;
+        }
+
+        // csv format; all four pieces are only read when a recording starts, so switching any of them never
+        // touches an open file
+        private void CsvNumberFormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (CsvNumberFormatComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out CsvNumberFormat format))
+            {
+                SettingsService.Instance.CsvNumberFormat = format;
+            }
+
+            UpdateCsvFormatExample();
+        }
+
+        private void CsvDecimalPlacesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (CsvDecimalPlacesComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && int.TryParse(tag, out int places))
+            {
+                SettingsService.Instance.CsvDecimalPlaces = places;
+            }
+
+            UpdateCsvFormatExample();
+        }
+
+        private void CsvIncludeUnitsToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            SettingsService.Instance.CsvIncludeUnits = CsvIncludeUnitsToggle.IsOn;
+
+            UpdateCsvFormatExample();
+        }
+
+        private void CsvPauseSeamComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (CsvPauseSeamComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out CsvPauseSeam seam))
+            {
+                SettingsService.Instance.CsvPauseSeam = seam;
+            }
+        }
+
+        private void RestoreCsvFormatSelection()
+        {
+            var settings = SettingsService.Instance;
+
+            SelectByTag(CsvNumberFormatComboBox, settings.CsvNumberFormat.ToString());
+            SelectByTag(CsvDecimalPlacesComboBox, settings.CsvDecimalPlaces.ToString());
+            SelectByTag(CsvPauseSeamComboBox, settings.CsvPauseSeam.ToString());
+
+            CsvIncludeUnitsToggle.IsOn = settings.CsvIncludeUnits;
+
+            UpdateCsvFormatExample();
+        }
+
+        // one sample row that stands for all four options at once
+        //
+        // built through the same CsvRowFormat a recording uses, so what the expander shows and what lands in the
+        // file can not drift apart; the units come from SensorUnitFormatter for the same reason
+        private void UpdateCsvFormatExample()
+        {
+            var format = CsvRowFormat.Resolve();
+
+            string clock = format.FormatValue(2515.862, SensorUnitFormatter.GetUnit("Clock"));
+            string temperature = format.FormatValue(41.375, SensorUnitFormatter.GetUnit("Temperature"));
+
+            CsvFormatExampleTextBlock.Text = clock + format.Separator + temperature;
+        }
+
+        // picks the entry whose Tag matches, used by every combo box that is restored from a single value
+        private static void SelectByTag(ComboBox comboBox, string tag)
+        {
+            foreach (ComboBoxItem item in comboBox.Items)
+            {
+                if (item.Tag?.ToString() == tag)
+                {
+                    comboBox.SelectedItem = item;
+                    return;
+                }
+            }
         }
 
         // graph line style (stepline / smooth), one global switch for every graph

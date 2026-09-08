@@ -25,18 +25,22 @@
                     <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#0BFFFFFF" />
 
                     <!--  2. Taskbar Button Borders (Dark Mode)  -->
-                    <!--  the border is never transparent: it carries the #1DFFFFFF top highlight and the same fill
-                          brush on the sides & bottom, so it always paints its 1px (no size shift between states) but
-                          reads as invisible where it should; #0FFFFFFF over #202020 == the hover fill
-                          top stop is #1D (not #16): the stroke composites over the bare bar now that the fill is
-                          inset, so it needs the higher alpha to land ~#404040 and match the native taskbar highlight  -->
+                    <!--
+                        the border is never transparent: it carries the #1DFFFFFF top highlight and the same fill
+                        brush on the sides & bottom, so it always paints its 1px (no size shift between states) but
+                        reads as invisible where it should; #0FFFFFFF over #202020 == the hover fill
+                        top stop is #1D (not #16): the stroke composites over the bare bar now that the fill is
+                        inset, so it needs the higher alpha to land ~#404040 and match the native taskbar highlight
+                    -->
                     <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Offset="0.0" Color="#1DFFFFFF" />
                         <GradientStop Offset="0.10" Color="#0FFFFFFF" />
                         <GradientStop Offset="1.0" Color="#0FFFFFFF" />
                     </LinearGradientBrush>
-                    <!--  Normal Pressed Border: sole source of the pressed border (StrokeBorder is off in this state),
-                          so the top stop is self-sufficient at #1FFFFFFF -> #3B3B3B; sides & bottom #10FFFFFF -> #2E2E2E  -->
+                    <!--
+                        Normal Pressed Border: sole source of the pressed border (StrokeBorder is off in this state),
+                        so the top stop is self-sufficient at #1FFFFFFF -> #3B3B3B; sides & bottom #10FFFFFF -> #2E2E2E
+                    -->
                     <LinearGradientBrush x:Key="TaskbarButtonPressedBorderBrush" StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Offset="0.0" Color="#1FFFFFFF" />
                         <GradientStop Offset="0.12" Color="#10FFFFFF" />
@@ -46,8 +50,10 @@
                     <!--  3. Active Flyout State (When Flyout is currently OPEN)  -->
                     <!--  Active Hover -> Target #323232 (50): Alpha 21 (0x15) -> #15FFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#15FFFFFF" />
-                    <!--  Active Hover Border: same #1DFFFFFF top highlight as normal hover (~#404040, native match),
-                          active-hover fill brush on sides & bottom so the 1px there reads as invisible  -->
+                    <!--
+                        Active Hover Border: same #1DFFFFFF top highlight as normal hover (~#404040, native match),
+                        active-hover fill brush on sides & bottom so the 1px there reads as invisible
+                    -->
                     <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Offset="0.0" Color="#1DFFFFFF" />
                         <GradientStop Offset="0.10" Color="#15FFFFFF" />
@@ -103,15 +109,19 @@
                     <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#55FFFFFF" />
 
                     <!--  2. Taskbar Button Border (Normal Hover & Pressed)  -->
-                    <!--  alpha black so it tracks the bar; calibrated against the transparency-on light taskbar (~#F0F0F0)
-                          to land top & sides #E7E7E7, bottom #DDDDDD there; over the #EDEDED solid bar it reads ~2 levels darker  -->
+                    <!--
+                        alpha black so it tracks the bar; calibrated against the transparency-on light taskbar (~#F0F0F0)
+                        to land top & sides #E7E7E7, bottom #DDDDDD there; over the #EDEDED solid bar it reads ~2 levels darker
+                    -->
                     <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Offset="0.0" Color="#0A000000" />
                         <GradientStop Offset="0.75" Color="#0A000000" />
                         <GradientStop Offset="1.0" Color="#14000000" />
                     </LinearGradientBrush>
-                    <!--  Normal Pressed Border: sole source of the pressed border now (StrokeBorder is off in this state),
-                          same alpha-black values as TaskbarButtonBorderBrush -> top & sides #E7E7E7, bottom #DDDDDD  -->
+                    <!--
+                        Normal Pressed Border: sole source of the pressed border now (StrokeBorder is off in this state),
+                        same alpha-black values as TaskbarButtonBorderBrush -> top & sides #E7E7E7, bottom #DDDDDD
+                    -->
                     <LinearGradientBrush x:Key="TaskbarButtonPressedBorderBrush" StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Offset="0.0" Color="#0A000000" />
                         <GradientStop Offset="0.75" Color="#0A000000" />
@@ -121,8 +131,10 @@
                     <!--  3. Active Flyout State (When Flyout is currently OPEN)  -->
                     <!--  Active Hover -> Target #FAFAFA (250): Alpha 184 (0xB8) -> #B8FFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#B8FFFFFF" />
-                    <!--  Active Hover Border: alpha black, calibrated against the transparency-on light taskbar (~#F0F0F0)
-                          to land top & sides #E5E5E5, bottom #D4D4D4 there  -->
+                    <!--
+                        Active Hover Border: alpha black, calibrated against the transparency-on light taskbar (~#F0F0F0)
+                        to land top & sides #E5E5E5, bottom #D4D4D4 there
+                    -->
                     <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Offset="0.0" Color="#0C000000" />
                         <GradientStop Offset="0.75" Color="#0C000000" />
@@ -131,8 +143,10 @@
 
                     <!--  Active Pressed -> Target #F3F3F3 (243): Alpha 85 (0x55) -> #55FFFFFF  -->
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#55FFFFFF" />
-                    <!--  Active Pressed Border: alpha black over the bare bar (the fill layer is inset like the others now),
-                          calibrated against the transparency-on light taskbar (~#F0F0F0) to land #E7E7E7 on all 4 sides  -->
+                    <!--
+                        Active Pressed Border: alpha black over the bare bar (the fill layer is inset like the others now),
+                        calibrated against the transparency-on light taskbar (~#F0F0F0) to land #E7E7E7 on all 4 sides
+                    -->
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#0A000000" />
 
                     <!--  4. Flyout Window Styling (Light Mode)  -->
@@ -163,6 +177,97 @@
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#13000000" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
+
+
+            <!--  === custom subtle button ===  -->
+            <!--
+                the platform SubtleButtonStyle fades its fill in over 83 ms but swaps the border brush in the
+                frame the state changes, and both resolve to the same brush; a hover therefore starts as a 1px
+                outline in the final color around a still empty button
+                every state brush below is the one the platform style uses, the border just stays transparent in
+                all of them, and the fill is sized to the outer border edge so it still covers the full box
+            -->
+            <Style x:Key="SubtleBarButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{ThemeResource SubtleButtonBackground}" />
+                <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
+                <Setter Property="Foreground" Value="{ThemeResource SubtleButtonForeground}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource SubtleButtonBorderBrush}" />
+                <Setter Property="BorderThickness" Value="{ThemeResource ButtonBorderThemeThickness}" />
+                <Setter Property="Padding" Value="{StaticResource ButtonPadding}" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
+                <Setter Property="FontWeight" Value="Normal" />
+                <Setter Property="FontSize" Value="{ThemeResource ControlContentThemeFontSize}" />
+                <Setter Property="UseSystemFocusVisuals" Value="{StaticResource UseSystemFocusVisuals}" />
+                <Setter Property="FocusVisualMargin" Value="-3" />
+                <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <ContentPresenter
+                                x:Name="ContentPresenter"
+                                Padding="{TemplateBinding Padding}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                AutomationProperties.AccessibilityView="Raw"
+                                Background="{TemplateBinding Background}"
+                                BackgroundSizing="{TemplateBinding BackgroundSizing}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                ContentTransitions="{TemplateBinding ContentTransitions}"
+                                CornerRadius="{TemplateBinding CornerRadius}">
+                                <!--  the value of ControlFasterAnimationDuration  -->
+                                <!--  (spelled out because BrushTransition.Duration is a TimeSpan and the platform keys are strings; the platform button hardcodes it the same way)  -->
+                                <ContentPresenter.BackgroundTransition>
+                                    <BrushTransition Duration="0:0:0.083" />
+                                </ContentPresenter.BackgroundTransition>
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+
+                                        <VisualState x:Name="PointerOver">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SubtleButtonBackgroundPointerOver}" />
+                                                </ObjectAnimationUsingKeyFrames>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SubtleButtonForegroundPointerOver}" />
+                                                </ObjectAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </VisualState>
+
+                                        <VisualState x:Name="Pressed">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SubtleButtonBackgroundPressed}" />
+                                                </ObjectAnimationUsingKeyFrames>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SubtleButtonForegroundPressed}" />
+                                                </ObjectAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </VisualState>
+
+                                        <VisualState x:Name="Disabled">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SubtleButtonBackgroundDisabled}" />
+                                                </ObjectAnimationUsingKeyFrames>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SubtleButtonForegroundDisabled}" />
+                                                </ObjectAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </ContentPresenter>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

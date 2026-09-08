@@ -12,6 +12,7 @@ using Windows.Foundation;
 
 using FluentSensors.Features.Widget;
 using FluentSensors.Features.TaskbarWidget;
+using FluentSensors.Features.CsvLogging;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
 
@@ -91,9 +92,39 @@ namespace FluentSensors.Features.Sensors
             WidgetWindow.ShowWithSensors(selectedSensors);
         }
 
-        // Phase 1: no csv consumer exists yet, theres no action to perform on the current selection
-        private void StartCsvMonitoring_Click(object sender, RoutedEventArgs e)
+        // opens or reconfigures the csv logger window with whatever is currently checked
+        // persistence already happened live as each checkbox was toggled, this button hands the selection to the
+        // logger and brings its window up
+        private async void StartCsvMonitoring_Click(object sender, RoutedEventArgs e)
         {
+            var selectedSensors = ViewModel.HardwareGroups
+                .SelectMany(group => group.Sensors)
+                .Where(sensor => sensor.IsSelected)
+                .ToList();
+
+            // an empty selection is only an error while nothing is being recorded; a running recording carries its
+            // own fixed sensor set, so the button just brings the logger back up in that case
+            if (selectedSensors.Count == 0 && !CsvLoggingService.Instance.IsRunning)
+            {
+                _infoBarTicket++;
+                int currentTicket = _infoBarTicket;
+
+                // show inforbar
+                AnimateInfoBar(-40, true);
+
+                await Task.Delay(2000);
+
+                if (currentTicket == _infoBarTicket)
+                {
+                    // hide infobar
+                    AnimateInfoBar(100, false);
+                }
+                return;
+            }
+
+            // reuses the existing logger window if one is open or was previously hidden, only creates a fresh native
+            // window if none exists yet at all (see CsvLoggerWindow._retainedInstance)
+            CsvLoggerWindow.ShowWithSensors(selectedSensors);
         }
 
         private async void PinToTaskbar_Click(object sender, RoutedEventArgs e)

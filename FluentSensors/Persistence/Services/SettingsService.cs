@@ -3,6 +3,7 @@ using Windows.UI;
 
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
+using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
 
 
@@ -413,6 +414,88 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // folder csv recordings are written into, picked from the logger window itself
+        // deliberately without a change event, unlike every other property here: the logger window is both the only
+        // writer and the only reader, and it refreshes its own button right after setting this
+        private string _csvLogFolder = "";
+        public string CsvLogFolder
+        {
+            get => _csvLogFolder;
+            set
+            {
+                if (_csvLogFolder != value)
+                {
+                    _csvLogFolder = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // separators a recording is written with
+        // no change event either, for the same reason as the folder above: CsvLoggingService snapshots this once
+        // when a recording starts, since switching separators inside an open file would corrupt it
+        private CsvNumberFormat _csvNumberFormat = CsvNumberFormat.Local;
+        public CsvNumberFormat CsvNumberFormat
+        {
+            get => _csvNumberFormat;
+            set
+            {
+                if (_csvNumberFormat != value)
+                {
+                    _csvNumberFormat = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // how many decimals a recorded value carries, written as a fixed count rather than a trimmed one
+        // snapshotted at start like the separators above, for the same reason
+        private int _csvDecimalPlaces = 3;
+        public int CsvDecimalPlaces
+        {
+            get => _csvDecimalPlaces;
+            set
+            {
+                if (_csvDecimalPlaces != value)
+                {
+                    _csvDecimalPlaces = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // whether every value carries its unit next to it; the column header carries it either way
+        private bool _csvIncludeUnits;
+        public bool CsvIncludeUnits
+        {
+            get => _csvIncludeUnits;
+            set
+            {
+                if (_csvIncludeUnits != value)
+                {
+                    _csvIncludeUnits = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // what a resumed recording writes at the seam
+        // unlike the three above this one is read live rather than snapshotted: it only takes effect at the moment
+        // of resuming and cannot invalidate a row that was already written
+        private CsvPauseSeam _csvPauseSeam = CsvPauseSeam.Gap;
+        public CsvPauseSeam CsvPauseSeam
+        {
+            get => _csvPauseSeam;
+            set
+            {
+                if (_csvPauseSeam != value)
+                {
+                    _csvPauseSeam = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // persistence
         // writes every property straight to its backing field, skipping change events and the save trigger; used only
         // once at startup, before any window or listener exists yet
@@ -445,6 +528,11 @@ namespace FluentSensors.Persistence.Services
             _minimizeToTray = data.MinimizeToTray;
             _hideSensorsCompletely = data.HideSensorsCompletely;
             _statusReadoutEnabled = data.StatusReadoutEnabled;
+            _csvLogFolder = data.CsvLogFolder ?? "";
+            _csvNumberFormat = data.CsvNumberFormat;
+            _csvDecimalPlaces = data.CsvDecimalPlaces;
+            _csvIncludeUnits = data.CsvIncludeUnits;
+            _csvPauseSeam = data.CsvPauseSeam;
 
             // lives on HardwareMonitorService at runtime, not here, but shares this settings file
             HardwareMonitorService.Instance.UpdateIntervalMs = data.UpdateIntervalMs;
@@ -482,6 +570,11 @@ namespace FluentSensors.Persistence.Services
                 MinimizeToTray = _minimizeToTray,
                 HideSensorsCompletely = _hideSensorsCompletely,
                 StatusReadoutEnabled = _statusReadoutEnabled,
+                CsvLogFolder = _csvLogFolder,
+                CsvNumberFormat = _csvNumberFormat,
+                CsvDecimalPlaces = _csvDecimalPlaces,
+                CsvIncludeUnits = _csvIncludeUnits,
+                CsvPauseSeam = _csvPauseSeam,
                 UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
             };
         }
