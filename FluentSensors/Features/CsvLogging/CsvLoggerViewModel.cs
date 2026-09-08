@@ -22,8 +22,7 @@ namespace FluentSensors.Features.CsvLogging
         private readonly DispatcherQueue _dispatcherQueue;
         private DispatcherQueueTimer _tickTimer;
 
-        // how often the elapsed clock and the row counter are re-read while recording; unrelated to the sensor poll
-        // interval, this only drives text
+        // how often the elapsed clock and the row counter are updated in UI
         private const int TickIntervalMs = 500;
 
         // whether the window is actually on screen; a hidden or minimized logger stops ticking, the recording in
@@ -108,7 +107,6 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        // the stretch covered by rows, which is what the main bar shows next to the row counter
         private string _recordedElapsedText = "00:00:00";
         public string RecordedElapsedText
         {
@@ -121,8 +119,6 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        // wall clock since start, pauses included; only shown in the details region, and the value that matches
-        // the elapsed column in the file
         private string _totalElapsedText = "00:00:00";
         public string TotalElapsedText
         {
@@ -135,7 +131,6 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        // the reason the two durations above differ
         private string _pauseCountText = "0";
         public string PauseCountText
         {
@@ -172,7 +167,7 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        // elapsed clock and row counter in one line, for the main bar where a single value has to carry both
+        // elapsed clock and row counter for the main bar
         private string _elapsedRowsText = "00:00:00 | 0";
         public string ElapsedRowsText
         {
@@ -357,7 +352,7 @@ namespace FluentSensors.Features.CsvLogging
             StatusText = BuildStatusText();
         }
 
-        // the rate the user set, not the measured one; a number that only moves when they move it
+        // set polling rate
         private static string FormatPolling()
         {
             return $"{HardwareMonitorService.Instance.UpdateIntervalMs} ms";
