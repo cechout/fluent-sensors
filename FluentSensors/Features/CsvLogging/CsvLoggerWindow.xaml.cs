@@ -364,6 +364,11 @@ namespace FluentSensors.Features.CsvLogging
 
             _appWindow.Hide();
             ViewModel.SetReadoutActive(false);
+
+            // the window survives its own close, so the elapsed clock, the pause count and the row counter of the
+            // last recording would still be up the next time it is opened
+            // (returns early on its own while a recording is running, see above)
+            CsvLoggingService.Instance.ResetCompletedRecording();
         }
 
         private void OnRegionSizeChanged(object sender, SizeChangedEventArgs e)

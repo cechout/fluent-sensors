@@ -107,7 +107,7 @@
                                 Click="StartCsvMonitoring_Click"
                                 Label="Start CSV Logging">
                                 <AppBarButton.Icon>
-                                    <FontIcon Glyph="&#xED1A;" />
+                                    <FontIcon Glyph="&#xE8A7;" />
                                 </AppBarButton.Icon>
                             </AppBarButton>
 

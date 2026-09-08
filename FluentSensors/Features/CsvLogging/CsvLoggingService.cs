@@ -238,6 +238,30 @@ namespace FluentSensors.Features.CsvLogging
             StateChanged?.Invoke();
         }
 
+        // clears what a finished recording left behind, so the readout comes back up empty instead of showing the
+        // counters of a session that is long over
+        //
+        // has to be explicit because CsvLoggerWindow is only hidden when it is closed and reused afterwards; the
+        // sensor selection is deliberately kept, it comes from the sensors page and is what makes the next start
+        // possible at all
+        //
+        // a running recording is never touched: closing the readout stops the readout, never the logging
+        public void ResetCompletedRecording()
+        {
+            if (IsRunning) return;
+
+            _startedAt = default;
+            _stoppedAt = default;
+            _pausedTotal = TimeSpan.Zero;
+            _pauseCount = 0;
+            Interlocked.Exchange(ref _rowCount, 0);
+
+            CurrentFilePath = null;
+            LastError = null;
+
+            StateChanged?.Invoke();
+        }
+
         // holds the recording without giving up the file: the columns, the header and the row counter all stay,
         // only the incoming payloads are dropped
         public void Pause()
@@ -333,10 +357,10 @@ namespace FluentSensors.Features.CsvLogging
             line.Append(nowUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture));
             line.Append(separator);
 
-            // the elapsed column keeps its own fixed three decimals and ignores the configured value precision:
-            // its resolution belongs to the poll interval, and rounded to whole seconds it would be useless at the
-            // 500 ms the monitor runs at by default
-            line.Append((nowUtc - _startedAt).TotalSeconds.ToString("0.000", rowFormat.ValueCulture));
+            // the elapsed column keeps its own fixed single decimal and ignores the configured value precision:
+            // its resolution belongs to the poll interval, not to how precisely a sensor is worth reading, and a
+            // tenth of a second is already finer than the 500 ms the monitor runs at by default
+            line.Append((nowUtc - _startedAt).TotalSeconds.ToString("0.0", rowFormat.ValueCulture));
 
             foreach (var column in columns)
             {
