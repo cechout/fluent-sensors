@@ -16,8 +16,9 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.CsvLogging
 {
-    // one column of a recording: the sensor id every payload is matched against, plus the header text written once
-    // into the first line of the file
+    // one column of a recording:
+    // the sensor id every payload is matched against, plus the header text written once into the first line of
+    // the file
     public class CsvLoggedSensor
     {
         public CsvLoggedSensor(string id, string header, string unit)
@@ -51,9 +52,9 @@ namespace FluentSensors.Features.CsvLogging
         // while the sensors page is replacing it
         private CsvLoggedSensor[] _activeColumns;
 
-        // the format the open file was started with, snapshotted the same way _activeColumns is: a switch of the
-        // separators, the decimal count or the units midway through a recording would leave one half of the file
-        // formatted differently from the other, and nothing reading it would notice
+        // the format the open file was started with, snapshotted the same way _activeColumns is:
+        // a switch of the separators, the decimal count or the units midway through a recording would leave one
+        // half of the file formatted differently from the other, and nothing reading it would notice
         private CsvRowFormat _rowFormat;
 
         // how much of Elapsed was spent holding, and how often; both reset with every fresh start
