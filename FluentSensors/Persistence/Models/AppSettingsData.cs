@@ -66,6 +66,9 @@ namespace FluentSensors.Persistence.Models
 
         public CsvPauseSeam CsvPauseSeam { get; set; } = CsvPauseSeam.Gap;
 
+        // which profile the sensors page opens on; the widget profile is what a fresh install starts with
+        public SensorSelectionProfile LastSensorProfile { get; set; } = SensorSelectionProfile.WidgetWindow;
+
         // lives on HardwareMonitorService at runtime, but conceptually belongs with the rest of the app settings for
         // persistence purposes
         public int UpdateIntervalMs { get; set; } = 500;
