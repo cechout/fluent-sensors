@@ -60,7 +60,7 @@
         <StackPanel
             x:Name="UpperRegion"
             Grid.Row="1"
-            Margin="4,0,4,4"
+            Margin="6,0,6,4"
             Spacing="4">
 
             <!--  main bar: start and stop share one slot, only one of them is ever up  -->
@@ -171,7 +171,7 @@
             Grid.Row="3"
             Background="{ThemeResource LayerFillColorDefaultBrush}">
 
-            <StackPanel Margin="4,4,4,5" Spacing="8">
+            <StackPanel Margin="6,6,6,8" Spacing="8">
 
                 <!--  (same label above value shape the hardware view info panels use)  -->
                 <controls:WrapPanel
