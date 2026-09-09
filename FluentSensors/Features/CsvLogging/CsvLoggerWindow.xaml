@@ -175,7 +175,7 @@
 
                 <!--  (same label above value shape the hardware view info panels use)  -->
                 <controls:WrapPanel
-                    Padding="6,4,6,4"
+                    Padding="10,4,10,4"
                     HorizontalSpacing="14"
                     VerticalSpacing="8">
 
