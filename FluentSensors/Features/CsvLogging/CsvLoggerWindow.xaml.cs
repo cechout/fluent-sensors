@@ -11,6 +11,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using WinRT;
 
+using FluentSensors.Common.UI;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Features.TaskbarWidget;
 using FluentSensors.Persistence.Models;
@@ -86,6 +87,11 @@ namespace FluentSensors.Features.CsvLogging
             _appWindow = this.AppWindow;
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(CustomTitleBar);
+
+            // the back button sits inside the drag region, so it needs its own passthrough rect to ever see a press
+            CustomTitleBar.Loaded += (s, e) => UpdateTitleBarPassthroughRegions();
+            CustomTitleBar.SizeChanged += (s, e) => UpdateTitleBarPassthroughRegions();
+
             var presenter = OverlappedPresenter.Create();
             presenter.IsAlwaysOnTop = true; // same as the widget, a running recording has to stay readable over other apps
             presenter.IsMaximizable = false;
@@ -457,6 +463,13 @@ namespace FluentSensors.Features.CsvLogging
             if (picked == null) return; // user cancelled
 
             ViewModel.SetLogFolder(picked);
+        }
+
+        // low priority so the rect is read after the bar has actually been laid out, same as MainWindow does it
+        private void UpdateTitleBarPassthroughRegions()
+        {
+            this.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
+                () => TitleBarPassthrough.Apply(this, CustomTitleBar, BackToDashboardButton));
         }
 
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)

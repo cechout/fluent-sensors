@@ -27,6 +27,7 @@
 
             <!--  back to main application button (currently in title bar too)  -->
             <Button
+                x:Name="BackToDashboardButton"
                 Width="32"
                 Height="22"
                 Margin="4,4,0,0"
