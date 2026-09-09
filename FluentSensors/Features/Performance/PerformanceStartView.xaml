@@ -68,7 +68,7 @@
             <!--  (same SquareGridPanel layout idea as GPU Extended view)  -->
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <fhControls:SquareGridPanel MinCellWidth="280" Spacing="2" />
+                    <fhControls:SquareGridPanel MinCellWidth="260" Spacing="2" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
 

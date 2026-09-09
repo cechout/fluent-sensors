@@ -12,19 +12,19 @@
 
     <ScrollViewer>
         <StackPanel
-            Margin="24"
+            Margin="20"
             HorizontalAlignment="Stretch"
             Spacing="4">
 
             <TextBlock
-                Margin="0,0,0,12"
+                Margin="4,0,0,12"
                 Style="{StaticResource SubtitleTextBlockStyle}"
                 Text="Settings" />
 
 
             <!--  general settings  -->
             <TextBlock
-                Margin="1,8,0,6"
+                Margin="4,8,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="General Settings" />
 
@@ -93,7 +93,7 @@
 
             <!--  widget window settings  -->
             <TextBlock
-                Margin="1,20,0,6"
+                Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Widget Window Appearance" />
 
@@ -196,7 +196,7 @@
 
             <!--  taskbar widget & flyout settings  -->
             <TextBlock
-                Margin="1,20,0,6"
+                Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Taskbar Widget &amp; Flyout Appearance" />
 
@@ -346,7 +346,7 @@
 
             <!--  csv logging settings  -->
             <TextBlock
-                Margin="1,20,0,6"
+                Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="CSV Logging" />
 
@@ -448,7 +448,7 @@
 
             <!--  backup and reset  -->
             <TextBlock
-                Margin="1,20,0,6"
+                Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Backup &amp; Reset" />
 
@@ -488,7 +488,7 @@
 
             <!--  about section  -->
             <TextBlock
-                Margin="1,20,0,6"
+                Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="About &amp; Open Source" />
 
