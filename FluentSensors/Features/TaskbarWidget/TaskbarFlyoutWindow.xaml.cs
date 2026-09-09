@@ -206,18 +206,18 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // --- flyout layout ---
 
-        // the two knobs for the interior; every visible inset inside the window comes from one of them
+        // the two insets the interior is built from;
         // the graphs inset is a margin on the list rather than padding on the surface below it, so the scroll region
-        // stays the full width of the window and the scrollbar rides its edge instead of sitting 6px inside
-        public static readonly Thickness FlyoutGraphsMargin = new Thickness(6, 9, 6, 7);
-        public static readonly Thickness FlyoutBottomBarPadding = new Thickness(0, 0, 0, 0);
+        // stays the full width of the window and the scrollbar rides the window edge instead of the inset
+        public static readonly Thickness FlyoutGraphsMargin = new Thickness(6, 9, 6, 8);
+        public static readonly Thickness FlyoutBottomBarPadding = new Thickness(6, 5, 6, 5);
 
         // gap between two stacked graphs
         public const double FlyoutGraphSpacingDip = 8;
 
-        // (AppBarButton renders at the platform AppBarThemeCompactHeight; mirrored here because the window height
-        // math runs long before the bar is ever measured)
-        public const double FlyoutBottomBarButtonHeightDip = 48;
+        // height of both bottom bar buttons, assigned to them further down; the window height math runs long before
+        // the bar is ever measured, so the value cannot be read back off the controls
+        public const double FlyoutBottomBarButtonHeightDip = 36;
 
         // separator drawn as the top border of FlyoutBottomBarBorder
         private const double FlyoutBottomBarSeparatorDip = 1;
@@ -344,9 +344,13 @@ namespace FluentSensors.Features.TaskbarWidget
                 });
             };
 
-            // the interior is driven entirely from the layout metrics above, the XAML carries no numbers of its own
+            // the insets and the bar button height come from the layout constants above, which is what keeps the
+            // window height math and the rendered bar in sync; width and padding of the buttons themselves stay in
+            // the xaml, they do not enter that math
             GraphsItemsControl.Margin = FlyoutGraphsMargin;
             BottomBarContentGrid.Padding = FlyoutBottomBarPadding;
+            BackToDashboardButton.Height = FlyoutBottomBarButtonHeightDip;
+            CloseWidgetButton.Height = FlyoutBottomBarButtonHeightDip;
             GraphsItemsControl.LayoutUpdated += OnGraphsItemsControlLayoutUpdated;
 
             _appWindow.Changed += AppWindow_Changed;

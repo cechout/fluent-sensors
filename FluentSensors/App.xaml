@@ -218,7 +218,8 @@
                                 Content="{TemplateBinding Content}"
                                 ContentTemplate="{TemplateBinding ContentTemplate}"
                                 ContentTransitions="{TemplateBinding ContentTransitions}"
-                                CornerRadius="{TemplateBinding CornerRadius}">
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                Foreground="{TemplateBinding Foreground}">
                                 <!--  the value of ControlFasterAnimationDuration  -->
                                 <!--  (spelled out because BrushTransition.Duration is a TimeSpan and the platform keys are strings; the platform button hardcodes it the same way)  -->
                                 <ContentPresenter.BackgroundTransition>

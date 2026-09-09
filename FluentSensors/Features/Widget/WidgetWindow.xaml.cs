@@ -16,6 +16,7 @@ using FluentSensors.Controls.SensorRow;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Features.Sensors;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI;
 using FluentSensors.Features.TaskbarWidget;
 
 
@@ -68,6 +69,11 @@ namespace FluentSensors.Features.Widget
             _appWindow = this.AppWindow;
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(CustomTitleBar);
+
+            // the back button sits inside the drag region, so it needs its own passthrough rect to ever see a press
+            CustomTitleBar.Loaded += (s, e) => UpdateTitleBarPassthroughRegions();
+            CustomTitleBar.SizeChanged += (s, e) => UpdateTitleBarPassthroughRegions();
+
             var presenter = OverlappedPresenter.Create();
             presenter.IsAlwaysOnTop = true; // replaces the CompactOverlay behavior
             presenter.IsMaximizable = false;
@@ -387,6 +393,13 @@ namespace FluentSensors.Features.Widget
 
 
         // === user interaction ===
+
+        // low priority so the rect is read after the bar has actually been laid out, same as MainWindow does it
+        private void UpdateTitleBarPassthroughRegions()
+        {
+            this.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
+                () => TitleBarPassthrough.Apply(this, CustomTitleBar, BackToDashboardButton));
+        }
 
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)
         {

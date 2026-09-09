@@ -33,6 +33,7 @@
 
                 <!--  back to main application button (same one the widget window carries)  -->
                 <Button
+                    x:Name="BackToDashboardButton"
                     Width="32"
                     Padding="0"
                     VerticalAlignment="Stretch"
@@ -231,8 +232,10 @@
                     </StackPanel>
 
                     <!--  wall clock since start, pauses included  -->
-                    <!--  (the main bar shows the recorded stretch instead; this is the one that matches the
-                          elapsed column in the file)  -->
+                    <!--
+                        (the main bar shows the recorded stretch instead; this is the one that matches the
+                        elapsed column in the file)
+                    -->
                     <StackPanel Width="Auto" Spacing="2">
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
