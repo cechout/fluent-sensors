@@ -153,7 +153,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 if (!_isRebuild)
                 {
                     var savedState = WindowStateService.Instance.GetState(WindowKey);
-                    if (savedState != null && savedState.X > 0)
+                    if (savedState != null && savedState.X >= 0)
                     {
                         _currentOffsetDip = savedState.X;
                     }
@@ -1083,21 +1083,13 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void TaskbarButton_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
-            if (_isDragging)
+            if (_isDragging && e != null)
             {
-                if (e != null)
-                {
-                    try { TaskbarButton.ReleasePointerCapture(e.Pointer); } catch { }
-                }
-                _isDragging = false;
-                _isPotentialDrag = false;
-                _suppressClick = true;
-                SaveWindowState(wasOpen: true);
+                try { TaskbarButton.ReleasePointerCapture(e.Pointer); } catch { }
             }
-            else
-            {
-                _isPotentialDrag = false;
-            }
+
+            CommitDragEnd();
+            _isPotentialDrag = false;
 
             _isPressed = false;
 
@@ -1114,18 +1106,46 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void TaskbarButton_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
         {
-            _isDragging = false;
-            _isPotentialDrag = false;
-            _suppressClick = false;
+            EndDragOrClearClickGuard();
             TaskbarButton_PointerExited(sender, e);
         }
 
         private void TaskbarButton_PointerCanceled(object sender, PointerRoutedEventArgs e)
         {
+            EndDragOrClearClickGuard();
+            TaskbarButton_PointerExited(sender, e);
+        }
+
+        // the single place a drag is committed; the offset only lives in _currentOffsetDip until this runs
+        //
+        // ButtonBase releases the pointer capture from inside its own PointerReleased class handler, which runs
+        // ahead of our instance handler, so the capture loss can be the first of the two to arrive; whichever gets
+        // here first does the save and the other one finds nothing left to do
+        private void CommitDragEnd()
+        {
+            if (!_isDragging) return;
+
             _isDragging = false;
             _isPotentialDrag = false;
-            _suppressClick = false;
-            TaskbarButton_PointerExited(sender, e);
+            _suppressClick = true;
+            SaveWindowState(wasOpen: true);
+        }
+
+        // a capture loss or cancellation mid drag still ends the drag: the window sits at its new position already,
+        // so the offset is kept rather than dropped
+        // without a drag in flight there is nothing to swallow and the click guard is released instead
+        private void EndDragOrClearClickGuard()
+        {
+            if (_isDragging)
+            {
+                CommitDragEnd();
+            }
+            else
+            {
+                _suppressClick = false;
+            }
+
+            _isPotentialDrag = false;
         }
 
         private void TaskbarButton_Click(object sender, RoutedEventArgs e)
