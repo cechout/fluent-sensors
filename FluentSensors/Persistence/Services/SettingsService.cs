@@ -496,6 +496,22 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // the profile the sensors page was last switched to, so it comes back on the same one
+        // read only while the page is being built, which is why it gets by without a change event
+        private SensorSelectionProfile _lastSensorProfile = SensorSelectionProfile.WidgetWindow;
+        public SensorSelectionProfile LastSensorProfile
+        {
+            get => _lastSensorProfile;
+            set
+            {
+                if (_lastSensorProfile != value)
+                {
+                    _lastSensorProfile = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // persistence
         // writes every property straight to its backing field, skipping change events and the save trigger; used only
         // once at startup, before any window or listener exists yet
@@ -533,6 +549,7 @@ namespace FluentSensors.Persistence.Services
             _csvDecimalPlaces = data.CsvDecimalPlaces;
             _csvIncludeUnits = data.CsvIncludeUnits;
             _csvPauseSeam = data.CsvPauseSeam;
+            _lastSensorProfile = data.LastSensorProfile;
 
             // lives on HardwareMonitorService at runtime, not here, but shares this settings file
             HardwareMonitorService.Instance.UpdateIntervalMs = data.UpdateIntervalMs;
@@ -575,6 +592,7 @@ namespace FluentSensors.Persistence.Services
                 CsvDecimalPlaces = _csvDecimalPlaces,
                 CsvIncludeUnits = _csvIncludeUnits,
                 CsvPauseSeam = _csvPauseSeam,
+                LastSensorProfile = _lastSensorProfile,
                 UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
             };
         }

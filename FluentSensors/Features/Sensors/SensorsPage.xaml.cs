@@ -15,6 +15,7 @@ using FluentSensors.Features.TaskbarWidget;
 using FluentSensors.Features.CsvLogging;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Features.Sensors
@@ -53,6 +54,15 @@ namespace FluentSensors.Features.Sensors
         {
             this.InitializeComponent();
             ViewModel = SensorsViewModel.Instance;
+
+            // come back on the profile the page was last switched to;
+            // Deliberately still under the loading guard: the SelectionChanged handler would rebuild the command bar
+            // from here, before SensorListCommandBar_Loaded has set up its overflow state; that Loaded handler builds
+            // the bar from ViewModel.ActiveProfile a moment later anyway, so the profile only has to be in place
+            var lastProfile = SettingsService.Instance.LastSensorProfile;
+            ViewModel.ActiveProfile = lastProfile;
+            SelectProfile(lastProfile);
+
             _isLoading = false;
         }
 
@@ -170,6 +180,7 @@ namespace FluentSensors.Features.Sensors
             if (selectedItem.Tag is not string tag || !Enum.TryParse(tag, out SensorSelectionProfile profile)) return;
 
             ViewModel.ActiveProfile = profile;
+            SettingsService.Instance.LastSensorProfile = profile;
             RebuildCommandBarOverflow();
         }
 
