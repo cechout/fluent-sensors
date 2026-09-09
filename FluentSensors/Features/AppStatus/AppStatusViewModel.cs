@@ -24,7 +24,7 @@ namespace FluentSensors.Features.AppStatus
         private string _gcMemoryText = "";
 
         // below this TitleBar width the Windows group hides and only the LHM group stays visible
-        private const double MinWidthForFullStatus = 700;
+        private const double MinWidthForFullStatus = 750;
 
         // the three inputs behind IsLhmGroupVisible/IsWindowsGroupVisible below; see UpdateVisibility
         private bool _isAppReady;
