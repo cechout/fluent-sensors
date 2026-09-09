@@ -95,7 +95,6 @@
                 <Grid x:Name="BottomBarContentGrid">
 
                     <!--  open the sensor list on the taskbar profile  -->
-                    <!--  (label only)  -->
                     <Button
                         x:Name="BackToDashboardButton"
                         Padding="11,0,11,0"
@@ -107,7 +106,6 @@
                         Style="{StaticResource SubtleBarButtonStyle}" />
 
                     <!--  close taskbar widget  -->
-                    <!--  (icon only)  -->
                     <Button
                         x:Name="CloseWidgetButton"
                         Width="38"

@@ -186,9 +186,6 @@
                 outline in the final color around a still empty button
                 every state brush below is the one the platform style uses, the border just stays transparent in
                 all of them, and the fill is sized to the outer border edge so it still covers the full box
-                Foreground is template bound on the ContentPresenter exactly as the platform template does it;
-                inheritance does not reach the content, so without that binding a Foreground set on the button is
-                ignored and the text renders in the default color
             -->
             <Style x:Key="SubtleBarButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="{ThemeResource SubtleButtonBackground}" />

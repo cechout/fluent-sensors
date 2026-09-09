@@ -14,8 +14,8 @@ namespace FluentSensors.Common.UI
     // registers interactive titlebar elements as client passthrough regions so pointer events (pressed visual state)
     // are consumed by the controls themselves rather than initiating a window drag
     //
-    // every window that hands a custom bar to SetTitleBar needs this; the whole bar is non-client otherwise, and a
-    // button sitting in it never sees a press, it only moves the window
+    // SetTitleBar turns the whole bar non-client, so any window with an interactive element in there needs this;
+    // without a rect of its own that element never sees a press, the pointer only moves the window
     public static class TitleBarPassthrough
     {
         // rects are absolute window coordinates, so this has to run again whenever the bar is laid out or one of the
