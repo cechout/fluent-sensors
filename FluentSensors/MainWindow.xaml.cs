@@ -20,6 +20,7 @@ using FluentSensors.Features.Settings;
 using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI;
 
 
 namespace FluentSensors
@@ -350,54 +351,12 @@ namespace FluentSensors
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
         }
 
-        // registers interactive titlebar elements as client passthrough regions so pointer events (pressed visual state)
-        // are consumed by the controls themselves rather than initiating a window drag
+        // the four interactive elements sitting in the drag region; the status toggle hides and shows the two groups
+        // next to it, so the rects are recomputed rather than registered once
         private void UpdateTitleBarPassthroughRegions()
         {
-            if (AppTitleBar == null || !AppTitleBar.IsLoaded) return;
-
-            try
-            {
-                var nonClientInputSrc = Microsoft.UI.Input.InputNonClientPointerSource.GetForWindowId(this.AppWindow.Id);
-                if (nonClientInputSrc == null) return;
-
-                double scale = AppTitleBar.XamlRoot?.RasterizationScale ?? 1.0;
-                var rects = new List<Windows.Graphics.RectInt32>();
-
-                AddPassthroughRect(rects, DotNetRuntimePopup, scale);
-                AddPassthroughRect(rects, StatusToggleButton, scale);
-                AddPassthroughRect(rects, LhmInfoPopup, scale);
-                AddPassthroughRect(rects, WindowsInfoPopup, scale);
-
-                nonClientInputSrc.SetRegionRects(Microsoft.UI.Input.NonClientRegionKind.Passthrough, rects.ToArray());
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[UpdateTitleBarPassthroughRegions] failed: {ex.Message}");
-            }
-        }
-
-        private void AddPassthroughRect(List<Windows.Graphics.RectInt32> rects, FrameworkElement element, double scale)
-        {
-            if (element == null || element.Visibility != Visibility.Visible || !element.IsLoaded) return;
-
-            try
-            {
-                var transform = element.TransformToVisual(null);
-                var bounds = transform.TransformBounds(new Windows.Foundation.Rect(0, 0, element.ActualWidth, element.ActualHeight));
-                if (bounds.Width > 0 && bounds.Height > 0)
-                {
-                    rects.Add(new Windows.Graphics.RectInt32(
-                        (int)Math.Round(bounds.X * scale),
-                        (int)Math.Round(bounds.Y * scale),
-                        (int)Math.Round(bounds.Width * scale),
-                        (int)Math.Round(bounds.Height * scale)
-                    ));
-                }
-            }
-            catch
-            {
-            }
+            TitleBarPassthrough.Apply(this, AppTitleBar,
+                DotNetRuntimePopup, StatusToggleButton, LhmInfoPopup, WindowsInfoPopup);
         }
 
         // plain Button standing in for a real ToggleButton, see the XAML comment on it for why
