@@ -105,7 +105,8 @@
                 Background="Transparent"
                 BorderThickness="0"
                 Click="StatusToggleButton_Click"
-                Style="{ThemeResource SubtleButtonStyle}">
+                Style="{ThemeResource SubtleButtonStyle}"
+                Visibility="{x:Bind BoolToVisibility(AppStatus.IsStatusToggleVisible), Mode=OneWay}">
                 <FontIcon
                     FontSize="12"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -113,8 +114,9 @@
             </Button>
 
             <!--  lhm group  -->
-            <!--  (has priority over the windows group below when horizontal space runs out)  -->
+            <!--  (column and margin are set from code, the settings page decides which group leads)  -->
             <StackPanel
+                x:Name="LhmStatusGroup"
                 Grid.Column="4"
                 Margin="8,0,0,0"
                 VerticalAlignment="Center"
@@ -146,8 +148,9 @@
             </StackPanel>
 
             <!--  windows group  -->
-            <!--  (this apps own resource usage, first to hide on a narrow window)  -->
+            <!--  (this apps own resource usage; whichever group ends up second is the one that hides on a narrow window)  -->
             <StackPanel
+                x:Name="WindowsStatusGroup"
                 Grid.Column="5"
                 Margin="12,0,0,0"
                 VerticalAlignment="Center"
