@@ -20,6 +20,9 @@ namespace FluentSensors.Features.Settings
         // flag to prevent event handlers from firing during initialization
         private bool _isLoading = true;
 
+        // set while this page writes a status readout setting itself, see OnStatusReadoutChanged
+        private bool _isWritingStatusReadout;
+
 
         // === constructor ===
 
@@ -87,8 +90,12 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.StatusReadoutChanged -= OnStatusReadoutChanged;
         }
 
+        // only meant for writes from outside this page; a write from here echoes straight back into this method,
+        // and restoring mid handler would push the control the user is operating back to a half written state
         private void OnStatusReadoutChanged()
         {
+            if (_isWritingStatusReadout) return;
+
             _isLoading = true;
             RestoreStatusReadoutSelection();
             _isLoading = false;
@@ -189,25 +196,38 @@ namespace FluentSensors.Features.Settings
         {
             if (_isLoading) return;
 
+            // read once up front: this handler writes two settings, and the control must not be able to change
+            // underneath the second write
+            bool isOn = StatusReadoutToggle.IsOn;
+            _isWritingStatusReadout = true;
+
             // switching it back on here also undoes a collapse from the title bar button, otherwise the readout would
             // stay hidden while this toggle claims it is on
-            if (StatusReadoutToggle.IsOn) SettingsService.Instance.StatusReadoutCollapsed = false;
+            if (isOn) SettingsService.Instance.StatusReadoutCollapsed = false;
 
-            SettingsService.Instance.StatusReadoutEnabled = StatusReadoutToggle.IsOn;
+            SettingsService.Instance.StatusReadoutEnabled = isOn;
+            _isWritingStatusReadout = false;
+
             UpdateStatusReadoutCardStates();
         }
 
         private void StatusLhmGroupToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
+            _isWritingStatusReadout = true;
             SettingsService.Instance.StatusLhmGroupEnabled = StatusLhmGroupToggle.IsOn;
+            _isWritingStatusReadout = false;
+
             UpdateStatusReadoutCardStates();
         }
 
         private void StatusWindowsGroupToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
+            _isWritingStatusReadout = true;
             SettingsService.Instance.StatusWindowsGroupEnabled = StatusWindowsGroupToggle.IsOn;
+            _isWritingStatusReadout = false;
+
             UpdateStatusReadoutCardStates();
         }
 
@@ -218,7 +238,9 @@ namespace FluentSensors.Features.Settings
             if (StatusGroupOrderComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
                 && Enum.TryParse(tag, out StatusGroupOrder order))
             {
+                _isWritingStatusReadout = true;
                 SettingsService.Instance.StatusGroupOrder = order;
+                _isWritingStatusReadout = false;
             }
         }
 
