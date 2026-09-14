@@ -27,10 +27,11 @@ namespace FluentSensors.Features.AppStatus
         // below this TitleBar width only one group fits, so the group placed second hides
         private const double MinWidthForFullStatus = 750;
 
-        // the inputs behind IsLhmGroupVisible/IsWindowsGroupVisible below; the last three mirror what the settings
-        // page holds, see UpdateVisibility
+        // the inputs behind IsLhmGroupVisible/IsWindowsGroupVisible below; everything except _isAppReady and
+        // _hasEnoughWidthForFull mirrors a persisted setting, see UpdateVisibility
         private bool _isAppReady;
         private bool _isStatusEnabled;
+        private bool _isStatusCollapsed;
         private bool _hasEnoughWidthForFull = true;
         private bool _isLhmGroupEnabled = true;
         private bool _isWindowsGroupEnabled = true;
@@ -106,16 +107,20 @@ namespace FluentSensors.Features.AppStatus
             set { if (_isAppReady == value) return; _isAppReady = value; UpdateVisibility(); }
         }
 
-        // master on/off, toggled by a plain Button click in the title bar (StatusToggleButton_Click in MainWindow)
-        // and by the toggle in the settings page, persists across restarts via SettingsService
-        public bool IsStatusEnabled
+        // master on/off, owned by the settings page alone; off takes the title bar toggle button with it, so the
+        // readout cannot be brought back from up there
+        public bool IsStatusEnabled => _isStatusEnabled;
+
+        // what the title bar toggle button flips (StatusToggleButton_Click in MainWindow): a plain hide on top of
+        // the master switch above, persisted so the readout stays hidden across restarts
+        public bool IsStatusCollapsed
         {
-            get => _isStatusEnabled;
+            get => _isStatusCollapsed;
             set
             {
-                if (_isStatusEnabled == value) return;
-                _isStatusEnabled = value;
-                SettingsService.Instance.StatusReadoutEnabled = value;
+                if (_isStatusCollapsed == value) return;
+                _isStatusCollapsed = value;
+                SettingsService.Instance.StatusReadoutCollapsed = value;
                 UpdateVisibility();
             }
         }
@@ -135,8 +140,8 @@ namespace FluentSensors.Features.AppStatus
         // which group sits in the leading title bar column; MainWindow moves the two groups accordingly
         public bool IsLhmGroupFirst => _isLhmGroupFirst;
 
-        // visible whenever the app is ready, the toggle is on, the group is wanted, and it either leads or there is
-        // still room for the trailing one
+        // visible whenever the app is ready, the readout is on and not collapsed, the group is wanted, and it either
+        // leads or there is still room for the trailing one
         public bool IsLhmGroupVisible
         {
             get => _isLhmGroupVisible;
@@ -150,7 +155,8 @@ namespace FluentSensors.Features.AppStatus
             private set { _isWindowsGroupVisible = value; OnPropertyChanged(); }
         }
 
-        // the title bar toggle button has nothing left to show or hide once both groups are switched off
+        // the title bar toggle button is gone once the readout is off in the settings, and equally once neither
+        // group is left for it to show
         public bool IsStatusToggleVisible
         {
             get => _isStatusToggleVisible;
@@ -175,7 +181,7 @@ namespace FluentSensors.Features.AppStatus
             HasEnoughWidthForFull = titleBarWidth >= MinWidthForFullStatus;
         }
 
-        // re-reads the four readout settings after the settings page changed one of them
+        // re-reads the five readout settings after one of them changed
         // MainWindow owns that subscription, since a changed order also has to be applied to the actual title bar
         // columns in the same step
         public void RefreshStatusSettings()
@@ -190,6 +196,7 @@ namespace FluentSensors.Features.AppStatus
         private void ReadStatusSettings()
         {
             _isStatusEnabled = SettingsService.Instance.StatusReadoutEnabled;
+            _isStatusCollapsed = SettingsService.Instance.StatusReadoutCollapsed;
             _isLhmGroupEnabled = SettingsService.Instance.StatusLhmGroupEnabled;
             _isWindowsGroupEnabled = SettingsService.Instance.StatusWindowsGroupEnabled;
             _isLhmGroupFirst = SettingsService.Instance.StatusGroupOrder == StatusGroupOrder.LhmFirst;
@@ -198,7 +205,7 @@ namespace FluentSensors.Features.AppStatus
         // recomputes both group visibilities from the inputs above, called whenever any of them changes
         private void UpdateVisibility()
         {
-            bool readoutOn = IsAppReady && IsStatusEnabled;
+            bool readoutOn = IsAppReady && IsStatusEnabled && !IsStatusCollapsed;
 
             // only the group placed second gives way on a narrow window; with a single group switched on there is
             // nothing it would have to make room for, so it stays whatever the width is
@@ -206,7 +213,7 @@ namespace FluentSensors.Features.AppStatus
 
             IsLhmGroupVisible = readoutOn && _isLhmGroupEnabled && (_isLhmGroupFirst || trailingFits);
             IsWindowsGroupVisible = readoutOn && _isWindowsGroupEnabled && (!_isLhmGroupFirst || trailingFits);
-            IsStatusToggleVisible = _isLhmGroupEnabled || _isWindowsGroupEnabled;
+            IsStatusToggleVisible = _isStatusEnabled && (_isLhmGroupEnabled || _isWindowsGroupEnabled);
         }
 
         // AppStatusService already fires this from the UI thread now (see its own Tick()), TryEnqueue here is just

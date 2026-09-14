@@ -188,6 +188,11 @@ namespace FluentSensors.Features.Settings
         private void StatusReadoutToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
+
+            // switching it back on here also undoes a collapse from the title bar button, otherwise the readout would
+            // stay hidden while this toggle claims it is on
+            if (StatusReadoutToggle.IsOn) SettingsService.Instance.StatusReadoutCollapsed = false;
+
             SettingsService.Instance.StatusReadoutEnabled = StatusReadoutToggle.IsOn;
             UpdateStatusReadoutCardStates();
         }
@@ -759,6 +764,7 @@ namespace FluentSensors.Features.Settings
                 // save this queues still reaches disk before restart, ForceExit() flushes any pending write on its way out
                 var defaultSettings = new AppSettingsData();
                 SettingsService.Instance.StatusReadoutEnabled = defaultSettings.StatusReadoutEnabled;
+                SettingsService.Instance.StatusReadoutCollapsed = defaultSettings.StatusReadoutCollapsed;
                 SettingsService.Instance.StatusLhmGroupEnabled = defaultSettings.StatusLhmGroupEnabled;
                 SettingsService.Instance.StatusWindowsGroupEnabled = defaultSettings.StatusWindowsGroupEnabled;
                 SettingsService.Instance.StatusGroupOrder = defaultSettings.StatusGroupOrder;

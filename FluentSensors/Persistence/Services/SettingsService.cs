@@ -399,8 +399,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // master on/off for the whole title bar status readout, set from the toggle button in the title bar and from
-        // the settings page
+        // master on/off for the whole title bar status readout, set from the settings page
         private bool _statusReadoutEnabled = true;
         public bool StatusReadoutEnabled
         {
@@ -410,6 +409,23 @@ namespace FluentSensors.Persistence.Services
                 if (_statusReadoutEnabled != value)
                 {
                     _statusReadoutEnabled = value;
+                    StatusReadoutChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // whether the readout is currently collapsed by the toggle button in the title bar; that button only hides
+        // what the master switch above allows in the first place
+        private bool _statusReadoutCollapsed = false;
+        public bool StatusReadoutCollapsed
+        {
+            get => _statusReadoutCollapsed;
+            set
+            {
+                if (_statusReadoutCollapsed != value)
+                {
+                    _statusReadoutCollapsed = value;
                     StatusReadoutChanged?.Invoke();
                     SaveDebounced();
                 }
@@ -592,6 +608,7 @@ namespace FluentSensors.Persistence.Services
             _minimizeToTray = data.MinimizeToTray;
             _hideSensorsCompletely = data.HideSensorsCompletely;
             _statusReadoutEnabled = data.StatusReadoutEnabled;
+            _statusReadoutCollapsed = data.StatusReadoutCollapsed;
             _statusLhmGroupEnabled = data.StatusLhmGroupEnabled;
             _statusWindowsGroupEnabled = data.StatusWindowsGroupEnabled;
             _statusGroupOrder = data.StatusGroupOrder;
@@ -638,6 +655,7 @@ namespace FluentSensors.Persistence.Services
                 MinimizeToTray = _minimizeToTray,
                 HideSensorsCompletely = _hideSensorsCompletely,
                 StatusReadoutEnabled = _statusReadoutEnabled,
+                StatusReadoutCollapsed = _statusReadoutCollapsed,
                 StatusLhmGroupEnabled = _statusLhmGroupEnabled,
                 StatusWindowsGroupEnabled = _statusWindowsGroupEnabled,
                 StatusGroupOrder = _statusGroupOrder,
@@ -690,7 +708,7 @@ namespace FluentSensors.Persistence.Services
 
         public event Action<bool> MinimizeToTrayChanged;
         public event Action<bool> HideSensorsCompletelyChanged;
-        // one event for all four status readout settings; the title bar reads them back as a set, so a single
+        // one event for all five status readout settings; the title bar reads them back as a set, so a single
         // argument would not cover it
         public event Action StatusReadoutChanged;
     }

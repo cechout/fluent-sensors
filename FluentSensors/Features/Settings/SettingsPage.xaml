@@ -92,16 +92,11 @@
                     Toggled="MinimizeToTrayToggle_Toggled" />
             </controls:SettingsCard>
 
-
             <!--  title bar status readout  -->
-            <!--
-                the master toggle sits in the header slot, the way both background material expanders carry their
-                backdrop combo: it is the one switch that decides whether the rows inside have any effect at all
-            -->
             <controls:SettingsExpander
                 Description="Which readouts the title bar shows, and in which order"
                 Header="Title Bar Status"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE7C4;}"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xF138;}"
                 IsExpanded="False">
 
                 <ToggleSwitch
@@ -111,10 +106,7 @@
                     Toggled="StatusReadoutToggle_Toggled" />
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard
-                        x:Name="StatusLhmGroupCard"
-                        Description="Sensors found and rendered, poll rate, read duration"
-                        Header="Sensor Status">
+                    <controls:SettingsCard x:Name="StatusLhmGroupCard" Header="Sensor Status">
                         <ToggleSwitch
                             x:Name="StatusLhmGroupToggle"
                             OffContent="Off"
@@ -122,10 +114,7 @@
                             Toggled="StatusLhmGroupToggle_Toggled" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard
-                        x:Name="StatusWindowsGroupCard"
-                        Description="CPU and RAM used by this app"
-                        Header="App Resources">
+                    <controls:SettingsCard x:Name="StatusWindowsGroupCard" Header="App Resources">
                         <ToggleSwitch
                             x:Name="StatusWindowsGroupToggle"
                             OffContent="Off"
@@ -134,10 +123,7 @@
                     </controls:SettingsCard>
 
                     <!--  (stays disabled until both readouts above are on, there is nothing to order otherwise)  -->
-                    <controls:SettingsCard
-                        x:Name="StatusGroupOrderCard"
-                        Description="Whichever comes second is also the one that hides on a narrow window"
-                        Header="Order">
+                    <controls:SettingsCard x:Name="StatusGroupOrderCard" Header="Order">
                         <ComboBox
                             x:Name="StatusGroupOrderComboBox"
                             Width="190"

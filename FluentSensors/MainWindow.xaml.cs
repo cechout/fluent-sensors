@@ -374,7 +374,7 @@ namespace FluentSensors
         // plain Button standing in for a real ToggleButton, see the XAML comment on it for why
         private void StatusToggleButton_Click(object sender, RoutedEventArgs e)
         {
-            AppStatus.IsStatusEnabled = !AppStatus.IsStatusEnabled;
+            AppStatus.IsStatusCollapsed = !AppStatus.IsStatusCollapsed;
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
         }
 

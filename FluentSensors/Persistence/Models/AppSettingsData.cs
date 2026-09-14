@@ -49,6 +49,10 @@ namespace FluentSensors.Persistence.Models
         public bool HideSensorsCompletely { get; set; } = true;
         public bool StatusReadoutEnabled { get; set; } = true;
 
+        // set by the toggle button in the title bar, which only hides the readout; the setting above is what
+        // switches the whole thing off, that button included
+        public bool StatusReadoutCollapsed { get; set; } = false;
+
         // which of the two title bar status groups are shown, and which one comes first
         public bool StatusLhmGroupEnabled { get; set; } = true;
         public bool StatusWindowsGroupEnabled { get; set; } = true;
