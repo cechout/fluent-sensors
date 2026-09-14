@@ -10,6 +10,7 @@ using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
 using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI;
 
 
 namespace FluentSensors.Features.Settings
@@ -18,6 +19,9 @@ namespace FluentSensors.Features.Settings
     {
         // flag to prevent event handlers from firing during initialization
         private bool _isLoading = true;
+
+        // set while this page writes a status readout setting itself, see OnStatusReadoutChanged
+        private bool _isWritingStatusReadout;
 
 
         // === constructor ===
@@ -33,6 +37,7 @@ namespace FluentSensors.Features.Settings
             RestoreThemeSelection();
             RestoreIntervalSelection();
             RestoreMinimizeToTraySelection();
+            RestoreStatusReadoutSelection();
             RestoreCsvFormatSelection();
             RestoreGraphLineStyleSelection();
 
@@ -66,6 +71,33 @@ namespace FluentSensors.Features.Settings
                 CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
                 TaskbarGraphColorPicker_SelectedColorChanged);
 
+            _isLoading = false;
+        }
+
+
+        // === page lifecycle ===
+
+        // the toggle button in the title bar writes the same master setting these controls show, so they can go
+        // stale while this page sits in the navigation cache
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            SettingsService.Instance.StatusReadoutChanged += OnStatusReadoutChanged;
+            OnStatusReadoutChanged();
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            SettingsService.Instance.StatusReadoutChanged -= OnStatusReadoutChanged;
+        }
+
+        // only meant for writes from outside this page; a write from here echoes straight back into this method,
+        // and restoring mid handler would push the control the user is operating back to a half written state
+        private void OnStatusReadoutChanged()
+        {
+            if (_isWritingStatusReadout) return;
+
+            _isLoading = true;
+            RestoreStatusReadoutSelection();
             _isLoading = false;
         }
 
@@ -157,6 +189,89 @@ namespace FluentSensors.Features.Settings
         private void RestoreMinimizeToTraySelection()
         {
             MinimizeToTrayToggle.IsOn = SettingsService.Instance.MinimizeToTray;
+        }
+
+        // title bar status readout
+        private void StatusReadoutToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            // read once up front: this handler writes two settings, and the control must not be able to change
+            // underneath the second write
+            bool isOn = StatusReadoutToggle.IsOn;
+            _isWritingStatusReadout = true;
+
+            // switching it back on here also undoes a collapse from the title bar button, otherwise the readout would
+            // stay hidden while this toggle claims it is on
+            if (isOn) SettingsService.Instance.StatusReadoutCollapsed = false;
+
+            SettingsService.Instance.StatusReadoutEnabled = isOn;
+            _isWritingStatusReadout = false;
+
+            UpdateStatusReadoutCardStates();
+        }
+
+        private void StatusLhmGroupToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            _isWritingStatusReadout = true;
+            SettingsService.Instance.StatusLhmGroupEnabled = StatusLhmGroupToggle.IsOn;
+            _isWritingStatusReadout = false;
+
+            UpdateStatusReadoutCardStates();
+        }
+
+        private void StatusWindowsGroupToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            _isWritingStatusReadout = true;
+            SettingsService.Instance.StatusWindowsGroupEnabled = StatusWindowsGroupToggle.IsOn;
+            _isWritingStatusReadout = false;
+
+            UpdateStatusReadoutCardStates();
+        }
+
+        private void StatusGroupOrderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (StatusGroupOrderComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out StatusGroupOrder order))
+            {
+                _isWritingStatusReadout = true;
+                SettingsService.Instance.StatusGroupOrder = order;
+                _isWritingStatusReadout = false;
+            }
+        }
+
+        private void RestoreStatusReadoutSelection()
+        {
+            StatusReadoutToggle.IsOn = SettingsService.Instance.StatusReadoutEnabled;
+            StatusLhmGroupToggle.IsOn = SettingsService.Instance.StatusLhmGroupEnabled;
+            StatusWindowsGroupToggle.IsOn = SettingsService.Instance.StatusWindowsGroupEnabled;
+
+            string currentOrder = SettingsService.Instance.StatusGroupOrder.ToString();
+            foreach (ComboBoxItem item in StatusGroupOrderComboBox.Items)
+            {
+                if (item.Tag?.ToString() == currentOrder)
+                {
+                    StatusGroupOrderComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
+            UpdateStatusReadoutCardStates();
+        }
+
+        // the rows below the master toggle only do anything while it is on, and an order only exists while both
+        // readouts are actually shown
+        private void UpdateStatusReadoutCardStates()
+        {
+            bool readoutEnabled = StatusReadoutToggle.IsOn;
+
+            StatusLhmGroupCard.IsEnabled = readoutEnabled;
+            StatusWindowsGroupCard.IsEnabled = readoutEnabled;
+            StatusGroupOrderCard.IsEnabled = readoutEnabled && StatusLhmGroupToggle.IsOn && StatusWindowsGroupToggle.IsOn;
         }
 
         // csv format; all four pieces are only read when a recording starts, so switching any of them never
@@ -657,7 +772,7 @@ namespace FluentSensors.Features.Settings
         }
 
         // window and page states cover three things that all fall under "what the window/page layout currently
-        // looks like": window position/size, the title bar status toggle, and which sensor is picked per graph
+        // looks like": window position/size, the title bar status readout, and which sensor is picked per graph
         // slot on the Performance page
         private async void ResetWindowAndPageStates_Click(object sender, RoutedEventArgs e)
         {
@@ -666,10 +781,15 @@ namespace FluentSensors.Features.Settings
                 PersistenceService.Instance.ResetWindowStates();
                 PersistenceService.Instance.ResetSensorSwitchStates();
 
-                // lives inside settings.json next to unrelated general settings (theme, tray behavior, etc), so it
-                // is reset in place through its own setter instead of deleting that whole file; the debounced save
-                // this queues still reaches disk before restart, ForceExit() flushes any pending write on its way out
-                SettingsService.Instance.StatusReadoutEnabled = new AppSettingsData().StatusReadoutEnabled;
+                // these live inside settings.json next to unrelated general settings (theme, tray behavior, etc), so
+                // they are reset in place through their own setters instead of deleting that whole file; the debounced
+                // save this queues still reaches disk before restart, ForceExit() flushes any pending write on its way out
+                var defaultSettings = new AppSettingsData();
+                SettingsService.Instance.StatusReadoutEnabled = defaultSettings.StatusReadoutEnabled;
+                SettingsService.Instance.StatusReadoutCollapsed = defaultSettings.StatusReadoutCollapsed;
+                SettingsService.Instance.StatusLhmGroupEnabled = defaultSettings.StatusLhmGroupEnabled;
+                SettingsService.Instance.StatusWindowsGroupEnabled = defaultSettings.StatusWindowsGroupEnabled;
+                SettingsService.Instance.StatusGroupOrder = defaultSettings.StatusGroupOrder;
 
                 RestartApp();
             }

@@ -2,6 +2,7 @@ using Windows.UI;
 
 using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI;
 
 
 namespace FluentSensors.Persistence.Models
@@ -47,6 +48,15 @@ namespace FluentSensors.Persistence.Models
         public bool MinimizeToTray { get; set; } = true;
         public bool HideSensorsCompletely { get; set; } = true;
         public bool StatusReadoutEnabled { get; set; } = true;
+
+        // set by the toggle button in the title bar, which only hides the readout; the setting above is what
+        // switches the whole thing off, that button included
+        public bool StatusReadoutCollapsed { get; set; } = false;
+
+        // which of the two title bar status groups are shown, and which one comes first
+        public bool StatusLhmGroupEnabled { get; set; } = true;
+        public bool StatusWindowsGroupEnabled { get; set; } = true;
+        public StatusGroupOrder StatusGroupOrder { get; set; } = StatusGroupOrder.LhmFirst;
 
         // folder csv recordings are written into; empty means the logger falls back to Documents\FluentSensors,
         // which keeps the default out of the settings file until the user actually picks something

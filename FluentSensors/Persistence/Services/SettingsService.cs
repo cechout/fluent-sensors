@@ -5,6 +5,7 @@ using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
 using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI;
 
 
 namespace FluentSensors.Persistence.Services
@@ -398,7 +399,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // whether the title bar status readout (lhm/windows groups) is toggled on, set from MainWindows toggle button
+        // master on/off for the whole title bar status readout, set from the settings page
         private bool _statusReadoutEnabled = true;
         public bool StatusReadoutEnabled
         {
@@ -408,7 +409,70 @@ namespace FluentSensors.Persistence.Services
                 if (_statusReadoutEnabled != value)
                 {
                     _statusReadoutEnabled = value;
-                    StatusReadoutEnabledChanged?.Invoke(_statusReadoutEnabled);
+                    StatusReadoutChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // whether the readout is currently collapsed by the toggle button in the title bar; that button only hides
+        // what the master switch above allows in the first place
+        private bool _statusReadoutCollapsed = false;
+        public bool StatusReadoutCollapsed
+        {
+            get => _statusReadoutCollapsed;
+            set
+            {
+                if (_statusReadoutCollapsed != value)
+                {
+                    _statusReadoutCollapsed = value;
+                    StatusReadoutChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // which of the two status groups are shown, and which one comes first
+        private bool _statusLhmGroupEnabled = true;
+        public bool StatusLhmGroupEnabled
+        {
+            get => _statusLhmGroupEnabled;
+            set
+            {
+                if (_statusLhmGroupEnabled != value)
+                {
+                    _statusLhmGroupEnabled = value;
+                    StatusReadoutChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _statusWindowsGroupEnabled = true;
+        public bool StatusWindowsGroupEnabled
+        {
+            get => _statusWindowsGroupEnabled;
+            set
+            {
+                if (_statusWindowsGroupEnabled != value)
+                {
+                    _statusWindowsGroupEnabled = value;
+                    StatusReadoutChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private StatusGroupOrder _statusGroupOrder = StatusGroupOrder.LhmFirst;
+        public StatusGroupOrder StatusGroupOrder
+        {
+            get => _statusGroupOrder;
+            set
+            {
+                if (_statusGroupOrder != value)
+                {
+                    _statusGroupOrder = value;
+                    StatusReadoutChanged?.Invoke();
                     SaveDebounced();
                 }
             }
@@ -544,6 +608,10 @@ namespace FluentSensors.Persistence.Services
             _minimizeToTray = data.MinimizeToTray;
             _hideSensorsCompletely = data.HideSensorsCompletely;
             _statusReadoutEnabled = data.StatusReadoutEnabled;
+            _statusReadoutCollapsed = data.StatusReadoutCollapsed;
+            _statusLhmGroupEnabled = data.StatusLhmGroupEnabled;
+            _statusWindowsGroupEnabled = data.StatusWindowsGroupEnabled;
+            _statusGroupOrder = data.StatusGroupOrder;
             _csvLogFolder = data.CsvLogFolder ?? "";
             _csvNumberFormat = data.CsvNumberFormat;
             _csvDecimalPlaces = data.CsvDecimalPlaces;
@@ -587,6 +655,10 @@ namespace FluentSensors.Persistence.Services
                 MinimizeToTray = _minimizeToTray,
                 HideSensorsCompletely = _hideSensorsCompletely,
                 StatusReadoutEnabled = _statusReadoutEnabled,
+                StatusReadoutCollapsed = _statusReadoutCollapsed,
+                StatusLhmGroupEnabled = _statusLhmGroupEnabled,
+                StatusWindowsGroupEnabled = _statusWindowsGroupEnabled,
+                StatusGroupOrder = _statusGroupOrder,
                 CsvLogFolder = _csvLogFolder,
                 CsvNumberFormat = _csvNumberFormat,
                 CsvDecimalPlaces = _csvDecimalPlaces,
@@ -636,6 +708,8 @@ namespace FluentSensors.Persistence.Services
 
         public event Action<bool> MinimizeToTrayChanged;
         public event Action<bool> HideSensorsCompletelyChanged;
-        public event Action<bool> StatusReadoutEnabledChanged;
+        // one event for all five status readout settings; the title bar reads them back as a set, so a single
+        // argument would not cover it
+        public event Action StatusReadoutChanged;
     }
 }

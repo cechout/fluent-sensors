@@ -91,6 +91,14 @@ namespace FluentSensors
         // is started further down, once hardware discovery has actually run
         public AppStatusViewModel AppStatus { get; } = new AppStatusViewModel();
 
+        // title bar columns the two status groups sit in, swapped whenever the configured order changes
+        // the leading group keeps the smaller gap to the toggle button, the trailing one gets the wider gap that
+        // separates the two groups from each other
+        private const int LeadingStatusGroupColumn = 4;
+        private const int TrailingStatusGroupColumn = 5;
+        private static readonly Thickness LeadingStatusGroupMargin = new Thickness(8, 0, 0, 0);
+        private static readonly Thickness TrailingStatusGroupMargin = new Thickness(12, 0, 0, 0);
+
 
         // === constructor ===
 
@@ -148,10 +156,14 @@ namespace FluentSensors
             ApplyTrayIconTheme(SettingsService.Instance.AppTheme);
             ApplyTheme(SettingsService.Instance.AppTheme);
 
+            // title bar status readout; the settings page owns which groups are shown and in which order
+            SettingsService.Instance.StatusReadoutChanged += OnStatusReadoutChanged;
+
             // window lifecycle events
             this.Closed += (s, args) =>
             {
                 SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+                SettingsService.Instance.StatusReadoutChanged -= OnStatusReadoutChanged;
                 CurrentInstance = null;
             };
             ((FrameworkElement)this.Content).Loaded += MainWindow_Loaded;
@@ -340,11 +352,11 @@ namespace FluentSensors
 
         private void AppTitleBar_Loaded(object sender, RoutedEventArgs e)
         {
-            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+            ApplyStatusGroupOrder();
         }
 
-        // feeds AppStatus.HasEnoughWidthForFull, which decides whether the windows group still fits next to the
-        // lhm group; fires on every window resize, see AppStatusViewModel.UpdateVisibility for the combined logic
+        // feeds AppStatus.HasEnoughWidthForFull, which decides whether the trailing group still fits next to the
+        // leading one; fires on every window resize, see AppStatusViewModel.UpdateVisibility for the combined logic
         private void AppTitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             AppStatus.UpdateAvailableWidth(e.NewSize.Width);
@@ -362,7 +374,29 @@ namespace FluentSensors
         // plain Button standing in for a real ToggleButton, see the XAML comment on it for why
         private void StatusToggleButton_Click(object sender, RoutedEventArgs e)
         {
-            AppStatus.IsStatusEnabled = !AppStatus.IsStatusEnabled;
+            AppStatus.IsStatusCollapsed = !AppStatus.IsStatusCollapsed;
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+        }
+
+        // one of the four status readout settings changed in the settings page
+        private void OnStatusReadoutChanged()
+        {
+            AppStatus.RefreshStatusSettings();
+            ApplyStatusGroupOrder();
+        }
+
+        // places both status groups in the columns their configured order asks for, and recomputes the passthrough
+        // rects right after: reordering moves the two info popups, and the toggle button itself disappears once both
+        // groups are switched off
+        private void ApplyStatusGroupOrder()
+        {
+            bool lhmFirst = AppStatus.IsLhmGroupFirst;
+
+            Grid.SetColumn(LhmStatusGroup, lhmFirst ? LeadingStatusGroupColumn : TrailingStatusGroupColumn);
+            Grid.SetColumn(WindowsStatusGroup, lhmFirst ? TrailingStatusGroupColumn : LeadingStatusGroupColumn);
+            LhmStatusGroup.Margin = lhmFirst ? LeadingStatusGroupMargin : TrailingStatusGroupMargin;
+            WindowsStatusGroup.Margin = lhmFirst ? TrailingStatusGroupMargin : LeadingStatusGroupMargin;
+
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
         }
 

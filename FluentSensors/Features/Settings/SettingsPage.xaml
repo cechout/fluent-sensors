@@ -7,7 +7,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
+    Loaded="Page_Loaded"
     NavigationCacheMode="Required"
+    Unloaded="Page_Unloaded"
     mc:Ignorable="d">
 
     <ScrollViewer>
@@ -89,6 +91,49 @@
                     OnContent="On"
                     Toggled="MinimizeToTrayToggle_Toggled" />
             </controls:SettingsCard>
+
+            <!--  title bar status readout  -->
+            <controls:SettingsExpander
+                Description="Which readouts the title bar shows, and in which order"
+                Header="Title Bar Status"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xF138;}"
+                IsExpanded="False">
+
+                <ToggleSwitch
+                    x:Name="StatusReadoutToggle"
+                    OffContent="Off"
+                    OnContent="On"
+                    Toggled="StatusReadoutToggle_Toggled" />
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard x:Name="StatusLhmGroupCard" Header="Sensor Status">
+                        <ToggleSwitch
+                            x:Name="StatusLhmGroupToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="StatusLhmGroupToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Name="StatusWindowsGroupCard" Header="App Resources">
+                        <ToggleSwitch
+                            x:Name="StatusWindowsGroupToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="StatusWindowsGroupToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <!--  (stays disabled until both readouts above are on, there is nothing to order otherwise)  -->
+                    <controls:SettingsCard x:Name="StatusGroupOrderCard" Header="Order">
+                        <ComboBox
+                            x:Name="StatusGroupOrderComboBox"
+                            Width="190"
+                            SelectionChanged="StatusGroupOrderComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Sensor status first" Tag="LhmFirst" />
+                            <ComboBoxItem Content="App resources first" Tag="WindowsFirst" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
 
 
             <!--  widget window settings  -->
@@ -475,7 +520,7 @@
                         <Button Click="ResetGeneralSettings_Click" Content="Reset" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="Position and size of all windows, hardware page sensor selection" Header="Window and Page States">
+                    <controls:SettingsCard Description="Position and size of all windows, title bar status readout, hardware page sensor selection" Header="Window and Page States">
                         <Button Click="ResetWindowAndPageStates_Click" Content="Reset" />
                     </controls:SettingsCard>
 
