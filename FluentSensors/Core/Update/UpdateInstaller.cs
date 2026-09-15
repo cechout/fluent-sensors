@@ -97,9 +97,10 @@ namespace FluentSensors.Core.Update
                 FileName = "powershell",
                 UseShellExecute = false,
 
-                // the extraction takes a while with nothing else on screen once the app is gone, so the portable
-                // path keeps its console visible; the installer shows its own progress window instead
-                CreateNoWindow = !portable,
+                // no console at any point; the installer path shows innos own progress window instead, and the
+                // portable path is silent between the app closing and reopening, which is why the extraction below
+                // avoids the slow cmdlet
+                CreateNoWindow = true,
                 WorkingDirectory = DownloadFolder
             };
 
@@ -126,6 +127,10 @@ namespace FluentSensors.Core.Update
         // the zip carries a single top level folder because the release workflow compresses the staging directory
         // itself rather than its contents, so the copy has to come out of that inner folder
         //
+        // ExtractToDirectory rather than Expand-Archive: the cmdlet is very slow across the roughly one thousand
+        // files of a publish output, and nothing is on screen while it runs, so every second of it reads as a
+        // crashed app to whoever is waiting
+        //
         // every path is single quoted with embedded quotes doubled, and the exe is relaunched from finally so a
         // half-failed copy still leaves the user with a running app rather than nothing
         private static string BuildPortableScript(string zipPath, string appFolder, string exePath)
@@ -136,7 +141,8 @@ namespace FluentSensors.Core.Update
                    "try { " +
                    "Wait-Process -Name 'FluentSensors' -ErrorAction SilentlyContinue; " +
                    $"if (Test-Path -LiteralPath {Quote(extractPath)}) {{ Remove-Item -LiteralPath {Quote(extractPath)} -Recurse -Force }}; " +
-                   $"Expand-Archive -LiteralPath {Quote(zipPath)} -DestinationPath {Quote(extractPath)} -Force; " +
+                   "Add-Type -AssemblyName System.IO.Compression.FileSystem; " +
+                   $"[System.IO.Compression.ZipFile]::ExtractToDirectory({Quote(zipPath)}, {Quote(extractPath)}); " +
                    $"$inner = Get-ChildItem -LiteralPath {Quote(extractPath)} -Directory | Select-Object -First 1; " +
                    $"$source = if ($inner) {{ $inner.FullName }} else {{ {Quote(extractPath)} }}; " +
                    $"Copy-Item -Path (Join-Path $source '*') -Destination {Quote(appFolder)} -Recurse -Force; " +

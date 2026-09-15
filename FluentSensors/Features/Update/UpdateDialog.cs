@@ -80,11 +80,14 @@ namespace FluentSensors.Features.Update
                 progress.Visibility = downloading ? Visibility.Visible : Visibility.Collapsed;
             }
 
+            // deliberately no GetDeferral(): a pending button-click deferral holds the dialog in a state where it
+            // ignores every further button press, which silently swallowed the cancel button for the whole download
+            // there is nothing to defer here anyway, since Cancel=true means the dialog is not closing in the first
+            // place; everything below the first await simply runs on while the dialog stays interactive
             dialog.PrimaryButtonClick += async (_, args) =>
             {
                 // the dialog stays on screen and turns into the progress readout instead of closing
                 args.Cancel = true;
-                var deferral = args.GetDeferral();
 
                 downloadCts = new CancellationTokenSource();
                 SetDownloading(true);
@@ -95,7 +98,6 @@ namespace FluentSensors.Features.Update
 
                 downloadCts.Dispose();
                 downloadCts = null;
-                deferral.Complete();
 
                 if (handedOver)
                 {
