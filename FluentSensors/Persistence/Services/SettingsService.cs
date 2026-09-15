@@ -384,6 +384,69 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // --- startup settings ---
+
+        // none of these four fire a change event; three are read once while the app starts and the two autostart
+        // ones are written straight into the task scheduler by the settings page, so there is nothing to notify
+
+        // mirrors whether the scheduled task exists, see WinAutostartService for why the task and not this is the
+        // authority on it
+        private bool _runOnStartup;
+        public bool RunOnStartup
+        {
+            get => _runOnStartup;
+            set
+            {
+                if (_runOnStartup != value)
+                {
+                    _runOnStartup = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _delayStartup;
+        public bool DelayStartup
+        {
+            get => _delayStartup;
+            set
+            {
+                if (_delayStartup != value)
+                {
+                    _delayStartup = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _startMinimizedToTray;
+        public bool StartMinimizedToTray
+        {
+            get => _startMinimizedToTray;
+            set
+            {
+                if (_startMinimizedToTray != value)
+                {
+                    _startMinimizedToTray = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _checkUpdatesOnStartup = true;
+        public bool CheckUpdatesOnStartup
+        {
+            get => _checkUpdatesOnStartup;
+            set
+            {
+                if (_checkUpdatesOnStartup != value)
+                {
+                    _checkUpdatesOnStartup = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         private bool _hideSensorsCompletely = true;
         public bool HideSensorsCompletely
         {
@@ -606,6 +669,10 @@ namespace FluentSensors.Persistence.Services
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
 
             _minimizeToTray = data.MinimizeToTray;
+            _runOnStartup = data.RunOnStartup;
+            _delayStartup = data.DelayStartup;
+            _startMinimizedToTray = data.StartMinimizedToTray;
+            _checkUpdatesOnStartup = data.CheckUpdatesOnStartup;
             _hideSensorsCompletely = data.HideSensorsCompletely;
             _statusReadoutEnabled = data.StatusReadoutEnabled;
             _statusReadoutCollapsed = data.StatusReadoutCollapsed;
@@ -653,6 +720,10 @@ namespace FluentSensors.Persistence.Services
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
 
                 MinimizeToTray = _minimizeToTray,
+                RunOnStartup = _runOnStartup,
+                DelayStartup = _delayStartup,
+                StartMinimizedToTray = _startMinimizedToTray,
+                CheckUpdatesOnStartup = _checkUpdatesOnStartup,
                 HideSensorsCompletely = _hideSensorsCompletely,
                 StatusReadoutEnabled = _statusReadoutEnabled,
                 StatusReadoutCollapsed = _statusReadoutCollapsed,

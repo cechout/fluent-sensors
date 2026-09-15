@@ -46,6 +46,16 @@ namespace FluentSensors.Persistence.Models
         public bool TaskbarWidgetPositionLocked { get; set; } = false;
 
         public bool MinimizeToTray { get; set; } = true;
+
+        // startup behaviour
+        // RunOnStartup and DelayStartup mirror the scheduled task; the task itself is the truth, these two only
+        // remember what the settings page should show while it is being built
+        public bool RunOnStartup { get; set; } = false;
+        public bool DelayStartup { get; set; } = false;
+        public bool StartMinimizedToTray { get; set; } = false;
+
+        // on by default; a user who does not want the app reaching out on every launch turns it off here
+        public bool CheckUpdatesOnStartup { get; set; } = true;
         public bool HideSensorsCompletely { get; set; } = true;
         public bool StatusReadoutEnabled { get; set; } = true;
 
