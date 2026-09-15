@@ -1,4 +1,4 @@
-using Microsoft.UI.Windowing;
+﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -19,6 +19,7 @@ using FluentSensors.Features.AppStatus;
 using FluentSensors.Features.CsvLogging;
 using FluentSensors.Features.Performance;
 using FluentSensors.Features.Sensors;
+using FluentSensors.Features.Start;
 using FluentSensors.Features.Settings;
 using FluentSensors.Features.Update;
 using FluentSensors.Features.Widget;
@@ -206,17 +207,17 @@ namespace FluentSensors
             ShowMainWindowCommand.ExecuteRequested += (s, e) =>
             {
                 RestoreApp();
-                MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
+                MainNavigationView.SelectedItem = SensorsNavItem;
             };
             OpenPerformanceCommand.ExecuteRequested += (s, e) =>
             {
                 RestoreApp();
-                MainNavigationView.SelectedItem = MainNavigationView.MenuItems[1];
+                MainNavigationView.SelectedItem = PerformanceNavItem;
             };
             OpenSettingsCommand.ExecuteRequested += (s, e) =>
             {
                 RestoreApp();
-                MainNavigationView.SelectedItem = MainNavigationView.FooterMenuItems[0];
+                MainNavigationView.SelectedItem = SettingsNavItem;
             };
             ShowWidgetWindowCommand.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen();
             ShowCsvWindowCommand.ExecuteRequested += (s, e) => CsvLoggerWindow.RestoreIfOpen();
@@ -334,7 +335,9 @@ namespace FluentSensors
             SplashOverlay.Visibility = Visibility.Collapsed;
             AppStatus.IsAppReady = true;
             AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;
-            MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
+            // a profile request that came in during the splash outranks the configured startup page: that click
+            // was explicitly about the sensor list, and the block below needs the page it asks for
+            MainNavigationView.SelectedItem = _pendingSensorProfile != null ? SensorsNavItem : StartupNavItem();
 
             // a profile request that arrived before the page existed; the selection above is what finally creates it
             if (_pendingSensorProfile is SensorSelectionProfile pendingProfile
@@ -555,6 +558,14 @@ namespace FluentSensors
 
         // === navigation ===
 
+        // where a launch lands, per the settings page; the start page is the default entry point
+        private NavigationViewItem StartupNavItem() => SettingsService.Instance.StartupPage switch
+        {
+            Common.UI.StartupPage.Sensors => SensorsNavItem,
+            Common.UI.StartupPage.Performance => PerformanceNavItem,
+            _ => StartNavItem
+        };
+
         private void MainNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             // checks if native settings item got clicked
@@ -569,6 +580,10 @@ namespace FluentSensors
                 string pageTag = selectedItem.Tag.ToString();
                 switch (pageTag)
                 {
+                    case "Start":
+                        contentFrame.Navigate(typeof(StartPage));
+                        break;
+
                     case "Sensors":
                         contentFrame.Navigate(typeof(SensorsPage));
                         break;
@@ -742,7 +757,7 @@ namespace FluentSensors
 
             // NavigationView raises SelectionChanged only on an actual change, so re-selecting the already active
             // sensor item would never navigate; the profile below is applied either way
-            var sensorsItem = MainNavigationView.MenuItems[0];
+            var sensorsItem = SensorsNavItem;
             if (!ReferenceEquals(MainNavigationView.SelectedItem, sensorsItem))
             {
                 MainNavigationView.SelectedItem = sensorsItem;

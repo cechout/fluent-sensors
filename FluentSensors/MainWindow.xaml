@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Window
     x:Class="FluentSensors.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -255,17 +255,34 @@
             PaneDisplayMode="Left"
             SelectionChanged="MainNavigationView_SelectionChanged">
 
+            <!--  every item carries an x:Name, the code behind addresses them by name rather than by index  -->
             <NavigationView.MenuItems>
 
+                <!--  start page  -->
+                <NavigationViewItem
+                    x:Name="StartNavItem"
+                    Content="Start"
+                    Tag="Start">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE80F;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
                 <!--  sensor page  -->
-                <NavigationViewItem Content="Sensors" Tag="Sensors">
+                <NavigationViewItem
+                    x:Name="SensorsNavItem"
+                    Content="Sensors"
+                    Tag="Sensors">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xECAA;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
                 <!--  performance page  -->
-                <NavigationViewItem Content="Hardware View" Tag="Performance">
+                <NavigationViewItem
+                    x:Name="PerformanceNavItem"
+                    Content="Hardware View"
+                    Tag="Performance">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE9D9;" />
                     </NavigationViewItem.Icon>
@@ -275,7 +292,10 @@
             <NavigationView.FooterMenuItems>
 
                 <!--  settings page  -->
-                <NavigationViewItem Content="Settings" Tag="Settings">
+                <NavigationViewItem
+                    x:Name="SettingsNavItem"
+                    Content="Settings"
+                    Tag="Settings">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE713;" />
                     </NavigationViewItem.Icon>

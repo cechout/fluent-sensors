@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="FluentSensors.Features.Settings.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -128,6 +128,18 @@
                             OffContent="Off"
                             OnContent="On"
                             Toggled="StartMinimizedToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <!--  (the labels mirror the navigation entries, so both name the same page)  -->
+                    <controls:SettingsCard x:Name="StartupPageCard" Header="Page shown on launch">
+                        <ComboBox
+                            x:Name="StartupPageComboBox"
+                            Width="190"
+                            SelectionChanged="StartupPageComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Start" Tag="Start" />
+                            <ComboBoxItem Content="Sensors" Tag="Sensors" />
+                            <ComboBoxItem Content="Hardware View" Tag="Performance" />
+                        </ComboBox>
                     </controls:SettingsCard>
 
                     <controls:SettingsCard x:Name="CheckUpdatesCard" Header="Check for updates on startup">

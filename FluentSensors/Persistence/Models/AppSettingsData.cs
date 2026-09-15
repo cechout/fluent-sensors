@@ -1,4 +1,4 @@
-using Windows.UI;
+﻿using Windows.UI;
 
 using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
@@ -53,6 +53,9 @@ namespace FluentSensors.Persistence.Models
         public bool RunOnStartup { get; set; } = false;
         public bool DelayStartup { get; set; } = false;
         public bool StartMinimizedToTray { get; set; } = false;
+
+        // which page a launch lands on; read once at startup, so changing it takes effect on the next start
+        public StartupPage StartupPage { get; set; } = StartupPage.Start;
 
         // on by default; a user who does not want the app reaching out on every launch turns it off here
         public bool CheckUpdatesOnStartup { get; set; } = true;

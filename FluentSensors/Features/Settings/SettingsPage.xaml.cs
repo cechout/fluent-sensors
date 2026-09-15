@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Diagnostics;
@@ -207,6 +207,17 @@ namespace FluentSensors.Features.Settings
             StartMinimizedToggle.IsOn = settings.StartMinimizedToTray;
             CheckUpdatesToggle.IsOn = settings.CheckUpdatesOnStartup;
 
+            // deliberately above the two early returns below, the landing page is not tied to autostart at all
+            string currentStartupPage = settings.StartupPage.ToString();
+            foreach (ComboBoxItem item in StartupPageComboBox.Items)
+            {
+                if (item.Tag?.ToString() == currentStartupPage)
+                {
+                    StartupPageComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
             if (!AppDistribution.SupportsSelfUpdate)
             {
                 CheckUpdatesCard.Description = "Installed from Microsoft Store, updates are handled by the Store";
@@ -329,6 +340,18 @@ namespace FluentSensors.Features.Settings
             _isWritingStatusReadout = false;
 
             UpdateStatusReadoutCardStates();
+        }
+
+        // takes effect on the next launch, MainWindow reads the setting once during the splash reveal
+        private void StartupPageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (StartupPageComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out StartupPage page))
+            {
+                SettingsService.Instance.StartupPage = page;
+            }
         }
 
         private void StatusGroupOrderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
