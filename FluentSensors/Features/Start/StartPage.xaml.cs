@@ -11,6 +11,12 @@ namespace FluentSensors.Features.Start
     // which page a launch actually lands on is a setting, see StartupPage and MainWindows splash reveal
     public sealed partial class StartPage : Page
     {
+        // === fields ===
+
+        // assigned before InitializeComponent runs, which is what the x:Bind expressions below need
+        public StartViewModel ViewModel { get; } = new StartViewModel();
+
+
         // === constructor ===
 
         public StartPage()

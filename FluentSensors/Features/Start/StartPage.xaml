@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:FluentSensors.Features.Start"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
     NavigationCacheMode="Required"
@@ -33,6 +34,75 @@
                     IsTextSelectionEnabled="True"
                     Style="{ThemeResource BodyTextBlockStyle}" />
             </StackPanel>
+
+
+            <!--  system snapshot  -->
+            <!--
+                static machine facts, built once in the view model; the icon, colour and category label per row
+                come from HardwareGroupInfo, the same profile the sensor list and the hardware view use
+            -->
+            <TextBlock
+                Margin="4,8,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="System" />
+
+            <Border
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{ThemeResource ControlCornerRadius}">
+
+                <ItemsControl Padding="4,8" ItemsSource="{x:Bind ViewModel.SystemSnapshot}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="local:SystemSnapshotEntry">
+
+                            <Grid Padding="12,8" ColumnSpacing="14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <FontIcon
+                                    Grid.Column="0"
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Top"
+                                    FontSize="20"
+                                    Foreground="{x:Bind IconBrush}"
+                                    Glyph="{x:Bind IconGlyph}" />
+
+                                <StackPanel Grid.Column="1" Spacing="1">
+                                    <TextBlock
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind Category}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind Title}"
+                                        TextWrapping="Wrap" />
+
+                                    <!--  the facts themselves, wrapped so a narrow window reflows instead of clipping  -->
+                                    <ItemsControl Margin="0,3,0,0" ItemsSource="{x:Bind Details}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <controls:WrapPanel HorizontalSpacing="14" VerticalSpacing="2" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="x:String">
+                                                <TextBlock
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                                    Text="{x:Bind}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Grid>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
 
         </StackPanel>
     </ScrollViewer>
