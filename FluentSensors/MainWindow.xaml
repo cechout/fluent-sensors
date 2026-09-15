@@ -351,7 +351,10 @@
                         Command="{x:Bind ShowWidgetWindowCommand}"
                         KeyboardAcceleratorTextOverride="Single Click"
                         Text="Widget Window" />
-                    <MenuFlyoutItem Command="{x:Bind ShowCsvWindowCommand}" Text="CSV Window" />
+                    <MenuFlyoutItem
+                        Command="{x:Bind ShowCsvWindowCommand}"
+                        KeyboardAcceleratorTextOverride="Single Click"
+                        Text="CSV Window" />
                     <MenuFlyoutItem
                         Command="{x:Bind TrayDoubleClickCommand}"
                         KeyboardAcceleratorTextOverride="Double Click"

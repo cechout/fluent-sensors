@@ -90,7 +90,7 @@ namespace FluentSensors
         public XamlUICommand ShowWidgetWindowCommand { get; } = new XamlUICommand(); // tray menu, restores the widget only
         public XamlUICommand ShowCsvWindowCommand { get; } = new XamlUICommand(); // tray menu, restores the csv logger only
         public XamlUICommand ExitAppCommand { get; } = new XamlUICommand();
-        public XamlUICommand TrayLeftClickCommand { get; } = new XamlUICommand(); // tray single click, restores widget only
+        public XamlUICommand TrayLeftClickCommand { get; } = new XamlUICommand(); // tray single click, restores every open readout window
         public XamlUICommand TrayDoubleClickCommand { get; } = new XamlUICommand(); // tray double click, restores main window only
 
         // backs the title bar status readout (sensors found/rendering, CPU/RAM/handles); AppStatusService itself
@@ -218,7 +218,14 @@ namespace FluentSensors
             };
             ShowWidgetWindowCommand.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen();
             ShowCsvWindowCommand.ExecuteRequested += (s, e) => CsvLoggerWindow.RestoreIfOpen();
-            TrayLeftClickCommand.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen();
+
+            // both restores are no-ops while their window is closed, so one click brings back whatever happens to
+            // be open: the widget, the logger, both of them, or nothing at all
+            TrayLeftClickCommand.ExecuteRequested += (s, e) =>
+            {
+                WidgetWindow.RestoreIfOpen();
+                CsvLoggerWindow.RestoreIfOpen();
+            };
             TrayDoubleClickCommand.ExecuteRequested += (s, e) => OpenDashboard();
             ExitAppCommand.ExecuteRequested += (s, e) => QuitAppNow(); // tray menu "Exit"
 
