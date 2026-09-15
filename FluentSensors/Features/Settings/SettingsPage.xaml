@@ -542,34 +542,12 @@
                 Header="Fluent Sensors"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE946;}">
 
-                <StackPanel
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="10">
-                    <TextBlock
-                        x:Name="VersionTextBlock"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        IsTextSelectionEnabled="True" />
-
-                    <!--  update pill  -->
-                    <!--  (same entry point as the one in the title bar, shown only while an update is pending)  -->
-                    <Button
-                        x:Name="UpdatePillButton"
-                        VerticalAlignment="Center"
-                        Click="UpdatePillButton_Click"
-                        Style="{StaticResource AccentButtonStyle}"
-                        Visibility="Collapsed" />
-                </StackPanel>
+                <TextBlock
+                    x:Name="VersionTextBlock"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    IsTextSelectionEnabled="True" />
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard x:Name="UpdatesCard" Header="Updates">
-                        <Button
-                            x:Name="CheckForUpdatesButton"
-                            Click="CheckForUpdatesButton_Click"
-                            Content="Check for updates" />
-                    </controls:SettingsCard>
-
                     <controls:SettingsCard Header="Developer Profile">
                         <HyperlinkButton Content="Github" NavigateUri="https://github.com/cechout" />
                     </controls:SettingsCard>

@@ -87,7 +87,6 @@
                 Padding="8,0"
                 VerticalAlignment="Center"
                 Click="UpdateButton_Click"
-                CornerRadius="11"
                 Style="{StaticResource AccentButtonStyle}"
                 Visibility="{x:Bind BoolToVisibility(AppStatus.IsUpdateAvailable), Mode=OneWay}">
                 <StackPanel Orientation="Horizontal" Spacing="6">

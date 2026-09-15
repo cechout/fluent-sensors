@@ -51,19 +51,29 @@ namespace FluentSensors.Core.Update
             long total = response.Content.Headers.ContentLength ?? info.AssetSize;
             long received = 0;
 
-            using (var source = await response.Content.ReadAsStreamAsync(ct))
-            using (var target = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true))
+            try
             {
-                byte[] buffer = new byte[81920];
-                int read;
-
-                while ((read = await source.ReadAsync(buffer, ct)) > 0)
+                using (var source = await response.Content.ReadAsStreamAsync(ct))
+                using (var target = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true))
                 {
-                    await target.WriteAsync(buffer.AsMemory(0, read), ct);
-                    received += read;
+                    byte[] buffer = new byte[81920];
+                    int read;
 
-                    if (total > 0) progress?.Report((double)received / total);
+                    while ((read = await source.ReadAsync(buffer, ct)) > 0)
+                    {
+                        await target.WriteAsync(buffer.AsMemory(0, read), ct);
+                        received += read;
+
+                        if (total > 0) progress?.Report((double)received / total);
+                    }
                 }
+            }
+            catch
+            {
+                // a cancelled or failed transfer leaves a partial file of up to a hundred megabytes sitting in
+                // %TEMP% until Windows gets around to it
+                TryDeletePartial(targetPath);
+                throw;
             }
 
             return targetPath;
@@ -150,6 +160,15 @@ namespace FluentSensors.Core.Update
                    "} " +
                    $"catch {{ Start-Process explorer.exe {Quote(DownloadFolder)} }} " +
                    $"finally {{ Start-Process -FilePath {Quote(exePath)} }}";
+        }
+
+        private static void TryDeletePartial(string path)
+        {
+            try
+            {
+                if (File.Exists(path)) File.Delete(path);
+            }
+            catch { /* still locked or already gone; the next attempt truncates it anyway */ }
         }
 
         private static string Quote(string value) => "'" + value.Replace("'", "''") + "'";

@@ -93,8 +93,10 @@ namespace FluentSensors.Core.Update
             _ = CheckAsync(ignoreSkippedVersion: false);
         }
 
-        // ignoreSkippedVersion is what separates the two callers: the startup check stays quiet about a version the
-        // user explicitly skipped, the settings page button is an explicit ask and reports it anyway
+        // ignoreSkippedVersion separates an automatic check from an explicitly asked for one: the startup check
+        // stays quiet about a version the user skipped, an explicit ask reports it anyway
+        // nothing passes true right now; it is the seam the planned start page hooks into, which is meant to reach
+        // this dialog again after the pill was dismissed
         public async Task<UpdateCheckResult> CheckAsync(bool ignoreSkippedVersion)
         {
             if (!AppDistribution.SupportsSelfUpdate) return UpdateCheckResult.UpToDate;
