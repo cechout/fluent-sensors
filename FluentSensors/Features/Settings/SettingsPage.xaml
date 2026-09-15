@@ -104,10 +104,7 @@
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard
-                        x:Name="RunOnStartupCard"
-                        Description="Signs the app in with Windows, already elevated"
-                        Header="Run on startup">
+                    <controls:SettingsCard x:Name="RunOnStartupCard" Header="Run on startup">
                         <ToggleSwitch
                             x:Name="RunOnStartupToggle"
                             OffContent="Off"
@@ -116,10 +113,7 @@
                     </controls:SettingsCard>
 
                     <!--  (stays disabled while autostart is off, there is nothing to delay then)  -->
-                    <controls:SettingsCard
-                        x:Name="DelayStartupCard"
-                        Description="Waits 30 seconds after sign-in so sensor discovery does not compete with the boot"
-                        Header="Delay start">
+                    <controls:SettingsCard x:Name="DelayStartupCard" Header="Delay start">
                         <ToggleSwitch
                             x:Name="DelayStartupToggle"
                             OffContent="Off"
@@ -128,10 +122,7 @@
                     </controls:SettingsCard>
 
                     <!--  (applies to the sign-in launch only, opening the app yourself always shows the window)  -->
-                    <controls:SettingsCard
-                        x:Name="StartMinimizedCard"
-                        Description="Goes straight to the system tray when Windows starts the app, not when you open it yourself"
-                        Header="Start minimized to tray">
+                    <controls:SettingsCard x:Name="StartMinimizedCard" Header="Start minimized to tray">
                         <ToggleSwitch
                             x:Name="StartMinimizedToggle"
                             OffContent="Off"
@@ -139,10 +130,7 @@
                             Toggled="StartMinimizedToggle_Toggled" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard
-                        x:Name="CheckUpdatesCard"
-                        Description="Asks GitHub once per launch whether a newer release exists"
-                        Header="Check for updates on startup">
+                    <controls:SettingsCard x:Name="CheckUpdatesCard" Header="Check for updates on startup">
                         <ToggleSwitch
                             x:Name="CheckUpdatesToggle"
                             OffContent="Off"
