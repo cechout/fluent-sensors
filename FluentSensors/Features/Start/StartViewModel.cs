@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using Windows.UI;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Core;
 using FluentSensors.Core.Lhm;
 using FluentSensors.Core.StaticInfo;
 using FluentSensors.Core.Update;
@@ -45,6 +46,10 @@ namespace FluentSensors.Features.Start
         private string _releaseNotesSubtitle = "";
         private bool _isUpdateChecking;
         private bool _isUpdateActionEnabled = true;
+
+        private string _sensorsTileValue = "-";
+        private string _cpuTileValue = "-";
+        private string _ramTileValue = "-";
 
 
         // === constructor ===
@@ -103,6 +108,38 @@ namespace FluentSensors.Features.Start
         {
             get => _isUpdateActionEnabled;
             private set { _isUpdateActionEnabled = value; OnPropertyChanged(); }
+        }
+
+
+        // how many sensors LHM found against how many are actually drawing right now
+        public string SensorsTileValue
+        {
+            get => _sensorsTileValue;
+            private set { _sensorsTileValue = value; OnPropertyChanged(); }
+        }
+
+        public string CpuTileValue
+        {
+            get => _cpuTileValue;
+            private set { _cpuTileValue = value; OnPropertyChanged(); }
+        }
+
+        public string RamTileValue
+        {
+            get => _ramTileValue;
+            private set { _ramTileValue = value; OnPropertyChanged(); }
+        }
+
+
+        // === live app status ===
+
+        // fed from AppStatusService, the same snapshot the title bar readout already runs on, so both always
+        // agree; the service raises it from the UI thread, so nothing is dispatched here
+        public void ApplyStatus(AppStatusData data)
+        {
+            SensorsTileValue = $"{data.SensorsFound} found / {data.SensorsRendered} rendering";
+            CpuTileValue = $"{data.CpuUsagePercent:0.0} %";
+            RamTileValue = $"{data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
         }
 
 

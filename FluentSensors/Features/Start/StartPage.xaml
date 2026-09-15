@@ -214,6 +214,250 @@
                 </ItemsControl>
             </Border>
 
+
+            <!--  this apps own live status  -->
+            <!--
+                fed by AppStatusService, the same snapshot the title bar readout runs on, so the two always agree
+                deliberately just three numbers for now
+            -->
+            <TextBlock
+                Margin="4,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="App Status" />
+
+            <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8">
+
+                <Border
+                    MinWidth="185"
+                    Padding="14,10"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}">
+                    <StackPanel Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Sensors" />
+                        <TextBlock
+                            Style="{ThemeResource BodyStrongTextBlockStyle}"
+                            Text="{x:Bind ViewModel.SensorsTileValue, Mode=OneWay}"
+                            Typography.NumeralAlignment="Tabular" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    MinWidth="140"
+                    Padding="14,10"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}">
+                    <StackPanel Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="CPU usage" />
+                        <TextBlock
+                            Style="{ThemeResource BodyStrongTextBlockStyle}"
+                            Text="{x:Bind ViewModel.CpuTileValue, Mode=OneWay}"
+                            Typography.NumeralAlignment="Tabular" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    MinWidth="140"
+                    Padding="14,10"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}">
+                    <StackPanel Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="RAM usage" />
+                        <TextBlock
+                            Style="{ThemeResource BodyStrongTextBlockStyle}"
+                            Text="{x:Bind ViewModel.RamTileValue, Mode=OneWay}"
+                            Typography.NumeralAlignment="Tabular" />
+                    </StackPanel>
+                </Border>
+            </controls:WrapPanel>
+
+
+            <!--  links out of the app  -->
+            <!--  one shared Click handler, each button carries its own target in Tag  -->
+            <TextBlock
+                Margin="4,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="Links" />
+
+            <controls:WrapPanel HorizontalSpacing="4" VerticalSpacing="4">
+
+                <Button
+                    Height="58"
+                    Padding="16,6"
+                    Click="OpenLink_Click"
+                    Style="{ThemeResource SubtleButtonStyle}"
+                    Tag="https://github.com/cechout/fluent-sensors">
+                    <StackPanel HorizontalAlignment="Center" Spacing="4">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            FontSize="16"
+                            Glyph="&#xE8A5;" />
+                        <TextBlock Style="{ThemeResource CaptionTextBlockStyle}" Text="Documentation" />
+                    </StackPanel>
+                </Button>
+
+                <Button
+                    Height="58"
+                    Padding="16,6"
+                    Click="OpenLink_Click"
+                    Style="{ThemeResource SubtleButtonStyle}"
+                    Tag="https://github.com/cechout/fluent-sensors/issues/new">
+                    <StackPanel HorizontalAlignment="Center" Spacing="4">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            FontSize="16"
+                            Glyph="&#xEBE8;" />
+                        <TextBlock Style="{ThemeResource CaptionTextBlockStyle}" Text="Report a bug" />
+                    </StackPanel>
+                </Button>
+
+                <Button
+                    Height="58"
+                    Padding="16,6"
+                    Click="OpenLink_Click"
+                    Style="{ThemeResource SubtleButtonStyle}"
+                    Tag="https://github.com/cechout/fluent-sensors/releases">
+                    <StackPanel HorizontalAlignment="Center" Spacing="4">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            FontSize="16"
+                            Glyph="&#xE7B8;" />
+                        <TextBlock Style="{ThemeResource CaptionTextBlockStyle}" Text="All releases" />
+                    </StackPanel>
+                </Button>
+
+                <!--  the folder holding the settings json files, which differs in a portable build  -->
+                <Button
+                    Height="58"
+                    Padding="16,6"
+                    Click="OpenAppDataFolder_Click"
+                    Style="{ThemeResource SubtleButtonStyle}">
+                    <StackPanel HorizontalAlignment="Center" Spacing="4">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            FontSize="16"
+                            Glyph="&#xE838;" />
+                        <TextBlock Style="{ThemeResource CaptionTextBlockStyle}" Text="App data folder" />
+                    </StackPanel>
+                </Button>
+            </controls:WrapPanel>
+
+
+            <!--  support  -->
+            <TextBlock
+                Margin="4,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="Support the Project" />
+
+            <controls:WrapPanel HorizontalSpacing="4" VerticalSpacing="4">
+
+                <Button
+                    Padding="14,8"
+                    Click="OpenLink_Click"
+                    Style="{ThemeResource SubtleButtonStyle}"
+                    Tag="https://github.com/sponsors/cechout">
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Spacing="8">
+                        <FontIcon
+                            VerticalAlignment="Center"
+                            FontSize="15"
+                            Glyph="&#xEB51;" />
+                        <TextBlock VerticalAlignment="Center" Text="Sponsor on GitHub" />
+                    </StackPanel>
+                </Button>
+
+                <Button
+                    Padding="14,8"
+                    Click="OpenLink_Click"
+                    Style="{ThemeResource SubtleButtonStyle}"
+                    Tag="https://github.com/cechout/fluent-sensors">
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Spacing="8">
+                        <FontIcon
+                            VerticalAlignment="Center"
+                            FontSize="15"
+                            Glyph="&#xE734;" />
+                        <TextBlock VerticalAlignment="Center" Text="Star on GitHub" />
+                    </StackPanel>
+                </Button>
+            </controls:WrapPanel>
+
+
+            <!--  about section  -->
+            <TextBlock
+                Margin="4,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="About &amp; Open Source" />
+
+            <controls:SettingsExpander
+                Description="© 2026 Daniel Čech. All rights reserved."
+                Header="Fluent Sensors"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE946;}">
+
+                <TextBlock
+                    x:Name="AboutVersionTextBlock"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    IsTextSelectionEnabled="True" />
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Header="Developer Profile">
+                        <HyperlinkButton Content="Github" NavigateUri="https://github.com/cechout" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Project Repository">
+                        <HyperlinkButton Content="Github" NavigateUri="https://github.com/cechout/fluent-sensors" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+            <controls:SettingsExpander
+                Description="Open source projects used in this app"
+                Header="Third-Party Libraries"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE8F1;}">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Header="Windows App SDK">
+                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/microsoft/WindowsAppSDK" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Header="Windows Community Toolkit">
+                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/CommunityToolkit/WindowsCommunityToolkit" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Header="WinUIEx">
+                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/dotMorten/WinUIEx" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Header="LiveCharts2">
+                        <HyperlinkButton Content="Website" NavigateUri="https://livecharts.dev/" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Header="LibreHardwareMonitor">
+                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Header="H.NotifyIcon">
+                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/HavenDV/H.NotifyIcon" />
+                    </controls:SettingsCard>
+
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
         </StackPanel>
     </ScrollViewer>
 </Page>

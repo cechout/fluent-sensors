@@ -1,7 +1,9 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
+using FluentSensors.Core;
 using FluentSensors.Core.Update;
 using FluentSensors.Features.Update;
 using FluentSensors.Persistence.Services;
@@ -28,6 +30,7 @@ namespace FluentSensors.Features.Start
             this.InitializeComponent();
 
             VersionTextBlock.Text = UpdateService.CurrentVersion;
+            AboutVersionTextBlock.Text = $"Version {UpdateService.CurrentVersion}";
         }
 
 
@@ -39,6 +42,7 @@ namespace FluentSensors.Features.Start
         {
             UpdateService.Instance.UpdateStateChanged += OnUpdateStateChanged;
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
+            AppStatusService.Instance.StatusUpdated += OnStatusUpdated;
 
             // whatever happened while the page was not listening
             ViewModel.RefreshUpdateState();
@@ -48,6 +52,7 @@ namespace FluentSensors.Features.Start
         {
             UpdateService.Instance.UpdateStateChanged -= OnUpdateStateChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+            AppStatusService.Instance.StatusUpdated -= OnStatusUpdated;
         }
 
         // UpdateService already raises this from the UI thread, so there is nothing to dispatch here
@@ -56,6 +61,9 @@ namespace FluentSensors.Features.Start
         // the badge colour is a plain brush rather than a theme resource, so it has to be rebuilt by hand when
         // the theme moves
         private void OnThemeChanged(string theme) => ViewModel.RefreshUpdateState();
+
+        // AppStatusService fires from the UI thread as well, see its own Tick
+        private void OnStatusUpdated(AppStatusData data) => ViewModel.ApplyStatus(data);
 
 
         // === user interaction ===
@@ -98,6 +106,30 @@ namespace FluentSensors.Features.Start
             if (info == null) return;
 
             await UpdateDialog.ShowAsync(this.XamlRoot, info);
+        }
+
+        private void OpenLink_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element && element.Tag is string url) OpenPath(url);
+        }
+
+        // the settings json files live somewhere else in a portable build, so the path is asked for rather than
+        // assumed
+        private void OpenAppDataFolder_Click(object sender, RoutedEventArgs e)
+        {
+            OpenPath(PersistenceService.Instance.RootFolder);
+        }
+
+        // a web link and a local folder both go through the shell the same way
+        private static void OpenPath(string target)
+        {
+            if (string.IsNullOrWhiteSpace(target)) return;
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
+            }
+            catch { /* no browser or explorer reachable, and this page has nowhere to report that to */ }
         }
 
 
