@@ -13,6 +13,7 @@ using WinUIEx;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
 using FluentSensors.Core.StaticInfo;
+using FluentSensors.Core.Startup;
 using FluentSensors.Core.Update;
 using FluentSensors.Features.AppStatus;
 using FluentSensors.Features.Performance;
@@ -93,6 +94,10 @@ namespace FluentSensors
         // is started further down, once hardware discovery has actually run
         public AppStatusViewModel AppStatus { get; } = new AppStatusViewModel();
 
+        // set in the constructor when this launch is going straight to the tray; holds the rect the window belongs
+        // at, because it spends the whole startup parked off screen instead
+        private Windows.Graphics.RectInt32? _hiddenStartupBounds;
+
         // title bar columns the two status groups sit in, swapped whenever the configured order changes
         // the leading group keeps the smaller gap to the toggle button, the trailing one gets the wider gap that
         // separates the two groups from each other
@@ -152,6 +157,25 @@ namespace FluentSensors
                 this.AppWindow.Move(new Windows.Graphics.PointInt32(currentPos.X - 400, currentPos.Y - 100));
             }
 
+            // going straight to the tray has to be set up before anything is on screen
+            //
+            // Activate() is what makes WinUI load the content at all, so the window cannot simply stay unshown; it is
+            // parked far off screen behind the same Win32 shield the tray path uses instead, which keeps it out of the
+            // taskbar and out of Alt+Tab while it starts
+            // hiding it only once Loaded fires left it visible for about half a second, which reads like something
+            // the user did not ask for
+            // deliberately off screen rather than minimized: a minimized window is the one shape that has broken
+            // SkiaSharp graph surfaces here before, and this way the layout runs exactly as it does normally
+            if (StartsHiddenInTray())
+            {
+                _hiddenStartupBounds = new Windows.Graphics.RectInt32(
+                    this.AppWindow.Position.X, this.AppWindow.Position.Y,
+                    this.AppWindow.Size.Width, this.AppWindow.Size.Height);
+
+                ApplyHideShield();
+                this.AppWindow.Move(new Windows.Graphics.PointInt32(-32000, -32000));
+            }
+
             // theming
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
             ApplyTitleBarTheme(SettingsService.Instance.AppTheme);
@@ -209,6 +233,15 @@ namespace FluentSensors
         {
             if (_isHardwareServiceLoaded) return;
             _isHardwareServiceLoaded = true;
+
+            // the off screen parking from the constructor ends here: the window is really hidden now, and only then
+            // does it get moved back to where it belongs, so it opens in the right place from the tray later
+            if (_hiddenStartupBounds is Windows.Graphics.RectInt32 bounds)
+            {
+                HideToTray();
+                this.AppWindow.MoveAndResize(bounds);
+                _hiddenStartupBounds = null;
+            }
 
             await StartHardwareServiceAsync(); // load the HardwareMonitorService singleton instance asynchronously
         }
@@ -301,6 +334,14 @@ namespace FluentSensors
 
             // re-open the taskbar widget with its pinned sensors if any are configured
             TryRestoreTaskbarWidgetWindow();
+
+            // a moved or reinstalled copy leaves the scheduled task pointing at the old exe, which would silently
+            // stop autostarting; the check costs two schtasks processes, so it stays off the UI thread and only runs
+            // when autostart is actually on
+            if (SettingsService.Instance.RunOnStartup)
+            {
+                _ = Task.Run(() => WinAutostartService.RepairIfStale(SettingsService.Instance.DelayStartup));
+            }
 
             // last, so the one network request never competes with sensor discovery; it stays a no-op in a store build
             UpdateService.Instance.UpdateStateChanged += OnUpdateStateChanged;
@@ -610,15 +651,8 @@ namespace FluentSensors
             {
                 // cancel the actual shutdown
                 args.Cancel = true;
-                _isDashboardClosed = true;
 
-                // applies the Win32 shield, see workaround comment on the P/Invoke declarations above
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-                int exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-                SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
-                SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-
-                this.Hide();
+                HideToTray();
                 CheckAndHideToTray();
             }
             else
@@ -632,6 +666,32 @@ namespace FluentSensors
                 QuitAppNow();
             }
         }
+
+        // the two ways the window ends up in the tray share this: closing it with MinimizeToTray on, and starting
+        // with StartMinimizedToTray on
+        // _isDashboardClosed is what the tray restore path checks before bringing the window back, so it has to be
+        // set here and not only on the closing path
+        private void HideToTray()
+        {
+            _isDashboardClosed = true;
+
+            ApplyHideShield();
+            this.Hide();
+        }
+
+        private void ApplyHideShield()
+        {
+            // applies the Win32 shield, see workaround comment on the P/Invoke declarations above
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            int exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+            SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
+            SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+        }
+
+        // start-minimized is about what Windows does at sign-in, not about every launch; opening the app yourself
+        // always shows the window, which is why the scheduled task marks its own launches with an argument
+        private static bool StartsHiddenInTray() =>
+            SettingsService.Instance.StartMinimizedToTray && WinAutostartService.StartedByTask;
 
         public void OpenDashboard()
         {

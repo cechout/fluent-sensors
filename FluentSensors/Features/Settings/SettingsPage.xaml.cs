@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
+using FluentSensors.Common;
 using FluentSensors.Core;
+using FluentSensors.Core.Startup;
 using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
@@ -37,6 +39,7 @@ namespace FluentSensors.Features.Settings
             RestoreThemeSelection();
             RestoreIntervalSelection();
             RestoreMinimizeToTraySelection();
+            RestoreStartupSelection();
             RestoreStatusReadoutSelection();
             RestoreCsvFormatSelection();
             RestoreGraphLineStyleSelection();
@@ -189,6 +192,103 @@ namespace FluentSensors.Features.Settings
         private void RestoreMinimizeToTraySelection()
         {
             MinimizeToTrayToggle.IsOn = SettingsService.Instance.MinimizeToTray;
+        }
+
+
+        // startup
+
+        // the scheduled task is the authority on autostart, not the setting, so a task someone removed by hand in
+        // the task scheduler shows up here as off rather than as a switch that lies
+        // a portable build has no autostart at all, because the task would outlive the folder it points at
+        private void RestoreStartupSelection()
+        {
+            var settings = SettingsService.Instance;
+
+            StartMinimizedToggle.IsOn = settings.StartMinimizedToTray;
+            CheckUpdatesToggle.IsOn = settings.CheckUpdatesOnStartup;
+
+            if (!AppDistribution.SupportsSelfUpdate)
+            {
+                CheckUpdatesCard.Description = "Installed from Microsoft Store, updates are handled by the Store";
+                CheckUpdatesToggle.Visibility = Visibility.Collapsed;
+            }
+
+            if (!WinAutostartService.IsSupported)
+            {
+                RunOnStartupCard.Description = "Not available in the portable version, it would leave a scheduled task behind";
+                RunOnStartupToggle.Visibility = Visibility.Collapsed;
+                DelayStartupCard.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            // a task pointing at a moved exe is repaired at app start, not here, so it is fixed even for someone
+            // who never opens this page
+            bool taskExists = WinAutostartService.IsEnabled();
+            if (settings.RunOnStartup != taskExists) settings.RunOnStartup = taskExists;
+
+            RunOnStartupToggle.IsOn = taskExists;
+            DelayStartupToggle.IsOn = settings.DelayStartup;
+            UpdateStartupCardStates();
+        }
+
+        // both rows only do anything while windows is the one launching the app, so neither is offered without it
+        private void UpdateStartupCardStates()
+        {
+            DelayStartupCard.IsEnabled = RunOnStartupToggle.IsOn;
+            StartMinimizedCard.IsEnabled = RunOnStartupToggle.IsOn;
+        }
+
+        private async void RunOnStartupToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            bool wanted = RunOnStartupToggle.IsOn;
+            if (WinAutostartService.Apply(wanted, DelayStartupToggle.IsOn))
+            {
+                SettingsService.Instance.RunOnStartup = wanted;
+                UpdateStartupCardStates();
+                return;
+            }
+
+            // the task scheduler refused, so put the switch back rather than showing a state that does not exist
+            _isLoading = true;
+            RunOnStartupToggle.IsOn = !wanted;
+            _isLoading = false;
+            UpdateStartupCardStates();
+
+            await ShowInfoDialog("Startup", "Windows did not accept the change to the scheduled task.");
+        }
+
+        private async void DelayStartupToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            bool wanted = DelayStartupToggle.IsOn;
+
+            // the delay lives in the task trigger, so changing it means writing the task again
+            if (WinAutostartService.Apply(true, wanted))
+            {
+                SettingsService.Instance.DelayStartup = wanted;
+                return;
+            }
+
+            _isLoading = true;
+            DelayStartupToggle.IsOn = !wanted;
+            _isLoading = false;
+
+            await ShowInfoDialog("Startup", "Windows did not accept the change to the scheduled task.");
+        }
+
+        private void StartMinimizedToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.StartMinimizedToTray = StartMinimizedToggle.IsOn;
+        }
+
+        private void CheckUpdatesToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.CheckUpdatesOnStartup = CheckUpdatesToggle.IsOn;
         }
 
         // title bar status readout

@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using FluentSensors.Common;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Core.Update
@@ -81,9 +82,12 @@ namespace FluentSensors.Core.Update
         // fires the one automatic check, from wherever the app has finished starting up
         // store builds never check: the store ships its own update path, and a packaged app is not allowed to
         // replace itself from outside it
+        // both guards live here rather than at the call site so the whole policy on when this app reaches out sits
+        // in one place
         public void Start()
         {
             if (!AppDistribution.SupportsSelfUpdate) return;
+            if (!SettingsService.Instance.CheckUpdatesOnStartup) return;
             if (_hasCheckedOnStartup) return;
 
             _hasCheckedOnStartup = true;

@@ -92,6 +92,54 @@
                     Toggled="MinimizeToTrayToggle_Toggled" />
             </controls:SettingsCard>
 
+            <!--  startup  -->
+            <!--
+                no control on the expander header itself, the four rows are independent of each other
+                autostart and its delay are hidden in a portable build, see RestoreStartupSelection
+            -->
+            <controls:SettingsExpander
+                Description="What happens when Windows starts, and what the app does when it launches"
+                Header="Startup"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE7E8;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard x:Name="RunOnStartupCard" Header="Run on startup">
+                        <ToggleSwitch
+                            x:Name="RunOnStartupToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="RunOnStartupToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <!--  (stays disabled while autostart is off, there is nothing to delay then)  -->
+                    <controls:SettingsCard x:Name="DelayStartupCard" Header="Delay start">
+                        <ToggleSwitch
+                            x:Name="DelayStartupToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="DelayStartupToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <!--  (applies to the sign-in launch only, opening the app yourself always shows the window)  -->
+                    <controls:SettingsCard x:Name="StartMinimizedCard" Header="Start minimized to tray">
+                        <ToggleSwitch
+                            x:Name="StartMinimizedToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="StartMinimizedToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Name="CheckUpdatesCard" Header="Check for updates on startup">
+                        <ToggleSwitch
+                            x:Name="CheckUpdatesToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="CheckUpdatesToggle_Toggled" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
             <!--  title bar status readout  -->
             <controls:SettingsExpander
                 Description="Which readouts the title bar shows, and in which order"
