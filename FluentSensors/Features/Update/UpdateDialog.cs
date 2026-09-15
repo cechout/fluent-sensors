@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Diagnostics;
@@ -26,10 +26,8 @@ namespace FluentSensors.Features.Update
         {
             if (xamlRoot == null || info == null) return;
 
-            // --- revisit: start page ---
-            // the label already reads as the permanent skip it is meant to become, while the code behind it only
-            // hides the pill for this session; that mismatch is deliberate and temporary, not an oversight
-            // see UpdateService.DismissUntilRestart for why the version is not remembered yet
+            // a ticked box is remembered across restarts; the start pages update button names the skipped version
+            // and is the way to undo it again
             var skipCheckBox = new CheckBox
             {
                 Content = "Skip this version",
@@ -139,7 +137,7 @@ namespace FluentSensors.Features.Update
                 // hiding the very version that is currently being installed would make no sense
                 if (handedOverToScript) return;
 
-                if (skipCheckBox.IsChecked == true) UpdateService.Instance.DismissUntilRestart();
+                if (skipCheckBox.IsChecked == true) UpdateService.Instance.SkipVersion();
             };
 
             await dialog.ShowAsync();

@@ -54,6 +54,7 @@
 		<None Remove="Features\Sensors\HiddenSensorsWindow.xaml" />
 		<None Remove="Features\Sensors\SensorsPage.xaml" />
 		<None Remove="Features\Settings\SettingsPage.xaml" />
+		<None Remove="Features\Start\ReleaseNotesControl.xaml" />
 		<None Remove="Features\Start\StartPage.xaml" />
 		<None Remove="Features\TaskbarWidget\TaskbarFlyoutWindow.xaml" />
 		<None Remove="Features\TaskbarWidget\TaskbarWidgetWindow.xaml" />

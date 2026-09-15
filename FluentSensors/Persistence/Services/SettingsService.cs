@@ -447,6 +447,21 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // no change event either: UpdateService is the only reader and asks at the moment it needs the answer
+        private string _skippedUpdateVersion = "";
+        public string SkippedUpdateVersion
+        {
+            get => _skippedUpdateVersion;
+            set
+            {
+                if (_skippedUpdateVersion != value)
+                {
+                    _skippedUpdateVersion = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // deliberately without a change event, like CheckUpdatesOnStartup above: MainWindow reads this once
         // during the splash reveal, so a change only shows on the next launch
         private StartupPage _startupPage = StartupPage.Start;
@@ -690,6 +705,7 @@ namespace FluentSensors.Persistence.Services
             _startMinimizedToTray = data.StartMinimizedToTray;
             _checkUpdatesOnStartup = data.CheckUpdatesOnStartup;
             _startupPage = data.StartupPage;
+            _skippedUpdateVersion = data.SkippedUpdateVersion ?? "";
             _hideSensorsCompletely = data.HideSensorsCompletely;
             _statusReadoutEnabled = data.StatusReadoutEnabled;
             _statusReadoutCollapsed = data.StatusReadoutCollapsed;
@@ -742,6 +758,7 @@ namespace FluentSensors.Persistence.Services
                 StartMinimizedToTray = _startMinimizedToTray,
                 CheckUpdatesOnStartup = _checkUpdatesOnStartup,
                 StartupPage = _startupPage,
+                SkippedUpdateVersion = _skippedUpdateVersion,
                 HideSensorsCompletely = _hideSensorsCompletely,
                 StatusReadoutEnabled = _statusReadoutEnabled,
                 StatusReadoutCollapsed = _statusReadoutCollapsed,

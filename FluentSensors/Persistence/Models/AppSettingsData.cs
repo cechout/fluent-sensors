@@ -59,6 +59,11 @@ namespace FluentSensors.Persistence.Models
 
         // on by default; a user who does not want the app reaching out on every launch turns it off here
         public bool CheckUpdatesOnStartup { get; set; } = true;
+
+        // the exact version the user chose to skip, e.g. "1.4.0"; empty means nothing is skipped
+        // the start pages update button is the way back out of a skip, without one a skipped release would stay
+        // unreachable until the release after it
+        public string SkippedUpdateVersion { get; set; } = "";
         public bool HideSensorsCompletely { get; set; } = true;
         public bool StatusReadoutEnabled { get; set; } = true;
 

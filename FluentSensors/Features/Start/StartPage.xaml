@@ -8,7 +8,9 @@
     xmlns:local="using:FluentSensors.Features.Start"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
+    Loaded="Page_Loaded"
     NavigationCacheMode="Required"
+    Unloaded="Page_Unloaded"
     mc:Ignorable="d">
 
     <ScrollViewer>
@@ -34,6 +36,114 @@
                     IsTextSelectionEnabled="True"
                     Style="{ThemeResource BodyTextBlockStyle}" />
             </StackPanel>
+
+
+            <!--  release notes and update state  -->
+            <!--
+                two separate jobs on purpose: the left button only ever reads out what changed, the right one is
+                the only thing that offers to install anything
+                a WrapPanel rather than two fixed columns, so a narrow window stacks them instead of clipping
+            -->
+            <controls:WrapPanel
+                Margin="0,0,0,8"
+                HorizontalSpacing="8"
+                VerticalSpacing="8">
+
+                <!--  what is new in the latest release  -->
+                <Button Padding="12,10" Style="{ThemeResource SubtleButtonStyle}">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Image
+                            Grid.Column="0"
+                            Width="36"
+                            Height="36"
+                            VerticalAlignment="Center"
+                            Source="/Assets/Icon/Icon.png" />
+
+                        <StackPanel
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Spacing="1">
+                            <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Text="What's new" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind ViewModel.ReleaseNotesSubtitle, Mode=OneWay}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Button.Flyout>
+                        <!--  the presenter scrolls nothing itself, the control inside brings its own scroller  -->
+                        <Flyout Opening="ReleaseNotesFlyout_Opening" Placement="Bottom">
+                            <Flyout.FlyoutPresenterStyle>
+                                <Style TargetType="FlyoutPresenter">
+                                    <Setter Property="MaxWidth" Value="470" />
+                                    <Setter Property="Padding" Value="16" />
+                                    <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
+                                    <Setter Property="ScrollViewer.VerticalScrollMode" Value="Disabled" />
+                                    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+                                </Style>
+                            </Flyout.FlyoutPresenterStyle>
+                            <local:ReleaseNotesControl x:Name="ReleaseNotes" />
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <!--  update state; what a click does depends on the state, see UpdateStatusButton_Click  -->
+                <Button
+                    Padding="12,10"
+                    Click="UpdateStatusButton_Click"
+                    IsEnabled="{x:Bind ViewModel.IsUpdateActionEnabled, Mode=OneWay}"
+                    Style="{ThemeResource SubtleButtonStyle}">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  badge and progress ring swap places, they never show at the same time  -->
+                        <Grid
+                            Grid.Column="0"
+                            Width="36"
+                            Height="36">
+                            <Border
+                                Width="24"
+                                Height="24"
+                                Background="{x:Bind ViewModel.UpdateBadgeBrush, Mode=OneWay}"
+                                CornerRadius="12"
+                                Visibility="{x:Bind InverseBoolToVisibility(ViewModel.IsUpdateChecking), Mode=OneWay}">
+                                <FontIcon
+                                    FontSize="12"
+                                    Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                    Glyph="{x:Bind ViewModel.UpdateBadgeGlyph, Mode=OneWay}" />
+                            </Border>
+                            <ProgressRing
+                                Width="22"
+                                Height="22"
+                                IsActive="{x:Bind ViewModel.IsUpdateChecking, Mode=OneWay}"
+                                Visibility="{x:Bind BoolToVisibility(ViewModel.IsUpdateChecking), Mode=OneWay}" />
+                        </Grid>
+
+                        <StackPanel
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Spacing="1">
+                            <TextBlock
+                                Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                Text="{x:Bind ViewModel.UpdateStatusTitle, Mode=OneWay}" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind ViewModel.UpdateStatusDescription, Mode=OneWay}"
+                                Visibility="{x:Bind HasText(ViewModel.UpdateStatusDescription), Mode=OneWay}" />
+                        </StackPanel>
+                    </Grid>
+                </Button>
+            </controls:WrapPanel>
 
 
             <!--  system snapshot  -->

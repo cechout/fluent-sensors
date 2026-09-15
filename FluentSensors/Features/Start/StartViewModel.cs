@@ -1,10 +1,15 @@
-﻿using Microsoft.UI.Xaml.Media;
+﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Windows.UI;
 
 using FluentSensors.Common.Sensors;
 using FluentSensors.Core.Lhm;
 using FluentSensors.Core.StaticInfo;
+using FluentSensors.Core.Update;
 
 
 namespace FluentSensors.Features.Start
@@ -14,19 +19,175 @@ namespace FluentSensors.Features.Start
     // the snapshot is built once per page instance and never refreshed: WinStaticInfoService resolves the whole
     // machine during the splash and states plainly that none of it changes afterwards, so there is nothing to
     // notify about and every row binds OneTime
-    public class StartViewModel
+    // the update block above it is the opposite, it moves whenever UpdateService answers
+    public class StartViewModel : INotifyPropertyChanged
     {
+        // === badge colours ===
+
+        // literal rather than theme resources, the same choice PowerToys makes for its own update badge: a status
+        // colour means the same thing in light and dark, and a coloured plate with a white glyph reads correctly
+        // against both
+        // the accent state is the exception and comes from the system accent, which is a user setting rather than
+        // a theme one
+        private static readonly Color SuccessColor = Color.FromArgb(0xFF, 0x4C, 0xA2, 0x2E);
+        private static readonly Color CautionColor = Color.FromArgb(0xFF, 0xC1, 0x8A, 0x1B);
+        private static readonly Color CriticalColor = Color.FromArgb(0xFF, 0xC4, 0x3E, 0x1C);
+        private static readonly Color NeutralColor = Color.FromArgb(0xFF, 0x6B, 0x6B, 0x6B);
+        private static readonly Color AccentFallbackColor = Color.FromArgb(0xFF, 0x00, 0x78, 0xD4);
+
+
+        // === fields ===
+
+        private string _updateBadgeGlyph = "";
+        private Brush _updateBadgeBrush = new SolidColorBrush(NeutralColor);
+        private string _updateStatusTitle = "";
+        private string _updateStatusDescription = "";
+        private string _releaseNotesSubtitle = "";
+        private bool _isUpdateChecking;
+        private bool _isUpdateActionEnabled = true;
+
+
         // === constructor ===
 
         public StartViewModel()
         {
             SystemSnapshot = BuildSnapshot();
+            RefreshUpdateState();
         }
 
 
         // === bindable properties ===
 
         public IReadOnlyList<SystemSnapshotEntry> SystemSnapshot { get; }
+
+        public string UpdateBadgeGlyph
+        {
+            get => _updateBadgeGlyph;
+            private set { _updateBadgeGlyph = value; OnPropertyChanged(); }
+        }
+
+        public Brush UpdateBadgeBrush
+        {
+            get => _updateBadgeBrush;
+            private set { _updateBadgeBrush = value; OnPropertyChanged(); }
+        }
+
+        public string UpdateStatusTitle
+        {
+            get => _updateStatusTitle;
+            private set { _updateStatusTitle = value; OnPropertyChanged(); }
+        }
+
+        public string UpdateStatusDescription
+        {
+            get => _updateStatusDescription;
+            private set { _updateStatusDescription = value; OnPropertyChanged(); }
+        }
+
+        // what the release notes button says underneath its title, e.g. "Release notes for 1.3.0"
+        public string ReleaseNotesSubtitle
+        {
+            get => _releaseNotesSubtitle;
+            private set { _releaseNotesSubtitle = value; OnPropertyChanged(); }
+        }
+
+        // swaps the badge for a progress ring while a check is in flight
+        public bool IsUpdateChecking
+        {
+            get => _isUpdateChecking;
+            private set { _isUpdateChecking = value; OnPropertyChanged(); }
+        }
+
+        // a store build has nothing for the button to do, the store owns updates there
+        public bool IsUpdateActionEnabled
+        {
+            get => _isUpdateActionEnabled;
+            private set { _isUpdateActionEnabled = value; OnPropertyChanged(); }
+        }
+
+
+        // === update state ===
+
+        // pulled rather than bound, so the page can call it both when UpdateService answers and when the theme
+        // changes; the badge brush is a plain brush and would otherwise keep a stale accent
+        public void RefreshUpdateState()
+        {
+            var service = UpdateService.Instance;
+            var release = service.LatestRelease;
+
+            // before the first successful check there is no release to name, so the button offers the notes of the
+            // version that is actually running
+            string notesVersion = release != null && !string.IsNullOrEmpty(release.Version)
+                ? release.Version
+                : UpdateService.CurrentVersion;
+            ReleaseNotesSubtitle = $"Release notes for {notesVersion}";
+
+            IsUpdateChecking = service.UiState == UpdateUiState.Checking;
+            IsUpdateActionEnabled = service.UiState != UpdateUiState.StoreManaged
+                && service.UiState != UpdateUiState.Checking;
+
+            string lastChecked = service.LastCheckedAt.HasValue
+                ? $"Last checked {service.LastCheckedAt.Value:dd.MM. HH:mm}"
+                : "Not checked yet";
+
+            switch (service.UiState)
+            {
+                case UpdateUiState.UpToDate:
+                    SetBadge("", SuccessColor);
+                    UpdateStatusTitle = "You are up to date";
+                    UpdateStatusDescription = lastChecked;
+                    break;
+
+                case UpdateUiState.Checking:
+                    SetBadge("", AccentColor());
+                    UpdateStatusTitle = "Checking for updates";
+                    UpdateStatusDescription = "";
+                    break;
+
+                case UpdateUiState.UpdateAvailable:
+                    SetBadge("", AccentColor());
+                    UpdateStatusTitle = "Update available";
+                    UpdateStatusDescription = $"Version {service.Latest?.Version} is ready to install";
+                    break;
+
+                case UpdateUiState.Skipped:
+                    SetBadge("", CautionColor);
+                    UpdateStatusTitle = $"Version {service.SkippedVersion} skipped";
+                    UpdateStatusDescription = "Select to install it anyway";
+                    break;
+
+                case UpdateUiState.Failed:
+                    SetBadge("", CriticalColor);
+                    UpdateStatusTitle = "Check failed";
+                    UpdateStatusDescription = "Could not reach GitHub, select to try again";
+                    break;
+
+                case UpdateUiState.StoreManaged:
+                    SetBadge("", NeutralColor);
+                    UpdateStatusTitle = "Managed by Microsoft Store";
+                    UpdateStatusDescription = "Updates are delivered through the Store";
+                    break;
+
+                default:
+                    SetBadge("", NeutralColor);
+                    UpdateStatusTitle = "Check for updates";
+                    UpdateStatusDescription = lastChecked;
+                    break;
+            }
+        }
+
+        private void SetBadge(string glyph, Color color)
+        {
+            UpdateBadgeGlyph = glyph;
+            UpdateBadgeBrush = new SolidColorBrush(color);
+        }
+
+        // the users Windows accent, which is independent of light/dark; falls back to the WinUI default accent
+        private static Color AccentColor() =>
+            Application.Current.Resources.TryGetValue("SystemAccentColor", out object value) && value is Color color
+                ? color
+                : AccentFallbackColor;
+
 
         // === snapshot ===
 
@@ -183,5 +344,13 @@ namespace FluentSensors.Features.Start
             rows.Add(row with { Category = "Motherboard" });
         }
 
+
+        // === INotifyPropertyChanged implementation ===
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
