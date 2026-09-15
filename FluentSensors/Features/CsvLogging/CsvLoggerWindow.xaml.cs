@@ -205,6 +205,16 @@ namespace FluentSensors.Features.CsvLogging
             newWindow.Activate();
         }
 
+        // brings the logger back without touching the running recording or the sensor set it was started with;
+        // used by the tray icon single click and the tray menu entry, where the current selection has not changed
+        //
+        // CurrentInstance goes null the moment the X is pressed (see AppWindow_Closing), so a logger that was
+        // closed or never opened this session is left alone rather than resurrected out of _retainedInstance
+        public static void RestoreIfOpen()
+        {
+            CurrentInstance?.RestoreAndActivate();
+        }
+
         public void SafeDestroy()
         {
             if (_isClosed) return;
