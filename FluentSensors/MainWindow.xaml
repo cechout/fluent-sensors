@@ -347,18 +347,12 @@
 
             <tb:TaskbarIcon.ContextFlyout>
                 <MenuFlyout>
-                    <MenuFlyoutItem
-                        Command="{x:Bind ShowWidgetWindowCommand}"
-                        KeyboardAcceleratorTextOverride="Single Click"
-                        Text="Widget Window" />
-                    <MenuFlyoutItem
-                        Command="{x:Bind ShowCsvWindowCommand}"
-                        KeyboardAcceleratorTextOverride="Single Click"
-                        Text="CSV Window" />
-                    <MenuFlyoutItem
-                        Command="{x:Bind TrayDoubleClickCommand}"
-                        KeyboardAcceleratorTextOverride="Double Click"
-                        Text="Main Window" />
+                    <!--  the tab inside Text is what puts the click hint into its own right aligned column  -->
+                    <!--  (H.NotifyIcon rebuilds this flyout as a native win32 menu and carries only Text, IsEnabled  -->
+                    <!--  and Command across, so KeyboardAcceleratorTextOverride never reaches the screen)  -->
+                    <MenuFlyoutItem Command="{x:Bind ShowWidgetWindowCommand}" Text="Widget Window&#x9;Single Click" />
+                    <MenuFlyoutItem Command="{x:Bind ShowCsvWindowCommand}" Text="CSV Window&#x9;Single Click" />
+                    <MenuFlyoutItem Command="{x:Bind TrayDoubleClickCommand}" Text="Main Window&#x9;Double Click" />
 
                     <!--<MenuFlyoutSeparator />
 

@@ -521,7 +521,10 @@ namespace FluentSensors
             };
         }
 
-        private void ApplyTrayIconTheme(string themeTag) // theme switch does not work smh
+        // RequestedTheme only ever reaches XAML, and the tray context menu is not XAML: H.NotifyIcon runs in its
+        // default PopupMenu mode, where the flyout is rebuilt as a native win32 menu from Text, IsEnabled and
+        // Command alone; 2.4.1 exposes no theme option for that menu either, so nothing here can recolor it
+        private void ApplyTrayIconTheme(string themeTag)
         {
             var targetTheme = themeTag switch
             {
