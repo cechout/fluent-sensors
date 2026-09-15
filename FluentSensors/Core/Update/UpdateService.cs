@@ -7,7 +7,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using FluentSensors.Common;
-using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Core.Update
@@ -90,14 +89,10 @@ namespace FluentSensors.Core.Update
             _hasCheckedOnStartup = true;
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
-            _ = CheckAsync(ignoreSkippedVersion: false);
+            _ = CheckAsync();
         }
 
-        // ignoreSkippedVersion separates an automatic check from an explicitly asked for one: the startup check
-        // stays quiet about a version the user skipped, an explicit ask reports it anyway
-        // nothing passes true right now; it is the seam the planned start page hooks into, which is meant to reach
-        // this dialog again after the pill was dismissed
-        public async Task<UpdateCheckResult> CheckAsync(bool ignoreSkippedVersion)
+        public async Task<UpdateCheckResult> CheckAsync()
         {
             if (!AppDistribution.SupportsSelfUpdate) return UpdateCheckResult.UpToDate;
 
@@ -108,11 +103,6 @@ namespace FluentSensors.Core.Update
                 string json = await _http.GetStringAsync(LatestReleaseUrl);
                 var info = ParseRelease(json);
                 if (info == null) return UpdateCheckResult.UpToDate;
-
-                if (!ignoreSkippedVersion && info.Version == SettingsService.Instance.SkippedUpdateVersion)
-                {
-                    return UpdateCheckResult.UpToDate;
-                }
 
                 IsUpdateAvailable = true;
                 Latest = info;
@@ -127,12 +117,18 @@ namespace FluentSensors.Core.Update
             }
         }
 
-        // drops the pill until the next release, used by the skip button in the dialog
-        public void SkipCurrentUpdate()
+        // --- revisit: start page ---
+        // deliberately forgets the dismissal on exit instead of persisting the version, because right now there is
+        // no way back: no settings entry and no start page, so a remembered skip leaves the update unreachable
+        // until the next release; that already stranded a test run
+        // once the start page can reopen this dialog, this goes back to writing SettingsService.SkippedUpdateVersion
+        // (removed from AppSettingsData and SettingsService along with this change), CheckAsync gets its
+        // ignoreSkippedVersion parameter back for the explicit re-check, and the checkbox is called
+        // "Skip this version" again
+        public void DismissUntilRestart()
         {
             if (Latest == null) return;
 
-            SettingsService.Instance.SkippedUpdateVersion = Latest.Version;
             IsUpdateAvailable = false;
             RaiseStateChanged();
         }

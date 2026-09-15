@@ -79,10 +79,6 @@ namespace FluentSensors.Persistence.Models
         // which profile the sensors page opens on; the widget profile is what a fresh install starts with
         public SensorSelectionProfile LastSensorProfile { get; set; } = SensorSelectionProfile.WidgetWindow;
 
-        // a release the user chose to skip in the update dialog, so the title bar pill stays away until the next
-        // one; empty means nothing was ever skipped
-        public string SkippedUpdateVersion { get; set; } = "";
-
         // lives on HardwareMonitorService at runtime, but conceptually belongs with the rest of the app settings for
         // persistence purposes
         public int UpdateIntervalMs { get; set; } = 500;

@@ -26,9 +26,12 @@ namespace FluentSensors.Features.Update
         {
             if (xamlRoot == null || info == null) return;
 
+            // --- revisit: start page ---
+            // only hides the pill for this session; see UpdateService.DismissUntilRestart for why it does not
+            // remember the version yet and what changes here once the start page exists
             var skipCheckBox = new CheckBox
             {
-                Content = "Skip this version",
+                Content = "Hide until next start",
                 Margin = new Thickness(0, 12, 0, 0)
             };
 
@@ -132,10 +135,10 @@ namespace FluentSensors.Features.Update
                     return;
                 }
 
-                // skipping the very version that is currently being installed would make no sense
+                // hiding the very version that is currently being installed would make no sense
                 if (handedOverToScript) return;
 
-                if (skipCheckBox.IsChecked == true) UpdateService.Instance.SkipCurrentUpdate();
+                if (skipCheckBox.IsChecked == true) UpdateService.Instance.DismissUntilRestart();
             };
 
             await dialog.ShowAsync();

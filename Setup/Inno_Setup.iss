@@ -62,7 +62,11 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+; shellexec is what makes the "launch now" checkbox work at all: a postinstall entry defaults to
+; runasoriginaluser, so it starts the app with the non-elevated token of whoever launched Setup, and the apps
+; requireAdministrator manifest then fails that CreateProcess with ERROR_ELEVATION_REQUIRED (740)
+; ShellExecuteEx honours the manifest instead and raises the normal UAC consent prompt
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent shellexec
 
 [Code]
 const
