@@ -348,9 +348,10 @@
             <tb:TaskbarIcon.ContextFlyout>
                 <MenuFlyout>
                     <MenuFlyoutItem
-                        Command="{x:Bind TrayLeftClickCommand}"
+                        Command="{x:Bind ShowWidgetWindowCommand}"
                         KeyboardAcceleratorTextOverride="Single Click"
                         Text="Widget Window" />
+                    <MenuFlyoutItem Command="{x:Bind ShowCsvWindowCommand}" Text="CSV Window" />
                     <MenuFlyoutItem
                         Command="{x:Bind TrayDoubleClickCommand}"
                         KeyboardAcceleratorTextOverride="Double Click"

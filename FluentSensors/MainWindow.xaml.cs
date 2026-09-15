@@ -16,6 +16,7 @@ using FluentSensors.Core.StaticInfo;
 using FluentSensors.Core.Startup;
 using FluentSensors.Core.Update;
 using FluentSensors.Features.AppStatus;
+using FluentSensors.Features.CsvLogging;
 using FluentSensors.Features.Performance;
 using FluentSensors.Features.Sensors;
 using FluentSensors.Features.Settings;
@@ -86,6 +87,8 @@ namespace FluentSensors
         public XamlUICommand ShowMainWindowCommand { get; } = new XamlUICommand(); // restore + navigate to SensorPage
         public XamlUICommand OpenPerformanceCommand { get; } = new XamlUICommand(); // restore + navigate to PerformancePage
         public XamlUICommand OpenSettingsCommand { get; } = new XamlUICommand(); // restore + navigate to SettingsPage
+        public XamlUICommand ShowWidgetWindowCommand { get; } = new XamlUICommand(); // tray menu, restores the widget only
+        public XamlUICommand ShowCsvWindowCommand { get; } = new XamlUICommand(); // tray menu, restores the csv logger only
         public XamlUICommand ExitAppCommand { get; } = new XamlUICommand();
         public XamlUICommand TrayLeftClickCommand { get; } = new XamlUICommand(); // tray single click, restores widget only
         public XamlUICommand TrayDoubleClickCommand { get; } = new XamlUICommand(); // tray double click, restores main window only
@@ -213,6 +216,8 @@ namespace FluentSensors
                 RestoreApp();
                 MainNavigationView.SelectedItem = MainNavigationView.FooterMenuItems[0];
             };
+            ShowWidgetWindowCommand.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen();
+            ShowCsvWindowCommand.ExecuteRequested += (s, e) => CsvLoggerWindow.RestoreIfOpen();
             TrayLeftClickCommand.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen();
             TrayDoubleClickCommand.ExecuteRequested += (s, e) => OpenDashboard();
             ExitAppCommand.ExecuteRequested += (s, e) => QuitAppNow(); // tray menu "Exit"
