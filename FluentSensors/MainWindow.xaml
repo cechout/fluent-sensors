@@ -50,6 +50,7 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -72,6 +73,37 @@
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="Fluent Sensors" />
 
+            <!--  update pill  -->
+            <!--
+                only shown once the startup check found a newer GitHub release; a store build never checks at all,
+                so this stays collapsed there
+                foreground is set on both children because an accent button does not pass its own down to them
+            -->
+            <Button
+                x:Name="UpdateButton"
+                Grid.Column="2"
+                Height="22"
+                Margin="10,1,0,0"
+                Padding="8,0"
+                VerticalAlignment="Center"
+                Click="UpdateButton_Click"
+                CornerRadius="11"
+                Style="{StaticResource AccentButtonStyle}"
+                Visibility="{x:Bind BoolToVisibility(AppStatus.IsUpdateAvailable), Mode=OneWay}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                        Glyph="&#xE896;" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Text="{x:Bind AppStatus.UpdateVersionText, Mode=OneWay}" />
+                </StackPanel>
+            </Button>
+
             <!--  dotnet runtime hint  -->
             <!--
                 only shown when WinStaticInfoServices one-time registry check found no NET Desktop Runtime
@@ -80,7 +112,7 @@
             -->
             <fhInfoPopup:InfoPopupControl
                 x:Name="DotNetRuntimePopup"
-                Grid.Column="2"
+                Grid.Column="3"
                 Margin="8,1,0,0"
                 VerticalAlignment="Center"
                 ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
@@ -96,7 +128,7 @@
             <!--  toggle button for the whole status readout  -->
             <Button
                 x:Name="StatusToggleButton"
-                Grid.Column="3"
+                Grid.Column="4"
                 Width="22"
                 Height="22"
                 Margin="8,1,0,0"
@@ -117,7 +149,7 @@
             <!--  (column and margin are set from code, the settings page decides which group leads)  -->
             <StackPanel
                 x:Name="LhmStatusGroup"
-                Grid.Column="4"
+                Grid.Column="5"
                 Margin="8,0,0,0"
                 VerticalAlignment="Center"
                 Orientation="Horizontal"
@@ -151,7 +183,7 @@
             <!--  (this apps own resource usage; whichever group ends up second is the one that hides on a narrow window)  -->
             <StackPanel
                 x:Name="WindowsStatusGroup"
-                Grid.Column="5"
+                Grid.Column="6"
                 Margin="12,0,0,0"
                 VerticalAlignment="Center"
                 Orientation="Horizontal"
@@ -202,7 +234,7 @@
                 </fhInfoPopup:InfoPopupControl>
             </StackPanel>
 
-            <!--  column 6 is a deliberately empty * spacer, stays draggable all the way to the caption buttons  -->
+            <!--  column 7 is a deliberately empty * spacer, stays draggable all the way to the caption buttons  -->
         </Grid>
 
 

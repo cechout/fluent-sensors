@@ -576,6 +576,24 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // --- updates ---
+
+        // the release the user skipped in the update dialog; read once per check, which is why it gets by without a
+        // change event
+        private string _skippedUpdateVersion = "";
+        public string SkippedUpdateVersion
+        {
+            get => _skippedUpdateVersion;
+            set
+            {
+                if (_skippedUpdateVersion != value)
+                {
+                    _skippedUpdateVersion = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // persistence
         // writes every property straight to its backing field, skipping change events and the save trigger; used only
         // once at startup, before any window or listener exists yet
@@ -618,6 +636,7 @@ namespace FluentSensors.Persistence.Services
             _csvIncludeUnits = data.CsvIncludeUnits;
             _csvPauseSeam = data.CsvPauseSeam;
             _lastSensorProfile = data.LastSensorProfile;
+            _skippedUpdateVersion = data.SkippedUpdateVersion ?? "";
 
             // lives on HardwareMonitorService at runtime, not here, but shares this settings file
             HardwareMonitorService.Instance.UpdateIntervalMs = data.UpdateIntervalMs;
@@ -665,6 +684,7 @@ namespace FluentSensors.Persistence.Services
                 CsvIncludeUnits = _csvIncludeUnits,
                 CsvPauseSeam = _csvPauseSeam,
                 LastSensorProfile = _lastSensorProfile,
+                SkippedUpdateVersion = _skippedUpdateVersion,
                 UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
             };
         }

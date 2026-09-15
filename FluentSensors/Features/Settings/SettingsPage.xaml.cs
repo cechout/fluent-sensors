@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
+using FluentSensors.Common;
 using FluentSensors.Core;
+using FluentSensors.Core.Update;
+using FluentSensors.Features.Update;
 using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
@@ -52,6 +55,7 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarGraphWidthSelection();
             RestoreTaskbarFlyoutAlignmentSelection();
             RestoreLockWidgetPositionSelection();
+            RestoreUpdateState();
 
 
             // event listeners
@@ -83,11 +87,15 @@ namespace FluentSensors.Features.Settings
         {
             SettingsService.Instance.StatusReadoutChanged += OnStatusReadoutChanged;
             OnStatusReadoutChanged();
+
+            UpdateService.Instance.UpdateStateChanged += OnUpdateStateChanged;
+            ShowUpdateState(UpdateService.Instance.Latest);
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             SettingsService.Instance.StatusReadoutChanged -= OnStatusReadoutChanged;
+            UpdateService.Instance.UpdateStateChanged -= OnUpdateStateChanged;
         }
 
         // only meant for writes from outside this page; a write from here echoes straight back into this method,
@@ -833,6 +841,76 @@ namespace FluentSensors.Features.Settings
             });
 
             FluentSensors.MainWindow.CurrentInstance?.ForceExit();
+        }
+
+
+        // === updates ===
+
+        // reflects whatever the startup check already found, so switching to this page later still shows the pill
+        // a store build gets a plain statement instead of a button: the store owns updating a packaged app, and a
+        // packaged app is not allowed to replace itself from outside it
+        private void RestoreUpdateState()
+        {
+            if (!AppDistribution.SupportsSelfUpdate)
+            {
+                UpdatesCard.Description = "Installed from Microsoft Store, updates are handled by the Store";
+                CheckForUpdatesButton.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            ShowUpdateState(UpdateService.Instance.Latest);
+        }
+
+        private void OnUpdateStateChanged() => ShowUpdateState(UpdateService.Instance.Latest);
+
+        private void ShowUpdateState(UpdateInfo? info)
+        {
+            if (info == null || !UpdateService.Instance.IsUpdateAvailable)
+            {
+                UpdatePillButton.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            UpdatePillButton.Content = $"Update to {info.Version}";
+            UpdatePillButton.Visibility = Visibility.Visible;
+        }
+
+        private async void UpdatePillButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            await ShowUpdateDialog(UpdateService.Instance.Latest);
+        }
+
+        // an explicit ask, so it reports a version the user skipped earlier as well
+        private async void CheckForUpdatesButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            CheckForUpdatesButton.IsEnabled = false;
+            UpdatesCard.Description = "Checking...";
+
+            var result = await UpdateService.Instance.CheckAsync(ignoreSkippedVersion: true);
+            var info = UpdateService.Instance.Latest;
+
+            UpdatesCard.Description = result switch
+            {
+                UpdateCheckResult.UpdateAvailable => $"Version {info?.Version} is available",
+                UpdateCheckResult.Failed => "Could not reach GitHub, check your connection",
+                _ => $"You are up to date, version {UpdateService.CurrentVersion} is the latest"
+            };
+
+            CheckForUpdatesButton.IsEnabled = true;
+
+            if (result == UpdateCheckResult.UpdateAvailable) await ShowUpdateDialog(info);
+        }
+
+        private async Task ShowUpdateDialog(UpdateInfo? info)
+        {
+            if (info == null) return;
+
+            // skipping inside the dialog raises UpdateStateChanged, which drops the pill here and in the title bar
+            await UpdateDialog.ShowAsync(this.XamlRoot, info);
         }
     }
 }

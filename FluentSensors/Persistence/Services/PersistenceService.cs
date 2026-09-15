@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.IO.Compression;
 
+using FluentSensors.Common;
 using FluentSensors.Persistence.Models;
 
 
@@ -22,7 +23,7 @@ namespace FluentSensors.Persistence.Services
         // portable mode: a marker file next to the exe moves persistence from %LocalAppData% into the app folder,
         // so a portable copy carries its state on the drive it runs from and leaves nothing behind on the host
         // the marker ships only in the portable zip, installer builds never contain it
-        private const string PortableMarkerFileName = "portable.txt";
+        // the marker check itself lives in AppDistribution, because the updater needs the same answer
         private const string PortableFolderName = "Persistence";
 
         private readonly string _rootFolder = ResolveRootFolder();
@@ -269,7 +270,7 @@ namespace FluentSensors.Persistence.Services
             {
                 string? appFolder = Path.GetDirectoryName(Environment.ProcessPath);
                 if (string.IsNullOrEmpty(appFolder)) return localAppData;
-                if (!File.Exists(Path.Combine(appFolder, PortableMarkerFileName))) return localAppData;
+                if (!AppDistribution.IsPortableBuild) return localAppData;
 
                 // creating the folder here doubles as an early check that the app directory is writable at all;
                 // an unpacked zip sitting in a read-only location would otherwise silently drop every save

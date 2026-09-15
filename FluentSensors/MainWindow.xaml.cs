@@ -13,10 +13,12 @@ using WinUIEx;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
 using FluentSensors.Core.StaticInfo;
+using FluentSensors.Core.Update;
 using FluentSensors.Features.AppStatus;
 using FluentSensors.Features.Performance;
 using FluentSensors.Features.Sensors;
 using FluentSensors.Features.Settings;
+using FluentSensors.Features.Update;
 using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.Sensors;
@@ -94,8 +96,8 @@ namespace FluentSensors
         // title bar columns the two status groups sit in, swapped whenever the configured order changes
         // the leading group keeps the smaller gap to the toggle button, the trailing one gets the wider gap that
         // separates the two groups from each other
-        private const int LeadingStatusGroupColumn = 4;
-        private const int TrailingStatusGroupColumn = 5;
+        private const int LeadingStatusGroupColumn = 5;
+        private const int TrailingStatusGroupColumn = 6;
         private static readonly Thickness LeadingStatusGroupMargin = new Thickness(8, 0, 0, 0);
         private static readonly Thickness TrailingStatusGroupMargin = new Thickness(12, 0, 0, 0);
 
@@ -299,6 +301,10 @@ namespace FluentSensors
 
             // re-open the taskbar widget with its pinned sensors if any are configured
             TryRestoreTaskbarWidgetWindow();
+
+            // last, so the one network request never competes with sensor discovery; it stays a no-op in a store build
+            UpdateService.Instance.UpdateStateChanged += OnUpdateStateChanged;
+            UpdateService.Instance.Start();
         }
 
         // re-creates the widget window with whichever previously pinned sensors still exist on
@@ -363,12 +369,12 @@ namespace FluentSensors
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
         }
 
-        // the four interactive elements sitting in the drag region; the status toggle hides and shows the two groups
-        // next to it, so the rects are recomputed rather than registered once
+        // the five interactive elements sitting in the drag region; the status toggle hides and shows the two groups
+        // next to it and the update pill appears mid-session, so the rects are recomputed rather than registered once
         private void UpdateTitleBarPassthroughRegions()
         {
             TitleBarPassthrough.Apply(this, AppTitleBar,
-                DotNetRuntimePopup, StatusToggleButton, LhmInfoPopup, WindowsInfoPopup);
+                UpdateButton, DotNetRuntimePopup, StatusToggleButton, LhmInfoPopup, WindowsInfoPopup);
         }
 
         // plain Button standing in for a real ToggleButton, see the XAML comment on it for why
@@ -376,6 +382,26 @@ namespace FluentSensors
         {
             AppStatus.IsStatusCollapsed = !AppStatus.IsStatusCollapsed;
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+        }
+
+        // the pill appears and disappears mid-session, so the drag region has to be recomputed the same way the
+        // status toggle does it
+        private void OnUpdateStateChanged()
+        {
+            var service = UpdateService.Instance;
+
+            AppStatus.UpdateVersionText = service.Latest?.Version ?? "";
+            AppStatus.IsUpdateAvailable = service.IsUpdateAvailable;
+
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+        }
+
+        private async void UpdateButton_Click(object sender, RoutedEventArgs e)
+        {
+            var info = UpdateService.Instance.Latest;
+            if (info == null) return;
+
+            await UpdateDialog.ShowAsync(((FrameworkElement)this.Content).XamlRoot, info);
         }
 
         // one of the four status readout settings changed in the settings page

@@ -43,6 +43,11 @@ namespace FluentSensors.Features.AppStatus
 
         private bool _isDotNetRuntimeMissing;
 
+        // the update pill sits in the same title bar as the readout, so its state belongs to this view model even
+        // though it has nothing to do with the status groups; both are set from MainWindow once UpdateService answers
+        private bool _isUpdateAvailable;
+        private string _updateVersionText = "";
+
 
         // === constructor ===
 
@@ -170,6 +175,21 @@ namespace FluentSensors.Features.AppStatus
         {
             get => _isDotNetRuntimeMissing;
             set { if (_isDotNetRuntimeMissing == value) return; _isDotNetRuntimeMissing = value; OnPropertyChanged(); }
+        }
+
+        // stays false for the whole session unless a newer GitHub release is found; a store build never checks,
+        // so the pill is simply never shown there
+        public bool IsUpdateAvailable
+        {
+            get => _isUpdateAvailable;
+            set { if (_isUpdateAvailable == value) return; _isUpdateAvailable = value; OnPropertyChanged(); }
+        }
+
+        // the bare version on the pill, e.g. "1.3.0"
+        public string UpdateVersionText
+        {
+            get => _updateVersionText;
+            set { if (_updateVersionText == value) return; _updateVersionText = value; OnPropertyChanged(); }
         }
 
 
