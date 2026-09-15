@@ -75,6 +75,7 @@ namespace FluentSensors
 
         public static MainWindow CurrentInstance { get; private set; }
         private const string WindowKey = "Main"; // key under which this windows state is saved
+        private const string ProjectPageUrl = "https://github.com/cechout/fluent-sensors"; // readme, also linked from the settings page
         private bool _isForceClosing = false;
         private bool _isHardwareServiceLoaded = false;
         private bool _isDashboardClosed = false;
@@ -89,6 +90,7 @@ namespace FluentSensors
         public XamlUICommand OpenSettingsCommand { get; } = new XamlUICommand(); // restore + navigate to SettingsPage
         public XamlUICommand ShowWidgetWindowCommand { get; } = new XamlUICommand(); // tray menu, restores the widget only
         public XamlUICommand ShowCsvWindowCommand { get; } = new XamlUICommand(); // tray menu, restores the csv logger only
+        public XamlUICommand OpenDocumentationCommand { get; } = new XamlUICommand(); // tray menu, opens the project page in the browser
         public XamlUICommand ExitAppCommand { get; } = new XamlUICommand();
         public XamlUICommand TrayLeftClickCommand { get; } = new XamlUICommand(); // tray single click, restores every open readout window
         public XamlUICommand TrayDoubleClickCommand { get; } = new XamlUICommand(); // tray double click, restores main window only
@@ -218,6 +220,7 @@ namespace FluentSensors
             };
             ShowWidgetWindowCommand.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen();
             ShowCsvWindowCommand.ExecuteRequested += (s, e) => CsvLoggerWindow.RestoreIfOpen();
+            OpenDocumentationCommand.ExecuteRequested += (s, e) => OpenProjectPage();
 
             // both restores are no-ops while their window is closed, so one click brings back whatever happens to
             // be open: the widget, the logger, both of them, or nothing at all
@@ -775,6 +778,17 @@ namespace FluentSensors
                 }
                 WidgetWindow.CurrentInstance.Activate();
             }
+        }
+
+        // opens the github project page in the default browser; the tray menu reaches it without the main window
+        // being open, which is the whole reason it does not just navigate to the settings page link
+        private static void OpenProjectPage()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(ProjectPageUrl) { UseShellExecute = true });
+            }
+            catch { /* no browser reachable, and a tray menu has nowhere to report that to */ }
         }
 
         // hard-kills the process right now instead of going through the normal WinUI Closing/Exit path

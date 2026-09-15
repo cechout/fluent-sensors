@@ -362,6 +362,12 @@
 
                     <MenuFlyoutSeparator />
 
+                    <MenuFlyoutItem Command="{x:Bind OpenDocumentationCommand}" Text="Documentation" />
+
+                    <!--  exit keeps a separator to itself so the one irreversible entry never sits next to a  -->
+                    <!--  routinely clicked one  -->
+                    <MenuFlyoutSeparator />
+
                     <MenuFlyoutItem Command="{x:Bind ExitAppCommand}" Text="Exit App" />
                 </MenuFlyout>
             </tb:TaskbarIcon.ContextFlyout>
