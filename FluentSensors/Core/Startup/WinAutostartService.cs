@@ -26,6 +26,10 @@ namespace FluentSensors.Core.Startup
         // discovery and the kernel driver load start competing with it
         private const string StartupDelay = "PT30S";
 
+        // the task passes this so the app can tell a sign-in launch apart from someone opening it from the start
+        // menu; nothing else about the process differs, and start-minimized must only apply to the former
+        private const string AutostartArgument = "--autostart";
+
 
         // === public api ===
 
@@ -33,6 +37,9 @@ namespace FluentSensors.Core.Startup
         // this; deleting the folder would leave a task pointing at nothing that nobody connects to this app anymore
         // a packaged build wants the StartupTask manifest extension instead, which the store controls
         public static bool IsSupported => !AppDistribution.IsPortableBuild && !AppDistribution.IsPackaged;
+
+        // true only when windows started this process from the scheduled task, never when the user launched it
+        public static bool StartedByTask { get; } = HasAutostartArgument();
 
         // reads the task rather than a setting, so a task removed by hand in the task scheduler shows up as off
         public static bool IsEnabled()
@@ -42,14 +49,20 @@ namespace FluentSensors.Core.Startup
             return ReadTaskXml() != null;
         }
 
-        // true when a task exists but points at a different exe than the one running, which is what a moved or
-        // reinstalled copy leaves behind
+        // true when a registered task no longer matches what this build would write: a different exe, which a moved
+        // or reinstalled copy leaves behind, or a missing autostart argument, which is what every task written before
+        // that argument existed looks like
         public static bool IsStale()
         {
-            string existing = ReadTaskCommand();
-            if (string.IsNullOrEmpty(existing)) return false;
+            string? xml = ReadTaskXml();
+            if (string.IsNullOrEmpty(xml)) return false;
 
-            return !string.Equals(existing, Environment.ProcessPath, StringComparison.OrdinalIgnoreCase);
+            if (!string.Equals(ReadElement(xml, "Command"), Environment.ProcessPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return !ReadElement(xml, "Arguments").Contains(AutostartArgument, StringComparison.OrdinalIgnoreCase);
         }
 
         // rewrites the task when it points somewhere else than the running exe, and does nothing when there is no
@@ -132,6 +145,7 @@ namespace FluentSensors.Core.Startup
             string userId = SecurityElement.Escape(CurrentUserId());
             string command = SecurityElement.Escape(exePath);
             string directory = SecurityElement.Escape(workingDirectory);
+            string arguments = SecurityElement.Escape(AutostartArgument);
             string delay = delayed ? $"      <Delay>{StartupDelay}</Delay>\n" : "";
 
             return "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n" +
@@ -176,20 +190,19 @@ namespace FluentSensors.Core.Startup
                    "  <Actions Context=\"Author\">\n" +
                    "    <Exec>\n" +
                    $"      <Command>{command}</Command>\n" +
+                   $"      <Arguments>{arguments}</Arguments>\n" +
                    $"      <WorkingDirectory>{directory}</WorkingDirectory>\n" +
                    "    </Exec>\n" +
                    "  </Actions>\n" +
                    "</Task>\n";
         }
 
-        // the exe the registered task actually launches, or empty when there is no task
-        private static string ReadTaskCommand()
+        // pulls one element out of the task definition, or empty when it is not there; the definitions this writes
+        // are flat enough that a full xml parse would buy nothing
+        private static string ReadElement(string xml, string element)
         {
-            string? xml = ReadTaskXml();
-            if (string.IsNullOrEmpty(xml)) return "";
-
-            const string open = "<Command>";
-            const string close = "</Command>";
+            string open = $"<{element}>";
+            string close = $"</{element}>";
 
             int start = xml.IndexOf(open, StringComparison.Ordinal);
             if (start < 0) return "";
@@ -199,6 +212,16 @@ namespace FluentSensors.Core.Startup
             if (end < 0) return "";
 
             return xml.Substring(start, end - start).Trim();
+        }
+
+        private static bool HasAutostartArgument()
+        {
+            foreach (string argument in Environment.GetCommandLineArgs())
+            {
+                if (string.Equals(argument, AutostartArgument, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+
+            return false;
         }
 
         // returns null when the task does not exist; schtasks answers a missing task with a non-zero exit code

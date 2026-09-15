@@ -127,9 +127,10 @@
                             Toggled="DelayStartupToggle_Toggled" />
                     </controls:SettingsCard>
 
+                    <!--  (applies to the sign-in launch only, opening the app yourself always shows the window)  -->
                     <controls:SettingsCard
                         x:Name="StartMinimizedCard"
-                        Description="Starts into the system tray instead of showing the main window"
+                        Description="Goes straight to the system tray when Windows starts the app, not when you open it yourself"
                         Header="Start minimized to tray">
                         <ToggleSwitch
                             x:Name="StartMinimizedToggle"

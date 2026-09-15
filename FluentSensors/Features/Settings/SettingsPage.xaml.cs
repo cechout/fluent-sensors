@@ -231,9 +231,11 @@ namespace FluentSensors.Features.Settings
             UpdateStartupCardStates();
         }
 
+        // both rows only do anything while windows is the one launching the app, so neither is offered without it
         private void UpdateStartupCardStates()
         {
             DelayStartupCard.IsEnabled = RunOnStartupToggle.IsOn;
+            StartMinimizedCard.IsEnabled = RunOnStartupToggle.IsOn;
         }
 
         private async void RunOnStartupToggle_Toggled(object sender, RoutedEventArgs e)
