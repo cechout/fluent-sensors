@@ -365,23 +365,38 @@ namespace FluentSensors
         // leading one; fires on every window resize, see AppStatusViewModel.UpdateVisibility for the combined logic
         private void AppTitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            AppStatus.UpdateAvailableWidth(e.NewSize.Width);
-            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+            AppStatus.UpdateAvailableWidth(e.NewSize.Width, MeasureUpdatePillWidth());
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);
         }
 
-        // the five interactive elements sitting in the drag region; the status toggle hides and shows the two groups
-        // next to it and the update pill appears mid-session, so the rects are recomputed rather than registered once
-        private void UpdateTitleBarPassthroughRegions()
+        // both halves of this react to the same thing: elements in the bar appearing, disappearing or moving
+        // the five interactive elements need their drag-region rects recomputed rather than registered once, and the
+        // readout needs to know how much room is left over once the pill is in front of it
+        //
+        // always called at Low priority so it runs after the layout pass; a pill that just became visible still
+        // measures zero before that
+        private void RefreshTitleBarLayout()
         {
+            AppStatus.UpdateAvailableWidth(AppTitleBar.ActualWidth, MeasureUpdatePillWidth());
+
             TitleBarPassthrough.Apply(this, AppTitleBar,
                 UpdateButton, DotNetRuntimePopup, StatusToggleButton, LhmInfoPopup, WindowsInfoPopup);
+        }
+
+        // measured rather than assumed, because the pill is only as wide as the version string it carries and
+        // 1.10.0 is noticeably wider than 1.3.0; user text scaling moves it too
+        private double MeasureUpdatePillWidth()
+        {
+            if (UpdateButton.Visibility != Visibility.Visible) return 0;
+
+            return UpdateButton.ActualWidth + UpdateButton.Margin.Left + UpdateButton.Margin.Right;
         }
 
         // plain Button standing in for a real ToggleButton, see the XAML comment on it for why
         private void StatusToggleButton_Click(object sender, RoutedEventArgs e)
         {
             AppStatus.IsStatusCollapsed = !AppStatus.IsStatusCollapsed;
-            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);
         }
 
         // the pill appears and disappears mid-session, so the drag region has to be recomputed the same way the
@@ -393,7 +408,7 @@ namespace FluentSensors
             AppStatus.UpdateVersionText = service.Latest?.Version ?? "";
             AppStatus.IsUpdateAvailable = service.IsUpdateAvailable;
 
-            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);
         }
 
         private async void UpdateButton_Click(object sender, RoutedEventArgs e)
@@ -423,7 +438,7 @@ namespace FluentSensors
             LhmStatusGroup.Margin = lhmFirst ? LeadingStatusGroupMargin : TrailingStatusGroupMargin;
             WindowsStatusGroup.Margin = lhmFirst ? TrailingStatusGroupMargin : LeadingStatusGroupMargin;
 
-            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, UpdateTitleBarPassthroughRegions);
+            this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);
         }
 
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;

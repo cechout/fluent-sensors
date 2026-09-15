@@ -24,7 +24,8 @@ namespace FluentSensors.Features.AppStatus
         private string _handleCountText = "";
         private string _gcMemoryText = "";
 
-        // below this TitleBar width only one group fits, so the group placed second hides
+        // below this much room only one group fits, so the group placed second hides; measured against the title bar
+        // width minus whatever sits in front of the readout, see UpdateAvailableWidth
         private const double MinWidthForFullStatus = 750;
 
         // the inputs behind IsLhmGroupVisible/IsWindowsGroupVisible below; everything except _isAppReady and
@@ -196,9 +197,12 @@ namespace FluentSensors.Features.AppStatus
         // === public api ===
 
         // called from MainWindows TitleBar SizeChanged handler
-        public void UpdateAvailableWidth(double titleBarWidth)
+        // reservedWidth is whatever sits in the title bar in front of the readout and eats into its room, which
+        // today means the update pill; subtracting it here keeps MinWidthForFullStatus about the readout alone
+        // instead of needing a second number per element that can appear in front of it
+        public void UpdateAvailableWidth(double titleBarWidth, double reservedWidth)
         {
-            HasEnoughWidthForFull = titleBarWidth >= MinWidthForFullStatus;
+            HasEnoughWidthForFull = titleBarWidth - reservedWidth >= MinWidthForFullStatus;
         }
 
         // re-reads the five readout settings after one of them changed
