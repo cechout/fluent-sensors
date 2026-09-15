@@ -52,6 +52,17 @@ namespace FluentSensors.Core.Startup
             return !string.Equals(existing, Environment.ProcessPath, StringComparison.OrdinalIgnoreCase);
         }
 
+        // rewrites the task when it points somewhere else than the running exe, and does nothing when there is no
+        // task or it already matches
+        // spawns two schtasks processes, so callers run this off the UI thread
+        public static void RepairIfStale(bool delayed)
+        {
+            if (!IsSupported) return;
+            if (!IsStale()) return;
+
+            CreateTask(delayed);
+        }
+
         // creates, rewrites or removes the task; returns false when the task scheduler refused, so the caller can put
         // its toggle back rather than showing a state that does not exist
         public static bool Apply(bool enabled, bool delayed)

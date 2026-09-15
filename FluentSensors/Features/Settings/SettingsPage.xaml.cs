@@ -221,15 +221,10 @@ namespace FluentSensors.Features.Settings
                 return;
             }
 
+            // a task pointing at a moved exe is repaired at app start, not here, so it is fixed even for someone
+            // who never opens this page
             bool taskExists = WinAutostartService.IsEnabled();
             if (settings.RunOnStartup != taskExists) settings.RunOnStartup = taskExists;
-
-            // a moved or reinstalled copy leaves a task pointing at the old exe; rewriting it is silent and keeps
-            // autostart working instead of failing at the next sign-in
-            if (taskExists && WinAutostartService.IsStale())
-            {
-                WinAutostartService.Apply(true, settings.DelayStartup);
-            }
 
             RunOnStartupToggle.IsOn = taskExists;
             DelayStartupToggle.IsOn = settings.DelayStartup;
