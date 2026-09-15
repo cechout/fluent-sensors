@@ -121,10 +121,10 @@ namespace FluentSensors.Core.Update
         // deliberately forgets the dismissal on exit instead of persisting the version, because right now there is
         // no way back: no settings entry and no start page, so a remembered skip leaves the update unreachable
         // until the next release; that already stranded a test run
-        // once the start page can reopen this dialog, this goes back to writing SettingsService.SkippedUpdateVersion
-        // (removed from AppSettingsData and SettingsService along with this change), CheckAsync gets its
-        // ignoreSkippedVersion parameter back for the explicit re-check, and the checkbox is called
-        // "Skip this version" again
+        // the dialog already labels this "Skip this version", so the UI promises the persistent behaviour and only
+        // the storage is held back; once the start page can reopen this dialog, this goes back to writing
+        // SettingsService.SkippedUpdateVersion (removed from AppSettingsData and SettingsService along with this
+        // change) and CheckAsync gets its ignoreSkippedVersion parameter back for the explicit re-check
         public void DismissUntilRestart()
         {
             if (Latest == null) return;

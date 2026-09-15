@@ -27,11 +27,12 @@ namespace FluentSensors.Features.Update
             if (xamlRoot == null || info == null) return;
 
             // --- revisit: start page ---
-            // only hides the pill for this session; see UpdateService.DismissUntilRestart for why it does not
-            // remember the version yet and what changes here once the start page exists
+            // the label already reads as the permanent skip it is meant to become, while the code behind it only
+            // hides the pill for this session; that mismatch is deliberate and temporary, not an oversight
+            // see UpdateService.DismissUntilRestart for why the version is not remembered yet
             var skipCheckBox = new CheckBox
             {
-                Content = "Hide until next start",
+                Content = "Skip this version",
                 Margin = new Thickness(0, 12, 0, 0)
             };
 
