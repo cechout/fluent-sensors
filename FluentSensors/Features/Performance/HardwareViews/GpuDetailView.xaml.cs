@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
@@ -37,7 +37,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // === bindable properties ===
 
         // graph color for every SensorPanelControl in this view; single source of truth in HardwareGroupInfo
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).Color;
+        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetGraphColor(HardwareGroupKind.Gpu);
 
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).Label;

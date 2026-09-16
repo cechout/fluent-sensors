@@ -327,12 +327,28 @@ namespace FluentSensors.Features.Start
 
             return new SystemSnapshotEntry(
                 profile.IconGlyph,
-                new SolidColorBrush(profile.Color),
+                IconBrushFor(kind),
                 category,
                 string.IsNullOrWhiteSpace(title) ? "Unknown" : title,
                 details.Where(d => !string.IsNullOrWhiteSpace(d) && d != "-").ToList(),
                 kind,
                 title ?? "");
+        }
+
+
+        // tinted per category only while group colouring is on, otherwise the ordinary foreground, which is
+        // what makes the icon read as a plain white glyph in the dark theme
+        private static SolidColorBrush IconBrushFor(HardwareGroupKind kind)
+        {
+            if (HardwareColorMode.UseGroupColors)
+            {
+                return new SolidColorBrush(HardwareGroupInfo.GetProfile(kind).Color);
+            }
+
+            return Application.Current.Resources.TryGetValue("TextFillColorPrimaryBrush", out object value)
+                && value is SolidColorBrush brush
+                    ? brush
+                    : new SolidColorBrush(Microsoft.UI.Colors.White);
         }
 
 
