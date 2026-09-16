@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -33,6 +34,7 @@ namespace FluentSensors.Common.Markdown
         private const double ListItemBottomMargin = 3;
         private const double BulletIndent = 16; // left inset of a list item
         private const double BulletHang = -11; // pulls the marker itself back out of that inset
+        private const double InlineImageMaxWidth = 420; // an image in the running text never pushes the page wider
 
 
         // === patterns ===
@@ -51,19 +53,42 @@ namespace FluentSensors.Common.Markdown
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         // one pass over every inline form that is supported, in precedence order; the alternation is what keeps
-        // "**bold**" from being read as an italic star pair
+        // "**bold**" from being read as an italic star pair, and what keeps an image from matching the link arm
+        // and leaving a stray "!" behind
         // underscore emphasis is deliberately absent: release notes carry identifiers like Some_Name_Here far more
         // often than they carry underscore italics, and treating those as markup mangles them
         private static readonly Regex InlinePattern = new(
-            @"(?<link>\[(?<linkText>[^\]]+)\]\((?<linkUrl>[^\s)]+)\))" +
+            @"(?<image>!\[(?<imageAlt>[^\]]*)\]\((?<imageUrl>[^\s)]+)\))" +
+            @"|(?<link>\[(?<linkText>[^\]]+)\]\((?<linkUrl>[^\s)]+)\))" +
             @"|(?<bold>\*\*(?<boldText>.+?)\*\*)" +
             @"|(?<code>`(?<codeText>[^`]+)`)" +
             @"|(?<url>https?://[^\s<>""]+)" +
             @"|(?<italic>\*(?<italicText>[^*\s][^*]*?)\*)",
             RegexOptions.Compiled);
 
+        private static readonly Regex StandaloneImagePattern = new(
+            @"!\[[^\]]*\]\((?<imageUrl>[^\s)]+)\)",
+            RegexOptions.Compiled);
+
 
         // === public api ===
+
+        // pulls the first image out of the body and hands it back separately, so a release can carry a header
+        // image simply by starting its notes with one and it does not also appear in the running text
+        //
+        // PowerToys solves the same problem by keying on "Hero" in the alt text; taking whichever image comes
+        // first means nothing has to be spelled a particular way when a release is written
+        public static string ExtractLeadingImage(string markdown, out string imageUrl)
+        {
+            imageUrl = null;
+            if (string.IsNullOrWhiteSpace(markdown)) return markdown;
+
+            var match = StandaloneImagePattern.Match(markdown);
+            if (!match.Success) return markdown;
+
+            imageUrl = match.Groups["imageUrl"].Value;
+            return markdown.Remove(match.Index, match.Length);
+        }
 
         // replaces whatever the target currently holds, so re-rendering the same block is safe
         public static void Render(RichTextBlock target, string markdown)
@@ -262,6 +287,11 @@ namespace FluentSensors.Common.Markdown
 
         private static Inline BuildInline(Match match)
         {
+            if (match.Groups["image"].Success)
+            {
+                return BuildImage(match.Groups["imageUrl"].Value);
+            }
+
             if (match.Groups["link"].Success)
             {
                 return BuildHyperlink(match.Groups["linkText"].Value, match.Groups["linkUrl"].Value);
@@ -290,6 +320,28 @@ namespace FluentSensors.Common.Markdown
             }
 
             return new Run { Text = match.Groups["italicText"].Value, FontStyle = FontStyle.Italic };
+        }
+
+        // an image inside the running text; the header image is pulled out before rendering, so this only ever
+        // sees the extra ones a release body happens to contain
+        // these load straight from their url and are therefore the one part of a release that stays blank without
+        // a connection, unlike the header image, which ReleaseCatalog keeps on disk
+        private static Inline BuildImage(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                return new Run { Text = "" };
+            }
+
+            var image = new Image
+            {
+                Source = new BitmapImage(uri),
+                Stretch = Stretch.Uniform,
+                MaxWidth = InlineImageMaxWidth,
+                Margin = new Thickness(0, 4, 0, 4)
+            };
+
+            return new InlineUIContainer { Child = image };
         }
 
         // a malformed url would throw on the Uri, and one bad link should not cost the whole release notes, so it

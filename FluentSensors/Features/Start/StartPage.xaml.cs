@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -68,9 +69,12 @@ namespace FluentSensors.Features.Start
 
         // === user interaction ===
 
-        private async void ReleaseNotesFlyout_Opening(object sender, object e)
+        // the whole release history, not just the newest one; a dialog rather than a flyout because it carries a
+        // navigation pane and a page of its own
+        private async void ReleaseNotesButton_Click(object sender, RoutedEventArgs e)
         {
-            await ReleaseNotes.LoadAsync();
+            var dialog = new ReleaseNotesDialog { XamlRoot = this.XamlRoot };
+            await dialog.ShowAsync();
         }
 
         // one button, four jobs, decided by whatever state the service is in

@@ -61,7 +61,10 @@
 
                 <!--  what is new in the latest release  -->
                 <!--  no left padding, the image sits flush against the button edge the way the hover fill does  -->
-                <Button Padding="0,0,18,0" Style="{ThemeResource SubtleButtonStyle}">
+                <Button
+                    Padding="0,0,18,0"
+                    Click="ReleaseNotesButton_Click"
+                    Style="{ThemeResource SubtleButtonStyle}">
                     <Grid ColumnSpacing="14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -88,22 +91,6 @@
                                 Text="{x:Bind ViewModel.ReleaseNotesSubtitle, Mode=OneWay}" />
                         </StackPanel>
                     </Grid>
-
-                    <Button.Flyout>
-                        <!--  the presenter scrolls nothing itself, the control inside brings its own scroller  -->
-                        <Flyout Opening="ReleaseNotesFlyout_Opening" Placement="Bottom">
-                            <Flyout.FlyoutPresenterStyle>
-                                <Style TargetType="FlyoutPresenter">
-                                    <Setter Property="MaxWidth" Value="470" />
-                                    <Setter Property="Padding" Value="16" />
-                                    <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
-                                    <Setter Property="ScrollViewer.VerticalScrollMode" Value="Disabled" />
-                                    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
-                                </Style>
-                            </Flyout.FlyoutPresenterStyle>
-                            <local:ReleaseNotesControl x:Name="ReleaseNotes" />
-                        </Flyout>
-                    </Button.Flyout>
                 </Button>
 
                 <!--  update state; what a click does depends on the state, see UpdateStatusButton_Click  -->

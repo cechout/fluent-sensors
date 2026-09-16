@@ -67,6 +67,10 @@ namespace FluentSensors.Core.Update
         // it would work in a debug build and fail only in a release one
         private static readonly HttpClient _http = CreateClient();
 
+        // shared with ReleaseCatalog rather than duplicated there: the user agent and accept headers below are
+        // what GitHub requires, and two copies of that would drift
+        internal static HttpClient Http => _http;
+
         private DispatcherQueue? _dispatcherQueue;
         private bool _hasCheckedOnStartup;
 
@@ -186,43 +190,6 @@ namespace FluentSensors.Core.Update
                 RaiseStateChanged();
 
                 return UpdateCheckResult.Failed;
-            }
-        }
-
-        // the notes reader is a plain read of a public release page, so it runs on every channel including a store
-        // build, and only when the user actually opens it; a store build therefore still reaches GitHub exactly
-        // never unless someone asks it to
-        //
-        // deliberately does not touch UiState on a store build: finding a newer release there must not turn into an
-        // offer to install one, the store owns that
-        public async Task<UpdateInfo?> EnsureLatestReleaseAsync()
-        {
-            if (_latestRelease != null) return _latestRelease;
-
-            try
-            {
-                string json = await _http.GetStringAsync(LatestReleaseUrl);
-
-                _latestRelease = ParseRelease(json, out bool isNewer);
-
-                if (AppDistribution.SupportsSelfUpdate)
-                {
-                    _isNewer = isNewer;
-                    LastCheckedAt = DateTimeOffset.Now;
-
-                    UiState = !isNewer || _latestRelease == null ? UpdateUiState.UpToDate
-                        : IsSkipped(_latestRelease.Version) ? UpdateUiState.Skipped
-                        : UpdateUiState.UpdateAvailable;
-
-                    RaiseStateChanged();
-                }
-
-                return _latestRelease;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[UpdateService] notes fetch failed: {ex.Message}");
-                return null;
             }
         }
 

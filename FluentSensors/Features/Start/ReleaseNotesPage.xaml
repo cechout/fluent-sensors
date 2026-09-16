@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="FluentSensors.Features.Start.ReleaseNotesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="28,4,28,28" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="16">
+
+            <!--  the header image a release carries, pulled out of the markdown by the renderer  -->
+            <!--  (kept on disk by ReleaseCatalog, so it survives without a connection)  -->
+            <Border
+                x:Name="HeroBorder"
+                CornerRadius="{ThemeResource OverlayCornerRadius}"
+                Visibility="Collapsed">
+                <Image
+                    x:Name="HeroImage"
+                    MaxHeight="230"
+                    HorizontalAlignment="Stretch"
+                    Stretch="UniformToFill" />
+            </Border>
+
+            <StackPanel Spacing="4">
+                <TextBlock x:Name="TitleText" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock
+                        x:Name="DateText"
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                    <HyperlinkButton
+                        x:Name="GitHubLink"
+                        Padding="0"
+                        Content="View on GitHub" />
+                </StackPanel>
+            </StackPanel>
+
+            <RichTextBlock
+                x:Name="NotesBlock"
+                IsTextSelectionEnabled="True"
+                TextWrapping="Wrap" />
+
+            <TextBlock
+                x:Name="EmptyText"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{ThemeResource BodyTextBlockStyle}"
+                Text="This release was published without notes"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>
