@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -108,11 +108,6 @@ namespace FluentSensors.Features.Start
             await UpdateDialog.ShowAsync(this.XamlRoot, info);
         }
 
-        private void OpenLink_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is FrameworkElement element && element.Tag is string url) OpenPath(url);
-        }
-
         // the settings json files live somewhere else in a portable build, so the path is asked for rather than
         // assumed
         private void OpenAppDataFolder_Click(object sender, RoutedEventArgs e)
@@ -120,7 +115,6 @@ namespace FluentSensors.Features.Start
             OpenPath(PersistenceService.Instance.RootFolder);
         }
 
-        // a web link and a local folder both go through the shell the same way
         private static void OpenPath(string target)
         {
             if (string.IsNullOrWhiteSpace(target)) return;
@@ -129,7 +123,7 @@ namespace FluentSensors.Features.Start
             {
                 Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
             }
-            catch { /* no browser or explorer reachable, and this page has nowhere to report that to */ }
+            catch { /* no explorer reachable, and this page has nowhere to report that to */ }
         }
 
 
