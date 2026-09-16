@@ -13,6 +13,12 @@
     Unloaded="Page_Unloaded"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <!--  frame1.png is 2560x1317; 150 wide therefore lands on 77 high, and the update button matches it  -->
+        <x:Double x:Key="StartHeroWidth">150</x:Double>
+        <x:Double x:Key="StartHeroHeight">77</x:Double>
+    </Page.Resources>
+
     <ScrollViewer>
         <!--  capped rather than stretched, unlike the settings page: the snapshot rows below read badly once  -->
         <!--  they run the full width of a wide monitor  -->
@@ -43,6 +49,9 @@
                 two separate jobs on purpose: the left button only ever reads out what changed, the right one is
                 the only thing that offers to install anything
                 a WrapPanel rather than two fixed columns, so a narrow window stacks them instead of clipping
+
+                both buttons carry the same MinHeight and the same inner spacing so they read as a pair; the hero
+                image sets that height and the update button matches it rather than the other way round
             -->
             <controls:WrapPanel
                 Margin="0,0,0,8"
@@ -50,24 +59,27 @@
                 VerticalSpacing="8">
 
                 <!--  what is new in the latest release  -->
-                <Button Padding="12,10" Style="{ThemeResource SubtleButtonStyle}">
-                    <Grid ColumnSpacing="12">
+                <!--  no left padding, the image sits flush against the button edge the way the hover fill does  -->
+                <Button Padding="0,0,18,0" Style="{ThemeResource SubtleButtonStyle}">
+                    <Grid ColumnSpacing="14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <Image
-                            Grid.Column="0"
-                            Width="36"
-                            Height="36"
-                            VerticalAlignment="Center"
-                            Source="/Assets/Icon/Icon.png" />
+                        <!--
+                            Width alone, deliberately no Height: the source is 2560x1317, and letting the image
+                            derive its own height is what keeps that ratio exact at any width
+                            the Border is what rounds it, a Border clips its child to its own corner radius
+                        -->
+                        <Border Grid.Column="0" CornerRadius="{ThemeResource ControlCornerRadius}">
+                            <Image Width="{StaticResource StartHeroWidth}" Source="/Assets/Pictures/frame1.png" />
+                        </Border>
 
                         <StackPanel
                             Grid.Column="1"
                             VerticalAlignment="Center"
-                            Spacing="1">
+                            Spacing="2">
                             <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Text="What's new" />
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -95,43 +107,47 @@
 
                 <!--  update state; what a click does depends on the state, see UpdateStatusButton_Click  -->
                 <Button
-                    Padding="12,10"
+                    MinHeight="{StaticResource StartHeroHeight}"
+                    Padding="18,0"
                     Click="UpdateStatusButton_Click"
                     IsEnabled="{x:Bind ViewModel.IsUpdateActionEnabled, Mode=OneWay}"
                     Style="{ThemeResource SubtleButtonStyle}">
-                    <Grid ColumnSpacing="12">
+                    <Grid ColumnSpacing="14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <!--  badge and progress ring swap places, they never show at the same time  -->
-                        <Grid
+                        <!--
+                            badge and progress ring sit directly in the column and never show at the same time
+                            deliberately without the fixed-size wrapper they used to have: a 24px badge centred in a
+                            36px box reads as 6px of extra padding that the neighbouring button does not have
+                        -->
+                        <Border
                             Grid.Column="0"
-                            Width="36"
-                            Height="36">
-                            <Border
-                                Width="24"
-                                Height="24"
-                                Background="{x:Bind ViewModel.UpdateBadgeBrush, Mode=OneWay}"
-                                CornerRadius="12"
-                                Visibility="{x:Bind InverseBoolToVisibility(ViewModel.IsUpdateChecking), Mode=OneWay}">
-                                <FontIcon
-                                    FontSize="12"
-                                    Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                    Glyph="{x:Bind ViewModel.UpdateBadgeGlyph, Mode=OneWay}" />
-                            </Border>
-                            <ProgressRing
-                                Width="22"
-                                Height="22"
-                                IsActive="{x:Bind ViewModel.IsUpdateChecking, Mode=OneWay}"
-                                Visibility="{x:Bind BoolToVisibility(ViewModel.IsUpdateChecking), Mode=OneWay}" />
-                        </Grid>
+                            Width="24"
+                            Height="24"
+                            VerticalAlignment="Center"
+                            Background="{x:Bind ViewModel.UpdateBadgeBrush, Mode=OneWay}"
+                            CornerRadius="12"
+                            Visibility="{x:Bind InverseBoolToVisibility(ViewModel.IsUpdateChecking), Mode=OneWay}">
+                            <FontIcon
+                                FontSize="12"
+                                Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                Glyph="{x:Bind ViewModel.UpdateBadgeGlyph, Mode=OneWay}" />
+                        </Border>
+                        <ProgressRing
+                            Grid.Column="0"
+                            Width="22"
+                            Height="22"
+                            VerticalAlignment="Center"
+                            IsActive="{x:Bind ViewModel.IsUpdateChecking, Mode=OneWay}"
+                            Visibility="{x:Bind BoolToVisibility(ViewModel.IsUpdateChecking), Mode=OneWay}" />
 
                         <StackPanel
                             Grid.Column="1"
                             VerticalAlignment="Center"
-                            Spacing="1">
+                            Spacing="2">
                             <TextBlock
                                 Style="{ThemeResource BodyStrongTextBlockStyle}"
                                 Text="{x:Bind ViewModel.UpdateStatusTitle, Mode=OneWay}" />
