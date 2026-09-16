@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,10 +17,11 @@ namespace FluentSensors.Features.Start
 {
     // backs the start page
     //
-    // the snapshot is built once per page instance and never refreshed: WinStaticInfoService resolves the whole
-    // machine during the splash and states plainly that none of it changes afterwards, so there is nothing to
-    // notify about and every row binds OneTime
-    // the update block above it is the opposite, it moves whenever UpdateService answers
+    // the static facts of the snapshot are built once per page instance and never refreshed: WinStaticInfoService
+    // resolves the whole machine during the splash and states plainly that none of it changes afterwards, so
+    // those bind OneTime
+    // the sensor count per tile is the exception and moves with LHMs ongoing discovery, and the update block
+    // moves whenever UpdateService answers
     public class StartViewModel : INotifyPropertyChanged
     {
         // === badge colours ===
@@ -57,6 +58,7 @@ namespace FluentSensors.Features.Start
         public StartViewModel()
         {
             SystemSnapshot = BuildSnapshot();
+            RefreshSensorCounts();
             RefreshUpdateState();
         }
 
@@ -140,6 +142,42 @@ namespace FluentSensors.Features.Start
             SensorsTileValue = $"{data.SensorsFound} found / {data.SensorsRendered} rendering";
             CpuTileValue = $"{data.CpuUsagePercent:0.0} %";
             RamTileValue = $"{data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
+
+            RefreshSensorCounts();
+        }
+
+        // pairs every snapshot tile with the LHM instance that reports its sensors, then reads the count off it
+        //
+        // re-resolved on every tick rather than bound once, because LhmHardwareTreeService fills in gradually and
+        // can still report a drive or an adapter for the first time long after this page was built
+        //
+        // an instance is consumed once it has been claimed, so two GPUs never both show the sensor count of the
+        // single group LHM has found so far; the second one honestly reports none
+        public void RefreshSensorCounts()
+        {
+            var available = LhmHardwareTreeService.Instance.HardwareGroups.ToList();
+
+            foreach (var entry in SystemSnapshot)
+            {
+                var candidates = available.Where(g => g.Kind == entry.MatchKind).ToList();
+
+                LhmHardwareInstance match = candidates.Count switch
+                {
+                    0 => null,
+                    1 => candidates[0],
+                    _ => HardwareNameMatcher.FindBestMatch(entry.MatchName, candidates, g => g.HardwareName)
+                };
+
+                if (match != null) available.Remove(match);
+
+                int count = match?.Sensors.Count ?? 0;
+                entry.SensorCountText = count switch
+                {
+                    0 => "No sensors",
+                    1 => "1 sensor",
+                    _ => $"{count} sensors"
+                };
+            }
         }
 
 
@@ -249,17 +287,22 @@ namespace FluentSensors.Features.Start
         // and the hardware view draw from, so one category never looks like two different things
         //
         // the formatters answer "-" for anything this machine does not report; those are dropped here rather
-        // than rendered, a snapshot row should not show a bare dash where a value belongs
-        private static SystemSnapshotEntry Row(HardwareGroupKind kind, string title, params string[] details)
+        // than rendered, a snapshot tile should not show a bare dash where a value belongs
+        private static SystemSnapshotEntry Row(HardwareGroupKind kind, string title, params string[] details) =>
+            Row(kind, HardwareGroupInfo.GetProfile(kind).Label, title, details);
+
+        private static SystemSnapshotEntry Row(HardwareGroupKind kind, string category, string title, params string[] details)
         {
             var profile = HardwareGroupInfo.GetProfile(kind);
 
             return new SystemSnapshotEntry(
                 profile.IconGlyph,
                 new SolidColorBrush(profile.Color),
-                profile.Label,
+                category,
                 string.IsNullOrWhiteSpace(title) ? "Unknown" : title,
-                details.Where(d => !string.IsNullOrWhiteSpace(d) && d != "-").ToList());
+                details.Where(d => !string.IsNullOrWhiteSpace(d) && d != "-").ToList(),
+                kind,
+                title ?? "");
         }
 
 
@@ -377,8 +420,7 @@ namespace FluentSensors.Features.Start
 
             string bios = string.IsNullOrWhiteSpace(board.BiosVersion) ? "" : $"BIOS {board.BiosVersion}";
 
-            var row = Row(HardwareGroupKind.Other, name, bios, board.BiosReleaseDate);
-            rows.Add(row with { Category = "Motherboard" });
+            rows.Add(Row(HardwareGroupKind.Other, "Motherboard", name, bios, board.BiosReleaseDate));
         }
 
 

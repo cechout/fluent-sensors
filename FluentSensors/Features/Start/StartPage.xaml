@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:local="using:FluentSensors.Features.Start"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
@@ -164,77 +165,117 @@
 
             <!--  system snapshot  -->
             <!--
-                static machine facts, built once in the view model; the icon, colour and category label per row
-                come from HardwareGroupInfo, the same profile the sensor list and the hardware view use
+                one tile per device rather than one card for the whole machine; the icon, colour and category
+                label per tile come from HardwareGroupInfo, the same profile the sensor list and the hardware
+                view use
+
+                deliberately not buttons: nothing here navigates, so there is no hover or pressed state to
+                promise something that does not happen; what is dynamic is the layout, SquareGridPanel gives up
+                a column at a time as the window narrows, exactly as the hardware start view does
             -->
             <TextBlock
                 Margin="4,8,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="System" />
 
-            <Border
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="{ThemeResource ControlCornerRadius}">
+            <ItemsControl ItemsSource="{x:Bind ViewModel.SystemSnapshot}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <fhControls:SquareGridPanel MinCellWidth="290" Spacing="8" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
 
-                <ItemsControl Padding="4,8" ItemsSource="{x:Bind ViewModel.SystemSnapshot}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="local:SystemSnapshotEntry">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="local:SystemSnapshotEntry">
 
-                            <Grid Padding="12,8" ColumnSpacing="14">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
+                        <Border
+                            Padding="16,14"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{ThemeResource ControlCornerRadius}">
 
-                                <FontIcon
-                                    Grid.Column="0"
-                                    Margin="0,3,0,0"
-                                    VerticalAlignment="Top"
-                                    FontSize="20"
-                                    Foreground="{x:Bind IconBrush}"
-                                    Glyph="{x:Bind IconGlyph}" />
+                            <StackPanel Spacing="10">
 
-                                <StackPanel Grid.Column="1" Spacing="1">
+                                <!--  device name leads, the category is the label under it; the icon already  -->
+                                <!--  carries the category in its own colour  -->
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <FontIcon
+                                        Grid.Column="0"
+                                        Margin="0,2,0,0"
+                                        VerticalAlignment="Top"
+                                        FontSize="20"
+                                        Foreground="{x:Bind IconBrush}"
+                                        Glyph="{x:Bind IconGlyph}" />
+
+                                    <!--  the Star column is what gives the trimming below an actual width to  -->
+                                    <!--  trim against; inside a horizontal StackPanel it would never trigger  -->
+                                    <StackPanel Grid.Column="1" Spacing="0">
+                                        <TextBlock
+                                            Style="{ThemeResource BodyTextBlockStyle}"
+                                            Text="{x:Bind Title}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap"
+                                            ToolTipService.ToolTip="{x:Bind Title}" />
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind Category}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!--  the static facts, wrapped so a narrow tile reflows instead of clipping  -->
+                                <ItemsControl ItemsSource="{x:Bind Details}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <controls:WrapPanel HorizontalSpacing="14" VerticalSpacing="2" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="{x:Bind}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!--  how much of this device the sensor list actually covers  -->
+                                <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Glyph="&#xECAA;" />
                                     <TextBlock
+                                        VerticalAlignment="Center"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                         Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="{x:Bind Category}" />
-                                    <TextBlock
-                                        Style="{ThemeResource BodyTextBlockStyle}"
-                                        Text="{x:Bind Title}"
-                                        TextWrapping="Wrap" />
-
-                                    <!--  the facts themselves, wrapped so a narrow window reflows instead of clipping  -->
-                                    <ItemsControl Margin="0,3,0,0" ItemsSource="{x:Bind Details}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <controls:WrapPanel HorizontalSpacing="14" VerticalSpacing="2" />
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="x:String">
-                                                <TextBlock
-                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                                    Text="{x:Bind}" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                        Text="{x:Bind SensorCountText, Mode=OneWay}" />
                                 </StackPanel>
-                            </Grid>
+                            </StackPanel>
+                        </Border>
 
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
 
             <!--  this apps own live status  -->
             <!--
                 fed by AppStatusService, the same snapshot the title bar readout runs on, so the two always agree
                 deliberately just three numbers for now
+
+                label and value follow SensorTileControl: caption in the secondary brush over a BodyLarge value
+                with tabular numerals, so a digit change never shifts the text
             -->
             <TextBlock
                 Margin="4,20,0,6"
@@ -256,7 +297,7 @@
                             Style="{ThemeResource CaptionTextBlockStyle}"
                             Text="Sensors" />
                         <TextBlock
-                            Style="{ThemeResource BodyStrongTextBlockStyle}"
+                            Style="{ThemeResource BodyLargeTextBlockStyle}"
                             Text="{x:Bind ViewModel.SensorsTileValue, Mode=OneWay}"
                             Typography.NumeralAlignment="Tabular" />
                     </StackPanel>
@@ -275,7 +316,7 @@
                             Style="{ThemeResource CaptionTextBlockStyle}"
                             Text="CPU usage" />
                         <TextBlock
-                            Style="{ThemeResource BodyStrongTextBlockStyle}"
+                            Style="{ThemeResource BodyLargeTextBlockStyle}"
                             Text="{x:Bind ViewModel.CpuTileValue, Mode=OneWay}"
                             Typography.NumeralAlignment="Tabular" />
                     </StackPanel>
@@ -294,7 +335,7 @@
                             Style="{ThemeResource CaptionTextBlockStyle}"
                             Text="RAM usage" />
                         <TextBlock
-                            Style="{ThemeResource BodyStrongTextBlockStyle}"
+                            Style="{ThemeResource BodyLargeTextBlockStyle}"
                             Text="{x:Bind ViewModel.RamTileValue, Mode=OneWay}"
                             Typography.NumeralAlignment="Tabular" />
                     </StackPanel>
