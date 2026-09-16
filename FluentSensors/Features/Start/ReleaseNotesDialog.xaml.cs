@@ -1,6 +1,7 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -26,6 +27,13 @@ namespace FluentSensors.Features.Start
         // which release is on screen, so the slide can be sent in the direction the user actually moved
         private int _currentIndex = -1;
 
+        // --- dialog geometry ---
+        private const double WindowFraction = 0.85; // how much of the app window the dialog is allowed to take
+        private const double MaxDialogWidth = 980;
+        private const double MaxDialogHeight = 740;
+        private const double MinDialogWidth = 640;
+        private const double MinDialogHeight = 460;
+
 
         // === constructor ===
 
@@ -39,6 +47,15 @@ namespace FluentSensors.Features.Start
 
         private async void Dialog_Loaded(object sender, RoutedEventArgs e)
         {
+            ResizeToWindow();
+
+            // a ContentDialog cannot be dragged or resized by hand, so following the window is the next best thing
+            if (this.XamlRoot != null) this.XamlRoot.Changed += OnXamlRootChanged;
+            this.Closed += (_, _) =>
+            {
+                if (this.XamlRoot != null) this.XamlRoot.Changed -= OnXamlRootChanged;
+            };
+
             var catalog = ReleaseCatalog.Instance;
 
             var cached = catalog.LoadCached();
@@ -59,6 +76,20 @@ namespace FluentSensors.Features.Start
             {
                 ShowStatus("The release history could not be loaded, and nothing has been saved yet");
             }
+        }
+
+
+        private void OnXamlRootChanged(XamlRoot sender, XamlRootChangedEventArgs args) => ResizeToWindow();
+
+        // sized against the window rather than fixed, and clamped so it neither overflows a small laptop panel nor
+        // floats lost in the middle of a 4K one
+        private void ResizeToWindow()
+        {
+            var size = this.XamlRoot?.Size ?? default;
+            if (size.Width <= 0 || size.Height <= 0) return;
+
+            RootGrid.Width = Math.Clamp(size.Width * WindowFraction, MinDialogWidth, MaxDialogWidth);
+            RootGrid.Height = Math.Clamp(size.Height * WindowFraction, MinDialogHeight, MaxDialogHeight);
         }
 
 

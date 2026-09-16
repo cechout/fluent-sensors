@@ -7,24 +7,29 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Windows.UI;
 using Windows.UI.Text;
 
 
 namespace FluentSensors.Common.Markdown
 {
-    // turns the markdown body of a GitHub release into RichTextBlock content
+    // turns the markdown body of a GitHub release into rendered content
     //
     // deliberately not a general markdown implementation and not a library: the only input it ever sees is a
-    // release body, which in practice is headings, bullet lists, bold runs, inline code and links, and the one
-    // package that would cover the rest is a 0.1.x preview that would ship in a release build
+    // release body, which in practice is headings, bullet lists, bold runs, inline code, links and GitHub
+    // callouts, and the one package that would cover the rest is a 0.1.x preview that would ship in a release
+    // build
     // anything it does not recognise falls through as plain text rather than being dropped, so an unexpected
     // construct degrades to something readable instead of disappearing
+    //
+    // renders into a Panel rather than a single RichTextBlock, because a RichTextBlocks Blocks only take
+    // Paragraph, and a callout needs a real Border to draw its rule down the side of several paragraphs
     public static class MarkdownRenderer
     {
         // === layout constants ===
 
-        // --- heading sizes and spacing (a release notes flyout is narrow, so these sit well below the sizes a
-        // full page would use) ---
+        // --- heading sizes and spacing (a release dialog is narrow, so these sit well below the sizes a full
+        // page would use) ---
         private const double H1FontSize = 20;
         private const double H2FontSize = 17;
         private const double H3FontSize = 15;
@@ -35,6 +40,26 @@ namespace FluentSensors.Common.Markdown
         private const double BulletIndent = 16; // left inset of a list item
         private const double BulletHang = -11; // pulls the marker itself back out of that inset
         private const double InlineImageMaxWidth = 420; // an image in the running text never pushes the page wider
+
+        // --- callout geometry ---
+        private const double AlertRuleThickness = 3; // the vertical bar down the left of a callout
+        private const double AlertInset = 14; // gap between that bar and the callout text
+
+
+        // === callout colours ===
+
+        // GitHub Primer, one pair per alert kind, the same values github.com renders these with
+        // a status colour carries its meaning independently of the app theme, only light against dark changes
+        private static readonly Dictionary<string, (Color Light, Color Dark)> AlertColors = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["NOTE"] = (Rgb(0x09, 0x69, 0xDA), Rgb(0x44, 0x93, 0xF8)),
+            ["TIP"] = (Rgb(0x1A, 0x7F, 0x37), Rgb(0x3F, 0xB9, 0x50)),
+            ["IMPORTANT"] = (Rgb(0x82, 0x50, 0xDF), Rgb(0xA3, 0x71, 0xF7)),
+            ["WARNING"] = (Rgb(0x9A, 0x67, 0x00), Rgb(0xD2, 0x99, 0x22)),
+            ["CAUTION"] = (Rgb(0xCF, 0x22, 0x2E), Rgb(0xF8, 0x51, 0x49)),
+        };
+
+        private static Color Rgb(byte r, byte g, byte b) => Color.FromArgb(0xFF, r, g, b);
 
 
         // === patterns ===
@@ -90,19 +115,22 @@ namespace FluentSensors.Common.Markdown
             return markdown.Remove(match.Index, match.Length);
         }
 
-        // replaces whatever the target currently holds, so re-rendering the same block is safe
-        public static void Render(RichTextBlock target, string markdown)
+        // replaces whatever the target currently holds, so re-rendering into the same panel is safe
+        public static void Render(Panel target, string markdown)
         {
             if (target == null) return;
 
-            target.Blocks.Clear();
+            target.Children.Clear();
             if (string.IsNullOrWhiteSpace(markdown)) return;
 
+            // ActualTheme rather than the application theme, because the app sets its theme per element
+            bool isDark = target.ActualTheme == ElementTheme.Dark;
+
             var lines = markdown.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+            var writer = new BlockWriter(target);
 
             // collects consecutive plain lines so a soft-wrapped paragraph stays one paragraph
             var pending = new List<string>();
-            bool isFirstBlock = true;
 
             void FlushPending()
             {
@@ -110,36 +138,20 @@ namespace FluentSensors.Common.Markdown
 
                 var paragraph = new Paragraph { Margin = new Thickness(0, 0, 0, ParagraphBottomMargin) };
                 AppendInlines(paragraph, string.Join(" ", pending));
-                target.Blocks.Add(paragraph);
+                writer.Add(paragraph);
 
                 pending.Clear();
-                isFirstBlock = false;
             }
 
             foreach (string raw in lines)
             {
                 string line = raw.TrimEnd();
 
-                if (string.IsNullOrWhiteSpace(line))
+                // a blank line and a horizontal rule both read as a break, and both close an open callout
+                if (string.IsNullOrWhiteSpace(line) || RulePattern.IsMatch(line))
                 {
                     FlushPending();
-                    continue;
-                }
-
-                // a horizontal rule has no equivalent inside RichTextBlock, whose Blocks only take paragraphs;
-                // it reads as a separator, so it becomes the paragraph break it already implies
-                if (RulePattern.IsMatch(line))
-                {
-                    FlushPending();
-                    continue;
-                }
-
-                var heading = HeadingPattern.Match(line);
-                if (heading.Success)
-                {
-                    FlushPending();
-                    target.Blocks.Add(BuildHeading(heading.Groups[1].Value.Length, heading.Groups[2].Value, isFirstBlock));
-                    isFirstBlock = false;
+                    writer.EndAlert();
                     continue;
                 }
 
@@ -151,10 +163,20 @@ namespace FluentSensors.Common.Markdown
                     string inner = quote.Groups[1].Value.Trim();
                     var alert = AlertPattern.Match(inner);
 
-                    if (alert.Success) target.Blocks.Add(BuildAlertLabel(alert.Groups[1].Value));
-                    else if (inner.Length > 0) target.Blocks.Add(BuildQuote(inner));
+                    if (alert.Success) writer.BeginAlert(alert.Groups[1].Value, isDark);
+                    else if (inner.Length > 0) writer.Add(BuildQuote(inner, writer.IsInAlert));
 
-                    isFirstBlock = false;
+                    continue;
+                }
+
+                // anything that is not a quote line ends the callout it would otherwise be swallowed into
+                writer.EndAlert();
+
+                var heading = HeadingPattern.Match(line);
+                if (heading.Success)
+                {
+                    FlushPending();
+                    writer.Add(BuildHeading(heading.Groups[1].Value.Length, heading.Groups[2].Value, writer.IsFirstBlock));
                     continue;
                 }
 
@@ -162,8 +184,7 @@ namespace FluentSensors.Common.Markdown
                 if (numbered.Success)
                 {
                     FlushPending();
-                    target.Blocks.Add(BuildListItem($"{numbered.Groups[1].Value}.", numbered.Groups[2].Value));
-                    isFirstBlock = false;
+                    writer.Add(BuildListItem($"{numbered.Groups[1].Value}.", numbered.Groups[2].Value));
                     continue;
                 }
 
@@ -171,8 +192,7 @@ namespace FluentSensors.Common.Markdown
                 if (bullet.Success)
                 {
                     FlushPending();
-                    target.Blocks.Add(BuildListItem("•", bullet.Groups[1].Value));
-                    isFirstBlock = false;
+                    writer.Add(BuildListItem("•", bullet.Groups[1].Value));
                     continue;
                 }
 
@@ -180,6 +200,93 @@ namespace FluentSensors.Common.Markdown
             }
 
             FlushPending();
+            writer.EndAlert();
+        }
+
+
+        // === block writer ===
+
+        // keeps the running RichTextBlock that ordinary paragraphs accumulate into, and swaps it for a callouts
+        // own one while an alert is open, so the alert can sit in a Border that draws the rule down its side
+        private sealed class BlockWriter
+        {
+            private readonly Panel _target;
+            private RichTextBlock _current;
+            private bool _inAlert;
+            private bool _anyBlockWritten;
+
+            public BlockWriter(Panel target) => _target = target;
+
+            public bool IsInAlert => _inAlert;
+
+            // only true until the very first block lands, which is what keeps a leading heading flush with the top
+            public bool IsFirstBlock => !_anyBlockWritten;
+
+            public void Add(Block block)
+            {
+                _current ??= StartTextBlock();
+                _current.Blocks.Add(block);
+                _anyBlockWritten = true;
+            }
+
+            public void BeginAlert(string kind, bool isDark)
+            {
+                if (_inAlert) return;
+
+                _inAlert = true;
+
+                Color color = AlertColors.TryGetValue(kind, out var pair)
+                    ? (isDark ? pair.Dark : pair.Light)
+                    : AlertColors["IMPORTANT"].Light;
+
+                var brush = new SolidColorBrush(color);
+                var body = new RichTextBlock { IsTextSelectionEnabled = true, TextWrapping = TextWrapping.Wrap };
+
+                var label = new TextBlock
+                {
+                    Text = Title(kind),
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = brush,
+                    Margin = new Thickness(0, 0, 0, 4)
+                };
+
+                var stack = new StackPanel();
+                stack.Children.Add(label);
+                stack.Children.Add(body);
+
+                // the rule is the Borders own left edge, so it spans whatever height the callout ends up with
+                _target.Children.Add(new Border
+                {
+                    BorderBrush = brush,
+                    BorderThickness = new Thickness(AlertRuleThickness, 0, 0, 0),
+                    Padding = new Thickness(AlertInset, 2, 0, 2),
+                    Margin = new Thickness(0, 8, 0, 8),
+                    Child = stack
+                });
+
+                // everything until EndAlert lands inside the callout instead of the running text
+                _current = body;
+                _anyBlockWritten = true;
+            }
+
+            public void EndAlert()
+            {
+                if (!_inAlert) return;
+
+                _inAlert = false;
+                _current = null;
+            }
+
+            private RichTextBlock StartTextBlock()
+            {
+                var block = new RichTextBlock { IsTextSelectionEnabled = true, TextWrapping = TextWrapping.Wrap };
+                _target.Children.Add(block);
+
+                return block;
+            }
+
+            private static string Title(string kind) =>
+                kind.Length == 0 ? kind : char.ToUpperInvariant(kind[0]) + kind.Substring(1).ToLowerInvariant();
         }
 
 
@@ -194,7 +301,7 @@ namespace FluentSensors.Common.Markdown
                 _ => H3FontSize
             };
 
-            // the leading heading sits flush with the top of the flyout, everything after it gets its gap
+            // the leading heading sits flush with the top of the dialog, everything after it gets its gap
             var paragraph = new Paragraph
             {
                 FontSize = fontSize,
@@ -206,43 +313,28 @@ namespace FluentSensors.Common.Markdown
             return paragraph;
         }
 
-        // the callout marker line, rendered as the word it stands for rather than the raw tag
-        private static Paragraph BuildAlertLabel(string kind)
+        // a quote inside a callout already sits behind the rule, so it drops the inset and the dimming it would
+        // otherwise carry as an ordinary blockquote
+        private static Paragraph BuildQuote(string text, bool isInAlert)
         {
             var paragraph = new Paragraph
             {
-                FontWeight = FontWeights.SemiBold,
-                Margin = new Thickness(BulletIndent, HeadingTopMargin / 2, 0, 2)
+                Margin = new Thickness(isInAlert ? 0 : BulletIndent, 0, 0, ListItemBottomMargin)
             };
 
-            var brush = ThemeBrush("AccentTextFillColorPrimaryBrush");
-            if (brush != null) paragraph.Foreground = brush;
-
-            string text = kind.Length == 0
-                ? kind
-                : char.ToUpperInvariant(kind[0]) + kind.Substring(1).ToLowerInvariant();
-
-            paragraph.Inlines.Add(new Run { Text = text });
-            return paragraph;
-        }
-
-        private static Paragraph BuildQuote(string text)
-        {
-            var paragraph = new Paragraph
+            if (!isInAlert)
             {
-                Margin = new Thickness(BulletIndent, 0, 0, ListItemBottomMargin)
-            };
-
-            var brush = ThemeBrush("TextFillColorSecondaryBrush");
-            if (brush != null) paragraph.Foreground = brush;
+                var brush = ThemeBrush("TextFillColorSecondaryBrush");
+                if (brush != null) paragraph.Foreground = brush;
+            }
 
             AppendInlines(paragraph, text);
             return paragraph;
         }
 
-        // resolved once per render rather than bound, which is fine because the flyout rebuilds its content every
+        // resolved once per render rather than bound, which is fine because the dialog rebuilds its content every
         // time it opens, so a theme switch is picked up on the next open
-        private static Brush? ThemeBrush(string key) =>
+        private static Brush ThemeBrush(string key) =>
             Application.Current.Resources.TryGetValue(key, out object value) ? value as Brush : null;
 
         // hanging indent: the inset moves the whole item right and the negative first-line indent pulls the

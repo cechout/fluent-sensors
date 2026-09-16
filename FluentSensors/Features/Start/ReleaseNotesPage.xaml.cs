@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
@@ -50,12 +50,12 @@ namespace FluentSensors.Features.Start
 
             if (string.IsNullOrWhiteSpace(body))
             {
-                NotesBlock.Visibility = Visibility.Collapsed;
+                NotesHost.Visibility = Visibility.Collapsed;
                 EmptyText.Visibility = Visibility.Visible;
             }
             else
             {
-                MarkdownRenderer.Render(NotesBlock, body);
+                MarkdownRenderer.Render(NotesHost, body);
             }
 
             _ = ShowHeroAsync(imageUrl);

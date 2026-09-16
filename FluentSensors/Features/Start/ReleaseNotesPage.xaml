@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="FluentSensors.Features.Start.ReleaseNotesPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -7,8 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer Padding="28,4,28,28" VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="16">
+    <!--  no padding on a scroller, it clips the content it is meant to scroll; the child carries the inset  -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28,4,28,28" Spacing="16">
 
             <!--  the header image a release carries, pulled out of the markdown by the renderer  -->
             <!--  (kept on disk by ReleaseCatalog, so it survives without a connection)  -->
@@ -38,10 +39,8 @@
                 </StackPanel>
             </StackPanel>
 
-            <RichTextBlock
-                x:Name="NotesBlock"
-                IsTextSelectionEnabled="True"
-                TextWrapping="Wrap" />
+            <!--  filled by MarkdownRenderer; a panel rather than a RichTextBlock so callouts can be real Borders  -->
+            <StackPanel x:Name="NotesHost" />
 
             <TextBlock
                 x:Name="EmptyText"

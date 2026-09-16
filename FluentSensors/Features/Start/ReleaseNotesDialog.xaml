@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentDialog
     x:Class="FluentSensors.Features.Start.ReleaseNotesDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -19,10 +19,19 @@
         <Thickness x:Key="ContentDialogSeparatorThickness">0</Thickness>
         <x:Double x:Key="ContentDialogMaxWidth">980</x:Double>
         <x:Double x:Key="ContentDialogMaxHeight">740</x:Double>
+
+        <!--
+            the templates own top overlay is a square opaque fill that paints straight over the rounded corners,
+            and DialogSpace above it is a Grid, which rounds only its own background and does not clip children
+            transparent here plus the rounding Border below is what actually gives the dialog round corners
+        -->
+        <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="Transparent" />
     </ContentDialog.Resources>
 
-    <!--  fixed size: NavigationView and Frame have nothing to size against inside a dialog that sizes to content  -->
-    <Grid Width="900" Height="620">
+    <!--  a Border rather than a Grid, because only a Border clips its child to the corner radius  -->
+    <!--  the size itself is computed from the window, see ResizeToWindow  -->
+    <Border x:Name="RootBorder" CornerRadius="{ThemeResource OverlayCornerRadius}">
+    <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -97,4 +106,5 @@
             </Grid>
         </NavigationView>
     </Grid>
+    </Border>
 </ContentDialog>
