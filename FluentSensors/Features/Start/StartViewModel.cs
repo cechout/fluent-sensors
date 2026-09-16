@@ -48,7 +48,8 @@ namespace FluentSensors.Features.Start
         private bool _isUpdateChecking;
         private bool _isUpdateActionEnabled = true;
 
-        private string _sensorsTileValue = "-";
+        private string _sensorsFoundText = "-";
+        private string _sensorsRenderedText = "-";
         private string _cpuTileValue = "-";
         private string _ramTileValue = "-";
 
@@ -113,11 +114,18 @@ namespace FluentSensors.Features.Start
         }
 
 
-        // how many sensors LHM found against how many are actually drawing right now
-        public string SensorsTileValue
+        // how many sensors LHM found, against how many are actually drawing right now; two numbers rather than
+        // one string, they sit side by side as their own values
+        public string SensorsFoundText
         {
-            get => _sensorsTileValue;
-            private set { _sensorsTileValue = value; OnPropertyChanged(); }
+            get => _sensorsFoundText;
+            private set { _sensorsFoundText = value; OnPropertyChanged(); }
+        }
+
+        public string SensorsRenderedText
+        {
+            get => _sensorsRenderedText;
+            private set { _sensorsRenderedText = value; OnPropertyChanged(); }
         }
 
         public string CpuTileValue
@@ -139,20 +147,19 @@ namespace FluentSensors.Features.Start
         // agree; the service raises it from the UI thread, so nothing is dispatched here
         public void ApplyStatus(AppStatusData data)
         {
-            SensorsTileValue = $"{data.SensorsFound} found / {data.SensorsRendered} rendering";
+            SensorsFoundText = data.SensorsFound.ToString();
+            SensorsRenderedText = data.SensorsRendered.ToString();
             CpuTileValue = $"{data.CpuUsagePercent:0.0} %";
             RamTileValue = $"{data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
 
             RefreshSensorCounts();
         }
 
-        // pairs every snapshot tile with the LHM instance that reports its sensors, then reads the count off it
+        // pairs every snapshot tile with the LHM instance or instances that report its sensors, then reads the
+        // count off them
         //
         // re-resolved on every tick rather than bound once, because LhmHardwareTreeService fills in gradually and
         // can still report a drive or an adapter for the first time long after this page was built
-        //
-        // an instance is consumed once it has been claimed, so two GPUs never both show the sensor count of the
-        // single group LHM has found so far; the second one honestly reports none
         public void RefreshSensorCounts()
         {
             var available = LhmHardwareTreeService.Instance.HardwareGroups.ToList();
@@ -160,17 +167,14 @@ namespace FluentSensors.Features.Start
             foreach (var entry in SystemSnapshot)
             {
                 var candidates = available.Where(g => g.Kind == entry.MatchKind).ToList();
+                var matches = MatchInstances(entry, candidates);
 
-                LhmHardwareInstance match = candidates.Count switch
-                {
-                    0 => null,
-                    1 => candidates[0],
-                    _ => HardwareNameMatcher.FindBestMatch(entry.MatchName, candidates, g => g.HardwareName)
-                };
+                foreach (var match in matches) available.Remove(match);
 
-                if (match != null) available.Remove(match);
+                int count = matches.Sum(m => m.Sensors.Count);
 
-                int count = match?.Sensors.Count ?? 0;
+                entry.MatchedHardwareNames = matches.Select(m => m.HardwareName).ToList();
+                entry.HasSensors = count > 0;
                 entry.SensorCountText = count switch
                 {
                     0 => "No sensors",
@@ -178,6 +182,29 @@ namespace FluentSensors.Features.Start
                     _ => $"{count} sensors"
                 };
             }
+        }
+
+        // a category that only ever produces one tile takes every group LHM filed under it; LibreHardwareMonitor
+        // splits memory across several groups, so anything else would report a fraction of the real count
+        //
+        // the categories that produce one tile per device pick a single group each, and a group is consumed once
+        // it has been claimed, so two GPUs never both show the sensors of the one group LHM has found so far
+        private static List<LhmHardwareInstance> MatchInstances(
+            SystemSnapshotEntry entry, List<LhmHardwareInstance> candidates)
+        {
+            if (candidates.Count == 0) return new List<LhmHardwareInstance>();
+
+            bool isSingleTileKind = entry.MatchKind is HardwareGroupKind.Cpu
+                or HardwareGroupKind.Ram
+                or HardwareGroupKind.Other;
+
+            if (isSingleTileKind) return candidates;
+
+            var match = candidates.Count == 1
+                ? candidates[0]
+                : HardwareNameMatcher.FindBestMatch(entry.MatchName, candidates, g => g.HardwareName);
+
+            return match == null ? new List<LhmHardwareInstance>() : new List<LhmHardwareInstance> { match };
         }
 
 
@@ -289,9 +316,12 @@ namespace FluentSensors.Features.Start
         // the formatters answer "-" for anything this machine does not report; those are dropped here rather
         // than rendered, a snapshot tile should not show a bare dash where a value belongs
         private static SystemSnapshotEntry Row(HardwareGroupKind kind, string title, params string[] details) =>
-            Row(kind, HardwareGroupInfo.GetProfile(kind).Label, title, details);
+            LabelledRow(kind, HardwareGroupInfo.GetProfile(kind).Label, title, details);
 
-        private static SystemSnapshotEntry Row(HardwareGroupKind kind, string category, string title, params string[] details)
+        // deliberately a different name rather than an overload of Row: an overload taking one more string would
+        // also match every Row(kind, title, detail, detail) call, and C# prefers the form that does not have to
+        // expand params, so the device name would silently land in the category and the first fact in the title
+        private static SystemSnapshotEntry LabelledRow(HardwareGroupKind kind, string category, string title, params string[] details)
         {
             var profile = HardwareGroupInfo.GetProfile(kind);
 
@@ -420,7 +450,7 @@ namespace FluentSensors.Features.Start
 
             string bios = string.IsNullOrWhiteSpace(board.BiosVersion) ? "" : $"BIOS {board.BiosVersion}";
 
-            rows.Add(Row(HardwareGroupKind.Other, "Motherboard", name, bios, board.BiosReleaseDate));
+            rows.Add(LabelledRow(HardwareGroupKind.Other, "Motherboard", name, bios, board.BiosReleaseDate));
         }
 
 

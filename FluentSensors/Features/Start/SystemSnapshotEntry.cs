@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml.Media;
+﻿using Microsoft.UI.Xaml.Media;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -22,6 +22,8 @@ namespace FluentSensors.Features.Start
         // === fields ===
 
         private string _sensorCountText = "";
+        private IReadOnlyList<string> _matchedHardwareNames = new List<string>();
+        private bool _hasSensors;
 
 
         // === constructor ===
@@ -65,6 +67,20 @@ namespace FluentSensors.Features.Start
         {
             get => _sensorCountText;
             set { if (_sensorCountText == value) return; _sensorCountText = value; OnPropertyChanged(); }
+        }
+
+        // false disables the count button; a tile LHM reports nothing for has no group to open
+        public bool HasSensors
+        {
+            get => _hasSensors;
+            set { if (_hasSensors == value) return; _hasSensors = value; OnPropertyChanged(); }
+        }
+
+        // the raw LhmHardwareInstance names this tile counted, which is what the sensors page matches against
+        public IReadOnlyList<string> MatchedHardwareNames
+        {
+            get => _matchedHardwareNames;
+            set { _matchedHardwareNames = value ?? new List<string>(); }
         }
 
 

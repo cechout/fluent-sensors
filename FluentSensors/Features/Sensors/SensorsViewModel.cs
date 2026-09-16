@@ -1,4 +1,4 @@
-using Microsoft.UI.Dispatching;
+﻿using Microsoft.UI.Dispatching;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -185,6 +185,7 @@ namespace FluentSensors.Features.Sensors
             var group = new HardwareGroupViewModel
             {
                 HardwareName = GetDisplayName(instance),
+                LhmHardwareName = instance.HardwareName,
                 GroupLabel = profile.Label,
                 IconGlyph = profile.IconGlyph
             };

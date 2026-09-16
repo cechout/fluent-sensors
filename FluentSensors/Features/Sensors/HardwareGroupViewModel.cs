@@ -16,6 +16,11 @@ namespace FluentSensors.Features.Sensors
         // === fields ===
 
         public string HardwareName { get; set; } = "Hardware Name not provided"; // description of expander 
+
+        // the raw LhmHardwareInstance name behind this group; HardwareName above is a display name and for
+        // storage and network deliberately differs from it, so anything addressing a specific group from
+        // outside has to match on this one
+        public string LhmHardwareName { get; set; } = "";
         public string GroupLabel { get; set; } = "Hardware"; // header of expander 
         public string IconGlyph { get; set; } = ""; // header icon glyph, resolved via HardwareGroupInfo
         public ObservableCollection<SensorRowViewModel> Sensors { get; set; } // content of expander

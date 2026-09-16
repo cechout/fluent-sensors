@@ -84,6 +84,9 @@ namespace FluentSensors
         // profile a caller asked for while the splash was still running; applied once the sensor page exists
         private SensorSelectionProfile? _pendingSensorProfile = null;
 
+        // same idea as _pendingSensorProfile, for a group request that arrives before the page exists
+        private IReadOnlyList<string> _pendingSensorHardware = null;
+
         // system tray icon commands
         public XamlUICommand RestoreAppCommand { get; } = new XamlUICommand(); // restore
         public XamlUICommand ShowMainWindowCommand { get; } = new XamlUICommand(); // restore + navigate to SensorPage
@@ -345,6 +348,12 @@ namespace FluentSensors
             {
                 pendingPage.SelectProfile(pendingProfile);
                 _pendingSensorProfile = null;
+            }
+
+            if (_pendingSensorHardware != null && contentFrame.Content is SensorsPage pendingGroupPage)
+            {
+                pendingGroupPage.ExpandHardwareGroup(_pendingSensorHardware);
+                _pendingSensorHardware = null;
             }
 
             // re-open the widget window with its previously pinned sensors, if it was still open when the app last closed
@@ -771,6 +780,29 @@ namespace FluentSensors
             {
                 // splash is still running, StartHardwareServiceAsync picks this up once it selects the page
                 _pendingSensorProfile = profile;
+            }
+        }
+
+        // lands on the sensor list with one hardware group opened and the rest closed
+        // used by the start pages snapshot tiles, whose sensor count is a button onto exactly that group
+        public void OpenSensorsForHardware(IReadOnlyList<string> lhmHardwareNames)
+        {
+            if (lhmHardwareNames == null || lhmHardwareNames.Count == 0) return;
+
+            OpenDashboard();
+
+            if (!ReferenceEquals(MainNavigationView.SelectedItem, SensorsNavItem))
+            {
+                MainNavigationView.SelectedItem = SensorsNavItem;
+            }
+
+            if (contentFrame.Content is SensorsPage sensorsPage)
+            {
+                sensorsPage.ExpandHardwareGroup(lhmHardwareNames);
+            }
+            else
+            {
+                _pendingSensorHardware = lhmHardwareNames;
             }
         }
 

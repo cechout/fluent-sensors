@@ -175,49 +175,46 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="local:SystemSnapshotEntry">
 
+                        <!--  no Padding on the card itself, the divider has to reach both edges  -->
                         <Border
-                            Padding="16,14"
                             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                             BorderThickness="1"
                             CornerRadius="{ThemeResource ControlCornerRadius}">
 
-                            <StackPanel Spacing="10">
+                            <StackPanel>
 
-                                <!--  device name leads, the category is the label under it; the icon already  -->
-                                <!--  carries the category in its own colour  -->
-                                <Grid ColumnSpacing="12">
+                                <!--  category label over device name, the fact idiom SensorTileControl uses  -->
+                                <Grid Margin="16,14,16,0" ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
 
+                                    <!--  no alignment set, so it centres across both lines like the hardware start view  -->
                                     <FontIcon
                                         Grid.Column="0"
-                                        Margin="0,2,0,0"
-                                        VerticalAlignment="Top"
                                         FontSize="20"
                                         Foreground="{x:Bind IconBrush}"
                                         Glyph="{x:Bind IconGlyph}" />
 
-                                    <!--  the Star column is what gives the trimming below an actual width to  -->
-                                    <!--  trim against; inside a horizontal StackPanel it would never trigger  -->
+                                    <!--  the Star column is what gives the trimming below a width to trim against  -->
                                     <StackPanel Grid.Column="1" Spacing="0">
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind Category}" />
                                         <TextBlock
                                             Style="{ThemeResource BodyTextBlockStyle}"
                                             Text="{x:Bind Title}"
                                             TextTrimming="CharacterEllipsis"
                                             TextWrapping="NoWrap"
                                             ToolTipService.ToolTip="{x:Bind Title}" />
-                                        <TextBlock
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                            Text="{x:Bind Category}" />
                                     </StackPanel>
                                 </Grid>
 
                                 <!--  the static facts, wrapped so a narrow tile reflows instead of clipping  -->
-                                <ItemsControl ItemsSource="{x:Bind Details}">
+                                <ItemsControl Margin="16,10,16,14" ItemsSource="{x:Bind Details}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <controls:WrapPanel HorizontalSpacing="14" VerticalSpacing="2" />
@@ -233,21 +230,43 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
-                                <!--  how much of this device the sensor list actually covers  -->
+                                <!--  edge to edge, which is why the card carries no padding of its own  -->
                                 <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
 
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon
-                                        VerticalAlignment="Center"
-                                        FontSize="12"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Glyph="&#xECAA;" />
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="{x:Bind SensorCountText, Mode=OneWay}" />
-                                </StackPanel>
+                                <!--  opens this hardware group on the sensors page; disabled when there is none  -->
+                                <Button
+                                    Padding="16,10"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Stretch"
+                                    Click="SensorCount_Click"
+                                    CornerRadius="0"
+                                    IsEnabled="{x:Bind HasSensors, Mode=OneWay}"
+                                    Style="{StaticResource SubtleBarButtonStyle}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <FontIcon
+                                            Grid.Column="0"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            FontSize="12"
+                                            Glyph="&#xECAA;" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind SensorCountText, Mode=OneWay}" />
+                                        <FontIcon
+                                            Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            FontSize="11"
+                                            Glyph="&#xE76C;" />
+                                    </Grid>
+                                </Button>
                             </StackPanel>
                         </Border>
 
@@ -271,22 +290,35 @@
 
             <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8">
 
+                <!--  found and rendering are two values, but one card; they only mean anything next to each other  -->
                 <Border
-                    MinWidth="185"
                     Padding="14,10"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
                     CornerRadius="{ThemeResource ControlCornerRadius}">
-                    <StackPanel Spacing="2">
-                        <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Sensors" />
-                        <TextBlock
-                            Style="{ThemeResource BodyLargeTextBlockStyle}"
-                            Text="{x:Bind ViewModel.SensorsTileValue, Mode=OneWay}"
-                            Typography.NumeralAlignment="Tabular" />
+                    <StackPanel Orientation="Horizontal" Spacing="28">
+                        <StackPanel MinWidth="74" Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Found" />
+                            <TextBlock
+                                Style="{ThemeResource BodyLargeTextBlockStyle}"
+                                Text="{x:Bind ViewModel.SensorsFoundText, Mode=OneWay}"
+                                Typography.NumeralAlignment="Tabular" />
+                        </StackPanel>
+
+                        <StackPanel MinWidth="74" Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Rendering" />
+                            <TextBlock
+                                Style="{ThemeResource BodyLargeTextBlockStyle}"
+                                Text="{x:Bind ViewModel.SensorsRenderedText, Mode=OneWay}"
+                                Typography.NumeralAlignment="Tabular" />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 

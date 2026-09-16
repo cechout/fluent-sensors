@@ -114,6 +114,15 @@ namespace FluentSensors.Features.Start
 
         // the settings json files live somewhere else in a portable build, so the path is asked for rather than
         // assumed
+        // the sensor count under each snapshot tile; opens the sensor list with exactly that hardware group
+        // expanded and every other one closed
+        private void SensorCount_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not FrameworkElement element || element.DataContext is not SystemSnapshotEntry entry) return;
+
+            MainWindow.CurrentInstance?.OpenSensorsForHardware(entry.MatchedHardwareNames);
+        }
+
         private void OpenAppDataFolder_Click(object sender, RoutedEventArgs e)
         {
             OpenPath(PersistenceService.Instance.RootFolder);

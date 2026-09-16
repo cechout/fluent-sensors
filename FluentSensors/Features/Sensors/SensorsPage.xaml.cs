@@ -1,4 +1,4 @@
-using CommunityToolkit.WinUI.Controls;
+﻿using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -199,6 +199,21 @@ namespace FluentSensors.Features.Sensors
                     SelectionProfileComboBox.SelectedItem = item;
                     return;
                 }
+            }
+        }
+
+        // the group-level counterpart to SelectProfile above, for the start pages sensor count button
+        //
+        // matches on LhmHardwareName rather than HardwareName: the latter is a display name and for storage and
+        // network deliberately shows the WMI model instead of what LHM called the hardware
+        // collapsing everything else is what stands in for scrolling, the app has no scroll-into-view anywhere
+        public void ExpandHardwareGroup(IReadOnlyList<string> lhmHardwareNames)
+        {
+            if (lhmHardwareNames == null || lhmHardwareNames.Count == 0) return;
+
+            foreach (var group in ViewModel.HardwareGroups)
+            {
+                group.IsExpanded = lhmHardwareNames.Contains(group.LhmHardwareName, StringComparer.OrdinalIgnoreCase);
             }
         }
 
