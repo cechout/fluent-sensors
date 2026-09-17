@@ -5,34 +5,37 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    CloseButtonText="Close"
     Loaded="Dialog_Loaded"
     Style="{StaticResource DefaultContentDialogStyle}"
     mc:Ignorable="d">
 
     <!--
-        WinUI keys the dialog style twice: once implicitly as TargetType ContentDialog and once as
-        DefaultContentDialogStyle, and an implicit style only ever reaches its exact type
-        this class derives from ContentDialog, so it never got that style, and with it never got CornerRadius,
-        BorderThickness, BorderBrush or CloseButtonStyle; the template arrived anyway, which is why the dialog
-        looked right apart from being square down to its close button
-        naming the keyed style is what a XAML declared subclass has to do
+        the style has to be named, it cannot be left to the platform: WinUI keys this style twice, once implicitly
+        as TargetType ContentDialog and once as DefaultContentDialogStyle, and an implicit style only ever reaches
+        its exact type
+        this class derives from ContentDialog, so without the line above it never gets CornerRadius,
+        BorderThickness, BorderBrush or CloseButtonStyle, while the template still arrives through DefaultStyleKey
+        that is a dialog which looks entirely right and is square down to its buttons
     -->
 
-    <!--
-        TEARDOWN STAGE 1
-        stage 0 was already square at 24px of padding, where our content cannot reach a corner at all, so the
-        content is not what squares it off
+    <ContentDialog.Resources>
+        <!--
+            no button text is set anywhere on this dialog, which puts the template into its NoneVisible state and
+            collapses the whole command bar; the close affordance is the X in the header instead
+            padding goes to zero so the header and the navigation pane reach the dialog edges, and the separator
+            above the now-absent command bar would otherwise still draw
+        -->
+        <Thickness x:Key="ContentDialogPadding">0</Thickness>
+        <Thickness x:Key="ContentDialogSeparatorThickness">0</Thickness>
 
-        that leaves the one structural thing this dialog did differently from every other dialog in the app: it
-        carried no button text, which puts the template into NoneVisible and collapses CommandSpace
-        the grid above CommandSpace then covers the whole dialog rather than its upper part, and that grid paints
-        ContentDialogTopOverlay as a square fill and ContentDialogSeparatorThickness as a square 1px edge along
-        its bottom, straight through both lower corners
+        <!--
+            the template paints this brush on the grid that carries the content, and at zero padding that grid
+            covers the whole dialog rather than only the top of it
+        -->
+        <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="Transparent" />
+    </ContentDialog.Resources>
 
-        CloseButtonText above is what tests that, and nothing else changed; the X in the header is redundant for
-        this build
-    -->
+    <!--  (the size is applied in code, see ResizeToWindow)  -->
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

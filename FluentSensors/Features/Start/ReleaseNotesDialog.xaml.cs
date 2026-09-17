@@ -79,10 +79,7 @@ namespace FluentSensors.Features.Start
         private void OnXamlRootChanged(XamlRoot sender, XamlRootChangedEventArgs args) => ResizeToWindow();
 
         // fixed width, height follows the window so the dialog never overflows a short display
-        //
-        // internal rather than private while the corner probe runs: the probe calls it before ShowAsync, to tell
-        // apart a dialog that opens at its final size from one that is resized once it is already open
-        internal void ResizeToWindow()
+        private void ResizeToWindow()
         {
             var size = this.XamlRoot?.Size ?? default;
             if (size.Height <= 0) return;
@@ -120,19 +117,10 @@ namespace FluentSensors.Features.Start
         {
             if (args.SelectedItem is not NavigationViewItem item || item.Tag is not ReleaseEntry release) return;
 
-            // --- teardown diagnostic: comes out once the dialog is whole again ---
-            // anything that throws while the page is being built surfaces at the line that sets the selection,
-            // which names neither the cause nor the file; this puts the real message on screen instead
-            try
-            {
-                // the NavigationView hands out the transition its own display mode calls for, so a release change
-                // reads exactly like a page change anywhere else in the app rather than like a hand rolled slide
-                ReleaseFrame.Navigate(typeof(ReleaseNotesPage), release, args.RecommendedNavigationTransitionInfo);
-            }
-            catch (Exception ex)
-            {
-                ShowStatus($"{ex.GetType().Name}\n{ex.Message}");
-            }
+            // the NavigationView hands out the transition its own display mode calls for, so a release change
+            // reads exactly like a page change anywhere else in the app rather than like a hand rolled slide
+            // for a left pane that recommendation is always the entrance transition, the vertical one
+            ReleaseFrame.Navigate(typeof(ReleaseNotesPage), release, args.RecommendedNavigationTransitionInfo);
         }
 
 
