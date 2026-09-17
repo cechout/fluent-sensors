@@ -48,15 +48,20 @@
                 the only thing that offers to install anything
                 both carry the same MinHeight and inner spacing so they read as a pair, and the hero image is what
                 sets that height
+                a Grid rather than a WrapPanel: the update button belongs on the right and must never drop into a
+                second row, it shortens its own text instead
             -->
-            <controls:WrapPanel
-                Margin="0,8,0,8"
-                HorizontalSpacing="8"
-                VerticalSpacing="8">
+            <Grid Margin="0,8,0,8" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
                 <!--  whats new button  -->
                 <!--  (no left padding, the image sits flush against the button edge the way the hover fill does)  -->
                 <Button
+                    Grid.Column="0"
+                    HorizontalAlignment="Left"
                     Padding="0,0,18,0"
                     Click="ReleaseNotesButton_Click"
                     Style="{ThemeResource SubtleButtonStyle}">
@@ -67,9 +72,16 @@
                         </Grid.ColumnDefinitions>
 
                         <!--  hero image  -->
-                        <!--  (Width alone, no Height: letting the image derive its own keeps the ratio exact)  -->
-                        <Border Grid.Column="0" CornerRadius="{ThemeResource ControlCornerRadius}">
-                            <Image Width="{StaticResource StartHeroWidth}" Source="/Assets/Pictures/frame1.png" />
+                        <!--  (an ImageBrush rather than a child Image: a background is clipped by the corner  -->
+                        <!--  radius for certain, and the fixed pair keeps frame1.png at its own 2560x1317 ratio)  -->
+                        <Border
+                            Grid.Column="0"
+                            Width="{StaticResource StartHeroWidth}"
+                            Height="{StaticResource StartHeroHeight}"
+                            CornerRadius="{ThemeResource ControlCornerRadius}">
+                            <Border.Background>
+                                <ImageBrush ImageSource="/Assets/Pictures/frame1.png" Stretch="UniformToFill" />
+                            </Border.Background>
                         </Border>
 
                         <StackPanel
@@ -88,6 +100,8 @@
                 <!--  update state button  -->
                 <!--  (what a click does depends on the state, see UpdateStatusButton_Click)  -->
                 <Button
+                    Grid.Column="1"
+                    MaxWidth="280"
                     MinHeight="{StaticResource StartHeroHeight}"
                     Padding="18,0"
                     Click="UpdateStatusButton_Click"
@@ -96,7 +110,7 @@
                     <Grid ColumnSpacing="14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
                         <!--  state badge and progress ring  -->
@@ -130,16 +144,22 @@
                             Grid.Column="1"
                             VerticalAlignment="Center"
                             Spacing="2">
-                            <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Text="{x:Bind ViewModel.UpdateStatusTitle, Mode=OneWay}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                Text="{x:Bind ViewModel.UpdateStatusTitle, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap" />
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="{x:Bind ViewModel.UpdateStatusDescription, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap"
                                 Visibility="{x:Bind HasText(ViewModel.UpdateStatusDescription), Mode=OneWay}" />
                         </StackPanel>
                     </Grid>
                 </Button>
-            </controls:WrapPanel>
+            </Grid>
 
 
             <!--  content: system snapshot  -->
@@ -294,38 +314,47 @@
 
             <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8">
 
-                <!--  sensor counts  -->
+                <!--  found sensors  -->
                 <Border
+                    MinWidth="140"
                     Padding="14,10"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
                     CornerRadius="{ThemeResource ControlCornerRadius}">
-                    <StackPanel Orientation="Horizontal" Spacing="16">
-                        <StackPanel MinWidth="74" Spacing="2">
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Found Sensors" />
-                            <TextBlock
-                                Style="{ThemeResource BodyLargeTextBlockStyle}"
-                                Text="{x:Bind ViewModel.SensorsFoundText, Mode=OneWay}"
-                                Typography.NumeralAlignment="Tabular" />
-                        </StackPanel>
-
-                        <StackPanel MinWidth="74" Spacing="2">
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Rendering Sensors" />
-                            <TextBlock
-                                Style="{ThemeResource BodyLargeTextBlockStyle}"
-                                Text="{x:Bind ViewModel.SensorsRenderedText, Mode=OneWay}"
-                                Typography.NumeralAlignment="Tabular" />
-                        </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Found Sensors" />
+                        <TextBlock
+                            Style="{ThemeResource BodyLargeTextBlockStyle}"
+                            Text="{x:Bind ViewModel.SensorsFoundText, Mode=OneWay}"
+                            Typography.NumeralAlignment="Tabular" />
                     </StackPanel>
                 </Border>
 
+                <!--  rendering sensors  -->
+                <Border
+                    MinWidth="140"
+                    Padding="14,10"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}">
+                    <StackPanel Spacing="2">
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="Rendering Sensors" />
+                        <TextBlock
+                            Style="{ThemeResource BodyLargeTextBlockStyle}"
+                            Text="{x:Bind ViewModel.SensorsRenderedText, Mode=OneWay}"
+                            Typography.NumeralAlignment="Tabular" />
+                    </StackPanel>
+                </Border>
+
+                <!--  cpu usage  -->
                 <Border
                     MinWidth="140"
                     Padding="14,10"
@@ -345,6 +374,7 @@
                     </StackPanel>
                 </Border>
 
+                <!--  ram usage  -->
                 <Border
                     MinWidth="140"
                     Padding="14,10"
