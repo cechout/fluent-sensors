@@ -13,12 +13,13 @@
 
             <!--  header image  -->
             <!--  (edge to edge, which is why the inset below sits on the children rather than on this panel)  -->
+            <!--  (Uniform rather than UniformToFill, which crops a banner wider than the dialog on both sides)  -->
             <Border x:Name="HeroBorder" Visibility="Collapsed">
                 <Image
                     x:Name="HeroImage"
                     MaxHeight="200"
                     HorizontalAlignment="Stretch"
-                    Stretch="UniformToFill" />
+                    Stretch="Uniform" />
             </Border>
 
             <StackPanel Margin="28,4,28,0" Spacing="4">

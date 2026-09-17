@@ -38,6 +38,10 @@ namespace FluentSensors.Common.Markdown
         private const double HeadingBottomMargin = 5;
         private const double ParagraphBottomMargin = 9;
         private const double ListItemBottomMargin = 3;
+
+        // a list packs its items tight, so a paragraph that follows one has to bring the gap itself; without it
+        // the full changelog line ends up sitting on the last bullet
+        private const double ParagraphTopMarginAfterList = ParagraphBottomMargin - ListItemBottomMargin;
         private const double BulletIndent = 16; // left inset of a list item
         private const double BulletHang = -11; // pulls the marker itself back out of that inset
         private const double InlineImageMaxWidth = 420; // an image in the running text never pushes the page wider
@@ -190,7 +194,9 @@ namespace FluentSensors.Common.Markdown
             {
                 if (pending.Count == 0) return;
 
-                var paragraph = new Paragraph { Margin = new Thickness(0, 0, 0, ParagraphBottomMargin) };
+                double topMargin = writer.LastBlockWasListItem ? ParagraphTopMarginAfterList : 0;
+
+                var paragraph = new Paragraph { Margin = new Thickness(0, topMargin, 0, ParagraphBottomMargin) };
                 AppendInlines(paragraph, string.Join(" ", pending));
                 writer.Add(paragraph);
 
@@ -239,7 +245,7 @@ namespace FluentSensors.Common.Markdown
                 if (numbered.Success)
                 {
                     FlushPending();
-                    writer.Add(BuildListItem($"{numbered.Groups[1].Value}.", numbered.Groups[2].Value));
+                    writer.Add(BuildListItem($"{numbered.Groups[1].Value}.", numbered.Groups[2].Value), isListItem: true);
                     continue;
                 }
 
@@ -247,7 +253,7 @@ namespace FluentSensors.Common.Markdown
                 if (bullet.Success)
                 {
                     FlushPending();
-                    writer.Add(BuildListItem("•", bullet.Groups[1].Value));
+                    writer.Add(BuildListItem("•", bullet.Groups[1].Value), isListItem: true);
                     continue;
                 }
 
@@ -269,6 +275,7 @@ namespace FluentSensors.Common.Markdown
             private RichTextBlock _current;
             private bool _inAlert;
             private bool _anyBlockWritten;
+            private bool _lastWasListItem;
 
             public BlockWriter(Panel target) => _target = target;
 
@@ -277,11 +284,15 @@ namespace FluentSensors.Common.Markdown
             // only true until the very first block lands, which is what keeps a leading heading flush with the top
             public bool IsFirstBlock => !_anyBlockWritten;
 
-            public void Add(Block block)
+            // what the paragraph after a list needs to know to bring its own top gap
+            public bool LastBlockWasListItem => _lastWasListItem;
+
+            public void Add(Block block, bool isListItem = false)
             {
                 _current ??= StartTextBlock();
                 _current.Blocks.Add(block);
                 _anyBlockWritten = true;
+                _lastWasListItem = isListItem;
             }
 
             public void BeginAlert(string kind, bool isDark)
@@ -322,6 +333,7 @@ namespace FluentSensors.Common.Markdown
                 // everything until EndAlert lands inside the callout instead of the running text
                 _current = body;
                 _anyBlockWritten = true;
+                _lastWasListItem = false;
             }
 
             public void EndAlert()
