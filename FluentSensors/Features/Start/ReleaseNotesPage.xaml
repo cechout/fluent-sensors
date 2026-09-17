@@ -17,8 +17,10 @@
         <StackPanel>
 
             <!--  header image  -->
-            <!--  (edge to edge, which is why the inset sits on the body rather than on this panel)  -->
-            <!--  (Uniform rather than UniformToFill, which crops a banner wider than the dialog on both sides)  -->
+            <!--
+                (edge to edge, which is why the inset sits on the body rather than on this panel
+                Uniform rather than UniformToFill, which crops a banner wider than the dialog on both sides)
+            -->
             <Border
                 x:Name="HeroBorder"
                 CornerRadius="0"
@@ -30,7 +32,7 @@
                     Stretch="Uniform" />
             </Border>
 
-            <!--  release body  -->
+            <!--  release body: date + github link, notes  -->
             <!--  (a Grid around the panel, only so there is something with a Padding to hang the knob on)  -->
             <Grid Padding="{StaticResource ReleaseContentPadding}">
                 <StackPanel Spacing="16">
@@ -53,6 +55,7 @@
                     <!--  (a panel rather than a RichTextBlock, so callouts can be real Borders)  -->
                     <StackPanel x:Name="NotesHost" />
 
+                    <!--  empty state  -->
                     <TextBlock
                         x:Name="EmptyText"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"

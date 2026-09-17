@@ -10,20 +10,17 @@
     mc:Ignorable="d">
 
     <!--
-        the style has to be named, it cannot be left to the platform: WinUI keys this style twice, once implicitly
-        as TargetType ContentDialog and once as DefaultContentDialogStyle, and an implicit style only ever reaches
-        its exact type
-        this class derives from ContentDialog, so without the line above it never gets CornerRadius,
-        BorderThickness, BorderBrush or CloseButtonStyle, while the template still arrives through DefaultStyleKey
-        that is a dialog which looks entirely right and is square down to its buttons
+        the style has to be named: WinUI keys it twice, implicitly as TargetType ContentDialog and by name, and
+        an implicit style only ever reaches its exact type, never a subclass like this one
+        without it the dialog still gets its template but loses CornerRadius, BorderThickness and the button
+        styles, which reads as square corners rather than as a missing style
     -->
 
     <ContentDialog.Resources>
         <!--
-            no button text is set anywhere on this dialog, which puts the template into its NoneVisible state and
-            collapses the whole command bar; the close affordance is the X in the header instead
-            padding goes to zero so the header and the navigation pane reach the dialog edges, and the separator
-            above the now-absent command bar would otherwise still draw
+            no button text is set anywhere, which puts the template into its NoneVisible state and collapses the
+            command bar; the X in the header is the close affordance instead
+            zero padding lets header and navigation pane reach the dialog edges
         -->
         <Thickness x:Key="ContentDialogPadding">0</Thickness>
         <Thickness x:Key="ContentDialogSeparatorThickness">0</Thickness>
@@ -42,7 +39,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  header: title and close  -->
+        <!--  header: title and close button  -->
         <!--  (stands in for the dialogs own Title, so the padding stays ours)  -->
         <Grid
             Grid.Row="0"
@@ -53,6 +50,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
+            <!--  title  -->
             <!--  (Tight plus TrimSideBearings, so the visible text starts where the padding says it does)  -->
             <TextBlock
                 VerticalAlignment="Center"
@@ -61,6 +59,7 @@
                 Text="What's new"
                 TextLineBounds="Tight" />
 
+            <!--  close button  -->
             <Button
                 Grid.Column="1"
                 Width="36"
@@ -78,7 +77,7 @@
             </Button>
         </Grid>
 
-        <!--  content: release navigation  -->
+        <!--  content: release navigation and page frame  -->
         <!--  (a real NavigationView driving a real Frame, which is what buys the native page transition)  -->
         <NavigationView
             x:Name="ReleaseNav"
@@ -92,8 +91,10 @@
             SelectionChanged="ReleaseNav_SelectionChanged">
 
             <Grid>
+                <!--  release page  -->
                 <Frame x:Name="ReleaseFrame" />
 
+                <!--  loading ring  -->
                 <ProgressRing
                     x:Name="LoadingRing"
                     Width="26"
@@ -103,6 +104,8 @@
                     IsActive="False"
                     Visibility="Collapsed" />
 
+                <!--  status text  -->
+                <!--  (offline or empty catalog, shown in place of the frame)  -->
                 <TextBlock
                     x:Name="StatusText"
                     Margin="28"

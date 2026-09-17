@@ -27,7 +27,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  header: app title and the two buttons, held in place while everything below it scrolls  -->
+        <!--  header: app title and release-button + check-for-updates-button  -->
         <!--  (the inset is padding inside the border, so the divider line reaches both window edges)  -->
         <Border
             Grid.Row="0"
@@ -36,11 +36,13 @@
             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
             BorderThickness="0,0,0,1">
 
-            <!--  (left aligned the same way the scrolled content is, which is what keeps the update button  -->
-            <!--  beside its neighbour instead of out at the window edge)  -->
+            <!--
+                (left aligned the same way the scrolled content is, which is what keeps the update button
+                beside its neighbour instead of out at the window edge)
+            -->
             <StackPanel HorizontalAlignment="Left" Spacing="4">
 
-                <!--  header: app title and version  -->
+                <!--  app title and version  -->
                 <StackPanel
                     Margin="4,0,0,12"
                     Orientation="Horizontal"
@@ -56,14 +58,12 @@
                 </StackPanel>
 
 
-                <!--  header: release notes and update state  -->
+                <!--  release-button and check-for-updates-button  -->
                 <!--
                     two separate jobs on purpose: the left button only ever reads out what changed, the right one is
                     the only thing that offers to install anything
                     both carry the same MinHeight and inner spacing so they read as a pair, and the hero image is what
                     sets that height
-                    a Grid rather than a WrapPanel: the update button belongs on the right and must never drop into a
-                    second row, it shortens its own text instead
                 -->
                 <Grid Margin="0,4,0,0" ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
@@ -86,8 +86,10 @@
                             </Grid.ColumnDefinitions>
 
                             <!--  hero image  -->
-                            <!--  (an ImageBrush rather than a child Image: a background is clipped by the corner  -->
-                            <!--  radius for certain, and the fixed pair keeps frame1.png at its own 2560x1317 ratio)  -->
+                            <!--
+                                (an ImageBrush rather than a child Image: a background is clipped by the corner
+                                radius for certain, and the fixed pair keeps frame1.png at its own 2560x1317 ratio)
+                            -->
                             <Border
                                 Grid.Column="0"
                                 Width="{StaticResource StartHeroWidth}"
@@ -102,11 +104,17 @@
                                 Grid.Column="1"
                                 VerticalAlignment="Center"
                                 Spacing="2">
-                                <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Text="What's new" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                    Text="What's new"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap" />
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind ViewModel.ReleaseNotesSubtitle, Mode=OneWay}" />
+                                    Text="{x:Bind ViewModel.ReleaseNotesSubtitle, Mode=OneWay}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -187,9 +195,7 @@
                 <!--
                     one tile per device, with icon, colour and category label from HardwareGroupInfo, the same profile
                     the sensor list and the hardware view use
-                    the tiles are deliberately not buttons: nothing here navigates, so there is no hover state to
-                    promise something that does not happen; what is dynamic is the layout, SquareGridPanel gives up a
-                    column at a time as the window narrows
+                    All tiles are placed in a SquareGridPanel
                 -->
                 <TextBlock
                     Margin="4,8,0,6"
@@ -213,8 +219,10 @@
                                 BorderThickness="1"
                                 CornerRadius="{ThemeResource ControlCornerRadius}">
 
-                                <!--  (SquareGridPanel gives every tile in a row the height of the tallest one,  -->
-                                <!--  so the Star row is what pushes the button down onto the card edge)  -->
+                                <!--
+                                    (SquareGridPanel gives every tile in a row the height of the tallest one,
+                                    so the Star row is what pushes the button down onto the card edge)
+                                -->
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*" />
@@ -327,10 +335,6 @@
                     fed by AppStatusService, the same snapshot the title bar readout runs on, so the two always agree
                     carded with the same recipe as the system snapshot above, so the page reads as one board
                     instead of a board with a loose paragraph under it
-                    two fixed columns rather than the tile grid above: these two always stay side by side and a
-                    narrow window wraps what is inside them instead of dropping one of them into a second row
-                    the two groups name where their numbers come from, and each carries the same info flyout its
-                    counterpart in the title bar does
                 -->
                 <TextBlock
                     Margin="4,20,0,6"
@@ -344,10 +348,10 @@
                     </Grid.ColumnDefinitions>
 
                     <!--  lhm group  -->
-                    <!--  (the inset may sit on the panel here: unlike the system tile there is no divider and no  -->
-                    <!--  bar button that has to reach the card edge)  -->
+                    <!--  (the inset sits on the panel, nothing in this card has to reach its edge)  -->
                     <Border
                         Grid.Column="0"
+                        MaxWidth="300"
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
@@ -393,6 +397,7 @@
                     <!--  (this apps own usage rather than the machines, which is what the flyout spells out)  -->
                     <Border
                         Grid.Column="1"
+                        MaxWidth="300"
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
@@ -443,10 +448,12 @@
                     Text="About &amp; Open Source" />
 
                 <!--  revisit: flat about section  -->
-                <!--  the three expanders are only collapsed while the flat link row above is being tried out;  -->
-                <!--  the app data folder button and the third-party list have no home in that row yet, so  -->
-                <!--  nothing here is deleted until it does  -->
+                <!--
+                    the expanders here are toggled by hand while the flat link row is being tried out
+                    the app data folder button and the third-party list have no home in that row yet
+                -->
 
+                <!--  app info  -->
                 <controls:SettingsExpander
                     Description="© 2026 Daniel Čech. All rights reserved."
                     Header="Fluent Sensors"
@@ -511,6 +518,7 @@
                     </controls:SettingsExpander.Items>
                 </controls:SettingsExpander>
 
+                <!--  third-party libraries  -->
                 <controls:SettingsExpander
                     Description="Open source projects used in this app"
                     Header="Third-Party Libraries"
@@ -545,18 +553,14 @@
                     </controls:SettingsExpander.Items>
                 </controls:SettingsExpander>
 
-                <!--  the same four destinations the expanders below carry, flat and in body size  -->
-                <!--  (the negative left margin cancels the links own padding against the 4 of the heading,  -->
-                <!--  so the first link text lines up under the A of About)  -->
+                <!--  quick links  -->
+                <!--  (the same four destinations the collapsed expanders above carry)  -->
                 <controls:WrapPanel
-                    Margin="0,0,0,8"
-                    HorizontalSpacing="8"
-                    VerticalSpacing="4">
+                    Margin="0,4,0,8"
+                    HorizontalSpacing="4"
+                    VerticalSpacing="0">
                     <HyperlinkButton Content="Documentation" NavigateUri="https://github.com/cechout/fluent-sensors" />
-                    <HyperlinkButton
-                        Content="Bug Report"
-                        NavigateUri="https://github.com/cechout/fluent-sensors/issues/new"
-                        Style="{StaticResource PageLinkButtonStyle}" />
+                    <HyperlinkButton Content="Bug Report" NavigateUri="https://github.com/cechout/fluent-sensors/issues/new" />
                     <HyperlinkButton Content="Developer Profile" NavigateUri="https://github.com/cechout" />
                     <HyperlinkButton Content="GitHub Sponsoring" NavigateUri="https://github.com/sponsors/cechout" />
                 </controls:WrapPanel>

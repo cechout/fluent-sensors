@@ -92,8 +92,10 @@
                     <!--  1px stroke between content area and bottom bar  -->
                     <!--  literal #181818, reads as #1E1E1E here  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#181818" />
-                    <!--  the same stroke in the blur modes, where the native line is translucent and darkens the  -->
-                    <!--  material instead of covering it, so it keeps letting the backdrop through  -->
+                    <!--
+                        the same stroke in the blur modes, where the native line is translucent and darkens the
+                        material instead of covering it, so it keeps letting the backdrop through
+                    -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#1F000000" />
                 </ResourceDictionary>
 
@@ -172,8 +174,10 @@
                     <!--  1px stroke between content area and bottom bar  -->
                     <!--  literal #DEDEDE, reads as #DDDDDD here  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#DEDEDE" />
-                    <!--  the same stroke in the blur modes, where the native line is translucent and darkens the  -->
-                    <!--  material instead of covering it, so it keeps letting the backdrop through  -->
+                    <!--
+                        the same stroke in the blur modes, where the native line is translucent and darkens the
+                        material instead of covering it, so it keeps letting the backdrop through
+                    -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#13000000" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
