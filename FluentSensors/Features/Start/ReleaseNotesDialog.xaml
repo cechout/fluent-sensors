@@ -8,24 +8,14 @@
     Loaded="Dialog_Loaded"
     mc:Ignorable="d">
 
-    <ContentDialog.Resources>
-        <!--
-            no button text is set anywhere on this dialog, which puts the template into its NoneVisible state and
-            collapses the whole command bar; the close affordance is the X in the header instead
-            padding goes to zero so the header and the navigation pane reach the dialog edges, and the separator
-            above the now-absent command bar would otherwise still draw
-        -->
-        <Thickness x:Key="ContentDialogPadding">0</Thickness>
-        <Thickness x:Key="ContentDialogSeparatorThickness">0</Thickness>
-
-        <!--
-            the template paints this brush on the grid that carries the content, and at zero padding that grid
-            covers the whole dialog rather than only the top of it
-        -->
-        <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="Transparent" />
-    </ContentDialog.Resources>
-
-    <!--  (the size is applied in code, see ResizeToWindow)  -->
+    <!--
+        TEARDOWN STAGE 0
+        every override this dialog used to carry is gone, so what is left is a stock ContentDialog with our
+        content sitting inside its default padding
+        the four things that come back one at a time, in this order, are the fixed size, ContentDialogPadding
+        at zero, the separator and top overlay overrides, and the navigation view background; whichever step
+        squares the corners off is the one that took the rounding away
+    -->
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -77,20 +67,6 @@
             OpenPaneLength="120"
             PaneDisplayMode="Left"
             SelectionChanged="ReleaseNav_SelectionChanged">
-
-            <NavigationView.Resources>
-                <!--
-                    the content grid is the only element of ours that reaches the dialog corners, and it draws a
-                    layer fill with a one pixel edge that is rounded on its top left alone, which is what squared
-                    off the two lower corners of the dialog
-                    with nothing of ours painting there, what shows in the corners is the rounded background the
-                    dialog template already draws
-                    the left edge stays; it is what separates the version list from the notes
-                -->
-                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
-                <Thickness x:Key="NavigationViewContentGridBorderThickness">1,0,0,0</Thickness>
-                <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
-            </NavigationView.Resources>
 
             <Grid>
                 <Frame x:Name="ReleaseFrame" />

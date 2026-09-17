@@ -1,6 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -23,14 +22,6 @@ namespace FluentSensors.Features.Start
 
         private List<ReleaseEntry> _releases = new List<ReleaseEntry>();
 
-        // --- dialog geometry ---
-        // the width is fixed at 85% of the main windows own minimum (WindowManager.MinWidth = 600), so the dialog
-        // fits no matter how narrow the window has been dragged
-        private const double DialogWidth = 510;
-        private const double HeightFraction = 0.85; // how much of the window height the dialog may take
-        private const double MaxDialogHeight = 740;
-        private const double MinDialogHeight = 460;
-
 
         // === constructor ===
 
@@ -44,15 +35,6 @@ namespace FluentSensors.Features.Start
 
         private async void Dialog_Loaded(object sender, RoutedEventArgs e)
         {
-            ResizeToWindow();
-
-            // a ContentDialog cannot be dragged or resized by hand, so following the window is the next best thing
-            if (this.XamlRoot != null) this.XamlRoot.Changed += OnXamlRootChanged;
-            this.Closed += (_, _) =>
-            {
-                if (this.XamlRoot != null) this.XamlRoot.Changed -= OnXamlRootChanged;
-            };
-
             var catalog = ReleaseCatalog.Instance;
 
             var cached = catalog.LoadCached();
@@ -75,20 +57,6 @@ namespace FluentSensors.Features.Start
             }
         }
 
-
-        private void OnXamlRootChanged(XamlRoot sender, XamlRootChangedEventArgs args) => ResizeToWindow();
-
-        // fixed width, height follows the window so the dialog never overflows a short display
-        private void ResizeToWindow()
-        {
-            var size = this.XamlRoot?.Size ?? default;
-            if (size.Height <= 0) return;
-
-            double height = Math.Clamp(size.Height * HeightFraction, MinDialogHeight, MaxDialogHeight);
-
-            RootGrid.Width = DialogWidth;
-            RootGrid.Height = height;
-        }
 
 
         // === navigation ===
