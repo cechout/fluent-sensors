@@ -86,14 +86,25 @@ namespace FluentSensors.Features.Start
         // every stage here stays round
         //
         // 0  bare dialog, title and a line of text          confirmed round
-        // 1  our root grid and its header row
-        // 2  the fixed size on that grid
-        // 3  the navigation view in the lower row
-        // 4  the three resource overrides
-        private const int ProbeStage = 1;
+        // 1  our root grid and its header row                 confirmed round
+        // 2  the fixed size on that grid                      confirmed round
+        // 3  the navigation view in the lower row             confirmed round
+        // 4  the three resource overrides                     confirmed round
+        // 5  a frame in the navigation view, on the real release page
+        // 6  the real ReleaseNotesDialog, which is the only thing left that a code built probe cannot be
+        private const int ProbeStage = 5;
 
         private async Task ShowCornerProbeAsync()
         {
+            // stage 6: no probe at all any more, the real type; everything it does differently from stage 5 comes
+            // down to being declared in XAML as a ContentDialog subclass
+            if (ProbeStage >= 6)
+            {
+                var real = new ReleaseNotesDialog { XamlRoot = this.XamlRoot };
+                await real.ShowAsync();
+                return;
+            }
+
             var probe = new ContentDialog
             {
                 Title = ProbeStage == 0 ? "Corner test" : null,
@@ -169,12 +180,7 @@ namespace FluentSensors.Features.Start
                     IsSettingsVisible = false,
                     OpenPaneLength = 120,
                     PaneDisplayMode = NavigationViewPaneDisplayMode.Left,
-                    Content = new TextBlock
-                    {
-                        Margin = new Thickness(28),
-                        Text = "navigation view content",
-                        TextWrapping = TextWrapping.Wrap
-                    }
+                    Content = BuildNavContent()
                 };
 
                 foreach (string version in new[] { "1.3.0", "1.2.0", "1.1.0" })
@@ -189,6 +195,29 @@ namespace FluentSensors.Features.Start
             probe.Content = root;
 
             await probe.ShowAsync();
+        }
+
+        // stage 5 swaps the plain text for what the real dialog puts here: a Frame sitting on a real Page, with a
+        // real release in it whenever the catalog has one cached
+        private UIElement BuildNavContent()
+        {
+            if (ProbeStage < 5)
+            {
+                return new TextBlock
+                {
+                    Margin = new Thickness(28),
+                    Text = "navigation view content",
+                    TextWrapping = TextWrapping.Wrap
+                };
+            }
+
+            var frame = new Frame();
+
+            var cached = ReleaseCatalog.Instance.LoadCached();
+            if (cached.Count > 0) frame.Navigate(typeof(ReleaseNotesPage), cached[0]);
+            else frame.Navigate(typeof(ReleaseNotesPage));
+
+            return frame;
         }
 
         // one button, four jobs, decided by whatever state the service is in
