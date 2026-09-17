@@ -9,7 +9,7 @@
 
     <Page.Resources>
         <!--  the one knob for how far the release body sits from the dialog edges  -->
-        <Thickness x:Key="ReleaseContentPadding">28,16,28,28</Thickness>
+        <Thickness x:Key="ReleaseContentPadding">24,16,24,28</Thickness>
     </Page.Resources>
 
     <!--  (no padding on a scroller, it clips what it is meant to scroll; the body below carries the inset)  -->
@@ -19,18 +19,16 @@
             <!--  header image  -->
             <!--
                 (edge to edge, which is why the inset sits on the body rather than on this panel
-                Uniform rather than UniformToFill, which crops a banner wider than the dialog on both sides)
+                the banner is the borders background rather than a child Image: a brush covers the rect exactly,
+                while a scaled child is resampled at a fractional factor and leaves a seam along its edges
+                the height comes from the banners own aspect, see SetHeroHeight)
             -->
             <Border
                 x:Name="HeroBorder"
+                MaxHeight="200"
                 CornerRadius="0"
-                Visibility="Collapsed">
-                <Image
-                    x:Name="HeroImage"
-                    MaxHeight="200"
-                    HorizontalAlignment="Stretch"
-                    Stretch="Uniform" />
-            </Border>
+                SizeChanged="HeroBorder_SizeChanged"
+                Visibility="Collapsed" />
 
             <!--  release body: date + github link, notes  -->
             <!--  (a Grid around the panel, only so there is something with a Padding to hang the knob on)  -->
@@ -49,6 +47,7 @@
                             x:Name="GitHubLink"
                             Content="View on GitHub"
                             Style="{StaticResource SourceLinkButtonStyle}" />
+                        <!--<HyperlinkButton x:Name="GitHubLink" Content="View on GitHub" />-->
                     </StackPanel>
 
                     <!--  release notes  -->

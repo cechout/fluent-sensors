@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using System;
@@ -18,6 +19,9 @@ namespace FluentSensors.Features.Start
 
         // every release ships its own banner under Assets/Releases, named after the version with dots as dashes
         private const string HeroFolder = "ms-appx:///Assets/Releases/";
+
+        // width over height of the banner currently shown, so the border can derive its own height from it
+        private double _heroAspect;
 
 
         // === constructor ===
@@ -81,9 +85,32 @@ namespace FluentSensors.Features.Start
             if (string.IsNullOrWhiteSpace(version)) return;
 
             var bitmap = new BitmapImage(new Uri($"{HeroFolder}{UpdateService.VersionLabel(version).Replace('.', '-')}.png"));
-            bitmap.ImageOpened += (_, _) => HeroBorder.Visibility = Visibility.Visible;
 
-            HeroImage.Source = bitmap;
+            bitmap.ImageOpened += (_, _) =>
+            {
+                if (bitmap.PixelHeight <= 0) return;
+
+                _heroAspect = (double)bitmap.PixelWidth / bitmap.PixelHeight;
+                SetHeroHeight();
+
+                HeroBorder.Visibility = Visibility.Visible;
+            };
+
+            HeroBorder.Background = new ImageBrush { ImageSource = bitmap, Stretch = Stretch.UniformToFill };
+        }
+
+        private void HeroBorder_SizeChanged(object sender, SizeChangedEventArgs e) => SetHeroHeight();
+
+        // a border with no child has no height of its own, so the banners aspect supplies one; the half pixel
+        // guard is what keeps setting the height from feeding its own SizeChanged back in
+        private void SetHeroHeight()
+        {
+            if (_heroAspect <= 0 || HeroBorder.ActualWidth <= 0) return;
+
+            double target = HeroBorder.ActualWidth / _heroAspect;
+            if (Math.Abs(HeroBorder.Height - target) < 0.5) return;
+
+            HeroBorder.Height = target;
         }
     }
 }
