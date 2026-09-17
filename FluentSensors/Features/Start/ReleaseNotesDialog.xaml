@@ -7,7 +7,17 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     CloseButtonText="Close"
     Loaded="Dialog_Loaded"
+    Style="{StaticResource DefaultContentDialogStyle}"
     mc:Ignorable="d">
+
+    <!--
+        WinUI keys the dialog style twice: once implicitly as TargetType ContentDialog and once as
+        DefaultContentDialogStyle, and an implicit style only ever reaches its exact type
+        this class derives from ContentDialog, so it never got that style, and with it never got CornerRadius,
+        BorderThickness, BorderBrush or CloseButtonStyle; the template arrived anyway, which is why the dialog
+        looked right apart from being square down to its close button
+        naming the keyed style is what a XAML declared subclass has to do
+    -->
 
     <!--
         TEARDOWN STAGE 1

@@ -97,8 +97,11 @@ namespace FluentSensors.Features.Start
         // 8 steps back down rather than up: the smallest dialog that is declared in XAML, which is the one thing
         // about the real one that a probe built in code can never have; it is SQUARE, so that alone does it
         //
-        // 9 is the same dialog, reading back what its rounding actually depends on instead of guessing again
-        private const int ProbeStage = 9;
+        // 9 is the same dialog, reading back what its rounding actually depends on; it reported CornerRadius 0
+        // with no local value against an app OverlayCornerRadius of 8, so the style never reached the class
+        //
+        // back on 6, the real dialog, now that both dialogs name the keyed style explicitly
+        private const int ProbeStage = 6;
 
         private async Task ShowCornerProbeAsync()
         {

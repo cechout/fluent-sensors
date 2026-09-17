@@ -4,7 +4,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Corner test"
-    CloseButtonText="Close">
+    CloseButtonText="Close"
+    Style="{StaticResource DefaultContentDialogStyle}">
 
     <!--
         the smallest ContentDialog that is declared in XAML instead of built in code
