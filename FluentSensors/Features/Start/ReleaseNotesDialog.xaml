@@ -28,8 +28,7 @@
         <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="Transparent" />
     </ContentDialog.Resources>
 
-    <!--  a Border rather than a Grid, because only a Border clips its child to the corner radius  -->
-    <!--  the size itself is computed from the window, see ResizeToWindow  -->
+    <!--  (size and corner clipping are both applied in code, see ResizeToWindow)  -->
     <Border x:Name="RootBorder" CornerRadius="{ThemeResource OverlayCornerRadius}">
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
@@ -37,7 +36,8 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  title row, standing in for the dialogs own Title so the padding stays ours  -->
+        <!--  header: title and close  -->
+        <!--  (stands in for the dialogs own Title, so the padding stays ours)  -->
         <Grid
             Grid.Row="0"
             Padding="24,16,14,8"
@@ -63,13 +63,14 @@
                 ToolTipService.ToolTip="Close">
                 <FontIcon FontSize="12" Glyph="&#xE711;" />
                 <Button.KeyboardAccelerators>
-                    <!--  a dialog without a command bar has no close button for ESC to map onto  -->
+                    <!--  (a dialog without a command bar has no close button for ESC to map onto)  -->
                     <KeyboardAccelerator Key="Escape" />
                 </Button.KeyboardAccelerators>
             </Button>
         </Grid>
 
-        <!--  a real NavigationView driving a real Frame, which is what buys the native page transition  -->
+        <!--  content: release navigation  -->
+        <!--  (a real NavigationView driving a real Frame, which is what buys the native page transition)  -->
         <NavigationView
             x:Name="ReleaseNav"
             Grid.Row="1"

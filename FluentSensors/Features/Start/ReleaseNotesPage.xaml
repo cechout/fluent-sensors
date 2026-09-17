@@ -7,12 +7,12 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <!--  no padding on a scroller, it clips the content it is meant to scroll; the child carries the inset  -->
+    <!--  (no padding on a scroller, it clips what it is meant to scroll; the children carry the inset)  -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="28,4,28,28" Spacing="16">
 
-            <!--  the header image a release carries, pulled out of the markdown by the renderer  -->
-            <!--  (kept on disk by ReleaseCatalog, so it survives without a connection)  -->
+            <!--  header image  -->
+            <!--  (pulled out of the markdown by the renderer, and kept on disk by ReleaseCatalog for offline)  -->
             <Border
                 x:Name="HeroBorder"
                 CornerRadius="{ThemeResource OverlayCornerRadius}"
@@ -39,7 +39,8 @@
                 </StackPanel>
             </StackPanel>
 
-            <!--  filled by MarkdownRenderer; a panel rather than a RichTextBlock so callouts can be real Borders  -->
+            <!--  release notes  -->
+            <!--  (a panel rather than a RichTextBlock, so callouts can be real Borders)  -->
             <StackPanel x:Name="NotesHost" />
 
             <TextBlock

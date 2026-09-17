@@ -255,7 +255,7 @@
             PaneDisplayMode="Left"
             SelectionChanged="MainNavigationView_SelectionChanged">
 
-            <!--  every item carries an x:Name, the code behind addresses them by name rather than by index  -->
+            <!--  (every item carries an x:Name, the code behind addresses them by name rather than by index)  -->
             <NavigationView.MenuItems>
 
                 <!--  start page  -->
