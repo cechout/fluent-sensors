@@ -95,8 +95,10 @@ namespace FluentSensors.Features.Start
         // 7  the real dialog, sized before it is shown instead of in Loaded    confirmed SQUARE
         //
         // 8 steps back down rather than up: the smallest dialog that is declared in XAML, which is the one thing
-        // about the real one that a probe built in code can never have
-        private const int ProbeStage = 8;
+        // about the real one that a probe built in code can never have; it is SQUARE, so that alone does it
+        //
+        // 9 is the same dialog, reading back what its rounding actually depends on instead of guessing again
+        private const int ProbeStage = 9;
 
         private async Task ShowCornerProbeAsync()
         {

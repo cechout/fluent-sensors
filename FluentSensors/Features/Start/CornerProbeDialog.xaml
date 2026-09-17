@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentDialog
     x:Class="FluentSensors.Features.Start.CornerProbeDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -12,5 +12,5 @@
         isolates the one thing such a probe can never be: an x:Class dialog loaded from compiled markup
         it exists only while the corner rounding is being tracked down
     -->
-    <TextBlock Text="Declared in XAML, nothing else." TextWrapping="Wrap" />
+    <TextBlock x:Name="ProbeText" TextWrapping="Wrap" />
 </ContentDialog>
