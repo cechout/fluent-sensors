@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="FluentSensors.Features.Start.CornerProbeDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Corner test"
+    CloseButtonText="Close">
+
+    <!--
+        the smallest ContentDialog that is declared in XAML instead of built in code
+        the code built probe with the same title, the same close button and a line of text is round, so this
+        isolates the one thing such a probe can never be: an x:Class dialog loaded from compiled markup
+        it exists only while the corner rounding is being tracked down
+    -->
+    <TextBlock Text="Declared in XAML, nothing else." TextWrapping="Wrap" />
+</ContentDialog>

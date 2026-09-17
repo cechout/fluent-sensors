@@ -92,11 +92,22 @@ namespace FluentSensors.Features.Start
         // 4  the three resource overrides                     confirmed round
         // 5  a frame in the navigation view, on the real release page        confirmed round
         // 6  the real ReleaseNotesDialog                                      confirmed SQUARE
-        // 7  the real dialog, but sized before it is shown instead of in its Loaded handler
-        private const int ProbeStage = 7;
+        // 7  the real dialog, sized before it is shown instead of in Loaded    confirmed SQUARE
+        //
+        // 8 steps back down rather than up: the smallest dialog that is declared in XAML, which is the one thing
+        // about the real one that a probe built in code can never have
+        private const int ProbeStage = 8;
 
         private async Task ShowCornerProbeAsync()
         {
+            // stage 8: an x:Class, a title, a close button and a line of text, and nothing else
+            if (ProbeStage >= 8)
+            {
+                var xamlProbe = new CornerProbeDialog { XamlRoot = this.XamlRoot };
+                await xamlProbe.ShowAsync();
+                return;
+            }
+
             // stage 6 and up: no probe any more, the real type
             //
             // stage 7 is the one thing the code built probe did differently without either of us noticing: it set
