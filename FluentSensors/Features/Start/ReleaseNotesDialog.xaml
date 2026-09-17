@@ -5,17 +5,23 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    CloseButtonText="Close"
     Loaded="Dialog_Loaded"
     mc:Ignorable="d">
 
     <!--
-        TEARDOWN STAGE 0
-        every resource override this dialog used to carry is gone, so what is left is a stock ContentDialog with
-        our content sitting inside its default padding
-        the size is not one of the suspects and stays: a ContentDialog measures its content with unbounded
-        height, so the Star row below has nothing to divide up unless the dialog is told how tall it is
-        what comes back one at a time from here is ContentDialogPadding at zero, then the separator and top
-        overlay overrides; whichever step squares the corners off is the one that took the rounding away
+        TEARDOWN STAGE 1
+        stage 0 was already square at 24px of padding, where our content cannot reach a corner at all, so the
+        content is not what squares it off
+
+        that leaves the one structural thing this dialog did differently from every other dialog in the app: it
+        carried no button text, which puts the template into NoneVisible and collapses CommandSpace
+        the grid above CommandSpace then covers the whole dialog rather than its upper part, and that grid paints
+        ContentDialogTopOverlay as a square fill and ContentDialogSeparatorThickness as a square 1px edge along
+        its bottom, straight through both lower corners
+
+        CloseButtonText above is what tests that, and nothing else changed; the X in the header is redundant for
+        this build
     -->
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
