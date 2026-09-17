@@ -60,15 +60,19 @@
 
                 <!--  release-button and check-for-updates-button  -->
                 <!--
-                    two separate jobs on purpose: the left button only ever reads out what changed, the right one is
-                    the only thing that offers to install anything
-                    both carry the same MinHeight and inner spacing so they read as a pair, and the hero image is what
-                    sets that height
+                    the left button only reads out what changed, the right one is the only thing that offers to
+                    install anything; both carry the same MinHeight so they read as a pair
+                    (MaxWidth is the two column widths plus the spacing, the star weights hold that ratio while the
+                    window narrows, and both buttons trim their text instead of wrapping)
                 -->
-                <Grid Margin="0,4,0,0" ColumnSpacing="8">
+                <Grid
+                    MaxWidth="628"
+                    Margin="0,4,0,0"
+                    HorizontalAlignment="Left"
+                    ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="340*" />
+                        <ColumnDefinition Width="280*" />
                     </Grid.ColumnDefinitions>
 
                     <!--  whats new button  -->
@@ -76,13 +80,12 @@
                     <Button
                         Grid.Column="0"
                         Padding="0,0,18,0"
-                        HorizontalAlignment="Left"
                         Click="ReleaseNotesButton_Click"
                         Style="{ThemeResource SubtleButtonStyle}">
                         <Grid ColumnSpacing="14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
                             <!--  hero image  -->
@@ -124,7 +127,6 @@
                     <Button
                         Grid.Column="1"
                         MinHeight="{StaticResource StartHeroHeight}"
-                        MaxWidth="280"
                         Padding="18,0"
                         Click="UpdateStatusButton_Click"
                         IsEnabled="{x:Bind ViewModel.IsUpdateActionEnabled, Mode=OneWay}"
@@ -341,7 +343,14 @@
                     Style="{StaticResource BodyStrongTextBlockStyle}"
                     Text="App Status" />
 
-                <Grid ColumnSpacing="8">
+                <!--
+                    (MaxWidth is the two 300 wide cards plus the 8 spacing; without it the star columns would push
+                    them apart on a wide window, and Auto columns would clip instead of shrink on a narrow one)
+                -->
+                <Grid
+                    MaxWidth="608"
+                    HorizontalAlignment="Left"
+                    ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
