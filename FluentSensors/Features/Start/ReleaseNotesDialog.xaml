@@ -46,28 +46,31 @@
         <!--  (stands in for the dialogs own Title, so the padding stays ours)  -->
         <Grid
             Grid.Row="0"
-            Padding="24,16,14,8"
+            Padding="12"
             ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
+            <!--  (Tight plus TrimSideBearings, so the visible text starts where the padding says it does)  -->
             <TextBlock
                 VerticalAlignment="Center"
+                OpticalMarginAlignment="TrimSideBearings"
                 Style="{ThemeResource SubtitleTextBlockStyle}"
-                Text="What's new" />
+                Text="What's new"
+                TextLineBounds="Tight" />
 
             <Button
                 Grid.Column="1"
                 Width="36"
                 Height="36"
                 Padding="0"
-                VerticalAlignment="Top"
+                VerticalAlignment="Center"
                 Click="CloseButton_Click"
                 Style="{ThemeResource SubtleButtonStyle}"
                 ToolTipService.ToolTip="Close">
-                <FontIcon FontSize="12" Glyph="&#xE711;" />
+                <FontIcon FontSize="14" Glyph="&#xE711;" />
                 <Button.KeyboardAccelerators>
                     <!--  (a dialog without a command bar has no close button for ESC to map onto)  -->
                     <KeyboardAccelerator Key="Escape" />
@@ -84,7 +87,7 @@
             IsPaneOpen="True"
             IsPaneToggleButtonVisible="False"
             IsSettingsVisible="False"
-            OpenPaneLength="120"
+            OpenPaneLength="80"
             PaneDisplayMode="Left"
             SelectionChanged="ReleaseNav_SelectionChanged">
 
