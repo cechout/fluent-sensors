@@ -51,7 +51,7 @@ namespace FluentSensors.Features.Update
             var content = new StackPanel();
             content.Children.Add(new TextBlock
             {
-                Text = $"Fluent Sensors {info.Version} is available. You are running {UpdateService.CurrentVersion}.",
+                Text = $"Fluent Sensors {UpdateService.VersionLabel(info.Version)} is available. You are running {UpdateService.VersionLabel(UpdateService.CurrentVersion)}.",
                 TextWrapping = TextWrapping.Wrap
             });
             content.Children.Add(skipCheckBox);

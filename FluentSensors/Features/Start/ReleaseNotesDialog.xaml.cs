@@ -26,7 +26,7 @@ namespace FluentSensors.Features.Start
         // --- dialog geometry ---
         // the width is fixed at 85% of the main windows own minimum (WindowManager.MinWidth = 600), so the dialog
         // fits no matter how narrow the window has been dragged
-        private const double DialogWidth = 510;
+        private const double DialogWidth = 550;
         private const double HeightFraction = 0.85; // how much of the window height the dialog may take
         private const double MaxDialogHeight = 740;
         private const double MinDialogHeight = 460;
@@ -102,7 +102,7 @@ namespace FluentSensors.Features.Start
             {
                 ReleaseNav.MenuItems.Add(new NavigationViewItem
                 {
-                    Content = release.Version,
+                    Content = UpdateService.VersionLabel(release.Version),
                     Tag = release
                 });
             }

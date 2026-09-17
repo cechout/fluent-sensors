@@ -113,6 +113,12 @@ namespace FluentSensors.Core.Update
 
         public static string CurrentVersion => FormatVersion(Assembly.GetExecutingAssembly().GetName().Version);
 
+        // the shape every version takes in front of the user, always with the v, e.g. v1.3.0
+        // the bare three part string stays the internal one: asset names, the skipped version setting and every
+        // comparison are built from that, so the prefix is added on the way out and never stored
+        public static string VersionLabel(string? version) =>
+            string.IsNullOrWhiteSpace(version) ? "" : $"v{version.TrimStart('v', 'V')}";
+
         public static string ReleasesPage => ReleasesPageUrl;
 
         // fires the one automatic check, from wherever the app has finished starting up

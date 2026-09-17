@@ -254,7 +254,7 @@ namespace FluentSensors.Features.Start
             string notesVersion = release != null && !string.IsNullOrEmpty(release.Version)
                 ? release.Version
                 : UpdateService.CurrentVersion;
-            ReleaseNotesSubtitle = $"Release notes for {notesVersion}";
+            ReleaseNotesSubtitle = $"Release notes for {UpdateService.VersionLabel(notesVersion)}";
 
             IsUpdateChecking = service.UiState == UpdateUiState.Checking;
             IsUpdateActionEnabled = service.UiState != UpdateUiState.StoreManaged
@@ -281,12 +281,12 @@ namespace FluentSensors.Features.Start
                 case UpdateUiState.UpdateAvailable:
                     SetBadge("", AccentColor());
                     UpdateStatusTitle = "Update available";
-                    UpdateStatusDescription = $"Version {service.Latest?.Version} is ready to install";
+                    UpdateStatusDescription = $"{UpdateService.VersionLabel(service.Latest?.Version)} is ready to install";
                     break;
 
                 case UpdateUiState.Skipped:
                     SetBadge("", CautionColor);
-                    UpdateStatusTitle = $"Version {service.SkippedVersion} skipped";
+                    UpdateStatusTitle = $"{UpdateService.VersionLabel(service.SkippedVersion)} skipped";
                     UpdateStatusDescription = "Select to install it anyway";
                     break;
 

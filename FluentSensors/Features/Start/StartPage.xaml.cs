@@ -30,8 +30,8 @@ namespace FluentSensors.Features.Start
         {
             this.InitializeComponent();
 
-            VersionTextBlock.Text = UpdateService.CurrentVersion;
-            AboutVersionTextBlock.Text = $"Version {UpdateService.CurrentVersion}";
+            VersionTextBlock.Text = UpdateService.VersionLabel(UpdateService.CurrentVersion);
+            AboutVersionTextBlock.Text = UpdateService.VersionLabel(UpdateService.CurrentVersion);
         }
 
 

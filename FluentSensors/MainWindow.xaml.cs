@@ -473,7 +473,7 @@ namespace FluentSensors
         {
             var service = UpdateService.Instance;
 
-            AppStatus.UpdateVersionText = service.Latest?.Version ?? "";
+            AppStatus.UpdateVersionText = UpdateService.VersionLabel(service.Latest?.Version ?? "");
             AppStatus.IsUpdateAvailable = service.IsUpdateAvailable;
 
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);
