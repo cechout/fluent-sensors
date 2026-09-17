@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -73,19 +74,119 @@ namespace FluentSensors.Features.Start
         // navigation pane and a page of its own
         private async void ReleaseNotesButton_Click(object sender, RoutedEventArgs e)
         {
-            // --- teardown: bare dialog, nothing of ours left ---
-            // the release dialog is square down to the close button the template itself draws, which no markup of
-            // ours ever touches, so this opens a ContentDialog with no custom type, no custom size and no custom
-            // content at all
-            // round here means the fault is inside ReleaseNotesDialog and goes back in line by line; square here
-            // means it was never that file and the hunt moves out of it
+            await ShowCornerProbeAsync();
+        }
+
+
+        // --- teardown ladder: one step per build until the corners go square ---
+        // stage 0 was a bare ContentDialog built here in code and it is round, so the fault is somewhere in what
+        // ReleaseNotesDialog adds on top of that
+        // everything below is built in code on purpose: that keeps the dialog a plain ContentDialog, so the one
+        // thing this ladder cannot reach is being a XAML defined subclass, which is exactly what is left over if
+        // every stage here stays round
+        //
+        // 0  bare dialog, title and a line of text          confirmed round
+        // 1  our root grid and its header row
+        // 2  the fixed size on that grid
+        // 3  the navigation view in the lower row
+        // 4  the three resource overrides
+        private const int ProbeStage = 1;
+
+        private async Task ShowCornerProbeAsync()
+        {
             var probe = new ContentDialog
             {
-                Title = "Corner test",
-                Content = "Nothing in this dialog is ours.",
+                Title = ProbeStage == 0 ? "Corner test" : null,
                 CloseButtonText = "Close",
                 XamlRoot = this.XamlRoot
             };
+
+            if (ProbeStage == 0)
+            {
+                probe.Content = "Nothing in this dialog is ours.";
+                await probe.ShowAsync();
+                return;
+            }
+
+            // stage 4: the overrides the real dialog carried, set before the template is applied
+            if (ProbeStage >= 4)
+            {
+                probe.Resources["ContentDialogPadding"] = new Thickness(0);
+                probe.Resources["ContentDialogSeparatorThickness"] = new Thickness(0);
+                probe.Resources["ContentDialogTopOverlay"] = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            }
+
+            // stage 1: the root grid, one auto row for the header and one star row for the rest
+            var root = new Grid();
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+            var header = new Grid { Padding = new Thickness(24, 16, 14, 8), ColumnSpacing = 12 };
+            header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            var headerText = new TextBlock
+            {
+                Text = "What's new",
+                VerticalAlignment = VerticalAlignment.Center,
+                Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"]
+            };
+            header.Children.Add(headerText);
+
+            var headerClose = new Button
+            {
+                Width = 36,
+                Height = 36,
+                Padding = new Thickness(0),
+                VerticalAlignment = VerticalAlignment.Top,
+                Content = new FontIcon { FontSize = 12, Glyph = "\uE711" },
+                Style = (Style)Application.Current.Resources["SubtleButtonStyle"]
+            };
+            Grid.SetColumn(headerClose, 1);
+            header.Children.Add(headerClose);
+
+            root.Children.Add(header);
+
+            // stage 2: the fixed width and the height the window dictates
+            if (ProbeStage >= 2)
+            {
+                var size = this.XamlRoot?.Size ?? default;
+                if (size.Height > 0)
+                {
+                    root.Width = 510;
+                    root.Height = Math.Clamp(size.Height * 0.85, 460, 740);
+                }
+            }
+
+            // stage 3: the navigation view, pane length and display mode as the real one has them
+            if (ProbeStage >= 3)
+            {
+                var nav = new NavigationView
+                {
+                    IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed,
+                    IsPaneOpen = true,
+                    IsPaneToggleButtonVisible = false,
+                    IsSettingsVisible = false,
+                    OpenPaneLength = 120,
+                    PaneDisplayMode = NavigationViewPaneDisplayMode.Left,
+                    Content = new TextBlock
+                    {
+                        Margin = new Thickness(28),
+                        Text = "navigation view content",
+                        TextWrapping = TextWrapping.Wrap
+                    }
+                };
+
+                foreach (string version in new[] { "1.3.0", "1.2.0", "1.1.0" })
+                {
+                    nav.MenuItems.Add(new NavigationViewItem { Content = version });
+                }
+
+                Grid.SetRow(nav, 1);
+                root.Children.Add(nav);
+            }
+
+            probe.Content = root;
 
             await probe.ShowAsync();
         }
