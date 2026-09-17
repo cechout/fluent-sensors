@@ -10,11 +10,12 @@
 
     <!--
         TEARDOWN STAGE 0
-        every override this dialog used to carry is gone, so what is left is a stock ContentDialog with our
-        content sitting inside its default padding
-        the four things that come back one at a time, in this order, are the fixed size, ContentDialogPadding
-        at zero, the separator and top overlay overrides, and the navigation view background; whichever step
-        squares the corners off is the one that took the rounding away
+        every resource override this dialog used to carry is gone, so what is left is a stock ContentDialog with
+        our content sitting inside its default padding
+        the size is not one of the suspects and stays: a ContentDialog measures its content with unbounded
+        height, so the Star row below has nothing to divide up unless the dialog is told how tall it is
+        what comes back one at a time from here is ContentDialogPadding at zero, then the separator and top
+        overlay overrides; whichever step squares the corners off is the one that took the rounding away
     -->
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>

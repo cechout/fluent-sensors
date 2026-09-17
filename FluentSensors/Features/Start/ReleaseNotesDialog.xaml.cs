@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -22,6 +23,14 @@ namespace FluentSensors.Features.Start
 
         private List<ReleaseEntry> _releases = new List<ReleaseEntry>();
 
+        // --- dialog geometry ---
+        // the width is fixed at 85% of the main windows own minimum (WindowManager.MinWidth = 600), so the dialog
+        // fits no matter how narrow the window has been dragged
+        private const double DialogWidth = 510;
+        private const double HeightFraction = 0.85; // how much of the window height the dialog may take
+        private const double MaxDialogHeight = 740;
+        private const double MinDialogHeight = 460;
+
 
         // === constructor ===
 
@@ -35,6 +44,15 @@ namespace FluentSensors.Features.Start
 
         private async void Dialog_Loaded(object sender, RoutedEventArgs e)
         {
+            ResizeToWindow();
+
+            // a ContentDialog cannot be dragged or resized by hand, so following the window is the next best thing
+            if (this.XamlRoot != null) this.XamlRoot.Changed += OnXamlRootChanged;
+            this.Closed += (_, _) =>
+            {
+                if (this.XamlRoot != null) this.XamlRoot.Changed -= OnXamlRootChanged;
+            };
+
             var catalog = ReleaseCatalog.Instance;
 
             var cached = catalog.LoadCached();
@@ -57,6 +75,20 @@ namespace FluentSensors.Features.Start
             }
         }
 
+
+        private void OnXamlRootChanged(XamlRoot sender, XamlRootChangedEventArgs args) => ResizeToWindow();
+
+        // fixed width, height follows the window so the dialog never overflows a short display
+        private void ResizeToWindow()
+        {
+            var size = this.XamlRoot?.Size ?? default;
+            if (size.Height <= 0) return;
+
+            double height = Math.Clamp(size.Height * HeightFraction, MinDialogHeight, MaxDialogHeight);
+
+            RootGrid.Width = DialogWidth;
+            RootGrid.Height = height;
+        }
 
 
         // === navigation ===
@@ -85,9 +117,19 @@ namespace FluentSensors.Features.Start
         {
             if (args.SelectedItem is not NavigationViewItem item || item.Tag is not ReleaseEntry release) return;
 
-            // the NavigationView hands out the transition its own display mode calls for, so a release change
-            // reads exactly like a page change anywhere else in the app rather than like a hand rolled slide
-            ReleaseFrame.Navigate(typeof(ReleaseNotesPage), release, args.RecommendedNavigationTransitionInfo);
+            // --- teardown diagnostic: comes out once the dialog is whole again ---
+            // anything that throws while the page is being built surfaces at the line that sets the selection,
+            // which names neither the cause nor the file; this puts the real message on screen instead
+            try
+            {
+                // the NavigationView hands out the transition its own display mode calls for, so a release change
+                // reads exactly like a page change anywhere else in the app rather than like a hand rolled slide
+                ReleaseFrame.Navigate(typeof(ReleaseNotesPage), release, args.RecommendedNavigationTransitionInfo);
+            }
+            catch (Exception ex)
+            {
+                ShowStatus($"{ex.GetType().Name}\n{ex.Message}");
+            }
         }
 
 
