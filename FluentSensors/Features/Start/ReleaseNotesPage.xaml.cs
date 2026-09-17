@@ -45,8 +45,10 @@ namespace FluentSensors.Features.Start
                 GitHubLink.Visibility = Visibility.Collapsed;
             }
 
-            // the header image comes out of the body first, so it does not also show up mid-text
+            // the header image comes out of the body first, so it does not also show up mid-text, and the
+            // sections the dialog has no use for go with it
             string body = MarkdownRenderer.ExtractLeadingImage(release.Notes, out string imageUrl);
+            body = MarkdownRenderer.DropSections(body);
 
             if (string.IsNullOrWhiteSpace(body))
             {

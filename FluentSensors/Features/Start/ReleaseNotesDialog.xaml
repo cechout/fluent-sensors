@@ -78,7 +78,7 @@
             IsPaneOpen="True"
             IsPaneToggleButtonVisible="False"
             IsSettingsVisible="False"
-            OpenPaneLength="168"
+            OpenPaneLength="120"
             PaneDisplayMode="Left"
             SelectionChanged="ReleaseNav_SelectionChanged">
 

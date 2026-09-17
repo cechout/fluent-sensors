@@ -1,7 +1,9 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Hosting;
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -28,10 +30,11 @@ namespace FluentSensors.Features.Start
         private int _currentIndex = -1;
 
         // --- dialog geometry ---
-        private const double WindowFraction = 0.85; // how much of the app window the dialog is allowed to take
-        private const double MaxDialogWidth = 980;
+        // the width is fixed at 85% of the main windows own minimum (WindowManager.MinWidth = 600), so the dialog
+        // fits no matter how narrow the window has been dragged
+        private const double DialogWidth = 510;
+        private const double HeightFraction = 0.85; // how much of the window height the dialog may take
         private const double MaxDialogHeight = 740;
-        private const double MinDialogWidth = 640;
         private const double MinDialogHeight = 460;
 
 
@@ -81,15 +84,34 @@ namespace FluentSensors.Features.Start
 
         private void OnXamlRootChanged(XamlRoot sender, XamlRootChangedEventArgs args) => ResizeToWindow();
 
-        // sized against the window rather than fixed, and clamped so it neither overflows a small laptop panel nor
-        // floats lost in the middle of a 4K one
+        // fixed width, height follows the window so the dialog never overflows a short display
+        //
+        // the rounding is a composition clip, not a CornerRadius: the NavigationView paints its own background
+        // straight into the corners, UIElement.Clip takes only a plain RectangleGeometry in WinUI (no RadiusX,
+        // unlike WPF), and a rounding Border around the content did not hold either
         private void ResizeToWindow()
         {
             var size = this.XamlRoot?.Size ?? default;
-            if (size.Width <= 0 || size.Height <= 0) return;
+            if (size.Height <= 0) return;
 
-            RootGrid.Width = Math.Clamp(size.Width * WindowFraction, MinDialogWidth, MaxDialogWidth);
-            RootGrid.Height = Math.Clamp(size.Height * WindowFraction, MinDialogHeight, MaxDialogHeight);
+            double height = Math.Clamp(size.Height * HeightFraction, MinDialogHeight, MaxDialogHeight);
+
+            RootGrid.Width = DialogWidth;
+            RootGrid.Height = height;
+
+            ApplyRoundedClip((float)DialogWidth, (float)height, (float)this.CornerRadius.TopLeft);
+        }
+
+        private void ApplyRoundedClip(float width, float height, float radius)
+        {
+            var visual = ElementCompositionPreview.GetElementVisual(RootGrid);
+            var compositor = visual.Compositor;
+
+            var geometry = compositor.CreateRoundedRectangleGeometry();
+            geometry.Size = new Vector2(width, height);
+            geometry.CornerRadius = new Vector2(radius, radius);
+
+            visual.Clip = compositor.CreateGeometricClip(geometry);
         }
 
 

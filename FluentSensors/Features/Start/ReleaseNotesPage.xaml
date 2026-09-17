@@ -9,22 +9,19 @@
 
     <!--  (no padding on a scroller, it clips what it is meant to scroll; the children carry the inset)  -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="28,4,28,28" Spacing="16">
+        <StackPanel Margin="0,0,0,28" Spacing="16">
 
             <!--  header image  -->
-            <!--  (pulled out of the markdown by the renderer, and kept on disk by ReleaseCatalog for offline)  -->
-            <Border
-                x:Name="HeroBorder"
-                CornerRadius="{ThemeResource OverlayCornerRadius}"
-                Visibility="Collapsed">
+            <!--  (edge to edge, which is why the inset below sits on the children rather than on this panel)  -->
+            <Border x:Name="HeroBorder" Visibility="Collapsed">
                 <Image
                     x:Name="HeroImage"
-                    MaxHeight="230"
+                    MaxHeight="200"
                     HorizontalAlignment="Stretch"
                     Stretch="UniformToFill" />
             </Border>
 
-            <StackPanel Spacing="4">
+            <StackPanel Margin="28,4,28,0" Spacing="4">
                 <TextBlock x:Name="TitleText" Style="{ThemeResource SubtitleTextBlockStyle}" />
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <TextBlock
@@ -41,10 +38,11 @@
 
             <!--  release notes  -->
             <!--  (a panel rather than a RichTextBlock, so callouts can be real Borders)  -->
-            <StackPanel x:Name="NotesHost" />
+            <StackPanel x:Name="NotesHost" Margin="28,0,28,0" />
 
             <TextBlock
                 x:Name="EmptyText"
+                Margin="28,0,28,0"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 Style="{ThemeResource BodyTextBlockStyle}"
                 Text="This release was published without notes"

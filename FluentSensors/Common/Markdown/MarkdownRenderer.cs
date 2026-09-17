@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Windows.UI;
 using Windows.UI.Text;
@@ -62,6 +63,12 @@ namespace FluentSensors.Common.Markdown
         private static Color Rgb(byte r, byte g, byte b) => Color.FromArgb(0xFF, r, g, b);
 
 
+        // === dropped sections ===
+
+        // matched against heading text, case insensitive and as a substring, so an emoji in front does not matter
+        private static readonly string[] DroppedSections = { "Installation" };
+
+
         // === patterns ===
 
         private static readonly Regex HeadingPattern = new(@"^(#{1,6})\s+(.*)$", RegexOptions.Compiled);
@@ -91,9 +98,20 @@ namespace FluentSensors.Common.Markdown
             @"|(?<italic>\*(?<italicText>[^*\s][^*]*?)\*)",
             RegexOptions.Compiled);
 
+        // markdown and the html form GitHub writes when an image is pasted into a release body; both count as
+        // an image, and whichever appears first becomes the header image
         private static readonly Regex StandaloneImagePattern = new(
-            @"!\[[^\]]*\]\((?<imageUrl>[^\s)]+)\)",
-            RegexOptions.Compiled);
+            @"!\[[^\]]*\]\((?<imageUrl>[^\s)]+)\)" +
+            @"|<img[^>]*?\ssrc\s*=\s*[""'](?<imageUrl>[^""']+)[""'][^>]*>",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex HtmlImagePattern = new(@"<img[^>]*>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        // a row of hashes with nothing after it; GitHub leaves these behind and they would render as literal text
+        private static readonly Regex EmptyHeadingPattern = new(@"^\s*#{1,6}\s*$", RegexOptions.Compiled);
+
+        // a release body ends on this line, and it has to survive whatever section removal happens above it
+        private static readonly Regex ChangelogLinkPattern = new(@"^\s*\*\*Full Changelog\*\*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 
         // === public api ===
@@ -112,7 +130,43 @@ namespace FluentSensors.Common.Markdown
             if (!match.Success) return markdown;
 
             imageUrl = match.Groups["imageUrl"].Value;
-            return markdown.Remove(match.Index, match.Length);
+            string rest = markdown.Remove(match.Index, match.Length);
+
+            // whatever html images are left would otherwise show up as raw tags in the running text
+            return HtmlImagePattern.Replace(rest, "");
+        }
+
+        // strips whole sections the dialog has no use for, from their heading down to the next heading of any
+        // level or to the full changelog line, whichever comes first
+        //
+        // the installation steps belong on the release page, not in an app that is already installed
+        public static string DropSections(string markdown)
+        {
+            if (string.IsNullOrWhiteSpace(markdown)) return markdown;
+
+            var lines = markdown.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+            var kept = new List<string>();
+            bool dropping = false;
+
+            foreach (string line in lines)
+            {
+                var heading = HeadingPattern.Match(line);
+
+                if (heading.Success)
+                {
+                    string title = heading.Groups[2].Value;
+                    dropping = DroppedSections.Any(name => title.Contains(name, StringComparison.OrdinalIgnoreCase));
+                    if (dropping) continue;
+                }
+                else if (dropping && ChangelogLinkPattern.IsMatch(line))
+                {
+                    dropping = false;
+                }
+
+                if (!dropping) kept.Add(line);
+            }
+
+            return string.Join("\n", kept);
         }
 
         // replaces whatever the target currently holds, so re-rendering into the same panel is safe
@@ -147,8 +201,9 @@ namespace FluentSensors.Common.Markdown
             {
                 string line = raw.TrimEnd();
 
-                // a blank line and a horizontal rule both read as a break, and both close an open callout
-                if (string.IsNullOrWhiteSpace(line) || RulePattern.IsMatch(line))
+                // a blank line, a horizontal rule and an empty heading all read as a break, and all three close
+                // an open callout
+                if (string.IsNullOrWhiteSpace(line) || RulePattern.IsMatch(line) || EmptyHeadingPattern.IsMatch(line))
                 {
                     FlushPending();
                     writer.EndAlert();
