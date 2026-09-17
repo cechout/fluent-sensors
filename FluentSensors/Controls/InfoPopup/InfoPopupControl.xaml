@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <UserControl
     x:Class="FluentSensors.Controls.InfoPopup.InfoPopupControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -54,14 +54,7 @@
             </Setter>
         </Style>
 
-        <Style x:Key="SourceLinkButtonStyle" TargetType="HyperlinkButton">
-            <Setter Property="Padding" Value="6,2,6,2" />
-            <Setter Property="Margin" Value="-6,0,0,0" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="FontSize" Value="12" />
-        </Style>
+        <!--  (SourceLinkButtonStyle sits in App.xaml, the release dialog carries the same link look)  -->
     </UserControl.Resources>
 
 

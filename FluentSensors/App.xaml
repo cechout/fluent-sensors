@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Application
     x:Class="FluentSensors.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -268,6 +268,21 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+
+            <!--  === source link button ===  -->
+            <!--
+                the link look of the info popup, shared so the release dialog can carry the same one
+                the negative left margin is what lets the padded hit area sit flush with the text above it
+            -->
+            <Style x:Key="SourceLinkButtonStyle" TargetType="HyperlinkButton">
+                <Setter Property="Padding" Value="6,2,6,2" />
+                <Setter Property="Margin" Value="-6,0,0,0" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="FontSize" Value="12" />
             </Style>
         </ResourceDictionary>
     </Application.Resources>

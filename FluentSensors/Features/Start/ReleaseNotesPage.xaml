@@ -32,8 +32,8 @@
                         Style="{ThemeResource CaptionTextBlockStyle}" />
                     <HyperlinkButton
                         x:Name="GitHubLink"
-                        Padding="0"
-                        Content="View on GitHub" />
+                        Content="View on GitHub"
+                        Style="{StaticResource SourceLinkButtonStyle}" />
                 </StackPanel>
             </StackPanel>
 

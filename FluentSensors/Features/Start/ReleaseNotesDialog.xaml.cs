@@ -1,6 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media.Animation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,9 +22,6 @@ namespace FluentSensors.Features.Start
         // === fields ===
 
         private List<ReleaseEntry> _releases = new List<ReleaseEntry>();
-
-        // which release is on screen, so the slide can be sent in the direction the user actually moved
-        private int _currentIndex = -1;
 
         // --- dialog geometry ---
         // the width is fixed at 85% of the main windows own minimum (WindowManager.MinWidth = 600), so the dialog
@@ -100,7 +96,6 @@ namespace FluentSensors.Features.Start
         private void Populate(IReadOnlyList<ReleaseEntry> releases)
         {
             _releases = releases.ToList();
-            _currentIndex = -1;
 
             ReleaseNav.MenuItems.Clear();
             foreach (var release in _releases)
@@ -122,19 +117,9 @@ namespace FluentSensors.Features.Start
         {
             if (args.SelectedItem is not NavigationViewItem item || item.Tag is not ReleaseEntry release) return;
 
-            int index = _releases.IndexOf(release);
-
-            // newer releases sit above older ones, so moving down the list reads as moving forward
-            var effect = _currentIndex < 0 || index > _currentIndex
-                ? SlideNavigationTransitionEffect.FromRight
-                : SlideNavigationTransitionEffect.FromLeft;
-
-            _currentIndex = index;
-
-            ReleaseFrame.Navigate(
-                typeof(ReleaseNotesPage),
-                release,
-                new SlideNavigationTransitionInfo { Effect = effect });
+            // the NavigationView hands out the transition its own display mode calls for, so a release change
+            // reads exactly like a page change anywhere else in the app rather than like a hand rolled slide
+            ReleaseFrame.Navigate(typeof(ReleaseNotesPage), release, args.RecommendedNavigationTransitionInfo);
         }
 
 
