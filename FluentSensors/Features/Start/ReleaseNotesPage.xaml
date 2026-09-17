@@ -7,14 +7,22 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <!--  (no padding on a scroller, it clips what it is meant to scroll; the children carry the inset)  -->
+    <Page.Resources>
+        <!--  the one knob for how far the release body sits from the dialog edges  -->
+        <Thickness x:Key="ReleaseContentPadding">28,16,28,28</Thickness>
+    </Page.Resources>
+
+    <!--  (no padding on a scroller, it clips what it is meant to scroll; the body below carries the inset)  -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="0,0,0,28" Spacing="16">
+        <StackPanel>
 
             <!--  header image  -->
-            <!--  (edge to edge, which is why the inset below sits on the children rather than on this panel)  -->
+            <!--  (edge to edge, which is why the inset sits on the body rather than on this panel)  -->
             <!--  (Uniform rather than UniformToFill, which crops a banner wider than the dialog on both sides)  -->
-            <Border x:Name="HeroBorder" Visibility="Collapsed">
+            <Border
+                x:Name="HeroBorder"
+                CornerRadius="0"
+                Visibility="Collapsed">
                 <Image
                     x:Name="HeroImage"
                     MaxHeight="200"
@@ -22,35 +30,38 @@
                     Stretch="Uniform" />
             </Border>
 
-            <!--  release meta  -->
-            <!--  (no release name, the header image carries it in every release)  -->
-            <StackPanel
-                Margin="28,4,28,0"
-                Orientation="Horizontal"
-                Spacing="10">
-                <TextBlock
-                    x:Name="DateText"
-                    VerticalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{ThemeResource CaptionTextBlockStyle}" />
-                <HyperlinkButton
-                    x:Name="GitHubLink"
-                    Content="View on GitHub"
-                    Style="{StaticResource SourceLinkButtonStyle}" />
-            </StackPanel>
+            <!--  release body  -->
+            <!--  (a Grid around the panel, only so there is something with a Padding to hang the knob on)  -->
+            <Grid Padding="{StaticResource ReleaseContentPadding}">
+                <StackPanel Spacing="16">
 
-            <!--  release notes  -->
-            <!--  (a panel rather than a RichTextBlock, so callouts can be real Borders)  -->
-            <StackPanel x:Name="NotesHost" Margin="28,0,28,0" />
+                    <!--  release meta  -->
+                    <!--  (no release name, the header image carries it in every release)  -->
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock
+                            x:Name="DateText"
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}" />
+                        <HyperlinkButton
+                            x:Name="GitHubLink"
+                            Content="View on GitHub"
+                            Style="{StaticResource SourceLinkButtonStyle}" />
+                    </StackPanel>
 
-            <TextBlock
-                x:Name="EmptyText"
-                Margin="28,0,28,0"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{ThemeResource BodyTextBlockStyle}"
-                Text="This release was published without notes"
-                TextWrapping="Wrap"
-                Visibility="Collapsed" />
+                    <!--  release notes  -->
+                    <!--  (a panel rather than a RichTextBlock, so callouts can be real Borders)  -->
+                    <StackPanel x:Name="NotesHost" />
+
+                    <TextBlock
+                        x:Name="EmptyText"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="This release was published without notes"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                </StackPanel>
+            </Grid>
         </StackPanel>
     </ScrollViewer>
 </Page>

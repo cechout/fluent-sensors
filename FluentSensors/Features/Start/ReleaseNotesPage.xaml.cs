@@ -3,7 +3,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using System;
-using System.IO;
 
 using FluentSensors.Common.Markdown;
 using FluentSensors.Core.Update;
@@ -15,6 +14,12 @@ namespace FluentSensors.Features.Start
     // NavigationView can drive it through a Frame and get the platforms own page transition
     public sealed partial class ReleaseNotesPage : Page
     {
+        // === fields ===
+
+        // every release ships its own banner under Assets/Releases, named after the version with dots as dashes
+        private const string HeroFolder = "ms-appx:///Assets/Releases/";
+
+
         // === constructor ===
 
         public ReleaseNotesPage()
@@ -44,9 +49,9 @@ namespace FluentSensors.Features.Start
                 GitHubLink.Visibility = Visibility.Collapsed;
             }
 
-            // the header image comes out of the body first, so it does not also show up mid-text, and the
-            // sections the dialog has no use for go with it
-            string body = MarkdownRenderer.ExtractLeadingImage(release.Notes, out string imageUrl);
+            // the leading image is dropped from the body so it does not also show up mid-text; the copy in the
+            // notes is never rendered, ShowHero takes the shipped asset instead
+            string body = MarkdownRenderer.ExtractLeadingImage(release.Notes, out _);
             body = MarkdownRenderer.DropSections(body);
 
             if (string.IsNullOrWhiteSpace(body))
@@ -59,38 +64,26 @@ namespace FluentSensors.Features.Start
                 MarkdownRenderer.Render(NotesHost, body);
             }
 
-            _ = ShowHeroAsync(imageUrl);
+            ShowHero(release.Version);
         }
 
 
         // === private helpers ===
 
-        // the cached copy is used the moment it exists, so reopening a release never waits on the network and an
-        // offline app still shows the image it saw last time
-        private async System.Threading.Tasks.Task ShowHeroAsync(string imageUrl)
+        // the banner ships with the app rather than being pulled from the release body, which keeps it off the
+        // network entirely and lets the release page on GitHub carry a rounded export while the app keeps a
+        // square one
+        //
+        // HeroBorder starts collapsed and is only revealed once the image really decoded, so a release without
+        // an asset, or one whose file is missing, simply has no header image
+        private void ShowHero(string version)
         {
-            if (string.IsNullOrWhiteSpace(imageUrl)) return;
+            if (string.IsNullOrWhiteSpace(version)) return;
 
-            var catalog = ReleaseCatalog.Instance;
-            string path = catalog.CachedImagePath(imageUrl) ?? await catalog.EnsureImageAsync(imageUrl);
-            if (string.IsNullOrEmpty(path)) return;
+            var bitmap = new BitmapImage(new Uri($"{HeroFolder}{UpdateService.VersionLabel(version).Replace('.', '-')}.png"));
+            bitmap.ImageOpened += (_, _) => HeroBorder.Visibility = Visibility.Visible;
 
-            try
-            {
-                // loaded through a stream rather than a file uri, which BitmapImage does not reliably accept for
-                // a path outside the app folder
-                using var stream = File.OpenRead(path);
-
-                var bitmap = new BitmapImage();
-                await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
-
-                HeroImage.Source = bitmap;
-                HeroBorder.Visibility = Visibility.Visible;
-            }
-            catch
-            {
-                // an unreadable or truncated cache file just means no header image for this release
-            }
+            HeroImage.Source = bitmap;
         }
     }
 }

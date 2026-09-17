@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -25,7 +23,7 @@ namespace FluentSensors.Core.Update
     );
 
 
-    // every published release from 1.0.0 onwards, for the release notes dialog
+    // every published minor and major release from 1.0.0 onwards, for the release notes dialog
     //
     // kept apart from UpdateService on purpose: that one answers "is there something newer to install" once per
     // start, this one answers "what changed, ever" and is only ever touched when the dialog is opened, which is
@@ -38,7 +36,6 @@ namespace FluentSensors.Core.Update
 
         private const string ReleasesUrl = "https://api.github.com/repos/cechout/fluent-sensors/releases?per_page=100";
         private const string CacheFileName = "releases.json";
-        private const string ImageFolderName = "release-images";
 
         // anything older is a pre-1.0 release nobody is offered any more
         private static readonly Version MinimumVersion = new Version(1, 0, 0);
@@ -106,46 +103,12 @@ namespace FluentSensors.Core.Update
             }
         }
 
-        // downloads an image once and hands back the local path, so a release keeps its header image offline
-        // returns null if it is not cached and cannot be fetched either
-        public async Task<string> EnsureImageAsync(string url)
-        {
-            if (string.IsNullOrWhiteSpace(url)) return null;
-
-            try
-            {
-                string path = ImagePath(url);
-                if (File.Exists(path)) return path;
-
-                byte[] bytes = await UpdateService.Http.GetByteArrayAsync(url);
-                if (bytes.Length == 0) return null;
-
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-                await File.WriteAllBytesAsync(path, bytes);
-
-                return path;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ReleaseCatalog] image fetch failed: {ex.Message}");
-                return null;
-            }
-        }
-
-        // the already-downloaded path for an image, without reaching for the network at all
-        public string CachedImagePath(string url)
-        {
-            if (string.IsNullOrWhiteSpace(url)) return null;
-
-            string path = ImagePath(url);
-            return File.Exists(path) ? path : null;
-        }
-
 
         // === private helpers ===
 
-        // drafts and prereleases are skipped the same way the updater skips them, and anything below 1.0.0 is
-        // history nobody is offered any more
+        // drafts and prereleases are skipped the same way the updater skips them, anything below 1.0.0 is
+        // history nobody is offered any more, and a patch is folded away because its notes never say anything
+        // the minor release it belongs to does not already say
         private static List<ReleaseEntry> Parse(string json)
         {
             var entries = new List<ReleaseEntry>();
@@ -161,6 +124,7 @@ namespace FluentSensors.Core.Update
                 string version = tag.TrimStart('v', 'V');
                 if (!Version.TryParse(version, out var parsedVersion)) continue;
                 if (parsedVersion < MinimumVersion) continue;
+                if (parsedVersion.Build > 0) continue;
 
                 var published = element.TryGetProperty("published_at", out var publishedElement)
                     && publishedElement.TryGetDateTimeOffset(out var value)
@@ -205,17 +169,5 @@ namespace FluentSensors.Core.Update
         // alongside the settings json files, so a portable copy carries its release history on the same drive
         private static string CachePath() =>
             Path.Combine(PersistenceService.Instance.RootFolder, CacheFileName);
-
-        // named by the hash of the url rather than its file name, which is neither unique nor always a legal path
-        private static string ImagePath(string url)
-        {
-            byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(url));
-            string name = Convert.ToHexString(hash, 0, 8).ToLowerInvariant();
-
-            string extension = Path.GetExtension(new Uri(url).AbsolutePath);
-            if (string.IsNullOrEmpty(extension) || extension.Length > 5) extension = ".img";
-
-            return Path.Combine(PersistenceService.Instance.RootFolder, ImageFolderName, name + extension);
-        }
     }
 }
