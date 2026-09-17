@@ -67,6 +67,13 @@ namespace FluentSensors.Core.Update
         // it would work in a debug build and fail only in a release one
         private static readonly HttpClient _http = CreateClient();
 
+        // GitHub answers an unauthenticated api request 60 times per hour and per ip, and the release notes dialog
+        // spends from the same budget, so a manual check that lands inside this window is answered with the last
+        // result instead of a new request; the button already names when that was
+        // a failed check deliberately leaves LastCheckedAt alone, so a retry after a dropped connection is never
+        // held back
+        private static readonly TimeSpan CheckCooldown = TimeSpan.FromSeconds(60);
+
         // shared with ReleaseCatalog rather than duplicated there: the user agent and accept headers below are
         // what GitHub requires, and two copies of that would drift
         internal static HttpClient Http => _http;
@@ -155,6 +162,14 @@ namespace FluentSensors.Core.Update
 
             _dispatcherQueue ??= DispatcherQueue.GetForCurrentThread();
 
+            // spam guard, see CheckCooldown; the state is left exactly as the last answer put it
+            if (LastCheckedAt.HasValue && DateTimeOffset.Now - LastCheckedAt.Value < CheckCooldown)
+            {
+                return UiState == UpdateUiState.UpdateAvailable
+                    ? UpdateCheckResult.UpdateAvailable
+                    : UpdateCheckResult.UpToDate;
+            }
+
             UiState = UpdateUiState.Checking;
             RaiseStateChanged();
 
@@ -162,7 +177,9 @@ namespace FluentSensors.Core.Update
             {
                 string json = await _http.GetStringAsync(LatestReleaseUrl);
 
-                _latestRelease = ParseRelease(json, out bool isNewer);
+                var parsed = ParseRelease(json, out bool isNewer);
+
+                _latestRelease = Simulate(parsed, ref isNewer);
                 _isNewer = isNewer;
                 LastCheckedAt = DateTimeOffset.Now;
 
@@ -237,6 +254,28 @@ namespace FluentSensors.Core.Update
             client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
 
             return client;
+        }
+
+        // debug only switch for walking through the update ui without publishing anything: put a version higher
+        // than the running one into simulatedVersion and every check reports that release as available
+        // only the version is swapped, the notes, the release url and the asset stay the real ones, so the dialog
+        // behaves exactly as it would for a genuine update, download and install included
+        // compiled out of a release build entirely, so a value left behind by accident can never ship
+        private static UpdateInfo? Simulate(UpdateInfo? release, ref bool isNewer)
+        {
+#if DEBUG
+            const string simulatedVersion = ""; // e.g. "9.9.9", empty turns the simulation off
+
+            if (simulatedVersion.Length > 0 && release != null)
+            {
+                Debug.WriteLine($"[UpdateService] simulating an available update: {simulatedVersion}");
+
+                isNewer = true;
+                return release with { Version = simulatedVersion };
+            }
+#endif
+
+            return release;
         }
 
         // hands back whatever the api described rather than only an installable update, because the notes reader
