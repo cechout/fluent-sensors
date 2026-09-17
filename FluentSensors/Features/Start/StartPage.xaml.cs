@@ -73,8 +73,21 @@ namespace FluentSensors.Features.Start
         // navigation pane and a page of its own
         private async void ReleaseNotesButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new ReleaseNotesDialog { XamlRoot = this.XamlRoot };
-            await dialog.ShowAsync();
+            // --- teardown: bare dialog, nothing of ours left ---
+            // the release dialog is square down to the close button the template itself draws, which no markup of
+            // ours ever touches, so this opens a ContentDialog with no custom type, no custom size and no custom
+            // content at all
+            // round here means the fault is inside ReleaseNotesDialog and goes back in line by line; square here
+            // means it was never that file and the hunt moves out of it
+            var probe = new ContentDialog
+            {
+                Title = "Corner test",
+                Content = "Nothing in this dialog is ours.",
+                CloseButtonText = "Close",
+                XamlRoot = this.XamlRoot
+            };
+
+            await probe.ShowAsync();
         }
 
         // one button, four jobs, decided by whatever state the service is in
