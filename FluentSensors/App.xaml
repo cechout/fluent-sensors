@@ -284,6 +284,20 @@
                 <Setter Property="HorizontalContentAlignment" Value="Left" />
                 <Setter Property="FontSize" Value="12" />
             </Style>
+
+            <!--  === page link button ===  -->
+            <!--
+                the same link look one size up, for links that sit on a page rather than inside a popup
+                the negative margin of the style above is dropped on purpose: in a row it pulls every link
+                towards its neighbour, not just the first one against the left edge
+            -->
+            <Style
+                x:Key="PageLinkButtonStyle"
+                BasedOn="{StaticResource SourceLinkButtonStyle}"
+                TargetType="HyperlinkButton">
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="FontSize" Value="14" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
