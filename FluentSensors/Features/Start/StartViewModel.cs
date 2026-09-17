@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -38,6 +39,13 @@ namespace FluentSensors.Features.Start
         private static readonly Color AccentFallbackColor = Color.FromArgb(0xFF, 0x00, 0x78, 0xD4);
 
 
+        // === switches ===
+
+        // a mainboard reports no sensors at all on plenty of systems, and a tile with nothing to say is only
+        // taking up room; later a setting
+        private const bool ShowHardwareWithoutSensors = false;
+
+
         // === fields ===
 
         private string _updateBadgeGlyph = "";
@@ -47,6 +55,9 @@ namespace FluentSensors.Features.Start
         private string _releaseNotesSubtitle = "";
         private bool _isUpdateChecking;
         private bool _isUpdateActionEnabled = true;
+
+        // the full set; SystemSnapshot below is the filtered view of it that the page actually binds to
+        private readonly List<SystemSnapshotEntry> _allSnapshotEntries;
 
         private string _sensorsFoundText = "-";
         private string _sensorsRenderedText = "-";
@@ -58,7 +69,9 @@ namespace FluentSensors.Features.Start
 
         public StartViewModel()
         {
-            SystemSnapshot = BuildSnapshot();
+            _allSnapshotEntries = BuildSnapshot();
+            SystemSnapshot = new ObservableCollection<SystemSnapshotEntry>();
+
             RefreshSensorCounts();
             RefreshUpdateState();
         }
@@ -66,7 +79,7 @@ namespace FluentSensors.Features.Start
 
         // === bindable properties ===
 
-        public IReadOnlyList<SystemSnapshotEntry> SystemSnapshot { get; }
+        public ObservableCollection<SystemSnapshotEntry> SystemSnapshot { get; }
 
         public string UpdateBadgeGlyph
         {
@@ -164,7 +177,7 @@ namespace FluentSensors.Features.Start
         {
             var available = LhmHardwareTreeService.Instance.HardwareGroups.ToList();
 
-            foreach (var entry in SystemSnapshot)
+            foreach (var entry in _allSnapshotEntries)
             {
                 var candidates = available.Where(g => g.Kind == entry.MatchKind).ToList();
                 var matches = MatchInstances(entry, candidates);
@@ -182,6 +195,25 @@ namespace FluentSensors.Features.Start
                     _ => $"{count} sensors"
                 };
             }
+
+            SyncVisibleEntries();
+        }
+
+        // SquareGridPanel measures and arranges every child by raw index and never looks at Visibility, so a
+        // collapsed tile would still hold its cell open; the list itself has to be the filter
+        //
+        // only touched when the membership actually changes, otherwise the whole row would be rebuilt on every
+        // poll tick
+        private void SyncVisibleEntries()
+        {
+            var wanted = _allSnapshotEntries
+                .Where(e => ShowHardwareWithoutSensors || e.HasSensors)
+                .ToList();
+
+            if (wanted.Count == SystemSnapshot.Count && wanted.SequenceEqual(SystemSnapshot)) return;
+
+            SystemSnapshot.Clear();
+            foreach (var entry in wanted) SystemSnapshot.Add(entry);
         }
 
         // a category that only ever produces one tile takes every group LHM filed under it; LibreHardwareMonitor

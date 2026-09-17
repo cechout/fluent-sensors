@@ -211,10 +211,55 @@ namespace FluentSensors.Features.Sensors
         {
             if (lhmHardwareNames == null || lhmHardwareNames.Count == 0) return;
 
+            HardwareGroupViewModel target = null;
+
             foreach (var group in ViewModel.HardwareGroups)
             {
-                group.IsExpanded = lhmHardwareNames.Contains(group.LhmHardwareName, StringComparer.OrdinalIgnoreCase);
+                bool wanted = lhmHardwareNames.Contains(group.LhmHardwareName, StringComparer.OrdinalIgnoreCase);
+                group.IsExpanded = wanted;
+
+                // the first match is the one scrolled to; a category like memory matches several groups
+                if (wanted && target == null) target = group;
             }
+
+            if (target == null) return;
+
+            // the expanders above have to lay out at their new height first, otherwise the scroll would aim at
+            // where the group used to be; same low-priority hand-off MainWindow uses for its title bar
+            DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => ScrollToGroup(target));
+        }
+
+        // HardwareItemsControl is a plain ItemsControl, whose ContainerFromItem is protected, so the container is
+        // found by walking the tree for the presenter carrying this group as its DataContext
+        private void ScrollToGroup(HardwareGroupViewModel group)
+        {
+            var container = FindContainer(HardwareItemsControl, group);
+
+            container?.StartBringIntoView(new BringIntoViewOptions
+            {
+                VerticalAlignmentRatio = 0,
+                AnimationDesired = true
+            });
+        }
+
+        private static FrameworkElement FindContainer(DependencyObject root, object dataContext)
+        {
+            int count = VisualTreeHelper.GetChildrenCount(root);
+
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(root, i);
+
+                if (child is ContentPresenter presenter && ReferenceEquals(presenter.DataContext, dataContext))
+                {
+                    return presenter;
+                }
+
+                var found = FindContainer(child, dataContext);
+                if (found != null) return found;
+            }
+
+            return null;
         }
 
         private void ResetMinMax_Click(object sender, RoutedEventArgs e)

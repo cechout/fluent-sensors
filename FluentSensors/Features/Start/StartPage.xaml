@@ -172,7 +172,15 @@
                             BorderThickness="1"
                             CornerRadius="{ThemeResource ControlCornerRadius}">
 
-                            <StackPanel>
+                            <!--  (SquareGridPanel gives every tile in a row the height of the tallest one,  -->
+                            <!--  so the Star row is what pushes the button down onto the card edge)  -->
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0">
 
                                 <!--  tile header  -->
                                 <!--  (category over device name, the fact idiom SensorTileControl uses)  -->
@@ -222,6 +230,10 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
+
                                 <!--  divider  -->
                                 <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
 
@@ -260,7 +272,8 @@
                                             Glyph="&#xE76C;" />
                                     </Grid>
                                 </Button>
-                            </StackPanel>
+                                </StackPanel>
+                            </Grid>
                         </Border>
 
                     </DataTemplate>
