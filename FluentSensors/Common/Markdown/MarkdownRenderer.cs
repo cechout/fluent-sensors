@@ -41,7 +41,12 @@ namespace FluentSensors.Common.Markdown
 
         // a list packs its items tight, so a paragraph that follows one has to bring the gap itself; without it
         // the full changelog line ends up sitting on the last bullet
-        private const double ParagraphTopMarginAfterList = ParagraphBottomMargin - ListItemBottomMargin;
+        private const double ParagraphTopMarginAfterList = 18;
+
+        // vertical rhythm of the running text; turn this up for airier notes and down to tighten them
+        // it is a minimum rather than a fixed value, see LineStackingStrategy below, so a heading keeps the
+        // taller line box its own font size asks for
+        private const double BodyLineHeight = 22;
         private const double BulletIndent = 16; // left inset of a list item
         private const double BulletHang = -11; // pulls the marker itself back out of that inset
         private const double InlineImageMaxWidth = 420; // an image in the running text never pushes the page wider
@@ -306,7 +311,7 @@ namespace FluentSensors.Common.Markdown
                     : AlertColors["IMPORTANT"].Light;
 
                 var brush = new SolidColorBrush(color);
-                var body = new RichTextBlock { IsTextSelectionEnabled = true, TextWrapping = TextWrapping.Wrap };
+                var body = NewTextBlock();
 
                 var label = new TextBlock
                 {
@@ -346,11 +351,21 @@ namespace FluentSensors.Common.Markdown
 
             private RichTextBlock StartTextBlock()
             {
-                var block = new RichTextBlock { IsTextSelectionEnabled = true, TextWrapping = TextWrapping.Wrap };
+                var block = NewTextBlock();
                 _target.Children.Add(block);
 
                 return block;
             }
+
+            // MaxHeight rather than BlockLineHeight: the line height set here then acts as a floor, so ordinary
+            // text loosens up while a heading still gets the room its own size needs
+            private static RichTextBlock NewTextBlock() => new RichTextBlock
+            {
+                IsTextSelectionEnabled = true,
+                TextWrapping = TextWrapping.Wrap,
+                LineHeight = BodyLineHeight,
+                LineStackingStrategy = LineStackingStrategy.MaxHeight
+            };
 
             private static string Title(string kind) =>
                 kind.Length == 0 ? kind : char.ToUpperInvariant(kind[0]) + kind.Substring(1).ToLowerInvariant();

@@ -31,7 +31,6 @@ namespace FluentSensors.Features.Start
 
             if (e.Parameter is not ReleaseEntry release) return;
 
-            TitleText.Text = release.Name;
             DateText.Text = release.PublishedAt == DateTimeOffset.MinValue
                 ? ""
                 : release.PublishedAt.ToLocalTime().ToString("dd.MM.yyyy");

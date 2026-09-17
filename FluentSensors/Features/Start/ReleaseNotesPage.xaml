@@ -22,19 +22,21 @@
                     Stretch="Uniform" />
             </Border>
 
-            <StackPanel Margin="28,4,28,0" Spacing="4">
-                <TextBlock x:Name="TitleText" Style="{ThemeResource SubtitleTextBlockStyle}" />
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <TextBlock
-                        x:Name="DateText"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}" />
-                    <HyperlinkButton
-                        x:Name="GitHubLink"
-                        Content="View on GitHub"
-                        Style="{StaticResource SourceLinkButtonStyle}" />
-                </StackPanel>
+            <!--  release meta  -->
+            <!--  (no release name, the header image carries it in every release)  -->
+            <StackPanel
+                Margin="28,4,28,0"
+                Orientation="Horizontal"
+                Spacing="10">
+                <TextBlock
+                    x:Name="DateText"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource CaptionTextBlockStyle}" />
+                <HyperlinkButton
+                    x:Name="GitHubLink"
+                    Content="View on GitHub"
+                    Style="{StaticResource SourceLinkButtonStyle}" />
             </StackPanel>
 
             <!--  release notes  -->
