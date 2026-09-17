@@ -43,7 +43,7 @@
         <!--  (stands in for the dialogs own Title, so the padding stays ours)  -->
         <Grid
             Grid.Row="0"
-            Padding="12"
+            Padding="12,8,12,8"
             ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -53,9 +53,10 @@
             <!--  title  -->
             <!--  (Tight plus TrimSideBearings, so the visible text starts where the padding says it does)  -->
             <TextBlock
+                Margin="8,0,0,0"
                 VerticalAlignment="Center"
                 OpticalMarginAlignment="TrimSideBearings"
-                Style="{ThemeResource SubtitleTextBlockStyle}"
+                Style="{ThemeResource BodyLargeTextBlockStyle}"
                 Text="What's new"
                 TextLineBounds="Tight" />
 
@@ -64,6 +65,7 @@
                 Grid.Column="1"
                 Width="36"
                 Height="36"
+                Margin="0,0,0,6"
                 Padding="0"
                 VerticalAlignment="Center"
                 Click="CloseButton_Click"
@@ -86,7 +88,7 @@
             IsPaneOpen="True"
             IsPaneToggleButtonVisible="False"
             IsSettingsVisible="False"
-            OpenPaneLength="80"
+            OpenPaneLength="90"
             PaneDisplayMode="Left"
             SelectionChanged="ReleaseNav_SelectionChanged">
 

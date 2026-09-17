@@ -45,7 +45,7 @@ namespace FluentSensors.Common.Markdown
 
         // the closing full changelog row
         // label font size; the link button beside it carries its own 12 from SourceLinkButtonStyle
-        private const double ChangelogLabelFontSize = 14;
+        private const double ChangelogLabelFontSize = 12;
         private const double ChangelogRowSpacing = 6; // gap between label and link button
 
         // vertical rhythm of the running text; turn this up for airier notes and down to tighten them
@@ -589,9 +589,10 @@ namespace FluentSensors.Common.Markdown
 
             panel.Children.Add(new TextBlock
             {
-                Text = "Full changelog",
+                Text = "Full changelog: ",
                 FontSize = ChangelogLabelFontSize,
-                VerticalAlignment = VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = ThemeBrush("TextFillColorSecondaryBrush")
             });
 
             var link = new HyperlinkButton
