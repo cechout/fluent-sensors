@@ -43,8 +43,10 @@ namespace FluentSensors.Common.Markdown
         // the full changelog line ends up sitting on the last bullet
         private const double ParagraphTopMarginAfterList = 18;
 
-        // gap between the full changelog label and its link button
-        private const double ChangelogRowSpacing = 6;
+        // the closing full changelog row
+        // label font size; the link button beside it carries its own 12 from SourceLinkButtonStyle
+        private const double ChangelogLabelFontSize = 14;
+        private const double ChangelogRowSpacing = 6; // gap between label and link button
 
         // vertical rhythm of the running text; turn this up for airier notes and down to tighten them
         // it is a minimum rather than a fixed value, see LineStackingStrategy below, so a heading keeps the
@@ -588,6 +590,7 @@ namespace FluentSensors.Common.Markdown
             panel.Children.Add(new TextBlock
             {
                 Text = "Full changelog",
+                FontSize = ChangelogLabelFontSize,
                 VerticalAlignment = VerticalAlignment.Center
             });
 
