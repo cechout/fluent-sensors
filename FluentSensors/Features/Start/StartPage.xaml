@@ -6,6 +6,7 @@
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:local="using:FluentSensors.Features.Start"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
@@ -304,95 +305,95 @@
             <!--  content: app status  -->
             <!--
                 fed by AppStatusService, the same snapshot the title bar readout runs on, so the two always agree
-                label and value follow SensorTileControl: a caption in the secondary brush over a BodyLarge value
-                with tabular numerals, so a digit change never shifts the text
+                flat rather than carded, the way the hardware info panel on the performance page reads: a caption
+                in the secondary brush over the value, with tabular numerals so a digit change never shifts it
+                the two groups name where their numbers come from, and each carries the same info flyout its
+                counterpart in the title bar does
             -->
             <TextBlock
                 Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="App Status" />
 
-            <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8">
+            <controls:WrapPanel
+                Margin="4,0,0,0"
+                HorizontalSpacing="48"
+                VerticalSpacing="18">
 
-                <!--  found sensors  -->
-                <Border
-                    MinWidth="140"
-                    Padding="14,10"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{ThemeResource ControlCornerRadius}">
-                    <StackPanel Spacing="2">
-                        <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Found Sensors" />
-                        <TextBlock
-                            Style="{ThemeResource BodyLargeTextBlockStyle}"
-                            Text="{x:Bind ViewModel.SensorsFoundText, Mode=OneWay}"
-                            Typography.NumeralAlignment="Tabular" />
-                    </StackPanel>
-                </Border>
+                <!--  lhm group  -->
+                <StackPanel Spacing="6">
+                    <fhInfoPopup:InfoPopupControl
+                        Title="LibreHardwareMonitor"
+                        Description="Found Sensors - every sensor LibreHardwareMonitor reports on this machine&#10;Rendering Sensors - how many of them are actively drawn right now&#10;LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows"
+                        PlacementMode="TitleAnchored"
+                        SourceIntro="This App is powered by the open source LibreHardwareMonitor project:">
+                        <fhInfoPopup:InfoPopupControl.SourceLinks>
+                            <fhInfoPopup:SourceLink Label="LibreHardwareMonitor on GitHub" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
+                        </fhInfoPopup:InfoPopupControl.SourceLinks>
+                    </fhInfoPopup:InfoPopupControl>
 
-                <!--  rendering sensors  -->
-                <Border
-                    MinWidth="140"
-                    Padding="14,10"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{ThemeResource ControlCornerRadius}">
-                    <StackPanel Spacing="2">
-                        <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Rendering Sensors" />
-                        <TextBlock
-                            Style="{ThemeResource BodyLargeTextBlockStyle}"
-                            Text="{x:Bind ViewModel.SensorsRenderedText, Mode=OneWay}"
-                            Typography.NumeralAlignment="Tabular" />
-                    </StackPanel>
-                </Border>
+                    <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Found Sensors" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind ViewModel.SensorsFoundText, Mode=OneWay}"
+                                Typography.NumeralAlignment="Tabular" />
+                        </StackPanel>
 
-                <!--  cpu usage  -->
-                <Border
-                    MinWidth="140"
-                    Padding="14,10"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{ThemeResource ControlCornerRadius}">
-                    <StackPanel Spacing="2">
-                        <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="CPU usage" />
-                        <TextBlock
-                            Style="{ThemeResource BodyLargeTextBlockStyle}"
-                            Text="{x:Bind ViewModel.CpuTileValue, Mode=OneWay}"
-                            Typography.NumeralAlignment="Tabular" />
-                    </StackPanel>
-                </Border>
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="Rendering Sensors" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind ViewModel.SensorsRenderedText, Mode=OneWay}"
+                                Typography.NumeralAlignment="Tabular" />
+                        </StackPanel>
+                    </controls:WrapPanel>
+                </StackPanel>
 
-                <!--  ram usage  -->
-                <Border
-                    MinWidth="140"
-                    Padding="14,10"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{ThemeResource ControlCornerRadius}">
-                    <StackPanel Spacing="2">
-                        <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="RAM usage" />
-                        <TextBlock
-                            Style="{ThemeResource BodyLargeTextBlockStyle}"
-                            Text="{x:Bind ViewModel.RamTileValue, Mode=OneWay}"
-                            Typography.NumeralAlignment="Tabular" />
-                    </StackPanel>
-                </Border>
+                <!--  this app group  -->
+                <!--  (this apps own usage rather than the machines, which is what the flyout spells out)  -->
+                <StackPanel Spacing="6">
+                    <fhInfoPopup:InfoPopupControl
+                        Title="This App"
+                        Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)"
+                        PlacementMode="TitleAnchored"
+                        SourceIntro="Source:">
+                        <fhInfoPopup:InfoPopupControl.SourceLinks>
+                            <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
+                        </fhInfoPopup:InfoPopupControl.SourceLinks>
+                    </fhInfoPopup:InfoPopupControl>
+
+                    <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="CPU usage" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind ViewModel.CpuTileValue, Mode=OneWay}"
+                                Typography.NumeralAlignment="Tabular" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="RAM usage" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind ViewModel.RamTileValue, Mode=OneWay}"
+                                Typography.NumeralAlignment="Tabular" />
+                        </StackPanel>
+                    </controls:WrapPanel>
+                </StackPanel>
             </controls:WrapPanel>
 
 
@@ -424,7 +425,24 @@
 
                     <!--  (the settings and sensor state json files; a portable build keeps them next to the exe)  -->
                     <controls:SettingsCard Description="Where settings and sensor state are stored" Header="App data folder">
-                        <Button Click="OpenAppDataFolder_Click" Content="Open" />
+                        <Button Click="OpenAppDataFolder_Click">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <FontIcon
+                                    Grid.Column="0"
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    Glyph="&#xE8B7;" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Text="Open" />
+                            </Grid>
+                        </Button>
                     </controls:SettingsCard>
 
                     <controls:SettingsCard Header="Developer Profile">
