@@ -59,7 +59,8 @@ namespace FluentSensors.Features.Start
             if (cached.Count > 0) Populate(cached);
             else SetBusy(true);
 
-            var fresh = await catalog.RefreshAsync();
+            // only reaches GitHub when a release exists that the cache does not carry, see EnsureCurrentAsync
+            var fresh = await catalog.EnsureCurrentAsync();
 
             SetBusy(false);
 

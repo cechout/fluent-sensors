@@ -58,6 +58,21 @@ namespace FluentSensors.Core.Update
         // whatever was fetched or read from disk during this session, newest first
         public IReadOnlyList<ReleaseEntry> Releases => _releases ?? Array.Empty<ReleaseEntry>();
 
+        // what the dialog asks for instead of RefreshAsync
+        //
+        // the on-disk copy stays good until a release exists that it does not carry, and the only thing that ever
+        // learns about one is the update check, once per app start and again on a manual check; opening the dialog
+        // is not itself a reason to spend one of the 60 unauthenticated api requests GitHub grants per hour and ip
+        // returns null when nothing was fetched, which is the signal to keep showing what is already there
+        public async Task<IReadOnlyList<ReleaseEntry>> EnsureCurrentAsync()
+        {
+            var cached = LoadCached();
+
+            if (cached.Count > 0 && !IsMissingLatest()) return null;
+
+            return await RefreshAsync();
+        }
+
         // the on-disk copy, so the dialog has something to render before the network answers and keeps having it
         // when there is no network at all
         public IReadOnlyList<ReleaseEntry> LoadCached()
@@ -105,6 +120,22 @@ namespace FluentSensors.Core.Update
 
 
         // === private helpers ===
+
+        // whether the newest published release has a counterpart in the catalog
+        //
+        // the catalog only lists x.y.0, so a patch release is matched against the minor it belongs to; without
+        // that a published 1.3.1 would look missing forever and every dialog open would fetch again
+        // no answer from the update check yet means no reason to distrust the cache
+        private bool IsMissingLatest()
+        {
+            string latest = UpdateService.Instance.LatestRelease?.Version;
+            if (string.IsNullOrWhiteSpace(latest)) return false;
+            if (!Version.TryParse(latest, out var parsed)) return false;
+
+            string minor = $"{parsed.Major}.{parsed.Minor}.0";
+
+            return !Releases.Any(entry => entry.Version == minor);
+        }
 
         // drafts and prereleases are skipped the same way the updater skips them, anything below 1.0.0 is
         // history nobody is offered any more, and a patch is folded away because its notes never say anything
