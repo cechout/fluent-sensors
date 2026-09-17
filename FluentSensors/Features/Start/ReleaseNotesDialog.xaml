@@ -17,19 +17,15 @@
         -->
         <Thickness x:Key="ContentDialogPadding">0</Thickness>
         <Thickness x:Key="ContentDialogSeparatorThickness">0</Thickness>
-        <x:Double x:Key="ContentDialogMaxWidth">980</x:Double>
-        <x:Double x:Key="ContentDialogMaxHeight">740</x:Double>
 
         <!--
-            the templates own top overlay is a square opaque fill that paints straight over the rounded corners,
-            and DialogSpace above it is a Grid, which rounds only its own background and does not clip children
-            transparent here plus the rounding Border below is what actually gives the dialog round corners
+            the template paints this brush on the grid that carries the content, and at zero padding that grid
+            covers the whole dialog rather than only the top of it
         -->
         <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="Transparent" />
     </ContentDialog.Resources>
 
-    <!--  (size and corner clipping are both applied in code, see ResizeToWindow)  -->
-    <Border x:Name="RootBorder" CornerRadius="{ThemeResource OverlayCornerRadius}">
+    <!--  (the size is applied in code, see ResizeToWindow)  -->
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -82,6 +78,20 @@
             PaneDisplayMode="Left"
             SelectionChanged="ReleaseNav_SelectionChanged">
 
+            <NavigationView.Resources>
+                <!--
+                    the content grid is the only element of ours that reaches the dialog corners, and it draws a
+                    layer fill with a one pixel edge that is rounded on its top left alone, which is what squared
+                    off the two lower corners of the dialog
+                    with nothing of ours painting there, what shows in the corners is the rounded background the
+                    dialog template already draws
+                    the left edge stays; it is what separates the version list from the notes
+                -->
+                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                <Thickness x:Key="NavigationViewContentGridBorderThickness">1,0,0,0</Thickness>
+                <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
+            </NavigationView.Resources>
+
             <Grid>
                 <Frame x:Name="ReleaseFrame" />
 
@@ -107,5 +117,4 @@
             </Grid>
         </NavigationView>
     </Grid>
-    </Border>
 </ContentDialog>
