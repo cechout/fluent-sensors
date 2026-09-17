@@ -79,7 +79,10 @@ namespace FluentSensors.Features.Start
         private void OnXamlRootChanged(XamlRoot sender, XamlRootChangedEventArgs args) => ResizeToWindow();
 
         // fixed width, height follows the window so the dialog never overflows a short display
-        private void ResizeToWindow()
+        //
+        // internal rather than private while the corner probe runs: the probe calls it before ShowAsync, to tell
+        // apart a dialog that opens at its final size from one that is resized once it is already open
+        internal void ResizeToWindow()
         {
             var size = this.XamlRoot?.Size ?? default;
             if (size.Height <= 0) return;

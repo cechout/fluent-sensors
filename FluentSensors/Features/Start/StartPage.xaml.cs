@@ -90,17 +90,23 @@ namespace FluentSensors.Features.Start
         // 2  the fixed size on that grid                      confirmed round
         // 3  the navigation view in the lower row             confirmed round
         // 4  the three resource overrides                     confirmed round
-        // 5  a frame in the navigation view, on the real release page
-        // 6  the real ReleaseNotesDialog, which is the only thing left that a code built probe cannot be
-        private const int ProbeStage = 5;
+        // 5  a frame in the navigation view, on the real release page        confirmed round
+        // 6  the real ReleaseNotesDialog                                      confirmed SQUARE
+        // 7  the real dialog, but sized before it is shown instead of in its Loaded handler
+        private const int ProbeStage = 7;
 
         private async Task ShowCornerProbeAsync()
         {
-            // stage 6: no probe at all any more, the real type; everything it does differently from stage 5 comes
-            // down to being declared in XAML as a ContentDialog subclass
+            // stage 6 and up: no probe any more, the real type
+            //
+            // stage 7 is the one thing the code built probe did differently without either of us noticing: it set
+            // the content size before ShowAsync, while the real dialog sets it in its Loaded handler, so the real
+            // one opens small and grows afterwards
             if (ProbeStage >= 6)
             {
                 var real = new ReleaseNotesDialog { XamlRoot = this.XamlRoot };
+                if (ProbeStage >= 7) real.ResizeToWindow();
+
                 await real.ShowAsync();
                 return;
             }
