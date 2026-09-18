@@ -283,8 +283,9 @@
                 a Style cannot add a VisualState through BasedOn, which is why this carries its own template
             -->
 
-            <!--  how far the content fades; pressed keeps the platform Foreground change on top of it  -->
-            <x:Double x:Key="TileButtonContentOpacityPressed">0.7</x:Double>
+            <!--  how far the whole content fades in each state, Foreground is left alone so everything fades alike  -->
+            <x:Double x:Key="TileButtonContentOpacityHover">0.95</x:Double>
+            <x:Double x:Key="TileButtonContentOpacityPressed">0.80</x:Double>
             <x:Double x:Key="TileButtonContentOpacityDisabled">0.45</x:Double>
 
             <Style x:Key="SubtleTileButtonStyle" TargetType="Button">
@@ -332,19 +333,18 @@
                                         <VisualState x:Name="PointerOver">
                                             <VisualState.Setters>
                                                 <Setter Target="ContentPresenter.Background" Value="{ThemeResource SubtleButtonBackgroundPointerOver}" />
-                                                <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource SubtleButtonForegroundPointerOver}" />
+                                                <Setter Target="ContentPresenter.Opacity" Value="{StaticResource TileButtonContentOpacityHover}" />
                                             </VisualState.Setters>
                                         </VisualState>
 
                                         <VisualState x:Name="Pressed">
                                             <VisualState.Setters>
                                                 <Setter Target="ContentPresenter.Background" Value="{ThemeResource SubtleButtonBackgroundPressed}" />
-                                                <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource SubtleButtonForegroundPressed}" />
                                                 <Setter Target="ContentPresenter.Opacity" Value="{StaticResource TileButtonContentOpacityPressed}" />
                                             </VisualState.Setters>
                                         </VisualState>
 
-                                        <!--  (opacity alone, the disabled Foreground on top of it leaves the text barely readable)  -->
+                                        <!--  (the same fade as the two above, only further down)  -->
                                         <VisualState x:Name="Disabled">
                                             <VisualState.Setters>
                                                 <Setter Target="ContentPresenter.Background" Value="{ThemeResource SubtleButtonBackgroundDisabled}" />
