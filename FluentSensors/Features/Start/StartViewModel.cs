@@ -21,8 +21,8 @@ namespace FluentSensors.Features.Start
     // the static facts of the snapshot are built once per page instance and never refreshed: WinStaticInfoService
     // resolves the whole machine during the splash and states plainly that none of it changes afterwards, so
     // those bind OneTime
-    // the sensor count per tile is the exception and moves with LHMs ongoing discovery, and the update block
-    // moves whenever UpdateService answers
+    // the sensor count per tile is the exception and moves with LHMs ongoing discovery, the tile icon colour
+    // follows the hardware colour setting, and the update block moves whenever UpdateService answers
     public class StartViewModel : INotifyPropertyChanged
     {
         // === badge colours ===
@@ -381,6 +381,16 @@ namespace FluentSensors.Features.Start
                 && value is SolidColorBrush brush
                     ? brush
                     : new SolidColorBrush(Microsoft.UI.Colors.White);
+        }
+
+        // re-runs IconBrushFor for every tile after the hardware colour setting was flipped; nothing else about a
+        // tile depends on it, so the list itself is left alone rather than rebuilt
+        public void RefreshIconBrushes()
+        {
+            foreach (var entry in _allSnapshotEntries)
+            {
+                entry.IconBrush = IconBrushFor(entry.MatchKind);
+            }
         }
 
 

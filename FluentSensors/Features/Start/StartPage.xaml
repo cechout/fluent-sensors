@@ -247,7 +247,7 @@
                                             <FontIcon
                                                 Grid.Column="0"
                                                 FontSize="20"
-                                                Foreground="{x:Bind IconBrush}"
+                                                Foreground="{x:Bind IconBrush, Mode=OneWay}"
                                                 Glyph="{x:Bind IconGlyph}" />
 
                                             <!--  (the Star column is what gives the trimming below a width to trim against)  -->

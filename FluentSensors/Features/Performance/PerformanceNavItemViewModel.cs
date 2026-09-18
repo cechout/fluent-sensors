@@ -108,6 +108,13 @@ namespace FluentSensors.Features.Performance
         }
 
 
+        // === public methods ===
+
+        // HardwareColor has no state of its own, it reads HardwareColorMode every time; this only tells the
+        // sidebar and the start view tiles to ask again after the setting flipped
+        public void RefreshHardwareColor() => OnPropertyChanged(nameof(HardwareColor));
+
+
         // === event handlers ===
 
         // re-derives PrimaryGraph on every change to the underlying instance; not scoped to just the one relevant

@@ -2,6 +2,7 @@
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
 using FluentSensors.Features.Performance.Lhm;
+using FluentSensors.Persistence.Services;
 using Microsoft.UI.Xaml;
 using System;
 using System.Collections;
@@ -48,6 +49,11 @@ namespace FluentSensors.Features.Performance
             // app start), then keep listening for future ones
             // getPrimaryGraph picks each Kinds "at a glance" utilization sensor, shown in the sidebar and the
             // start page
+            // per hardware coloring is a setting, and a nav item has nothing to rebuild when it flips, so the
+            // whole list is simply told to re-read the color
+            // never detached: this view model is created once and stays alive for the rest of the apps lifetime
+            SettingsService.Instance.HardwareColorsChanged += RefreshNavItemColors;
+
             AttachExistingAndFuture(Cpu.Cpus, HardwareGroupKind.Cpu,
                 item => ((LhmCpuInstanceViewModel)item).HardwareName,
                 item => ((LhmCpuInstanceViewModel)item).TotalLoad);
@@ -186,6 +192,14 @@ namespace FluentSensors.Features.Performance
 
 
         // === private helpers ===
+
+        private void RefreshNavItemColors()
+        {
+            foreach (var item in NavItems)
+            {
+                item.RefreshHardwareColor();
+            }
+        }
 
         // processes hardware instances discovered before this ViewModel existed, then keeps listening for future
         // ones; every category (Cpu/Ram/Gpu/Storage/Network) goes through this exact same path

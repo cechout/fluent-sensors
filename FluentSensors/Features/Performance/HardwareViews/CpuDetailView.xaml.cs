@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.ComponentModel;
 using Windows.Foundation;
 
 using FluentSensors.Common.Sensors;
@@ -14,7 +15,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
 {
     // self-contained CPU detail view: everything shown once a CPU nav item is selected, including its own
     // Overall/All-Threads toggle bar
-    public sealed partial class CpuDetailView : UserControl
+    public sealed partial class CpuDetailView : UserControl, INotifyPropertyChanged
     {
         // === fields ===
 
@@ -36,6 +37,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             InitializeComponent();
 
             PerformanceGraphDefaults.BindTimeSpan(OverviewBlockGrid, PerformanceGraphKind.Standard);
+            HardwareColorBinding.Bind(this, RefreshHardwareColor);
         }
 
 
@@ -72,6 +74,17 @@ namespace FluentSensors.Features.Performance.HardwareViews
         {
             if (d is CpuDetailView view) view.Bindings.Update();
         }
+
+
+        // the per thread graphs sit in a DataTemplate and reach HardwareColor through an ElementName Binding,
+        // which Bindings.Update does not touch, so the change notification below is what moves those
+        private void RefreshHardwareColor()
+        {
+            Bindings.Update();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HardwareColor)));
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
 
         // === event handlers ===

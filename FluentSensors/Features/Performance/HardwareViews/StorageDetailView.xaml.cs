@@ -30,6 +30,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             InitializeComponent();
 
             PerformanceGraphDefaults.BindTimeSpan(OverviewBlockGrid, PerformanceGraphKind.Standard);
+            HardwareColorBinding.Bind(this, () => Bindings.Update());
         }
 
 

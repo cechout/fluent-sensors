@@ -49,11 +49,13 @@ namespace FluentSensors.Features.Start
         {
             UpdateService.Instance.UpdateStateChanged += OnUpdateStateChanged;
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
+            SettingsService.Instance.HardwareColorsChanged += OnHardwareColorsChanged;
             AppStatusService.Instance.StatusUpdated += OnStatusUpdated;
             this.ActualThemeChanged += OnActualThemeChanged;
 
             // whatever happened while the page was not listening
             ViewModel.RefreshUpdateState();
+            ViewModel.RefreshIconBrushes();
             ApplyHeroImage();
         }
 
@@ -61,6 +63,7 @@ namespace FluentSensors.Features.Start
         {
             UpdateService.Instance.UpdateStateChanged -= OnUpdateStateChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+            SettingsService.Instance.HardwareColorsChanged -= OnHardwareColorsChanged;
             AppStatusService.Instance.StatusUpdated -= OnStatusUpdated;
             this.ActualThemeChanged -= OnActualThemeChanged;
         }
@@ -71,6 +74,9 @@ namespace FluentSensors.Features.Start
         // the badge colour is a plain brush rather than a theme resource, so it has to be rebuilt by hand when
         // the theme moves
         private void OnThemeChanged(string theme) => ViewModel.RefreshUpdateState();
+
+        // the tile icons are the only thing on this page the hardware colour setting reaches
+        private void OnHardwareColorsChanged() => ViewModel.RefreshIconBrushes();
 
         // ActualTheme rather than the ThemeChanged setting above, because it also moves when the app follows the
         // system and Windows switches underneath it
