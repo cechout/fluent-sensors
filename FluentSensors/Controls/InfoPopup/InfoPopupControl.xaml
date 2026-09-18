@@ -78,6 +78,7 @@
                     <VisualState.Setters>
                         <Setter Target="TitleTextBlock.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                         <Setter Target="ButtonGlyphIcon.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <Setter Target="TitleContentPresenter.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                     </VisualState.Setters>
                 </VisualState>
 
@@ -85,21 +86,35 @@
         </VisualStateManager.VisualStateGroups>
 
         <!--  optional title  -->
-        <!--  (collapses entirely, including its layout space, when Title is empty)  -->
+        <!--  (collapses entirely, including its layout space, when neither Title nor TitleContent is set)  -->
         <Grid
             x:Name="TitleHost"
             VerticalAlignment="Center"
-            Visibility="{x:Bind GetTitleVisibility(Title), Mode=OneWay}">
+            Visibility="{x:Bind GetTitleVisibility(Title, TitleContent), Mode=OneWay}">
             <TextBlock
                 x:Name="TitleTextBlock"
                 Margin="{x:Bind GetTitleMargin(ButtonSize, ShowInfoButton), Mode=OneWay}"
                 HorizontalAlignment="Left"
                 Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                SizeChanged="TitleTextBlock_SizeChanged"
+                SizeChanged="TitleSlot_SizeChanged"
                 Style="{x:Bind TitleStyle, Mode=OneWay}"
                 Text="{x:Bind Title, Mode=OneWay}"
                 TextTrimming="{x:Bind TitleTextTrimming, Mode=OneWay}"
                 TextWrapping="{x:Bind TitleTextWrapping, Mode=OneWay}" />
+
+            <!--  consumer content, the alternative to Title  -->
+            <!--
+                (shares the cell with the TextBlock above; the unused one measures zero, so they never
+                actually overlap)
+            -->
+            <ContentPresenter
+                x:Name="TitleContentPresenter"
+                Margin="{x:Bind GetTitleMargin(ButtonSize, ShowInfoButton), Mode=OneWay}"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Content="{x:Bind TitleContent, Mode=OneWay}"
+                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                SizeChanged="TitleSlot_SizeChanged" />
         </Grid>
 
 

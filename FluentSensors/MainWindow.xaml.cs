@@ -481,8 +481,11 @@ namespace FluentSensors
         {
             AppStatus.UpdateAvailableWidth(AppTitleBar.ActualWidth, MeasureUpdatePillWidth());
 
+            // the info popups hand over their button rather than themselves: the readouts now sit inside them, and a
+            // passthrough rect over those would make that stretch of the bar undraggable
             TitleBarPassthrough.Apply(this, AppTitleBar,
-                UpdateButton, DotNetRuntimePopup, StatusToggleButton, LhmInfoPopup, WindowsInfoPopup);
+                UpdateButton, DotNetRuntimePopup.InteractiveRegion, StatusToggleButton,
+                LhmInfoPopup.InteractiveRegion, WindowsInfoPopup.InteractiveRegion);
         }
 
         // measured rather than assumed, because the pill is only as wide as the version string it carries and

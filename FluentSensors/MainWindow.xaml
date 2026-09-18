@@ -152,26 +152,34 @@
                 Margin="8,0,0,0"
                 VerticalAlignment="Center"
                 Orientation="Horizontal"
-                Spacing="8"
                 Visibility="{x:Bind BoolToVisibility(AppStatus.IsLhmGroupVisible), Mode=OneWay}">
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.SensorsText, Mode=OneWay}"
-                    Typography.NumeralAlignment="Tabular" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.PollText, Mode=OneWay}"
-                    Typography.NumeralAlignment="Tabular" />
                 <fhInfoPopup:InfoPopupControl
                     x:Name="LhmInfoPopup"
                     Margin="-2,1,0,0"
+                    TitleForeground="{ThemeResource TextFillColorSecondaryBrush}"
                     Description="Sensors (found/rendered) - sensors found by LibreHardwareMonitor, and how many are actively drawn&#10;Poll (current/aimed) - measured update rate against the rate set in Settings&#10;Read - duration of one full sensor pass, close to the poll rate means no headroom left&#10;LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows"
                     PlacementMode="Below"
                     SourceIntro="This App is powered by the open source LibreHardwareMonitor project:">
+                    <!--  readouts, carried by the popup so they follow its accent state  -->
+                    <!--  (no Foreground of their own, the presenter behind them supplies it)  -->
+                    <fhInfoPopup:InfoPopupControl.TitleContent>
+                        <StackPanel
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind AppStatus.SensorsText, Mode=OneWay}"
+                                Typography.NumeralAlignment="Tabular" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind AppStatus.PollText, Mode=OneWay}"
+                                Typography.NumeralAlignment="Tabular" />
+                        </StackPanel>
+                    </fhInfoPopup:InfoPopupControl.TitleContent>
+
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
                         <fhInfoPopup:SourceLink Label="LibreHardwareMonitor on GitHub" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
                     </fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -186,21 +194,7 @@
                 Margin="12,0,0,0"
                 VerticalAlignment="Center"
                 Orientation="Horizontal"
-                Spacing="8"
                 Visibility="{x:Bind BoolToVisibility(AppStatus.IsWindowsGroupVisible), Mode=OneWay}">
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.CpuUsageText, Mode=OneWay}"
-                    Typography.NumeralAlignment="Tabular" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind AppStatus.RamUsageText, Mode=OneWay}"
-                    Typography.NumeralAlignment="Tabular" />
-
                 <!--  (handle + gc memory; currently not displayed)  -->
                 <!--<TextBlock
                     VerticalAlignment="Center"
@@ -224,9 +218,31 @@
                 <fhInfoPopup:InfoPopupControl
                     x:Name="WindowsInfoPopup"
                     Margin="-2,1,0,0"
+                    TitleForeground="{ThemeResource TextFillColorSecondaryBrush}"
                     Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)"
                     PlacementMode="Below"
                     SourceIntro="Source:">
+
+                    <!--  readouts, carried by the popup so they follow its accent state  -->
+                    <!--  (no Foreground of their own, the presenter behind them supplies it)  -->
+                    <fhInfoPopup:InfoPopupControl.TitleContent>
+                        <StackPanel
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind AppStatus.CpuUsageText, Mode=OneWay}"
+                                Typography.NumeralAlignment="Tabular" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind AppStatus.RamUsageText, Mode=OneWay}"
+                                Typography.NumeralAlignment="Tabular" />
+                        </StackPanel>
+                    </fhInfoPopup:InfoPopupControl.TitleContent>
+
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
                         <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
                     </fhInfoPopup:InfoPopupControl.SourceLinks>
