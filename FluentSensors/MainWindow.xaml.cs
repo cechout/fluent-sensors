@@ -72,6 +72,11 @@ namespace FluentSensors
         [return: MarshalAs(UnmanagedType.Bool)]
         private static partial bool SetForegroundWindow(IntPtr hWnd);
 
+        // reads which window currently owns the foreground; the one precondition the startup focus handback checks,
+        // see ReclaimForeground
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr GetForegroundWindow();
+
 
         // === fields ===
 
@@ -362,11 +367,20 @@ namespace FluentSensors
                 _pendingSensorHardware = null;
             }
 
+            // the two restores below each end in Activate() and take the focus with them; whether the main window is
+            // the one losing it has to be read before they run, see ReclaimForeground
+            bool hadForeground = GetForegroundWindow() == WinRT.Interop.WindowNative.GetWindowHandle(this);
+
             // re-open the widget window with its previously pinned sensors, if it was still open when the app last closed
             TryRestoreWidgetWindow();
 
             // re-open the taskbar widget with its pinned sensors if any are configured
             TryRestoreTaskbarWidgetWindow();
+
+            if (hadForeground)
+            {
+                ReclaimForeground();
+            }
 
             // a moved or reinstalled copy leaves the scheduled task pointing at the old exe, which would silently
             // stop autostarting; the check costs two schtasks processes, so it stays off the UI thread and only runs
@@ -411,6 +425,20 @@ namespace FluentSensors
             if (pinnedSensors.Count == 0) return;
 
             FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow.ShowWithSensors(pinnedSensors);
+        }
+
+        // hands the foreground back to the main window after the readout windows above have been restored
+        //
+        // both of them end their restore in Activate(), which takes the focus for themselves; the main window then
+        // still sits in front but is drawn as an inactive one, and with Windows transparency on its Mica surface
+        // drops to the flat fallback color, which reads as a backdrop that failed rather than as lost focus
+        // called only while the main window still held the foreground right before those restores, which also keeps
+        // a launch that went straight to the tray out of this
+        private void ReclaimForeground()
+        {
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            this.Activate();
+            SetForegroundWindow(hwnd); // see workaround comment on the P/Invoke declaration above
         }
 
         // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, in hardware discovery
