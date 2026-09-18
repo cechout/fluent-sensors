@@ -21,11 +21,11 @@ namespace FluentSensors.Controls.SensorGraph
         // area fill opacity, as a 0-255 alpha on the color the surface is drawn in
         // Flat is what both surfaces show with the fill fade setting off; the two pairs are the top and bottom
         // edge of the vertical gradient each of them gets when it is on
-        private const byte FillAlphaFlat = 38; // fill fade off: one tone from top to bottom
+        private const byte FillAlphaFlat = 35; // fill fade off: one tone from top to bottom
         private const byte NormalFillAlphaFadeTop = 38; // area under the line, top edge
-        private const byte NormalFillAlphaFadeBottom = 5; // area under the line, bottom edge
-        private const byte AlarmFillAlphaFadeTop = 38; // alarm zone box, top edge
-        private const byte AlarmFillAlphaFadeBottom = 5; // alarm zone box, bottom edge
+        private const byte NormalFillAlphaFadeBottom = 10; // area under the line, bottom edge
+        private const byte AlarmFillAlphaFadeTop = 50; // alarm zone box, top edge
+        private const byte AlarmFillAlphaFadeBottom = 25; // alarm zone box, bottom edge
 
         // lifts the alarm zone boxes above the series, which sits at ZIndex 0
         // only the faded fill needs this: it paints straight through the alarm zones, so a box left behind it
