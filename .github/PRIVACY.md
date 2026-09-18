@@ -38,7 +38,7 @@ Two things still work, because you ask for them yourself:
 
 ## 🏪 Microsoft Store version
 
-The Store version never checks for updates and never downloads anything, because the Store handles updates itself. It does not go online at all.
+The Store version never checks for updates and never downloads a new build, because the Store handles updates itself. It does still load the release notes, in the same way and with the same switch as described above.
 
 ## 📬 Questions
 

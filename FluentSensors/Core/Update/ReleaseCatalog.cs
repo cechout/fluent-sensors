@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-using FluentSensors.Common;
 using FluentSensors.Persistence.Services;
 
 
@@ -29,7 +28,7 @@ namespace FluentSensors.Core.Update
     // kept apart from UpdateService on purpose: that one answers "is there something newer to install" once per
     // start, this one answers "what changed, ever" and is only ever touched when the dialog is opened
     //
-    // it answers to the same two switches all the same, see IsNetworkAllowed
+    // it answers to the same settings switch all the same, see IsNetworkAllowed
     //
     // the answer is cached on disk, so the dialog still has the full history with no connection
     public class ReleaseCatalog
@@ -60,11 +59,12 @@ namespace FluentSensors.Core.Update
         // whatever was fetched or read from disk during this session, newest first
         public IReadOnlyList<ReleaseEntry> Releases => _releases ?? Array.Empty<ReleaseEntry>();
 
-        // the same policy UpdateService.Start applies to its own check, so that settings toggle is a real switch
-        // rather than one that only covers the automatic check: a store build never reaches out at all, and with
-        // the startup check off the dialog shows what is already on disk and nothing else
-        public static bool IsNetworkAllowed =>
-            AppDistribution.SupportsSelfUpdate && SettingsService.Instance.CheckUpdatesOnStartup;
+        // the startup check switch covers this too, so it is a real one rather than one that only stops the
+        // automatic check; with it off the dialog shows what is already on disk and nothing else
+        //
+        // the channel is deliberately not part of this: a store build must not install anything itself, but
+        // reading the release notes is not installing and there is no reason to take that away from it
+        public static bool IsNetworkAllowed => SettingsService.Instance.CheckUpdatesOnStartup;
 
         // what the dialog asks for instead of RefreshAsync
         //
