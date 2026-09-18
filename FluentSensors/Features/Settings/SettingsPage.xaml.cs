@@ -40,7 +40,7 @@ namespace FluentSensors.Features.Settings
             RestoreCsvFormatSelection();
             RestoreGraphLineStyleSelection();
             RestoreGraphFillFadeSelection();
-            RestoreHardwareColorSelections();
+            RestoreHardwareIconColorsSelection();
 
             RestorePerformanceGraphTimeSpanSelection();
 
@@ -524,19 +524,11 @@ namespace FluentSensors.Features.Settings
             GraphFillFadeToggle.IsOn = SettingsService.Instance.GraphFillFade;
         }
 
-        // per hardware category coloring, split in two because the surfaces barely overlap
+        // reaches every hardware category glyph: start page tiles, sensor list and hidden sensor group headers,
+        // and the hardware views own headers
         //
-        // graphs reaches the widget window, the taskbar button and the taskbar flyout; the performance page sets
-        // its own graph color per hardware view and is not part of either switch
-        private void HardwareGraphColorsToggle_Toggled(object sender, RoutedEventArgs e)
-        {
-            if (_isLoading) return;
-
-            SettingsService.Instance.UseHardwareGraphColors = HardwareGraphColorsToggle.IsOn;
-        }
-
-        // icons reaches every hardware category glyph: start page tiles, sensor list and hidden sensor group
-        // headers, and the hardware views own headers
+        // graph colors are deliberately not here; each surface picks its own source next to its custom color, see
+        // GraphColorSourceComboBox and TaskbarGraphColorSourceComboBox
         private void HardwareIconColorsToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
@@ -544,9 +536,8 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.UseHardwareIconColors = HardwareIconColorsToggle.IsOn;
         }
 
-        private void RestoreHardwareColorSelections()
+        private void RestoreHardwareIconColorsSelection()
         {
-            HardwareGraphColorsToggle.IsOn = SettingsService.Instance.UseHardwareGraphColors;
             HardwareIconColorsToggle.IsOn = SettingsService.Instance.UseHardwareIconColors;
         }
 
@@ -665,9 +656,10 @@ namespace FluentSensors.Features.Settings
         // Graph
         private void GraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (GraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            if (GraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out GraphColorSource source))
             {
-                SettingsService.Instance.UseGraphAccentColor = (tag == "Accent");
+                SettingsService.Instance.GraphColorSource = source;
             }
         }
         private void GraphColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
@@ -677,8 +669,8 @@ namespace FluentSensors.Features.Settings
             if (sender is CommunityToolkit.WinUI.Controls.ColorPickerButton colorPicker)
             {
                 // if user picks a color for the graph, we switch the source to "custom"
-                SettingsService.Instance.UseGraphAccentColor = false;
-                GraphColorSourceComboBox.SelectedIndex = 1;
+                SettingsService.Instance.GraphColorSource = GraphColorSource.Custom;
+                SelectByTag(GraphColorSourceComboBox, nameof(GraphColorSource.Custom));
 
                 SettingsService.Instance.GraphCustomColor = colorPicker.SelectedColor;
             }
@@ -699,7 +691,7 @@ namespace FluentSensors.Features.Settings
 
         private void RestoreGraphColorSettings()
         {
-            GraphColorSourceComboBox.SelectedIndex = SettingsService.Instance.UseGraphAccentColor ? 0 : 1;
+            SelectByTag(GraphColorSourceComboBox, SettingsService.Instance.GraphColorSource.ToString());
             GraphColorPicker.SelectedColor = SettingsService.Instance.GraphCustomColor;
         }
 
@@ -781,9 +773,10 @@ namespace FluentSensors.Features.Settings
         // Graph
         private void TaskbarGraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (TaskbarGraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            if (TaskbarGraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out GraphColorSource source))
             {
-                SettingsService.Instance.TaskbarUseGraphAccentColor = (tag == "Accent");
+                SettingsService.Instance.TaskbarGraphColorSource = source;
             }
         }
 
@@ -793,8 +786,8 @@ namespace FluentSensors.Features.Settings
 
             if (sender is CommunityToolkit.WinUI.Controls.ColorPickerButton colorPicker)
             {
-                SettingsService.Instance.TaskbarUseGraphAccentColor = false;
-                TaskbarGraphColorSourceComboBox.SelectedIndex = 1;
+                SettingsService.Instance.TaskbarGraphColorSource = GraphColorSource.Custom;
+                SelectByTag(TaskbarGraphColorSourceComboBox, nameof(GraphColorSource.Custom));
                 SettingsService.Instance.TaskbarGraphCustomColor = colorPicker.SelectedColor;
             }
         }
@@ -822,7 +815,7 @@ namespace FluentSensors.Features.Settings
 
         private void RestoreTaskbarGraphColorSettings()
         {
-            TaskbarGraphColorSourceComboBox.SelectedIndex = SettingsService.Instance.TaskbarUseGraphAccentColor ? 0 : 1;
+            SelectByTag(TaskbarGraphColorSourceComboBox, SettingsService.Instance.TaskbarGraphColorSource.ToString());
             TaskbarGraphColorPicker.SelectedColor = SettingsService.Instance.TaskbarGraphCustomColor;
         }
 

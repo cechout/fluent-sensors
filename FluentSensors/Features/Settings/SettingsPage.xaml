@@ -44,6 +44,22 @@
                 </ComboBox>
             </controls:SettingsCard>
 
+            <!--  hardware icon colors  -->
+            <!--
+                (reaches the start page tiles, the sensor list and hidden sensor group headers, and the hardware
+                views own headers; graph colors are a per surface choice and sit in their Graph sections instead)
+            -->
+            <controls:SettingsCard
+                Description="Color hardware icons by category"
+                Header="Hardware Icon Colors"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE2B1;}">
+                <ToggleSwitch
+                    x:Name="HardwareIconColorsToggle"
+                    OffContent="Off"
+                    OnContent="On"
+                    Toggled="HardwareIconColorsToggle_Toggled" />
+            </controls:SettingsCard>
+
             <!--  graph rendering  -->
             <!--  (both rows apply to every graph in the app, the per-surface sections below only add color and range)  -->
             <controls:SettingsExpander
@@ -70,39 +86,6 @@
                             OffContent="Off"
                             OnContent="On"
                             Toggled="GraphFillFadeToggle_Toggled" />
-                    </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
-
-            <!--  hardware colors  -->
-            <!--
-                no control on the expander header itself, the two rows are independent of each other
-                the performance page graphs are deliberately not covered by either row, they carry the category
-                color whatever these say
-            -->
-            <controls:SettingsExpander
-                Description="Color graphs and hardware icons by hardware category"
-                Header="Hardware Colors"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE2B1;}"
-                IsExpanded="False">
-
-                <controls:SettingsExpander.Items>
-                    <!--  (widget window, taskbar button and taskbar flyout)  -->
-                    <controls:SettingsCard Header="Graphs">
-                        <ToggleSwitch
-                            x:Name="HardwareGraphColorsToggle"
-                            OffContent="Off"
-                            OnContent="On"
-                            Toggled="HardwareGraphColorsToggle_Toggled" />
-                    </controls:SettingsCard>
-
-                    <!--  (start page tiles, sensor list group headers and the hardware view)  -->
-                    <controls:SettingsCard Header="Icons">
-                        <ToggleSwitch
-                            x:Name="HardwareIconColorsToggle"
-                            OffContent="Off"
-                            OnContent="On"
-                            Toggled="HardwareIconColorsToggle_Toggled" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
@@ -372,6 +355,7 @@
                                 SelectionChanged="GraphColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
+                                <ComboBoxItem Content="Hardware Color" Tag="Hardware" />
                             </ComboBox>
 
                             <controls:ColorPickerButton x:Name="GraphColorPicker" />
@@ -431,6 +415,7 @@
                                 SelectionChanged="TaskbarGraphColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
+                                <ComboBoxItem Content="Hardware Color" Tag="Hardware" />
                             </ComboBox>
 
                             <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" />

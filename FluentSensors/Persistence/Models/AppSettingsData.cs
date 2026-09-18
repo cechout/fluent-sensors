@@ -20,7 +20,8 @@ namespace FluentSensors.Persistence.Models
         public float LuminosityOpacity { get; set; } = 0.2f;
         public bool UseAccentColor { get; set; } = true;
         public Color CustomTintColor { get; set; } = Color.FromArgb(255, 25, 25, 25);
-        public bool UseGraphAccentColor { get; set; } = true;
+        // null means this file predates the tri-state selector; LoadFromData then reads the legacy bool below
+        public GraphColorSource? GraphColorSource { get; set; } = null;
         public Windows.UI.Color GraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public double GraphTimeSpanSeconds { get; set; } = 45;
 
@@ -30,12 +31,9 @@ namespace FluentSensors.Persistence.Models
         // fades the area under the line out towards the bottom instead of filling it in one flat tone; global
         public bool GraphFillFade { get; set; } = false;
 
-        // colors the widget and taskbar graphs by hardware category instead of by the accent or custom color
-        // the performance page graphs are not part of this, they are hardware colored either way
-        public bool UseHardwareGraphColors { get; set; } = false;
-
         // colors the hardware category icons on the start, sensors and performance pages; drives
         // HardwareColorMode, which is where every consumer reads it
+        // graph colors are deliberately not here, they are a per surface choice, see GraphColorSource above
         public bool UseHardwareIconColors { get; set; } = false;
 
         // performance page graphs
@@ -49,7 +47,7 @@ namespace FluentSensors.Persistence.Models
         public float TaskbarLuminosityOpacity { get; set; } = 0.2f;
         public bool TaskbarUseAccentColor { get; set; } = true;
         public Color TaskbarCustomTintColor { get; set; } = Color.FromArgb(255, 25, 25, 25);
-        public bool TaskbarUseGraphAccentColor { get; set; } = true;
+        public GraphColorSource? TaskbarGraphColorSource { get; set; } = null;
         public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public double TaskbarGraphTimeSpanSeconds { get; set; } = 20;
         public int TaskbarGraphWidthDip { get; set; } = 120;
@@ -116,5 +114,13 @@ namespace FluentSensors.Persistence.Models
         // lives on HardwareMonitorService at runtime, but conceptually belongs with the rest of the app settings for
         // persistence purposes
         public int UpdateIntervalMs { get; set; } = 500;
+
+
+        // --- legacy, read once on load and never written back ---
+
+        // both graph color selectors were a plain accent/custom switch before Hardware became a third option
+        // kept so an existing settings file does not silently drop a custom color the user picked
+        public bool UseGraphAccentColor { get; set; } = true;
+        public bool TaskbarUseGraphAccentColor { get; set; } = true;
     }
 }
