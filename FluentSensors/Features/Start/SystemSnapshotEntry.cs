@@ -15,12 +15,14 @@ namespace FluentSensors.Features.Start
     // because several categories produce more than one tile on a real machine: two GPUs, three drives, four
     // adapters
     //
-    // no longer a record: everything except the sensor count is fixed for the lifetime of the page, but the
-    // count moves, because LhmHardwareTreeService keeps discovering hardware after the splash is gone
+    // no longer a record: the sensor count moves because LhmHardwareTreeService keeps discovering hardware after
+    // the splash is gone, and the icon colour moves because the hardware colour setting can be flipped while the
+    // page is open; everything else is fixed for the lifetime of the page
     public class SystemSnapshotEntry : INotifyPropertyChanged
     {
         // === fields ===
 
+        private SolidColorBrush _iconBrush;
         private string _sensorCountText = "";
         private IReadOnlyList<string> _matchedHardwareNames = new List<string>();
         private bool _hasSensors;
@@ -50,10 +52,16 @@ namespace FluentSensors.Features.Start
         // === static facts ===
 
         public string IconGlyph { get; }
-        public SolidColorBrush IconBrush { get; }
         public string Category { get; } // the shared HardwareGroupInfo label, e.g. "CPU"
         public string Title { get; } // the device name itself
         public IReadOnlyList<string> Details { get; }
+
+        // the glyph stays, only its colour follows the hardware colour setting, see StartViewModel.IconBrushFor
+        public SolidColorBrush IconBrush
+        {
+            get => _iconBrush;
+            set { if (_iconBrush == value) return; _iconBrush = value; OnPropertyChanged(); }
+        }
 
 
         // === sensor pairing ===

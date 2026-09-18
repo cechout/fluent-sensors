@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System;
 using Windows.Foundation;
 
@@ -36,6 +37,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             InitializeComponent();
 
             PerformanceGraphDefaults.BindTimeSpan(OverviewBlockGrid, PerformanceGraphKind.Standard);
+            HardwareIconColorBinding.Bind(this, () => Bindings.Update());
         }
 
 
@@ -43,7 +45,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // cpu graphs color (TotalLoad, MaxTemperature, PackagePower); single source of truth in
         // HardwareGroupInfo
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetGraphColor(HardwareGroupKind.Cpu);
+        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Color;
 
         // same color as HardwareColor, wrapped as a Brush (for hardware icon?)
         //public SolidColorBrush HardwareColorBrush => new(HardwareGroupInfo.GetGraphColor(HardwareGroupKind.Cpu));
@@ -51,6 +53,10 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Label;
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).IconGlyph;
+
+        // header icon colour, follows the hardware icon colour setting; HardwareIconColorBinding in the
+        // constructor is what re-reads it, the graph colour above is deliberately not part of that
+        public SolidColorBrush GroupIconBrush => HardwareGroupInfo.GetIconBrush(HardwareGroupKind.Cpu);
 
 
         // === dependency properties ===

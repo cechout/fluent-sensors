@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 
 
 namespace FluentSensors.Features.Performance
@@ -48,10 +49,16 @@ namespace FluentSensors.Features.Performance
         public string GroupLabel { get; }
 
         // sidebar mini-graph color; single source of truth in HardwareGroupInfo, same color every detail view uses
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetGraphColor(Kind);
+        // deliberately not behind the hardware color setting: that one covers the widget and taskbar graphs, the
+        // performance page is hardware colored either way
+        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(Kind).Color;
 
         // hardware type icon; same source and same glyph the detail views own header uses (e.g. CpuDetailView)
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(Kind).IconGlyph;
+
+        // colour of that glyph on the hardware start view tiles, follows the hardware icon colour setting
+        // the sidebar row shows no glyph at all, so this reaches the tiles only
+        public SolidColorBrush GroupIconBrush => HardwareGroupInfo.GetIconBrush(Kind);
 
         // the specific hardware instance this nav item represents, e.g. one LhmCpuInstanceViewModel or one
         // LhmGpuInstanceViewModel; typed as object since the concrete type differs per Kind
@@ -106,6 +113,13 @@ namespace FluentSensors.Features.Performance
                 }
             }
         }
+
+
+        // === public methods ===
+
+        // GroupIconBrush has no state of its own, it resolves against the setting every time; this only tells the
+        // start view tiles to ask again after the setting flipped
+        public void RefreshIconBrush() => OnPropertyChanged(nameof(GroupIconBrush));
 
 
         // === event handlers ===

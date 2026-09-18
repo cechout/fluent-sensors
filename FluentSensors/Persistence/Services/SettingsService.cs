@@ -118,16 +118,17 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private bool _useGraphAccentColor = true;
-        public bool UseGraphAccentColor
+        // where the widget window graphs take their line colour from
+        private GraphColorSource _graphColorSource = GraphColorSource.Accent;
+        public GraphColorSource GraphColorSource
         {
-            get => _useGraphAccentColor;
+            get => _graphColorSource;
             set
             {
-                if (_useGraphAccentColor != value)
+                if (_graphColorSource != value)
                 {
-                    _useGraphAccentColor = value;
-                    GraphColorChanged?.Invoke(_useGraphAccentColor, _graphCustomColor);
+                    _graphColorSource = value;
+                    GraphColorChanged?.Invoke(_graphColorSource, _graphCustomColor);
                     SaveDebounced();
                 }
             }
@@ -142,7 +143,7 @@ namespace FluentSensors.Persistence.Services
                 if (_graphCustomColor != value)
                 {
                     _graphCustomColor = value;
-                    GraphColorChanged?.Invoke(_useGraphAccentColor, _graphCustomColor);
+                    GraphColorChanged?.Invoke(_graphColorSource, _graphCustomColor);
                     SaveDebounced();
                 }
             }
@@ -191,6 +192,24 @@ namespace FluentSensors.Persistence.Services
                 {
                     _graphFillFade = value;
                     GraphFillFadeChanged?.Invoke(_graphFillFade);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // hardware category icon color; mirrored onto HardwareColorMode rather than read from here, because
+        // HardwareGroupInfo resolves the brush and sits in Common, which must not reach into persistence
+        private bool _useHardwareIconColors = false;
+        public bool UseHardwareIconColors
+        {
+            get => _useHardwareIconColors;
+            set
+            {
+                if (_useHardwareIconColors != value)
+                {
+                    _useHardwareIconColors = value;
+                    HardwareColorMode.UseIconColors = value;
+                    HardwareIconColorsChanged?.Invoke();
                     SaveDebounced();
                 }
             }
@@ -311,16 +330,16 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private bool _taskbarUseGraphAccentColor = true;
-        public bool TaskbarUseGraphAccentColor
+        private GraphColorSource _taskbarGraphColorSource = GraphColorSource.Accent;
+        public GraphColorSource TaskbarGraphColorSource
         {
-            get => _taskbarUseGraphAccentColor;
+            get => _taskbarGraphColorSource;
             set
             {
-                if (_taskbarUseGraphAccentColor != value)
+                if (_taskbarGraphColorSource != value)
                 {
-                    _taskbarUseGraphAccentColor = value;
-                    TaskbarGraphColorChanged?.Invoke(_taskbarUseGraphAccentColor, _taskbarGraphCustomColor);
+                    _taskbarGraphColorSource = value;
+                    TaskbarGraphColorChanged?.Invoke(_taskbarGraphColorSource, _taskbarGraphCustomColor);
                     SaveDebounced();
                 }
             }
@@ -335,7 +354,7 @@ namespace FluentSensors.Persistence.Services
                 if (_taskbarGraphCustomColor != value)
                 {
                     _taskbarGraphCustomColor = value;
-                    TaskbarGraphColorChanged?.Invoke(_taskbarUseGraphAccentColor, _taskbarGraphCustomColor);
+                    TaskbarGraphColorChanged?.Invoke(_taskbarGraphColorSource, _taskbarGraphCustomColor);
                     SaveDebounced();
                 }
             }
@@ -723,6 +742,11 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // reads a settings file written before Hardware became a third graph colour option
+        // a file that already carries the selector never reaches this, see LoadFromData
+        private static GraphColorSource LegacySource(bool useAccent) =>
+            useAccent ? GraphColorSource.Accent : GraphColorSource.Custom;
+
         // persistence
         // writes every property straight to its backing field, skipping change events and the save trigger; used only
         // once at startup, before any window or listener exists yet
@@ -734,11 +758,13 @@ namespace FluentSensors.Persistence.Services
             _luminosityOpacity = data.LuminosityOpacity;
             _useAccentColor = data.UseAccentColor;
             _customTintColor = data.CustomTintColor;
-            _useGraphAccentColor = data.UseGraphAccentColor;
+            _graphColorSource = data.GraphColorSource ?? LegacySource(data.UseGraphAccentColor);
             _graphCustomColor = data.GraphCustomColor;
             _graphTimeSpanSeconds = data.GraphTimeSpanSeconds;
             _graphLineStyle = data.GraphLineStyle;
             _graphFillFade = data.GraphFillFade;
+            _useHardwareIconColors = data.UseHardwareIconColors;
+            HardwareColorMode.UseIconColors = _useHardwareIconColors;
             _performanceGraphTimeSpanSeconds = data.PerformanceGraphTimeSpanSeconds;
             _performanceExtendedGraphTimeSpanSeconds = data.PerformanceExtendedGraphTimeSpanSeconds;
 
@@ -747,7 +773,7 @@ namespace FluentSensors.Persistence.Services
             _taskbarLuminosityOpacity = data.TaskbarLuminosityOpacity;
             _taskbarUseAccentColor = data.TaskbarUseAccentColor;
             _taskbarCustomTintColor = data.TaskbarCustomTintColor;
-            _taskbarUseGraphAccentColor = data.TaskbarUseGraphAccentColor;
+            _taskbarGraphColorSource = data.TaskbarGraphColorSource ?? LegacySource(data.TaskbarUseGraphAccentColor);
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
             _taskbarGraphTimeSpanSeconds = data.TaskbarGraphTimeSpanSeconds;
             _taskbarGraphWidthDip = data.TaskbarGraphWidthDip;
@@ -790,11 +816,12 @@ namespace FluentSensors.Persistence.Services
                 LuminosityOpacity = _luminosityOpacity,
                 UseAccentColor = _useAccentColor,
                 CustomTintColor = _customTintColor,
-                UseGraphAccentColor = _useGraphAccentColor,
+                GraphColorSource = _graphColorSource,
                 GraphCustomColor = _graphCustomColor,
                 GraphTimeSpanSeconds = _graphTimeSpanSeconds,
                 GraphLineStyle = _graphLineStyle,
                 GraphFillFade = _graphFillFade,
+                UseHardwareIconColors = _useHardwareIconColors,
                 PerformanceGraphTimeSpanSeconds = _performanceGraphTimeSpanSeconds,
                 PerformanceExtendedGraphTimeSpanSeconds = _performanceExtendedGraphTimeSpanSeconds,
 
@@ -803,7 +830,7 @@ namespace FluentSensors.Persistence.Services
                 TaskbarLuminosityOpacity = _taskbarLuminosityOpacity,
                 TaskbarUseAccentColor = _taskbarUseAccentColor,
                 TaskbarCustomTintColor = _taskbarCustomTintColor,
-                TaskbarUseGraphAccentColor = _taskbarUseGraphAccentColor,
+                TaskbarGraphColorSource = _taskbarGraphColorSource,
                 TaskbarGraphCustomColor = _taskbarGraphCustomColor,
                 TaskbarGraphTimeSpanSeconds = _taskbarGraphTimeSpanSeconds,
                 TaskbarGraphWidthDip = _taskbarGraphWidthDip,
@@ -857,10 +884,13 @@ namespace FluentSensors.Persistence.Services
         public event Action<string> BackdropTypeChanged;
         public event Action<float, float> OpacityChanged;
         public event Action<bool, Color> TintColorChanged;
-        public event Action<bool, Windows.UI.Color> GraphColorChanged;
+        public event Action<GraphColorSource, Windows.UI.Color> GraphColorChanged;
         public event Action<double> GraphTimeSpanChanged;
         public event Action<GraphLineStyle> GraphLineStyleChanged;
         public event Action<bool> GraphFillFadeChanged;
+
+        // carries no value; every consumer only re-reads the switch and refreshes the brush it drew from it
+        public event Action HardwareIconColorsChanged;
 
         // carries no value; both performance time spans raise it and consumers re-read whichever one they use
         public event Action PerformanceGraphTimeSpanChanged;
@@ -868,7 +898,7 @@ namespace FluentSensors.Persistence.Services
         public event Action<string> TaskbarBackdropTypeChanged;
         public event Action<float, float> TaskbarOpacityChanged;
         public event Action<bool, Color> TaskbarTintColorChanged;
-        public event Action<bool, Windows.UI.Color> TaskbarGraphColorChanged;
+        public event Action<GraphColorSource, Windows.UI.Color> TaskbarGraphColorChanged;
         public event Action<double> TaskbarGraphTimeSpanChanged;
         public event Action<int> TaskbarGraphWidthChanged;
         public event Action<bool> TaskbarGraphBackgroundChanged;

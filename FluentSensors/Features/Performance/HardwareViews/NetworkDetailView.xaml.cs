@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System;
 using Windows.Foundation;
 
@@ -28,16 +29,21 @@ namespace FluentSensors.Features.Performance.HardwareViews
             InitializeComponent();
 
             PerformanceGraphDefaults.BindTimeSpan(OverviewBlockGrid, PerformanceGraphKind.Standard);
+            HardwareIconColorBinding.Bind(this, () => Bindings.Update());
         }
 
 
         // === bindable properties ===
 
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetGraphColor(HardwareGroupKind.Network);
+        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).Color;
 
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).Label;
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).IconGlyph;
+
+        // header icon colour, follows the hardware icon colour setting; HardwareIconColorBinding in the
+        // constructor is what re-reads it, the graph colour above is deliberately not part of that
+        public SolidColorBrush GroupIconBrush => HardwareGroupInfo.GetIconBrush(HardwareGroupKind.Network);
 
 
         // === dependency properties ===

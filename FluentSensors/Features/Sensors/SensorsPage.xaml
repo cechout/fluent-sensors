@@ -265,7 +265,7 @@
                                 </controls:SettingsExpander.Resources>
 
                                 <controls:SettingsExpander.HeaderIcon>
-                                    <FontIcon Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
+                                    <FontIcon Foreground="{x:Bind IconBrush, Mode=OneWay}" Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
                                 </controls:SettingsExpander.HeaderIcon>
 
                                 <!--  column labels  -->

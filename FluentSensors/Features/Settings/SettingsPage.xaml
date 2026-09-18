@@ -44,26 +44,20 @@
                 </ComboBox>
             </controls:SettingsCard>
 
-            <!--  engine settings  -->
+            <!--  hardware icon colors  -->
+            <!--
+                (reaches the start page tiles, the sensor list and hidden sensor group headers, and the hardware
+                views own headers; graph colors are a per surface choice and sit in their Graph sections instead)
+            -->
             <controls:SettingsCard
-                Description="How often sensors are polled"
-                Header="Update Interval"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE916;}">
-                <ComboBox
-                    x:Name="IntervalComboBox"
-                    Width="150"
-                    SelectionChanged="IntervalComboBox_SelectionChanged">
-                    <ComboBoxItem Content="100ms" Tag="100" />
-                    <ComboBoxItem Content="150ms" Tag="150" />
-                    <ComboBoxItem Content="200ms" Tag="200" />
-                    <ComboBoxItem Content="250ms" Tag="250" />
-                    <ComboBoxItem Content="300ms" Tag="300" />
-                    <ComboBoxItem Content="400ms" Tag="400" />
-                    <ComboBoxItem Content="500ms" Tag="500" />
-                    <ComboBoxItem Content="1000ms" Tag="1000" />
-                    <ComboBoxItem Content="2000ms" Tag="2000" />
-                    <ComboBoxItem Content="5000ms" Tag="5000" />
-                </ComboBox>
+                Description="Color hardware icons by category"
+                Header="Hardware Icon Colors"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE2B1;}">
+                <ToggleSwitch
+                    x:Name="HardwareIconColorsToggle"
+                    OffContent="Off"
+                    OnContent="On"
+                    Toggled="HardwareIconColorsToggle_Toggled" />
             </controls:SettingsCard>
 
             <!--  graph rendering  -->
@@ -211,6 +205,28 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
+            <!--  engine settings  -->
+            <controls:SettingsCard
+                Description="How often sensors are polled"
+                Header="Update Interval"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE916;}">
+                <ComboBox
+                    x:Name="IntervalComboBox"
+                    Width="150"
+                    SelectionChanged="IntervalComboBox_SelectionChanged">
+                    <ComboBoxItem Content="100ms" Tag="100" />
+                    <ComboBoxItem Content="150ms" Tag="150" />
+                    <ComboBoxItem Content="200ms" Tag="200" />
+                    <ComboBoxItem Content="250ms" Tag="250" />
+                    <ComboBoxItem Content="300ms" Tag="300" />
+                    <ComboBoxItem Content="400ms" Tag="400" />
+                    <ComboBoxItem Content="500ms" Tag="500" />
+                    <ComboBoxItem Content="1000ms" Tag="1000" />
+                    <ComboBoxItem Content="2000ms" Tag="2000" />
+                    <ComboBoxItem Content="5000ms" Tag="5000" />
+                </ComboBox>
+            </controls:SettingsCard>
+
 
 
 
@@ -284,7 +300,10 @@
                 </ComboBox>
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="(Acrylic only)" Header="Tint Opacity">
+                    <controls:SettingsCard
+                        x:Name="TintOpacityCard"
+                        Description="(Acrylic only)"
+                        Header="Tint Opacity">
                         <Slider
                             x:Name="TintSlider"
                             Width="200"
@@ -295,7 +314,10 @@
                             ValueChanged="TintSlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="(Acrylic only)" Header="Luminosity Opacity">
+                    <controls:SettingsCard
+                        x:Name="LuminosityOpacityCard"
+                        Description="(Acrylic only)"
+                        Header="Luminosity Opacity">
                         <Slider
                             x:Name="LuminositySlider"
                             Width="200"
@@ -306,7 +328,10 @@
                             ValueChanged="LuminositySlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="(Acrylic and Solid)" Header="Background Color Source">
+                    <controls:SettingsCard
+                        x:Name="BackgroundColorSourceCard"
+                        Description="(Acrylic and Solid)"
+                        Header="Background Color Source">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="BackgroundColorSourceComboBox"
@@ -339,6 +364,7 @@
                                 SelectionChanged="GraphColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
+                                <ComboBoxItem Content="Hardware Color" Tag="Hardware" />
                             </ComboBox>
 
                             <controls:ColorPickerButton x:Name="GraphColorPicker" />
@@ -398,6 +424,7 @@
                                 SelectionChanged="TaskbarGraphColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
+                                <ComboBoxItem Content="Hardware Color" Tag="Hardware" />
                             </ComboBox>
 
                             <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" />
@@ -477,7 +504,10 @@
                 </ComboBox>
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="(Acrylic only)" Header="Tint Opacity">
+                    <controls:SettingsCard
+                        x:Name="TaskbarTintOpacityCard"
+                        Description="(Acrylic only)"
+                        Header="Tint Opacity">
                         <Slider
                             x:Name="TaskbarTintSlider"
                             Width="200"
@@ -488,7 +518,10 @@
                             ValueChanged="TaskbarTintSlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="(Acrylic only)" Header="Luminosity Opacity">
+                    <controls:SettingsCard
+                        x:Name="TaskbarLuminosityOpacityCard"
+                        Description="(Acrylic only)"
+                        Header="Luminosity Opacity">
                         <Slider
                             x:Name="TaskbarLuminositySlider"
                             Width="200"
@@ -499,7 +532,10 @@
                             ValueChanged="TaskbarLuminositySlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="(Acrylic and Solid)" Header="Background Color Source">
+                    <controls:SettingsCard
+                        x:Name="TaskbarBackgroundColorSourceCard"
+                        Description="(Acrylic and Solid)"
+                        Header="Background Color Source">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="TaskbarBackgroundColorSourceComboBox"

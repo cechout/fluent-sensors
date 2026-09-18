@@ -1,4 +1,4 @@
-using Microsoft.UI.Dispatching;
+﻿using Microsoft.UI.Dispatching;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -32,7 +32,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             foreach (var sensor in selectedSensors)
             {
-                PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, scope: SensorGraphScope.Taskbar));
+                PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, scope: SensorGraphScope.Taskbar, hardwareKind: sensor.HardwareKind));
             }
         }
 
@@ -66,7 +66,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 if (!existingIds.Contains(sensor.Id))
                 {
-                    PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, scope: SensorGraphScope.Taskbar));
+                    PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, scope: SensorGraphScope.Taskbar, hardwareKind: sensor.HardwareKind));
                 }
             }
 

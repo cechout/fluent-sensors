@@ -21,8 +21,8 @@ namespace FluentSensors.Features.Start
     // the static facts of the snapshot are built once per page instance and never refreshed: WinStaticInfoService
     // resolves the whole machine during the splash and states plainly that none of it changes afterwards, so
     // those bind OneTime
-    // the sensor count per tile is the exception and moves with LHMs ongoing discovery, and the update block
-    // moves whenever UpdateService answers
+    // the sensor count per tile is the exception and moves with LHMs ongoing discovery, the tile icon colour
+    // follows the hardware colour setting, and the update block moves whenever UpdateService answers
     public class StartViewModel : INotifyPropertyChanged
     {
         // === badge colours ===
@@ -359,7 +359,7 @@ namespace FluentSensors.Features.Start
 
             return new SystemSnapshotEntry(
                 profile.IconGlyph,
-                IconBrushFor(kind),
+                HardwareGroupInfo.GetIconBrush(kind),
                 category,
                 string.IsNullOrWhiteSpace(title) ? "Unknown" : title,
                 details.Where(d => !string.IsNullOrWhiteSpace(d) && d != "-").ToList(),
@@ -368,19 +368,14 @@ namespace FluentSensors.Features.Start
         }
 
 
-        // tinted per category only while group colouring is on, otherwise the ordinary foreground, which is
-        // what makes the icon read as a plain white glyph in the dark theme
-        private static SolidColorBrush IconBrushFor(HardwareGroupKind kind)
+        // re-resolves every tile icon after the hardware icon colour setting was flipped; nothing else about a
+        // tile depends on it, so the list itself is left alone rather than rebuilt
+        public void RefreshIconBrushes()
         {
-            if (HardwareColorMode.UseGroupColors)
+            foreach (var entry in _allSnapshotEntries)
             {
-                return new SolidColorBrush(HardwareGroupInfo.GetProfile(kind).Color);
+                entry.IconBrush = HardwareGroupInfo.GetIconBrush(entry.MatchKind);
             }
-
-            return Application.Current.Resources.TryGetValue("TextFillColorPrimaryBrush", out object value)
-                && value is SolidColorBrush brush
-                    ? brush
-                    : new SolidColorBrush(Microsoft.UI.Colors.White);
         }
 
 

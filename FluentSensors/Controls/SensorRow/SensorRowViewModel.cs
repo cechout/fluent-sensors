@@ -44,6 +44,11 @@ namespace FluentSensors.Controls.SensorRow
 
         // === bindable properties ===
 
+        // which hardware this sensors group belongs to, set from HardwareGroupViewModel.Kind when the row is built
+        // LhmSensorEntry itself carries no hardware reference, so without this a pinned sensor has no way back to
+        // its category once it sits in the widget or on the taskbar
+        public HardwareGroupKind HardwareKind { get; set; } = HardwareGroupKind.Other;
+
         // backing sensor:
         // source for Id/Name/SensorType and live Value; set once via object initializer must be set AFTER IsHidden, so
         // the initial sync below correctly skips hidden rows

@@ -35,7 +35,7 @@ namespace FluentSensors.Features.Widget
             // Dynamically instantiate chart components based on the precise hardware IDs
             foreach (var sensor in selectedSensors)
             {
-                PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType));
+                PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, hardwareKind: sensor.HardwareKind));
             }
         }
 
@@ -70,7 +70,7 @@ namespace FluentSensors.Features.Widget
             {
                 if (!existingIds.Contains(sensor.Id))
                 {
-                    PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType));
+                    PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, hardwareKind: sensor.HardwareKind));
                 }
             }
 
