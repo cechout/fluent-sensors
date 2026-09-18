@@ -76,18 +76,18 @@ namespace FluentSensors.Features.Performance.HardwareViews
         }
 
 
-        // the per thread graphs sit in a DataTemplate and reach HardwareColor through an ElementName Binding,
-        // which Bindings.Update does not touch, so the change notification below is what moves those
+        // === event handlers ===
+
+        // HardwareColorBinding calls this whenever the hardware color setting flips
+        //
+        // Bindings.Update covers the graphs written out in this views own xaml; the per thread graphs sit in a
+        // DataTemplate and reach HardwareColor through an ElementName Binding instead, which only the change
+        // notification moves
         private void RefreshHardwareColor()
         {
             Bindings.Update();
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HardwareColor)));
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-
-        // === event handlers ===
 
         private void ShowOverall_Click(object sender, RoutedEventArgs e)
         {
@@ -219,5 +219,11 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // gap above the second core group, collapses to 0 together with the group above it instead of leaving a stray
         // RowSpacing-style gap, see the workaround note on AllThreadsGrid in the XAML
         private Thickness GroupSpacingMargin(bool showSplit) => showSplit ? new Thickness(0, CoreGroupSpacing, 0, 0) : new Thickness(0);
+
+
+        // === INotifyPropertyChanged implementation ===
+
+        // HardwareColor is the only property that announces itself, see RefreshHardwareColor
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }
