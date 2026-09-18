@@ -154,6 +154,15 @@
     <Content Update="Assets\Pictures\start-header-dark.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <!--
+      the release banners need this exactly as much as the two above: the default content glob puts them in the
+      build output, which is why they show up in a local run, but publish skips an item that carries no copy
+      metadata of its own, so an installed build had no Assets\Releases folder at all
+    -->
+    <Content Update="Assets\Releases\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Controls\InfoPopup\InfoPopupControl.xaml">
