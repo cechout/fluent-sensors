@@ -33,6 +33,15 @@ namespace FluentSensors.Persistence.Services
         // what that folder was called while the app was still named FluentHwInfo; moved once, see MigrateLegacyFolder
         private const string LegacyLocalFolderName = "FluentHwInfo";
 
+        // a file that failed to parse is kept under here rather than beside the ones the app reads, so the root
+        // folder holds nothing but live state
+        private const string QuarantineFolderName = "quarantine";
+        private const string CorruptSuffix = ".corrupt-";
+
+        // how long a quarantined file is kept: long enough to still be there when a problem is reported a few days
+        // later, short enough that the folder cannot collect files for years
+        private static readonly TimeSpan QuarantineRetention = TimeSpan.FromDays(30);
+
         private readonly string _rootFolder = ResolveRootFolder();
         private string SettingsPath => Path.Combine(_rootFolder, "settings.json");
         private string WindowStatePath => Path.Combine(_rootFolder, "window-state.json");
@@ -68,7 +77,10 @@ namespace FluentSensors.Persistence.Services
 
         // === constructor ===
 
-        private PersistenceService() { }
+        private PersistenceService()
+        {
+            TidyQuarantine();
+        }
 
 
         // === public API ===
@@ -297,6 +309,36 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        private string QuarantineFolder => Path.Combine(_rootFolder, QuarantineFolderName);
+
+        // one pass over the quarantine at startup: builds before this one dropped the broken file straight into the
+        // root folder and nothing ever removed it again, so both of those are cleaned up here
+        private void TidyQuarantine()
+        {
+            try
+            {
+                if (!Directory.Exists(_rootFolder)) return;
+
+                foreach (string stray in Directory.GetFiles(_rootFolder, $"*{CorruptSuffix}*"))
+                {
+                    Directory.CreateDirectory(QuarantineFolder);
+                    File.Move(stray, Path.Combine(QuarantineFolder, Path.GetFileName(stray)), overwrite: true);
+                }
+
+                if (!Directory.Exists(QuarantineFolder)) return;
+
+                foreach (string kept in Directory.GetFiles(QuarantineFolder))
+                {
+                    if (DateTime.Now - File.GetLastWriteTime(kept) > QuarantineRetention) File.Delete(kept);
+                }
+            }
+            catch (Exception ex)
+            {
+                // housekeeping, never worth failing a launch over
+                Debug.WriteLine($"[PersistenceService] quarantine tidy failed: {ex.Message}");
+            }
+        }
+
         // every path that settles on the per-user location goes through here, so the one-time move below cannot be
         // skipped by whichever of them a given start happens to take
         private static string UseLocalAppData(string localAppData)
@@ -349,12 +391,15 @@ namespace FluentSensors.Persistence.Services
             }
             catch (Exception)
             {
-                // corrupt file: rename it out of the way and fall back to defaults instead of crashing
+                // corrupt file: move it out of the way and fall back to defaults instead of crashing
                 try
                 {
-                    File.Move(path, path + $".corrupt-{DateTime.Now:yyyyMMdd-HHmmss}");
+                    Directory.CreateDirectory(QuarantineFolder);
+
+                    string name = $"{Path.GetFileName(path)}{CorruptSuffix}{DateTime.Now:yyyyMMdd-HHmmss}";
+                    File.Move(path, Path.Combine(QuarantineFolder, name));
                 }
-                catch { /* if even the rename fails, just move on with defaults */ }
+                catch { /* if even the move fails, just move on with defaults */ }
                 return null;
             }
         }
