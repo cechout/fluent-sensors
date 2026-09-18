@@ -372,7 +372,8 @@
                                 Title="LibreHardwareMonitor"
                                 Description="Found Sensors - every sensor LibreHardwareMonitor reports on this machine&#10;Rendering Sensors - how many of them are actively drawn right now&#10;LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows"
                                 PlacementMode="Above"
-                                SourceIntro="This App is powered by the open source LibreHardwareMonitor project:">
+                                SourceIntro="This App is powered by the open source LibreHardwareMonitor project:"
+                                TitleTextTrimming="CharacterEllipsis">
                                 <fhInfoPopup:InfoPopupControl.SourceLinks>
                                     <fhInfoPopup:SourceLink Label="LibreHardwareMonitor on GitHub" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
                                 </fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -418,7 +419,8 @@
                                 Title="This App"
                                 Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)"
                                 PlacementMode="Above"
-                                SourceIntro="Source:">
+                                SourceIntro="Source:"
+                                TitleTextTrimming="CharacterEllipsis">
                                 <fhInfoPopup:InfoPopupControl.SourceLinks>
                                     <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
                                 </fhInfoPopup:InfoPopupControl.SourceLinks>
