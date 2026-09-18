@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -19,6 +20,10 @@ namespace FluentSensors.Features.Start
     public sealed partial class StartPage : Page
     {
         // === fields ===
+
+        // the start header ships as one export per theme, picked in ApplyHeroImage
+        private const string HeroImageLight = "ms-appx:///Assets/Pictures/start-header-light.png";
+        private const string HeroImageDark = "ms-appx:///Assets/Pictures/start-header-dark.png";
 
         // assigned before InitializeComponent runs, which is what the x:Bind expressions below need
         public StartViewModel ViewModel { get; } = new StartViewModel();
@@ -44,9 +49,11 @@ namespace FluentSensors.Features.Start
             UpdateService.Instance.UpdateStateChanged += OnUpdateStateChanged;
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
             AppStatusService.Instance.StatusUpdated += OnStatusUpdated;
+            this.ActualThemeChanged += OnActualThemeChanged;
 
             // whatever happened while the page was not listening
             ViewModel.RefreshUpdateState();
+            ApplyHeroImage();
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -54,6 +61,7 @@ namespace FluentSensors.Features.Start
             UpdateService.Instance.UpdateStateChanged -= OnUpdateStateChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             AppStatusService.Instance.StatusUpdated -= OnStatusUpdated;
+            this.ActualThemeChanged -= OnActualThemeChanged;
         }
 
         // UpdateService already raises this from the UI thread, so there is nothing to dispatch here
@@ -63,8 +71,20 @@ namespace FluentSensors.Features.Start
         // the theme moves
         private void OnThemeChanged(string theme) => ViewModel.RefreshUpdateState();
 
+        // ActualTheme rather than the ThemeChanged setting above, because it also moves when the app follows the
+        // system and Windows switches underneath it
+        private void OnActualThemeChanged(FrameworkElement sender, object args) => ApplyHeroImage();
+
         // AppStatusService fires from the UI thread as well, see its own Tick
         private void OnStatusUpdated(AppStatusData data) => ViewModel.ApplyStatus(data);
+
+        // the header ships as two exports instead of one image that has to work on both backgrounds
+        private void ApplyHeroImage()
+        {
+            string source = this.ActualTheme == ElementTheme.Dark ? HeroImageDark : HeroImageLight;
+
+            HeroBrush.ImageSource = new BitmapImage(new Uri(source));
+        }
 
 
         // === user interaction ===

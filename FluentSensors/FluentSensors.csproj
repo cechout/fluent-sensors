@@ -148,7 +148,10 @@
     <Content Update="Assets\Icon\Icon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="Assets\Pictures\frame1.png">
+    <Content Update="Assets\Pictures\start-header-light.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\Pictures\start-header-dark.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

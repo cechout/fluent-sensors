@@ -91,7 +91,8 @@
                             <!--  hero image  -->
                             <!--
                                 (an ImageBrush rather than a child Image: a background is clipped by the corner
-                                radius for certain, and the fixed pair keeps frame1.png at its own 2560x1317 ratio)
+                                radius for certain, and the fixed pair keeps the export at its own 2560x1317 ratio
+                                the source is assigned in code, one file per theme, see ApplyHeroImage)
                             -->
                             <Border
                                 Grid.Column="0"
@@ -99,7 +100,7 @@
                                 Height="{StaticResource StartHeroHeight}"
                                 CornerRadius="{ThemeResource ControlCornerRadius}">
                                 <Border.Background>
-                                    <ImageBrush ImageSource="/Assets/Pictures/frame1.png" Stretch="UniformToFill" />
+                                    <ImageBrush x:Name="HeroBrush" Stretch="UniformToFill" />
                                 </Border.Background>
                             </Border>
 
