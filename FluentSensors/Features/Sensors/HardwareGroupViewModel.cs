@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 using FluentSensors.Persistence.Services;
+using FluentSensors.Common.Sensors;
 using FluentSensors.Core;
 using FluentSensors.Controls.SensorRow;
 
@@ -23,6 +24,10 @@ namespace FluentSensors.Features.Sensors
         public string LhmHardwareName { get; set; } = "";
         public string GroupLabel { get; set; } = "Hardware"; // header of expander 
         public string IconGlyph { get; set; } = ""; // header icon glyph, resolved via HardwareGroupInfo
+
+        // the category this group was built from; kept rather than discarded after the profile lookup, because the
+        // rows below need it to colour their widget and taskbar graphs
+        public HardwareGroupKind Kind { get; set; } = HardwareGroupKind.Other;
         public ObservableCollection<SensorRowViewModel> Sensors { get; set; } // content of expander
         public ObservableCollection<SensorRowViewModel> HiddenSensors { get; set; } // sensors hidden from the main list
 

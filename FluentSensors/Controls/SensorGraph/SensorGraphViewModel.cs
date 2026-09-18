@@ -31,12 +31,14 @@ namespace FluentSensors.Controls.SensorGraph
             string sensorName,
             string sensorType,
             double? graphTimeSpanSecondsOverride = null,
-            SensorGraphScope scope = SensorGraphScope.Widget)
+            SensorGraphScope scope = SensorGraphScope.Widget,
+            HardwareGroupKind hardwareKind = HardwareGroupKind.Other)
         {
             SensorId = sensorId;
             SensorType = sensorType;
             SensorName = sensorName;
             Scope = scope;
+            HardwareKind = hardwareKind;
             Unit = SensorUnitFormatter.GetUnit(sensorType);
             CurrentValueText = "-"; // placeholder text until we have the first value
             CurrentValueColor = DefaultTextColor.Resolve();
@@ -54,6 +56,7 @@ namespace FluentSensors.Controls.SensorGraph
                 GraphColor = ResolveGraphColor(SettingsService.Instance.TaskbarUseGraphAccentColor, SettingsService.Instance.TaskbarGraphCustomColor);
                 _isCardBackgroundVisible = !SettingsService.Instance.TaskbarUseTransparentGraphBackground;
                 SettingsService.Instance.TaskbarGraphColorChanged += OnGraphColorChanged;
+                SettingsService.Instance.HardwareGraphColorsChanged += OnHardwareGraphColorsChanged;
                 SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnGraphTimeSpanChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged += OnGraphBackgroundChanged;
             }
@@ -62,6 +65,7 @@ namespace FluentSensors.Controls.SensorGraph
                 GraphColor = ResolveGraphColor(SettingsService.Instance.UseGraphAccentColor, SettingsService.Instance.GraphCustomColor);
                 SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
                 SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
+                SettingsService.Instance.HardwareGraphColorsChanged += OnHardwareGraphColorsChanged;
             }
 
             // line style and fill fade are global; resolved and subscribed the same way for every scope
@@ -94,6 +98,10 @@ namespace FluentSensors.Controls.SensorGraph
         // === bindable properties ===
 
         public SensorGraphScope Scope { get; }
+
+        // which hardware this sensor belongs to; only used to resolve the graph colour, see ResolveGraphColor
+        // Other for anything that was created without one, which resolves exactly like hardware colours being off
+        public HardwareGroupKind HardwareKind { get; }
 
         // whether CurrentValueColor currently carries a threshold override rather than the plain default text color
         // consumers that resolve the default against their own theme instead need to tell the two apart, see
@@ -262,6 +270,8 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+        private void OnHardwareGraphColorsChanged() => RefreshGraphColor();
+
         private void OnGraphColorChanged(bool useAccent, Windows.UI.Color customColor)
         {
             GraphColor = ResolveGraphColor(useAccent, customColor);
@@ -316,6 +326,7 @@ namespace FluentSensors.Controls.SensorGraph
             if (Scope == SensorGraphScope.Taskbar)
             {
                 SettingsService.Instance.TaskbarGraphColorChanged -= OnGraphColorChanged;
+                SettingsService.Instance.HardwareGraphColorsChanged -= OnHardwareGraphColorsChanged;
                 SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged -= OnGraphBackgroundChanged;
             }
@@ -323,6 +334,7 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
                 SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+                SettingsService.Instance.HardwareGraphColorsChanged -= OnHardwareGraphColorsChanged;
             }
 
             HardwareMonitorService.Instance.UpdateIntervalChanged -= OnUpdateIntervalChanged;
@@ -514,8 +526,19 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         // resolves the current accent-color setting to a concrete Color value
-        private static Windows.UI.Color ResolveGraphColor(bool useAccent, Windows.UI.Color customColor)
+        // the hardware colour wins over both the accent and the custom colour when the setting is on, so the
+        // widget and the taskbar can be read by category at a glance
+        // a sensor whose category never made it down here stays on the accent or custom colour rather than taking
+        // the grey Other tone, which would look like a broken lookup
+        //
+        // the performance page never lands here, it hands SensorPanelControl an explicit GraphColorOverride
+        private Windows.UI.Color ResolveGraphColor(bool useAccent, Windows.UI.Color customColor)
         {
+            if (SettingsService.Instance.UseHardwareGraphColors && HardwareKind != HardwareGroupKind.Other)
+            {
+                return HardwareGroupInfo.GetProfile(HardwareKind).Color;
+            }
+
             if (useAccent)
             {
                 return (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"];

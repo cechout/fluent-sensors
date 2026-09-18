@@ -187,7 +187,8 @@ namespace FluentSensors.Features.Sensors
                 HardwareName = GetDisplayName(instance),
                 LhmHardwareName = instance.HardwareName,
                 GroupLabel = profile.Label,
-                IconGlyph = profile.IconGlyph
+                IconGlyph = profile.IconGlyph,
+                Kind = instance.Kind
             };
             group.PropertyChanged += Group_PropertyChanged;
             HardwareGroups.Add(group);
@@ -260,6 +261,7 @@ namespace FluentSensors.Features.Sensors
             var newRow = new SensorRowViewModel
             {
                 SortOrder = group.Sensors.Count + group.HiddenSensors.Count,
+                HardwareKind = group.Kind,
                 IsHidden = isHidden,
                 Entry = entry,
                 IsSelected = !isHidden && SensorSelectionService.Instance.IsSelected(ActiveProfile, entry.Id),
