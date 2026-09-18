@@ -40,13 +40,8 @@ namespace FluentSensors.Common.Markdown
         private const double ListItemBottomMargin = 3;
 
         // a list packs its items tight, so a paragraph that follows one has to bring the gap itself; without it
-        // the full changelog line ends up sitting on the last bullet
+        // it ends up sitting on the last bullet
         private const double ParagraphTopMarginAfterList = 18;
-
-        // the closing full changelog row
-        // label font size; the link button beside it carries its own 12 from SourceLinkButtonStyle
-        private const double ChangelogLabelFontSize = 12;
-        private const double ChangelogRowSpacing = 6; // gap between label and link button
 
         // vertical rhythm of the running text; turn this up for airier notes and down to tighten them
         // it is a minimum rather than a fixed value, see LineStackingStrategy below, so a heading keeps the
@@ -127,7 +122,7 @@ namespace FluentSensors.Common.Markdown
         // a release body ends on this line, and it has to survive whatever section removal happens above it
         private static readonly Regex ChangelogLinkPattern = new(@"^\s*\*\*Full Changelog\*\*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        // the url on that line, so the row can render the compare range as a link instead of a raw address
+        // the url on that line, which is all ExtractChangelogLink keeps of it
         private static readonly Regex UrlPattern = new(@"https?://[^\s<>""]+", RegexOptions.Compiled);
 
 
@@ -181,6 +176,39 @@ namespace FluentSensors.Common.Markdown
                 }
 
                 if (!dropping) kept.Add(line);
+            }
+
+            return string.Join("\n", kept);
+        }
+
+        // pulls the closing full changelog line out of the body and hands back the url on it, the same way the
+        // header image is lifted out above
+        //
+        // the release page renders it as a row of its own in XAML, where the label follows the theme and the
+        // address becomes the apps own link button rather than staying a bare url in running text
+        public static string ExtractChangelogLink(string markdown, out string url)
+        {
+            url = null;
+            if (string.IsNullOrWhiteSpace(markdown)) return markdown;
+
+            var lines = markdown.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+            var kept = new List<string>();
+
+            foreach (string line in lines)
+            {
+                if (url == null && ChangelogLinkPattern.IsMatch(line))
+                {
+                    string found = UrlPattern.Match(line).Value;
+
+                    // a changelog line without a usable address stays in the body rather than vanishing from it
+                    if (found.Length > 0)
+                    {
+                        url = found;
+                        continue;
+                    }
+                }
+
+                kept.Add(line);
             }
 
             return string.Join("\n", kept);
@@ -270,23 +298,6 @@ namespace FluentSensors.Common.Markdown
                     continue;
                 }
 
-                // the closing line of a generated release body, rendered as a real row rather than as running
-                // text with a bare url in it
-                if (ChangelogLinkPattern.IsMatch(line))
-                {
-                    double changelogTopMargin = pending.Count == 0 && writer.LastBlockWasListItem
-                        ? ParagraphTopMarginAfterList
-                        : 0;
-
-                    var row = BuildChangelogRow(line, changelogTopMargin);
-                    if (row != null)
-                    {
-                        FlushPending();
-                        writer.AddElement(row);
-                        continue;
-                    }
-                }
-
                 pending.Add(line.Trim());
             }
 
@@ -323,16 +334,6 @@ namespace FluentSensors.Common.Markdown
                 _current.Blocks.Add(block);
                 _anyBlockWritten = true;
                 _lastWasListItem = isListItem;
-            }
-
-            // a whole element instead of a Block, for a row that cannot live inside a RichTextBlock
-            // it closes the running text block, so whatever comes after starts a fresh one below the element
-            public void AddElement(UIElement element)
-            {
-                _target.Children.Add(element);
-                _current = null;
-                _anyBlockWritten = true;
-                _lastWasListItem = false;
             }
 
             public void BeginAlert(string kind, bool isDark)
@@ -449,8 +450,9 @@ namespace FluentSensors.Common.Markdown
             return paragraph;
         }
 
-        // resolved once per render rather than bound, which is fine because the dialog rebuilds its content every
-        // time it opens, so a theme switch is picked up on the next open
+        // resolved in code rather than bound, so it lands on the application theme, which is fixed at process
+        // start and does not follow a theme switch; a blockquote is the only thing still coming through here,
+        // the full changelog row moved into the release pages XAML for exactly that reason
         private static Brush ThemeBrush(string key) =>
             Application.Current.Resources.TryGetValue(key, out object value) ? value as Brush : null;
 
@@ -566,60 +568,6 @@ namespace FluentSensors.Common.Markdown
             hyperlink.Inlines.Add(new Run { Text = text });
 
             return hyperlink;
-        }
-
-        // the line every generated release body closes on, as a left aligned label plus the apps own link button
-        // instead of running text with a bare address in it; the flush label is also what gives the indented
-        // bullet list above it a visible end
-        //
-        // the button carries the compare range out of the url (v1.2.0...v1.3.0), which is what tells it apart from
-        // the View on GitHub link at the top of the page: that one opens the release, this one the diff
-        // returns null when the line carries no usable url, which leaves it to render as ordinary text
-        private static UIElement BuildChangelogRow(string line, double topMargin)
-        {
-            string url = UrlPattern.Match(line).Value;
-            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return null;
-
-            var panel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = ChangelogRowSpacing,
-                Margin = new Thickness(0, topMargin, 0, 0)
-            };
-
-            panel.Children.Add(new TextBlock
-            {
-                Text = "Full changelog: ",
-                FontSize = ChangelogLabelFontSize,
-                VerticalAlignment = VerticalAlignment.Center,
-                Foreground = ThemeBrush("TextFillColorSecondaryBrush")
-            });
-
-            var link = new HyperlinkButton
-            {
-                Content = CompareLabel(uri),
-                NavigateUri = uri,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            // the same link look the rest of the app uses, see App.xaml
-            if (Application.Current.Resources.TryGetValue("SourceLinkButtonStyle", out object style) && style is Style linkStyle)
-            {
-                link.Style = linkStyle;
-            }
-
-            panel.Children.Add(link);
-
-            return panel;
-        }
-
-        // ".../compare/v1.2.0...v1.3.0" reads as the range itself; anything that is not a compare url falls back
-        // to naming the host, so the button never ends up blank
-        private static string CompareLabel(Uri uri)
-        {
-            string last = uri.Segments.Length > 0 ? uri.Segments[^1].Trim('/') : "";
-
-            return last.Length > 0 ? Uri.UnescapeDataString(last) : uri.Host;
         }
     }
 }

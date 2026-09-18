@@ -5,11 +5,15 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Loaded="Page_Loaded"
     mc:Ignorable="d">
 
     <Page.Resources>
         <!--  the one knob for how far the release body sits from the dialog edges  -->
         <Thickness x:Key="ReleaseContentPadding">24,16,24,28</Thickness>
+
+        <!--  the one knob for the full changelog label; the link button beside it is sized by its own style  -->
+        <x:Double x:Key="ChangelogLabelFontSize">12</x:Double>
     </Page.Resources>
 
     <!--  (no padding on a scroller, it clips what it is meant to scroll; the body below carries the inset)  -->
@@ -62,6 +66,28 @@
                         Text="This release was published without notes"
                         TextWrapping="Wrap"
                         Visibility="Collapsed" />
+
+                    <!--  full changelog: label and compare link  -->
+                    <!--
+                        (the line every release body closes on, lifted out of the notes by ExtractChangelogLink
+                        the flush label is what gives the indented bullets above it a visible end, and the button
+                        names the compare range, which is what tells it apart from View on GitHub at the top)
+                    -->
+                    <StackPanel
+                        x:Name="ChangelogRow"
+                        Orientation="Horizontal"
+                        Spacing="6"
+                        Visibility="Collapsed">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource ChangelogLabelFontSize}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="Full changelog:" />
+                        <HyperlinkButton
+                            x:Name="ChangelogLink"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource SourceLinkButtonStyle}" />
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </StackPanel>

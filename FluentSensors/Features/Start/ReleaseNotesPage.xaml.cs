@@ -23,6 +23,9 @@ namespace FluentSensors.Features.Start
         // width over height of the banner currently shown, so the border can derive its own height from it
         private double _heroAspect;
 
+        // the release on show, held because the banner is only loaded once this page has a width, see Page_Loaded
+        private string _version = "";
+
 
         // === constructor ===
 
@@ -58,6 +61,9 @@ namespace FluentSensors.Features.Start
             string body = MarkdownRenderer.ExtractLeadingImage(release.Notes, out _);
             body = MarkdownRenderer.DropSections(body);
 
+            // the closing changelog line leaves the body as well, it has a row of its own under the notes
+            body = MarkdownRenderer.ExtractChangelogLink(body, out string changelogUrl);
+
             if (string.IsNullOrWhiteSpace(body))
             {
                 NotesHost.Visibility = Visibility.Collapsed;
@@ -68,8 +74,14 @@ namespace FluentSensors.Features.Start
                 MarkdownRenderer.Render(NotesHost, body);
             }
 
-            ShowHero(release.Version);
+            ShowChangelog(changelogUrl);
+
+            _version = release.Version;
         }
+
+        // the banner waits for this rather than loading in OnNavigatedTo, because it decodes to the width this
+        // page ends up with and that width only exists once the page has been laid out
+        private void Page_Loaded(object sender, RoutedEventArgs e) => ShowHero();
 
 
         // === private helpers ===
@@ -80,11 +92,18 @@ namespace FluentSensors.Features.Start
         //
         // HeroBorder starts collapsed and is only revealed once the image really decoded, so a release without
         // an asset, or one whose file is missing, simply has no header image
-        private void ShowHero(string version)
+        private void ShowHero()
         {
-            if (string.IsNullOrWhiteSpace(version)) return;
+            if (string.IsNullOrWhiteSpace(_version)) return;
 
-            var bitmap = new BitmapImage(new Uri($"{HeroFolder}{UpdateService.VersionLabel(version).Replace('.', '-')}.png"));
+            // the banner ships far wider than the page ever draws it, and the compositor only bilinear filters,
+            // which at that ratio reads too few source pixels per drawn one and leaves hard aliased edges
+            var bitmap = new BitmapImage
+            {
+                // Logical keeps this a DIP, and a width of zero simply decodes at natural size
+                DecodePixelType = DecodePixelType.Logical,
+                DecodePixelWidth = (int)this.ActualWidth
+            };
 
             bitmap.ImageOpened += (_, _) =>
             {
@@ -96,7 +115,30 @@ namespace FluentSensors.Features.Start
                 HeroBorder.Visibility = Visibility.Visible;
             };
 
+            // last, the decode starts as soon as a source is assigned and the width above has to be set by then
+            bitmap.UriSource = new Uri($"{HeroFolder}{UpdateService.VersionLabel(_version).Replace('.', '-')}.png");
+
             HeroBorder.Background = new ImageBrush { ImageSource = bitmap, Stretch = Stretch.UniformToFill };
+        }
+
+        // the label is plain XAML so it follows the theme; only the address and its button text come from here
+        private void ShowChangelog(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return;
+
+            ChangelogLink.NavigateUri = uri;
+            ChangelogLink.Content = CompareLabel(uri);
+
+            ChangelogRow.Visibility = Visibility.Visible;
+        }
+
+        // ".../compare/v1.2.0...v1.3.0" reads as the range itself; anything that is not a compare url falls back
+        // to naming the host, so the button never ends up blank
+        private static string CompareLabel(Uri uri)
+        {
+            string last = uri.Segments.Length > 0 ? uri.Segments[^1].Trim('/') : "";
+
+            return last.Length > 0 ? Uri.UnescapeDataString(last) : uri.Host;
         }
 
         private void HeroBorder_SizeChanged(object sender, SizeChangedEventArgs e) => SetHeroHeight();
