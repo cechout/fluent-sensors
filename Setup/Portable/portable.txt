@@ -2,7 +2,7 @@ Fluent Sensors - portable mode
 ==============================
 
 As long as this file sits next to FluentSensors.exe, the app keeps all of its settings in the
-"Persistence" folder inside this directory instead of %LocalAppData%\FluentHwInfo.
+"Persistence" folder inside this directory instead of %LocalAppData%\FluentSensors.
 
 That means you can move or copy this folder to another drive or machine and your sensor
 selections, window positions and settings travel with it. Deleting the folder removes every

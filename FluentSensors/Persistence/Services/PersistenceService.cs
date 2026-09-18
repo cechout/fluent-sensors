@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -25,6 +26,12 @@ namespace FluentSensors.Persistence.Services
         // the marker ships only in the portable zip, installer builds never contain it
         // the marker check itself lives in AppDistribution, because the updater needs the same answer
         private const string PortableFolderName = "Persistence";
+
+        // the folder under %LocalAppData% an installed build writes to
+        private const string LocalFolderName = "FluentSensors";
+
+        // what that folder was called while the app was still named FluentHwInfo; moved once, see MigrateLegacyFolder
+        private const string LegacyLocalFolderName = "FluentHwInfo";
 
         private readonly string _rootFolder = ResolveRootFolder();
         private string SettingsPath => Path.Combine(_rootFolder, "settings.json");
@@ -268,13 +275,13 @@ namespace FluentSensors.Persistence.Services
         private static string ResolveRootFolder()
         {
             string localAppData = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FluentHwInfo");
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), LocalFolderName);
 
             try
             {
                 string? appFolder = Path.GetDirectoryName(Environment.ProcessPath);
-                if (string.IsNullOrEmpty(appFolder)) return localAppData;
-                if (!AppDistribution.IsPortableBuild) return localAppData;
+                if (string.IsNullOrEmpty(appFolder)) return UseLocalAppData(localAppData);
+                if (!AppDistribution.IsPortableBuild) return UseLocalAppData(localAppData);
 
                 // creating the folder here doubles as an early check that the app directory is writable at all;
                 // an unpacked zip sitting in a read-only location would otherwise silently drop every save
@@ -286,7 +293,43 @@ namespace FluentSensors.Persistence.Services
             {
                 // unreadable app folder, or one that cannot be created: fall back to the per-user location instead
                 // of losing state
-                return localAppData;
+                return UseLocalAppData(localAppData);
+            }
+        }
+
+        // every path that settles on the per-user location goes through here, so the one-time move below cannot be
+        // skipped by whichever of them a given start happens to take
+        private static string UseLocalAppData(string localAppData)
+        {
+            MigrateLegacyFolder(localAppData);
+
+            return localAppData;
+        }
+
+        // the settings folder was named after the app, and the app was renamed; moving it once is what keeps an
+        // installed copy from looking freshly installed after the update that carries the new name
+        //
+        // it only ever runs while the new folder does not exist, so a folder that is already in use is never
+        // touched and the move cannot happen twice
+        private static void MigrateLegacyFolder(string localAppData)
+        {
+            try
+            {
+                if (Directory.Exists(localAppData)) return;
+
+                string legacy = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), LegacyLocalFolderName);
+
+                if (!Directory.Exists(legacy)) return;
+
+                Directory.Move(legacy, localAppData);
+                Debug.WriteLine($"[PersistenceService] moved {LegacyLocalFolderName} to {LocalFolderName}");
+            }
+            catch (Exception ex)
+            {
+                // a locked or unreadable old folder costs the user their settings, not the launch; the app starts
+                // on defaults and writes them to the new location
+                Debug.WriteLine($"[PersistenceService] folder migration failed: {ex.Message}");
             }
         }
 
