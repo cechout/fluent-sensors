@@ -81,7 +81,7 @@
                         Grid.Column="0"
                         Padding="0,0,18,0"
                         Click="ReleaseNotesButton_Click"
-                        Style="{ThemeResource SubtleButtonStyle}">
+                        Style="{StaticResource SubtleTileButtonStyle}">
                         <Grid ColumnSpacing="14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -132,7 +132,7 @@
                         Padding="18,0"
                         Click="UpdateStatusButton_Click"
                         IsEnabled="{x:Bind ViewModel.IsUpdateActionEnabled, Mode=OneWay}"
-                        Style="{ThemeResource SubtleButtonStyle}">
+                        Style="{StaticResource SubtleTileButtonStyle}">
                         <Grid ColumnSpacing="14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
