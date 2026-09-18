@@ -349,8 +349,8 @@ namespace FluentSensors.Controls.InfoPopup
             InfoPopup.IsOpen = isOpening;
         }
 
-        // an open popup pulls the title text over to the Windows accent color, so the title reads as the active
-        // one while several popups sit next to each other
+        // an open popup pulls its title text and its button glyph over to the Windows accent color, so the whole
+        // control reads as the active one while several popups sit next to each other
         //
         // driven off the popups own Opened/Closed rather than InfoButton_Click, because a light dismiss closes it
         // without ever going through the click handler

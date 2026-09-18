@@ -64,16 +64,20 @@
             <VisualStateGroup x:Name="PopupStates">
 
                 <!--  rest state  -->
-                <!--  (no setter, so the title keeps its own Foreground: the XAML default or a consumers TitleForeground)  -->
+                <!--
+                    (no setters, so both keep whatever Foreground they have underneath: the XAML defaults or a
+                    consumers TitleForeground / ButtonGlyphForeground)
+                -->
                 <VisualState x:Name="PopupClosed" />
 
                 <!--
-                    (a setter rather than assigning Foreground from code, which would sever the ThemeResource
-                    for good and stop the title following a theme switch)
+                    (setters rather than assigning Foreground from code, which would sever the ThemeResource
+                    for good and stop either of them following a theme switch)
                 -->
                 <VisualState x:Name="PopupOpen">
                     <VisualState.Setters>
                         <Setter Target="TitleTextBlock.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <Setter Target="ButtonGlyphIcon.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                     </VisualState.Setters>
                 </VisualState>
 
