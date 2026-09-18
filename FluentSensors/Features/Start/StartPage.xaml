@@ -16,7 +16,7 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <!--  (frame1.png is 2560x1317, so 150 wide lands on 77 high; the update button matches that height)  -->
+        <!--  (the header exports are 2560x1317, so 150 wide lands on 77 high; the update button matches that height)  -->
         <x:Double x:Key="StartHeroWidth">150</x:Double>
         <x:Double x:Key="StartHeroHeight">77</x:Double>
     </Page.Resources>
@@ -95,6 +95,7 @@
                                 the source is assigned in code, one file per theme, see ApplyHeroImage)
                             -->
                             <Border
+                                x:Name="HeroBorder"
                                 Grid.Column="0"
                                 Width="{StaticResource StartHeroWidth}"
                                 Height="{StaticResource StartHeroHeight}"

@@ -84,7 +84,20 @@ namespace FluentSensors.Features.Start
         {
             string source = this.ActualTheme == ElementTheme.Dark ? HeroImageDark : HeroImageLight;
 
-            HeroBrush.ImageSource = new BitmapImage(new Uri(source));
+            // the export is 2560 wide against a 150 wide tile, and the compositor only bilinear filters, which at
+            // that ratio reads far too few source pixels per drawn one and leaves hard aliased edges; decoding to
+            // the tile size hands the reduction to the imaging stack instead, which reads all of them
+            var bitmap = new BitmapImage
+            {
+                // Logical keeps this a DIP, so a scaled display still decodes to whole pixels
+                DecodePixelType = DecodePixelType.Logical,
+                DecodePixelWidth = (int)HeroBorder.Width
+            };
+
+            // the decode starts as soon as a source is assigned, so the two above have to be set before this
+            bitmap.UriSource = new Uri(source);
+
+            HeroBrush.ImageSource = bitmap;
         }
 
 
