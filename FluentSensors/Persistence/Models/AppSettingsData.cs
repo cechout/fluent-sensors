@@ -30,6 +30,10 @@ namespace FluentSensors.Persistence.Models
         // fades the area under the line out towards the bottom instead of filling it in one flat tone; global
         public bool GraphFillFade { get; set; } = false;
 
+        // tints per hardware category instead of falling back to the ordinary accent or custom color; drives
+        // HardwareColorMode, which is where every consumer reads it
+        public bool UseHardwareColors { get; set; } = true;
+
         // performance page graphs
         // Standard covers the overview blocks, Extended the denser grids (cpu all-threads, gpu extended)
         public double PerformanceGraphTimeSpanSeconds { get; set; } = 45;

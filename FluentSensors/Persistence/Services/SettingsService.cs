@@ -196,6 +196,24 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // per hardware category coloring; the value is mirrored onto HardwareColorMode rather than read from here,
+        // because the consumers of the color sit in Common and Features and must not reach into persistence
+        private bool _useHardwareColors = true;
+        public bool UseHardwareColors
+        {
+            get => _useHardwareColors;
+            set
+            {
+                if (_useHardwareColors != value)
+                {
+                    _useHardwareColors = value;
+                    HardwareColorMode.UseGroupColors = value;
+                    HardwareColorsChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
 
         // --- Performance Page Graph Settings ---
 
@@ -739,6 +757,8 @@ namespace FluentSensors.Persistence.Services
             _graphTimeSpanSeconds = data.GraphTimeSpanSeconds;
             _graphLineStyle = data.GraphLineStyle;
             _graphFillFade = data.GraphFillFade;
+            _useHardwareColors = data.UseHardwareColors;
+            HardwareColorMode.UseGroupColors = _useHardwareColors;
             _performanceGraphTimeSpanSeconds = data.PerformanceGraphTimeSpanSeconds;
             _performanceExtendedGraphTimeSpanSeconds = data.PerformanceExtendedGraphTimeSpanSeconds;
 
@@ -795,6 +815,7 @@ namespace FluentSensors.Persistence.Services
                 GraphTimeSpanSeconds = _graphTimeSpanSeconds,
                 GraphLineStyle = _graphLineStyle,
                 GraphFillFade = _graphFillFade,
+                UseHardwareColors = _useHardwareColors,
                 PerformanceGraphTimeSpanSeconds = _performanceGraphTimeSpanSeconds,
                 PerformanceExtendedGraphTimeSpanSeconds = _performanceExtendedGraphTimeSpanSeconds,
 
@@ -861,6 +882,9 @@ namespace FluentSensors.Persistence.Services
         public event Action<double> GraphTimeSpanChanged;
         public event Action<GraphLineStyle> GraphLineStyleChanged;
         public event Action<bool> GraphFillFadeChanged;
+
+        // carries no value; every consumer only re-reads HardwareColorMode and refreshes what it drew from it
+        public event Action HardwareColorsChanged;
 
         // carries no value; both performance time spans raise it and consumers re-read whichever one they use
         public event Action PerformanceGraphTimeSpanChanged;
