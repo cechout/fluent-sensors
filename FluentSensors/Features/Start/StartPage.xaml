@@ -468,7 +468,7 @@
 
                 <!--  app info  -->
                 <controls:SettingsExpander
-                    Description="© 2026 Daniel Čech. All rights reserved."
+                    Description="© 2026 Daniel Čech · MIT License"
                     Header="Fluent Sensors"
                     HeaderIcon="{toolkit:FontIcon Glyph=&#xE946;}"
                     Visibility="Collapsed">
@@ -489,7 +489,7 @@
                         </controls:SettingsCard>
 
                         <!--  (the settings and sensor state json files; a portable build keeps them next to the exe)  -->
-                        <controls:SettingsCard Description="Where settings and sensor state are stored" Header="App data folder">
+                        <controls:SettingsCard Description="Where settings, window and sensor state are stored" Header="App data folder">
                             <Button Click="OpenAppDataFolder_Click">
                                 <Grid ColumnSpacing="8">
                                     <Grid.ColumnDefinitions>
@@ -544,7 +544,7 @@
                         </controls:SettingsCard>
 
                         <controls:SettingsCard Header="Windows Community Toolkit">
-                            <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/CommunityToolkit/WindowsCommunityToolkit" />
+                            <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/CommunityToolkit/Windows" />
                         </controls:SettingsCard>
 
                         <controls:SettingsCard Header="WinUIEx">
@@ -555,12 +555,20 @@
                             <HyperlinkButton Content="Website" NavigateUri="https://livecharts.dev/" />
                         </controls:SettingsCard>
 
+                        <controls:SettingsCard Header="SkiaSharp">
+                            <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/mono/SkiaSharp" />
+                        </controls:SettingsCard>
+
                         <controls:SettingsCard Header="LibreHardwareMonitor">
                             <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
                         </controls:SettingsCard>
 
                         <controls:SettingsCard Header="H.NotifyIcon">
                             <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/HavenDV/H.NotifyIcon" />
+                        </controls:SettingsCard>
+
+                        <controls:SettingsCard Header="Vortice.Windows">
+                            <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/amerkoleci/Vortice.Windows" />
                         </controls:SettingsCard>
 
                     </controls:SettingsExpander.Items>
