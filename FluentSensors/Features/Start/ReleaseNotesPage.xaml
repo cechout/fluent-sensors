@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="FluentSensors.Features.Start.ReleaseNotesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Loaded="Page_Loaded"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <!--  the one knob for how far the release body sits from the dialog edges  -->
+        <Thickness x:Key="ReleaseContentPadding">24,16,24,28</Thickness>
+
+        <!--  the one knob for the full changelog label; the link button beside it is sized by its own style  -->
+        <x:Double x:Key="ChangelogLabelFontSize">12</x:Double>
+    </Page.Resources>
+
+    <!--  (no padding on a scroller, it clips what it is meant to scroll; the body below carries the inset)  -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+
+            <!--  header image  -->
+            <!--
+                (edge to edge, which is why the inset sits on the body rather than on this panel
+                the banner is the borders background rather than a child Image: a brush covers the rect exactly,
+                while a scaled child is resampled at a fractional factor and leaves a seam along its edges
+                the height comes from the banners own aspect, see SetHeroHeight)
+            -->
+            <Border
+                x:Name="HeroBorder"
+                MaxHeight="200"
+                CornerRadius="0"
+                SizeChanged="HeroBorder_SizeChanged"
+                Visibility="Collapsed" />
+
+            <!--  release body: date + github link, notes  -->
+            <!--  (a Grid around the panel, only so there is something with a Padding to hang the knob on)  -->
+            <Grid Padding="{StaticResource ReleaseContentPadding}">
+                <StackPanel Spacing="16">
+
+                    <!--  release meta  -->
+                    <!--  (no release name, the header image carries it in every release)  -->
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock
+                            x:Name="DateText"
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource CaptionTextBlockStyle}" />
+                        <HyperlinkButton
+                            x:Name="GitHubLink"
+                            Content="View on GitHub"
+                            Style="{StaticResource SourceLinkButtonStyle}" />
+                        <!--<HyperlinkButton x:Name="GitHubLink" Content="View on GitHub" />-->
+                    </StackPanel>
+
+                    <!--  release notes  -->
+                    <!--  (a panel rather than a RichTextBlock, so callouts can be real Borders)  -->
+                    <StackPanel x:Name="NotesHost" />
+
+                    <!--  empty state  -->
+                    <TextBlock
+                        x:Name="EmptyText"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="This release was published without notes"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+
+                    <!--  full changelog: label and compare link  -->
+                    <!--
+                        (the line every release body closes on, lifted out of the notes by ExtractChangelogLink
+                        the flush label is what gives the indented bullets above it a visible end, and the button
+                        names the compare range, which is what tells it apart from View on GitHub at the top)
+                    -->
+                    <StackPanel
+                        x:Name="ChangelogRow"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        Visibility="Collapsed">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource ChangelogLabelFontSize}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="Full changelog:" />
+                        <HyperlinkButton
+                            x:Name="ChangelogLink"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource SourceLinkButtonStyle}" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

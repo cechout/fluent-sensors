@@ -31,6 +31,10 @@ Both builds come from the same compilation and differ only in the `portable.txt`
 
 Please note that both builds require administrator rights. Reading hardware sensors relies on a kernel level driver that LibreHardwareMonitorLib registers on startup and removes again on exit. "Portable" here means no setup and no leftover configuration, it does not mean the app runs without elevation.
 
+## 🔒 Privacy
+
+The app collects nothing, has no telemetry and no account. It goes online for two things only: to ask GitHub whether a newer version exists, and to load the release notes. One switch in the settings turns both off. [PRIVACY.md](PRIVACY.md) explains exactly what is sent and when.
+
 ## 🛠️ How to Build
 
 ### 1. Prerequisites

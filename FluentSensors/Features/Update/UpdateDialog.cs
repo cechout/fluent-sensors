@@ -1,10 +1,11 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FluentSensors.Common.UI;
 using FluentSensors.Core.Update;
 
 
@@ -26,10 +27,8 @@ namespace FluentSensors.Features.Update
         {
             if (xamlRoot == null || info == null) return;
 
-            // --- revisit: start page ---
-            // the label already reads as the permanent skip it is meant to become, while the code behind it only
-            // hides the pill for this session; that mismatch is deliberate and temporary, not an oversight
-            // see UpdateService.DismissUntilRestart for why the version is not remembered yet
+            // a ticked box is remembered across restarts; the start pages update button names the skipped version
+            // and is the way to undo it again
             var skipCheckBox = new CheckBox
             {
                 Content = "Skip this version",
@@ -53,7 +52,7 @@ namespace FluentSensors.Features.Update
             var content = new StackPanel();
             content.Children.Add(new TextBlock
             {
-                Text = $"Fluent Sensors {info.Version} is available. You are running {UpdateService.CurrentVersion}.",
+                Text = $"Fluent Sensors {UpdateService.VersionLabel(info.Version)} is available. You are running {UpdateService.VersionLabel(UpdateService.CurrentVersion)}.",
                 TextWrapping = TextWrapping.Wrap
             });
             content.Children.Add(skipCheckBox);
@@ -68,7 +67,8 @@ namespace FluentSensors.Features.Update
                 SecondaryButtonText = "Manual Install",
                 CloseButtonText = "Close",
                 DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = xamlRoot
+                XamlRoot = xamlRoot,
+                RequestedTheme = DialogTheme.For(xamlRoot)
             };
 
             // non-null exactly while a download is running, which is also what turns Close into the cancel button
@@ -139,7 +139,7 @@ namespace FluentSensors.Features.Update
                 // hiding the very version that is currently being installed would make no sense
                 if (handedOverToScript) return;
 
-                if (skipCheckBox.IsChecked == true) UpdateService.Instance.DismissUntilRestart();
+                if (skipCheckBox.IsChecked == true) UpdateService.Instance.SkipVersion();
             };
 
             await dialog.ShowAsync();

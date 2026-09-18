@@ -1,4 +1,4 @@
-using Microsoft.UI.Dispatching;
+﻿using Microsoft.UI.Dispatching;
 using System;
 using System.Diagnostics;
 using System.Net.Http;
@@ -17,6 +17,7 @@ namespace FluentSensors.Core.Update
     public record UpdateInfo(
         string Version, // three part, no leading v, e.g. "1.3.0"
         string ReleaseUrl,
+        string Notes, // the raw markdown body of the release, what the start pages notes reader renders
         string AssetName,
         string AssetUrl,
         long AssetSize
@@ -28,6 +29,20 @@ namespace FluentSensors.Core.Update
         UpToDate,
         UpdateAvailable,
         Failed // no network, rate limited, malformed response; the reason is never shown, only that it did not work
+    }
+
+
+    // what the start pages update button shows; wider than UpdateCheckResult because that one answers a single
+    // call while this one also has to describe the states between and around calls
+    public enum UpdateUiState
+    {
+        Unknown, // nothing asked yet, either because the startup check is off or because it has not run
+        Checking,
+        UpToDate,
+        UpdateAvailable,
+        Skipped, // a newer release exists but the user chose to skip this exact version
+        Failed,
+        StoreManaged // packaged build; the store owns updates and this app never checks on its own
     }
 
 
@@ -52,8 +67,24 @@ namespace FluentSensors.Core.Update
         // it would work in a debug build and fail only in a release one
         private static readonly HttpClient _http = CreateClient();
 
+        // GitHub answers an unauthenticated api request 60 times per hour and per ip, and the release notes dialog
+        // spends from the same budget, so a manual check that lands inside this window is answered with the last
+        // result instead of a new request; the button already names when that was
+        // a failed check deliberately leaves LastCheckedAt alone, so a retry after a dropped connection is never
+        // held back
+        private static readonly TimeSpan CheckCooldown = TimeSpan.FromSeconds(60);
+
+        // shared with ReleaseCatalog rather than duplicated there: the user agent and accept headers below are
+        // what GitHub requires, and two copies of that would drift
+        internal static HttpClient Http => _http;
+
         private DispatcherQueue? _dispatcherQueue;
         private bool _hasCheckedOnStartup;
+
+        // whatever the api last answered, newer than this build or not; the notes reader needs the release even
+        // when there is nothing to install, since an up to date app shows the notes of the version it is running
+        private UpdateInfo? _latestRelease;
+        private bool _isNewer;
 
 
         // === singleton instance ===
@@ -71,11 +102,29 @@ namespace FluentSensors.Core.Update
         // in step no matter which of the two triggered the change
         public event Action? UpdateStateChanged;
 
-        public bool IsUpdateAvailable { get; private set; }
+        // what the start pages update button renders; the title bar pill only cares about IsUpdateAvailable below
+        public UpdateUiState UiState { get; private set; } = UpdateUiState.Unknown;
 
-        public UpdateInfo? Latest { get; private set; }
+        // the last check that actually reached GitHub; a failed one deliberately leaves this alone, so the button
+        // keeps naming the last answer it really got
+        public DateTimeOffset? LastCheckedAt { get; private set; }
+
+        public bool IsUpdateAvailable => UiState == UpdateUiState.UpdateAvailable;
+
+        // the release this app would install; null unless one is genuinely newer and not skipped, which is what
+        // keeps the pill and the update dialog off a version the user already declined
+        public UpdateInfo? Latest => _isNewer && UiState != UpdateUiState.Skipped ? _latestRelease : null;
+
+        // the release the notes reader shows, newer or not; on an up to date app this is the running version
+        public UpdateInfo? LatestRelease => _latestRelease;
 
         public static string CurrentVersion => FormatVersion(Assembly.GetExecutingAssembly().GetName().Version);
+
+        // the shape every version takes in front of the user, always with the v, e.g. v1.3.0
+        // the bare three part string stays the internal one: asset names, the skipped version setting and every
+        // comparison are built from that, so the prefix is added on the way out and never stored
+        public static string VersionLabel(string? version) =>
+            string.IsNullOrWhiteSpace(version) ? "" : $"v{version.TrimStart('v', 'V')}";
 
         public static string ReleasesPage => ReleasesPageUrl;
 
@@ -86,7 +135,12 @@ namespace FluentSensors.Core.Update
         // in one place
         public void Start()
         {
-            if (!AppDistribution.SupportsSelfUpdate) return;
+            if (!AppDistribution.SupportsSelfUpdate)
+            {
+                UiState = UpdateUiState.StoreManaged;
+                return;
+            }
+
             if (!SettingsService.Instance.CheckUpdatesOnStartup) return;
             if (_hasCheckedOnStartup) return;
 
@@ -96,20 +150,57 @@ namespace FluentSensors.Core.Update
             _ = CheckAsync();
         }
 
-        public async Task<UpdateCheckResult> CheckAsync()
+        // ignoreSkippedVersion is what the start pages update button passes when the user explicitly asks to see a
+        // version they skipped earlier
+        public async Task<UpdateCheckResult> CheckAsync(bool ignoreSkippedVersion = false)
         {
-            if (!AppDistribution.SupportsSelfUpdate) return UpdateCheckResult.UpToDate;
+            if (!AppDistribution.SupportsSelfUpdate)
+            {
+                UiState = UpdateUiState.StoreManaged;
+                return UpdateCheckResult.UpToDate;
+            }
 
             _dispatcherQueue ??= DispatcherQueue.GetForCurrentThread();
+
+            // spam guard, see CheckCooldown; the state is left exactly as the last answer put it
+            if (LastCheckedAt.HasValue && DateTimeOffset.Now - LastCheckedAt.Value < CheckCooldown)
+            {
+                return UiState == UpdateUiState.UpdateAvailable
+                    ? UpdateCheckResult.UpdateAvailable
+                    : UpdateCheckResult.UpToDate;
+            }
+
+            UiState = UpdateUiState.Checking;
+            RaiseStateChanged();
 
             try
             {
                 string json = await _http.GetStringAsync(LatestReleaseUrl);
-                var info = ParseRelease(json);
-                if (info == null) return UpdateCheckResult.UpToDate;
 
-                IsUpdateAvailable = true;
-                Latest = info;
+                var parsed = ParseRelease(json, out bool isNewer);
+
+                _latestRelease = Simulate(parsed, ref isNewer);
+                _isNewer = isNewer;
+                LastCheckedAt = DateTimeOffset.Now;
+
+                if (_latestRelease == null || !isNewer)
+                {
+                    UiState = UpdateUiState.UpToDate;
+                    RaiseStateChanged();
+                    return UpdateCheckResult.UpToDate;
+                }
+
+                // a skipped version stays out of the pill and out of the dialog, but the release itself is kept
+                // so the notes reader and the way back out of the skip both still have something to work with
+                bool skipped = !ignoreSkippedVersion && IsSkipped(_latestRelease.Version);
+                if (skipped)
+                {
+                    UiState = UpdateUiState.Skipped;
+                    RaiseStateChanged();
+                    return UpdateCheckResult.UpToDate;
+                }
+
+                UiState = UpdateUiState.UpdateAvailable;
                 RaiseStateChanged();
 
                 return UpdateCheckResult.UpdateAvailable;
@@ -117,25 +208,39 @@ namespace FluentSensors.Core.Update
             catch (Exception ex)
             {
                 Debug.WriteLine($"[UpdateService] check failed: {ex.Message}");
+
+                UiState = UpdateUiState.Failed;
+                RaiseStateChanged();
+
                 return UpdateCheckResult.Failed;
             }
         }
 
-        // --- revisit: start page ---
-        // deliberately forgets the dismissal on exit instead of persisting the version, because right now there is
-        // no way back: no settings entry and no start page, so a remembered skip leaves the update unreachable
-        // until the next release; that already stranded a test run
-        // the dialog already labels this "Skip this version", so the UI promises the persistent behaviour and only
-        // the storage is held back; once the start page can reopen this dialog, this goes back to writing
-        // SettingsService.SkippedUpdateVersion (removed from AppSettingsData and SettingsService along with this
-        // change) and CheckAsync gets its ignoreSkippedVersion parameter back for the explicit re-check
-        public void DismissUntilRestart()
+        // remembers the version across restarts, which is what the dialogs "Skip this version" label has always
+        // promised
+        //
+        // safe to persist only because the start pages update button is the way back out: it names the skipped
+        // version and clears it again, so a skip can no longer strand a release until the one after it
+        public void SkipVersion()
         {
-            if (Latest == null) return;
+            if (_latestRelease == null || !_isNewer) return;
 
-            IsUpdateAvailable = false;
+            SettingsService.Instance.SkippedUpdateVersion = _latestRelease.Version;
+
+            UiState = UpdateUiState.Skipped;
             RaiseStateChanged();
         }
+
+        // the counterpart the start page offers once a version is skipped
+        public void ClearSkippedVersion()
+        {
+            SettingsService.Instance.SkippedUpdateVersion = "";
+
+            if (_isNewer && _latestRelease != null) UiState = UpdateUiState.UpdateAvailable;
+            RaiseStateChanged();
+        }
+
+        public string SkippedVersion => SettingsService.Instance.SkippedUpdateVersion;
 
 
         // === private helpers ===
@@ -151,10 +256,35 @@ namespace FluentSensors.Core.Update
             return client;
         }
 
-        // returns null whenever the release is not actually newer, so the caller has one nullness check instead of a
-        // separate comparison result
-        private static UpdateInfo? ParseRelease(string json)
+        // debug only switch for walking through the update ui without publishing anything: put a version higher
+        // than the running one into simulatedVersion and every check reports that release as available
+        // only the version is swapped, the notes, the release url and the asset stay the real ones, so the dialog
+        // behaves exactly as it would for a genuine update, download and install included
+        // compiled out of a release build entirely, so a value left behind by accident can never ship
+        private static UpdateInfo? Simulate(UpdateInfo? release, ref bool isNewer)
         {
+#if DEBUG
+            const string simulatedVersion = ""; // e.g. "9.9.9", empty turns the simulation off
+
+            if (simulatedVersion.Length > 0 && release != null)
+            {
+                Debug.WriteLine($"[UpdateService] simulating an available update: {simulatedVersion}");
+
+                isNewer = true;
+                return release with { Version = simulatedVersion };
+            }
+#endif
+
+            return release;
+        }
+
+        // hands back whatever the api described rather than only an installable update, because the notes reader
+        // needs a release even when the app is current; whether it is worth installing is the separate isNewer answer
+        // null is reserved for a response that is not a usable release at all
+        private static UpdateInfo? ParseRelease(string json, out bool isNewer)
+        {
+            isNewer = false;
+
             using var document = JsonDocument.Parse(json);
             var root = document.RootElement;
 
@@ -167,34 +297,45 @@ namespace FluentSensors.Core.Update
 
             // both sides are cut to three parts before comparing: the tag parses as 1.3.0 with Revision -1 while the
             // assembly always carries a fourth component, and -1 sorts below 0 on every otherwise equal pair
-            if (Normalize(releaseVersion) <= Normalize(currentVersion)) return null;
+            isNewer = Normalize(releaseVersion) > Normalize(currentVersion);
 
             string releaseUrl = root.TryGetProperty("html_url", out var htmlUrl)
                 ? htmlUrl.GetString() ?? ReleasesPageUrl
                 : ReleasesPageUrl;
 
-            string wantedAsset = UpdateInstaller.PickAssetName(FormatVersion(releaseVersion));
-            if (!root.TryGetProperty("assets", out var assets)) return null;
+            string notes = root.TryGetProperty("body", out var bodyElement)
+                ? bodyElement.GetString() ?? ""
+                : "";
 
-            foreach (var asset in assets.EnumerateArray())
+            string formattedVersion = FormatVersion(releaseVersion);
+            string wantedAsset = UpdateInstaller.PickAssetName(formattedVersion);
+
+            if (root.TryGetProperty("assets", out var assets))
             {
-                string name = asset.TryGetProperty("name", out var nameElement) ? nameElement.GetString() ?? "" : "";
-                if (!string.Equals(name, wantedAsset, StringComparison.OrdinalIgnoreCase)) continue;
+                foreach (var asset in assets.EnumerateArray())
+                {
+                    string name = asset.TryGetProperty("name", out var nameElement) ? nameElement.GetString() ?? "" : "";
+                    if (!string.Equals(name, wantedAsset, StringComparison.OrdinalIgnoreCase)) continue;
 
-                string url = asset.TryGetProperty("browser_download_url", out var urlElement)
-                    ? urlElement.GetString() ?? ""
-                    : "";
-                if (string.IsNullOrEmpty(url)) continue;
+                    string url = asset.TryGetProperty("browser_download_url", out var urlElement)
+                        ? urlElement.GetString() ?? ""
+                        : "";
+                    if (string.IsNullOrEmpty(url)) continue;
 
-                long size = asset.TryGetProperty("size", out var sizeElement) ? sizeElement.GetInt64() : 0;
+                    long size = asset.TryGetProperty("size", out var sizeElement) ? sizeElement.GetInt64() : 0;
 
-                return new UpdateInfo(FormatVersion(releaseVersion), releaseUrl, name, url, size);
+                    return new UpdateInfo(formattedVersion, releaseUrl, notes, name, url, size);
+                }
             }
 
             // a newer release whose matching asset is missing still counts as an update, the dialog then falls back
             // to opening the release page instead of downloading anything
-            return new UpdateInfo(FormatVersion(releaseVersion), releaseUrl, "", "", 0);
+            return new UpdateInfo(formattedVersion, releaseUrl, notes, "", "", 0);
         }
+
+        private static bool IsSkipped(string version) =>
+            !string.IsNullOrEmpty(version)
+            && string.Equals(SettingsService.Instance.SkippedUpdateVersion, version, StringComparison.OrdinalIgnoreCase);
 
         private static Version Normalize(Version version) =>
             new Version(version.Major, version.Minor, Math.Max(version.Build, 0));

@@ -1,7 +1,8 @@
-using Microsoft.UI.Windowing;
+﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media.Animation;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,6 +20,7 @@ using FluentSensors.Features.AppStatus;
 using FluentSensors.Features.CsvLogging;
 using FluentSensors.Features.Performance;
 using FluentSensors.Features.Sensors;
+using FluentSensors.Features.Start;
 using FluentSensors.Features.Settings;
 using FluentSensors.Features.Update;
 using FluentSensors.Features.Widget;
@@ -80,8 +82,15 @@ namespace FluentSensors
         private bool _isHardwareServiceLoaded = false;
         private bool _isDashboardClosed = false;
 
+        // set for the one navigation that follows the splash, so that page animates in rather than appearing
+        // finished, see MainNavigationView_SelectionChanged
+        private bool _isStartupNavigation = false;
+
         // profile a caller asked for while the splash was still running; applied once the sensor page exists
         private SensorSelectionProfile? _pendingSensorProfile = null;
+
+        // same idea as _pendingSensorProfile, for a group request that arrives before the page exists
+        private IReadOnlyList<string> _pendingSensorHardware = null;
 
         // system tray icon commands
         public XamlUICommand RestoreAppCommand { get; } = new XamlUICommand(); // restore
@@ -206,17 +215,17 @@ namespace FluentSensors
             ShowMainWindowCommand.ExecuteRequested += (s, e) =>
             {
                 RestoreApp();
-                MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
+                MainNavigationView.SelectedItem = SensorsNavItem;
             };
             OpenPerformanceCommand.ExecuteRequested += (s, e) =>
             {
                 RestoreApp();
-                MainNavigationView.SelectedItem = MainNavigationView.MenuItems[1];
+                MainNavigationView.SelectedItem = PerformanceNavItem;
             };
             OpenSettingsCommand.ExecuteRequested += (s, e) =>
             {
                 RestoreApp();
-                MainNavigationView.SelectedItem = MainNavigationView.FooterMenuItems[0];
+                MainNavigationView.SelectedItem = SettingsNavItem;
             };
             ShowWidgetWindowCommand.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen();
             ShowCsvWindowCommand.ExecuteRequested += (s, e) => CsvLoggerWindow.RestoreIfOpen();
@@ -334,7 +343,10 @@ namespace FluentSensors
             SplashOverlay.Visibility = Visibility.Collapsed;
             AppStatus.IsAppReady = true;
             AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;
-            MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
+            // a profile request that came in during the splash outranks the configured startup page: that click
+            // was explicitly about the sensor list, and the block below needs the page it asks for
+            _isStartupNavigation = true;
+            MainNavigationView.SelectedItem = _pendingSensorProfile != null ? SensorsNavItem : StartupNavItem();
 
             // a profile request that arrived before the page existed; the selection above is what finally creates it
             if (_pendingSensorProfile is SensorSelectionProfile pendingProfile
@@ -342,6 +354,12 @@ namespace FluentSensors
             {
                 pendingPage.SelectProfile(pendingProfile);
                 _pendingSensorProfile = null;
+            }
+
+            if (_pendingSensorHardware != null && contentFrame.Content is SensorsPage pendingGroupPage)
+            {
+                pendingGroupPage.ExpandHardwareGroup(_pendingSensorHardware);
+                _pendingSensorHardware = null;
             }
 
             // re-open the widget window with its previously pinned sensors, if it was still open when the app last closed
@@ -461,7 +479,7 @@ namespace FluentSensors
         {
             var service = UpdateService.Instance;
 
-            AppStatus.UpdateVersionText = service.Latest?.Version ?? "";
+            AppStatus.UpdateVersionText = UpdateService.VersionLabel(service.Latest?.Version ?? "");
             AppStatus.IsUpdateAvailable = service.IsUpdateAvailable;
 
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);
@@ -555,6 +573,14 @@ namespace FluentSensors
 
         // === navigation ===
 
+        // where a launch lands, per the settings page; the start page is the default entry point
+        private NavigationViewItem StartupNavItem() => SettingsService.Instance.StartupPage switch
+        {
+            Common.UI.StartupPage.Sensors => SensorsNavItem,
+            Common.UI.StartupPage.Performance => PerformanceNavItem,
+            _ => StartNavItem
+        };
+
         private void MainNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             // checks if native settings item got clicked
@@ -564,21 +590,33 @@ namespace FluentSensors
                 return;
             }
 
+            // the page that comes up as the splash goes gets the entrance transition, so the reveal reads as one
+            // motion instead of a finished page sitting in a finished window; which page that is follows the
+            // launch setting
+            // null everywhere else leaves the navigation to the frames own transition, as before
+            NavigationTransitionInfo transition = _isStartupNavigation ? new EntranceNavigationTransitionInfo() : null;
+
+            _isStartupNavigation = false;
+
             if (args.SelectedItem is NavigationViewItem selectedItem)
             {
                 string pageTag = selectedItem.Tag.ToString();
                 switch (pageTag)
                 {
+                    case "Start":
+                        contentFrame.Navigate(typeof(StartPage), null, transition);
+                        break;
+
                     case "Sensors":
-                        contentFrame.Navigate(typeof(SensorsPage));
+                        contentFrame.Navigate(typeof(SensorsPage), null, transition);
                         break;
 
                     case "Settings":
-                        contentFrame.Navigate(typeof(SettingsPage));
+                        contentFrame.Navigate(typeof(SettingsPage), null, transition);
                         break;
 
                     case "Performance":
-                        contentFrame.Navigate(typeof(PerformancePage));
+                        contentFrame.Navigate(typeof(PerformancePage), null, transition);
                         break;
                 }
             }
@@ -742,7 +780,7 @@ namespace FluentSensors
 
             // NavigationView raises SelectionChanged only on an actual change, so re-selecting the already active
             // sensor item would never navigate; the profile below is applied either way
-            var sensorsItem = MainNavigationView.MenuItems[0];
+            var sensorsItem = SensorsNavItem;
             if (!ReferenceEquals(MainNavigationView.SelectedItem, sensorsItem))
             {
                 MainNavigationView.SelectedItem = sensorsItem;
@@ -756,6 +794,29 @@ namespace FluentSensors
             {
                 // splash is still running, StartHardwareServiceAsync picks this up once it selects the page
                 _pendingSensorProfile = profile;
+            }
+        }
+
+        // lands on the sensor list with one hardware group opened and the rest closed
+        // used by the start pages snapshot tiles, whose sensor count is a button onto exactly that group
+        public void OpenSensorsForHardware(IReadOnlyList<string> lhmHardwareNames)
+        {
+            if (lhmHardwareNames == null || lhmHardwareNames.Count == 0) return;
+
+            OpenDashboard();
+
+            if (!ReferenceEquals(MainNavigationView.SelectedItem, SensorsNavItem))
+            {
+                MainNavigationView.SelectedItem = SensorsNavItem;
+            }
+
+            if (contentFrame.Content is SensorsPage sensorsPage)
+            {
+                sensorsPage.ExpandHardwareGroup(lhmHardwareNames);
+            }
+            else
+            {
+                _pendingSensorHardware = lhmHardwareNames;
             }
         }
 

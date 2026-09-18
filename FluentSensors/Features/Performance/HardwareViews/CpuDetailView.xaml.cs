@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.Foundation;
@@ -43,10 +43,10 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // cpu graphs color (TotalLoad, MaxTemperature, PackagePower); single source of truth in
         // HardwareGroupInfo
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Color;
+        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetGraphColor(HardwareGroupKind.Cpu);
 
         // same color as HardwareColor, wrapped as a Brush (for hardware icon?)
-        //public SolidColorBrush HardwareColorBrush => new(HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Color);
+        //public SolidColorBrush HardwareColorBrush => new(HardwareGroupInfo.GetGraphColor(HardwareGroupKind.Cpu));
 
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Label;

@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="FluentSensors.Features.Start.ReleaseNotesDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Loaded="Dialog_Loaded"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    mc:Ignorable="d">
+
+    <!--
+        the style has to be named: WinUI keys it twice, implicitly as TargetType ContentDialog and by name, and
+        an implicit style only ever reaches its exact type, never a subclass like this one
+        without it the dialog still gets its template but loses CornerRadius, BorderThickness and the button
+        styles, which reads as square corners rather than as a missing style
+    -->
+
+    <ContentDialog.Resources>
+        <!--
+            no button text is set anywhere, which puts the template into its NoneVisible state and collapses the
+            command bar; the X in the header is the close affordance instead
+            zero padding lets header and navigation pane reach the dialog edges
+        -->
+        <Thickness x:Key="ContentDialogPadding">0</Thickness>
+        <Thickness x:Key="ContentDialogSeparatorThickness">0</Thickness>
+
+        <!--
+            the template paints this brush on the grid that carries the content, and at zero padding that grid
+            covers the whole dialog rather than only the top of it
+        -->
+        <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="Transparent" />
+    </ContentDialog.Resources>
+
+    <!--  (the size is applied in code, see ResizeToWindow)  -->
+    <Grid x:Name="RootGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  header: title and close button  -->
+        <!--  (stands in for the dialogs own Title, so the padding stays ours)  -->
+        <Grid
+            Grid.Row="0"
+            Padding="12,8,12,8"
+            ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!--  title  -->
+            <!--  (Tight plus TrimSideBearings, so the visible text starts where the padding says it does)  -->
+            <TextBlock
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                OpticalMarginAlignment="TrimSideBearings"
+                Style="{ThemeResource BodyLargeTextBlockStyle}"
+                Text="What's new"
+                TextLineBounds="Tight" />
+
+            <!--  close button  -->
+            <Button
+                Grid.Column="1"
+                Width="36"
+                Height="36"
+                Margin="0,0,0,6"
+                Padding="0"
+                VerticalAlignment="Center"
+                Click="CloseButton_Click"
+                Style="{StaticResource SubtleBarButtonStyle}"
+                ToolTipService.ToolTip="Close">
+                <FontIcon FontSize="14" Glyph="&#xE711;" />
+                <Button.KeyboardAccelerators>
+                    <!--  (a dialog without a command bar has no close button for ESC to map onto)  -->
+                    <KeyboardAccelerator Key="Escape" />
+                </Button.KeyboardAccelerators>
+            </Button>
+        </Grid>
+
+        <!--  content: release navigation and page frame  -->
+        <!--  (a real NavigationView driving a real Frame, which is what buys the native page transition)  -->
+        <NavigationView
+            x:Name="ReleaseNav"
+            Grid.Row="1"
+            IsBackButtonVisible="Collapsed"
+            IsPaneOpen="True"
+            IsPaneToggleButtonVisible="False"
+            IsSettingsVisible="False"
+            OpenPaneLength="90"
+            PaneDisplayMode="Left"
+            SelectionChanged="ReleaseNav_SelectionChanged">
+
+            <Grid>
+                <!--  release page  -->
+                <Frame x:Name="ReleaseFrame" />
+
+                <!--  loading ring  -->
+                <ProgressRing
+                    x:Name="LoadingRing"
+                    Width="26"
+                    Height="26"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsActive="False"
+                    Visibility="Collapsed" />
+
+                <!--  status text  -->
+                <!--  (offline or empty catalog, shown in place of the frame)  -->
+                <TextBlock
+                    x:Name="StatusText"
+                    Margin="28"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap"
+                    Visibility="Collapsed" />
+            </Grid>
+        </NavigationView>
+    </Grid>
+</ContentDialog>

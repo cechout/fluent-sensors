@@ -1,8 +1,7 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Diagnostics;
-using System.Reflection;
 using System.Threading.Tasks;
 
 using FluentSensors.Persistence.Services;
@@ -31,9 +30,6 @@ namespace FluentSensors.Features.Settings
         public SettingsPage()
         {
             this.InitializeComponent();
-
-            Version appVersion = Assembly.GetExecutingAssembly().GetName().Version;
-            VersionTextBlock.Text = $"Version {appVersion?.ToString(3)}";
 
             // restore the previous user selections
             RestoreThemeSelection();
@@ -207,6 +203,17 @@ namespace FluentSensors.Features.Settings
             StartMinimizedToggle.IsOn = settings.StartMinimizedToTray;
             CheckUpdatesToggle.IsOn = settings.CheckUpdatesOnStartup;
 
+            // deliberately above the two early returns below, the landing page is not tied to autostart at all
+            string currentStartupPage = settings.StartupPage.ToString();
+            foreach (ComboBoxItem item in StartupPageComboBox.Items)
+            {
+                if (item.Tag?.ToString() == currentStartupPage)
+                {
+                    StartupPageComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
             if (!AppDistribution.SupportsSelfUpdate)
             {
                 CheckUpdatesCard.Description = "Installed from Microsoft Store, updates are handled by the Store";
@@ -329,6 +336,18 @@ namespace FluentSensors.Features.Settings
             _isWritingStatusReadout = false;
 
             UpdateStatusReadoutCardStates();
+        }
+
+        // takes effect on the next launch, MainWindow reads the setting once during the splash reveal
+        private void StartupPageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (StartupPageComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out StartupPage page))
+            {
+                SettingsService.Instance.StartupPage = page;
+            }
         }
 
         private void StatusGroupOrderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -847,7 +866,8 @@ namespace FluentSensors.Features.Settings
                 Title = title,
                 Content = message,
                 CloseButtonText = "OK",
-                XamlRoot = this.XamlRoot
+                XamlRoot = this.XamlRoot,
+                RequestedTheme = DialogTheme.For(this.XamlRoot)
             };
             await dialog.ShowAsync();
         }
@@ -919,7 +939,8 @@ namespace FluentSensors.Features.Settings
                 PrimaryButtonText = confirmText,
                 CloseButtonText = "Cancel",
                 DefaultButton = ContentDialogButton.Close,
-                XamlRoot = this.XamlRoot
+                XamlRoot = this.XamlRoot,
+                RequestedTheme = DialogTheme.For(this.XamlRoot)
             };
             return await dialog.ShowAsync() == ContentDialogResult.Primary;
         }

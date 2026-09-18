@@ -48,7 +48,7 @@ namespace FluentSensors.Features.Performance
         public string GroupLabel { get; }
 
         // sidebar mini-graph color; single source of truth in HardwareGroupInfo, same color every detail view uses
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(Kind).Color;
+        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetGraphColor(Kind);
 
         // hardware type icon; same source and same glyph the detail views own header uses (e.g. CpuDetailView)
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(Kind).IconGlyph;

@@ -66,6 +66,10 @@ namespace FluentSensors.Persistence.Services
 
         // === public API ===
 
+        // where the five json files actually ended up, which the start page opens in Explorer; the answer differs
+        // between an installed and a portable build, see ResolveRootFolder
+        public string RootFolder => _rootFolder;
+
         // load
         public AppSettingsData LoadSettings() => LoadFile<AppSettingsData>(SettingsPath) ?? new AppSettingsData();
         public Dictionary<string, WindowState> LoadWindowStates() => LoadFile<Dictionary<string, WindowState>>(WindowStatePath) ?? new();

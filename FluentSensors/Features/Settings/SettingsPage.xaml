@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="FluentSensors.Features.Settings.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -128,6 +128,18 @@
                             OffContent="Off"
                             OnContent="On"
                             Toggled="StartMinimizedToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <!--  (the labels mirror the navigation entries, so both name the same page)  -->
+                    <controls:SettingsCard x:Name="StartupPageCard" Header="Page shown on launch">
+                        <ComboBox
+                            x:Name="StartupPageComboBox"
+                            Width="190"
+                            SelectionChanged="StartupPageComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Start" Tag="Start" />
+                            <ComboBoxItem Content="Sensors" Tag="Sensors" />
+                            <ComboBoxItem Content="Hardware View" Tag="Performance" />
+                        </ComboBox>
                     </controls:SettingsCard>
 
                     <controls:SettingsCard x:Name="CheckUpdatesCard" Header="Check for updates on startup">
@@ -575,66 +587,6 @@
                     <controls:SettingsCard Description="Per-sensor visibility, thresholds, graph scaling, pinned selection" Header="Sensor States">
                         <Button Click="ResetSensorStates_Click" Content="Reset" />
                     </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
-
-
-            <!--  about section  -->
-            <TextBlock
-                Margin="4,20,0,6"
-                Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="About &amp; Open Source" />
-
-            <controls:SettingsExpander
-                Description="© 2026 Daniel Čech. All rights reserved."
-                Header="Fluent Sensors"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE946;}">
-
-                <TextBlock
-                    x:Name="VersionTextBlock"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    IsTextSelectionEnabled="True" />
-
-                <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Developer Profile">
-                        <HyperlinkButton Content="Github" NavigateUri="https://github.com/cechout" />
-                    </controls:SettingsCard>
-                    <controls:SettingsCard Header="Project Repository">
-                        <HyperlinkButton Content="Github" NavigateUri="https://github.com/cechout/fluent-sensors" />
-                    </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
-
-            <controls:SettingsExpander
-                Description="Open source projects used in this app"
-                Header="Third-Party Libraries"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE8F1;}">
-
-                <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Windows App SDK">
-                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/microsoft/WindowsAppSDK" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard Header="Windows Community Toolkit">
-                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/CommunityToolkit/WindowsCommunityToolkit" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard Header="WinUIEx">
-                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/dotMorten/WinUIEx" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard Header="LiveCharts2">
-                        <HyperlinkButton Content="Website" NavigateUri="https://livecharts.dev/" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard Header="LibreHardwareMonitor">
-                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard Header="H.NotifyIcon">
-                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/HavenDV/H.NotifyIcon" />
-                    </controls:SettingsCard>
-
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 

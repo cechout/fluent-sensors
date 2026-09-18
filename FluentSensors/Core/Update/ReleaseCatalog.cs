@@ -1,0 +1,221 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+using FluentSensors.Persistence.Services;
+
+
+namespace FluentSensors.Core.Update
+{
+    // one published release as the notes reader needs it; deliberately not UpdateInfo, which carries the asset a
+    // build would install and says nothing about releases other than the latest
+    public record ReleaseEntry(
+        string Version, // three part, no leading v, e.g. "1.3.0"
+        string TagName,
+        string Name,
+        DateTimeOffset PublishedAt,
+        string Notes, // raw markdown body
+        string ReleaseUrl
+    );
+
+
+    // every published minor and major release from 1.0.0 onwards, for the release notes dialog
+    //
+    // kept apart from UpdateService on purpose: that one answers "is there something newer to install" once per
+    // start, this one answers "what changed, ever" and is only ever touched when the dialog is opened
+    //
+    // it answers to the same settings switch all the same, see IsNetworkAllowed
+    //
+    // the answer is cached on disk, so the dialog still has the full history with no connection
+    public class ReleaseCatalog
+    {
+        // === fields ===
+
+        private const string ReleasesUrl = "https://api.github.com/repos/cechout/fluent-sensors/releases?per_page=100";
+        private const string CacheFileName = "releases.json";
+
+        // everything the network can rebuild sits in here, apart from the state files, so the whole folder can be
+        // deleted without anyone losing a setting
+        private const string CacheFolderName = "cache";
+
+        // anything older is a pre-1.0 release nobody is offered any more
+        private static readonly Version MinimumVersion = new Version(1, 0, 0);
+
+        private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+
+        private IReadOnlyList<ReleaseEntry> _releases;
+
+
+        // === singleton instance ===
+
+        private static readonly ReleaseCatalog _instance = new ReleaseCatalog();
+        public static ReleaseCatalog Instance => _instance;
+
+        private ReleaseCatalog() { }
+
+
+        // === public api ===
+
+        // whatever was fetched or read from disk during this session, newest first
+        public IReadOnlyList<ReleaseEntry> Releases => _releases ?? Array.Empty<ReleaseEntry>();
+
+        // the startup check switch covers this too, so it is a real one rather than one that only stops the
+        // automatic check; with it off the dialog shows what is already on disk and nothing else
+        //
+        // the channel is deliberately not part of this: a store build must not install anything itself, but
+        // reading the release notes is not installing and there is no reason to take that away from it
+        public static bool IsNetworkAllowed => SettingsService.Instance.CheckUpdatesOnStartup;
+
+        // what the dialog asks for instead of RefreshAsync
+        //
+        // the on-disk copy stays good until a release exists that it does not carry, and the only thing that ever
+        // learns about one is the update check, once per app start and again on a manual check; opening the dialog
+        // is not itself a reason to spend one of the 60 unauthenticated api requests GitHub grants per hour and ip
+        // returns null when nothing was fetched, which is the signal to keep showing what is already there
+        public async Task<IReadOnlyList<ReleaseEntry>> EnsureCurrentAsync()
+        {
+            if (!IsNetworkAllowed) return null;
+
+            var cached = LoadCached();
+
+            if (cached.Count > 0 && !IsMissingLatest()) return null;
+
+            return await RefreshAsync();
+        }
+
+        // the on-disk copy, so the dialog has something to render before the network answers and keeps having it
+        // when there is no network at all
+        public IReadOnlyList<ReleaseEntry> LoadCached()
+        {
+            if (_releases != null) return _releases;
+
+            try
+            {
+                string path = CachePath();
+                if (!File.Exists(path)) return Array.Empty<ReleaseEntry>();
+
+                var cached = JsonSerializer.Deserialize<List<ReleaseEntry>>(File.ReadAllText(path));
+                if (cached != null) _releases = cached;
+            }
+            catch (Exception ex)
+            {
+                // a truncated or hand-edited cache is not worth failing over, the refresh below replaces it anyway
+                Debug.WriteLine($"[ReleaseCatalog] cache read failed: {ex.Message}");
+            }
+
+            return Releases;
+        }
+
+        // returns null when GitHub could not be reached, which is the signal to keep showing the cache
+        public async Task<IReadOnlyList<ReleaseEntry>> RefreshAsync()
+        {
+            try
+            {
+                string json = await UpdateService.Http.GetStringAsync(ReleasesUrl);
+
+                var parsed = Parse(json);
+                if (parsed.Count == 0) return null;
+
+                _releases = parsed;
+                WriteCache(parsed);
+
+                return parsed;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ReleaseCatalog] refresh failed: {ex.Message}");
+                return null;
+            }
+        }
+
+
+        // === private helpers ===
+
+        // whether the newest published release has a counterpart in the catalog
+        //
+        // the catalog only lists x.y.0, so a patch release is matched against the minor it belongs to; without
+        // that a published 1.3.1 would look missing forever and every dialog open would fetch again
+        // no answer from the update check yet means no reason to distrust the cache
+        private bool IsMissingLatest()
+        {
+            string latest = UpdateService.Instance.LatestRelease?.Version;
+            if (string.IsNullOrWhiteSpace(latest)) return false;
+            if (!Version.TryParse(latest, out var parsed)) return false;
+
+            string minor = $"{parsed.Major}.{parsed.Minor}.0";
+
+            return !Releases.Any(entry => entry.Version == minor);
+        }
+
+        // drafts and prereleases are skipped the same way the updater skips them, anything below 1.0.0 is
+        // history nobody is offered any more, and a patch is folded away because its notes never say anything
+        // the minor release it belongs to does not already say
+        private static List<ReleaseEntry> Parse(string json)
+        {
+            var entries = new List<ReleaseEntry>();
+
+            using var document = JsonDocument.Parse(json);
+            if (document.RootElement.ValueKind != JsonValueKind.Array) return entries;
+
+            foreach (var element in document.RootElement.EnumerateArray())
+            {
+                if (Flag(element, "draft") || Flag(element, "prerelease")) continue;
+
+                string tag = Text(element, "tag_name");
+                string version = tag.TrimStart('v', 'V');
+                if (!Version.TryParse(version, out var parsedVersion)) continue;
+                if (parsedVersion < MinimumVersion) continue;
+                if (parsedVersion.Build > 0) continue;
+
+                var published = element.TryGetProperty("published_at", out var publishedElement)
+                    && publishedElement.TryGetDateTimeOffset(out var value)
+                        ? value
+                        : DateTimeOffset.MinValue;
+
+                string name = Text(element, "name");
+                if (string.IsNullOrWhiteSpace(name)) name = tag;
+
+                entries.Add(new ReleaseEntry(
+                    $"{parsedVersion.Major}.{parsedVersion.Minor}.{Math.Max(parsedVersion.Build, 0)}",
+                    tag,
+                    name,
+                    published,
+                    Text(element, "body"),
+                    Text(element, "html_url")));
+            }
+
+            // the api already answers newest first, but the dialog depends on that order rather than hoping for it
+            return entries.OrderByDescending(e => e.PublishedAt).ToList();
+        }
+
+        private static string Text(JsonElement element, string property) =>
+            element.TryGetProperty(property, out var value) ? value.GetString() ?? "" : "";
+
+        private static bool Flag(JsonElement element, string property) =>
+            element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.True;
+
+        private static void WriteCache(List<ReleaseEntry> releases)
+        {
+            try
+            {
+                Directory.CreateDirectory(CacheFolder());
+                File.WriteAllText(CachePath(), JsonSerializer.Serialize(releases, _jsonOptions));
+            }
+            catch (Exception ex)
+            {
+                // a read-only or full disk costs the offline copy, nothing more
+                Debug.WriteLine($"[ReleaseCatalog] cache write failed: {ex.Message}");
+            }
+        }
+
+        // under the settings folder, so a portable copy carries its release history on the same drive
+        private static string CacheFolder() =>
+            Path.Combine(PersistenceService.Instance.RootFolder, CacheFolderName);
+
+        private static string CachePath() => Path.Combine(CacheFolder(), CacheFileName);
+    }
+}

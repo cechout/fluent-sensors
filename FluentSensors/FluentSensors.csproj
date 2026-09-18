@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
 	  <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -54,6 +54,9 @@
 		<None Remove="Features\Sensors\HiddenSensorsWindow.xaml" />
 		<None Remove="Features\Sensors\SensorsPage.xaml" />
 		<None Remove="Features\Settings\SettingsPage.xaml" />
+		<None Remove="Features\Start\ReleaseNotesDialog.xaml" />
+		<None Remove="Features\Start\ReleaseNotesPage.xaml" />
+		<None Remove="Features\Start\StartPage.xaml" />
 		<None Remove="Features\TaskbarWidget\TaskbarFlyoutWindow.xaml" />
 		<None Remove="Features\TaskbarWidget\TaskbarWidgetWindow.xaml" />
 		<None Remove="Features\Widget\WidgetWindow.xaml" />
@@ -144,6 +147,12 @@
     </Content>
     <Content Update="Assets\Icon\Icon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\Pictures\start-header-light.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\Pictures\start-header-dark.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
