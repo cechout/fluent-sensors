@@ -27,14 +27,14 @@ namespace FluentSensors.Features.Performance
 
                 if (isSubscribed) return;
                 isSubscribed = true;
-                SettingsService.Instance.HardwareColorsChanged += refresh;
+                SettingsService.Instance.HardwareIconColorsChanged += refresh;
             };
 
             root.Unloaded += (s, e) =>
             {
                 if (!isSubscribed) return;
                 isSubscribed = false;
-                SettingsService.Instance.HardwareColorsChanged -= refresh;
+                SettingsService.Instance.HardwareIconColorsChanged -= refresh;
             };
         }
     }

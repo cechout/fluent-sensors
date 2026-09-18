@@ -196,19 +196,38 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // per hardware category coloring; the value is mirrored onto HardwareColorMode rather than read from here,
-        // because the consumers of the color sit in Common and Features and must not reach into persistence
-        private bool _useHardwareColors = true;
-        public bool UseHardwareColors
+        // graph line color by hardware category, read straight off this service by SensorGraphViewModel, same as
+        // every other graph setting there
+        // reaches the widget and taskbar graphs only; the performance page overrides its graph color per view and
+        // stays hardware colored no matter how this stands
+        private bool _useHardwareGraphColors = false;
+        public bool UseHardwareGraphColors
         {
-            get => _useHardwareColors;
+            get => _useHardwareGraphColors;
             set
             {
-                if (_useHardwareColors != value)
+                if (_useHardwareGraphColors != value)
                 {
-                    _useHardwareColors = value;
-                    HardwareColorMode.UseGroupColors = value;
-                    HardwareColorsChanged?.Invoke();
+                    _useHardwareGraphColors = value;
+                    HardwareGraphColorsChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // hardware category icon color; mirrored onto HardwareColorMode rather than read from here, because
+        // HardwareGroupInfo resolves the brush and sits in Common, which must not reach into persistence
+        private bool _useHardwareIconColors = false;
+        public bool UseHardwareIconColors
+        {
+            get => _useHardwareIconColors;
+            set
+            {
+                if (_useHardwareIconColors != value)
+                {
+                    _useHardwareIconColors = value;
+                    HardwareColorMode.UseIconColors = value;
+                    HardwareIconColorsChanged?.Invoke();
                     SaveDebounced();
                 }
             }
@@ -757,8 +776,9 @@ namespace FluentSensors.Persistence.Services
             _graphTimeSpanSeconds = data.GraphTimeSpanSeconds;
             _graphLineStyle = data.GraphLineStyle;
             _graphFillFade = data.GraphFillFade;
-            _useHardwareColors = data.UseHardwareColors;
-            HardwareColorMode.UseGroupColors = _useHardwareColors;
+            _useHardwareGraphColors = data.UseHardwareGraphColors;
+            _useHardwareIconColors = data.UseHardwareIconColors;
+            HardwareColorMode.UseIconColors = _useHardwareIconColors;
             _performanceGraphTimeSpanSeconds = data.PerformanceGraphTimeSpanSeconds;
             _performanceExtendedGraphTimeSpanSeconds = data.PerformanceExtendedGraphTimeSpanSeconds;
 
@@ -815,7 +835,8 @@ namespace FluentSensors.Persistence.Services
                 GraphTimeSpanSeconds = _graphTimeSpanSeconds,
                 GraphLineStyle = _graphLineStyle,
                 GraphFillFade = _graphFillFade,
-                UseHardwareColors = _useHardwareColors,
+                UseHardwareGraphColors = _useHardwareGraphColors,
+                UseHardwareIconColors = _useHardwareIconColors,
                 PerformanceGraphTimeSpanSeconds = _performanceGraphTimeSpanSeconds,
                 PerformanceExtendedGraphTimeSpanSeconds = _performanceExtendedGraphTimeSpanSeconds,
 
@@ -883,8 +904,9 @@ namespace FluentSensors.Persistence.Services
         public event Action<GraphLineStyle> GraphLineStyleChanged;
         public event Action<bool> GraphFillFadeChanged;
 
-        // carries no value; every consumer only re-reads HardwareColorMode and refreshes what it drew from it
-        public event Action HardwareColorsChanged;
+        // both carry no value; every consumer only re-reads the switch and refreshes what it drew from it
+        public event Action HardwareGraphColorsChanged;
+        public event Action HardwareIconColorsChanged;
 
         // carries no value; both performance time spans raise it and consumers re-read whichever one they use
         public event Action PerformanceGraphTimeSpanChanged;

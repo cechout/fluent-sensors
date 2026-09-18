@@ -49,7 +49,7 @@ namespace FluentSensors.Features.Start
         {
             UpdateService.Instance.UpdateStateChanged += OnUpdateStateChanged;
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
-            SettingsService.Instance.HardwareColorsChanged += OnHardwareColorsChanged;
+            SettingsService.Instance.HardwareIconColorsChanged += OnHardwareIconColorsChanged;
             AppStatusService.Instance.StatusUpdated += OnStatusUpdated;
             this.ActualThemeChanged += OnActualThemeChanged;
 
@@ -63,7 +63,7 @@ namespace FluentSensors.Features.Start
         {
             UpdateService.Instance.UpdateStateChanged -= OnUpdateStateChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
-            SettingsService.Instance.HardwareColorsChanged -= OnHardwareColorsChanged;
+            SettingsService.Instance.HardwareIconColorsChanged -= OnHardwareIconColorsChanged;
             AppStatusService.Instance.StatusUpdated -= OnStatusUpdated;
             this.ActualThemeChanged -= OnActualThemeChanged;
         }
@@ -75,8 +75,8 @@ namespace FluentSensors.Features.Start
         // the theme moves
         private void OnThemeChanged(string theme) => ViewModel.RefreshUpdateState();
 
-        // the tile icons are the only thing on this page the hardware colour setting reaches
-        private void OnHardwareColorsChanged() => ViewModel.RefreshIconBrushes();
+        // the tile icons are the only thing on this page the hardware icon colour setting reaches
+        private void OnHardwareIconColorsChanged() => ViewModel.RefreshIconBrushes();
 
         // ActualTheme rather than the ThemeChanged setting above, because it also moves when the app follows the
         // system and Windows switches underneath it

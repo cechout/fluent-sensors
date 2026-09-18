@@ -372,7 +372,7 @@ namespace FluentSensors.Features.Start
         // what makes the icon read as a plain white glyph in the dark theme
         private static SolidColorBrush IconBrushFor(HardwareGroupKind kind)
         {
-            if (HardwareColorMode.UseGroupColors)
+            if (HardwareColorMode.UseIconColors)
             {
                 return new SolidColorBrush(HardwareGroupInfo.GetProfile(kind).Color);
             }

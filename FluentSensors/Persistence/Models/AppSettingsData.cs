@@ -30,9 +30,13 @@ namespace FluentSensors.Persistence.Models
         // fades the area under the line out towards the bottom instead of filling it in one flat tone; global
         public bool GraphFillFade { get; set; } = false;
 
-        // tints per hardware category instead of falling back to the ordinary accent or custom color; drives
+        // colors the widget and taskbar graphs by hardware category instead of by the accent or custom color
+        // the performance page graphs are not part of this, they are hardware colored either way
+        public bool UseHardwareGraphColors { get; set; } = false;
+
+        // colors the hardware category icons on the start, sensors and performance pages; drives
         // HardwareColorMode, which is where every consumer reads it
-        public bool UseHardwareColors { get; set; } = true;
+        public bool UseHardwareIconColors { get; set; } = false;
 
         // performance page graphs
         // Standard covers the overview blocks, Extended the denser grids (cpu all-threads, gpu extended)

@@ -530,12 +530,12 @@ namespace FluentSensors.Features.Settings
         {
             if (_isLoading) return;
 
-            SettingsService.Instance.UseHardwareColors = HardwareColorsToggle.IsOn;
+            SettingsService.Instance.UseHardwareIconColors = HardwareColorsToggle.IsOn;
         }
 
         private void RestoreHardwareColorsSelection()
         {
-            HardwareColorsToggle.IsOn = SettingsService.Instance.UseHardwareColors;
+            HardwareColorsToggle.IsOn = SettingsService.Instance.UseHardwareIconColors;
         }
 
 
