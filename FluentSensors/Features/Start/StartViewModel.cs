@@ -359,7 +359,7 @@ namespace FluentSensors.Features.Start
 
             return new SystemSnapshotEntry(
                 profile.IconGlyph,
-                IconBrushFor(kind),
+                HardwareGroupInfo.GetIconBrush(kind),
                 category,
                 string.IsNullOrWhiteSpace(title) ? "Unknown" : title,
                 details.Where(d => !string.IsNullOrWhiteSpace(d) && d != "-").ToList(),
@@ -368,15 +368,13 @@ namespace FluentSensors.Features.Start
         }
 
 
-        private static SolidColorBrush IconBrushFor(HardwareGroupKind kind) => HardwareGroupInfo.GetIconBrush(kind);
-
-        // re-runs IconBrushFor for every tile after the hardware colour setting was flipped; nothing else about a
+        // re-resolves every tile icon after the hardware icon colour setting was flipped; nothing else about a
         // tile depends on it, so the list itself is left alone rather than rebuilt
         public void RefreshIconBrushes()
         {
             foreach (var entry in _allSnapshotEntries)
             {
-                entry.IconBrush = IconBrushFor(entry.MatchKind);
+                entry.IconBrush = HardwareGroupInfo.GetIconBrush(entry.MatchKind);
             }
         }
 

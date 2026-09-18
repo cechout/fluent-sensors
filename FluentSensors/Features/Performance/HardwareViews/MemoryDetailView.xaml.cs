@@ -21,7 +21,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             InitializeComponent();
 
             PerformanceGraphDefaults.BindTimeSpan(OverviewBlockGrid, PerformanceGraphKind.Standard);
-            HardwareColorBinding.Bind(this, () => Bindings.Update());
+            HardwareIconColorBinding.Bind(this, () => Bindings.Update());
         }
 
 
@@ -34,8 +34,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).Label;
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).IconGlyph;
 
-        // header icon colour, follows the hardware icon colour setting; HardwareColorBinding in the constructor is
-        // what re-reads it, the graph colour above is deliberately not part of that
+        // header icon colour, follows the hardware icon colour setting; HardwareIconColorBinding in the
+        // constructor is what re-reads it, the graph colour above is deliberately not part of that
         public SolidColorBrush GroupIconBrush => HardwareGroupInfo.GetIconBrush(HardwareGroupKind.Ram);
 
 
