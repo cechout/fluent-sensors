@@ -282,7 +282,7 @@
                                         <fhGraph:SensorGraphControl
                                             Grid.Column="0"
                                             Height="52"
-                                            AccentColor="{x:Bind local:PerformancePage.ResolveNavGraphColor(HardwareColor, PrimaryGraph.GraphColor), Mode=OneWay}"
+                                            AccentColor="{x:Bind HardwareColor, Mode=OneTime}"
                                             CardBackgroundOverride="{x:Bind local:PerformancePage.ResolveSelectedGraphBackground(IsSelected, local:PerformanceViewModel.Instance.IsDarkTheme), Mode=OneWay}"
                                             IsAutoScaled="{x:Bind PrimaryGraph.IsAutoScaled, Mode=OneWay}"
                                             IsHoverEnabled="False"

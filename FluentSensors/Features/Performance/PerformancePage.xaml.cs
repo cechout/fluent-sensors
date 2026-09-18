@@ -380,12 +380,6 @@ namespace FluentSensors.Features.Performance
         private static Windows.UI.Color? ResolveSelectedGraphBackground(bool isSelected, bool isDarkTheme) =>
             isSelected && isDarkTheme ? (Windows.UI.Color)Application.Current.Resources["ControlFillColorDisabled"] : (Windows.UI.Color?)null;
 
-        // the sidebar mini graph sets AccentColor directly instead of going through SensorPanelControl, so the
-        // "alpha 0 means no hardware color" fallback that control applies has to be repeated here; without it the
-        // line would be drawn fully transparent while hardware colors are switched off
-        private static Windows.UI.Color ResolveNavGraphColor(Windows.UI.Color hardwareColor, Windows.UI.Color graphColor) =>
-            hardwareColor.A == 0 ? graphColor : hardwareColor;
-
         // re-measures the current detail views vertical layout after a nav sidebar/info panel visibility change;
         // Dispatched rather than called synchronously
         private void RecalculateCurrentDetailViewHeight()

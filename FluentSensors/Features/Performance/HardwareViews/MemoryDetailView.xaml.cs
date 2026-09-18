@@ -27,7 +27,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // === bindable properties ===
 
         // graph color for every SensorPanelControl in this view; single source of truth in HardwareGroupInfo
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetGraphColor(HardwareGroupKind.Ram);
+        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).Color;
 
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).Label;

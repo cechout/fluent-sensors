@@ -152,7 +152,7 @@
                             <fhGraph:SensorPanelControl
                                 Grid.Row="1"
                                 Height="130"
-                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneWay}"
+                                GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                 IsGraphHoverEnabled="False"
                                 IsHitTestVisible="False"
                                 ShowCompactStatusRow="True"

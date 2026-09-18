@@ -1,7 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
-using System.ComponentModel;
 using Windows.Foundation;
 
 using FluentSensors.Common.Sensors;
@@ -15,7 +14,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
 {
     // self-contained CPU detail view: everything shown once a CPU nav item is selected, including its own
     // Overall/All-Threads toggle bar
-    public sealed partial class CpuDetailView : UserControl, INotifyPropertyChanged
+    public sealed partial class CpuDetailView : UserControl
     {
         // === fields ===
 
@@ -37,7 +36,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             InitializeComponent();
 
             PerformanceGraphDefaults.BindTimeSpan(OverviewBlockGrid, PerformanceGraphKind.Standard);
-            HardwareColorBinding.Bind(this, RefreshHardwareColor);
+            HardwareColorBinding.Bind(this, () => Bindings.Update());
         }
 
 
@@ -45,7 +44,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // cpu graphs color (TotalLoad, MaxTemperature, PackagePower); single source of truth in
         // HardwareGroupInfo
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetGraphColor(HardwareGroupKind.Cpu);
+        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Color;
 
         // same color as HardwareColor, wrapped as a Brush (for hardware icon?)
         //public SolidColorBrush HardwareColorBrush => new(HardwareGroupInfo.GetGraphColor(HardwareGroupKind.Cpu));
@@ -77,17 +76,6 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
 
         // === event handlers ===
-
-        // HardwareColorBinding calls this whenever the hardware color setting flips
-        //
-        // Bindings.Update covers the graphs written out in this views own xaml; the per thread graphs sit in a
-        // DataTemplate and reach HardwareColor through an ElementName Binding instead, which only the change
-        // notification moves
-        private void RefreshHardwareColor()
-        {
-            Bindings.Update();
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HardwareColor)));
-        }
 
         private void ShowOverall_Click(object sender, RoutedEventArgs e)
         {
@@ -219,11 +207,5 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // gap above the second core group, collapses to 0 together with the group above it instead of leaving a stray
         // RowSpacing-style gap, see the workaround note on AllThreadsGrid in the XAML
         private Thickness GroupSpacingMargin(bool showSplit) => showSplit ? new Thickness(0, CoreGroupSpacing, 0, 0) : new Thickness(0);
-
-
-        // === INotifyPropertyChanged implementation ===
-
-        // HardwareColor is the only property that announces itself, see RefreshHardwareColor
-        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

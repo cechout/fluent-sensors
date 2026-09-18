@@ -27,15 +27,6 @@
             };
         }
 
-        // the graph line colour for a category, or "no override" when group colouring is switched off
-        //
-        // SensorPanelControl reads an override with Alpha 0 as unset and falls back to the accent or custom colour
-        // from the settings, so handing back Transparent here is all it takes; the control itself needs no change
-        public static Windows.UI.Color GetGraphColor(HardwareGroupKind kind) =>
-            HardwareColorMode.UseGroupColors
-                ? GetProfile(kind).Color
-                : Windows.UI.Color.FromArgb(0, 0, 0, 0);
-
         public static HardwareGroupProfile GetProfile(HardwareGroupKind kind)
         {
             return kind switch

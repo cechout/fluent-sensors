@@ -48,7 +48,9 @@ namespace FluentSensors.Features.Performance
         public string GroupLabel { get; }
 
         // sidebar mini-graph color; single source of truth in HardwareGroupInfo, same color every detail view uses
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetGraphColor(Kind);
+        // deliberately not behind the hardware color setting: that one covers the widget and taskbar graphs, the
+        // performance page is hardware colored either way
+        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(Kind).Color;
 
         // hardware type icon; same source and same glyph the detail views own header uses (e.g. CpuDetailView)
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(Kind).IconGlyph;
@@ -106,13 +108,6 @@ namespace FluentSensors.Features.Performance
                 }
             }
         }
-
-
-        // === public methods ===
-
-        // HardwareColor has no state of its own, it reads HardwareColorMode every time; this only tells the
-        // sidebar and the start view tiles to ask again after the setting flipped
-        public void RefreshHardwareColor() => OnPropertyChanged(nameof(HardwareColor));
 
 
         // === event handlers ===
