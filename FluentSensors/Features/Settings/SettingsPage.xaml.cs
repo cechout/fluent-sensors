@@ -229,6 +229,7 @@ namespace FluentSensors.Features.Settings
                 RunOnStartupCard.Description = "Not available in the portable version, it would leave a scheduled task behind";
                 RunOnStartupToggle.Visibility = Visibility.Collapsed;
                 DelayStartupCard.Visibility = Visibility.Collapsed;
+                UpdateStartupCardStates();
                 return;
             }
 
@@ -242,11 +243,15 @@ namespace FluentSensors.Features.Settings
             UpdateStartupCardStates();
         }
 
-        // both rows only do anything while windows is the one launching the app, so neither is offered without it
+        // both rows only do anything while windows is the one launching the app: a delay needs a scheduled task
+        // to delay, and start-minimized is explicitly about the sign-in launch, see MainWindow.StartsHiddenInTray
+        // the portable build has no task at all, so neither row can be honoured there whatever the toggle says
         private void UpdateStartupCardStates()
         {
-            DelayStartupCard.IsEnabled = RunOnStartupToggle.IsOn;
-            StartMinimizedCard.IsEnabled = RunOnStartupToggle.IsOn;
+            bool autostartActive = WinAutostartService.IsSupported && RunOnStartupToggle.IsOn;
+
+            DelayStartupCard.IsEnabled = autostartActive;
+            StartMinimizedCard.IsEnabled = autostartActive;
         }
 
         private async void RunOnStartupToggle_Toggled(object sender, RoutedEventArgs e)
@@ -702,6 +707,7 @@ namespace FluentSensors.Features.Settings
                 SelectByTag(GraphColorSourceComboBox, nameof(GraphColorSource.Custom));
 
                 SettingsService.Instance.GraphCustomColor = colorPicker.SelectedColor;
+                UpdateGraphColorPickerStates();
             }
         }
 
@@ -771,6 +777,8 @@ namespace FluentSensors.Features.Settings
             {
                 SettingsService.Instance.TaskbarUseAccentColor = (tag == "Accent");
             }
+
+            UpdateTaskbarBackgroundMaterialCardStates();
         }
 
         private void TaskbarTintSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
@@ -792,6 +800,7 @@ namespace FluentSensors.Features.Settings
                 SettingsService.Instance.TaskbarUseAccentColor = false;
                 TaskbarBackgroundColorSourceComboBox.SelectedIndex = 1;
                 SettingsService.Instance.TaskbarCustomTintColor = colorPicker.SelectedColor;
+                UpdateTaskbarBackgroundMaterialCardStates();
             }
         }
 
@@ -837,6 +846,7 @@ namespace FluentSensors.Features.Settings
                 SettingsService.Instance.TaskbarGraphColorSource = GraphColorSource.Custom;
                 SelectByTag(TaskbarGraphColorSourceComboBox, nameof(GraphColorSource.Custom));
                 SettingsService.Instance.TaskbarGraphCustomColor = colorPicker.SelectedColor;
+                UpdateGraphColorPickerStates();
             }
         }
 
