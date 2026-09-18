@@ -76,7 +76,7 @@
                     <StackPanel
                         x:Name="ChangelogRow"
                         Orientation="Horizontal"
-                        Spacing="6"
+                        Spacing="12"
                         Visibility="Collapsed">
                         <TextBlock
                             VerticalAlignment="Center"
