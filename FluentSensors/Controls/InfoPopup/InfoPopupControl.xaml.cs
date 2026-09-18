@@ -349,6 +349,21 @@ namespace FluentSensors.Controls.InfoPopup
             InfoPopup.IsOpen = isOpening;
         }
 
+        // an open popup pulls the title text over to the Windows accent color, so the title reads as the active
+        // one while several popups sit next to each other
+        //
+        // driven off the popups own Opened/Closed rather than InfoButton_Click, because a light dismiss closes it
+        // without ever going through the click handler
+        private void InfoPopup_Opened(object sender, object e)
+        {
+            VisualStateManager.GoToState(this, "PopupOpen", false);
+        }
+
+        private void InfoPopup_Closed(object sender, object e)
+        {
+            VisualStateManager.GoToState(this, "PopupClosed", false);
+        }
+
         // title and button overlap in the same cell instead of separate grid columns; the title reserves room for
         // the button via a plain right Margin (a real measure-time constraint, so TextTrimming/TextWrapping still
         // work correctly), and the button is positioned directly off the titles own ActualWidth here, no

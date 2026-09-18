@@ -32,7 +32,7 @@
                                 <VisualStateGroup x:Name="CommonStates">
 
                                     <!--  rest state  -->
-                                    <!--  whatever ButtonBackground  is bound to (Transparent by default)  -->
+                                    <!--  whatever ButtonBackground is bound to (Transparent by default)  -->
                                     <VisualState x:Name="Normal" />
 
                                     <VisualState x:Name="PointerOver">
@@ -60,6 +60,25 @@
 
     <Grid x:Name="RootGrid" MinHeight="{x:Bind ButtonSize, Mode=OneWay}">
 
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="PopupStates">
+
+                <!--  rest state  -->
+                <!--  (no setter, so the title keeps its own Foreground: the XAML default or a consumers TitleForeground)  -->
+                <VisualState x:Name="PopupClosed" />
+
+                <!--
+                    (a setter rather than assigning Foreground from code, which would sever the ThemeResource
+                    for good and stop the title following a theme switch)
+                -->
+                <VisualState x:Name="PopupOpen">
+                    <VisualState.Setters>
+                        <Setter Target="TitleTextBlock.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                    </VisualState.Setters>
+                </VisualState>
+
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
 
         <!--  optional title  -->
         <!--  (collapses entirely, including its layout space, when Title is empty)  -->
@@ -80,7 +99,7 @@
         </Grid>
 
 
-        <!--  InfoButton  -->
+        <!--  info button  -->
         <Grid
             x:Name="ButtonHost"
             HorizontalAlignment="Left"
@@ -105,10 +124,12 @@
             </Button>
 
 
-            <!--  Popup  -->
+            <!--  popup  -->
             <Popup
                 x:Name="InfoPopup"
-                IsLightDismissEnabled="True">
+                Closed="InfoPopup_Closed"
+                IsLightDismissEnabled="True"
+                Opened="InfoPopup_Opened">
 
                 <Popup.ChildTransitions>
                     <TransitionCollection />
@@ -125,13 +146,13 @@
                     CornerRadius="4"
                     SizeChanged="PopupContent_SizeChanged">
 
-                    <!--  order top to bottom:  -->
-                    <!--  SourceIntro  -->
-                    <!--  SourceLinks (or the plain Source line as fallback)  -->
-                    <!--  Description  -->
+                    <!--
+                        order top to bottom: source intro, source links (or the plain source line as
+                        fallback), description
+                    -->
                     <StackPanel Spacing="4">
 
-                        <!--  SourceIntro,  -->
+                        <!--  source intro  -->
                         <!--  (empty and collapsed by default)  -->
                         <ItemsControl ItemsSource="{x:Bind SplitParagraphs(SourceIntro), Mode=OneWay}" Visibility="{x:Bind GetSourceIntroVisibility(SourceIntro), Mode=OneWay}">
                             <ItemsControl.ItemsPanel>
@@ -150,7 +171,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <!--  SourceLinks  -->
+                        <!--  source links  -->
                         <!--  (clickable sources, one HyperlinkButton per entry)  -->
                         <ItemsControl
                             Margin="0,0,0,8"
@@ -179,7 +200,7 @@
                             TextWrapping="Wrap"
                             Visibility="{x:Bind GetSourceVisibility(Source, SourceLinks), Mode=OneWay}" />
 
-                        <!--  Description  -->
+                        <!--  description  -->
                         <!--  (each paragraph in its own TextBlock instead of one block with embedded line breaks)  -->
                         <ItemsControl ItemsSource="{x:Bind SplitParagraphs(Description), Mode=OneWay}">
                             <ItemsControl.ItemsPanel>
