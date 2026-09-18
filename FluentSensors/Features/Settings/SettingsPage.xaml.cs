@@ -600,6 +600,21 @@ namespace FluentSensors.Features.Settings
             {
                 SettingsService.Instance.BackdropType = tag;
             }
+
+            UpdateBackgroundMaterialCardStates();
+        }
+
+        // the backdrop in the header decides which rows below it do anything: both opacity sliders are acrylic
+        // only, and mica brings its own color, so only acrylic and solid have a color to source at all
+        // the picker answers to the source next to it rather than to the backdrop
+        private void UpdateBackgroundMaterialCardStates()
+        {
+            string backdrop = SettingsService.Instance.BackdropType;
+
+            TintOpacityCard.IsEnabled = backdrop == "Acrylic";
+            LuminosityOpacityCard.IsEnabled = backdrop == "Acrylic";
+            BackgroundColorSourceCard.IsEnabled = backdrop is "Acrylic" or "None";
+            WidgetBackgroundColorPicker.IsEnabled = !SettingsService.Instance.UseAccentColor;
         }
 
         private void BackgroundColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -608,6 +623,8 @@ namespace FluentSensors.Features.Settings
             {
                 SettingsService.Instance.UseAccentColor = (tag == "Accent");
             }
+
+            UpdateBackgroundMaterialCardStates();
         }
 
         private void TintSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
@@ -631,6 +648,7 @@ namespace FluentSensors.Features.Settings
                 BackgroundColorSourceComboBox.SelectedIndex = 1;
 
                 SettingsService.Instance.CustomTintColor = colorPicker.SelectedColor;
+                UpdateBackgroundMaterialCardStates();
             }
         }
 
@@ -651,6 +669,8 @@ namespace FluentSensors.Features.Settings
             TintSlider.Value = SettingsService.Instance.TintOpacity;
             LuminositySlider.Value = SettingsService.Instance.LuminosityOpacity;
             WidgetBackgroundColorPicker.SelectedColor = SettingsService.Instance.CustomTintColor;
+
+            UpdateBackgroundMaterialCardStates();
         }
 
         // Graph
@@ -661,6 +681,15 @@ namespace FluentSensors.Features.Settings
             {
                 SettingsService.Instance.GraphColorSource = source;
             }
+
+            UpdateGraphColorPickerStates();
+        }
+
+        // a color picker is only worth reaching while the selector next to it actually says custom
+        private void UpdateGraphColorPickerStates()
+        {
+            GraphColorPicker.IsEnabled = SettingsService.Instance.GraphColorSource == GraphColorSource.Custom;
+            TaskbarGraphColorPicker.IsEnabled = SettingsService.Instance.TaskbarGraphColorSource == GraphColorSource.Custom;
         }
         private void GraphColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
         {
@@ -693,6 +722,8 @@ namespace FluentSensors.Features.Settings
         {
             SelectByTag(GraphColorSourceComboBox, SettingsService.Instance.GraphColorSource.ToString());
             GraphColorPicker.SelectedColor = SettingsService.Instance.GraphCustomColor;
+
+            UpdateGraphColorPickerStates();
         }
 
         private void RestoreGraphTimeSpanSelection()
@@ -719,6 +750,19 @@ namespace FluentSensors.Features.Settings
             {
                 SettingsService.Instance.TaskbarBackdropType = tag;
             }
+
+            UpdateTaskbarBackgroundMaterialCardStates();
+        }
+
+        // same rule as the widget window, see UpdateBackgroundMaterialCardStates
+        private void UpdateTaskbarBackgroundMaterialCardStates()
+        {
+            string backdrop = SettingsService.Instance.TaskbarBackdropType;
+
+            TaskbarTintOpacityCard.IsEnabled = backdrop == "Acrylic";
+            TaskbarLuminosityOpacityCard.IsEnabled = backdrop == "Acrylic";
+            TaskbarBackgroundColorSourceCard.IsEnabled = backdrop is "Acrylic" or "None";
+            TaskbarBackgroundColorPicker.IsEnabled = !SettingsService.Instance.TaskbarUseAccentColor;
         }
 
         private void TaskbarBackgroundColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -768,6 +812,8 @@ namespace FluentSensors.Features.Settings
             TaskbarTintSlider.Value = SettingsService.Instance.TaskbarTintOpacity;
             TaskbarLuminositySlider.Value = SettingsService.Instance.TaskbarLuminosityOpacity;
             TaskbarBackgroundColorPicker.SelectedColor = SettingsService.Instance.TaskbarCustomTintColor;
+
+            UpdateTaskbarBackgroundMaterialCardStates();
         }
 
         // Graph
@@ -778,6 +824,8 @@ namespace FluentSensors.Features.Settings
             {
                 SettingsService.Instance.TaskbarGraphColorSource = source;
             }
+
+            UpdateGraphColorPickerStates();
         }
 
         private void TaskbarGraphColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
@@ -817,6 +865,8 @@ namespace FluentSensors.Features.Settings
         {
             SelectByTag(TaskbarGraphColorSourceComboBox, SettingsService.Instance.TaskbarGraphColorSource.ToString());
             TaskbarGraphColorPicker.SelectedColor = SettingsService.Instance.TaskbarGraphCustomColor;
+
+            UpdateGraphColorPickerStates();
         }
 
         private void RestoreTaskbarGraphBackgroundSourceSelection()

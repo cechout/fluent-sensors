@@ -300,7 +300,10 @@
                 </ComboBox>
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="(Acrylic only)" Header="Tint Opacity">
+                    <controls:SettingsCard
+                        x:Name="TintOpacityCard"
+                        Description="(Acrylic only)"
+                        Header="Tint Opacity">
                         <Slider
                             x:Name="TintSlider"
                             Width="200"
@@ -311,7 +314,10 @@
                             ValueChanged="TintSlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="(Acrylic only)" Header="Luminosity Opacity">
+                    <controls:SettingsCard
+                        x:Name="LuminosityOpacityCard"
+                        Description="(Acrylic only)"
+                        Header="Luminosity Opacity">
                         <Slider
                             x:Name="LuminositySlider"
                             Width="200"
@@ -322,7 +328,10 @@
                             ValueChanged="LuminositySlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="(Acrylic and Solid)" Header="Background Color Source">
+                    <controls:SettingsCard
+                        x:Name="BackgroundColorSourceCard"
+                        Description="(Acrylic and Solid)"
+                        Header="Background Color Source">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="BackgroundColorSourceComboBox"
@@ -495,7 +504,10 @@
                 </ComboBox>
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="(Acrylic only)" Header="Tint Opacity">
+                    <controls:SettingsCard
+                        x:Name="TaskbarTintOpacityCard"
+                        Description="(Acrylic only)"
+                        Header="Tint Opacity">
                         <Slider
                             x:Name="TaskbarTintSlider"
                             Width="200"
@@ -506,7 +518,10 @@
                             ValueChanged="TaskbarTintSlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="(Acrylic only)" Header="Luminosity Opacity">
+                    <controls:SettingsCard
+                        x:Name="TaskbarLuminosityOpacityCard"
+                        Description="(Acrylic only)"
+                        Header="Luminosity Opacity">
                         <Slider
                             x:Name="TaskbarLuminositySlider"
                             Width="200"
@@ -517,7 +532,10 @@
                             ValueChanged="TaskbarLuminositySlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="(Acrylic and Solid)" Header="Background Color Source">
+                    <controls:SettingsCard
+                        x:Name="TaskbarBackgroundColorSourceCard"
+                        Description="(Acrylic and Solid)"
+                        Header="Background Color Source">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="TaskbarBackgroundColorSourceComboBox"
