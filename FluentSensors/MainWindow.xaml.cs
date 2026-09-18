@@ -590,13 +590,11 @@ namespace FluentSensors
                 return;
             }
 
-            // the page that comes up as the splash goes animates in, so the reveal reads as one motion instead
-            // of a finished page sitting in a finished window; which page that is follows the launch setting
-            // every later switch is a click, and suppressing it is what keeps those instant now that the frame
-            // carries a NavigationThemeTransition
-            NavigationTransitionInfo transition = _isStartupNavigation
-                ? new EntranceNavigationTransitionInfo()
-                : new SuppressNavigationTransitionInfo();
+            // the page that comes up as the splash goes gets the entrance transition, so the reveal reads as one
+            // motion instead of a finished page sitting in a finished window; which page that is follows the
+            // launch setting
+            // null everywhere else leaves the navigation to the frames own transition, as before
+            NavigationTransitionInfo transition = _isStartupNavigation ? new EntranceNavigationTransitionInfo() : null;
 
             _isStartupNavigation = false;
 
