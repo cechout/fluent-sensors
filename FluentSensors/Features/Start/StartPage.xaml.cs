@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
+using FluentSensors.Common.UI;
 using FluentSensors.Core;
 using FluentSensors.Core.Update;
 using FluentSensors.Features.Update;
@@ -93,7 +94,11 @@ namespace FluentSensors.Features.Start
         // navigation pane and a page of its own
         private async void ReleaseNotesButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new ReleaseNotesDialog { XamlRoot = this.XamlRoot };
+            var dialog = new ReleaseNotesDialog
+            {
+                XamlRoot = this.XamlRoot,
+                RequestedTheme = DialogTheme.For(this.XamlRoot)
+            };
             await dialog.ShowAsync();
         }
 

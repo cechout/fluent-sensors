@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FluentSensors.Common.UI;
 using FluentSensors.Core.Update;
 
 
@@ -66,7 +67,8 @@ namespace FluentSensors.Features.Update
                 SecondaryButtonText = "Manual Install",
                 CloseButtonText = "Close",
                 DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = xamlRoot
+                XamlRoot = xamlRoot,
+                RequestedTheme = DialogTheme.For(xamlRoot)
             };
 
             // non-null exactly while a download is running, which is also what turns Close into the cancel button

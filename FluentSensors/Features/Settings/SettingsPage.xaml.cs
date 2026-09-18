@@ -866,7 +866,8 @@ namespace FluentSensors.Features.Settings
                 Title = title,
                 Content = message,
                 CloseButtonText = "OK",
-                XamlRoot = this.XamlRoot
+                XamlRoot = this.XamlRoot,
+                RequestedTheme = DialogTheme.For(this.XamlRoot)
             };
             await dialog.ShowAsync();
         }
@@ -938,7 +939,8 @@ namespace FluentSensors.Features.Settings
                 PrimaryButtonText = confirmText,
                 CloseButtonText = "Cancel",
                 DefaultButton = ContentDialogButton.Close,
-                XamlRoot = this.XamlRoot
+                XamlRoot = this.XamlRoot,
+                RequestedTheme = DialogTheme.For(this.XamlRoot)
             };
             return await dialog.ShowAsync() == ContentDialogResult.Primary;
         }
