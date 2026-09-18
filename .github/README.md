@@ -24,7 +24,7 @@ How it currently looks performance-wise:
 
 Every release on the [releases page](https://github.com/cechout/fluent-sensors/releases) ships two x64 builds:
 
-* **Installer** (`FluentSensors_Installer.exe`): installs into `Program Files`, creates a start menu entry and an optional desktop shortcut, and registers an uninstall entry. Settings are stored in `%LocalAppData%\FluentHwInfo`.
+* **Installer** (`FluentSensors_Installer.exe`): installs into `Program Files`, creates a start menu entry and an optional desktop shortcut, and registers an uninstall entry. Settings are stored in `%LocalAppData%\FluentSensors`.
 * **Portable** (`FluentSensors_Portable_<version>.zip`): unzip it anywhere and run `FluentSensors.exe`. No setup, no uninstall entry. Settings are stored in a `Persistence` folder next to the executable, so the whole folder can be moved between drives or machines, and deleting it removes every trace of the app.
 
 Both builds come from the same compilation and differ only in the `portable.txt` marker file, which is what switches the storage location.

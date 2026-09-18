@@ -8,10 +8,10 @@ The app does go online for one thing: it asks GitHub whether a newer version exi
 
 Everything the app remembers is written to your machine as plain JSON files that you can open, copy or delete:
 
-* **Installer build:** `%LocalAppData%\FluentHwInfo`
+* **Installer build:** `%LocalAppData%\FluentSensors`
 * **Portable build:** a `Persistence` folder next to `FluentSensors.exe`
 
-These files hold your settings, your window sizes and positions, and which sensors you picked. Nothing else is written, and none of it is ever uploaded.
+These files hold your settings, your window sizes and positions, and which sensors you picked. Beside them the app keeps a `cache` folder for the release notes it has already loaded, and a `quarantine` folder for files that could not be read any more. Both can be deleted at any time, and none of it is ever uploaded.
 
 ## 🌐 When the app goes online
 

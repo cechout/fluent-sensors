@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -25,6 +26,21 @@ namespace FluentSensors.Persistence.Services
         // the marker ships only in the portable zip, installer builds never contain it
         // the marker check itself lives in AppDistribution, because the updater needs the same answer
         private const string PortableFolderName = "Persistence";
+
+        // the folder under %LocalAppData% an installed build writes to
+        private const string LocalFolderName = "FluentSensors";
+
+        // what that folder was called while the app was still named FluentHwInfo; moved once, see MigrateLegacyFolder
+        private const string LegacyLocalFolderName = "FluentHwInfo";
+
+        // a file that failed to parse is kept under here rather than beside the ones the app reads, so the root
+        // folder holds nothing but live state
+        private const string QuarantineFolderName = "quarantine";
+        private const string CorruptSuffix = ".corrupt-";
+
+        // how long a quarantined file is kept: long enough to still be there when a problem is reported a few days
+        // later, short enough that the folder cannot collect files for years
+        private static readonly TimeSpan QuarantineRetention = TimeSpan.FromDays(30);
 
         private readonly string _rootFolder = ResolveRootFolder();
         private string SettingsPath => Path.Combine(_rootFolder, "settings.json");
@@ -61,7 +77,10 @@ namespace FluentSensors.Persistence.Services
 
         // === constructor ===
 
-        private PersistenceService() { }
+        private PersistenceService()
+        {
+            TidyQuarantine();
+        }
 
 
         // === public API ===
@@ -268,13 +287,13 @@ namespace FluentSensors.Persistence.Services
         private static string ResolveRootFolder()
         {
             string localAppData = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FluentHwInfo");
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), LocalFolderName);
 
             try
             {
                 string? appFolder = Path.GetDirectoryName(Environment.ProcessPath);
-                if (string.IsNullOrEmpty(appFolder)) return localAppData;
-                if (!AppDistribution.IsPortableBuild) return localAppData;
+                if (string.IsNullOrEmpty(appFolder)) return UseLocalAppData(localAppData);
+                if (!AppDistribution.IsPortableBuild) return UseLocalAppData(localAppData);
 
                 // creating the folder here doubles as an early check that the app directory is writable at all;
                 // an unpacked zip sitting in a read-only location would otherwise silently drop every save
@@ -286,7 +305,73 @@ namespace FluentSensors.Persistence.Services
             {
                 // unreadable app folder, or one that cannot be created: fall back to the per-user location instead
                 // of losing state
-                return localAppData;
+                return UseLocalAppData(localAppData);
+            }
+        }
+
+        private string QuarantineFolder => Path.Combine(_rootFolder, QuarantineFolderName);
+
+        // one pass over the quarantine at startup: builds before this one dropped the broken file straight into the
+        // root folder and nothing ever removed it again, so both of those are cleaned up here
+        private void TidyQuarantine()
+        {
+            try
+            {
+                if (!Directory.Exists(_rootFolder)) return;
+
+                foreach (string stray in Directory.GetFiles(_rootFolder, $"*{CorruptSuffix}*"))
+                {
+                    Directory.CreateDirectory(QuarantineFolder);
+                    File.Move(stray, Path.Combine(QuarantineFolder, Path.GetFileName(stray)), overwrite: true);
+                }
+
+                if (!Directory.Exists(QuarantineFolder)) return;
+
+                foreach (string kept in Directory.GetFiles(QuarantineFolder))
+                {
+                    if (DateTime.Now - File.GetLastWriteTime(kept) > QuarantineRetention) File.Delete(kept);
+                }
+            }
+            catch (Exception ex)
+            {
+                // housekeeping, never worth failing a launch over
+                Debug.WriteLine($"[PersistenceService] quarantine tidy failed: {ex.Message}");
+            }
+        }
+
+        // every path that settles on the per-user location goes through here, so the one-time move below cannot be
+        // skipped by whichever of them a given start happens to take
+        private static string UseLocalAppData(string localAppData)
+        {
+            MigrateLegacyFolder(localAppData);
+
+            return localAppData;
+        }
+
+        // the settings folder was named after the app, and the app was renamed; moving it once is what keeps an
+        // installed copy from looking freshly installed after the update that carries the new name
+        //
+        // it only ever runs while the new folder does not exist, so a folder that is already in use is never
+        // touched and the move cannot happen twice
+        private static void MigrateLegacyFolder(string localAppData)
+        {
+            try
+            {
+                if (Directory.Exists(localAppData)) return;
+
+                string legacy = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), LegacyLocalFolderName);
+
+                if (!Directory.Exists(legacy)) return;
+
+                Directory.Move(legacy, localAppData);
+                Debug.WriteLine($"[PersistenceService] moved {LegacyLocalFolderName} to {LocalFolderName}");
+            }
+            catch (Exception ex)
+            {
+                // a locked or unreadable old folder costs the user their settings, not the launch; the app starts
+                // on defaults and writes them to the new location
+                Debug.WriteLine($"[PersistenceService] folder migration failed: {ex.Message}");
             }
         }
 
@@ -306,12 +391,15 @@ namespace FluentSensors.Persistence.Services
             }
             catch (Exception)
             {
-                // corrupt file: rename it out of the way and fall back to defaults instead of crashing
+                // corrupt file: move it out of the way and fall back to defaults instead of crashing
                 try
                 {
-                    File.Move(path, path + $".corrupt-{DateTime.Now:yyyyMMdd-HHmmss}");
+                    Directory.CreateDirectory(QuarantineFolder);
+
+                    string name = $"{Path.GetFileName(path)}{CorruptSuffix}{DateTime.Now:yyyyMMdd-HHmmss}";
+                    File.Move(path, Path.Combine(QuarantineFolder, name));
                 }
-                catch { /* if even the rename fails, just move on with defaults */ }
+                catch { /* if even the move fails, just move on with defaults */ }
                 return null;
             }
         }
