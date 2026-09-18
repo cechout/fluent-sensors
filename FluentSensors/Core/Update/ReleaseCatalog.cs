@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using FluentSensors.Common;
 using FluentSensors.Persistence.Services;
 
 
@@ -26,8 +27,9 @@ namespace FluentSensors.Core.Update
     // every published minor and major release from 1.0.0 onwards, for the release notes dialog
     //
     // kept apart from UpdateService on purpose: that one answers "is there something newer to install" once per
-    // start, this one answers "what changed, ever" and is only ever touched when the dialog is opened, which is
-    // what keeps a store build from reaching the network on its own
+    // start, this one answers "what changed, ever" and is only ever touched when the dialog is opened
+    //
+    // it answers to the same two switches all the same, see IsNetworkAllowed
     //
     // the answer is cached on disk, so the dialog still has the full history with no connection
     public class ReleaseCatalog
@@ -58,6 +60,12 @@ namespace FluentSensors.Core.Update
         // whatever was fetched or read from disk during this session, newest first
         public IReadOnlyList<ReleaseEntry> Releases => _releases ?? Array.Empty<ReleaseEntry>();
 
+        // the same policy UpdateService.Start applies to its own check, so that settings toggle is a real switch
+        // rather than one that only covers the automatic check: a store build never reaches out at all, and with
+        // the startup check off the dialog shows what is already on disk and nothing else
+        public static bool IsNetworkAllowed =>
+            AppDistribution.SupportsSelfUpdate && SettingsService.Instance.CheckUpdatesOnStartup;
+
         // what the dialog asks for instead of RefreshAsync
         //
         // the on-disk copy stays good until a release exists that it does not carry, and the only thing that ever
@@ -66,6 +74,8 @@ namespace FluentSensors.Core.Update
         // returns null when nothing was fetched, which is the signal to keep showing what is already there
         public async Task<IReadOnlyList<ReleaseEntry>> EnsureCurrentAsync()
         {
+            if (!IsNetworkAllowed) return null;
+
             var cached = LoadCached();
 
             if (cached.Count > 0 && !IsMissingLatest()) return null;

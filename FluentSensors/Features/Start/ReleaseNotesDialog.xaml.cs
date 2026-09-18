@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using FluentSensors.Common;
 using FluentSensors.Core.Update;
 
 
@@ -72,7 +73,7 @@ namespace FluentSensors.Features.Start
             }
             else if (_releases.Count == 0)
             {
-                ShowStatus("The release history could not be loaded, and nothing has been saved yet");
+                ShowStatus(EmptyStatus());
             }
         }
 
@@ -136,6 +137,23 @@ namespace FluentSensors.Features.Start
         {
             LoadingRing.IsActive = busy;
             LoadingRing.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        // there is nothing to show for three different reasons and each of them deserves its own sentence; the
+        // first two are choices rather than failures, and reading like a failure would send people looking for one
+        private static string EmptyStatus()
+        {
+            if (!AppDistribution.SupportsSelfUpdate)
+            {
+                return "The Microsoft Store version does not download release notes";
+            }
+
+            if (!ReleaseCatalog.IsNetworkAllowed)
+            {
+                return "Check for updates on startup is turned off, so no release notes have been saved yet";
+            }
+
+            return "The release history could not be loaded, and nothing has been saved yet";
         }
 
         private void ShowStatus(string message)
