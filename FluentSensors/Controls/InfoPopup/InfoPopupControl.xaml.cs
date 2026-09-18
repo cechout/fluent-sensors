@@ -35,6 +35,9 @@ namespace FluentSensors.Controls.InfoPopup
         // pixel gap between the end of the title text and the info button; adjust this to change that spacing
         private const double TitleButtonGap = 4;
 
+        // smallest gap the popup keeps to every window edge, on both axes
+        private const double PopupWindowEdgeMargin = 8;
+
         // whether InfoPopup currently sits at the window root instead of inside this control, see
         // RelocatePopupToWindowRoot
         // without it every click after the first would try to add the popup to a host it is already a child of, and
@@ -441,12 +444,33 @@ namespace FluentSensors.Controls.InfoPopup
                 ? GetTitleAnchoredPosition(contentSize)
                 : GetButtonAnchoredPosition(contentSize);
 
+            target = ClampToWindow(target, contentSize);
+
             Point hostOrigin = _popupHost.TransformToVisual(XamlRoot.Content).TransformPoint(new Point(0, 0));
 
             InfoPopup.HorizontalOffset = target.X - hostOrigin.X;
             InfoPopup.VerticalOffset = target.Y - hostOrigin.Y;
 
             _needsPopupPlacement = !hasRealSize;
+        }
+
+        // pulls a placement back inside the window, on both axes, keeping PopupWindowEdgeMargin to every edge
+        //
+        // the placements above each work out their ideal spot from their own anchor and direction without looking at
+        // the window bounds, so any of them can overhang; a Popup cannot render outside its XamlRoot, so an overhang
+        // is not drawn beyond the edge, it is cut off there
+        // clamping keeps the popup whole and slides it back in instead, which is why every mode goes through here
+        // rather than each one growing its own edge handling
+        private Point ClampToWindow(Point target, Size content)
+        {
+            double maxX = XamlRoot.Size.Width - content.Width - PopupWindowEdgeMargin;
+            double maxY = XamlRoot.Size.Height - content.Height - PopupWindowEdgeMargin;
+
+            // Min first, then Max: for a popup taller or wider than the window the lower bound wins, so it keeps its
+            // top left corner visible instead of centering the overflow and losing both edges
+            return new Point(
+                Math.Max(Math.Min(target.X, maxX), PopupWindowEdgeMargin),
+                Math.Max(Math.Min(target.Y, maxY), PopupWindowEdgeMargin));
         }
 
         // positions the popup relative to the title text (TitleHost), not the button; unchanged from the original
@@ -466,8 +490,8 @@ namespace FluentSensors.Controls.InfoPopup
                 Math.Max(origin.Y + verticalOffset, 0) - PopupVerticalManualAdjustment);
         }
 
-        // simple fixed-direction placement for the four button-anchored modes; no flip or collision handling,
-        // unlike TitleAnchored the caller is expected to only pick a direction where there is actually room
+        // simple fixed-direction placement for the four button-anchored modes; the direction is taken as given and
+        // never flipped, ClampToWindow above is what keeps the result inside the window
         private Point GetButtonAnchoredPosition(Size content)
         {
             Point origin = ButtonHost.TransformToVisual(XamlRoot.Content).TransformPoint(new Point(0, 0));
