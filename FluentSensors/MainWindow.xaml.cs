@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media.Animation;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -80,6 +81,10 @@ namespace FluentSensors
         private bool _isForceClosing = false;
         private bool _isHardwareServiceLoaded = false;
         private bool _isDashboardClosed = false;
+
+        // set for the one navigation that follows the splash, so that page animates in rather than appearing
+        // finished, see MainNavigationView_SelectionChanged
+        private bool _isStartupNavigation = false;
 
         // profile a caller asked for while the splash was still running; applied once the sensor page exists
         private SensorSelectionProfile? _pendingSensorProfile = null;
@@ -340,6 +345,7 @@ namespace FluentSensors
             AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;
             // a profile request that came in during the splash outranks the configured startup page: that click
             // was explicitly about the sensor list, and the block below needs the page it asks for
+            _isStartupNavigation = true;
             MainNavigationView.SelectedItem = _pendingSensorProfile != null ? SensorsNavItem : StartupNavItem();
 
             // a profile request that arrived before the page existed; the selection above is what finally creates it
@@ -584,25 +590,31 @@ namespace FluentSensors
                 return;
             }
 
+            // the page that comes up as the splash goes animates in, so the reveal reads as one motion instead
+            // of a finished page sitting in a finished window; which page that is follows the launch setting
+            // every later switch is a click and stays instant
+            NavigationTransitionInfo entrance = _isStartupNavigation ? new EntranceNavigationTransitionInfo() : null;
+            _isStartupNavigation = false;
+
             if (args.SelectedItem is NavigationViewItem selectedItem)
             {
                 string pageTag = selectedItem.Tag.ToString();
                 switch (pageTag)
                 {
                     case "Start":
-                        contentFrame.Navigate(typeof(StartPage));
+                        contentFrame.Navigate(typeof(StartPage), null, entrance);
                         break;
 
                     case "Sensors":
-                        contentFrame.Navigate(typeof(SensorsPage));
+                        contentFrame.Navigate(typeof(SensorsPage), null, entrance);
                         break;
 
                     case "Settings":
-                        contentFrame.Navigate(typeof(SettingsPage));
+                        contentFrame.Navigate(typeof(SettingsPage), null, entrance);
                         break;
 
                     case "Performance":
-                        contentFrame.Navigate(typeof(PerformancePage));
+                        contentFrame.Navigate(typeof(PerformancePage), null, entrance);
                         break;
                 }
             }
