@@ -24,8 +24,8 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <!--  compact badge: shows "-" or the configured value, background = threshold color once configured  -->
-    <!--  tapping opens the full threshold editor flyout below  -->
+    <!--  compact badge: shows "-" or the configured value  -->
+    <!--  (background takes the threshold color once configured; tapping opens the editor flyout below)  -->
     <!--
         IMPORTANT: this Border is the UserControls Content (its only implicit child), so VisualStateGroups must live
         directly on it; GoToState only ever looks at the Content root, never at the UserControl instance itself

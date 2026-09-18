@@ -139,8 +139,8 @@
                                         </VisualState>
 
                                         <!--
-                                            active states: filled, matches a checked native ToggleButton - same fill
-                                            brushes as SidebarNavToggleButtonStyle's Checked states, for consistency
+                                            active states: filled, matches a checked native ToggleButton; same fill
+                                            brushes as the SidebarNavToggleButtonStyle Checked states, for consistency
                                         -->
                                         <VisualState x:Name="Checked">
                                             <VisualState.Setters>
@@ -278,8 +278,7 @@
                                             <ColumnDefinition Width="3*" />
                                         </Grid.ColumnDefinitions>
 
-                                        <!--  miniutilization graph  -->
-                                        <!--  (theoretically resizeable)  -->
+                                        <!--  mini utilization graph  -->
                                         <fhGraph:SensorGraphControl
                                             Grid.Column="0"
                                             Height="52"
@@ -319,7 +318,7 @@
             <!--
                 hardware detail view: each view now brings its own header (type + name) directly above its own
                 content, so its info panel can start flush with that header instead of only next to the content
-                below it - see e.g. CpuDetailView.xaml root Grid
+                below it; see e.g. CpuDetailView.xaml root Grid
             -->
             <Grid
                 x:Name="DetailHostGrid"

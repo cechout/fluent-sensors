@@ -243,7 +243,8 @@
                     </Grid>
 
 
-                    <!--  gpu view 2: extended, grouped by theme instead of by core (no tiles here, see chat)  -->
+                    <!--  gpu view 2: extended, grouped by theme instead of by core  -->
+                    <!--  (no sensor tiles in this view)  -->
                     <Grid
                         x:Name="ExtendedGrid"
                         Grid.Row="0"

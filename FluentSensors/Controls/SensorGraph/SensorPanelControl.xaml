@@ -195,7 +195,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!--  Y-axis control buttons  -->
+            <!--  y-axis control buttons  -->
             <Grid
                 Grid.Column="0"
                 Width="35"
@@ -240,7 +240,7 @@
                     ToolTipService.ToolTip="Auto-Scale" />
             </Grid>
 
-            <!--  threshold buttons 1  -->
+            <!--  threshold buttons: raise, lower, toggle the line  -->
             <Grid
                 Grid.Column="2"
                 Width="35"
@@ -285,7 +285,7 @@
                     ToolTipService.ToolTip="Toggle Threshold-Line" />
             </Grid>
 
-            <!--  threshold buttons 2  -->
+            <!--  threshold buttons: alarm direction  -->
             <Grid
                 Grid.Column="3"
                 Width="35"
