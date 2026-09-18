@@ -195,7 +195,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!--  Y-axis control buttons  -->
+            <!--  y-axis control buttons  -->
             <Grid
                 Grid.Column="0"
                 Width="35"

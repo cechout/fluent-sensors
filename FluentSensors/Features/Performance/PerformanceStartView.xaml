@@ -91,9 +91,11 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <!--  Grid instead of a horizontal StackPanel: a StackPanel always measures its children at infinite width along  -->
-                                <!--  its own orientation axis and never compresses them back down on arrange, so TextTrimming below never had an  -->
-                                <!--  actual width to trim against; the Star column here does constrain it correctly  -->
+                                <!--
+                                    a Grid instead of a horizontal StackPanel: a StackPanel measures its children
+                                    at infinite width along its own orientation axis and never compresses them back
+                                    on arrange, so TextTrimming had no width to trim against; the Star column does
+                                -->
                                 <Grid Grid.Column="0" ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
