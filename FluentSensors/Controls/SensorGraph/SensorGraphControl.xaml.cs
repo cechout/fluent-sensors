@@ -324,6 +324,29 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
 
+        // DependencyProperty: FillFade
+        // flat area fill or one that fades out towards the bottom; global setting, flows in from
+        // SensorPanelControl via SensorGraphViewModel.GraphFillFade
+        public bool FillFade
+        {
+            get => (bool)GetValue(FillFadeProperty);
+            set => SetValue(FillFadeProperty, value);
+        }
+
+        public static readonly DependencyProperty FillFadeProperty =
+            DependencyProperty.Register(
+                nameof(FillFade),
+                typeof(bool),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(false, OnFillFadeChanged));
+
+        private static void OnFillFadeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            // both surfaces follow the setting: the area under the line and the alarm zone boxes
+            if (d is SensorGraphControl g) g.ForceRepaint();
+        }
+
+
         // DependencyProperty: IsAutoScaled
         public bool IsAutoScaled
         {

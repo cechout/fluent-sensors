@@ -64,12 +64,14 @@ namespace FluentSensors.Controls.SensorGraph
                 SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
             }
 
-            // line style is global; resolved and subscribed the same way for every scope
+            // line style and fill fade are global; resolved and subscribed the same way for every scope
             GraphLineStyle = SettingsService.Instance.GraphLineStyle;
+            GraphFillFade = SettingsService.Instance.GraphFillFade;
 
             HardwareMonitorService.Instance.UpdateIntervalChanged += OnUpdateIntervalChanged;
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
             SettingsService.Instance.GraphLineStyleChanged += OnGraphLineStyleChanged;
+            SettingsService.Instance.GraphFillFadeChanged += OnGraphFillFadeChanged;
 
             // owns this sensors threshold config; shared logic/state lives there, this VM only reacts to it for coloring
             Threshold = new ThresholdEditorViewModel(sensorId, sensorType);
@@ -135,6 +137,14 @@ namespace FluentSensors.Controls.SensorGraph
         {
             get => _graphLineStyle;
             private set { _graphLineStyle = value; OnPropertyChanged(); }
+        }
+
+        // flat area fill vs one that fades out towards the bottom; global, same path as GraphLineStyle above
+        private bool _graphFillFade;
+        public bool GraphFillFade
+        {
+            get => _graphFillFade;
+            private set { _graphFillFade = value; OnPropertyChanged(); }
         }
 
         // taskbar widget graphs can drop their calculated card tint and go fully transparent
@@ -262,6 +272,11 @@ namespace FluentSensors.Controls.SensorGraph
             GraphLineStyle = style;
         }
 
+        private void OnGraphFillFadeChanged(bool fillFade)
+        {
+            GraphFillFade = fillFade;
+        }
+
         private void OnGraphBackgroundChanged(bool useTransparentBackground)
         {
             IsCardBackgroundVisible = !useTransparentBackground;
@@ -313,6 +328,7 @@ namespace FluentSensors.Controls.SensorGraph
             HardwareMonitorService.Instance.UpdateIntervalChanged -= OnUpdateIntervalChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             SettingsService.Instance.GraphLineStyleChanged -= OnGraphLineStyleChanged;
+            SettingsService.Instance.GraphFillFadeChanged -= OnGraphFillFadeChanged;
             Threshold.PropertyChanged -= OnThresholdPropertyChanged;
             Threshold.Cleanup();
         }

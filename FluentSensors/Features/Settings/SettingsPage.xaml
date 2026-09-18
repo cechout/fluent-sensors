@@ -66,19 +66,35 @@
                 </ComboBox>
             </controls:SettingsCard>
 
-            <!--  graph line style: applies to every graph in the app  -->
-            <controls:SettingsCard
-                Description="Staircase steps or a rounded curve between data points"
-                Header="Graph Line Style"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}">
-                <ComboBox
-                    x:Name="GraphLineStyleComboBox"
-                    Width="150"
-                    SelectionChanged="GraphLineStyleComboBox_SelectionChanged">
-                    <ComboBoxItem Content="Stepline" Tag="Stepline" />
-                    <ComboBoxItem Content="Smooth" Tag="Smooth" />
-                </ComboBox>
-            </controls:SettingsCard>
+            <!--  graph rendering  -->
+            <!--  (both rows apply to every graph in the app, the per-surface sections below only add color and range)  -->
+            <controls:SettingsExpander
+                Description="How every graph in the app is drawn"
+                Header="Graph"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Description="Staircase steps or a rounded curve between data points" Header="Line Style">
+                        <ComboBox
+                            x:Name="GraphLineStyleComboBox"
+                            Width="150"
+                            SelectionChanged="GraphLineStyleComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Stepline" Tag="Stepline" />
+                            <ComboBoxItem Content="Smooth" Tag="Smooth" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <!--  (stays flat while a threshold is tripped, the alarm zones need the other gradient axis)  -->
+                    <controls:SettingsCard Description="Fade the area under the line out towards the bottom" Header="Fill Fade">
+                        <ToggleSwitch
+                            x:Name="GraphFillFadeToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="GraphFillFadeToggle_Toggled" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
 
             <!--  behavior settings  -->
             <controls:SettingsCard
@@ -190,6 +206,55 @@
                             SelectionChanged="StatusGroupOrderComboBox_SelectionChanged">
                             <ComboBoxItem Content="Sensor status first" Tag="LhmFirst" />
                             <ComboBoxItem Content="App resources first" Tag="WindowsFirst" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+
+            <!--  performance page settings  -->
+            <TextBlock
+                Margin="4,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="Performance Page Appearance" />
+
+            <!--  graph appearance  -->
+            <controls:SettingsExpander
+                Description="Time range of the graphs on the hardware view"
+                Header="Graph"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Description="Overview graphs" Header="Time Range">
+                        <ComboBox
+                            x:Name="PerformanceGraphTimeSpanComboBox"
+                            Width="40"
+                            SelectionChanged="PerformanceGraphTimeSpanComboBox_SelectionChanged">
+                            <ComboBoxItem Content="15s" Tag="15" />
+                            <ComboBoxItem Content="20s" Tag="20" />
+                            <ComboBoxItem Content="30s" Tag="30" />
+                            <ComboBoxItem Content="45s" Tag="45" />
+                            <ComboBoxItem Content="60s" Tag="60" />
+                            <ComboBoxItem Content="90s" Tag="90" />
+                            <ComboBoxItem Content="120s" Tag="120" />
+                            <ComboBoxItem Content="240s" Tag="240" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Description="CPU all threads and GPU extended grids" Header="Extended Time Range">
+                        <ComboBox
+                            x:Name="PerformanceExtendedGraphTimeSpanComboBox"
+                            Width="40"
+                            SelectionChanged="PerformanceExtendedGraphTimeSpanComboBox_SelectionChanged">
+                            <ComboBoxItem Content="15s" Tag="15" />
+                            <ComboBoxItem Content="20s" Tag="20" />
+                            <ComboBoxItem Content="30s" Tag="30" />
+                            <ComboBoxItem Content="45s" Tag="45" />
+                            <ComboBoxItem Content="60s" Tag="60" />
+                            <ComboBoxItem Content="90s" Tag="90" />
+                            <ComboBoxItem Content="120s" Tag="120" />
+                            <ComboBoxItem Content="240s" Tag="240" />
                         </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>

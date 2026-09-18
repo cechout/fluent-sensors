@@ -35,7 +35,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
         {
             InitializeComponent();
 
-            PerformanceGraphDefaults.ApplyTimeSpan(OverviewBlockGrid, PerformanceGraphDefaults.StandardTimeSpanSeconds);
+            PerformanceGraphDefaults.BindTimeSpan(OverviewBlockGrid, PerformanceGraphKind.Standard);
         }
 
 
@@ -126,8 +126,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
                 if (!_allThreadsTimeSpanHookAttached)
                 {
                     _allThreadsTimeSpanHookAttached = true;
-                    AllThreadsGrid.Loaded += (s, e) =>
-                        PerformanceGraphDefaults.ApplyTimeSpan(AllThreadsGrid, PerformanceGraphDefaults.CpuThreadTimeSpanSeconds);
+                    PerformanceGraphDefaults.BindTimeSpan(AllThreadsGrid, PerformanceGraphKind.Extended);
                 }
             }
             else
