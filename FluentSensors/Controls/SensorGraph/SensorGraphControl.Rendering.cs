@@ -18,6 +18,10 @@ namespace FluentSensors.Controls.SensorGraph
     // rebuilds line/area colors and threshold sections whenever values, accent color, threshold, or y-range change
     public sealed partial class SensorGraphControl
     {
+        // area fill opacity, as a 0-255 alpha on the accent color
+        private const byte FillAlphaTop = 38; // flat fill everywhere, and the top edge of a faded one
+        private const byte FillAlphaBottomFaded = 5; // bottom edge while the fill fade setting is on
+
         // repaint guard:
         // caches the exact inputs behind the last ApplyStroke repaint
         // an unchanged signature with no active alarm run is a guaranteed no-op, native Skia paint objects stay untouched
@@ -27,7 +31,8 @@ namespace FluentSensors.Controls.SensorGraph
             ThresholdDirection ThresholdDirection,
             Windows.UI.Color ThresholdColor,
             double YMax,
-            bool HasAnyRun);
+            bool HasAnyRun,
+            bool FillFade);
 
         private StrokeSignature? _lastStrokeSignature;
 
@@ -121,17 +126,20 @@ namespace FluentSensors.Controls.SensorGraph
             double yMax = hasThreshold ? ComputeCurrentYMax() : 0;
             bool hasAnyRun = hasThreshold && ComputeHasAnyRun();
 
-            var signature = new StrokeSignature(AccentColor, ThresholdValue, ThresholdDirection, ThresholdColor, yMax, hasAnyRun);
+            var signature = new StrokeSignature(AccentColor, ThresholdValue, ThresholdDirection, ThresholdColor, yMax, hasAnyRun, FillFade);
             if (!hasAnyRun && _lastStrokeSignature == signature) return; // identical inputs, previous paint objects still valid
             _lastStrokeSignature = signature;
 
             var accent = new SKColor(AccentColor.R, AccentColor.G, AccentColor.B);
 
+            // the fade is just the bottom stop of the vertical area gradient; equal to the top one it reads as flat
+            byte fillAlphaBottom = FillFade ? FillAlphaBottomFaded : FillAlphaTop;
+
             // no threshold set: flat single-color line and area
             if (!hasThreshold)
             {
                 line.Fill = new LinearGradientPaint(
-                    new[] { accent.WithAlpha(38), accent.WithAlpha(38) },
+                    new[] { accent.WithAlpha(FillAlphaTop), accent.WithAlpha(fillAlphaBottom) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1));
 
@@ -177,13 +185,17 @@ namespace FluentSensors.Controls.SensorGraph
 
             if (runs.Count == 0 || Values is null || Values.Count == 0)
             {
-                // no alarm zones right now: flat area color
+                // no alarm zones right now: plain vertical area color
                 line.Fill = new LinearGradientPaint(
-                    new[] { accent.WithAlpha(38), accent.WithAlpha(38) },
+                    new[] { accent.WithAlpha(FillAlphaTop), accent.WithAlpha(fillAlphaBottom) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1));
                 return;
             }
+
+            // from here the gradient runs left to right so it can cut the alarm holes, which means the fill fade
+            // setting cannot apply: a LinearGradientPaint has one axis and the fade needs the vertical one
+            // so a faded graph goes flat for as long as an alarm zone is on screen, and fades again once it scrolls off
 
             // lastIndex turns a data point index(e.g. 12) into a 0 - 1 position for the gradient
             int lastIndex = Values.Count - 1;
@@ -198,7 +210,7 @@ namespace FluentSensors.Controls.SensorGraph
             int stopIdx = 0;
 
             // gradient starts on the left edge with the normal (non-alarm) area color
-            colorArr[stopIdx] = accent.WithAlpha(38);
+            colorArr[stopIdx] = accent.WithAlpha(FillAlphaTop);
             stopArr[stopIdx] = 0f;
             stopIdx++;
 
@@ -211,15 +223,15 @@ namespace FluentSensors.Controls.SensorGraph
                 float endRatio = (float)System.Math.Clamp((end + 1.0) / lastIndex, 0.0, 1.0);
 
                 // hard drop to fully transparent at the start of the alarm zone
-                colorArr[stopIdx] = accent.WithAlpha(38); stopArr[stopIdx] = startRatio; stopIdx++;
+                colorArr[stopIdx] = accent.WithAlpha(FillAlphaTop); stopArr[stopIdx] = startRatio; stopIdx++;
                 colorArr[stopIdx] = accent.WithAlpha(0); stopArr[stopIdx] = startRatio; stopIdx++;
 
                 // hard return to normal color at the end of the alarm zone
                 colorArr[stopIdx] = accent.WithAlpha(0); stopArr[stopIdx] = endRatio; stopIdx++;
-                colorArr[stopIdx] = accent.WithAlpha(38); stopArr[stopIdx] = endRatio; stopIdx++;
+                colorArr[stopIdx] = accent.WithAlpha(FillAlphaTop); stopArr[stopIdx] = endRatio; stopIdx++;
             }
 
-            colorArr[stopIdx] = accent.WithAlpha(38);
+            colorArr[stopIdx] = accent.WithAlpha(FillAlphaTop);
             stopArr[stopIdx] = 1f;
 
             line.Fill = new LinearGradientPaint(
@@ -259,7 +271,7 @@ namespace FluentSensors.Controls.SensorGraph
 
             // one full-height red box per alarm zone
             var runs = ComputeThresholdRuns();
-            var boxFill = new SolidColorPaint(thresholdSk.WithAlpha(38));  // same 15% alpha as normal fill
+            var boxFill = new SolidColorPaint(thresholdSk.WithAlpha(FillAlphaTop));  // same 15% alpha as normal fill
 
             // exact final size known up front (1 threshold line, 1 box per alarm run), plain array instead of
             // List<T>+ToArray skips the internal resize/copy steps on every rebuild

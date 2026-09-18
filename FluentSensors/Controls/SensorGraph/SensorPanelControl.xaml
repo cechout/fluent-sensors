@@ -370,6 +370,7 @@
                     CardBackgroundOverride="{x:Bind GetEffectiveCardBackground(ShowGraphCardBackground, UseGraphColorCardBackground, GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
                     CardBorderOverride="{x:Bind BoolToCardBorderOverride(ShowGraphCardBorder), Mode=OneWay}"
                     CurrentValueText="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}"
+                    FillFade="{x:Bind ViewModel.GraphFillFade, Mode=OneWay}"
                     IsAutoScaled="{x:Bind ViewModel.IsAutoScaled, Mode=OneWay}"
                     IsCurrentValueVisible="{x:Bind ShowGraphCurrentValue, Mode=OneWay}"
                     IsHoverEnabled="{x:Bind IsGraphHoverEnabled, Mode=OneWay}"

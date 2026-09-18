@@ -30,7 +30,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
         {
             InitializeComponent();
 
-            PerformanceGraphDefaults.ApplyTimeSpan(OverviewBlockGrid, PerformanceGraphDefaults.StandardTimeSpanSeconds);
+            PerformanceGraphDefaults.BindTimeSpan(OverviewBlockGrid, PerformanceGraphKind.Standard);
         }
 
 
@@ -117,8 +117,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
                 if (!_extendedTimeSpanHookAttached)
                 {
                     _extendedTimeSpanHookAttached = true;
-                    ExtendedGrid.Loaded += (s, e) =>
-                        PerformanceGraphDefaults.ApplyTimeSpan(ExtendedGrid, PerformanceGraphDefaults.GpuExtendedTimeSpanSeconds);
+                    PerformanceGraphDefaults.BindTimeSpan(ExtendedGrid, PerformanceGraphKind.Extended);
                 }
             }
             else

@@ -39,6 +39,9 @@ namespace FluentSensors.Features.Settings
             RestoreStatusReadoutSelection();
             RestoreCsvFormatSelection();
             RestoreGraphLineStyleSelection();
+            RestoreGraphFillFadeSelection();
+
+            RestorePerformanceGraphTimeSpanSelection();
 
             RestoreBackgroundMaterialSettings();
             RestoreGraphColorSettings();
@@ -502,6 +505,68 @@ namespace FluentSensors.Features.Settings
                 if (item.Tag?.ToString() == current)
                 {
                     GraphLineStyleComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        // area fill fade, the second global graph switch
+        private void GraphFillFadeToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            SettingsService.Instance.GraphFillFade = GraphFillFadeToggle.IsOn;
+        }
+
+        private void RestoreGraphFillFadeSelection()
+        {
+            GraphFillFadeToggle.IsOn = SettingsService.Instance.GraphFillFade;
+        }
+
+
+        // === performance page appearance settings ===
+
+        // two ranges because the page has two graph densities; Extended covers the cpu all-threads and
+        // gpu extended grids, which show many small graphs at once
+        private void PerformanceGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                if (selectedItem.Tag != null && double.TryParse(selectedItem.Tag.ToString(), out double newTimeSpanSeconds))
+                {
+                    SettingsService.Instance.PerformanceGraphTimeSpanSeconds = newTimeSpanSeconds;
+                }
+            }
+        }
+
+        private void PerformanceExtendedGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                if (selectedItem.Tag != null && double.TryParse(selectedItem.Tag.ToString(), out double newTimeSpanSeconds))
+                {
+                    SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds = newTimeSpanSeconds;
+                }
+            }
+        }
+
+        private void RestorePerformanceGraphTimeSpanSelection()
+        {
+            SelectTimeSpanItem(PerformanceGraphTimeSpanComboBox, SettingsService.Instance.PerformanceGraphTimeSpanSeconds);
+            SelectTimeSpanItem(PerformanceExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds);
+        }
+
+        private static void SelectTimeSpanItem(ComboBox comboBox, double timeSpanSeconds)
+        {
+            foreach (ComboBoxItem item in comboBox.Items)
+            {
+                if (item.Tag?.ToString() == timeSpanSeconds.ToString())
+                {
+                    comboBox.SelectedItem = item;
                     break;
                 }
             }

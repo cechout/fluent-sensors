@@ -180,6 +180,59 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // fades the area under the line out towards the bottom; global, same reach as GraphLineStyle above
+        private bool _graphFillFade = false;
+        public bool GraphFillFade
+        {
+            get => _graphFillFade;
+            set
+            {
+                if (_graphFillFade != value)
+                {
+                    _graphFillFade = value;
+                    GraphFillFadeChanged?.Invoke(_graphFillFade);
+                    SaveDebounced();
+                }
+            }
+        }
+
+
+        // --- Performance Page Graph Settings ---
+
+        // seconds of history on the performance pages overview graphs
+        private double _performanceGraphTimeSpanSeconds = 45;
+        public double PerformanceGraphTimeSpanSeconds
+        {
+            get => _performanceGraphTimeSpanSeconds;
+            set
+            {
+                if (_performanceGraphTimeSpanSeconds != value)
+                {
+                    _performanceGraphTimeSpanSeconds = value;
+                    PerformanceGraphTimeSpanChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // seconds of history on the denser performance grids (cpu all-threads, gpu extended)
+        // kept apart from the value above because those graphs are small and many, so they usually want a
+        // shorter window than the overview blocks
+        private double _performanceExtendedGraphTimeSpanSeconds = 30;
+        public double PerformanceExtendedGraphTimeSpanSeconds
+        {
+            get => _performanceExtendedGraphTimeSpanSeconds;
+            set
+            {
+                if (_performanceExtendedGraphTimeSpanSeconds != value)
+                {
+                    _performanceExtendedGraphTimeSpanSeconds = value;
+                    PerformanceGraphTimeSpanChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
 
         // --- Taskbar Ecosystem (Widget + Flyout) Appearance Settings ---
 
@@ -685,6 +738,9 @@ namespace FluentSensors.Persistence.Services
             _graphCustomColor = data.GraphCustomColor;
             _graphTimeSpanSeconds = data.GraphTimeSpanSeconds;
             _graphLineStyle = data.GraphLineStyle;
+            _graphFillFade = data.GraphFillFade;
+            _performanceGraphTimeSpanSeconds = data.PerformanceGraphTimeSpanSeconds;
+            _performanceExtendedGraphTimeSpanSeconds = data.PerformanceExtendedGraphTimeSpanSeconds;
 
             _taskbarBackdropType = data.TaskbarBackdropType;
             _taskbarTintOpacity = data.TaskbarTintOpacity;
@@ -738,6 +794,9 @@ namespace FluentSensors.Persistence.Services
                 GraphCustomColor = _graphCustomColor,
                 GraphTimeSpanSeconds = _graphTimeSpanSeconds,
                 GraphLineStyle = _graphLineStyle,
+                GraphFillFade = _graphFillFade,
+                PerformanceGraphTimeSpanSeconds = _performanceGraphTimeSpanSeconds,
+                PerformanceExtendedGraphTimeSpanSeconds = _performanceExtendedGraphTimeSpanSeconds,
 
                 TaskbarBackdropType = _taskbarBackdropType,
                 TaskbarTintOpacity = _taskbarTintOpacity,
@@ -801,6 +860,10 @@ namespace FluentSensors.Persistence.Services
         public event Action<bool, Windows.UI.Color> GraphColorChanged;
         public event Action<double> GraphTimeSpanChanged;
         public event Action<GraphLineStyle> GraphLineStyleChanged;
+        public event Action<bool> GraphFillFadeChanged;
+
+        // carries no value; both performance time spans raise it and consumers re-read whichever one they use
+        public event Action PerformanceGraphTimeSpanChanged;
 
         public event Action<string> TaskbarBackdropTypeChanged;
         public event Action<float, float> TaskbarOpacityChanged;

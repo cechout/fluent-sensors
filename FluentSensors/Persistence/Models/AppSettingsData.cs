@@ -27,6 +27,14 @@ namespace FluentSensors.Persistence.Models
         // stepline or smooth line rendering; global, applies to every graph in the app
         public GraphLineStyle GraphLineStyle { get; set; } = GraphLineStyle.Stepline;
 
+        // fades the area under the line out towards the bottom instead of filling it in one flat tone; global
+        public bool GraphFillFade { get; set; } = false;
+
+        // performance page graphs
+        // Standard covers the overview blocks, Extended the denser grids (cpu all-threads, gpu extended)
+        public double PerformanceGraphTimeSpanSeconds { get; set; } = 45;
+        public double PerformanceExtendedGraphTimeSpanSeconds { get; set; } = 30;
+
         // taskbar ecosystem (taskbar widget + flyout window) appearance
         public string TaskbarBackdropType { get; set; } = "Mica";
         public float TaskbarTintOpacity { get; set; } = 0.4f;

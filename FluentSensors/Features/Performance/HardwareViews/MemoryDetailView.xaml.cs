@@ -19,8 +19,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
         {
             InitializeComponent();
 
-            // literal xaml children, already exist right after InitializeComponent, no need to wait for Loaded
-            PerformanceGraphDefaults.ApplyTimeSpan(OverviewBlockGrid, PerformanceGraphDefaults.StandardTimeSpanSeconds);
+            PerformanceGraphDefaults.BindTimeSpan(OverviewBlockGrid, PerformanceGraphKind.Standard);
         }
 
 
