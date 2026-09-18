@@ -13,10 +13,11 @@
     <UserControl.Resources>
         <ResourceDictionary>
 
-            <!--  plain-Button version of PerformancePages SidebarNavToggleButtonStyle; same subtle background/hover/pressed  -->
-            <!--  language, minus the Checked states, since a tile is a one-shot navigation action, not a persisted  -->
-            <!--  selection; pressed state additionally dims the content itself, on top of the background change, as a  -->
-            <!--  clearer press cue  -->
+            <!--
+                plain-Button version of PerformancePages SidebarNavToggleButtonStyle, minus the Checked states,
+                since a tile is a one-shot navigation action and not a persisted selection
+                pressed additionally dims the content itself, on top of the background change, as a clearer cue
+            -->
             <Style x:Key="StartTileButtonStyle" TargetType="Button">
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />

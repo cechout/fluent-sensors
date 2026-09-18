@@ -278,8 +278,7 @@
                                             <ColumnDefinition Width="3*" />
                                         </Grid.ColumnDefinitions>
 
-                                        <!--  miniutilization graph  -->
-                                        <!--  (theoretically resizeable)  -->
+                                        <!--  mini utilization graph  -->
                                         <fhGraph:SensorGraphControl
                                             Grid.Column="0"
                                             Height="52"

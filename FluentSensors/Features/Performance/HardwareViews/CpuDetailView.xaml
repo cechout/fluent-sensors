@@ -94,8 +94,8 @@
                         <!--  fixed height for every individual sensor graph inside a core cell  -->
                         <x:Double x:Key="CpuCoreGraphHeight">45</x:Double>
 
-                        <!--  1 border for 1 physical core  -->
-                        <!--  it stack whichever threads, temperature, clocks it actually has  -->
+                        <!--  one border per physical core  -->
+                        <!--  (stacks whichever threads, temperature and clocks that core actually has)  -->
                         <DataTemplate x:Key="CpuCoreCellTemplate" x:DataType="fhLhm:LhmCpuCoreViewModel">
                             <Border
                                 Padding="0"

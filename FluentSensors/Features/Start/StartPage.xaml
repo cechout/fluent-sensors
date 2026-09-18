@@ -199,7 +199,7 @@
                 <!--
                     one tile per device, with icon, colour and category label from HardwareGroupInfo, the same profile
                     the sensor list and the hardware view use
-                    All tiles are placed in a SquareGridPanel
+                    all tiles are placed in a SquareGridPanel
                 -->
                 <TextBlock
                     Margin="4,4,0,6"

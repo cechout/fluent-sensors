@@ -16,14 +16,14 @@
 
                 <ResourceDictionary x:Key="Default">
 
-                    <!--  whole row  -->
+                    <!--  checked row fills  -->
                     <SolidColorBrush x:Key="CustomCheckedBackgroundBrush" Color="#19FFFFFF" />
                     <SolidColorBrush x:Key="CustomCheckedHoverBrush" Color="#14FFFFFF" />
                 </ResourceDictionary>
 
                 <ResourceDictionary x:Key="Light">
 
-                    <!--  whole row  -->
+                    <!--  checked row fills  -->
                     <SolidColorBrush x:Key="CustomCheckedBackgroundBrush" Color="#FFF8F8F8" />
                     <SolidColorBrush x:Key="CustomCheckedHoverBrush" Color="#FFFAFAFA" />
                 </ResourceDictionary>
@@ -173,11 +173,10 @@
         </Grid>
 
 
-        <!--  custom visual states for SensorRowControl  -->
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="CardStates">
 
-                <!--  normal states for whole row  -->
+                <!--  unchecked states  -->
                 <VisualState x:Name="Normal">
                     <VisualState.Setters>
                         <Setter Target="CardBackground.Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
@@ -197,7 +196,7 @@
                     </VisualState.Setters>
                 </VisualState>
 
-                <!--  checked states for whole row  -->
+                <!--  checked states  -->
                 <VisualState x:Name="Checked">
                     <VisualState.Setters>
                         <Setter Target="CardBackground.Background" Value="{ThemeResource CustomCheckedBackgroundBrush}" />
