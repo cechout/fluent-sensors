@@ -342,7 +342,8 @@ namespace FluentSensors.Controls.SensorGraph
 
         private static void OnFillFadeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is SensorGraphControl g) g.ApplyStroke();
+            // both surfaces follow the setting: the area under the line and the alarm zone boxes
+            if (d is SensorGraphControl g) g.ForceRepaint();
         }
 
 
