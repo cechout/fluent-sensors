@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -37,6 +37,10 @@ namespace FluentSensors.Core.Update
 
         private const string ReleasesUrl = "https://api.github.com/repos/cechout/fluent-sensors/releases?per_page=100";
         private const string CacheFileName = "releases.json";
+
+        // everything the network can rebuild sits in here, apart from the state files, so the whole folder can be
+        // deleted without anyone losing a setting
+        private const string CacheFolderName = "cache";
 
         // anything older is a pre-1.0 release nobody is offered any more
         private static readonly Version MinimumVersion = new Version(1, 0, 0);
@@ -198,6 +202,7 @@ namespace FluentSensors.Core.Update
         {
             try
             {
+                Directory.CreateDirectory(CacheFolder());
                 File.WriteAllText(CachePath(), JsonSerializer.Serialize(releases, _jsonOptions));
             }
             catch (Exception ex)
@@ -207,8 +212,10 @@ namespace FluentSensors.Core.Update
             }
         }
 
-        // alongside the settings json files, so a portable copy carries its release history on the same drive
-        private static string CachePath() =>
-            Path.Combine(PersistenceService.Instance.RootFolder, CacheFileName);
+        // under the settings folder, so a portable copy carries its release history on the same drive
+        private static string CacheFolder() =>
+            Path.Combine(PersistenceService.Instance.RootFolder, CacheFolderName);
+
+        private static string CachePath() => Path.Combine(CacheFolder(), CacheFileName);
     }
 }
