@@ -69,7 +69,7 @@
                 Padding="0"
                 VerticalAlignment="Center"
                 Click="CloseButton_Click"
-                Style="{ThemeResource SubtleButtonStyle}"
+                Style="{StaticResource SubtleBarButtonStyle}"
                 ToolTipService.ToolTip="Close">
                 <FontIcon FontSize="14" Glyph="&#xE711;" />
                 <Button.KeyboardAccelerators>
