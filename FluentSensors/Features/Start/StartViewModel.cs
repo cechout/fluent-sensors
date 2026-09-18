@@ -368,20 +368,7 @@ namespace FluentSensors.Features.Start
         }
 
 
-        // tinted per category only while group colouring is on, otherwise the ordinary foreground, which is
-        // what makes the icon read as a plain white glyph in the dark theme
-        private static SolidColorBrush IconBrushFor(HardwareGroupKind kind)
-        {
-            if (HardwareColorMode.UseIconColors)
-            {
-                return new SolidColorBrush(HardwareGroupInfo.GetProfile(kind).Color);
-            }
-
-            return Application.Current.Resources.TryGetValue("TextFillColorPrimaryBrush", out object value)
-                && value is SolidColorBrush brush
-                    ? brush
-                    : new SolidColorBrush(Microsoft.UI.Colors.White);
-        }
+        private static SolidColorBrush IconBrushFor(HardwareGroupKind kind) => HardwareGroupInfo.GetIconBrush(kind);
 
         // re-runs IconBrushFor for every tile after the hardware colour setting was flipped; nothing else about a
         // tile depends on it, so the list itself is left alone rather than rebuilt

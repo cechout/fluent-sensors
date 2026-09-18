@@ -1,4 +1,8 @@
-﻿namespace FluentSensors.Common.Sensors
+﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
+
+
+namespace FluentSensors.Common.Sensors
 {
     // single source of truth for how a raw LibreHardwareMonitor HardwareType string maps to a broad category (HardwareGroupKind),
     // and what that category displays as (label + icon + accent color)
@@ -25,6 +29,25 @@
                 "Network" => HardwareGroupKind.Network,
                 _ => HardwareGroupKind.Other // e.g. Motherboard, Controller
             };
+        }
+
+        // the brush every hardware category icon paints itself with, tinted only while hardware icon colours are
+        // on; off gives the ordinary foreground, which is what makes the glyph read as a plain white one in the
+        // dark theme
+        //
+        // graph colours deliberately do not come through here; those are resolved per sensor in
+        // SensorGraphViewModel and answer to a separate setting
+        public static SolidColorBrush GetIconBrush(HardwareGroupKind kind)
+        {
+            if (HardwareColorMode.UseIconColors)
+            {
+                return new SolidColorBrush(GetProfile(kind).Color);
+            }
+
+            return Application.Current.Resources.TryGetValue("TextFillColorPrimaryBrush", out object value)
+                && value is SolidColorBrush brush
+                    ? brush
+                    : new SolidColorBrush(Microsoft.UI.Colors.White);
         }
 
         public static HardwareGroupProfile GetProfile(HardwareGroupKind kind)

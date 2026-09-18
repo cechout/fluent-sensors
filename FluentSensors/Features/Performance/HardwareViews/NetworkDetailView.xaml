@@ -57,6 +57,7 @@
                         <FontIcon
                             Margin="0,0,0,-2"
                             FontSize="20"
+                            Foreground="{x:Bind GroupIconBrush, Mode=OneWay}"
                             Glyph="{x:Bind GroupIconGlyph, Mode=OneTime}" />
                         <TextBlock
                             Margin="0,0,0,0"

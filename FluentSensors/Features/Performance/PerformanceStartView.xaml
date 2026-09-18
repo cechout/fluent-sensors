@@ -106,6 +106,7 @@
                                     <FontIcon
                                         Grid.Column="0"
                                         FontSize="20"
+                                        Foreground="{x:Bind GroupIconBrush, Mode=OneWay}"
                                         Glyph="{x:Bind GroupIconGlyph, Mode=OneTime}" />
 
                                     <StackPanel Grid.Column="1" Spacing="0">

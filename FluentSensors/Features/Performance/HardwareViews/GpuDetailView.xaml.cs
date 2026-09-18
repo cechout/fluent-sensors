@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System;
 using Windows.Foundation;
 
@@ -43,6 +44,10 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).Label;
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).IconGlyph;
+
+        // header icon colour, follows the hardware icon colour setting; HardwareColorBinding in the constructor is
+        // what re-reads it, the graph colour above is deliberately not part of that
+        public SolidColorBrush GroupIconBrush => HardwareGroupInfo.GetIconBrush(HardwareGroupKind.Gpu);
 
 
         // === dependency properties ===

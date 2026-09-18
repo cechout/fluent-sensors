@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -28,6 +29,16 @@ namespace FluentSensors.Features.Sensors
         // the category this group was built from; kept rather than discarded after the profile lookup, because the
         // rows below need it to colour their widget and taskbar graphs
         public HardwareGroupKind Kind { get; set; } = HardwareGroupKind.Other;
+
+        // header icon colour, follows the hardware icon colour setting; see RefreshIconBrush
+        private SolidColorBrush _iconBrush;
+        public SolidColorBrush IconBrush
+        {
+            get => _iconBrush ??= HardwareGroupInfo.GetIconBrush(Kind);
+            private set { _iconBrush = value; OnPropertyChanged(); }
+        }
+
+        public void RefreshIconBrush() => IconBrush = HardwareGroupInfo.GetIconBrush(Kind);
         public ObservableCollection<SensorRowViewModel> Sensors { get; set; } // content of expander
         public ObservableCollection<SensorRowViewModel> HiddenSensors { get; set; } // sensors hidden from the main list
 

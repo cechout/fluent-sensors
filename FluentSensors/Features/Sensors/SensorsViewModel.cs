@@ -69,6 +69,9 @@ namespace FluentSensors.Features.Sensors
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
             WidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
             TaskbarWidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
+
+            // never detached: this view model is eager at the splash screen and lives for the whole session
+            SettingsService.Instance.HardwareIconColorsChanged += RefreshGroupIconBrushes;
         }
 
 
@@ -175,6 +178,16 @@ namespace FluentSensors.Features.Sensors
 
 
         // === private helpers ===
+
+        // re-resolves every group header icon after the hardware icon colour setting flipped; the sensors page and
+        // the hidden sensors window bind the same groups, so both follow from here
+        private void RefreshGroupIconBrushes()
+        {
+            foreach (var group in HardwareGroups)
+            {
+                group.RefreshIconBrush();
+            }
+        }
 
         // creates the expander group for a newly discovered hardware instance, then processes its sensors
         // (already-known ones immediately, future ones reactively)
