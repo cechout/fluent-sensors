@@ -84,6 +84,26 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(string.Empty));
 
+        // arbitrary content in the title slot, for a label the plain Title string cannot express: several values
+        // with their own bindings and spacing, tabular figures, anything else a consumer wants to lay out itself
+        //
+        // its whole point is the accent state: content in here follows the popup open/closed colour exactly like
+        // Title does, which a TextBlock sitting next to this control as a sibling never could
+        // the content inherits its colour from the presenter, so it must not set a Foreground of its own; the rest
+        // colour comes from TitleForeground as usual
+        // Title and TitleContent are alternatives, a consumer fills one of them
+        public object TitleContent
+        {
+            get => GetValue(TitleContentProperty);
+            set => SetValue(TitleContentProperty, value);
+        }
+        public static readonly DependencyProperty TitleContentProperty =
+            DependencyProperty.Register(
+                nameof(TitleContent),
+                typeof(object),
+                typeof(InfoPopupControl),
+                new PropertyMetadata(null));
+
         // whether the title wraps onto multiple lines or overflows on one; no effect when Title is empty
         public TextWrapping TitleTextWrapping
         {
@@ -141,10 +161,10 @@ namespace FluentSensors.Controls.InfoPopup
 
         private static void OnTitleForegroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is InfoPopupControl control && control.TitleTextBlock != null && e.NewValue is Brush brush)
-            {
-                control.TitleTextBlock.Foreground = brush;
-            }
+            if (d is not InfoPopupControl control || e.NewValue is not Brush brush) return;
+
+            if (control.TitleTextBlock != null) control.TitleTextBlock.Foreground = brush;
+            if (control.TitleContentPresenter != null) control.TitleContentPresenter.Foreground = brush;
         }
 
         // whether the info button, and therefore the whole popup, is shown at all
@@ -371,9 +391,13 @@ namespace FluentSensors.Controls.InfoPopup
         // the button via a plain right Margin (a real measure-time constraint, so TextTrimming/TextWrapping still
         // work correctly), and the button is positioned directly off the titles own ActualWidth here, no
         // cross-element width subtraction involved
-        private void TitleTextBlock_SizeChanged(object sender, SizeChangedEventArgs e)
+        //
+        // both title slots report here; the empty one measures zero, so the wider of the two is the one in use
+        private void TitleSlot_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            ButtonHost.Margin = new Thickness(TitleTextBlock.ActualWidth + TitleButtonGap, 0, 0, 0);
+            double titleWidth = Math.Max(TitleTextBlock.ActualWidth, TitleContentPresenter.ActualWidth);
+
+            ButtonHost.Margin = new Thickness(titleWidth + TitleButtonGap, 0, 0, 0);
         }
 
         // the click above does the placing, but on the very first open the content has not been measured yet and
@@ -384,6 +408,14 @@ namespace FluentSensors.Controls.InfoPopup
         {
             UpdatePopupPlacement();
         }
+
+
+        // the only interactive part of this control, the title slot beside it is inert
+        //
+        // matters in the title bar: SetTitleBar turns the whole bar non-client, and a passthrough rect is what
+        // gives an element its presses back; handing over the whole control would take the title slot with it and
+        // make that stretch of the bar undraggable, see TitleBarPassthrough
+        public FrameworkElement InteractiveRegion => ButtonHost;
 
 
         // === Private Helpers ===
@@ -519,8 +551,8 @@ namespace FluentSensors.Controls.InfoPopup
 
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
 
-        private Visibility GetTitleVisibility(string title) =>
-            string.IsNullOrEmpty(title) ? Visibility.Collapsed : Visibility.Visible;
+        private Visibility GetTitleVisibility(string title, object titleContent) =>
+            string.IsNullOrEmpty(title) && titleContent == null ? Visibility.Collapsed : Visibility.Visible;
 
         // reserves room for the button on the right of the title text, but only when the button is actually shown;
         // a real Margin, so it is a genuine measure-time constraint and TextTrimming/TextWrapping correctly leave
