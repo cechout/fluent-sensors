@@ -40,7 +40,7 @@ namespace FluentSensors.Features.Settings
             RestoreCsvFormatSelection();
             RestoreGraphLineStyleSelection();
             RestoreGraphFillFadeSelection();
-            RestoreHardwareColorsSelection();
+            RestoreHardwareColorSelections();
 
             RestorePerformanceGraphTimeSpanSelection();
 
@@ -524,18 +524,30 @@ namespace FluentSensors.Features.Settings
             GraphFillFadeToggle.IsOn = SettingsService.Instance.GraphFillFade;
         }
 
-        // per hardware category coloring; not part of the Graph expander above, it also colors the start page
-        // snapshot icons and leaves the widget and taskbar graphs alone
-        private void HardwareColorsToggle_Toggled(object sender, RoutedEventArgs e)
+        // per hardware category coloring, split in two because the surfaces barely overlap
+        //
+        // graphs reaches the widget window, the taskbar button and the taskbar flyout; the performance page sets
+        // its own graph color per hardware view and is not part of either switch
+        private void HardwareGraphColorsToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
 
-            SettingsService.Instance.UseHardwareIconColors = HardwareColorsToggle.IsOn;
+            SettingsService.Instance.UseHardwareGraphColors = HardwareGraphColorsToggle.IsOn;
         }
 
-        private void RestoreHardwareColorsSelection()
+        // icons reaches every hardware category glyph: start page tiles, sensor list and hidden sensor group
+        // headers, and the hardware views own headers
+        private void HardwareIconColorsToggle_Toggled(object sender, RoutedEventArgs e)
         {
-            HardwareColorsToggle.IsOn = SettingsService.Instance.UseHardwareIconColors;
+            if (_isLoading) return;
+
+            SettingsService.Instance.UseHardwareIconColors = HardwareIconColorsToggle.IsOn;
+        }
+
+        private void RestoreHardwareColorSelections()
+        {
+            HardwareGraphColorsToggle.IsOn = SettingsService.Instance.UseHardwareGraphColors;
+            HardwareIconColorsToggle.IsOn = SettingsService.Instance.UseHardwareIconColors;
         }
 
 

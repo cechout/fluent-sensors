@@ -44,28 +44,6 @@
                 </ComboBox>
             </controls:SettingsCard>
 
-            <!--  engine settings  -->
-            <controls:SettingsCard
-                Description="How often sensors are polled"
-                Header="Update Interval"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE916;}">
-                <ComboBox
-                    x:Name="IntervalComboBox"
-                    Width="150"
-                    SelectionChanged="IntervalComboBox_SelectionChanged">
-                    <ComboBoxItem Content="100ms" Tag="100" />
-                    <ComboBoxItem Content="150ms" Tag="150" />
-                    <ComboBoxItem Content="200ms" Tag="200" />
-                    <ComboBoxItem Content="250ms" Tag="250" />
-                    <ComboBoxItem Content="300ms" Tag="300" />
-                    <ComboBoxItem Content="400ms" Tag="400" />
-                    <ComboBoxItem Content="500ms" Tag="500" />
-                    <ComboBoxItem Content="1000ms" Tag="1000" />
-                    <ComboBoxItem Content="2000ms" Tag="2000" />
-                    <ComboBoxItem Content="5000ms" Tag="5000" />
-                </ComboBox>
-            </controls:SettingsCard>
-
             <!--  graph rendering  -->
             <!--  (both rows apply to every graph in the app, the per-surface sections below only add color and range)  -->
             <controls:SettingsExpander
@@ -98,19 +76,36 @@
 
             <!--  hardware colors  -->
             <!--
-                (reaches the performance page graphs and the start page snapshot icons; off sends the graphs back
-                to the widget graph color and the icons back to the ordinary foreground)
+                no control on the expander header itself, the two rows are independent of each other
+                the performance page graphs are deliberately not covered by either row, they carry the category
+                color whatever these say
             -->
-            <controls:SettingsCard
-                Description="Color graphs and icons per hardware category"
+            <controls:SettingsExpander
+                Description="Color graphs and hardware icons by hardware category"
                 Header="Hardware Colors"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE2B1;}">
-                <ToggleSwitch
-                    x:Name="HardwareColorsToggle"
-                    OffContent="Off"
-                    OnContent="On"
-                    Toggled="HardwareColorsToggle_Toggled" />
-            </controls:SettingsCard>
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE2B1;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <!--  (widget window, taskbar button and taskbar flyout)  -->
+                    <controls:SettingsCard Header="Graphs">
+                        <ToggleSwitch
+                            x:Name="HardwareGraphColorsToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="HardwareGraphColorsToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <!--  (start page tiles, sensor list group headers and the hardware view)  -->
+                    <controls:SettingsCard Header="Icons">
+                        <ToggleSwitch
+                            x:Name="HardwareIconColorsToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="HardwareIconColorsToggle_Toggled" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
 
             <!--  title bar status readout  -->
             <controls:SettingsExpander
@@ -226,6 +221,28 @@
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
+
+            <!--  engine settings  -->
+            <controls:SettingsCard
+                Description="How often sensors are polled"
+                Header="Update Interval"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE916;}">
+                <ComboBox
+                    x:Name="IntervalComboBox"
+                    Width="150"
+                    SelectionChanged="IntervalComboBox_SelectionChanged">
+                    <ComboBoxItem Content="100ms" Tag="100" />
+                    <ComboBoxItem Content="150ms" Tag="150" />
+                    <ComboBoxItem Content="200ms" Tag="200" />
+                    <ComboBoxItem Content="250ms" Tag="250" />
+                    <ComboBoxItem Content="300ms" Tag="300" />
+                    <ComboBoxItem Content="400ms" Tag="400" />
+                    <ComboBoxItem Content="500ms" Tag="500" />
+                    <ComboBoxItem Content="1000ms" Tag="1000" />
+                    <ComboBoxItem Content="2000ms" Tag="2000" />
+                    <ComboBoxItem Content="5000ms" Tag="5000" />
+                </ComboBox>
+            </controls:SettingsCard>
 
 
 
