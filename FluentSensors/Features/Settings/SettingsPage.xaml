@@ -96,6 +96,22 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
+            <!--  hardware colors  -->
+            <!--
+                (reaches the performance page graphs and the start page snapshot icons; off sends the graphs back
+                to the widget graph color and the icons back to the ordinary foreground)
+            -->
+            <controls:SettingsCard
+                Description="Color graphs and icons per hardware category"
+                Header="Hardware Colors"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE2B1;}">
+                <ToggleSwitch
+                    x:Name="HardwareColorsToggle"
+                    OffContent="Off"
+                    OnContent="On"
+                    Toggled="HardwareColorsToggle_Toggled" />
+            </controls:SettingsCard>
+
             <!--  title bar status readout  -->
             <controls:SettingsExpander
                 Description="Which readouts the title bar shows, and in which order"

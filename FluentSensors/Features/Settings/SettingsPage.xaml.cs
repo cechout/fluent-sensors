@@ -40,6 +40,7 @@ namespace FluentSensors.Features.Settings
             RestoreCsvFormatSelection();
             RestoreGraphLineStyleSelection();
             RestoreGraphFillFadeSelection();
+            RestoreHardwareColorsSelection();
 
             RestorePerformanceGraphTimeSpanSelection();
 
@@ -521,6 +522,20 @@ namespace FluentSensors.Features.Settings
         private void RestoreGraphFillFadeSelection()
         {
             GraphFillFadeToggle.IsOn = SettingsService.Instance.GraphFillFade;
+        }
+
+        // per hardware category coloring; not part of the Graph expander above, it also colors the start page
+        // snapshot icons and leaves the widget and taskbar graphs alone
+        private void HardwareColorsToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            SettingsService.Instance.UseHardwareColors = HardwareColorsToggle.IsOn;
+        }
+
+        private void RestoreHardwareColorsSelection()
+        {
+            HardwareColorsToggle.IsOn = SettingsService.Instance.UseHardwareColors;
         }
 
 
