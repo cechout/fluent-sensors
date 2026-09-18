@@ -69,13 +69,13 @@
             <!--  graph rendering  -->
             <!--  (both rows apply to every graph in the app, the per-surface sections below only add color and range)  -->
             <controls:SettingsExpander
-                Description="How every graph in the app is drawn"
+                Description="Line style and area fill of every graph"
                 Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="Staircase steps or a rounded curve between data points" Header="Line Style">
+                    <controls:SettingsCard Header="Line Style">
                         <ComboBox
                             x:Name="GraphLineStyleComboBox"
                             Width="150"
@@ -86,12 +86,55 @@
                     </controls:SettingsCard>
 
                     <!--  (stays flat while a threshold is tripped, the alarm zones need the other gradient axis)  -->
-                    <controls:SettingsCard Description="Fade the area under the line out towards the bottom" Header="Fill Fade">
+                    <controls:SettingsCard Header="Fill Fade">
                         <ToggleSwitch
                             x:Name="GraphFillFadeToggle"
                             OffContent="Off"
                             OnContent="On"
                             Toggled="GraphFillFadeToggle_Toggled" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+            <!--  title bar status readout  -->
+            <controls:SettingsExpander
+                Description="Which readouts the title bar shows, and in which order"
+                Header="Title Bar Status"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xF138;}"
+                IsExpanded="False">
+
+                <ToggleSwitch
+                    x:Name="StatusReadoutToggle"
+                    OffContent="Off"
+                    OnContent="On"
+                    Toggled="StatusReadoutToggle_Toggled" />
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard x:Name="StatusLhmGroupCard" Header="Sensor Status">
+                        <ToggleSwitch
+                            x:Name="StatusLhmGroupToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="StatusLhmGroupToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Name="StatusWindowsGroupCard" Header="App Resources">
+                        <ToggleSwitch
+                            x:Name="StatusWindowsGroupToggle"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="StatusWindowsGroupToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <!--  (stays disabled until both readouts above are on, there is nothing to order otherwise)  -->
+                    <controls:SettingsCard x:Name="StatusGroupOrderCard" Header="Order">
+                        <ComboBox
+                            x:Name="StatusGroupOrderComboBox"
+                            Width="190"
+                            SelectionChanged="StatusGroupOrderComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Sensor status first" Tag="LhmFirst" />
+                            <ComboBoxItem Content="App resources first" Tag="WindowsFirst" />
+                        </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
@@ -168,48 +211,7 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
-            <!--  title bar status readout  -->
-            <controls:SettingsExpander
-                Description="Which readouts the title bar shows, and in which order"
-                Header="Title Bar Status"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xF138;}"
-                IsExpanded="False">
 
-                <ToggleSwitch
-                    x:Name="StatusReadoutToggle"
-                    OffContent="Off"
-                    OnContent="On"
-                    Toggled="StatusReadoutToggle_Toggled" />
-
-                <controls:SettingsExpander.Items>
-                    <controls:SettingsCard x:Name="StatusLhmGroupCard" Header="Sensor Status">
-                        <ToggleSwitch
-                            x:Name="StatusLhmGroupToggle"
-                            OffContent="Off"
-                            OnContent="On"
-                            Toggled="StatusLhmGroupToggle_Toggled" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard x:Name="StatusWindowsGroupCard" Header="App Resources">
-                        <ToggleSwitch
-                            x:Name="StatusWindowsGroupToggle"
-                            OffContent="Off"
-                            OnContent="On"
-                            Toggled="StatusWindowsGroupToggle_Toggled" />
-                    </controls:SettingsCard>
-
-                    <!--  (stays disabled until both readouts above are on, there is nothing to order otherwise)  -->
-                    <controls:SettingsCard x:Name="StatusGroupOrderCard" Header="Order">
-                        <ComboBox
-                            x:Name="StatusGroupOrderComboBox"
-                            Width="190"
-                            SelectionChanged="StatusGroupOrderComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Sensor status first" Tag="LhmFirst" />
-                            <ComboBoxItem Content="App resources first" Tag="WindowsFirst" />
-                        </ComboBox>
-                    </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
 
 
             <!--  performance page settings  -->
@@ -220,13 +222,13 @@
 
             <!--  graph appearance  -->
             <controls:SettingsExpander
-                Description="Time range of the graphs on the hardware view"
+                Description="Time range of the overview graphs and the denser grids"
                 Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="Overview graphs" Header="Time Range">
+                    <controls:SettingsCard Header="Time Range">
                         <ComboBox
                             x:Name="PerformanceGraphTimeSpanComboBox"
                             Width="40"
@@ -242,7 +244,7 @@
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="CPU all threads and GPU extended grids" Header="Extended Time Range">
+                    <controls:SettingsCard Header="Extended Time Range">
                         <ComboBox
                             x:Name="PerformanceExtendedGraphTimeSpanComboBox"
                             Width="40"
