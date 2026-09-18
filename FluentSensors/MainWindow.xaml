@@ -302,7 +302,18 @@
                 </NavigationViewItem>
             </NavigationView.FooterMenuItems>
 
-            <Frame x:Name="contentFrame" />
+            <!--  page host  -->
+            <!--
+                (the theme transition is what actually runs the NavigationTransitionInfo a Navigate call carries
+                without it the info is accepted and ignored, see MainNavigationView_SelectionChanged)
+            -->
+            <Frame x:Name="contentFrame">
+                <Frame.ContentTransitions>
+                    <TransitionCollection>
+                        <NavigationThemeTransition />
+                    </TransitionCollection>
+                </Frame.ContentTransitions>
+            </Frame>
 
         </NavigationView>
 

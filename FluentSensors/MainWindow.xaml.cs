@@ -592,8 +592,12 @@ namespace FluentSensors
 
             // the page that comes up as the splash goes animates in, so the reveal reads as one motion instead
             // of a finished page sitting in a finished window; which page that is follows the launch setting
-            // every later switch is a click and stays instant
-            NavigationTransitionInfo entrance = _isStartupNavigation ? new EntranceNavigationTransitionInfo() : null;
+            // every later switch is a click, and suppressing it is what keeps those instant now that the frame
+            // carries a NavigationThemeTransition
+            NavigationTransitionInfo transition = _isStartupNavigation
+                ? new EntranceNavigationTransitionInfo()
+                : new SuppressNavigationTransitionInfo();
+
             _isStartupNavigation = false;
 
             if (args.SelectedItem is NavigationViewItem selectedItem)
@@ -602,19 +606,19 @@ namespace FluentSensors
                 switch (pageTag)
                 {
                     case "Start":
-                        contentFrame.Navigate(typeof(StartPage), null, entrance);
+                        contentFrame.Navigate(typeof(StartPage), null, transition);
                         break;
 
                     case "Sensors":
-                        contentFrame.Navigate(typeof(SensorsPage), null, entrance);
+                        contentFrame.Navigate(typeof(SensorsPage), null, transition);
                         break;
 
                     case "Settings":
-                        contentFrame.Navigate(typeof(SettingsPage), null, entrance);
+                        contentFrame.Navigate(typeof(SettingsPage), null, transition);
                         break;
 
                     case "Performance":
-                        contentFrame.Navigate(typeof(PerformancePage), null, entrance);
+                        contentFrame.Navigate(typeof(PerformancePage), null, transition);
                         break;
                 }
             }
