@@ -10,6 +10,9 @@ Everything the app remembers is written to your machine as plain JSON files that
 
 * **Installer build:** `%LocalAppData%\FluentSensors`
 * **Portable build:** a `Persistence` folder next to `FluentSensors.exe`
+* **Microsoft Store build:** the packages own `LocalState` folder under `%LocalAppData%\Packages`, which Windows deletes together with the app when you uninstall it
+
+The app shows you the exact folder it is using: **Settings**, **Backup & Reset**, **App data folder**.
 
 These files hold your settings, your window sizes and positions, and which sensors you picked. Beside them the app keeps a `cache` folder for the release notes it has already loaded, and a `quarantine` folder for files that could not be read any more. Both can be deleted at any time, and none of it is ever uploaded.
 
@@ -35,6 +38,12 @@ Two things still work, because you ask for them yourself:
 
 * The update button on the start page still checks when you press it.
 * An update is still downloaded and installed when you confirm it.
+
+## 🔌 The sensor driver
+
+Reading CPU temperatures, motherboard sensors and RAM timings needs kernel level access, which no ordinary program has. Fluent Sensors gets it through [PawnIO](https://pawnio.eu), an open source, digitally signed driver that installs into the Windows driver store and is not bundled with this app. The app only talks to a driver that is already on your machine, it never installs one, and nothing it reads through that driver ever leaves your machine.
+
+Without PawnIO the app still runs and still shows GPU, storage, network and memory. Only the readings that need kernel access are missing.
 
 ## 🏪 Microsoft Store version
 
