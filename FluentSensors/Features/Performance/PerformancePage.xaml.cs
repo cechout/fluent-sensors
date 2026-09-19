@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.UI.Dispatching;
 
+using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Features.Performance.HardwareViews;
 using FluentSensors.Features.Performance.Lhm;
@@ -58,12 +59,20 @@ namespace FluentSensors.Features.Performance
         {
             InitializeComponent();
 
-            // keeps PerformanceViewModel.IsDarkTheme in sync with the pages actually applied theme
-            Loaded += (s, e) => ViewModel.IsDarkTheme = ActualTheme == ElementTheme.Dark;
-            ActualThemeChanged += (s, e) => ViewModel.IsDarkTheme = ActualTheme == ElementTheme.Dark;
+            // keeps PerformanceViewModel.IsDarkTheme in sync with the pages actually applied theme, and rebuilds
+            // the sidebar icon brushes, which are plain brushes rather than theme resources
+            Loaded += (s, e) => ApplyActualTheme();
+            ActualThemeChanged += (s, e) => ApplyActualTheme();
 
             // viewmodel
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+            void ApplyActualTheme()
+            {
+                ViewModel.IsDarkTheme = ActualTheme == ElementTheme.Dark;
+                HardwareColorMode.IsDarkTheme = ViewModel.IsDarkTheme;
+                ViewModel.RefreshNavItemIconBrushes();
+            }
 
             // only the initially selected hardwares detail view (normally CPU) is built synchronously here, so the
             // page has real, correctly-scaled content the instant it appears; every other hardware instance gets its

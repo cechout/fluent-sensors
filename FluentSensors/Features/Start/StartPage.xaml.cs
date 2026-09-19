@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Threading.Tasks;
 
+using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
 using FluentSensors.Core;
 using FluentSensors.Core.Update;
@@ -78,8 +79,14 @@ namespace FluentSensors.Features.Start
         private void OnHardwareIconColorsChanged() => ViewModel.RefreshIconBrushes();
 
         // ActualTheme rather than the ThemeChanged setting above, because it also moves when the app follows the
-        // system and Windows switches underneath it
-        private void OnActualThemeChanged(FrameworkElement sender, object args) => ApplyHeroImage();
+        // system and Windows switches underneath it, and because it only fires once the new theme is really applied
+        // the snapshot tile icons are plain brushes, so they have to be rebuilt from here by hand
+        private void OnActualThemeChanged(FrameworkElement sender, object args)
+        {
+            HardwareColorMode.IsDarkTheme = ActualTheme == ElementTheme.Dark;
+            ViewModel.RefreshIconBrushes();
+            ApplyHeroImage();
+        }
 
         // AppStatusService fires from the UI thread as well, see its own Tick
         private void OnStatusUpdated(AppStatusData data) => ViewModel.ApplyStatus(data);

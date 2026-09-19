@@ -228,7 +228,8 @@ namespace FluentSensors.Features.Performance
             return null;
         }
 
-        private void RefreshNavItemIconBrushes()
+        // public because the theme side is driven by the page, which is what owns the applied ActualTheme
+        public void RefreshNavItemIconBrushes()
         {
             foreach (var item in NavItems)
             {

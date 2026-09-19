@@ -1,4 +1,4 @@
-using Microsoft.UI.Composition;
+﻿using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
@@ -9,6 +9,7 @@ using CommunityToolkit.WinUI.Controls;
 using System.Linq;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
+using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
 
 
@@ -243,6 +244,11 @@ namespace FluentSensors.Features.Sensors
         private void Window_ThemeChanged(FrameworkElement sender, object args)
         {
             SetConfigurationSourceTheme();
+
+            // the group header icons are plain brushes rather than theme resources; this window shares its groups
+            // with the sensors page, so refreshing here covers both even while that page is not loaded
+            HardwareColorMode.IsDarkTheme = sender.ActualTheme == ElementTheme.Dark;
+            SensorsViewModel.Instance.RefreshGroupIconBrushes();
         }
 
         private void SetConfigurationSourceTheme()

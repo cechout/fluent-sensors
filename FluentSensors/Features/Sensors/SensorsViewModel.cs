@@ -179,9 +179,10 @@ namespace FluentSensors.Features.Sensors
 
         // === private helpers ===
 
-        // re-resolves every group header icon after the hardware icon colour setting flipped; the sensors page and
-        // the hidden sensors window bind the same groups, so both follow from here
-        private void RefreshGroupIconBrushes()
+        // re-resolves every group header icon after the hardware icon colour setting flipped or the theme moved;
+        // the sensors page and the hidden sensors window bind the same groups, so both follow from here
+        // public because the theme side is driven by whichever of those two saw its own ActualTheme move
+        public void RefreshGroupIconBrushes()
         {
             foreach (var group in HardwareGroups)
             {

@@ -63,7 +63,19 @@ namespace FluentSensors.Features.Sensors
             ViewModel.ActiveProfile = lastProfile;
             SelectProfile(lastProfile);
 
+            // the group header icons are plain brushes rather than theme resources, so they have to be rebuilt
+            // whenever the applied theme moves; ActualTheme rather than the AppTheme setting, which also fires
+            // before the new theme is in place and would rebuild them against the old one
+            Loaded += (s, e) => ApplyActualTheme();
+            ActualThemeChanged += (s, e) => ApplyActualTheme();
+
             _isLoading = false;
+
+            void ApplyActualTheme()
+            {
+                HardwareColorMode.IsDarkTheme = ActualTheme == ElementTheme.Dark;
+                ViewModel.RefreshGroupIconBrushes();
+            }
         }
 
 
