@@ -641,7 +641,7 @@
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
-                        <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="12">
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -682,7 +682,7 @@
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
-                        <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="12">
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
