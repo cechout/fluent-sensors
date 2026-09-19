@@ -1,3 +1,6 @@
+﻿using Microsoft.UI.Xaml;
+
+
 namespace FluentSensors.Common.Sensors
 {
     // decides whether the hardware category icons are tinted with their category colour or drawn in the ordinary
@@ -15,5 +18,19 @@ namespace FluentSensors.Common.Sensors
     public static class HardwareColorMode
     {
         public static bool UseIconColors { get; set; } = false;
+
+        // the effective light/dark state the untinted icons resolve against, mirrored in by whichever page just saw
+        // its own ActualTheme move
+        //
+        // the app theme setting cannot drive this: while it sits on Default, windows switches underneath the app
+        // and SettingsService.ThemeChanged never fires at all; and when it does fire, it runs before the new theme
+        // has been applied, so a refresh hanging off it still resolves against the old one
+        // the fallback covers the very first resolution, before any page has loaded
+        private static bool? _isDarkTheme;
+        public static bool IsDarkTheme
+        {
+            get => _isDarkTheme ?? Application.Current.RequestedTheme == ApplicationTheme.Dark;
+            set => _isDarkTheme = value;
+        }
     }
 }

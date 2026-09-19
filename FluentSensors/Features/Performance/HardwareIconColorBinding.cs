@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using System;
 
+using FluentSensors.Common.Sensors;
 using FluentSensors.Persistence.Services;
 
 
@@ -23,16 +24,23 @@ namespace FluentSensors.Features.Performance
 
             // the untinted brush is a plain brush rather than a theme resource, so a theme switch needs the same
             // refresh the colour setting gets
-            Action<string> onThemeChanged = _ => refresh();
+            // driven off the views own ActualThemeChanged rather than SettingsService.ThemeChanged, which fires
+            // before the new theme has been applied and would refresh against the old one
+            void onThemeChanged(FrameworkElement sender, object args)
+            {
+                HardwareColorMode.IsDarkTheme = root.ActualTheme == ElementTheme.Dark;
+                refresh();
+            }
 
             root.Loaded += (s, e) =>
             {
+                HardwareColorMode.IsDarkTheme = root.ActualTheme == ElementTheme.Dark;
                 refresh();
 
                 if (isSubscribed) return;
                 isSubscribed = true;
                 SettingsService.Instance.HardwareIconColorsChanged += refresh;
-                SettingsService.Instance.ThemeChanged += onThemeChanged;
+                root.ActualThemeChanged += onThemeChanged;
             };
 
             root.Unloaded += (s, e) =>
@@ -40,7 +48,7 @@ namespace FluentSensors.Features.Performance
                 if (!isSubscribed) return;
                 isSubscribed = false;
                 SettingsService.Instance.HardwareIconColorsChanged -= refresh;
-                SettingsService.Instance.ThemeChanged -= onThemeChanged;
+                root.ActualThemeChanged -= onThemeChanged;
             };
         }
     }

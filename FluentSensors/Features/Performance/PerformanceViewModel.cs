@@ -48,7 +48,6 @@ namespace FluentSensors.Features.Performance
             // simply told to re-read its brush
             // never detached: this view model is created once and stays alive for the rest of the apps lifetime
             SettingsService.Instance.HardwareIconColorsChanged += RefreshNavItemIconBrushes;
-            SettingsService.Instance.ThemeChanged += OnThemeChanged;
 
             // every category follows the exact same discovery pattern:
             // process instances that already exist (likely true for all of them, since LhmHardwareTreeService runs from
@@ -229,11 +228,8 @@ namespace FluentSensors.Features.Performance
             return null;
         }
 
-        // the untinted icon brush is a plain brush rather than a theme resource, so a theme switch has to rebuild
-        // it by hand
-        private void OnThemeChanged(string theme) => RefreshNavItemIconBrushes();
-
-        private void RefreshNavItemIconBrushes()
+        // public because the theme side is driven by the page, which is what owns the applied ActualTheme
+        public void RefreshNavItemIconBrushes()
         {
             foreach (var item in NavItems)
             {

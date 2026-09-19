@@ -49,7 +49,10 @@ namespace FluentSensors.Common.Sensors
             // Application.Current.Resources: that lookup answers with the light theme value from code behind and
             // never moves again when the theme does, which left these icons as the only elements in the app
             // ignoring a theme switch
-            return DefaultTextColor.Resolve() as SolidColorBrush ?? new SolidColorBrush(Microsoft.UI.Colors.White);
+            // ForTheme rather than Resolve, because the theme that counts is the one actually applied to the page,
+            // not the app theme setting, see HardwareColorMode.IsDarkTheme
+            return DefaultTextColor.ForTheme(HardwareColorMode.IsDarkTheme) as SolidColorBrush
+                ?? new SolidColorBrush(Microsoft.UI.Colors.White);
         }
 
         public static HardwareGroupProfile GetProfile(HardwareGroupKind kind)
