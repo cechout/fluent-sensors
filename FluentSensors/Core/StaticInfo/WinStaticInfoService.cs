@@ -41,6 +41,7 @@ namespace FluentSensors.Core.StaticInfo
             NetworkAdapters = QueryNetworkAdapters();
             Motherboard = QueryMotherboard();
             IsDotNetRuntimeInstalled = QueryDotNetRuntimeInstalled();
+            IsPawnIoInstalled = QueryPawnIoInstalled();
         }
 
 
@@ -56,6 +57,9 @@ namespace FluentSensors.Core.StaticInfo
 
         // true once any Major >= 10 shared framework version is found, see QueryDotNetRuntimeInstalled
         public bool IsDotNetRuntimeInstalled { get; }
+
+        // true while the PawnIO kernel driver is present, see QueryPawnIoInstalled
+        public bool IsPawnIoInstalled { get; }
 
 
         // === Private Helpers ===
@@ -503,6 +507,26 @@ namespace FluentSensors.Core.StaticInfo
         // 16.3, which is exactly how a dev machine (this one included) normally gets NET, dotnet --list-runtimes
         // instead resolves against the real shared framework folders on disk and works the same regardless of
         // how NET actually got installed
+        // every reading that needs ring 0 goes through PawnIO: cpu temperature and power, the motherboard and
+        // SuperIO sensors, and the memory timings; without the driver those are simply absent while gpu, storage,
+        // network and memory keep working
+        // asks LibreHardwareMonitorLib rather than probing the registry or the device ourselves, since it is the
+        // library that has to be able to use it and it already answers the question; the property is static and
+        // needs neither Computer.Open nor elevation
+        private static bool QueryPawnIoInstalled()
+        {
+            try
+            {
+                return LibreHardwareMonitor.PawnIo.PawnIo.IsInstalled;
+            }
+            catch
+            {
+                // a future library version could move or drop the property; treating that as installed keeps the
+                // hint from appearing on a machine where the sensors are in fact fine
+                return true;
+            }
+        }
+
         private static bool QueryDotNetRuntimeInstalled()
         {
             try

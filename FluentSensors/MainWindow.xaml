@@ -103,26 +103,52 @@
                 </StackPanel>
             </Button>
 
-            <!--  dotnet runtime hint  -->
-            <!--
-                only shown when WinStaticInfoServices one-time registry check found no NET Desktop Runtime
-                Major >= 10 installed system-wide; several LHM sensors depend on it regardless of this apps own
-                self-contained runtime
-            -->
-            <fhInfoPopup:InfoPopupControl
-                x:Name="DotNetRuntimePopup"
+            <!--  missing prerequisite hints  -->
+            <!--  (both share one column, so neither the status group columns nor the order logic behind them move)  -->
+            <StackPanel
                 Grid.Column="3"
-                Margin="8,1,0,0"
                 VerticalAlignment="Center"
-                ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
-                Description="NET 10 is not installed on this device&#10;LibreHardwareMonitor needs it to access every available sensor, some readings may be missing or incomplete without it"
-                PlacementMode="Below"
-                SourceIntro="Recommended:"
-                Visibility="{x:Bind BoolToVisibility(AppStatus.IsDotNetRuntimeMissing), Mode=OneWay}">
-                <fhInfoPopup:InfoPopupControl.SourceLinks>
-                    <fhInfoPopup:SourceLink Label=".NET 10 Runtime" Url="https://dotnet.microsoft.com/en-us/download/dotnet/10.0" />
-                </fhInfoPopup:InfoPopupControl.SourceLinks>
-            </fhInfoPopup:InfoPopupControl>
+                Orientation="Horizontal">
+
+                <!--  dotnet runtime hint  -->
+                <!--
+                    only shown when WinStaticInfoServices one-time registry check found no NET Desktop Runtime
+                    Major >= 10 installed system-wide; several LHM sensors depend on it regardless of this apps own
+                    self-contained runtime
+                -->
+                <fhInfoPopup:InfoPopupControl
+                    x:Name="DotNetRuntimePopup"
+                    Margin="8,1,0,0"
+                    VerticalAlignment="Center"
+                    ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                    Description="NET 10 is not installed on this device&#10;LibreHardwareMonitor needs it to access every available sensor, some readings may be missing or incomplete without it"
+                    PlacementMode="Below"
+                    SourceIntro="Recommended:"
+                    Visibility="{x:Bind BoolToVisibility(AppStatus.IsDotNetRuntimeMissing), Mode=OneWay}">
+                    <fhInfoPopup:InfoPopupControl.SourceLinks>
+                        <fhInfoPopup:SourceLink Label=".NET 10 Runtime" Url="https://dotnet.microsoft.com/en-us/download/dotnet/10.0" />
+                    </fhInfoPopup:InfoPopupControl.SourceLinks>
+                </fhInfoPopup:InfoPopupControl>
+
+                <!--  pawnio driver hint  -->
+                <!--
+                    the driver is installed separately and this app never ships or installs one, so without this
+                    hint nothing tells a user why the readings that need ring 0 are empty
+                -->
+                <fhInfoPopup:InfoPopupControl
+                    x:Name="PawnIoPopup"
+                    Margin="8,1,0,0"
+                    VerticalAlignment="Center"
+                    ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                    Description="PawnIO is not installed on this device&#10;LibreHardwareMonitor reads CPU temperature and power, motherboard sensors and memory timings through this driver, and those stay empty without it&#10;GPU, storage, network and memory readings are not affected"
+                    PlacementMode="Below"
+                    SourceIntro="Recommended:"
+                    Visibility="{x:Bind BoolToVisibility(AppStatus.IsPawnIoMissing), Mode=OneWay}">
+                    <fhInfoPopup:InfoPopupControl.SourceLinks>
+                        <fhInfoPopup:SourceLink Label="PawnIO" Url="https://pawnio.eu" />
+                    </fhInfoPopup:InfoPopupControl.SourceLinks>
+                </fhInfoPopup:InfoPopupControl>
+            </StackPanel>
 
             <!--  toggle button for the whole status readout  -->
             <Button

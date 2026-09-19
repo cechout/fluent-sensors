@@ -1,4 +1,4 @@
-using Microsoft.UI.Dispatching;
+﻿using Microsoft.UI.Dispatching;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -43,6 +43,7 @@ namespace FluentSensors.Features.AppStatus
         private bool _isStatusToggleVisible = true;
 
         private bool _isDotNetRuntimeMissing;
+        private bool _isPawnIoMissing;
 
         // the update pill sits in the same title bar as the readout, so its state belongs to this view model even
         // though it has nothing to do with the status groups; both are set from MainWindow once UpdateService answers
@@ -176,6 +177,12 @@ namespace FluentSensors.Features.AppStatus
         {
             get => _isDotNetRuntimeMissing;
             set { if (_isDotNetRuntimeMissing == value) return; _isDotNetRuntimeMissing = value; OnPropertyChanged(); }
+        }
+
+        public bool IsPawnIoMissing
+        {
+            get => _isPawnIoMissing;
+            set { if (_isPawnIoMissing == value) return; _isPawnIoMissing = value; OnPropertyChanged(); }
         }
 
         // stays false for the whole session unless a newer GitHub release is found; a store build never checks,
