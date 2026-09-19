@@ -96,3 +96,28 @@ jobs:
           Setup/Output/FluentSensors_Installer.exe
           Setup/Output/FluentSensors_Portable_${{ steps.version.outputs.version }}.zip
           --draft --generate-notes --title "FluentSensors ${{ github.ref_name }}"
+
+      # built last, after the draft release already exists: this needs no signing secrets, but it does need the
+      # msix packaging targets that ship with visual studio, and if a runner turns out not to carry them then a
+      # red step here must not cost the installer, the zip and the release that are already done
+      # StoreUpload produces a .msixupload holding an unsigned bundle, which is what partner center takes; the
+      # store signs it itself
+      # no version is passed: the StampAppxManifestVersion target in the csproj writes it into the manifest
+      - name: package msix for the store
+        run: >
+          msbuild FluentSensors/FluentSensors.csproj -t:Publish
+          -p:Configuration=Release -p:Platform=x64
+          -p:PublishProfile=FolderProfile
+          -p:WindowsPackageType=MSIX
+          -p:GenerateAppxPackageOnBuild=true
+          -p:UapAppxPackageBuildMode=StoreUpload
+          -p:AppxPackageSigningEnabled=false
+          "-p:AppxPackageDir=${{ github.workspace }}\Setup\MsixOutput\\"
+
+      # deliberately not a release asset: a .msixupload belongs in partner center and nobody can install it from
+      # a release page, so it stays an artifact to pick up by hand
+      - name: upload msix artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: FluentSensors_Store
+          path: Setup/MsixOutput/*.msixupload
