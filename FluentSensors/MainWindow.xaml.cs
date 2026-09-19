@@ -348,6 +348,7 @@ namespace FluentSensors
             SplashOverlay.Visibility = Visibility.Collapsed;
             AppStatus.IsAppReady = true;
             AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;
+            AppStatus.IsPawnIoMissing = !WinStaticInfoService.Instance.IsPawnIoInstalled;
             // a profile request that came in during the splash outranks the configured startup page: that click
             // was explicitly about the sensor list, and the block below needs the page it asks for
             _isStartupNavigation = true;
@@ -460,14 +461,23 @@ namespace FluentSensors
 
         private void AppTitleBar_Loaded(object sender, RoutedEventArgs e)
         {
+            // the pill and the hints appear through a binding rather than through a resize of the bar, so the bars
+            // own SizeChanged never fires for them and the readout would keep the room it measured while they were
+            // still collapsed; this is what made the group behind the update pill get cut off
+            UpdateButton.SizeChanged += OnTitleBarExtraSizeChanged;
+            DotNetRuntimePopup.SizeChanged += OnTitleBarExtraSizeChanged;
+            PawnIoPopup.SizeChanged += OnTitleBarExtraSizeChanged;
+
             ApplyStatusGroupOrder();
         }
+
+        private void OnTitleBarExtraSizeChanged(object sender, SizeChangedEventArgs e) => RefreshTitleBarLayout();
 
         // feeds AppStatus.HasEnoughWidthForFull, which decides whether the trailing group still fits next to the
         // leading one; fires on every window resize, see AppStatusViewModel.UpdateVisibility for the combined logic
         private void AppTitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            AppStatus.UpdateAvailableWidth(e.NewSize.Width, MeasureUpdatePillWidth());
+            AppStatus.UpdateAvailableWidth(e.NewSize.Width, MeasureTitleBarExtrasWidth());
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);
         }
 
@@ -479,22 +489,31 @@ namespace FluentSensors
         // measures zero before that
         private void RefreshTitleBarLayout()
         {
-            AppStatus.UpdateAvailableWidth(AppTitleBar.ActualWidth, MeasureUpdatePillWidth());
+            AppStatus.UpdateAvailableWidth(AppTitleBar.ActualWidth, MeasureTitleBarExtrasWidth());
 
             // the info popups hand over their button rather than themselves: the readouts now sit inside them, and a
             // passthrough rect over those would make that stretch of the bar undraggable
             TitleBarPassthrough.Apply(this, AppTitleBar,
-                UpdateButton, DotNetRuntimePopup.InteractiveRegion, StatusToggleButton,
+                UpdateButton, DotNetRuntimePopup.InteractiveRegion, PawnIoPopup.InteractiveRegion, StatusToggleButton,
                 LhmInfoPopup.InteractiveRegion, WindowsInfoPopup.InteractiveRegion);
         }
 
         // measured rather than assumed, because the pill is only as wide as the version string it carries and
         // 1.10.0 is noticeably wider than 1.3.0; user text scaling moves it too
-        private double MeasureUpdatePillWidth()
+        // everything sitting in front of the status readout that eats into its room: the update pill and whichever
+        // prerequisite hints are showing
+        private double MeasureTitleBarExtrasWidth()
         {
-            if (UpdateButton.Visibility != Visibility.Visible) return 0;
+            return MeasuredWidth(UpdateButton) + MeasuredWidth(DotNetRuntimePopup) + MeasuredWidth(PawnIoPopup);
+        }
 
-            return UpdateButton.ActualWidth + UpdateButton.Margin.Left + UpdateButton.Margin.Right;
+        // ActualWidth answers zero until the element has been arranged, which is exactly the state it is in on the
+        // pass that reveals it, so callers have to come back once it has a size of its own
+        private static double MeasuredWidth(FrameworkElement element)
+        {
+            if (element.Visibility != Visibility.Visible) return 0;
+
+            return element.ActualWidth + element.Margin.Left + element.Margin.Right;
         }
 
         // plain Button standing in for a real ToggleButton, see the XAML comment on it for why
