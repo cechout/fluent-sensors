@@ -6,16 +6,17 @@
   IgnorableNamespaces="uap rescap">
 
 	<!--
-	  Name and Publisher are placeholders until the app name is reserved in Partner Center; the real values are
-	  the reserved name and the publisher id as a guid (CN=xxxxxxxx-xxxx-...), never the human readable name
-	  Publisher has to match the signing certificate character for character, which is why the sideload script
-	  reads it out of this file instead of carrying its own copy
-	  Version stays at the placeholder too, the build writes the csproj Version into the generated manifest so
-	  the csproj remains the only place a version is bumped by hand
+	  Publisher is the partner center account id, which is what the store checks the uploaded package against;
+	  it has to match the signing certificate character for character, which is why the sideload script reads it
+	  out of this file instead of carrying its own copy
+	  Name still has to be replaced with the reserved app name from partner center, under app management,
+	  product identity, as Package/Identity/Name
+	  Version stays at the placeholder, the build writes the csproj Version into the generated manifest so the
+	  csproj remains the only place a version is bumped by hand
 	-->
 	<Identity
 	  Name="DanielCech.FluentSensors"
-	  Publisher="CN=Daniel Cech"
+	  Publisher="CN=78eb616f-ef18-4692-975a-c350e85bf53a"
 	  Version="1.0.0.0" />
 
 	<Properties>
