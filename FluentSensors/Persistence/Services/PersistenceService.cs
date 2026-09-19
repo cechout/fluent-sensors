@@ -7,6 +7,8 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.IO.Compression;
 
+using Windows.Storage;
+
 using FluentSensors.Common;
 using FluentSensors.Persistence.Models;
 
@@ -286,6 +288,26 @@ namespace FluentSensors.Persistence.Services
         // rather than by a user setting, because such a setting would itself need a location to be stored in
         private static string ResolveRootFolder()
         {
+            // a packaged build asks the app model instead of assembling the path itself: msix redirects a write to
+            // %LocalAppData% into the packages private LocalCache, so the literal path below would still be written
+            // through, but the start pages "open folder" button hands that path to an explorer running outside the
+            // container and would land in an empty directory
+            // LocalState is the one location both sides agree on, and uninstalling the package takes it with it
+            // no legacy folder migration here on purpose, the rename predates the store channel entirely
+            if (AppDistribution.IsPackaged)
+            {
+                try
+                {
+                    return ApplicationData.Current.LocalFolder.Path;
+                }
+                catch (Exception ex)
+                {
+                    // no app data for this identity, which should not happen inside a package; fall through to the
+                    // per-user location rather than losing state
+                    Debug.WriteLine($"[PersistenceService] packaged local folder unavailable: {ex.Message}");
+                }
+            }
+
             string localAppData = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), LocalFolderName);
 

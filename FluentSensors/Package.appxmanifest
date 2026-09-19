@@ -1,17 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
-  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   IgnorableNamespaces="uap rescap">
 
+	<!--
+	  Publisher is the partner center account id, which is what the store checks the uploaded package against;
+	  it has to match the signing certificate character for character, which is why the sideload script reads it
+	  out of this file instead of carrying its own copy
+	  Name still has to be replaced with the reserved app name from partner center, under app management,
+	  product identity, as Package/Identity/Name
+	  Version stays at the placeholder, the build writes the csproj Version into the generated manifest so the
+	  csproj remains the only place a version is bumped by hand
+	-->
 	<Identity
-	  Name="1e797ab6-158c-47c5-9dcd-d4fe803be069"
-	  Publisher="CN=Daniel Čech"
+	  Name="DanielCech.FluentSensors"
+	  Publisher="CN=78eb616f-ef18-4692-975a-c350e85bf53a"
 	  Version="1.0.0.0" />
-
-	<mp:PhoneIdentity PhoneProductId="1e797ab6-158c-47c5-9dcd-d4fe803be069" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
 	<Properties>
 		<DisplayName>Fluent Sensors</DisplayName>
@@ -19,9 +25,18 @@
 		<Logo>Assets\StoreLogo.png</Logo>
 	</Properties>
 
+	<!--
+	  windows 11 only, unlike the github build which still targets 10.0.19041: an elevated msix process cannot
+	  resolve a windows app sdk framework package on windows 10, support for that needed os side changes and
+	  only landed in build 22000
+	  this app is WindowsAppSDKSelfContained, so it may well work below that; raise or lower this only against a
+	  real sideload test on a windows 10 machine, never on the assumption
+	  the packaging tooling overwrites this element from TargetPlatformMinVersion, so the numbers that actually
+	  ship are the ones SetAppxTargetDeviceFamily in the csproj writes back; both sides are kept the same so
+	  reading either one is not misleading
+	-->
 	<Dependencies>
-		<TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26226.0" />
-		<TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26226.0" />
+		<TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.22000.0" MaxVersionTested="10.0.26100.0" />
 	</Dependencies>
 
 	<Resources>
@@ -38,13 +53,22 @@
 			  Square44x44Logo="Assets\Square44x44Logo1.png" Square150x150Logo="Assets\Square150x150Logo1.png" Description="A modern hardware monitoring tool for Windows 11">
 				<uap:SplashScreen Image="Assets\SplashScreen1.png" />
 				<uap:DefaultTile Square71x71Logo="Assets\SmallTile.png" Wide310x150Logo="Assets\WideTile.png" Square310x310Logo="Assets\LargeTile.png"/>
-				<uap:LockScreen BadgeLogo="Assets\BadgeLogo.png" Notification="badge"/>
 			</uap:VisualElements>
 		</Application>
 	</Applications>
 
+	<!--
+	  allowElevation is what lets the package launch elevated at all; it does nothing on its own and only takes
+	  effect because app.manifest asks for requireAdministrator, which LibreHardwareMonitorLib needs for the
+	  kernel driver
+	  internetClient stays even though the store build never self updates: the release notes reader still reads
+	  the github releases api
+	  appDiagnostics is deliberately absent, the uia taskbar probe works without it in other store apps doing
+	  the same thing; add it only if a sideload test shows WinTaskbarUiaProbe finding nothing
+	-->
 	<Capabilities>
 		<Capability Name="internetClient" />
 		<rescap:Capability Name="runFullTrust" />
+		<rescap:Capability Name="allowElevation" />
 	</Capabilities>
 </Package>

@@ -463,7 +463,8 @@
                 <!--  revisit: flat about section  -->
                 <!--
                     the expanders here are toggled by hand while the flat link row is being tried out
-                    the app data folder button and the third-party list have no home in that row yet
+                    the third-party list has no home in that row yet; the app data folder button moved to the
+                    settings page, under backup and reset
                 -->
 
                 <!--  app info  -->
@@ -486,28 +487,6 @@
 
                         <controls:SettingsCard Description="Open a new issue on the project" Header="Report a bug">
                             <HyperlinkButton Content="GitHub Issues" NavigateUri="https://github.com/cechout/fluent-sensors/issues/new" />
-                        </controls:SettingsCard>
-
-                        <!--  (the settings and sensor state json files; a portable build keeps them next to the exe)  -->
-                        <controls:SettingsCard Description="Where settings, window and sensor state are stored" Header="App data folder">
-                            <Button Click="OpenAppDataFolder_Click">
-                                <Grid ColumnSpacing="8">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <FontIcon
-                                        Grid.Column="0"
-                                        VerticalAlignment="Center"
-                                        FontSize="14"
-                                        Glyph="&#xE8B7;" />
-                                    <TextBlock
-                                        Grid.Column="1"
-                                        VerticalAlignment="Center"
-                                        Text="Open" />
-                                </Grid>
-                            </Button>
                         </controls:SettingsCard>
 
                         <controls:SettingsCard Header="Developer Profile">
