@@ -6,22 +6,22 @@
   IgnorableNamespaces="uap rescap">
 
 	<!--
-	  Publisher is the partner center account id, which is what the store checks the uploaded package against;
-	  it has to match the signing certificate character for character, which is why the sideload script reads it
+	  all three identity values are dictated by partner center and have to match it character for character, or
+	  the upload is rejected; they are listed there under app management, product identity
+	  Publisher is the package publisher id, which is a different guid from the partner center account id
+	  it doubles as the subject of the sideload signing certificate, which is why the sideload script reads it
 	  out of this file instead of carrying its own copy
-	  Name still has to be replaced with the reserved app name from partner center, under app management,
-	  product identity, as Package/Identity/Name
 	  Version stays at the placeholder, the build writes the csproj Version into the generated manifest so the
 	  csproj remains the only place a version is bumped by hand
 	-->
 	<Identity
-	  Name="DanielCech.FluentSensors"
-	  Publisher="CN=78eb616f-ef18-4692-975a-c350e85bf53a"
+	  Name="cechout.FluentSensors"
+	  Publisher="CN=6434A75A-C641-499B-9A1C-7FFDA98117B7"
 	  Version="1.0.0.0" />
 
 	<Properties>
 		<DisplayName>Fluent Sensors</DisplayName>
-		<PublisherDisplayName>Daniel Čech</PublisherDisplayName>
+		<PublisherDisplayName>cechout</PublisherDisplayName>
 		<Logo>Assets\StoreLogo.png</Logo>
 	</Properties>
 
