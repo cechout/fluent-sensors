@@ -138,12 +138,10 @@ namespace FluentSensors.Features.Start
             LoadingRing.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        // a switched off check is a choice rather than a failure, and one sentence for both would read like a
-        // failure and send people looking for one
+        // the only way to get here now is a fetch that did not come back; the startup check setting no longer
+        // keeps the dialog offline, so there is no second case left to tell apart
         private static string EmptyStatus() =>
-            ReleaseCatalog.IsNetworkAllowed
-                ? "The release history could not be loaded, and nothing has been saved yet"
-                : "Check for updates on startup is turned off, so no release notes have been saved yet";
+            "The release history could not be loaded, and nothing has been saved yet";
 
         private void ShowStatus(string message)
         {

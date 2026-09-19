@@ -32,11 +32,12 @@ Please note that an IP address counts as personal data in the EU. That is why th
 
 ## ⚙️ How to keep the app offline
 
-Open **Settings**, expand **Startup**, and turn off **Check for updates on startup**. With that switch off the app never goes online on its own. The release notes then only show the versions that were already saved on your machine.
+Open **Settings**, expand **Startup**, and turn off **Check for updates on startup**. With that switch off the app never goes online on its own.
 
-Two things still work, because you ask for them yourself:
+Three things still work, because you ask for them yourself:
 
 * The update button on the start page still checks when you press it.
+* Opening the release notes loads the published versions, but only when the copy saved on your machine is missing one, and at most once per app start.
 * An update is still downloaded and installed when you confirm it.
 
 ## 🔌 The sensor driver
@@ -47,4 +48,4 @@ Without PawnIO the app still runs and still shows GPU, storage, network and memo
 
 ## 🏪 Microsoft Store version
 
-The Store version never checks for updates and never downloads a new build, because the Store handles updates itself. It does still load the release notes, in the same way and with the same switch as described above.
+The Store version never checks for updates and never downloads a new build, because the Store handles updates itself. It does still load the release notes, in the same way as described above.
