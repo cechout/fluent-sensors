@@ -221,7 +221,7 @@
                         <!--  current graph value tiles  -->
                         <Grid x:Name="TilesGrid" Grid.Row="1">
                             <controls:WrapPanel
-                                Margin="4,0,4,12"
+                                Margin="4,0,4,0"
                                 HorizontalSpacing="16"
                                 VerticalSpacing="0">
                                 <fhTile:SensorTileControl
@@ -641,7 +641,7 @@
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
-                        <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="12">
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -682,7 +682,7 @@
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
-                        <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="12">
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"

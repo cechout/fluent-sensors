@@ -108,6 +108,8 @@
                                 GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="{x:Bind Memory.RoundedTotalMemory, Mode=OneWay}"
+                                PlaceholderSensorName="Memory Used (Physical)"
+                                PlaceholderUnit="GB"
                                 ShowStatusRow="True"
                                 ShowThresholdControls="True"
                                 ShowYAxisControls="True"
@@ -119,6 +121,8 @@
                                 GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="{x:Bind Memory.VirtualMemoryTotal, Mode=OneWay}"
+                                PlaceholderSensorName="Memory Used (Virtual)"
+                                PlaceholderUnit="GB"
                                 ShowStatusRow="True"
                                 ShowThresholdControls="True"
                                 ShowYAxisControls="True"
@@ -129,7 +133,7 @@
                         <!--  current value tiles  -->
                         <Grid x:Name="TilesGrid" Grid.Row="1">
                             <controls:WrapPanel
-                                Margin="4,0,4,12"
+                                Margin="4,0,4,0"
                                 HorizontalSpacing="16"
                                 VerticalSpacing="0">
                                 <fhTile:SensorTileControl

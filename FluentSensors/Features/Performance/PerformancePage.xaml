@@ -44,7 +44,7 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ToggleButton">
-                            <Border x:Name="RootBorder" CornerRadius="5">
+                            <Border x:Name="RootBorder" CornerRadius="4">
                                 <ContentPresenter
                                     x:Name="ContentPresenter"
                                     Padding="{TemplateBinding Padding}"

@@ -19,6 +19,15 @@ namespace FluentSensors.Features.Performance.Lhm
     // the instance itself stays a dumb data holder
     public class LhmGpuPerformanceViewModel
     {
+        // preferred sensor for the two vendor-dependent categories, best first; this only decides which candidate
+        // starts out active, it never filters the list: every sensor of the categorys type is offered
+        // vendors disagree on the package power name in particular (NVIDIA and AMD "GPU Package", Intel iGPU
+        // "GPU Power", AMD board power "GPU PPT"), so matching on a fixed name list left whole vendors with an
+        // empty power tile
+        private static readonly string[] TemperaturePreference = { "GPU Core", "GPU Hot Spot" };
+        private static readonly string[] PowerPreference = { "GPU Package", "GPU Power", "GPU PPT", "GPU Total", "GPU Core" };
+
+
         // === constructor ===
 
         public LhmGpuPerformanceViewModel()
@@ -69,39 +78,55 @@ namespace FluentSensors.Features.Performance.Lhm
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(gpu, e);
         }
 
-        // runs once after the initial sensor batch, per category: if nothing was ever persisted and one candidate
-        // is explicitly flagged IsDefault, that one wins over whichever candidate happened to be discovered first;
-        // if nothing is active at all yet (e.g. a persisted choice never showed up), falls back to the first
-        // candidate present
+        // runs once after the initial sensor batch, per category: if nothing was ever persisted, the best pick wins
+        // over whichever candidate happened to be discovered first; Temperature/Power rank by name preference,
+        // MemoryUsed still by its IsDefault flag because its two candidates are a fixed, vendor-independent pair
+        // if nothing is active at all yet (e.g. a persisted choice never showed up, or this vendor names every
+        // sensor of the category differently), falls back to the first candidate present
         private static void ApplyCategoryFallbacks(LhmGpuInstanceViewModel gpu)
         {
-            ActivateDefault(gpu.HardwareName, "Temperature", gpu.TemperatureOptions, () => gpu.Temperature, gpu.SetTemperatureWithoutPersisting);
-            ActivateDefault(gpu.HardwareName, "Power", gpu.PackagePowerOptions, () => gpu.PackagePower, gpu.SetPackagePowerWithoutPersisting);
-            ActivateDefault(gpu.HardwareName, "MemoryUsed", gpu.MemoryUsedOptions, () => gpu.MemoryUsed, gpu.SetMemoryUsedWithoutPersisting);
+            ActivateDefault(gpu.HardwareName, "Temperature", gpu.TemperatureOptions, () => gpu.Temperature, gpu.SetTemperatureWithoutPersisting, TemperaturePreference);
+            ActivateDefault(gpu.HardwareName, "Power", gpu.PackagePowerOptions, () => gpu.PackagePower, gpu.SetPackagePowerWithoutPersisting, PowerPreference);
+            ActivateDefault(gpu.HardwareName, "MemoryUsed", gpu.MemoryUsedOptions, () => gpu.MemoryUsed, gpu.SetMemoryUsedWithoutPersisting, null);
         }
 
         private static void ActivateDefault(
             string hardwareName, string category, ObservableCollection<SensorSwitchCandidate> options,
-            Func<SensorGraphViewModel> getActive, Action<SensorGraphViewModel> setActiveWithoutPersisting)
+            Func<SensorGraphViewModel> getActive, Action<SensorGraphViewModel> setActiveWithoutPersisting,
+            string[] preferredNames)
         {
             if (options.Count == 0) return;
 
             if (SensorSwitchStateService.Instance.GetSelectedSensorId(hardwareName, category) == null)
             {
-                var flaggedDefault = options.FirstOrDefault(c => c.IsDefault);
-                if (flaggedDefault != null)
+                var best = preferredNames != null
+                    ? FindPreferred(options, preferredNames)
+                    : options.FirstOrDefault(c => c.IsDefault);
+
+                if (best != null)
                 {
                     var active = getActive();
-                    bool activeIsAlreadyDefault = active != null && options.Any(c => c.SensorId == active.SensorId && c.IsDefault);
-                    if (!activeIsAlreadyDefault)
+                    if (active == null || active.SensorId != best.SensorId)
                     {
-                        setActiveWithoutPersisting(flaggedDefault.Resolve());
+                        setActiveWithoutPersisting(best.Resolve());
                         return;
                     }
                 }
             }
 
             if (getActive() == null) setActiveWithoutPersisting(options[0].Resolve());
+        }
+
+        // walks the preference list, not the candidate list, so a lower ranked name that happened to be discovered
+        // first never beats a better ranked one discovered later
+        private static SensorSwitchCandidate FindPreferred(ObservableCollection<SensorSwitchCandidate> options, string[] preferredNames)
+        {
+            foreach (string name in preferredNames)
+            {
+                var match = options.FirstOrDefault(c => c.DisplayName == name);
+                if (match != null) return match;
+            }
+            return null;
         }
 
         // fills the fixed D3D engine slots once, after the initial sensor batch: persisted choice if present,
@@ -159,7 +184,7 @@ namespace FluentSensors.Features.Performance.Lhm
                     PushDataPoint(gpu.CoreTemperature, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.CoreTemperature, entry, e);
                     RegisterEagerCategoryCandidate(gpu, "Temperature", gpu.CoreTemperature,
-                        g => g.Temperature, (g, v) => g.SetTemperatureWithoutPersisting(v), gpu.TemperatureOptions, isDefault: true);
+                        g => g.Temperature, (g, v) => g.SetTemperatureWithoutPersisting(v), gpu.TemperatureOptions);
                     break;
 
                 case ("GPU Hot Spot", "Temperature"):
@@ -170,13 +195,8 @@ namespace FluentSensors.Features.Performance.Lhm
                         g => g.Temperature, (g, v) => g.SetTemperatureWithoutPersisting(v), gpu.TemperatureOptions);
                     break;
 
-                // package wattage and core voltage share the one Power slot, so switching between them is a plain
-                // unit change; the switch flyout still shows both by their own sensor names
-                case ("GPU Package", "Power"):
-                    RegisterCategoryCandidate(gpu, "Power", entry,
-                        g => g.PackagePower, (g, v) => g.SetPackagePowerWithoutPersisting(v), gpu.PackagePowerOptions, isDefault: true);
-                    break;
-
+                // wattage and core voltage share the one Power slot, so switching between them is a plain unit
+                // change; the switch flyout still shows both by their own sensor names
                 case ("GPU Core Voltage", "Voltage"):
                     RegisterCategoryCandidate(gpu, "Power", entry,
                         g => g.PackagePower, (g, v) => g.SetPackagePowerWithoutPersisting(v), gpu.PackagePowerOptions);
@@ -253,6 +273,19 @@ namespace FluentSensors.Features.Performance.Lhm
                 // fixed, Windows creates a counter instance per engine type only once something actually uses it
                 case (var name, "Load") when name.StartsWith("D3D"):
                     RegisterD3dCandidate(gpu, entry);
+                    break;
+
+                // every remaining temperature and power reading of this GPU, whatever the vendor calls it, joins the
+                // switch list of the matching overview slot; the named Temperature cases above still match first,
+                // they additionally keep their permanent home in the Extended view
+                case (_, "Temperature"):
+                    RegisterCategoryCandidate(gpu, "Temperature", entry,
+                        g => g.Temperature, (g, v) => g.SetTemperatureWithoutPersisting(v), gpu.TemperatureOptions);
+                    break;
+
+                case (_, "Power"):
+                    RegisterCategoryCandidate(gpu, "Power", entry,
+                        g => g.PackagePower, (g, v) => g.SetPackagePowerWithoutPersisting(v), gpu.PackagePowerOptions);
                     break;
             }
         }

@@ -226,6 +226,8 @@
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
+                                    PlaceholderSensorName="CPU Load"
+                                    PlaceholderUnit="%"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
@@ -239,6 +241,8 @@
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
+                                    PlaceholderSensorName="CPU Temperature"
+                                    PlaceholderUnit="°C"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
@@ -251,6 +255,7 @@
                                     Grid.Column="1"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="CPU Power"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
@@ -278,6 +283,8 @@
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
+                                    PlaceholderSensorName="CPU Load"
+                                    PlaceholderUnit="%"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
@@ -290,6 +297,8 @@
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
+                                    PlaceholderSensorName="CPU Temperature"
+                                    PlaceholderUnit="°C"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
@@ -301,6 +310,7 @@
                                     Grid.Row="2"
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="CPU Power"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
@@ -314,9 +324,9 @@
                         <Grid x:Name="TilesAndStaticInfoGrid" Grid.Row="1">
 
                             <controls:WrapPanel
-                                Margin="4,0,4,12"
+                                Margin="4,0,4,0"
                                 HorizontalSpacing="16"
-                                VerticalSpacing="8">
+                                VerticalSpacing="0">
                                 <fhTile:SensorTileControl
                                     Title="{x:Bind Cpu.TotalLoad.SensorName, Mode=OneWay}"
                                     Width="Auto"
@@ -435,7 +445,7 @@
                             <controls:WrapPanel
                                 Margin="4,0,4,0"
                                 HorizontalSpacing="16"
-                                VerticalSpacing="8">
+                                VerticalSpacing="0">
                                 <fhTile:SensorTileControl
                                     Title="Average Load"
                                     Width="Auto"
