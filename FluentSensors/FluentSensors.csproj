@@ -164,6 +164,20 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
+
+  <!--
+    the tiles, logos and splash images the package manifest names; same trap as the release banners above, the
+    default content glob puts them in the build output but publish skips an item with no copy metadata of its
+    own, so an msix layout built from the publish output would carry no visuals at all
+    scoped to the packaged build, since an unpackaged one has no manifest that could reference them and the
+    installer payload should not grow by a tile set nothing ever shows
+  -->
+  <ItemGroup Condition="'$(WindowsPackageType)' != 'None'">
+    <Content Update="Assets\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
   <ItemGroup>
     <Page Update="Controls\InfoPopup\InfoPopupControl.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -285,7 +299,7 @@
     the folder that gets loaded is the one matching the Windows UI language, so trimming this down to en-US
     breaks every machine that is not running english
   -->
-  <Target Name="PruneUnusedPublishPayload" AfterTargets="Publish">
+  <Target Name="CollectUnusedPublishPayload">
     <ItemGroup>
       <_PrunedPublishFile Include="$(PublishDir)FluentSensors.pdb" />
       <_PrunedPublishFile Include="$(PublishDir)Mono.Posix.NETStandard.dll" />
@@ -306,6 +320,86 @@
       -->
       <_PrunedPublishFile Include="$(PublishDir)System.Numerics.Tensors.dll" />
     </ItemGroup>
+  </Target>
+
+  <Target Name="PruneUnusedPublishPayload" AfterTargets="Publish" DependsOnTargets="CollectUnusedPublishPayload">
     <Delete Files="@(_PrunedPublishFile)" />
+  </Target>
+
+  <!--
+    the msix payload is assembled out of the publish output while PruneUnusedPublishPayload only runs after the
+    Publish target has finished, so without this the package would ship every file that list drops
+    the payload item is filtered rather than the files deleted, which keeps this independent of who runs first;
+    a delete would have to hit the window between the publish copy and the payload computation
+    matched by file name because the payload identities are not guaranteed to be spelled like PublishDir
+  -->
+  <Target Name="PruneUnusedAppxPayload" AfterTargets="_ComputeAppxPackagePayload" DependsOnTargets="CollectUnusedPublishPayload" Condition="'$(WindowsPackageType)' != 'None'">
+    <!--
+      the names go through a property first; an item reference and a batching qualifier in the same condition
+      make msbuild batch both sides against each other, which silently matches nothing
+      the semicolons around each side anchor the match, so clrgc.dll cannot swallow a file called gc.dll
+      mscordaccore is matched by prefix instead: the list above resolves its versioned name through a glob over
+      the publish folder, which is empty on the run right after a prune emptied it
+    -->
+    <PropertyGroup>
+      <_PrunedPayloadNames>;@(_PrunedPublishFile->'%(Filename)%(Extension)');</_PrunedPayloadNames>
+    </PropertyGroup>
+    <ItemGroup>
+      <_UnusedAppxPayload Include="@(AppxPackagePayload)" Condition="$(_PrunedPayloadNames.Contains(';%(Filename)%(Extension);')) or $([System.String]::Copy('%(Filename)').StartsWith('mscordaccore'))" />
+      <AppxPackagePayload Remove="@(_UnusedAppxPayload)" />
+      <AppxUploadPackagePayload Remove="@(_UnusedAppxPayload)" />
+    </ItemGroup>
+    <Message Importance="high" Text="dropped @(_UnusedAppxPayload->Count()) unused files from the msix payload" />
+  </Target>
+
+  <!--
+    the store wants a four part version and the csproj is the only place one gets bumped by hand, so the
+    manifest is stamped at build time instead of keeping a second number in Package.appxmanifest
+    the stamp goes onto a copy in obj and @(AppxManifest) is pointed at that copy, because
+    _ValidatePresenceOfAppxManifestItems reads the version out of the source item and everything downstream
+    hangs off it: the package file name, the bundle manifest version and the final manifest
+    poking the generated manifest afterwards instead would leave a package called _1.0.0.0_ around a payload
+    that says 1.4.0.0
+  -->
+  <Target Name="StampAppxManifestVersion" BeforeTargets="_ValidatePresenceOfAppxManifestItems" Condition="'$(WindowsPackageType)' != 'None' and '@(AppxManifest)' != ''">
+    <PropertyGroup>
+      <_StampedAppxManifest>$(IntermediateOutputPath)Package.appxmanifest</_StampedAppxManifest>
+    </PropertyGroup>
+    <Copy SourceFiles="@(AppxManifest)" DestinationFiles="$(_StampedAppxManifest)" />
+    <XmlPoke XmlInputPath="$(_StampedAppxManifest)"
+             Query="/pkg:Package/pkg:Identity/@Version"
+             Value="$(Version).0"
+             Namespaces="&lt;Namespace Prefix='pkg' Uri='http://schemas.microsoft.com/appx/manifest/foundation/windows10' /&gt;" />
+    <ItemGroup>
+      <AppxManifest Remove="@(AppxManifest)" />
+      <AppxManifest Include="$(_StampedAppxManifest)" />
+    </ItemGroup>
+    <Message Importance="high" Text="stamped AppxManifest version $(Version).0" />
+  </Target>
+
+  <!--
+    the generated manifest gets its TargetDeviceFamily written by the packaging tooling out of
+    TargetPlatformMinVersion, so whatever Package.appxmanifest says is overwritten and the package would claim the
+    same 10.0.19041 floor the github build targets
+    the store build has to say windows 11 instead, because an elevated msix is not supported below build 22000
+    corrected here rather than by raising TargetPlatformMinVersion for the packaged build, which would compile the
+    same source against a different platform floor and hand out two different binaries
+    runs before _ValidateAppxManifest, so the corrected values are what gets validated and packed
+  -->
+  <Target Name="SetAppxTargetDeviceFamily" AfterTargets="_GenerateCurrentProjectAppxManifest" Condition="'$(WindowsPackageType)' != 'None'">
+    <PropertyGroup>
+      <_AppxNamespace>&lt;Namespace Prefix='pkg' Uri='http://schemas.microsoft.com/appx/manifest/foundation/windows10' /&gt;</_AppxNamespace>
+      <_AppxMinVersion>10.0.22000.0</_AppxMinVersion>
+      <_AppxMaxVersionTested>10.0.26100.0</_AppxMaxVersionTested>
+    </PropertyGroup>
+    <XmlPoke XmlInputPath="$(FinalAppxManifestName)"
+             Query="/pkg:Package/pkg:Dependencies/pkg:TargetDeviceFamily/@MinVersion"
+             Value="$(_AppxMinVersion)"
+             Namespaces="$(_AppxNamespace)" />
+    <XmlPoke XmlInputPath="$(FinalAppxManifestName)"
+             Query="/pkg:Package/pkg:Dependencies/pkg:TargetDeviceFamily/@MaxVersionTested"
+             Value="$(_AppxMaxVersionTested)"
+             Namespaces="$(_AppxNamespace)" />
+    <Message Importance="high" Text="set TargetDeviceFamily to $(_AppxMinVersion) / $(_AppxMaxVersionTested)" />
   </Target>
 </Project>
