@@ -72,6 +72,7 @@ namespace FluentSensors.Features.Sensors
 
             // never detached: this view model is eager at the splash screen and lives for the whole session
             SettingsService.Instance.HardwareIconColorsChanged += RefreshGroupIconBrushes;
+            SettingsService.Instance.ThemeChanged += OnThemeChanged;
         }
 
 
@@ -179,8 +180,12 @@ namespace FluentSensors.Features.Sensors
 
         // === private helpers ===
 
-        // re-resolves every group header icon after the hardware icon colour setting flipped; the sensors page and
-        // the hidden sensors window bind the same groups, so both follow from here
+        // the untinted icon brush is a plain brush rather than a theme resource, so a theme switch has to rebuild
+        // it by hand
+        private void OnThemeChanged(string theme) => RefreshGroupIconBrushes();
+
+        // re-resolves every group header icon after the hardware icon colour setting flipped or the theme moved;
+        // the sensors page and the hidden sensors window bind the same groups, so both follow from here
         private void RefreshGroupIconBrushes()
         {
             foreach (var group in HardwareGroups)

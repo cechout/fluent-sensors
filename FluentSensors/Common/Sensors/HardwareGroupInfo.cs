@@ -1,5 +1,6 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media;
+﻿using Microsoft.UI.Xaml.Media;
+
+using FluentSensors.Common.UI;
 
 
 namespace FluentSensors.Common.Sensors
@@ -44,10 +45,11 @@ namespace FluentSensors.Common.Sensors
                 return new SolidColorBrush(GetProfile(kind).Color);
             }
 
-            return Application.Current.Resources.TryGetValue("TextFillColorPrimaryBrush", out object value)
-                && value is SolidColorBrush brush
-                    ? brush
-                    : new SolidColorBrush(Microsoft.UI.Colors.White);
+            // the untinted case goes through DefaultTextColor instead of reading TextFillColorPrimaryBrush out of
+            // Application.Current.Resources: that lookup answers with the light theme value from code behind and
+            // never moves again when the theme does, which left these icons as the only elements in the app
+            // ignoring a theme switch
+            return DefaultTextColor.Resolve() as SolidColorBrush ?? new SolidColorBrush(Microsoft.UI.Colors.White);
         }
 
         public static HardwareGroupProfile GetProfile(HardwareGroupKind kind)

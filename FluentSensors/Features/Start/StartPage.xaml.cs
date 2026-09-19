@@ -70,9 +70,13 @@ namespace FluentSensors.Features.Start
         // UpdateService already raises this from the UI thread, so there is nothing to dispatch here
         private void OnUpdateStateChanged() => ViewModel.RefreshUpdateState();
 
-        // the badge colour is a plain brush rather than a theme resource, so it has to be rebuilt by hand when
-        // the theme moves
-        private void OnThemeChanged(string theme) => ViewModel.RefreshUpdateState();
+        // the badge colour and the snapshot tile icons are plain brushes rather than theme resources, so both have
+        // to be rebuilt by hand when the theme moves
+        private void OnThemeChanged(string theme)
+        {
+            ViewModel.RefreshUpdateState();
+            ViewModel.RefreshIconBrushes();
+        }
 
         // the tile icons are the only thing on this page the hardware icon colour setting reaches
         private void OnHardwareIconColorsChanged() => ViewModel.RefreshIconBrushes();
