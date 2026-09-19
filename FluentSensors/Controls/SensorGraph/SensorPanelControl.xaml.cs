@@ -530,8 +530,18 @@ namespace FluentSensors.Controls.SensorGraph
             return DefaultTextColor.ForTheme(ActualTheme == ElementTheme.Dark);
         }
 
-        private string GetStatusRowTitleOrPlaceholder(bool showUnit, SensorGraphViewModel viewModel) =>
-            viewModel == null ? "--" : GetTextOrPlaceholder(GetStatusRowTitle(showUnit, viewModel.SensorName, viewModel.DisplayNameWithUnit));
+        // a missing sensor still has a known name, the consumer declared it in PlaceholderSensorName for the
+        // not-found message; so the row keeps naming the sensor instead of blanking out to "--" like the value and
+        // the y-axis next to it, which genuinely have nothing to show
+        private string GetStatusRowTitleOrPlaceholder(bool showUnit, SensorGraphViewModel viewModel, string placeholderName, string placeholderUnit)
+        {
+            if (viewModel != null) return GetTextOrPlaceholder(GetStatusRowTitle(showUnit, viewModel.SensorName, viewModel.DisplayNameWithUnit));
+
+            if (string.IsNullOrEmpty(placeholderName)) return "--";
+
+            string placeholderNameWithUnit = string.IsNullOrEmpty(placeholderUnit) ? placeholderName : $"{placeholderName} ({placeholderUnit})";
+            return GetStatusRowTitle(showUnit, placeholderName, placeholderNameWithUnit);
+        }
 
         private Brush GetBrushOrDefault(Brush value) => value ?? DefaultTextColor.Resolve();
 

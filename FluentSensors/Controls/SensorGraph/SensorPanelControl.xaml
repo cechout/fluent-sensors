@@ -93,7 +93,7 @@
                     Style="{StaticResource SubtleButtonStyle}"
                     Visibility="{x:Bind GetSwitchButtonVisibility(SwitchCandidates), Mode=OneWay}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel), Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel, PlaceholderSensorName, PlaceholderUnit), Mode=OneWay}" />
                         <FontIcon FontSize="10" Glyph="&#xE70D;" />
                     </StackPanel>
                 </Button>
@@ -117,7 +117,7 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel), Mode=OneWay}"
+                    Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel, PlaceholderSensorName, PlaceholderUnit), Mode=OneWay}"
                     Visibility="{x:Bind GetSwitchTextVisibility(SwitchCandidates), Mode=OneWay}" />
 
                 <!--  current value  -->
@@ -165,7 +165,7 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel), Mode=OneWay}"
+                    Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel, PlaceholderSensorName, PlaceholderUnit), Mode=OneWay}"
                     TextTrimming="CharacterEllipsis" />
 
                 <!--  current value  -->
