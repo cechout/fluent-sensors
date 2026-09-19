@@ -228,9 +228,7 @@ namespace FluentSensors.Features.Settings
 
             if (!WinAutostartService.IsSupported)
             {
-                RunOnStartupCard.Description = AppDistribution.IsPackaged
-                    ? "Not available in the Microsoft Store version yet"
-                    : "Not available in the portable version, it would leave a scheduled task behind";
+                RunOnStartupCard.Description = "Not available in the portable version, it would leave a scheduled task behind";
                 RunOnStartupToggle.Visibility = Visibility.Collapsed;
                 DelayStartupCard.Visibility = Visibility.Collapsed;
                 UpdateStartupCardStates();

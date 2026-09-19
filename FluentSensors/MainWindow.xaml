@@ -182,10 +182,10 @@
                 <fhInfoPopup:InfoPopupControl
                     x:Name="LhmInfoPopup"
                     Margin="-2,1,0,0"
-                    TitleForeground="{ThemeResource TextFillColorSecondaryBrush}"
                     Description="Sensors (found/rendered) - sensors found by LibreHardwareMonitor, and how many are actively drawn&#10;Poll (current/aimed) - measured update rate against the rate set in Settings&#10;Read - duration of one full sensor pass, close to the poll rate means no headroom left&#10;LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows"
                     PlacementMode="Below"
-                    SourceIntro="This App is powered by the open source LibreHardwareMonitor project:">
+                    SourceIntro="This App is powered by the open source LibreHardwareMonitor project:"
+                    TitleForeground="{ThemeResource TextFillColorSecondaryBrush}">
                     <!--  readouts, carried by the popup so they follow its accent state  -->
                     <!--  (no Foreground of their own, the presenter behind them supplies it)  -->
                     <fhInfoPopup:InfoPopupControl.TitleContent>
@@ -244,10 +244,10 @@
                 <fhInfoPopup:InfoPopupControl
                     x:Name="WindowsInfoPopup"
                     Margin="-2,1,0,0"
-                    TitleForeground="{ThemeResource TextFillColorSecondaryBrush}"
                     Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)"
                     PlacementMode="Below"
-                    SourceIntro="Source:">
+                    SourceIntro="Source:"
+                    TitleForeground="{ThemeResource TextFillColorSecondaryBrush}">
 
                     <!--  readouts, carried by the popup so they follow its accent state  -->
                     <!--  (no Foreground of their own, the presenter behind them supplies it)  -->

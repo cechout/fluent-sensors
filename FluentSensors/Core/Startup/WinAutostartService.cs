@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Security;
@@ -35,8 +35,13 @@ namespace FluentSensors.Core.Startup
 
         // a task is a real system entry that outlives the app folder, so a portable copy deliberately does not offer
         // this; deleting the folder would leave a task pointing at nothing that nobody connects to this app anymore
-        // a packaged build wants the StartupTask manifest extension instead, which the store controls
-        public static bool IsSupported => !AppDistribution.IsPortableBuild && !AppDistribution.IsPackaged;
+        //
+        // a packaged build keeps the task rather than using the StartupTask manifest extension: that extension
+        // activates the app with the users normal token, which requireAdministrator then refuses, while a task with
+        // RunLevel HighestAvailable starts elevated without a prompt
+        // RapidDev.Radiograph ships exactly this shape from the store, a LogonTrigger task with InteractiveToken and
+        // HighestAvailable pointing at its own exe under WindowsApps, and declares no manifest extension at all
+        public static bool IsSupported => !AppDistribution.IsPortableBuild;
 
         // true only when windows started this process from the scheduled task, never when the user launched it
         public static bool StartedByTask { get; } = HasAutostartArgument();
