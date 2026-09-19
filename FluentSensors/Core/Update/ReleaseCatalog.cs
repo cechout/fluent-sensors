@@ -28,7 +28,8 @@ namespace FluentSensors.Core.Update
     // kept apart from UpdateService on purpose: that one answers "is there something newer to install" once per
     // start, this one answers "what changed, ever" and is only ever touched when the dialog is opened
     //
-    // it answers to the same settings switch all the same, see IsNetworkAllowed
+    // it is not gated on the startup check setting: that switch governs what the app does without being asked,
+    // and opening the dialog is asking
     //
     // the answer is cached on disk, so the dialog still has the full history with no connection
     public class ReleaseCatalog
@@ -48,6 +49,7 @@ namespace FluentSensors.Core.Update
         private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
 
         private IReadOnlyList<ReleaseEntry> _releases;
+        private bool _hasFetchedThisRun;
 
 
         // === singleton instance ===
@@ -63,26 +65,24 @@ namespace FluentSensors.Core.Update
         // whatever was fetched or read from disk during this session, newest first
         public IReadOnlyList<ReleaseEntry> Releases => _releases ?? Array.Empty<ReleaseEntry>();
 
-        // the startup check switch covers this too, so it is a real one rather than one that only stops the
-        // automatic check; with it off the dialog shows what is already on disk and nothing else
-        //
-        // the channel is deliberately not part of this: a store build must not install anything itself, but
-        // reading the release notes is not installing and there is no reason to take that away from it
-        public static bool IsNetworkAllowed => SettingsService.Instance.CheckUpdatesOnStartup;
-
         // what the dialog asks for instead of RefreshAsync
         //
-        // the on-disk copy stays good until a release exists that it does not carry, and the only thing that ever
-        // learns about one is the update check, once per app start and again on a manual check; opening the dialog
-        // is not itself a reason to spend one of the 60 unauthenticated api requests GitHub grants per hour and ip
+        // the on-disk copy stays good until a release exists that it does not carry, so opening the dialog is not
+        // by itself a reason to spend one of the 60 unauthenticated api requests GitHub grants per hour and ip
         // returns null when nothing was fetched, which is the signal to keep showing what is already there
+        //
+        // deliberately not gated on CheckUpdatesOnStartup: that switch is about what the app does on its own, and
+        // the update button on the start page already reaches GitHub while it is off, for the same reason
+        // at most one fetch per run, so a version the catalog can never carry, which is what a local build
+        // numbered above every release is, cannot turn every dialog open into a request
         public async Task<IReadOnlyList<ReleaseEntry>> EnsureCurrentAsync()
         {
-            if (!IsNetworkAllowed) return null;
-
             var cached = LoadCached();
 
             if (cached.Count > 0 && !IsMissingLatest()) return null;
+            if (_hasFetchedThisRun) return null;
+
+            _hasFetchedThisRun = true;
 
             return await RefreshAsync();
         }
@@ -135,20 +135,28 @@ namespace FluentSensors.Core.Update
 
         // === private helpers ===
 
-        // whether the newest published release has a counterpart in the catalog
+        // whether the catalog is missing a release it ought to carry
+        //
+        // two sources answer that and either one is enough: the update check knows the newest published release
+        // but only once it has run, which it never does while the startup check is off, and the running version
+        // is always known
+        // a published release is in the catalog by definition, so a catalog that does not list the version this
+        // app is cannot be current; that is the source that keeps the dialog working with the check switched off
         //
         // the catalog only lists x.y.0, so a patch release is matched against the minor it belongs to; without
-        // that a published 1.3.1 would look missing forever and every dialog open would fetch again
-        // no answer from the update check yet means no reason to distrust the cache
+        // that a published 1.3.1 would look missing forever
         private bool IsMissingLatest()
         {
-            string latest = UpdateService.Instance.LatestRelease?.Version;
-            if (string.IsNullOrWhiteSpace(latest)) return false;
-            if (!Version.TryParse(latest, out var parsed)) return false;
+            return IsMissing(UpdateService.Instance.LatestRelease?.Version)
+                || IsMissing(UpdateService.CurrentVersion);
+        }
 
-            string minor = $"{parsed.Major}.{parsed.Minor}.0";
+        private bool IsMissing(string version)
+        {
+            if (string.IsNullOrWhiteSpace(version)) return false;
+            if (!Version.TryParse(version, out var parsed)) return false;
 
-            return !Releases.Any(entry => entry.Version == minor);
+            return !Releases.Any(entry => entry.Version == $"{parsed.Major}.{parsed.Minor}.0");
         }
 
         // drafts and prereleases are skipped the same way the updater skips them, anything below 1.0.0 is
