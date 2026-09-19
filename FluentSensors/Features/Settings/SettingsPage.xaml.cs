@@ -56,6 +56,8 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarFlyoutAlignmentSelection();
             RestoreLockWidgetPositionSelection();
 
+            ShowAppDataFolderPath();
+
 
             // event listeners
             WidgetBackgroundColorPicker.RegisterPropertyChangedCallback(
@@ -951,6 +953,32 @@ namespace FluentSensors.Features.Settings
 
 
         // === backup and restore settings ===
+
+        // the folder differs per channel and a store build puts it somewhere nobody would guess, so the card names
+        // the real path instead of describing it in the abstract; the description in the markup is only what shows
+        // at design time
+        private void ShowAppDataFolderPath()
+        {
+            string folder = PersistenceService.Instance.RootFolder;
+            if (!string.IsNullOrEmpty(folder)) AppDataFolderCard.Description = folder;
+        }
+
+        private void OpenAppDataFolder_Click(object sender, RoutedEventArgs e)
+        {
+            OpenPath(PersistenceService.Instance.RootFolder);
+        }
+
+        private static void OpenPath(string target)
+        {
+            if (string.IsNullOrWhiteSpace(target)) return;
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
+            }
+            catch { /* no explorer reachable, and this page has nowhere to report that to */ }
+        }
+
 
         // export and import
         private async void ExportSettings_Click(object sender, RoutedEventArgs e)

@@ -2,7 +2,6 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 using FluentSensors.Common.UI;
@@ -165,22 +164,6 @@ namespace FluentSensors.Features.Start
             if (sender is not FrameworkElement element || element.DataContext is not SystemSnapshotEntry entry) return;
 
             MainWindow.CurrentInstance?.OpenSensorsForHardware(entry.MatchedHardwareNames);
-        }
-
-        private void OpenAppDataFolder_Click(object sender, RoutedEventArgs e)
-        {
-            OpenPath(PersistenceService.Instance.RootFolder);
-        }
-
-        private static void OpenPath(string target)
-        {
-            if (string.IsNullOrWhiteSpace(target)) return;
-
-            try
-            {
-                Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
-            }
-            catch { /* no explorer reachable, and this page has nowhere to report that to */ }
         }
 
 

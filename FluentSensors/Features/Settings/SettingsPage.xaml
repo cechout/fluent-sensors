@@ -660,6 +660,15 @@
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Backup &amp; Reset" />
 
+            <!--  (the path is filled in at runtime, it differs per distribution channel)  -->
+            <controls:SettingsCard
+                x:Name="AppDataFolderCard"
+                Description="Where settings, window and sensor state are stored"
+                Header="App data folder"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE8B7;}">
+                <Button Click="OpenAppDataFolder_Click" Content="Open" />
+            </controls:SettingsCard>
+
             <controls:SettingsCard
                 Description="Backup or restore all settings (Import Restarts the app)"
                 Header="Export / Import Settings"
