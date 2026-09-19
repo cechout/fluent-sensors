@@ -53,26 +53,48 @@ namespace FluentSensors.Features.Performance
             // process instances that already exist (likely true for all of them, since LhmHardwareTreeService runs from
             // app start), then keep listening for future ones
             // getPrimaryGraph picks each Kinds "at a glance" utilization sensor, shown in the sidebar and the
-            // start page
+            // start page; it hands over a whole chain rather than one sensor, see FirstAvailable
             AttachExistingAndFuture(Cpu.Cpus, HardwareGroupKind.Cpu,
                 item => ((LhmCpuInstanceViewModel)item).HardwareName,
-                item => ((LhmCpuInstanceViewModel)item).TotalLoad);
+                item =>
+                {
+                    var cpu = (LhmCpuInstanceViewModel)item;
+                    return FirstAvailable(cpu.TotalLoad, cpu.MaxTemperature, cpu.PackagePower);
+                });
 
             AttachExistingAndFuture(Memory.Memories, HardwareGroupKind.Ram,
                 item => ((LhmMemoryInstanceViewModel)item).PerformanceDisplayName,
-                item => ((LhmMemoryInstanceViewModel)item).Used);
+                item =>
+                {
+                    var memory = (LhmMemoryInstanceViewModel)item;
+                    return FirstAvailable(memory.Used, memory.Available, memory.VirtualMemoryUsed);
+                });
 
+            // the longest chain by far: an Intel iGPU can report a single Power sensor and nothing else, no core
+            // load, no temperature, not even a D3D engine counter
             AttachExistingAndFuture(Gpu.Gpus, HardwareGroupKind.Gpu,
                 item => ((LhmGpuInstanceViewModel)item).HardwareName,
-                item => ((LhmGpuInstanceViewModel)item).CoreLoad);
+                item =>
+                {
+                    var gpu = (LhmGpuInstanceViewModel)item;
+                    return FirstAvailable(gpu.CoreLoad, gpu.D3dEngineSlot1, gpu.Temperature, gpu.PackagePower, gpu.MemoryUsed);
+                });
 
             AttachExistingAndFuture(Storage.Drives, HardwareGroupKind.Storage,
                 item => ((LhmStorageInstanceViewModel)item).PerformanceDisplayName,
-                item => ((LhmStorageInstanceViewModel)item).TotalActivity);
+                item =>
+                {
+                    var drive = (LhmStorageInstanceViewModel)item;
+                    return FirstAvailable(drive.TotalActivity, drive.ReadRate, drive.WriteRate);
+                });
 
             AttachExistingAndFuture(Network.Adapters, HardwareGroupKind.Network,
                 item => ((LhmNetworkInstanceViewModel)item).PerformanceDisplayName,
-                item => ((LhmNetworkInstanceViewModel)item).NetworkUtilization);
+                item =>
+                {
+                    var adapter = (LhmNetworkInstanceViewModel)item;
+                    return FirstAvailable(adapter.NetworkUtilization, adapter.DownloadSpeed, adapter.UploadSpeed);
+                });
 
             SelectedItem = NavItems.FirstOrDefault(i => i.Kind == HardwareGroupKind.Cpu) ?? NavItems.FirstOrDefault();
         }
@@ -192,6 +214,19 @@ namespace FluentSensors.Features.Performance
 
 
         // === private helpers ===
+
+        // first sensor of the chain this hardware actually reports; the natural first pick can be missing entirely
+        // on hardware LHM only partially supports (an Intel iGPU that reports GPU Power and nothing else), which
+        // left the sidebar row and the start page tile showing an empty graph frame
+        // re-evaluated on every change of the instance, so the preferred sensor takes over as soon as it shows up
+        private static SensorGraphViewModel FirstAvailable(params SensorGraphViewModel[] graphs)
+        {
+            foreach (var graph in graphs)
+            {
+                if (graph != null) return graph;
+            }
+            return null;
+        }
 
         private void RefreshNavItemIconBrushes()
         {
