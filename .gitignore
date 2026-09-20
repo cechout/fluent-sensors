@@ -48,8 +48,7 @@ bld/
 .antigravity/
 .gemini/
 
-# Claude Code (local agent guidance, not shared)
-/CLAUDE.md
+# Claude Code (CLAUDE.md itself is versioned and imports AGENTS.md; only the local parts are ignored)
 /CLAUDE.local.md
 .claude/
 
