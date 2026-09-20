@@ -4,11 +4,19 @@
 # (MarkupCompilePass2 needs a full Build pass to resolve x:Bind LocalAssembly types)
 name: codeql
 
+# codeql is not a required status check, so path filtering is safe here; skipping it on a doc-only change
+# leaves nothing pending, unlike the build and format checks in pr-build.yml
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "**/*.md"
+      - ".github/ISSUE_TEMPLATE/**"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "**/*.md"
+      - ".github/ISSUE_TEMPLATE/**"
   schedule:
     - cron: "24 3 * * 1"
 
