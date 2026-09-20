@@ -1,5 +1,5 @@
-# validates that a pull request actually compiles before review
-# deliberately lighter than release.yml: build only, no publish/installer step, not tied to a version tag
+# validates that a pull request actually compiles before review, and reports how large the publish payload got
+# deliberately lighter than release.yml: no installer step, no portable zip, not tied to a version tag
 name: pr build check
 
 on:
@@ -8,9 +8,56 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
+  # build and format are required status checks on main, so this workflow has to report them on every pull
+  # request, including doc-only ones
+  #
+  # paths-ignore cannot do that: a workflow skipped by path filtering never reports its checks at all, they
+  # stay pending and the pull request can never be merged
+  # a job skipped by an if condition does report, as success, so the gate has to sit on the jobs instead
+  # https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/troubleshooting-required-status-checks
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      # asks the api for the changed files instead of diffing a checkout, so there is no clone and no
+      # guessing about how deep the history has to be fetched for a merge base
+      #
+      # every uncertain path sets code=true on purpose: a skipped job reports success, so guessing wrong
+      # in the other direction would wave an unbuilt pull request through the required checks
+      - name: check whether anything buildable changed
+        id: filter
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! changed=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" --paginate --jq '.[].filename'); then
+            echo "could not list the changed files, building anyway"
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "$changed"
+
+          if [ -z "$changed" ]; then
+            echo "no files reported, building anyway"
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if echo "$changed" | grep -qvE '(\.md$|^\.github/ISSUE_TEMPLATE/)'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # only an explicit code=false skips the build; if the filter job itself failed the output is empty and
+  # this still runs, so a broken filter costs a build rather than waving the pull request through
   build:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: windows-latest
     steps:
       - name: checkout
@@ -34,12 +81,47 @@ jobs:
       - name: restore
         run: dotnet restore FluentSensors/FluentSensors.csproj -p:Platform=x64 -r win-x64 -p:SelfContained=true
 
-      # same build command release.yml relies on, a single full build pass is enough here
-      # since there is no publish step after it
+      # same build command release.yml relies on, a single full build pass feeds both the publish below
+      # and the size report
       - name: build win-x64
         run: msbuild FluentSensors/FluentSensors.csproj -p:Configuration=Release -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -p:SelfContained=true
 
+      # publish is what makes the size number mean anything: PruneUnusedPublishPayload runs
+      # AfterTargets="Publish", so the build output on its own still carries payload the app never ships
+      # NoBuild reuses the pass above, and it also proves the publish path still works before a tag depends
+      # on it, which is where the WMC0909 failures used to surface
+      - name: publish win-x64
+        run: msbuild FluentSensors/FluentSensors.csproj -t:Publish -p:Configuration=Release -p:Platform=x64 -p:PublishProfile=FolderProfile -p:NoBuild=true
+
+      # absolute numbers only, diffing against main would mean building main too
+      # the ten largest files are there so a jump can be attributed without downloading anything
+      - name: report publish size
+        shell: pwsh
+        run: |
+          $publishDir = "FluentSensors/bin/x64/Release/net10.0-windows10.0.19041.0/publish/win-x64"
+          $root = (Resolve-Path $publishDir).Path
+          $files = Get-ChildItem $root -Recurse -File
+          $total = ($files | Measure-Object -Property Length -Sum).Sum
+
+          $lines = @()
+          $lines += "## Publish payload"
+          $lines += ""
+          $lines += "Total: **$([math]::Round($total / 1MB, 2)) MB** across $($files.Count) files"
+          $lines += ""
+          $lines += "| Largest files | Size |"
+          $lines += "| :--- | ---: |"
+          foreach ($file in $files | Sort-Object Length -Descending | Select-Object -First 10)
+          {
+            $name = $file.FullName.Substring($root.Length + 1)
+            $lines += "| $name | $([math]::Round($file.Length / 1MB, 2)) MB |"
+          }
+
+          $lines | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          Write-Host "Publish payload: $([math]::Round($total / 1MB, 2)) MB"
+
   format:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: windows-latest
     steps:
       - name: checkout
