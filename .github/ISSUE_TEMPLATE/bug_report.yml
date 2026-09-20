@@ -10,7 +10,7 @@ body:
         > [!TIP]
         > Please search the [existing issues](https://github.com/cechout/fluent-sensors/issues?q=is%3Aissue) first. Someone may have run into the same thing already.
 
-        Sensor readings depend heavily on the specific machine, so the hardware fields below are what make a report reproducible. Please fill them in even if the problem looks unrelated to a particular component.
+        Sensor readings depend heavily on the specific machine. The hardware fields further down are optional, but filling them in makes anything sensor-related far quicker to track down.
 
   - type: textarea
     id: description
@@ -52,7 +52,8 @@ body:
   - type: dropdown
     id: obtained-from
     attributes:
-      label: How did you install the app
+      label: Which build are you running
+      description: The installer and the portable zip come from the releases page, the Store build updates through the Microsoft Store.
       options:
         - Installer (FluentSensors_Installer.exe)
         - Portable (zip)
@@ -66,7 +67,7 @@ body:
       label: CPU
       placeholder: "Intel Core Ultra 9 285K"
     validations:
-      required: true
+      required: false
 
   - type: input
     id: gpu
@@ -75,7 +76,7 @@ body:
       description: Name every GPU the machine has, including integrated graphics.
       placeholder: "NVIDIA GeForce RTX 4070, Intel Arc 140V"
     validations:
-      required: true
+      required: false
 
   - type: input
     id: motherboard
