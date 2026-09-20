@@ -29,17 +29,17 @@ A comment explains what a piece of code does and why it exists, not how the fram
 Weight scales with how non-obvious the reason is. A helper whose name already says everything needs no
 comment at all.
 
-- **Never write XML documentation comments.** No `/// <summary>`, `/// <param>`, `/// <returns>` or
-  `/// <inheritdoc/>`, on any member, under any circumstances. Use `//` single-line comments only.
-- Section headers inside a class are exactly `// === section name ===`: lowercase, three equals signs, a
-  blank line above and below. Never draw banner dividers.
-- Group related fields under a `// topic name` or `// --- topic name ---` subheader, with short trailing
-  comments on the individual lines.
-- Open comments in lowercase and leave off the sentence-ending period. They read as fragments, not
-  sentences.
-- No apostrophes, neither contractions nor possessives. Write `its`, `thats`, `does not`, `WMIs`.
-- No em dashes, and no loose `-` joining two clauses. Use a semicolon, or start a new line.
-- Do not restate what the line below already says, and do not narrate the option that was not taken.
+The points below describe the style the code currently follows. They are recommendations, not entry
+requirements: bring your own style if you prefer one, and expect these to shift over time.
+
+- XML documentation comments are not used anywhere in this codebase. No `/// <summary>`, `/// <param>`,
+  `/// <returns>` or `/// <inheritdoc/>`; plain `//` single-line comments throughout.
+- Section headers inside a class are written as `// === section name ===`, lowercase, three equals signs,
+  with a blank line above and below, rather than as multi-line banner dividers.
+- Related fields are grouped under a `// topic name` or `// --- topic name ---` subheader, with short
+  trailing comments on the individual lines.
+- A comment that only restates the line below it, or that defends an option nobody took, is usually
+  better left out.
 
 Four tags mark code that is not ordinary. Use each only for what it names:
 
@@ -52,10 +52,10 @@ Four tags mark code that is not ordinary. Use each only for what it names:
 - `// KNOWN UNRELIABLE:` for an external data source (WMI, firmware, driver) whose values cannot be
   trusted, paired with `(unreliable)` on the matching UI label.
 
-XAML comments follow the same wording rules and add three of their own. Put two spaces inside the
-markers (`<!--  note  -->`). When the text does not fit on one line it becomes a block with the markers
-on their own lines, never several stacked one-liners. A double hyphen inside a comment is an XML parse
-error, so anomaly tags are written plainly there: `<!--  workaround: short name  -->`.
+XAML comments put two spaces inside the markers (`<!--  note  -->`). When the text does not fit on one
+line it becomes a block with the markers on their own lines, rather than several stacked one-liners. A
+double hyphen inside a comment is an XML parse error, so anomaly tags are written plainly there:
+`<!--  workaround: short name  -->`.
 
 ## Project Structure
 
@@ -115,9 +115,8 @@ git diff --check
 Branches are `feature/`, `fix/`, `chore/`, `refactor/` or `docs/` followed by a short name. Releases use
 their own `update/` branch.
 
-A commit message is one short imperative sentence with a lowercase conventional prefix, and it is
-exactly one line. No body, no trailers, and no `Co-Authored-By:` line unless authorship was explicitly
-asked for.
+A one-line commit message is recommended. Pull requests are squash merged, so the individual commits are
+collapsed into one anyway and only the pull request title survives on `main`.
 
 ```text
 feat: add a graph fill fade and configurable performance graph time ranges
