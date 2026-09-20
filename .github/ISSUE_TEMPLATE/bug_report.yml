@@ -1,0 +1,108 @@
+name: Bug Report
+description: Report something that is broken or behaves unexpectedly.
+title: "Bug: "
+labels: ["bug"]
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        > [!TIP]
+        > Please search the [existing issues](https://github.com/cechout/fluent-sensors/issues?q=is%3Aissue) first. Someone may have run into the same thing already.
+
+        Sensor readings depend heavily on the specific machine. The hardware fields further down are optional, but filling them in makes anything sensor-related far quicker to track down.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happens, and what did you expect to happen instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: Shown on the Start page, under "About & Open Source".
+      placeholder: "v1.5.0"
+    validations:
+      required: true
+
+  - type: input
+    id: windows-version
+    attributes:
+      label: Windows version
+      description: Press Win+R, run `winver`, and copy the edition and build line.
+      placeholder: "Windows 11 24H2, build 26100.2314"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: obtained-from
+    attributes:
+      label: Which build are you running
+      description: The installer and the portable zip come from the releases page, the Store build updates through the Microsoft Store.
+      options:
+        - Installer (FluentSensors_Installer.exe)
+        - Portable (zip)
+        - Microsoft Store
+    validations:
+      required: true
+
+  - type: input
+    id: cpu
+    attributes:
+      label: CPU
+      placeholder: "Intel Core Ultra 9 285K"
+    validations:
+      required: false
+
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU
+      description: Name every GPU the machine has, including integrated graphics.
+      placeholder: "NVIDIA GeForce RTX 4070, Intel Arc 140V"
+    validations:
+      required: false
+
+  - type: input
+    id: motherboard
+    attributes:
+      label: Motherboard
+      description: Helpful for anything involving fan, voltage or chipset sensors.
+      placeholder: "ASUS ROG STRIX Z790-E"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: pawnio
+    attributes:
+      label: Is PawnIO installed
+      description: The app puts a hint in the title bar when PawnIO is missing. Readings that need ring 0, such as CPU temperature and power and most motherboard sensors, stay empty without it.
+      options:
+        - "Yes"
+        - "No"
+        - Not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: Drag an image into this field to attach it. A shot of the affected screen usually says more than a description.
+    validations:
+      required: false
