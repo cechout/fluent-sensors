@@ -97,7 +97,7 @@ body:
         - "No"
         - Not sure
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: screenshot
