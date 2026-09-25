@@ -39,7 +39,6 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).Label;
-        public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).IconGlyph;
 
         // header icon colour, follows the hardware icon colour setting; HardwareIconColorBinding in the
         // constructor is what re-reads it, the graph colour above is deliberately not part of that

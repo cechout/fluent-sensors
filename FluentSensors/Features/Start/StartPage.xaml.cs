@@ -1,8 +1,10 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
 
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
@@ -25,6 +27,18 @@ namespace FluentSensors.Features.Start
         // the start header ships as one export per theme, picked in ApplyHeroImage
         private const string HeroImageLight = "ms-appx:///Assets/Pictures/start-header-light.png";
         private const string HeroImageDark = "ms-appx:///Assets/Pictures/start-header-dark.png";
+
+        // uptime readout
+        // polled four times a second rather than once, so the shown second never skips or lags behind the clock
+        // the way a one second timer drifting against it would; the view model only raises when the text moves
+        private static readonly TimeSpan UptimeTimerInterval = TimeSpan.FromMilliseconds(250);
+        private DispatcherQueueTimer? _uptimeTimer;
+
+        // copy version button
+        private const string CopyGlyph = "\uE8C8";
+        private const string CopiedGlyph = "\uE73E";
+        private static readonly TimeSpan CopiedGlyphDuration = TimeSpan.FromSeconds(1.5); // how long the checkmark stays
+        private DispatcherQueueTimer? _copiedGlyphTimer;
 
         // assigned before InitializeComponent runs, which is what the x:Bind expressions below need
         public StartViewModel ViewModel { get; } = new StartViewModel();
@@ -57,6 +71,10 @@ namespace FluentSensors.Features.Start
             ViewModel.RefreshUpdateState();
             ViewModel.RefreshIconBrushes();
             ApplyHeroImage();
+
+            ViewModel.RefreshUptime();
+            _uptimeTimer ??= CreateUptimeTimer();
+            _uptimeTimer.Start();
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -66,6 +84,17 @@ namespace FluentSensors.Features.Start
             SettingsService.Instance.HardwareIconColorsChanged -= OnHardwareIconColorsChanged;
             AppStatusService.Instance.StatusUpdated -= OnStatusUpdated;
             this.ActualThemeChanged -= OnActualThemeChanged;
+
+            _uptimeTimer?.Stop();
+        }
+
+        // only runs while the page is loaded; Page_Loaded catches the readout up the moment it comes back
+        private DispatcherQueueTimer CreateUptimeTimer()
+        {
+            var timer = DispatcherQueue.CreateTimer();
+            timer.Interval = UptimeTimerInterval;
+            timer.Tick += (s, e) => ViewModel.RefreshUptime();
+            return timer;
         }
 
         // UpdateService already raises this from the UI thread, so there is nothing to dispatch here
@@ -160,6 +189,37 @@ namespace FluentSensors.Features.Start
             if (info == null) return;
 
             await UpdateDialog.ShowAsync(this.XamlRoot, info);
+        }
+
+        // copies the version in the exact shape the bug report form asks for, e.g. v1.6.0, and confirms it with a
+        // checkmark in place of the copy glyph; a second click while it shows restarts the countdown
+        private void CopyVersionButton_Click(object sender, RoutedEventArgs e)
+        {
+            var package = new DataPackage();
+            package.SetText(UpdateService.VersionLabel(UpdateService.CurrentVersion));
+
+            try
+            {
+                Clipboard.SetContent(package);
+            }
+            catch
+            {
+                // another app can hold the clipboard open for a moment; no checkmark then, the click can simply be
+                // repeated
+                return;
+            }
+
+            if (_copiedGlyphTimer == null)
+            {
+                _copiedGlyphTimer = DispatcherQueue.CreateTimer();
+                _copiedGlyphTimer.Interval = CopiedGlyphDuration;
+                _copiedGlyphTimer.IsRepeating = false;
+                _copiedGlyphTimer.Tick += (s, args) => CopyVersionIcon.Glyph = CopyGlyph;
+            }
+
+            CopyVersionIcon.Glyph = CopiedGlyph;
+            _copiedGlyphTimer.Stop();
+            _copiedGlyphTimer.Start();
         }
 
         // the settings json files live somewhere else in a portable build, so the path is asked for rather than

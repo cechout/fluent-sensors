@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
+using FluentSensors.Features.Performance.Lhm;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
@@ -54,7 +55,10 @@ namespace FluentSensors.Features.Performance
         public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(Kind).Color;
 
         // hardware type icon; same source and same glyph the detail views own header uses (e.g. CpuDetailView)
-        public string GroupIconGlyph => HardwareGroupInfo.GetProfile(Kind).IconGlyph;
+        // a network adapter answers for itself, wired and wireless carry different glyphs
+        public string GroupIconGlyph => Target is LhmNetworkInstanceViewModel network
+            ? network.IconGlyph
+            : HardwareGroupInfo.GetProfile(Kind).IconGlyph;
 
         // colour of that glyph on the hardware start view tiles, follows the hardware icon colour setting
         // the sidebar row shows no glyph at all, so this reaches the tiles only

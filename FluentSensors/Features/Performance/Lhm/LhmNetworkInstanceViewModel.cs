@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
 using FluentSensors.Persistence.Services;
@@ -95,6 +96,9 @@ namespace FluentSensors.Features.Performance.Lhm
         // (an OS connection name like "WLAN" or "Ethernet")
         // display-only: does not replace HardwareName itself, which stays LHMs raw name everywhere else 
         public string PerformanceDisplayName => _staticInfo?.Description ?? HardwareName;
+
+        // the header and tile glyph; wi-fi for a wireless adapter, see HardwareGroupInfo.GetNetworkIconGlyph
+        public string IconGlyph => HardwareGroupInfo.GetNetworkIconGlyph(_staticInfo?.InterfaceType);
 
 
         // === INotifyPropertyChanged implementation ===
