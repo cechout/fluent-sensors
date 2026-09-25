@@ -282,9 +282,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
-                                    SwitchCandidates="{x:Bind Gpu.PackagePowerOptions, Mode=OneWay}"
+                                    SwitchCandidates="{x:Bind Gpu.ExtendedPackagePowerOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.PackagePower, Mode=TwoWay}" />
+                                    ViewModel="{x:Bind Gpu.ExtendedPackagePower, Mode=TwoWay}" />
                                 <fhGraph:SensorPanelControl
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
@@ -295,7 +295,7 @@
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.CoreLoad, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Gpu.ExtendedCoreLoad, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"

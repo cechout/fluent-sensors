@@ -87,6 +87,7 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             ActivateDefault(gpu.HardwareName, "Temperature", gpu.TemperatureOptions, () => gpu.Temperature, gpu.SetTemperatureWithoutPersisting, TemperaturePreference);
             ActivateDefault(gpu.HardwareName, "Power", gpu.PackagePowerOptions, () => gpu.PackagePower, gpu.SetPackagePowerWithoutPersisting, PowerPreference);
+            ActivateDefault(gpu.HardwareName, "ExtendedPower", gpu.ExtendedPackagePowerOptions, () => gpu.ExtendedPackagePower, gpu.SetExtendedPackagePowerWithoutPersisting, PowerPreference);
             ActivateDefault(gpu.HardwareName, "MemoryUsed", gpu.MemoryUsedOptions, () => gpu.MemoryUsed, gpu.SetMemoryUsedWithoutPersisting, null);
         }
 
@@ -165,10 +166,14 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             switch (entry.Name, entry.SensorType)
             {
+                // one graph for the overview and one for the Extended view, see ExtendedCoreLoad
                 case ("GPU Core", "Load"):
                     gpu.CoreLoad = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.CoreLoad, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.CoreLoad, entry, e);
+                    gpu.ExtendedCoreLoad = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+                    PushDataPoint(gpu.ExtendedCoreLoad, entry);
+                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.ExtendedCoreLoad, entry, e);
                     break;
 
                 case ("GPU Core", "Clock"):
@@ -177,13 +182,14 @@ namespace FluentSensors.Features.Performance.Lhm
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.CoreClock, entry, e);
                     break;
 
-                // both readings stay permanently visible in the Extended views Core group; RegisterEagerCategoryCandidate
-                // additionally offers each of them as a switch candidate for the overviews single Temperature slot
+                // both readings stay permanently visible in the Extended views Core group; each is additionally
+                // offered to the overviews single Temperature slot, which builds a graph of its own for it, see
+                // ExtendedCoreLoad
                 case ("GPU Core", "Temperature"):
                     gpu.CoreTemperature = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.CoreTemperature, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.CoreTemperature, entry, e);
-                    RegisterEagerCategoryCandidate(gpu, "Temperature", gpu.CoreTemperature,
+                    RegisterCategoryCandidate(gpu, "Temperature", entry,
                         g => g.Temperature, (g, v) => g.SetTemperatureWithoutPersisting(v), gpu.TemperatureOptions);
                     break;
 
@@ -191,15 +197,14 @@ namespace FluentSensors.Features.Performance.Lhm
                     gpu.HotSpotTemperature = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.HotSpotTemperature, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.HotSpotTemperature, entry, e);
-                    RegisterEagerCategoryCandidate(gpu, "Temperature", gpu.HotSpotTemperature,
+                    RegisterCategoryCandidate(gpu, "Temperature", entry,
                         g => g.Temperature, (g, v) => g.SetTemperatureWithoutPersisting(v), gpu.TemperatureOptions);
                     break;
 
                 // wattage and core voltage share the one Power slot, so switching between them is a plain unit
                 // change; the switch flyout still shows both by their own sensor names
                 case ("GPU Core Voltage", "Voltage"):
-                    RegisterCategoryCandidate(gpu, "Power", entry,
-                        g => g.PackagePower, (g, v) => g.SetPackagePowerWithoutPersisting(v), gpu.PackagePowerOptions);
+                    RegisterPowerCandidate(gpu, entry);
                     break;
 
                 // native driver reading and Windows own D3D-reported figure for the same thing (VRAM in use);
@@ -284,8 +289,7 @@ namespace FluentSensors.Features.Performance.Lhm
                     break;
 
                 case (_, "Power"):
-                    RegisterCategoryCandidate(gpu, "Power", entry,
-                        g => g.PackagePower, (g, v) => g.SetPackagePowerWithoutPersisting(v), gpu.PackagePowerOptions);
+                    RegisterPowerCandidate(gpu, entry);
                     break;
             }
         }
@@ -324,27 +328,14 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // same activation logic as RegisterCategoryCandidate, but for a graph that already exists because it also
-        // has its own permanent home elsewhere (see the two Temperature cases above); nothing to lazily build here
-        private static void RegisterEagerCategoryCandidate(
-            LhmGpuInstanceViewModel gpu,
-            string category,
-            SensorGraphViewModel graph,
-            Func<LhmGpuInstanceViewModel, SensorGraphViewModel> getActive,
-            Action<LhmGpuInstanceViewModel, SensorGraphViewModel> setActiveWithoutPersisting,
-            ObservableCollection<SensorSwitchCandidate> options,
-            bool isDefault = false,
-            Func<double?> yMaxOverride = null)
+        // every power reading joins both Power slots, the overviews and the Extended views; each registration
+        // builds its own graph, so the two slots never share one, see ExtendedCoreLoad
+        private void RegisterPowerCandidate(LhmGpuInstanceViewModel gpu, LhmSensorEntry entry)
         {
-            options.Add(new SensorSwitchCandidate(graph.SensorId, graph.SensorName, () => graph, isDefault, yMaxOverride));
-
-            if (getActive(gpu) != null) return;
-
-            string persistedId = SensorSwitchStateService.Instance.GetSelectedSensorId(gpu.HardwareName, category);
-            if (persistedId == graph.SensorId || persistedId == null)
-            {
-                setActiveWithoutPersisting(gpu, graph);
-            }
+            RegisterCategoryCandidate(gpu, "Power", entry,
+                g => g.PackagePower, (g, v) => g.SetPackagePowerWithoutPersisting(v), gpu.PackagePowerOptions);
+            RegisterCategoryCandidate(gpu, "ExtendedPower", entry,
+                g => g.ExtendedPackagePower, (g, v) => g.SetExtendedPackagePowerWithoutPersisting(v), gpu.ExtendedPackagePowerOptions);
         }
 
         // only ever adds to the shared pool; which slot (if any) ends up showing this candidate by default is
