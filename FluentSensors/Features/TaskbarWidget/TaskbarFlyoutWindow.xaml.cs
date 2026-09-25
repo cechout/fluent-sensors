@@ -209,7 +209,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // the two insets the interior is built from;
         // the graphs inset is a margin on the list rather than padding on the surface below it, so the scroll region
         // stays the full width of the window and the scrollbar rides the window edge instead of the inset
-        public static readonly Thickness FlyoutGraphsMargin = new Thickness(6, 9, 6, 8);
+        public static readonly Thickness FlyoutGraphsMargin = new Thickness(4, 9, 4, 8);
         public static readonly Thickness FlyoutBottomBarPadding = new Thickness(6, 5, 6, 5);
 
         // gap between two stacked graphs
