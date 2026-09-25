@@ -198,11 +198,11 @@ namespace FluentSensors.Features.TaskbarWidget
         // Center = unused
         public const int FlyoutHorizontalOffsetDip = 0;
 
-        // fixed width in DIP (matching standard WidgetWindow width)
-        public const int FlyoutDefaultWidthDip = 250;
+        // fixed width in DIP; the value lives with the other window sizes in AppSettingsData
+        public const double FlyoutDefaultWidthDip = AppSettingsData.TaskbarFlyoutWidthDip;
 
-        // height of a single graph slot in DIP
-        public const int FlyoutDefaultGraphHeightDip = 100;
+        // height of a single graph slot in DIP, from AppSettingsData as well
+        public const double FlyoutDefaultGraphHeightDip = AppSettingsData.TaskbarFlyoutGraphHeightDip;
 
         // --- flyout layout ---
 
@@ -977,7 +977,7 @@ namespace FluentSensors.Features.TaskbarWidget
             var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
             double scale = primaryTaskbar != null ? (primaryTaskbar.Dpi / 96.0) : GetScaleFactor();
 
-            // width is fixed to FlyoutDefaultWidthDip (matching standard WidgetWindow width)
+            // width is fixed to FlyoutDefaultWidthDip
             int desiredWidthPx = (int)Math.Round(FlyoutDefaultWidthDip * scale);
 
             int sensorCount = ViewModel.PinnedSensors.Count;

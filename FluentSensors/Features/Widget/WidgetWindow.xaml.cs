@@ -38,7 +38,7 @@ namespace FluentSensors.Features.Widget
 
         // resize floor in XAML DIP, so the window can never be dragged smaller than this and squeeze the panels
         // unusable; MinPanelHeight is per pinned sensor, MinWidgetWidth is the whole window
-        private const int MinPanelHeight = 60;
+        private const int MinPanelHeight = 90;
         private const int MinWidgetWidth = 220;
 
         public WidgetViewModel ViewModel { get; }
@@ -521,7 +521,8 @@ namespace FluentSensors.Features.Widget
         // calculates the widgets physical pixel height based on how many sensors are pinned
         private int CalculateWidgetHeight(int sensorCount, double scaleFactor)
         {
-            double desiredXamlHeight = 31 + (sensorCount * (104 + 8)); // titleBar-height + x*(sensor-height + spacing)
+            // titleBar-height + x*(sensor-height + spacing)
+            double desiredXamlHeight = 31 + (sensorCount * (AppSettingsData.WidgetWindowDefaultPanelHeightDip + 8));
             int physicalHeight = (int)(desiredXamlHeight * scaleFactor);
 
             int screenHeight = DisplayArea.Primary.WorkArea.Height;
@@ -541,7 +542,7 @@ namespace FluentSensors.Features.Widget
         // MinPanelHeight instead of the default per-sensor height
         private double CalculateWidgetMinHeight(int sensorCount, double scaleFactor)
         {
-            double minXamlHeight = 31 + (sensorCount * (90 + 8)); // titleBar-height + x*(sensor-min-height + spacing)
+            double minXamlHeight = 31 + (sensorCount * (MinPanelHeight + 8)); // titleBar-height + x*(sensor-min-height + spacing)
 
             double screenHeightDip = DisplayArea.Primary.WorkArea.Height / scaleFactor;
             return Math.Min(minXamlHeight, screenHeightDip - 40); // height should not be taller than the screen
@@ -579,7 +580,7 @@ namespace FluentSensors.Features.Widget
             double scaleFactor = GetScaleFactor();
             int physicalHeight = CalculateWidgetHeight(sensorCount, scaleFactor);
 
-            double desiredXamlWidth = 310;
+            double desiredXamlWidth = AppSettingsData.WidgetWindowDefaultWidthDip;
             int physicalWidth = (int)(desiredXamlWidth * scaleFactor);
 
             _appWindow.Resize(new Windows.Graphics.SizeInt32(physicalWidth, physicalHeight));
@@ -594,7 +595,7 @@ namespace FluentSensors.Features.Widget
             int screenWidth = displayArea.WorkArea.Width;
 
             // our XAML desired width (DIPs), converted to physical pixels for the GPU
-            double desiredXamlWidth = 310;
+            double desiredXamlWidth = AppSettingsData.WidgetWindowDefaultWidthDip;
             int physicalWidth = (int)(desiredXamlWidth * scaleFactor);
             int physicalHeight = CalculateWidgetHeight(sensorCount, scaleFactor);
 

@@ -14,6 +14,11 @@ namespace FluentSensors.Persistence.Services
     {
         // === singleton instance ===
 
+        // the defaults every field below starts from, so AppSettingsData stays the one place a default is written
+        // declared above _instance on purpose: static fields initialize in order, and the constructor call below
+        // already runs the field initializers that read this
+        private static readonly AppSettingsData Defaults = new AppSettingsData();
+
         private static readonly SettingsService _instance = new SettingsService();
         public static SettingsService Instance => _instance;
 
@@ -26,7 +31,7 @@ namespace FluentSensors.Persistence.Services
         // === public api ===
 
         // properties
-        private string _appTheme = "Default";
+        private string _appTheme = Defaults.AppTheme;
         public string AppTheme
         {
             get => _appTheme;
@@ -43,7 +48,7 @@ namespace FluentSensors.Persistence.Services
 
         // --- Widget Window Appearance Settings ---
 
-        private string _backdropType = "Mica";
+        private string _backdropType = Defaults.BackdropType;
         public string BackdropType
         {
             get => _backdropType;
@@ -58,7 +63,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private float _tintOpacity = 0.4f;
+        private float _tintOpacity = Defaults.TintOpacity;
         public float TintOpacity
         {
             get => _tintOpacity;
@@ -73,7 +78,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private float _luminosityOpacity = 0.2f;
+        private float _luminosityOpacity = Defaults.LuminosityOpacity;
         public float LuminosityOpacity
         {
             get => _luminosityOpacity;
@@ -88,7 +93,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private bool _useAccentColor = true;
+        private bool _useAccentColor = Defaults.UseAccentColor;
         public bool UseAccentColor
         {
             get => _useAccentColor;
@@ -103,7 +108,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private Color _customTintColor = Color.FromArgb(255, 25, 25, 25);
+        private Color _customTintColor = Defaults.CustomTintColor;
         public Color CustomTintColor
         {
             get => _customTintColor;
@@ -119,7 +124,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // where the widget window graphs take their line colour from
-        private GraphColorSource _graphColorSource = GraphColorSource.Accent;
+        private GraphColorSource _graphColorSource = AppSettingsData.DefaultGraphColorSource;
         public GraphColorSource GraphColorSource
         {
             get => _graphColorSource;
@@ -134,7 +139,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private Windows.UI.Color _graphCustomColor = Microsoft.UI.Colors.LightBlue;
+        private Windows.UI.Color _graphCustomColor = Defaults.GraphCustomColor;
         public Windows.UI.Color GraphCustomColor
         {
             get => _graphCustomColor;
@@ -150,7 +155,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // seconds of history shown on a graph that does not have its own fixed override (e.g. the Widget)
-        private double _graphTimeSpanSeconds = 45;
+        private double _graphTimeSpanSeconds = Defaults.GraphTimeSpanSeconds;
         public double GraphTimeSpanSeconds
         {
             get => _graphTimeSpanSeconds;
@@ -166,7 +171,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // stepline or smooth line rendering; one global switch for every graph, regardless of scope
-        private GraphLineStyle _graphLineStyle = GraphLineStyle.Stepline;
+        private GraphLineStyle _graphLineStyle = Defaults.GraphLineStyle;
         public GraphLineStyle GraphLineStyle
         {
             get => _graphLineStyle;
@@ -182,7 +187,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // fades the area under the line out towards the bottom; global, same reach as GraphLineStyle above
-        private bool _graphFillFade = false;
+        private bool _graphFillFade = Defaults.GraphFillFade;
         public bool GraphFillFade
         {
             get => _graphFillFade;
@@ -199,7 +204,7 @@ namespace FluentSensors.Persistence.Services
 
         // hardware category icon color; mirrored onto HardwareColorMode rather than read from here, because
         // HardwareGroupInfo resolves the brush and sits in Common, which must not reach into persistence
-        private bool _useHardwareIconColors = false;
+        private bool _useHardwareIconColors = Defaults.UseHardwareIconColors;
         public bool UseHardwareIconColors
         {
             get => _useHardwareIconColors;
@@ -219,7 +224,7 @@ namespace FluentSensors.Persistence.Services
         // --- Performance Page Graph Settings ---
 
         // seconds of history on the performance pages overview graphs
-        private double _performanceGraphTimeSpanSeconds = 45;
+        private double _performanceGraphTimeSpanSeconds = Defaults.PerformanceGraphTimeSpanSeconds;
         public double PerformanceGraphTimeSpanSeconds
         {
             get => _performanceGraphTimeSpanSeconds;
@@ -237,7 +242,7 @@ namespace FluentSensors.Persistence.Services
         // seconds of history on the denser performance grids (cpu all-threads, gpu extended)
         // kept apart from the value above because those graphs are small and many, so they usually want a
         // shorter window than the overview blocks
-        private double _performanceExtendedGraphTimeSpanSeconds = 30;
+        private double _performanceExtendedGraphTimeSpanSeconds = Defaults.PerformanceExtendedGraphTimeSpanSeconds;
         public double PerformanceExtendedGraphTimeSpanSeconds
         {
             get => _performanceExtendedGraphTimeSpanSeconds;
@@ -255,7 +260,7 @@ namespace FluentSensors.Persistence.Services
 
         // --- Taskbar Ecosystem (Widget + Flyout) Appearance Settings ---
 
-        private string _taskbarBackdropType = "Mica";
+        private string _taskbarBackdropType = Defaults.TaskbarBackdropType;
         public string TaskbarBackdropType
         {
             get => _taskbarBackdropType;
@@ -270,7 +275,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private float _taskbarTintOpacity = 0.4f;
+        private float _taskbarTintOpacity = Defaults.TaskbarTintOpacity;
         public float TaskbarTintOpacity
         {
             get => _taskbarTintOpacity;
@@ -285,7 +290,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private float _taskbarLuminosityOpacity = 0.2f;
+        private float _taskbarLuminosityOpacity = Defaults.TaskbarLuminosityOpacity;
         public float TaskbarLuminosityOpacity
         {
             get => _taskbarLuminosityOpacity;
@@ -300,7 +305,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private bool _taskbarUseAccentColor = true;
+        private bool _taskbarUseAccentColor = Defaults.TaskbarUseAccentColor;
         public bool TaskbarUseAccentColor
         {
             get => _taskbarUseAccentColor;
@@ -315,7 +320,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private Color _taskbarCustomTintColor = Color.FromArgb(255, 25, 25, 25);
+        private Color _taskbarCustomTintColor = Defaults.TaskbarCustomTintColor;
         public Color TaskbarCustomTintColor
         {
             get => _taskbarCustomTintColor;
@@ -330,7 +335,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private GraphColorSource _taskbarGraphColorSource = GraphColorSource.Accent;
+        private GraphColorSource _taskbarGraphColorSource = AppSettingsData.DefaultTaskbarGraphColorSource;
         public GraphColorSource TaskbarGraphColorSource
         {
             get => _taskbarGraphColorSource;
@@ -345,7 +350,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private Windows.UI.Color _taskbarGraphCustomColor = Microsoft.UI.Colors.LightBlue;
+        private Windows.UI.Color _taskbarGraphCustomColor = Defaults.TaskbarGraphCustomColor;
         public Windows.UI.Color TaskbarGraphCustomColor
         {
             get => _taskbarGraphCustomColor;
@@ -360,7 +365,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private double _taskbarGraphTimeSpanSeconds = 20;
+        private double _taskbarGraphTimeSpanSeconds = Defaults.TaskbarGraphTimeSpanSeconds;
         public double TaskbarGraphTimeSpanSeconds
         {
             get => _taskbarGraphTimeSpanSeconds;
@@ -375,7 +380,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private int _taskbarGraphWidthDip = 120;
+        private int _taskbarGraphWidthDip = Defaults.TaskbarGraphWidthDip;
         public int TaskbarGraphWidthDip
         {
             get => _taskbarGraphWidthDip;
@@ -391,7 +396,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // when true the taskbar widget graphs drop their calculated card tint and stay fully transparent
-        private bool _taskbarUseTransparentGraphBackground = false;
+        private bool _taskbarUseTransparentGraphBackground = Defaults.TaskbarUseTransparentGraphBackground;
         public bool TaskbarUseTransparentGraphBackground
         {
             get => _taskbarUseTransparentGraphBackground;
@@ -407,7 +412,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // flyout horizontal placement over the taskbar widget: "Center", "Left" or "Right"
-        private string _taskbarFlyoutAlignment = "Center";
+        private string _taskbarFlyoutAlignment = Defaults.TaskbarFlyoutAlignment;
         public string TaskbarFlyoutAlignment
         {
             get => _taskbarFlyoutAlignment;
@@ -423,7 +428,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // when true, the taskbar widget cannot be dragged along the taskbar
-        private bool _taskbarWidgetPositionLocked = false;
+        private bool _taskbarWidgetPositionLocked = Defaults.TaskbarWidgetPositionLocked;
         public bool TaskbarWidgetPositionLocked
         {
             get => _taskbarWidgetPositionLocked;
@@ -441,7 +446,7 @@ namespace FluentSensors.Persistence.Services
 
         // --- App Behavior Settings ---
 
-        private bool _minimizeToTray = true;
+        private bool _minimizeToTray = Defaults.MinimizeToTray;
         public bool MinimizeToTray
         {
             get => _minimizeToTray;
@@ -463,7 +468,7 @@ namespace FluentSensors.Persistence.Services
 
         // mirrors whether the scheduled task exists, see WinAutostartService for why the task and not this is the
         // authority on it
-        private bool _runOnStartup;
+        private bool _runOnStartup = Defaults.RunOnStartup;
         public bool RunOnStartup
         {
             get => _runOnStartup;
@@ -477,7 +482,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private bool _delayStartup;
+        private bool _delayStartup = Defaults.DelayStartup;
         public bool DelayStartup
         {
             get => _delayStartup;
@@ -491,7 +496,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private bool _startMinimizedToTray;
+        private bool _startMinimizedToTray = Defaults.StartMinimizedToTray;
         public bool StartMinimizedToTray
         {
             get => _startMinimizedToTray;
@@ -505,7 +510,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private bool _checkUpdatesOnStartup = true;
+        private bool _checkUpdatesOnStartup = Defaults.CheckUpdatesOnStartup;
         public bool CheckUpdatesOnStartup
         {
             get => _checkUpdatesOnStartup;
@@ -520,7 +525,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // no change event either: UpdateService is the only reader and asks at the moment it needs the answer
-        private string _skippedUpdateVersion = "";
+        private string _skippedUpdateVersion = Defaults.SkippedUpdateVersion;
         public string SkippedUpdateVersion
         {
             get => _skippedUpdateVersion;
@@ -536,7 +541,7 @@ namespace FluentSensors.Persistence.Services
 
         // deliberately without a change event, like CheckUpdatesOnStartup above: MainWindow reads this once
         // during the splash reveal, so a change only shows on the next launch
-        private StartupPage _startupPage = StartupPage.Start;
+        private StartupPage _startupPage = Defaults.StartupPage;
         public StartupPage StartupPage
         {
             get => _startupPage;
@@ -550,7 +555,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private bool _hideSensorsCompletely = true;
+        private bool _hideSensorsCompletely = Defaults.HideSensorsCompletely;
         public bool HideSensorsCompletely
         {
             get => _hideSensorsCompletely;
@@ -566,7 +571,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // master on/off for the whole title bar status readout, set from the settings page
-        private bool _statusReadoutEnabled = true;
+        private bool _statusReadoutEnabled = Defaults.StatusReadoutEnabled;
         public bool StatusReadoutEnabled
         {
             get => _statusReadoutEnabled;
@@ -583,7 +588,7 @@ namespace FluentSensors.Persistence.Services
 
         // whether the readout is currently collapsed by the toggle button in the title bar; that button only hides
         // what the master switch above allows in the first place
-        private bool _statusReadoutCollapsed = false;
+        private bool _statusReadoutCollapsed = Defaults.StatusReadoutCollapsed;
         public bool StatusReadoutCollapsed
         {
             get => _statusReadoutCollapsed;
@@ -599,7 +604,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // which of the two status groups are shown, and which one comes first
-        private bool _statusLhmGroupEnabled = true;
+        private bool _statusLhmGroupEnabled = Defaults.StatusLhmGroupEnabled;
         public bool StatusLhmGroupEnabled
         {
             get => _statusLhmGroupEnabled;
@@ -614,7 +619,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private bool _statusWindowsGroupEnabled = true;
+        private bool _statusWindowsGroupEnabled = Defaults.StatusWindowsGroupEnabled;
         public bool StatusWindowsGroupEnabled
         {
             get => _statusWindowsGroupEnabled;
@@ -629,7 +634,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private StatusGroupOrder _statusGroupOrder = StatusGroupOrder.LhmFirst;
+        private StatusGroupOrder _statusGroupOrder = Defaults.StatusGroupOrder;
         public StatusGroupOrder StatusGroupOrder
         {
             get => _statusGroupOrder;
@@ -647,7 +652,7 @@ namespace FluentSensors.Persistence.Services
         // folder csv recordings are written into, picked from the logger window itself
         // deliberately without a change event, unlike every other property here: the logger window is both the only
         // writer and the only reader, and it refreshes its own button right after setting this
-        private string _csvLogFolder = "";
+        private string _csvLogFolder = Defaults.CsvLogFolder;
         public string CsvLogFolder
         {
             get => _csvLogFolder;
@@ -664,7 +669,7 @@ namespace FluentSensors.Persistence.Services
         // separators a recording is written with
         // no change event either, for the same reason as the folder above: CsvLoggingService snapshots this once
         // when a recording starts, since switching separators inside an open file would corrupt it
-        private CsvNumberFormat _csvNumberFormat = CsvNumberFormat.Local;
+        private CsvNumberFormat _csvNumberFormat = Defaults.CsvNumberFormat;
         public CsvNumberFormat CsvNumberFormat
         {
             get => _csvNumberFormat;
@@ -680,7 +685,7 @@ namespace FluentSensors.Persistence.Services
 
         // how many decimals a recorded value carries, written as a fixed count rather than a trimmed one
         // snapshotted at start like the separators above, for the same reason
-        private int _csvDecimalPlaces = 3;
+        private int _csvDecimalPlaces = Defaults.CsvDecimalPlaces;
         public int CsvDecimalPlaces
         {
             get => _csvDecimalPlaces;
@@ -695,7 +700,7 @@ namespace FluentSensors.Persistence.Services
         }
 
         // whether every value carries its unit next to it; the column header carries it either way
-        private bool _csvIncludeUnits;
+        private bool _csvIncludeUnits = Defaults.CsvIncludeUnits;
         public bool CsvIncludeUnits
         {
             get => _csvIncludeUnits;
@@ -712,7 +717,7 @@ namespace FluentSensors.Persistence.Services
         // what a resumed recording writes at the seam
         // unlike the three above this one is read live rather than snapshotted: it only takes effect at the moment
         // of resuming and cannot invalidate a row that was already written
-        private CsvPauseSeam _csvPauseSeam = CsvPauseSeam.Gap;
+        private CsvPauseSeam _csvPauseSeam = Defaults.CsvPauseSeam;
         public CsvPauseSeam CsvPauseSeam
         {
             get => _csvPauseSeam;
@@ -728,7 +733,7 @@ namespace FluentSensors.Persistence.Services
 
         // the profile the sensors page was last switched to, so it comes back on the same one
         // read only while the page is being built, which is why it gets by without a change event
-        private SensorSelectionProfile _lastSensorProfile = SensorSelectionProfile.WidgetWindow;
+        private SensorSelectionProfile _lastSensorProfile = Defaults.LastSensorProfile;
         public SensorSelectionProfile LastSensorProfile
         {
             get => _lastSensorProfile;
@@ -742,10 +747,16 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // reads a settings file written before Hardware became a third graph colour option
-        // a file that already carries the selector never reaches this, see LoadFromData
-        private static GraphColorSource LegacySource(bool useAccent) =>
-            useAccent ? GraphColorSource.Accent : GraphColorSource.Custom;
+        // the saved selector when the file has one; otherwise the accent/custom bool of a file written before
+        // Hardware became a third graph colour option, and with neither, a fresh install, the default
+        private static GraphColorSource ResolveGraphColorSource(
+            GraphColorSource? saved, bool? legacyUseAccent, GraphColorSource fallback) =>
+            saved ?? legacyUseAccent switch
+            {
+                true => GraphColorSource.Accent,
+                false => GraphColorSource.Custom,
+                null => fallback
+            };
 
         // persistence
         // writes every property straight to its backing field, skipping change events and the save trigger; used only
@@ -758,7 +769,8 @@ namespace FluentSensors.Persistence.Services
             _luminosityOpacity = data.LuminosityOpacity;
             _useAccentColor = data.UseAccentColor;
             _customTintColor = data.CustomTintColor;
-            _graphColorSource = data.GraphColorSource ?? LegacySource(data.UseGraphAccentColor);
+            _graphColorSource = ResolveGraphColorSource(
+                data.GraphColorSource, data.UseGraphAccentColor, AppSettingsData.DefaultGraphColorSource);
             _graphCustomColor = data.GraphCustomColor;
             _graphTimeSpanSeconds = data.GraphTimeSpanSeconds;
             _graphLineStyle = data.GraphLineStyle;
@@ -773,7 +785,8 @@ namespace FluentSensors.Persistence.Services
             _taskbarLuminosityOpacity = data.TaskbarLuminosityOpacity;
             _taskbarUseAccentColor = data.TaskbarUseAccentColor;
             _taskbarCustomTintColor = data.TaskbarCustomTintColor;
-            _taskbarGraphColorSource = data.TaskbarGraphColorSource ?? LegacySource(data.TaskbarUseGraphAccentColor);
+            _taskbarGraphColorSource = ResolveGraphColorSource(
+                data.TaskbarGraphColorSource, data.TaskbarUseGraphAccentColor, AppSettingsData.DefaultTaskbarGraphColorSource);
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
             _taskbarGraphTimeSpanSeconds = data.TaskbarGraphTimeSpanSeconds;
             _taskbarGraphWidthDip = data.TaskbarGraphWidthDip;

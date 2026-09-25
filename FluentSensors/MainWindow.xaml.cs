@@ -24,6 +24,7 @@ using FluentSensors.Features.Start;
 using FluentSensors.Features.Settings;
 using FluentSensors.Features.Update;
 using FluentSensors.Features.Widget;
+using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
@@ -155,7 +156,7 @@ namespace FluentSensors
             manager.MinWidth = 600;
             manager.MinHeight = 400;
 
-            // size and position: restore the last saved rect, or fall back to the original defaults
+            // size and position: restore the last saved rect, or fall back to the defaults in AppSettingsData
             var savedState = WindowStateService.Instance.GetState(WindowKey);
             if (savedState != null)
             {
@@ -169,11 +170,8 @@ namespace FluentSensors
             }
             else
             {
-                this.SetWindowSize(620, 770); // width, height
+                this.SetWindowSize(AppSettingsData.MainWindowDefaultWidthDip, AppSettingsData.MainWindowDefaultHeightDip);
                 this.CenterOnScreen();
-                var currentPos = this.AppWindow.Position;
-                // yea idk; might change this in future
-                this.AppWindow.Move(new Windows.Graphics.PointInt32(currentPos.X - 400, currentPos.Y - 100));
             }
 
             // going straight to the tray has to be set up before anything is on screen
