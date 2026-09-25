@@ -17,6 +17,16 @@ namespace FluentSensors.Features.Performance
     // the scroll content, and shares its row with nothing taller than itself
     public static class OverviewBlockSizing
     {
+        // === fields ===
+
+        // layout rounding snaps every offset and size to whole device pixels, and at a scale like 125% or 175% a DIP
+        // value such as the StackPanel spacing of 14 lands on half a pixel (24.5px at 175%); those roundings add up
+        // to a pixel or two the DIP arithmetic below cannot see, which was just enough to make every view scroll by
+        // that much
+        // held back from the height instead, which leaves at most a sliver of empty space under the block
+        private const double LayoutRoundingAllowanceDip = 2;
+
+
         // === public api ===
 
         // the viewport minus everything around the block, but never below the blocks own natural minimum
@@ -53,7 +63,7 @@ namespace FluentSensors.Features.Performance
             }
             space += content.Spacing * Math.Max(0, shownChildren - 1);
 
-            return Math.Max(scrollViewer.ActualHeight - space, naturalMinHeight);
+            return Math.Max(scrollViewer.ActualHeight - space - LayoutRoundingAllowanceDip, naturalMinHeight);
         }
 
         // the width the blocks content is laid out at, for measuring parts of it before the block has its final size
