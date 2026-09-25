@@ -201,7 +201,7 @@ namespace FluentSensors.Features.Sensors
                 HardwareName = GetDisplayName(instance),
                 LhmHardwareName = instance.HardwareName,
                 GroupLabel = profile.Label,
-                IconGlyph = profile.IconGlyph,
+                IconGlyph = GetIconGlyph(instance),
                 Kind = instance.Kind
             };
             group.PropertyChanged += Group_PropertyChanged;
@@ -238,6 +238,19 @@ namespace FluentSensors.Features.Sensors
                 default:
                     return instance.HardwareName;
             }
+        }
+
+        // the category glyph, except for network, where a wireless adapter gets a glyph of its own; matched the
+        // same way GetDisplayName above matches it
+        private static string GetIconGlyph(LhmHardwareInstance instance)
+        {
+            if (instance.Kind != HardwareGroupKind.Network) return HardwareGroupInfo.GetProfile(instance.Kind).IconGlyph;
+
+            var adapter = HardwareNameMatcher.FindBestMatch(
+                instance.HardwareName,
+                WinStaticInfoService.Instance.NetworkAdapters,
+                a => a.Name);
+            return HardwareGroupInfo.GetNetworkIconGlyph(adapter?.InterfaceType);
         }
 
         // mirrors every visible sensors checkbox onto the active profiles persisted selection, so switching profiles

@@ -272,8 +272,8 @@ namespace FluentSensors.Features.Sensors
         {
             double scaleFactor = GetScaleFactor();
 
-            double desiredXamlWidth = 340;
-            double desiredXamlHeight = 500;
+            double desiredXamlWidth = AppSettingsData.HiddenSensorsWindowDefaultWidthDip;
+            double desiredXamlHeight = AppSettingsData.HiddenSensorsWindowDefaultHeightDip;
 
             int physicalWidth = (int)(desiredXamlWidth * scaleFactor);
             int physicalHeight = (int)(desiredXamlHeight * scaleFactor);

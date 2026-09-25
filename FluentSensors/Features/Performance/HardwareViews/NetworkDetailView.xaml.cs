@@ -39,7 +39,6 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).Label;
-        public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).IconGlyph;
 
         // header icon colour, follows the hardware icon colour setting; HardwareIconColorBinding in the
         // constructor is what re-reads it, the graph colour above is deliberately not part of that
@@ -81,18 +80,16 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // SizeChanged on this control quickly enough
         public void RecalculateOverviewHeight()
         {
-            double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
-            double headerHeight = HeaderGrid.ActualHeight + ContentStackPanel.Spacing;
-            double availableHeight = ContentScrollViewer.ActualHeight - verticalPadding - headerHeight;
-
-            double horizontalPadding = ContentStackPanel.Padding.Left + ContentStackPanel.Padding.Right;
-            TilesGrid.Measure(new Size(ContentScrollViewer.ActualWidth - horizontalPadding, double.PositiveInfinity));
+            // everything around the block is read off the live tree, see OverviewBlockSizing
+            double contentWidth = OverviewBlockSizing.ContentWidth(ContentScrollViewer, ContentStackPanel, OverviewBlockGrid);
+            TilesGrid.Measure(new Size(contentWidth, double.PositiveInfinity));
             double tilesHeight = TilesGrid.DesiredSize.Height;
 
             double graphsMinHeight = _isNarrowLayoutActive ? NarrowGraphsPanel.MinHeight : WideGraphsGrid.MinHeight;
 
             double naturalMinHeight = graphsMinHeight + OverviewBlockGrid.RowSpacing + tilesHeight;
-            OverviewBlockGrid.Height = Math.Max(availableHeight, naturalMinHeight);
+            OverviewBlockGrid.Height = OverviewBlockSizing.Height(
+                ContentScrollViewer, ContentStackPanel, OverviewBlockGrid, naturalMinHeight);
         }
 
         private void GraphsAreaGrid_SizeChanged(object sender, SizeChangedEventArgs e)

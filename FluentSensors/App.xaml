@@ -359,6 +359,69 @@
             </Style>
 
 
+            <!--  === colour swatch button ===  -->
+            <!--
+                a button whose whole face is the colour it opens a picker for, handed in as Background; a solid
+                face leaves the platform states nothing to change, so a veil over it lightens the colour on hover
+                and darkens it while pressed
+            -->
+
+            <!--  the veil per state, white lightens and black darkens; the alpha is the strength  -->
+            <SolidColorBrush x:Key="ColorSwatchVeilPointerOver" Color="#26FFFFFF" />
+            <SolidColorBrush x:Key="ColorSwatchVeilPressed" Color="#26000000" />
+
+            <Style x:Key="ColorSwatchButtonStyle" TargetType="Button">
+                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
+                <Setter Property="UseSystemFocusVisuals" Value="{StaticResource UseSystemFocusVisuals}" />
+                <Setter Property="FocusVisualMargin" Value="-3" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid
+                                x:Name="RootGrid"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}">
+
+                                <!--  veil  -->
+                                <!--  (one less than the outer radius, it sits inside the 1px stroke)  -->
+                                <Border
+                                    x:Name="Veil"
+                                    Background="Transparent"
+                                    CornerRadius="3">
+                                    <!--  the same 83 ms fade the subtle buttons above spell out  -->
+                                    <Border.BackgroundTransition>
+                                        <BrushTransition Duration="0:0:0.083" />
+                                    </Border.BackgroundTransition>
+                                </Border>
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="Veil.Background" Value="{StaticResource ColorSwatchVeilPointerOver}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="Veil.Background" Value="{StaticResource ColorSwatchVeilPressed}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+
             <!--  === source link button ===  -->
             <!--
                 the link look of the info popup, shared so the release dialog can carry the same one

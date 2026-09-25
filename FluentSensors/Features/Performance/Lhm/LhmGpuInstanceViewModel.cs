@@ -40,6 +40,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
             TemperatureOptions = new ObservableCollection<SensorSwitchCandidate>();
             PackagePowerOptions = new ObservableCollection<SensorSwitchCandidate>();
+            ExtendedPackagePowerOptions = new ObservableCollection<SensorSwitchCandidate>();
             MemoryUsedOptions = new ObservableCollection<SensorSwitchCandidate>();
             D3dEngineOptions = new ObservableCollection<SensorSwitchCandidate>();
         }
@@ -126,6 +127,39 @@ namespace FluentSensors.Features.Performance.Lhm
 
         public double ExtendedOpacity => IsShowingExtended ? 1 : 0;
         public bool ExtendedIsHitTestVisible => IsShowingExtended;
+
+        // extended view, Core group; the same sensor as CoreLoad, but a graph of its own
+        // a graph keeps exactly as many points as its time span needs, and the overview and the Extended view
+        // plot different spans; sharing one graph let whichever view applied its span last cut the other ones
+        // history, so no graph is shared between the two views
+        private SensorGraphViewModel _extendedCoreLoad;
+        public SensorGraphViewModel ExtendedCoreLoad
+        {
+            get => _extendedCoreLoad;
+            set { _extendedCoreLoad = value; OnPropertyChanged(); }
+        }
+
+        // extended view, Core group; a Power slot of its own with its own candidates and its own persisted
+        // choice, for the same reason as ExtendedCoreLoad above, so switching it leaves the overview alone
+        private SensorGraphViewModel _extendedPackagePower;
+        public SensorGraphViewModel ExtendedPackagePower
+        {
+            get => _extendedPackagePower;
+            set
+            {
+                if (_extendedPackagePower == value) return;
+                _extendedPackagePower = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "ExtendedPower", value.SensorId);
+            }
+        }
+        public ObservableCollection<SensorSwitchCandidate> ExtendedPackagePowerOptions { get; }
+
+        internal void SetExtendedPackagePowerWithoutPersisting(SensorGraphViewModel value)
+        {
+            _extendedPackagePower = value;
+            OnPropertyChanged(nameof(ExtendedPackagePower));
+        }
 
         // extended view, Core group; Clock is a fixed anchor, never switchable
         private SensorGraphViewModel _coreClock;

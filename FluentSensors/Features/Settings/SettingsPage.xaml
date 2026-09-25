@@ -228,8 +228,6 @@
             </controls:SettingsCard>
 
 
-
-
             <!--  performance page settings  -->
             <TextBlock
                 Margin="4,20,0,6"
@@ -252,8 +250,10 @@
                             <ComboBoxItem Content="30s" Tag="30" />
                             <ComboBoxItem Content="45s" Tag="45" />
                             <ComboBoxItem Content="60s" Tag="60" />
+                            <ComboBoxItem Content="75s" Tag="75" />
                             <ComboBoxItem Content="90s" Tag="90" />
                             <ComboBoxItem Content="120s" Tag="120" />
+                            <ComboBoxItem Content="180s" Tag="180" />
                             <ComboBoxItem Content="240s" Tag="240" />
                         </ComboBox>
                     </controls:SettingsCard>
@@ -381,8 +381,10 @@
                             <ComboBoxItem Content="30s" Tag="30" />
                             <ComboBoxItem Content="45s" Tag="45" />
                             <ComboBoxItem Content="60s" Tag="60" />
+                            <ComboBoxItem Content="75s" Tag="75" />
                             <ComboBoxItem Content="90s" Tag="90" />
                             <ComboBoxItem Content="120s" Tag="120" />
+                            <ComboBoxItem Content="180s" Tag="180" />
                             <ComboBoxItem Content="240s" Tag="240" />
                         </ComboBox>
                     </controls:SettingsCard>

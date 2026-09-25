@@ -89,10 +89,12 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!--  gpu view 1: overview (Load, Temperature, Power), same 3-slot switchable layout as CPU  -->
+                    <!--  gpu view 1:  -->
+                    <!--  overview (Load, Temperature, Power), same 3-slot switchable layout as CPU  -->
                     <Grid
                         x:Name="OverviewBlockGrid"
                         Grid.Row="0"
+                        Margin="0,0,0,4"
                         RowSpacing="12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -249,6 +251,7 @@
                     <Grid
                         x:Name="ExtendedGrid"
                         Grid.Row="0"
+                        Margin="0,0,0,4"
                         x:Load="False"
                         IsHitTestVisible="{x:Bind Gpu.ExtendedIsHitTestVisible, Mode=OneWay}"
                         Opacity="{x:Bind Gpu.ExtendedOpacity, Mode=OneWay}"
@@ -279,9 +282,9 @@
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
-                                    SwitchCandidates="{x:Bind Gpu.PackagePowerOptions, Mode=OneWay}"
+                                    SwitchCandidates="{x:Bind Gpu.ExtendedPackagePowerOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.PackagePower, Mode=TwoWay}" />
+                                    ViewModel="{x:Bind Gpu.ExtendedPackagePower, Mode=TwoWay}" />
                                 <fhGraph:SensorPanelControl
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="False"
@@ -292,7 +295,7 @@
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.CoreLoad, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Gpu.ExtendedCoreLoad, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
                                     GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
                                     IsAutoScaledOverride="True"

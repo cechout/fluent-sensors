@@ -42,19 +42,42 @@
             -->
             <StackPanel HorizontalAlignment="Left" Spacing="4">
 
-                <!--  app title and version  -->
+                <!--  app title, version and copy-version-button  -->
                 <StackPanel
                     Margin="4,0,0,12"
                     Orientation="Horizontal"
                     Spacing="10">
                     <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Fluent Sensors" />
-                    <TextBlock
-                        x:Name="VersionTextBlock"
-                        Margin="0,0,0,3"
+
+                    <StackPanel
                         VerticalAlignment="Bottom"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        IsTextSelectionEnabled="True"
-                        Style="{ThemeResource BodyTextBlockStyle}" />
+                        Orientation="Horizontal"
+                        Spacing="2">
+                        <TextBlock
+                            x:Name="VersionTextBlock"
+                            Margin="0,0,0,3"
+                            VerticalAlignment="Bottom"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            IsTextSelectionEnabled="True"
+                            Style="{ThemeResource BodyTextBlockStyle}" />
+
+                        <!--  copy version button  -->
+                        <!--  (the glyph turns into a checkmark for a moment once copied, see CopyVersionButton_Click)  -->
+                        <Button
+                            Width="24"
+                            Height="24"
+                            Margin="0,0,0,0"
+                            Padding="0"
+                            VerticalAlignment="Bottom"
+                            Click="CopyVersionButton_Click"
+                            Style="{StaticResource SubtleButtonStyle}">
+                            <FontIcon
+                                x:Name="CopyVersionIcon"
+                                FontSize="14"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Glyph="&#xE8C8;" />
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
 
 
@@ -417,7 +440,7 @@
                         <StackPanel Margin="16,14,16,14" Spacing="6">
                             <fhInfoPopup:InfoPopupControl
                                 Title="This App"
-                                Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)"
+                                Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)&#10;Uptime - how long this app has been running since it was last started"
                                 PlacementMode="Above"
                                 SourceIntro="Source:"
                                 TitleTextTrimming="CharacterEllipsis">
@@ -446,6 +469,18 @@
                                     <TextBlock
                                         Style="{ThemeResource BodyTextBlockStyle}"
                                         Text="{x:Bind ViewModel.RamTileValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <!--  (ticks on its own one second timer rather than with the status snapshot, see StartPage)  -->
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}"
+                                        Text="Uptime" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.UptimeTileValue, Mode=OneWay}"
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
                             </controls:WrapPanel>
@@ -485,8 +520,8 @@
                             <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/cechout/fluent-sensors" />
                         </controls:SettingsCard>
 
-                        <controls:SettingsCard Description="Open a new issue on the project" Header="Report a bug">
-                            <HyperlinkButton Content="GitHub Issues" NavigateUri="https://github.com/cechout/fluent-sensors/issues/new" />
+                        <controls:SettingsCard Description="Bug reports and feature requests" Header="Feedback on GitHub">
+                            <HyperlinkButton Content="GitHub Issues" NavigateUri="https://github.com/cechout/fluent-sensors/issues/new/choose" />
                         </controls:SettingsCard>
 
                         <controls:SettingsCard Header="Developer Profile">
@@ -504,6 +539,13 @@
                     Visibility="Collapsed">
 
                     <controls:SettingsExpander.Items>
+                        <controls:SettingsCard
+                            Description="A rating helps others find the app"
+                            Header="Review on Microsoft Store"
+                            Visibility="{x:Bind BoolToVisibility(IsStoreBuild)}">
+                            <HyperlinkButton Click="StoreReviewLink_Click" Content="Microsoft Store" />
+                        </controls:SettingsCard>
+
                         <controls:SettingsCard Description="Recurring or one-off, through GitHub" Header="Sponsor on GitHub">
                             <HyperlinkButton Content="GitHub Sponsors" NavigateUri="https://github.com/sponsors/cechout" />
                         </controls:SettingsCard>
@@ -554,15 +596,22 @@
                 </controls:SettingsExpander>
 
                 <!--  quick links  -->
-                <!--  (the same four destinations the collapsed expanders above carry)  -->
+                <!--
+                    (the same destinations the collapsed expanders above carry, ordered from using the app to
+                    supporting it; the store review only shows in the store build)
+                -->
                 <controls:WrapPanel
                     Margin="0,4,0,8"
                     HorizontalSpacing="4"
                     VerticalSpacing="0">
                     <HyperlinkButton Content="Documentation" NavigateUri="https://github.com/cechout/fluent-sensors" />
-                    <HyperlinkButton Content="Bug Report" NavigateUri="https://github.com/cechout/fluent-sensors/issues/new" />
+                    <HyperlinkButton Content="Feedback on GitHub" NavigateUri="https://github.com/cechout/fluent-sensors/issues/new/choose" />
+                    <HyperlinkButton
+                        Click="StoreReviewLink_Click"
+                        Content="Review on Microsoft Store"
+                        Visibility="{x:Bind BoolToVisibility(IsStoreBuild)}" />
+                    <HyperlinkButton Content="Sponsor on GitHub" NavigateUri="https://github.com/sponsors/cechout" />
                     <HyperlinkButton Content="Developer Profile" NavigateUri="https://github.com/cechout" />
-                    <HyperlinkButton Content="GitHub Sponsoring" NavigateUri="https://github.com/sponsors/cechout" />
                 </controls:WrapPanel>
 
             </StackPanel>

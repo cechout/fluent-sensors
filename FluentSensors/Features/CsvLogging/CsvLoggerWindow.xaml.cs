@@ -39,13 +39,14 @@ namespace FluentSensors.Features.CsvLogging
         private AppWindow _appWindow;
         private const string WindowKey = "CsvLogger";
 
-        // width the logger opens at when nothing was saved yet, and the narrowest it can be dragged; from there the
-        // width belongs to the user, only the height stays calculated
+        // the narrowest the logger can be dragged, and the width its height is estimated at before the first layout
+        // pass; it opens at AppSettingsData.CsvLoggerWindowDefaultWidthDip when nothing was saved yet, and from there
+        // the width belongs to the user, only the height stays calculated
         // the height is read back off the arranged rows, so collapsing the
         // lower region, hiding the status line, or a wrap panel that breaks into another row all resize correctly
         // without a second hand-tuned number
         // the fallback only ever covers a measure that comes back empty, before the content exists at all
-        private const double WindowWidthDip = 225;
+        private const double MinWindowWidthDip = 225;
         private const double FallbackWindowHeightDip = 232;
 
         // status line under main bar
@@ -606,26 +607,31 @@ namespace FluentSensors.Features.CsvLogging
             // pre-layout estimate; a little generous for content that wraps, but it only ever sizes the window for
             // the moment before it is shown, and the first real layout pass corrects it through SizeChanged
             RootGrid.InvalidateMeasure();
-            RootGrid.Measure(new Windows.Foundation.Size(WindowWidthDip, double.PositiveInfinity));
+            RootGrid.Measure(new Windows.Foundation.Size(MinWindowWidthDip, double.PositiveInfinity));
 
             double measured = RootGrid.DesiredSize.Height;
             return measured > 0 ? measured : FallbackWindowHeightDip;
         }
 
-        // opens at the saved width, or at the design width when there is nothing usable saved
+        // opens at the saved width, or at the default width when there is nothing usable saved
         // runs once from the constructor; every later width comes from the user dragging an edge
         private void ApplyInitialWidth()
         {
             double scaleFactor = GetScaleFactor();
             int frameWidthPx = Math.Max(0, _appWindow.Size.Width - _appWindow.ClientSize.Width);
-            int defaultWidthPx = (int)Math.Round(WindowWidthDip * scaleFactor) + frameWidthPx;
+            int minWidthPx = (int)Math.Round(MinWindowWidthDip * scaleFactor) + frameWidthPx;
+            int defaultWidthPx = (int)Math.Round(AppSettingsData.CsvLoggerWindowDefaultWidthDip * scaleFactor)
+                + frameWidthPx;
 
-            // the design width doubles as the lower bound; the readout below the divider starts dropping items onto
-            // extra rows below it and the status line turns into a paragraph
-            WinUIEx.WindowManager.Get(this).MinWidth = defaultWidthPx / scaleFactor;
+            // below the minimum the readout under the divider starts dropping items onto extra rows and the status
+            // line turns into a paragraph
+            WinUIEx.WindowManager.Get(this).MinWidth = minWidthPx / scaleFactor;
 
+            // a default set below the minimum is lifted to it, the drag floor would refuse it anyway
             var savedState = WindowStateService.Instance.GetState(WindowKey);
-            int widthPx = savedState != null && savedState.Width > defaultWidthPx ? savedState.Width : defaultWidthPx;
+            int widthPx = savedState != null && savedState.Width >= minWidthPx
+                ? savedState.Width
+                : Math.Max(defaultWidthPx, minWidthPx);
 
             _appWindow.Resize(new Windows.Graphics.SizeInt32(widthPx, _appWindow.Size.Height));
         }

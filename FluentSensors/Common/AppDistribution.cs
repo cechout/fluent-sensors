@@ -1,6 +1,9 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Windows.System;
 
 
 namespace FluentSensors.Common
@@ -20,6 +23,9 @@ namespace FluentSensors.Common
         // the marker ships only in the portable zip, installer builds never contain it
         public const string PortableMarkerFileName = "portable.txt";
 
+        // the id the Microsoft Store knows this app by, which every store deep link addresses it with
+        public const string StoreProductId = "9PK7F87MWXKF";
+
         // no package identity at all; the documented return of GetCurrentPackageFullName for an unpackaged process
         private const int AppmodelErrorNoPackage = 15700;
 
@@ -35,6 +41,27 @@ namespace FluentSensors.Common
 
         // the store ships its own update path, so every part of the in-app updater keys off this
         public static bool SupportsSelfUpdate => !IsPackaged;
+
+        // opens the review form of this app in the Microsoft Store
+        //
+        // Launcher first and the shell as the fallback: this process runs elevated, and whether a protocol launch
+        // gets from there to the store is unverified
+        public static async Task OpenStoreReviewAsync()
+        {
+            var uri = new Uri($"ms-windows-store://review/?ProductId={StoreProductId}");
+
+            try
+            {
+                if (await Launcher.LaunchUriAsync(uri)) return;
+            }
+            catch { /* the shell below gets the next try */ }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(uri.ToString()) { UseShellExecute = true });
+            }
+            catch { /* nothing left to try, the click simply does nothing */ }
+        }
 
 
         // === private helpers ===

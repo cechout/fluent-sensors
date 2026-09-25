@@ -1,8 +1,10 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Windows.UI;
@@ -63,6 +65,11 @@ namespace FluentSensors.Features.Start
         private string _sensorsRenderedText = "-";
         private string _cpuTileValue = "-";
         private string _ramTileValue = "-";
+        private string _uptimeTileValue = "-";
+
+        // the moment this process started, read once; the splash counts towards the uptime as well
+        // (utc, so a daylight saving switch does not move the uptime by an hour)
+        private static readonly DateTime ProcessStartTimeUtc = Process.GetCurrentProcess().StartTime.ToUniversalTime();
 
 
         // === constructor ===
@@ -153,6 +160,12 @@ namespace FluentSensors.Features.Start
             private set { _ramTileValue = value; OnPropertyChanged(); }
         }
 
+        public string UptimeTileValue
+        {
+            get => _uptimeTileValue;
+            private set { _uptimeTileValue = value; OnPropertyChanged(); }
+        }
+
 
         // === live app status ===
 
@@ -166,6 +179,20 @@ namespace FluentSensors.Features.Start
             RamTileValue = $"{data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
 
             RefreshSensorCounts();
+        }
+
+        // how long this session has been running, e.g. 2:14:37, and 1d 2:14:37 once it passes a day
+        //
+        // called far more often than once a second, see StartPage.UptimeTimerInterval; the property only moves when
+        // the shown second actually changes
+        public void RefreshUptime()
+        {
+            TimeSpan uptime = DateTime.UtcNow - ProcessStartTimeUtc;
+
+            string clock = $"{uptime.Hours}:{uptime.Minutes:00}:{uptime.Seconds:00}";
+            string text = uptime.Days > 0 ? $"{uptime.Days}d {clock}" : clock;
+
+            if (text != UptimeTileValue) UptimeTileValue = text;
         }
 
         // pairs every snapshot tile with the LHM instance or instances that report its sensors, then reads the
@@ -347,18 +374,23 @@ namespace FluentSensors.Features.Start
         //
         // the formatters answer "-" for anything this machine does not report; those are dropped here rather
         // than rendered, a snapshot tile should not show a bare dash where a value belongs
-        private static SystemSnapshotEntry Row(HardwareGroupKind kind, string title, params string[] details) =>
-            LabelledRow(kind, HardwareGroupInfo.GetProfile(kind).Label, title, details);
+        private static SystemSnapshotEntry Row(HardwareGroupKind kind, string title, params string[] details)
+        {
+            var profile = HardwareGroupInfo.GetProfile(kind);
+
+            return LabelledRow(kind, profile.IconGlyph, profile.Label, title, details);
+        }
 
         // deliberately a different name rather than an overload of Row: an overload taking one more string would
         // also match every Row(kind, title, detail, detail) call, and C# prefers the form that does not have to
         // expand params, so the device name would silently land in the category and the first fact in the title
-        private static SystemSnapshotEntry LabelledRow(HardwareGroupKind kind, string category, string title, params string[] details)
+        //
+        // the glyph is passed in rather than read off the profile, because a network adapter tile picks its own, see
+        // AddAdapters
+        private static SystemSnapshotEntry LabelledRow(HardwareGroupKind kind, string iconGlyph, string category, string title, params string[] details)
         {
-            var profile = HardwareGroupInfo.GetProfile(kind);
-
             return new SystemSnapshotEntry(
-                profile.IconGlyph,
+                iconGlyph,
                 HardwareGroupInfo.GetIconBrush(kind),
                 category,
                 string.IsNullOrWhiteSpace(title) ? "Unknown" : title,
@@ -474,8 +506,11 @@ namespace FluentSensors.Features.Start
                     ? HardwareInfoFormatter.FormatBitsPerSecond(adapter.SpeedBitsPerSecond)
                     : "";
 
-                rows.Add(Row(
+                // the one tile whose glyph depends on the device, a wireless adapter shows the wi-fi one
+                rows.Add(LabelledRow(
                     HardwareGroupKind.Network,
+                    HardwareGroupInfo.GetNetworkIconGlyph(adapter.InterfaceType),
+                    HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).Label,
                     adapter.Name,
                     HardwareInfoFormatter.FormatInterfaceType(adapter.InterfaceType),
                     speed));
@@ -493,7 +528,13 @@ namespace FluentSensors.Features.Start
 
             string bios = string.IsNullOrWhiteSpace(board.BiosVersion) ? "" : $"BIOS {board.BiosVersion}";
 
-            rows.Add(LabelledRow(HardwareGroupKind.Other, "Motherboard", name, bios, board.BiosReleaseDate));
+            rows.Add(LabelledRow(
+                HardwareGroupKind.Other,
+                HardwareGroupInfo.GetProfile(HardwareGroupKind.Other).IconGlyph,
+                "Motherboard",
+                name,
+                bios,
+                board.BiosReleaseDate));
         }
 
 
