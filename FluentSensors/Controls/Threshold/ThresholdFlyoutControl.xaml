@@ -160,16 +160,10 @@
 
                             <Button
                                 Grid.Row="1"
-                                Padding="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
-                                HorizontalContentAlignment="Stretch"
-                                VerticalContentAlignment="Stretch">
-                                <Border
-                                    Background="{x:Bind Threshold.ColorBrush, Mode=OneWay}"
-                                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="3" />
+                                Background="{x:Bind Threshold.ColorBrush, Mode=OneWay}"
+                                Style="{StaticResource ColorSwatchButtonStyle}">
 
                                 <Button.Flyout>
                                     <Flyout Placement="Bottom" ShouldConstrainToRootBounds="False">
