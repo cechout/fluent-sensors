@@ -94,7 +94,7 @@
                     <Grid
                         x:Name="OverviewBlockGrid"
                         Grid.Row="0"
-                        Margin="0,0,0,8"
+                        Margin="0,0,0,4"
                         RowSpacing="12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -251,7 +251,7 @@
                     <Grid
                         x:Name="ExtendedGrid"
                         Grid.Row="0"
-                        Margin="0,0,0,8"
+                        Margin="0,0,0,4"
                         x:Load="False"
                         IsHitTestVisible="{x:Bind Gpu.ExtendedIsHitTestVisible, Mode=OneWay}"
                         Opacity="{x:Bind Gpu.ExtendedOpacity, Mode=OneWay}"
