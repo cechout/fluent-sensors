@@ -505,21 +505,17 @@ namespace FluentSensors.Controls.InfoPopup
                 Math.Max(Math.Min(target.Y, maxY), PopupWindowEdgeMargin));
         }
 
-        // positions the popup relative to the title text (TitleHost), not the button; unchanged from the original
-        // InfoGroupHeaderControl logic, this is the one case that still needs it
+        // positions the popup relative to the title text (TitleHost), not the button: to its left, with the top a
+        // little above the title
+        // like the button-anchored modes below it only works out that ideal spot and leaves the window edges to
+        // ClampToWindow, so PopupWindowEdgeMargin is the one gap to the bottom edge as well
         private Point GetTitleAnchoredPosition(Size content)
         {
             Point origin = TitleHost.TransformToVisual(XamlRoot.Content).TransformPoint(new Point(0, 0));
-            double availableHeightBelow = XamlRoot.Size.Height - origin.Y;
 
-            double verticalOffset = content.Height + PopupVerticalGap > availableHeightBelow
-                ? -(content.Height - availableHeightBelow) - PopupVerticalGap
-                : PopupVerticalGap;
-
-            // the Max keeps the popup from being pushed off the top edge of the window
             return new Point(
                 origin.X - (content.Width + PopupHorizontalGap),
-                Math.Max(origin.Y + verticalOffset, 0) - PopupVerticalManualAdjustment);
+                origin.Y + PopupVerticalGap - PopupVerticalManualAdjustment);
         }
 
         // simple fixed-direction placement for the four button-anchored modes; the direction is taken as given and
