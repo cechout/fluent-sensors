@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
+using FluentSensors.Common;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
 using FluentSensors.Core;
@@ -42,6 +43,9 @@ namespace FluentSensors.Features.Start
 
         // assigned before InitializeComponent runs, which is what the x:Bind expressions below need
         public StartViewModel ViewModel { get; } = new StartViewModel();
+
+        // the store review link only makes sense in the build the store installed
+        public bool IsStoreBuild => AppDistribution.IsPackaged;
 
 
         // === constructor ===
@@ -183,6 +187,9 @@ namespace FluentSensors.Features.Start
                     break;
             }
         }
+
+        private async void StoreReviewLink_Click(object sender, RoutedEventArgs e) =>
+            await AppDistribution.OpenStoreReviewAsync();
 
         private async Task ShowUpdateDialogAsync(UpdateInfo? info)
         {
