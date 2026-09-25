@@ -187,6 +187,7 @@
                     <Grid
                         x:Name="OverviewBlockGrid"
                         Grid.Row="0"
+                        Margin="0,0,0,8"
                         Background="Transparent"
                         IsHitTestVisible="{x:Bind Cpu.OverallIsHitTestVisible, Mode=OneWay}"
                         Opacity="{x:Bind Cpu.OverallOpacity, Mode=OneWay}"
@@ -360,6 +361,7 @@
                     <Grid
                         x:Name="AllThreadsGrid"
                         Grid.Row="0"
+                        Margin="0,0,0,8"
                         x:Load="False"
                         IsHitTestVisible="{x:Bind Cpu.AllThreadsIsHitTestVisible, Mode=OneWay}"
                         Opacity="{x:Bind Cpu.AllThreadsOpacity, Mode=OneWay}">

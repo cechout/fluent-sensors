@@ -175,19 +175,17 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // (graph MinHeight + tiles/static info) no longer fits
         private void UpdateOverviewHeight()
         {
-            double verticalPadding = ContentStackPanel.Padding.Top + ContentStackPanel.Padding.Bottom;
-            double headerHeight = HeaderGrid.ActualHeight + ContentStackPanel.Spacing;
-            double availableHeight = ContentScrollViewer.ActualHeight - verticalPadding - headerHeight;
-
-            double horizontalPadding = ContentStackPanel.Padding.Left + ContentStackPanel.Padding.Right;
-            TilesAndStaticInfoGrid.Measure(new Size(ContentScrollViewer.ActualWidth - horizontalPadding, double.PositiveInfinity));
+            // everything around the block is read off the live tree, see OverviewBlockSizing
+            double contentWidth = OverviewBlockSizing.ContentWidth(ContentScrollViewer, ContentStackPanel, OverviewBlockGrid);
+            TilesAndStaticInfoGrid.Measure(new Size(contentWidth, double.PositiveInfinity));
             double tilesAndStaticInfoHeight = TilesAndStaticInfoGrid.DesiredSize.Height;
 
             double graphsMinHeight = _isNarrowLayoutActive ? NarrowGraphsPanel.MinHeight : WideGraphsGrid.MinHeight;
 
             double naturalMinHeight = graphsMinHeight + OverviewBlockGrid.RowSpacing + tilesAndStaticInfoHeight;
 
-            OverviewBlockGrid.Height = Math.Max(availableHeight, naturalMinHeight);
+            OverviewBlockGrid.Height = OverviewBlockSizing.Height(
+                ContentScrollViewer, ContentStackPanel, OverviewBlockGrid, naturalMinHeight);
         }
 
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---

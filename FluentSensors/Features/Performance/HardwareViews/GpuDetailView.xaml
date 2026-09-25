@@ -89,10 +89,12 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!--  gpu view 1: overview (Load, Temperature, Power), same 3-slot switchable layout as CPU  -->
+                    <!--  gpu view 1:  -->
+                    <!--  overview (Load, Temperature, Power), same 3-slot switchable layout as CPU  -->
                     <Grid
                         x:Name="OverviewBlockGrid"
                         Grid.Row="0"
+                        Margin="0,0,0,8"
                         RowSpacing="12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -249,6 +251,7 @@
                     <Grid
                         x:Name="ExtendedGrid"
                         Grid.Row="0"
+                        Margin="0,0,0,8"
                         x:Load="False"
                         IsHitTestVisible="{x:Bind Gpu.ExtendedIsHitTestVisible, Mode=OneWay}"
                         Opacity="{x:Bind Gpu.ExtendedOpacity, Mode=OneWay}"
