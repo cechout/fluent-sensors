@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -10,8 +11,11 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.UI.Dispatching;
+using CommunityToolkit.WinUI;
+using VirtualKey = Windows.System.VirtualKey;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Features.Performance.HardwareViews;
 using FluentSensors.Features.Performance.Lhm;
@@ -30,6 +34,10 @@ namespace FluentSensors.Features.Performance
         // left for usable content if both stay open at once
         private const double NarrowContentThreshold = 500;
         private bool _isNarrow;
+
+        // how far one arrow press scrolls the hardware view from the sidebar or a bottom bar, about one mouse wheel
+        // notch
+        private const double ArrowScrollStep = 100;
 
         // one permanent view per hardware instance, keyed by its Target object (e.g. one specific
         // LhmGpuInstanceViewModel); created eagerly for every instance that exists (or later appears)
@@ -99,6 +107,32 @@ namespace FluentSensors.Features.Performance
 
 
         // === event handlers ===
+
+        // on the sidebar and on a views bottom bar, up and down scroll the hardware view instead of moving focus; its
+        // graphs, tiles and info panel are left out of keyboard navigation (FocusSkip), so there is no other way to
+        // reach the lower part of a view from the keyboard
+        // the sidebar still needs a way between its entries, left and right take over that move there; everywhere
+        // else the arrows keep their usual meaning
+        private void RootGrid_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key != VirtualKey.Up && e.Key != VirtualKey.Down && e.Key != VirtualKey.Left && e.Key != VirtualKey.Right) return;
+            if (FocusManager.GetFocusedElement(XamlRoot) is not DependencyObject focused) return;
+
+            bool onSidebar = FocusGroup.IsInside(focused, NavItemsControl);
+            if (!onSidebar && !IsOnBottomBar(focused)) return;
+
+            if (e.Key == VirtualKey.Up || e.Key == VirtualKey.Down)
+            {
+                ScrollCurrentView(e.Key == VirtualKey.Up ? -ArrowScrollStep : ArrowScrollStep);
+                e.Handled = true;
+            }
+            else if (onSidebar)
+            {
+                var direction = e.Key == VirtualKey.Left ? FocusNavigationDirection.Up : FocusNavigationDirection.Down;
+                FocusManager.TryMoveFocus(direction, new FindNextElementOptions { SearchRoot = NavItemsControl });
+                e.Handled = true;
+            }
+        }
 
         // sidebar selection: every nav item button shares this one handler, the clicked items own DataContext (set by
         // the ItemTemplate) tells us which PerformanceNavItemViewModel was chosen
@@ -204,6 +238,21 @@ namespace FluentSensors.Features.Performance
 
 
         // === private helpers ===
+
+        // the bottom bar is the command bar inside the shown view (CPU and GPU have one), not the one in the page header
+        private bool IsOnBottomBar(DependencyObject focused)
+        {
+            return _currentDetailView != null
+                && FocusGroup.IsInside(focused, _currentDetailView)
+                && (focused as FrameworkElement)?.FindAscendant<CommandBar>() != null;
+        }
+
+        private void ScrollCurrentView(double delta)
+        {
+            if ((_currentDetailView as FrameworkElement)?.FindDescendant("ContentScrollViewer") is not ScrollViewer viewer) return;
+
+            viewer.ChangeView(null, viewer.VerticalOffset + delta, null);
+        }
 
         // --- memory leak: hardware detail views never released after switching ---
         // problem: each view hosts SensorGraphControl, which wraps LiveChartsCores native SkiaSharp rendering

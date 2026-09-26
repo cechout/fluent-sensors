@@ -170,7 +170,7 @@
     </Page.Resources>
 
 
-    <Grid x:Name="RootGrid">
+    <Grid x:Name="RootGrid" PreviewKeyDown="RootGrid_PreviewKeyDown">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -263,6 +263,7 @@
                     <ItemsControl
                         x:Name="NavItemsControl"
                         fhUi:FocusGroup.IsEnabled="True"
+                        IsEnabled="{x:Bind ViewModel.IsNavSidebarShown, Mode=OneWay}"
                         ItemsSource="{x:Bind ViewModel.NavItems, Mode=OneWay}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>

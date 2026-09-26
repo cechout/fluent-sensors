@@ -129,6 +129,7 @@ namespace FluentSensors.Features.Performance
                 // and info panel are allowed to show at all
                 OnPropertyChanged(nameof(NavSidebarColumnWidth));
                 OnPropertyChanged(nameof(NavSidebarColumnMinWidth));
+                OnPropertyChanged(nameof(IsNavSidebarShown));
                 OnPropertyChanged(nameof(InfoPanelVisibility));
                 OnPropertyChanged(nameof(InfoPanelColumnWidth));
                 OnPropertyChanged(nameof(InfoPanelColumnMinWidth));
@@ -190,6 +191,7 @@ namespace FluentSensors.Features.Performance
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(NavSidebarColumnWidth));
                 OnPropertyChanged(nameof(NavSidebarColumnMinWidth));
+                OnPropertyChanged(nameof(IsNavSidebarShown));
             }
         }
 
@@ -203,6 +205,10 @@ namespace FluentSensors.Features.Performance
         // what the toggles say
         public GridLength NavSidebarColumnWidth => IsNavSidebarVisible && IsHardwareViewActive ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
         public double NavSidebarColumnMinWidth => IsNavSidebarVisible && IsHardwareViewActive ? 180 : 0;
+
+        // the zero-width column hides the sidebar but leaves its buttons in the tab order, unseen; the sidebar list
+        // binds its IsEnabled to this, so tab passes over it while it is not shown
+        public bool IsNavSidebarShown => IsNavSidebarVisible && IsHardwareViewActive;
 
         public GridLength InfoPanelColumnWidth => IsInfoPanelVisible && IsHardwareViewActive ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
         public double InfoPanelColumnMinWidth => IsInfoPanelVisible && IsHardwareViewActive ? 190 : 0;
