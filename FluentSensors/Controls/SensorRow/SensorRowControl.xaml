@@ -60,7 +60,7 @@
                 <ColumnDefinition
                     x:Name="NameColumn"
                     Width="5*"
-                    MinWidth="140" />
+                    MinWidth="80" />
                 <ColumnDefinition
                     x:Name="ThresholdColumn"
                     Width="36"
@@ -89,11 +89,15 @@
 
             <!--  checkbox with sensor name  -->
             <!--  (the checkbox is visual only; the whole row takes focus and reports itself as the checkbox)  -->
-            <StackPanel
+            <!--  (a grid, so the name gets a finite width and trims with an ellipsis once the column runs out)  -->
+            <Grid
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Orientation="Horizontal"
-                Spacing="10">
+                ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
                 <CheckBox
                     MinWidth="0"
@@ -103,10 +107,12 @@
                     IsTabStop="False" />
 
                 <TextBlock
+                    Grid.Column="1"
                     VerticalAlignment="Center"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind ViewModel.Name, Mode=OneWay}" />
-            </StackPanel>
+                    Text="{x:Bind ViewModel.Name, Mode=OneWay}"
+                    TextTrimming="CharacterEllipsis" />
+            </Grid>
 
             <!--  threshold indicator/flyout, globalized control shared with SensorPanelControl  -->
             <fhThreshold:ThresholdFlyoutControl
