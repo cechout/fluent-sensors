@@ -172,6 +172,10 @@ namespace FluentSensors.Controls.Threshold
             _isPressed = true;
             UpdateVisualState();
             e.Handled = true;
+
+            // where it is a tab stop, the clicked badge takes focus as well, so closing the flyout returns there
+            // instead of to whatever had keyboard focus before
+            if (IsTabStop) Focus(FocusState.Pointer);
         }
 
         private void IndicatorBorder_PointerReleased(object sender, PointerRoutedEventArgs e)

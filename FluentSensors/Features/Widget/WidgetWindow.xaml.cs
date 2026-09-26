@@ -65,6 +65,9 @@ namespace FluentSensors.Features.Widget
             CurrentInstance = this;
             WidgetStateChanged?.Invoke();
 
+            // a click on empty space hides the keyboard focus rectangle again
+            PointerFocusReset.Attach(Content);
+
             // window configuration
             _appWindow = this.AppWindow;
             ExtendsContentIntoTitleBar = true;
