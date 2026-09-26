@@ -69,7 +69,7 @@
                 <ColumnDefinition
                     x:Name="NameColumn"
                     Width="5*"
-                    MinWidth="80" />
+                    MinWidth="70" />
                 <ColumnDefinition
                     x:Name="ThresholdColumn"
                     Width="36"
@@ -77,22 +77,22 @@
                 <ColumnDefinition
                     x:Name="CurrentColumn"
                     Width="2*"
-                    MinWidth="65"
+                    MinWidth="60"
                     MaxWidth="10000" />
                 <ColumnDefinition
                     x:Name="MinimumColumn"
                     Width="2*"
-                    MinWidth="65"
+                    MinWidth="60"
                     MaxWidth="10000" />
                 <ColumnDefinition
                     x:Name="MaximumColumn"
                     Width="2*"
-                    MinWidth="65"
+                    MinWidth="60"
                     MaxWidth="10000" />
                 <ColumnDefinition
                     x:Name="AverageColumn"
                     Width="2*"
-                    MinWidth="65"
+                    MinWidth="60"
                     MaxWidth="10000" />
                 <ColumnDefinition
                     x:Name="UnitColumn"

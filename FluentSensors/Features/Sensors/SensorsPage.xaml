@@ -173,23 +173,23 @@
                     <Grid Margin="32,12,32,12" HorizontalAlignment="Stretch">
                         <!--  (value columns follow SensorRowControl, workaround: star columns fill greedily)  -->
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="5*" MinWidth="80" />
+                            <ColumnDefinition Width="5*" MinWidth="70" />
                             <ColumnDefinition Width="36" />
                             <ColumnDefinition
                                 Width="2*"
-                                MinWidth="65"
+                                MinWidth="60"
                                 MaxWidth="10000" />
                             <ColumnDefinition
                                 Width="2*"
-                                MinWidth="65"
+                                MinWidth="60"
                                 MaxWidth="10000" />
                             <ColumnDefinition
                                 Width="2*"
-                                MinWidth="65"
+                                MinWidth="60"
                                 MaxWidth="10000" />
                             <ColumnDefinition
                                 Width="2*"
-                                MinWidth="65"
+                                MinWidth="60"
                                 MaxWidth="10000" />
                         </Grid.ColumnDefinitions>
 
@@ -312,23 +312,23 @@
                                         <Grid HorizontalAlignment="Stretch">
                                             <!--  (value columns follow SensorRowControl, workaround: star columns fill greedily)  -->
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="5*" MinWidth="80" />
+                                                <ColumnDefinition Width="5*" MinWidth="70" />
                                                 <ColumnDefinition Width="36" />
                                                 <ColumnDefinition
                                                     Width="2*"
-                                                    MinWidth="65"
+                                                    MinWidth="60"
                                                     MaxWidth="10000" />
                                                 <ColumnDefinition
                                                     Width="2*"
-                                                    MinWidth="65"
+                                                    MinWidth="60"
                                                     MaxWidth="10000" />
                                                 <ColumnDefinition
                                                     Width="2*"
-                                                    MinWidth="65"
+                                                    MinWidth="60"
                                                     MaxWidth="10000" />
                                                 <ColumnDefinition
                                                     Width="2*"
-                                                    MinWidth="65"
+                                                    MinWidth="60"
                                                     MaxWidth="10000" />
                                             </Grid.ColumnDefinitions>
 

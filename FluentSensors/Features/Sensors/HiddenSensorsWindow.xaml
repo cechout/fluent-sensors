@@ -40,7 +40,7 @@
 
                 <Grid Margin="32,8,32,12" HorizontalAlignment="Stretch">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" MinWidth="140" />
+                        <ColumnDefinition Width="*" MinWidth="70" />
                         <ColumnDefinition Width="40" />
                     </Grid.ColumnDefinitions>
 
@@ -108,7 +108,7 @@
                                     <Border Padding="16,12,16,8" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
                                         <Grid HorizontalAlignment="Stretch">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" MinWidth="140" />
+                                                <ColumnDefinition Width="*" MinWidth="70" />
                                                 <ColumnDefinition Width="40" />
                                             </Grid.ColumnDefinitions>
 
