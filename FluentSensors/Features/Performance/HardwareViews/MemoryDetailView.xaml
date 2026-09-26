@@ -9,6 +9,7 @@
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhPerf="using:FluentSensors.Features.Performance"
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:staticInfo="using:FluentSensors.Core.StaticInfo"
     mc:Ignorable="d">
@@ -132,7 +133,10 @@
                         </Grid>
 
                         <!--  current value tiles  -->
-                        <Grid x:Name="TilesGrid" Grid.Row="1">
+                        <Grid
+                            x:Name="TilesGrid"
+                            Grid.Row="1"
+                            fhUi:FocusGroup.IsEnabled="True">
                             <controls:WrapPanel
                                 Margin="4,0,4,0"
                                 HorizontalSpacing="16"
@@ -159,6 +163,7 @@
         <Border
             Grid.Column="1"
             VerticalAlignment="Stretch"
+            fhUi:FocusGroup.IsEnabled="True"
             Background="Transparent"
             BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
             BorderThickness="1,0,0,0"

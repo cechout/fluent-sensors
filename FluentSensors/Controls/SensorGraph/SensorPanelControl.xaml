@@ -7,8 +7,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhThreshold="using:FluentSensors.Controls.Threshold"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="Root"
+    fhUi:FocusGroup.IsEnabled="True"
     mc:Ignorable="d">
 
     <Grid Background="Transparent" RowSpacing="3">
@@ -85,6 +87,7 @@
                 <!--  sensor name, or name + unit if ShowUnitInStatusRow  -->
                 <!--  switchable: subtle button with a manual chevron, opens the hidden combobox below in one click  -->
                 <Button
+                    x:Name="SwitchButton"
                     Grid.Column="2"
                     Padding="4,0,4,0"
                     HorizontalAlignment="Left"
@@ -105,6 +108,7 @@
                     Grid.Column="2"
                     AutomationProperties.Name="Switch Sensor"
                     DisplayMemberPath="DisplayName"
+                    DropDownClosed="SwitchCandidateComboBox_DropDownClosed"
                     DropDownOpened="SwitchCandidateComboBox_DropDownOpened"
                     IsHitTestVisible="False"
                     ItemsSource="{x:Bind SwitchCandidates, Mode=OneWay}"

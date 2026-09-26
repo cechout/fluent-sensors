@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:local="using:FluentSensors.Features.Performance"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -64,7 +65,10 @@
 
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
-        <ItemsControl Margin="8" ItemsSource="{x:Bind ViewModel.NavItems, Mode=OneWay}">
+        <ItemsControl
+            Margin="8"
+            fhUi:FocusGroup.IsEnabled="True"
+            ItemsSource="{x:Bind ViewModel.NavItems, Mode=OneWay}">
 
             <!--  (same SquareGridPanel layout idea as GPU Extended view)  -->
             <ItemsControl.ItemsPanel>
