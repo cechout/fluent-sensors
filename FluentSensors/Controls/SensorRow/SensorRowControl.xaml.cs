@@ -311,6 +311,7 @@ namespace FluentSensors.Controls.SensorRow
 
             if (IsCompact)
             {
+                // (SensorRowHeaderControl.UpdateColumns collapses the labels above the rows the same way)
                 CurrentValueText.Visibility = Visibility.Collapsed;
                 ThresholdIndicator.Visibility = Visibility.Collapsed;
                 MinimumValueText.Visibility = Visibility.Collapsed;

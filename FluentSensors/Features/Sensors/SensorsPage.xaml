@@ -170,72 +170,7 @@
             <Border Grid.Row="1" Background="Transparent">
                 <Grid HorizontalAlignment="Stretch">
 
-                    <Grid Margin="32,12,32,12" HorizontalAlignment="Stretch">
-                        <!--  (value columns follow SensorRowControl, workaround: star columns fill greedily)  -->
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="5*" MinWidth="70" />
-                            <ColumnDefinition Width="36" />
-                            <ColumnDefinition
-                                Width="2*"
-                                MinWidth="60"
-                                MaxWidth="10000" />
-                            <ColumnDefinition
-                                Width="2*"
-                                MinWidth="60"
-                                MaxWidth="10000" />
-                            <ColumnDefinition
-                                Width="2*"
-                                MinWidth="60"
-                                MaxWidth="10000" />
-                            <ColumnDefinition
-                                Width="2*"
-                                MinWidth="60"
-                                MaxWidth="10000" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock
-                            Grid.Column="0"
-                            Margin="38,0,0,0"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Sensor" />
-                        <TextBlock
-                            Grid.Column="1"
-                            HorizontalAlignment="Center"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="T" />
-                        <!--<FontIcon
-                            Grid.Column="1"
-                            HorizontalAlignment="Center"
-                            FontSize="12"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Glyph="&#xE7C1;" />-->
-                        <TextBlock
-                            Grid.Column="2"
-                            HorizontalAlignment="Right"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Current" />
-                        <TextBlock
-                            Grid.Column="3"
-                            HorizontalAlignment="Right"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Min" />
-                        <TextBlock
-                            Grid.Column="4"
-                            HorizontalAlignment="Right"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Max" />
-                        <TextBlock
-                            Grid.Column="5"
-                            HorizontalAlignment="Right"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Avg" />
-                    </Grid>
+                    <fhControls:SensorRowHeaderControl Margin="32,12,32,12" />
 
                     <Border
                         Height="1"
@@ -334,66 +269,7 @@
                                         ContentAlignment="Vertical"
                                         CornerRadius="0">
 
-                                        <Grid HorizontalAlignment="Stretch">
-                                            <!--  (value columns follow SensorRowControl, workaround: star columns fill greedily)  -->
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="5*" MinWidth="70" />
-                                                <ColumnDefinition Width="36" />
-                                                <ColumnDefinition
-                                                    Width="2*"
-                                                    MinWidth="60"
-                                                    MaxWidth="10000" />
-                                                <ColumnDefinition
-                                                    Width="2*"
-                                                    MinWidth="60"
-                                                    MaxWidth="10000" />
-                                                <ColumnDefinition
-                                                    Width="2*"
-                                                    MinWidth="60"
-                                                    MaxWidth="10000" />
-                                                <ColumnDefinition
-                                                    Width="2*"
-                                                    MinWidth="60"
-                                                    MaxWidth="10000" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBlock
-                                                Grid.Column="0"
-                                                Margin="38,0,0,0"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Sensor" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                HorizontalAlignment="Center"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="T" />
-                                            <TextBlock
-                                                Grid.Column="2"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Current" />
-                                            <TextBlock
-                                                Grid.Column="3"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Min" />
-                                            <TextBlock
-                                                Grid.Column="4"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Max" />
-                                            <TextBlock
-                                                Grid.Column="5"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Avg" />
-                                        </Grid>
+                                        <fhControls:SensorRowHeaderControl />
 
                                     </controls:SettingsCard>
                                 </controls:SettingsExpander.ItemsHeader>

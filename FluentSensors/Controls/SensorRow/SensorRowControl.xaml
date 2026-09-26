@@ -63,7 +63,7 @@
                 than its slot; an overflowing grid sizes its columns from its own content, and no two rows line up anymore;
                 see DistributeStarSpace in https://github.com/microsoft/microsoft-ui-xaml/blob/main/dxaml/xcp/core/core/elements/Grid.cpp
                 fix: a MaxWidth that never binds moves the value columns to the front of that order, so they settle on
-                their MinWidth first and the name column gets the rest; the column headers on SensorsPage carry the same MaxWidth
+                their MinWidth first and the name column gets the rest; SensorRowHeaderControl carries the same columns
             -->
             <Grid.ColumnDefinitions>
                 <ColumnDefinition
