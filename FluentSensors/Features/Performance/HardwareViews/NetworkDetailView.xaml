@@ -10,6 +10,7 @@
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhPerf="using:FluentSensors.Features.Performance"
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
@@ -28,6 +29,7 @@
         <ScrollViewer
             x:Name="ContentScrollViewer"
             Grid.Column="0"
+            fhUi:FocusSkip.IsEnabled="True"
             HorizontalScrollBarVisibility="Disabled"
             SizeChanged="ContentScrollViewer_SizeChanged"
             VerticalScrollBarVisibility="Auto"
@@ -239,6 +241,7 @@
         <Border
             Grid.Column="1"
             VerticalAlignment="Stretch"
+            fhUi:FocusSkip.IsEnabled="True"
             Background="Transparent"
             BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
             BorderThickness="1,0,0,0"

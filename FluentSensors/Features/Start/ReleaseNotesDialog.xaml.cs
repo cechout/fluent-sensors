@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using FluentSensors.Common.UI;
 using FluentSensors.Core.Update;
 
 
@@ -37,6 +38,9 @@ namespace FluentSensors.Features.Start
         public ReleaseNotesDialog()
         {
             this.InitializeComponent();
+
+            // the dialog sits in its own popup layer, so the reset on the window never sees a click in here
+            PointerFocusReset.Attach(this);
         }
 
 

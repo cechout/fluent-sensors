@@ -7,6 +7,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="Root"
+    FocusVisualMargin="-3"
+    UseSystemFocusVisuals="True"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -80,6 +82,7 @@
                             Padding="0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
+                            AutomationProperties.Name="Close"
                             Click="ThresholdCloseButton_Click"
                             Style="{StaticResource SubtleButtonStyle}">
                             <FontIcon FontSize="12" Glyph="&#xE711;" />
@@ -107,6 +110,7 @@
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
+                                AutomationProperties.Name="Increase Threshold"
                                 Click="{x:Bind Threshold.Increase}"
                                 ToolTipService.ToolTip="Increase Threshold">
                                 <FontIcon FontSize="12" Glyph="&#xE70E;" />
@@ -117,6 +121,7 @@
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
+                                AutomationProperties.Name="Decrease Threshold"
                                 Click="{x:Bind Threshold.Decrease}"
                                 ToolTipService.ToolTip="Decrease Threshold">
                                 <FontIcon FontSize="12" Glyph="&#xE70D;" />
@@ -127,6 +132,7 @@
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
+                                AutomationProperties.Name="Toggle Threshold-Line"
                                 Content="T"
                                 FontSize="12"
                                 FontWeight="Normal"
@@ -146,6 +152,7 @@
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
+                                AutomationProperties.Name="Mark Above Threshold"
                                 IsChecked="{x:Bind Threshold.IsAboveDirection, Mode=TwoWay}"
                                 ToolTipService.ToolTip="Mark Above Threshold">
                                 <FontIcon
@@ -162,12 +169,14 @@
                                 Grid.Row="1"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
+                                AutomationProperties.Name="Threshold Color"
                                 Background="{x:Bind Threshold.ColorBrush, Mode=OneWay}"
                                 Style="{StaticResource ColorSwatchButtonStyle}">
 
                                 <Button.Flyout>
                                     <Flyout Placement="Bottom" ShouldConstrainToRootBounds="False">
                                         <controls:ColorPicker
+                                            AutomationProperties.Name="Threshold Color"
                                             ColorSpectrumShape="Box"
                                             IsAlphaEnabled="False"
                                             IsAlphaSliderVisible="False"
@@ -186,6 +195,7 @@
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
+                                AutomationProperties.Name="Mark Under Threshold"
                                 IsChecked="{x:Bind Threshold.IsBelowDirection, Mode=TwoWay}"
                                 ToolTipService.ToolTip="Mark Under Threshold">
                                 <FontIcon

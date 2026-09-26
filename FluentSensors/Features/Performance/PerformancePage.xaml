@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:local="using:FluentSensors.Features.Performance"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:xaml="using:Microsoft.UI.Xaml"
@@ -169,7 +170,7 @@
     </Page.Resources>
 
 
-    <Grid x:Name="RootGrid">
+    <Grid x:Name="RootGrid" PreviewKeyDown="RootGrid_PreviewKeyDown">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -201,6 +202,7 @@
                     x:Name="PerformanceCommandBar"
                     Grid.Column="1"
                     HorizontalAlignment="Right"
+                    fhUi:FocusGroup.IsEnabled="True"
                     DefaultLabelPosition="Right">
 
                     <AppBarButton Click="StartPageButton_Click" Label="Hardware Overview">
@@ -258,7 +260,11 @@
                 BorderThickness="0,0,1,0">
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
-                    <ItemsControl x:Name="NavItemsControl" ItemsSource="{x:Bind ViewModel.NavItems, Mode=OneWay}">
+                    <!--  (no focus group: tab walks the entries one by one, the arrow keys are in RootGrid_PreviewKeyDown)  -->
+                    <ItemsControl
+                        x:Name="NavItemsControl"
+                        IsEnabled="{x:Bind ViewModel.IsNavSidebarShown, Mode=OneWay}"
+                        ItemsSource="{x:Bind ViewModel.NavItems, Mode=OneWay}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Margin="8" Spacing="4" />

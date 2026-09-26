@@ -8,6 +8,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fh="using:FluentSensors"
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:tb="using:H.NotifyIcon"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
@@ -39,6 +40,7 @@
             x:Name="AppTitleBar"
             Grid.Row="0"
             Height="48"
+            fhUi:FocusGroup.IsEnabled="True"
             Background="Transparent"
             Loaded="AppTitleBar_Loaded"
             SizeChanged="AppTitleBar_SizeChanged">
@@ -159,6 +161,7 @@
                 Margin="8,1,0,0"
                 Padding="0"
                 VerticalAlignment="Center"
+                AutomationProperties.Name="Toggle Status Readout"
                 Background="Transparent"
                 BorderThickness="0"
                 Click="StatusToggleButton_Click"

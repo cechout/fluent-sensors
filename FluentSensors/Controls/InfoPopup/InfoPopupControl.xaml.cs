@@ -569,6 +569,11 @@ namespace FluentSensors.Controls.InfoPopup
 
         private string FormatSource(string source) => $"Source: {source}";
 
+        // screen reader name of the info button; carries the title along when there is one, so a page full of these
+        // buttons does not read as the same label over and over
+        private string GetInfoButtonName(string title) =>
+            string.IsNullOrEmpty(title) ? "More Information" : $"More Information about {title}";
+
         private List<string> SplitParagraphs(string description)
         {
             if (string.IsNullOrEmpty(description)) return new List<string>();

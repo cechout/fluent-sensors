@@ -34,6 +34,9 @@ ArchitecturesAllowed=x64compatible
 ; meaning it should use the native 64-bit Program Files directory and
 ; the 64-bit view of the registry.
 ArchitecturesInstallIn64BitMode=x64compatible
+; same floor as TargetPlatformMinVersion in the csproj; below it the app would install and then fail on start,
+; this stops setup with a clear message before anything is copied
+MinVersion=10.0.19041
 DisableProgramGroupPage=yes
 LicenseFile=..\LICENSE.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only).

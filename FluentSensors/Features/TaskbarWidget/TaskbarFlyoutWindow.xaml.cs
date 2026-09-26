@@ -19,6 +19,7 @@ using WinUIEx.Messaging;
 using Microsoft.UI.Xaml.Controls;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core.Taskbar;
@@ -280,6 +281,9 @@ namespace FluentSensors.Features.TaskbarWidget
             ViewModel = viewModel;
             this.InitializeComponent();
             CurrentInstance = this;
+
+            // a click on empty space hides the keyboard focus rectangle again
+            PointerFocusReset.Attach(Content);
 
             _appWindow = this.AppWindow;
             _appWindow.IsShownInSwitchers = false;

@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhControls="using:FluentSensors.Controls.SensorRow"
     xmlns:fhSensors="using:FluentSensors.Features.Sensors"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Fluent Sensors"
     mc:Ignorable="d">
@@ -75,16 +76,19 @@
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto">
 
+            <!--  (tab jumps from one hardware group to the next, the arrow keys move through the rows across all of them)  -->
             <ItemsControl
                 x:Name="HardwareGroupsItemsControl"
                 Margin="0,0,0,16"
-                ItemsSource="{x:Bind ViewModel.HardwareGroups, Mode=OneWay}">
+                ItemsSource="{x:Bind ViewModel.HardwareGroups, Mode=OneWay}"
+                XYFocusKeyboardNavigation="Enabled">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="fhSensors:HardwareGroupViewModel">
 
                         <!--  settings expander (containing all the sensors for one hardware group)  -->
                         <controls:SettingsExpander
                             Margin="0,16,0,0"
+                            fhUi:FocusGroup.IsEnabled="True"
                             Description="{x:Bind HardwareName, Mode=OneWay}"
                             Header="{x:Bind GroupLabel, Mode=OneWay}"
                             IsExpanded="{x:Bind IsExpandedInHiddenWindow, Mode=TwoWay}"

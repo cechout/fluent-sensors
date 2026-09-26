@@ -2,10 +2,12 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Windows.System;
 using FluentSensors.Common.Sensors;
 
 
@@ -170,6 +172,10 @@ namespace FluentSensors.Controls.Threshold
             _isPressed = true;
             UpdateVisualState();
             e.Handled = true;
+
+            // where it is a tab stop, the clicked badge takes focus as well, so closing the flyout returns there
+            // instead of to whatever had keyboard focus before
+            if (IsTabStop) Focus(FocusState.Pointer);
         }
 
         private void IndicatorBorder_PointerReleased(object sender, PointerRoutedEventArgs e)
@@ -183,6 +189,32 @@ namespace FluentSensors.Controls.Threshold
         {
             ThresholdFlyout.Hide();
         }
+
+
+        // === keyboard and screen reader ===
+
+        // the badge reads as a button named after the threshold wherever it sits; whether it is also a tab stop is up
+        // to the consumer, the sensor row sets IsTabStop while the graph panels reach the flyout through the graph
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new ThresholdFlyoutAutomationPeer(this);
+        }
+
+        // space and enter open the editor flyout the same way a tap does
+        protected override void OnKeyDown(KeyRoutedEventArgs e)
+        {
+            if ((e.Key == VirtualKey.Space || e.Key == VirtualKey.Enter) && ReferenceEquals(e.OriginalSource, this))
+            {
+                if (!e.KeyStatus.WasKeyDown) ShowFlyout();
+                e.Handled = true;
+                return;
+            }
+
+            base.OnKeyDown(e);
+        }
+
+        // what a screen reader announces for the badge: the configured value, or that none is set
+        internal string AutomationName => Threshold?.IsEnabled == true ? $"Threshold {IndicatorText}" : "Threshold, not set";
 
 
         // === private helpers ===

@@ -8,6 +8,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     HorizontalAlignment="Stretch"
     HorizontalContentAlignment="Stretch"
+    IsTabStop="True"
+    UseSystemFocusVisuals="True"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -86,6 +88,7 @@
             </Grid.ColumnDefinitions>
 
             <!--  checkbox with sensor name  -->
+            <!--  (the checkbox is visual only; the whole row takes focus and reports itself as the checkbox)  -->
             <StackPanel
                 Grid.Column="0"
                 VerticalAlignment="Center"
@@ -94,8 +97,10 @@
 
                 <CheckBox
                     MinWidth="0"
+                    AutomationProperties.AccessibilityView="Raw"
                     IsChecked="{x:Bind ViewModel.IsSelected, Mode=OneWay}"
-                    IsHitTestVisible="False" />
+                    IsHitTestVisible="False"
+                    IsTabStop="False" />
 
                 <TextBlock
                     VerticalAlignment="Center"
@@ -109,6 +114,7 @@
                 Grid.Column="1"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
+                IsTabStop="True"
                 Threshold="{x:Bind ViewModel.Threshold, Mode=OneWay}" />
 
             <!--  current value  -->

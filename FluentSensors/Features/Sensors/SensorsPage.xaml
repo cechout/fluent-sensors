@@ -8,6 +8,7 @@
     xmlns:fhCommon="using:FluentSensors.Common.Sensors"
     xmlns:fhControls="using:FluentSensors.Controls.SensorRow"
     xmlns:fhSensors="using:FluentSensors.Features.Sensors"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     NavigationCacheMode="Required"
     mc:Ignorable="d">
@@ -62,6 +63,7 @@
                             x:Name="SelectionProfileComboBox"
                             Margin="12,0,0,0"
                             VerticalAlignment="Center"
+                            AutomationProperties.Name="Selection Profile"
                             SelectedIndex="0"
                             SelectionChanged="SelectionProfileComboBox_SelectionChanged">
                             <ComboBoxItem Content="Widget" Tag="WidgetWindow" />
@@ -76,6 +78,7 @@
                         Grid.Column="1"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
+                        fhUi:FocusGroup.IsEnabled="True"
                         Background="Transparent"
                         DefaultLabelPosition="Right"
                         IsDynamicOverflowEnabled="False"
@@ -244,16 +247,19 @@
                 Grid.Row="2"
                 Padding="16,0,16,0">
 
+                <!--  (tab jumps from one hardware group to the next, the arrow keys move through the rows across all of them)  -->
                 <ItemsControl
                     x:Name="HardwareItemsControl"
                     Margin="0,0,0,16"
-                    ItemsSource="{x:Bind ViewModel.HardwareGroups, Mode=OneWay}">
+                    ItemsSource="{x:Bind ViewModel.HardwareGroups, Mode=OneWay}"
+                    XYFocusKeyboardNavigation="Enabled">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="fhSensors:HardwareGroupViewModel">
 
                             <!--  settings expander (containing all the sensors for one hardware group)  -->
                             <controls:SettingsExpander
                                 Margin="0,16,0,0"
+                                fhUi:FocusGroup.IsEnabled="True"
                                 Description="{x:Bind HardwareName, Mode=OneWay}"
                                 Header="{x:Bind GroupLabel, Mode=OneWay}"
                                 IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
@@ -403,6 +409,7 @@
                         Grid.Column="1"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
+                        fhUi:FocusGroup.IsEnabled="True"
                         Background="Transparent"
                         DefaultLabelPosition="Right"
                         IsDynamicOverflowEnabled="False"

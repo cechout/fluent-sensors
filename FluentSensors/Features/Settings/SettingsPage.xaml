@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
     Loaded="Page_Loaded"
@@ -12,10 +13,12 @@
     Unloaded="Page_Unloaded"
     mc:Ignorable="d">
 
+    <!--  (tab jumps from card to card, the arrow keys walk every row including the ones inside an expander)  -->
     <ScrollViewer>
         <StackPanel
             Margin="20"
             HorizontalAlignment="Stretch"
+            fhUi:ArrowNavigation.IsEnabled="True"
             Spacing="4">
 
             <TextBlock
@@ -31,6 +34,7 @@
                 Text="General Settings" />
 
             <controls:SettingsCard
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Light, dark, or match Windows"
                 Header="App Theme"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE790;}">
@@ -50,6 +54,7 @@
                 views own headers; graph colors are a per surface choice and sit in their Graph sections instead)
             -->
             <controls:SettingsCard
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Color hardware icons by category"
                 Header="Hardware Icon Colors"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE2B1;}">
@@ -63,6 +68,7 @@
             <!--  graph rendering  -->
             <!--  (both rows apply to every graph in the app, the per-surface sections below only add color and range)  -->
             <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Line style and area fill of every graph"
                 Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
@@ -92,6 +98,7 @@
 
             <!--  title bar status readout  -->
             <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Which readouts the title bar shows, and in which order"
                 Header="Title Bar Status"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xF138;}"
@@ -135,6 +142,7 @@
 
             <!--  behavior settings  -->
             <controls:SettingsCard
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Hide app to system tray when all windows are minimized"
                 Header="Minimize to System Tray"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE744;}">
@@ -151,6 +159,7 @@
                 autostart and its delay are hidden in a portable build, see RestoreStartupSelection
             -->
             <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="What happens when Windows starts, and what the app does when it launches"
                 Header="Startup"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE7E8;}"
@@ -207,6 +216,7 @@
 
             <!--  engine settings  -->
             <controls:SettingsCard
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="How often sensors are polled"
                 Header="Update Interval"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE916;}">
@@ -236,6 +246,7 @@
 
             <!--  graph appearance  -->
             <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Time range of the overview graphs and the denser grids"
                 Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
@@ -285,6 +296,7 @@
 
             <!--  background material  -->
             <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Backdrop effect and color for the widget window"
                 Header="Background Material"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xEF1F;}"
@@ -336,12 +348,13 @@
                             <ComboBox
                                 x:Name="BackgroundColorSourceComboBox"
                                 Width="160"
+                                AutomationProperties.Name="Background Color Source"
                                 SelectionChanged="BackgroundColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="WidgetBackgroundColorPicker" />
+                            <controls:ColorPickerButton x:Name="WidgetBackgroundColorPicker" AutomationProperties.Name="Background Color" />
                         </StackPanel>
 
                     </controls:SettingsCard>
@@ -350,6 +363,7 @@
 
             <!--  graph appearance  -->
             <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Graph color and time range"
                 Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
@@ -361,13 +375,14 @@
                             <ComboBox
                                 x:Name="GraphColorSourceComboBox"
                                 Width="160"
+                                AutomationProperties.Name="Graph Color Source"
                                 SelectionChanged="GraphColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
                                 <ComboBoxItem Content="Hardware Color" Tag="Hardware" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="GraphColorPicker" />
+                            <controls:ColorPickerButton x:Name="GraphColorPicker" AutomationProperties.Name="Graph Color" />
                         </StackPanel>
                     </controls:SettingsCard>
 
@@ -400,6 +415,7 @@
 
             <!--  drag lock for the widget position on the taskbar  -->
             <controls:SettingsCard
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Stop the taskbar widget from being dragged along the taskbar"
                 Header="Lock Taskbar Widget Position"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE72E;}">
@@ -412,6 +428,7 @@
 
             <!--  taskbar graph appearance  -->
             <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Taskbar graph color, background, time range and graph Width"
                 Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
@@ -423,13 +440,14 @@
                             <ComboBox
                                 x:Name="TaskbarGraphColorSourceComboBox"
                                 Width="160"
+                                AutomationProperties.Name="Graph Color Source"
                                 SelectionChanged="TaskbarGraphColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
                                 <ComboBoxItem Content="Hardware Color" Tag="Hardware" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" />
+                            <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" AutomationProperties.Name="Graph Color" />
                         </StackPanel>
                     </controls:SettingsCard>
 
@@ -476,6 +494,7 @@
 
             <!--  flyout alignment over the widget  -->
             <controls:SettingsCard
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Where the flyout lines up relative to the widget"
                 Header="Flyout Alignment"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE8E3;}">
@@ -491,6 +510,7 @@
 
             <!--  flyout background material  -->
             <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Backdrop effect and color for the taskbar flyout"
                 Header="Flyout Background Material"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xEF1F;}"
@@ -542,12 +562,13 @@
                             <ComboBox
                                 x:Name="TaskbarBackgroundColorSourceComboBox"
                                 Width="160"
+                                AutomationProperties.Name="Background Color Source"
                                 SelectionChanged="TaskbarBackgroundColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="TaskbarBackgroundColorPicker" />
+                            <controls:ColorPickerButton x:Name="TaskbarBackgroundColorPicker" AutomationProperties.Name="Background Color" />
                         </StackPanel>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
@@ -567,6 +588,7 @@
                 inside are refinements
             -->
             <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="How values are written into a recording"
                 Header="CSV Format"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE7C3;}"
@@ -665,6 +687,7 @@
             <!--  (the path is filled in at runtime, it differs per distribution channel)  -->
             <controls:SettingsCard
                 x:Name="AppDataFolderCard"
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Where settings, window and sensor state are stored"
                 Header="App data folder"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE8B7;}">
@@ -672,6 +695,7 @@
             </controls:SettingsCard>
 
             <controls:SettingsCard
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Backup or restore all settings (Import Restarts the app)"
                 Header="Export / Import Settings"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE74E;}">
@@ -682,6 +706,7 @@
             </controls:SettingsCard>
 
             <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
                 Description="Restore individual settings files to defaults (Restarts the app)"
                 Header="Reset to Defaults"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE777;}"

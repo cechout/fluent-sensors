@@ -7,8 +7,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhThreshold="using:FluentSensors.Controls.Threshold"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="Root"
+    fhUi:FocusGroup.IsEnabled="True"
     mc:Ignorable="d">
 
     <Grid Background="Transparent" RowSpacing="3">
@@ -59,6 +61,7 @@
                     Padding="0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Toggle Panel"
                     Click="ToggleButton_Click"
                     Style="{StaticResource SubtleButtonStyle}"
                     ToolTipService.ToolTip="Toggle Panel"
@@ -84,6 +87,7 @@
                 <!--  sensor name, or name + unit if ShowUnitInStatusRow  -->
                 <!--  switchable: subtle button with a manual chevron, opens the hidden combobox below in one click  -->
                 <Button
+                    x:Name="SwitchButton"
                     Grid.Column="2"
                     Padding="4,0,4,0"
                     HorizontalAlignment="Left"
@@ -102,7 +106,9 @@
                 <ComboBox
                     x:Name="SwitchCandidateComboBox"
                     Grid.Column="2"
+                    AutomationProperties.Name="Switch Sensor"
                     DisplayMemberPath="DisplayName"
+                    DropDownClosed="SwitchCandidateComboBox_DropDownClosed"
                     DropDownOpened="SwitchCandidateComboBox_DropDownOpened"
                     IsHitTestVisible="False"
                     ItemsSource="{x:Bind SwitchCandidates, Mode=OneWay}"
@@ -213,6 +219,7 @@
                     Padding="0"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Increase Y-Axis"
                     Click="{x:Bind ViewModel.IncreaseYMax}"
                     ToolTipService.ToolTip="Increase Y-Axis">
                     <FontIcon FontSize="12" Glyph="&#xE70E;" />
@@ -223,6 +230,7 @@
                     Padding="0"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Decrease Y-Axis"
                     Click="{x:Bind ViewModel.DecreaseYMax}"
                     ToolTipService.ToolTip="Decrease Y-Axis">
                     <FontIcon FontSize="12" Glyph="&#xE70D;" />
@@ -233,6 +241,7 @@
                     Padding="0"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Auto-Scale"
                     Content="A"
                     FontSize="12"
                     FontWeight="Normal"
@@ -258,6 +267,7 @@
                     Padding="0"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Increase Threshold"
                     Click="{x:Bind ViewModel.Threshold.Increase}"
                     ToolTipService.ToolTip="Increase Threshold">
                     <FontIcon FontSize="12" Glyph="&#xE70E;" />
@@ -268,6 +278,7 @@
                     Padding="0"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Decrease Threshold"
                     Click="{x:Bind ViewModel.Threshold.Decrease}"
                     ToolTipService.ToolTip="Decrease Threshold">
                     <FontIcon FontSize="12" Glyph="&#xE70D;" />
@@ -278,6 +289,7 @@
                     Padding="0"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Toggle Threshold-Line"
                     Content="T"
                     FontSize="12"
                     FontWeight="Normal"
@@ -303,6 +315,7 @@
                     Padding="0"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Mark Above Threshold"
                     IsChecked="{x:Bind ViewModel.Threshold.IsAboveDirection, Mode=TwoWay}"
                     ToolTipService.ToolTip="Mark Above Threshold">
                     <FontIcon
@@ -319,12 +332,14 @@
                     Grid.Row="1"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Threshold Color"
                     Background="{x:Bind ViewModel.Threshold.ColorBrush, Mode=OneWay}"
                     Style="{StaticResource ColorSwatchButtonStyle}">
 
                     <Button.Flyout>
                         <Flyout Placement="Bottom" ShouldConstrainToRootBounds="False">
                             <controls:ColorPicker
+                                AutomationProperties.Name="Threshold Color"
                                 ColorSpectrumShape="Box"
                                 IsAlphaEnabled="False"
                                 IsAlphaSliderVisible="False"
@@ -343,6 +358,7 @@
                     Padding="0"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Mark Under Threshold"
                     IsChecked="{x:Bind ViewModel.Threshold.IsBelowDirection, Mode=TwoWay}"
                     ToolTipService.ToolTip="Mark Under Threshold">
                     <FontIcon

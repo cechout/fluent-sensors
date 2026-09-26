@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:local="using:FluentSensors.Features.Start"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
@@ -32,6 +33,7 @@
         <Border
             Grid.Row="0"
             Padding="20,20,20,12"
+            fhUi:FocusGroup.IsEnabled="True"
             Background="Transparent"
             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
             BorderThickness="0,0,0,1">
@@ -69,6 +71,7 @@
                             Margin="0,0,0,0"
                             Padding="0"
                             VerticalAlignment="Bottom"
+                            AutomationProperties.Name="Copy Version"
                             Click="CopyVersionButton_Click"
                             Style="{StaticResource SubtleButtonStyle}">
                             <FontIcon
@@ -229,7 +232,7 @@
                     Style="{StaticResource BodyStrongTextBlockStyle}"
                     Text="System" />
 
-                <ItemsControl ItemsSource="{x:Bind ViewModel.SystemSnapshot}">
+                <ItemsControl fhUi:FocusGroup.IsEnabled="True" ItemsSource="{x:Bind ViewModel.SystemSnapshot}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <fhControls:SquareGridPanel MinCellWidth="240" Spacing="8" />
@@ -375,6 +378,7 @@
                 <Grid
                     MaxWidth="608"
                     HorizontalAlignment="Left"
+                    fhUi:FocusGroup.IsEnabled="True"
                     ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -504,6 +508,7 @@
 
                 <!--  app info  -->
                 <controls:SettingsExpander
+                    fhUi:FocusGroup.IsEnabled="True"
                     Description="© 2026 Daniel Čech · MIT License"
                     Header="Fluent Sensors"
                     HeaderIcon="{toolkit:FontIcon Glyph=&#xE946;}"
@@ -533,6 +538,7 @@
                 <!--  support  -->
                 <!--  (the only place in the app that asks for anything)  -->
                 <controls:SettingsExpander
+                    fhUi:FocusGroup.IsEnabled="True"
                     Description="Fluent Sensors is free and open source"
                     Header="Support the Project"
                     HeaderIcon="{toolkit:FontIcon Glyph=&#xEB51;}"
@@ -554,6 +560,7 @@
 
                 <!--  third-party libraries  -->
                 <controls:SettingsExpander
+                    fhUi:FocusGroup.IsEnabled="True"
                     Description="Open source projects used in this app"
                     Header="Third-Party Libraries"
                     HeaderIcon="{toolkit:FontIcon Glyph=&#xE8F1;}"
@@ -602,6 +609,7 @@
                 -->
                 <controls:WrapPanel
                     Margin="0,4,0,8"
+                    fhUi:FocusGroup.IsEnabled="True"
                     HorizontalSpacing="4"
                     VerticalSpacing="0">
                     <HyperlinkButton Content="Documentation" NavigateUri="https://github.com/cechout/fluent-sensors" />

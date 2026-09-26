@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Fluent Sensors Flyout"
     mc:Ignorable="d">
@@ -92,7 +93,7 @@
                 BorderThickness="0,1,0,0"
                 CornerRadius="0,0,7,7">
 
-                <Grid x:Name="BottomBarContentGrid">
+                <Grid x:Name="BottomBarContentGrid" fhUi:FocusGroup.IsEnabled="True">
 
                     <!--  open the sensor list on the taskbar profile  -->
                     <Button
@@ -111,6 +112,7 @@
                         Width="38"
                         Padding="0"
                         HorizontalAlignment="Right"
+                        AutomationProperties.Name="Close Taskbar Widget"
                         Click="CloseWidget_Click"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource SubtleBarButtonStyle}"

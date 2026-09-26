@@ -136,6 +136,9 @@ namespace FluentSensors
             this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
             CurrentInstance = this;
 
+            // a click on empty space hides the keyboard focus rectangle again
+            PointerFocusReset.Attach(Content);
+
             // AppWindow configuration
             // titlebar 
             AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;

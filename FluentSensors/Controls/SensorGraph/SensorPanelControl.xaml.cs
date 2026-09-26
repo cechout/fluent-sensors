@@ -680,6 +680,17 @@ namespace FluentSensors.Controls.SensorGraph
             SwitchCandidateComboBox.IsDropDownOpen = true;
         }
 
+        // the closing combobox takes focus back to itself, which would leave keyboard focus on something invisible that
+        // the arrow keys still act on; queued so it runs after that, and hands focus to the button that opened the
+        // dropdown, but only while the combobox still holds it
+        private void SwitchCandidateComboBox_DropDownClosed(object sender, object e)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (SwitchCandidateComboBox.FocusState != FocusState.Unfocused) SwitchButton.Focus(FocusState.Programmatic);
+            });
+        }
+
         // resolves the pick (builds its graph on first pick, cached after) and hands it to ViewModel
         private void SwitchCandidateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

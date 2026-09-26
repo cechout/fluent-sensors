@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Fluent Sensors"
     mc:Ignorable="d">
@@ -37,6 +38,7 @@
                     Width="32"
                     Padding="0"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Back to Main Application"
                     Click="BackToDashboard_Click"
                     Style="{StaticResource SubtleButtonStyle}"
                     ToolTipService.ToolTip="Back to Main Application">
@@ -68,7 +70,10 @@
                 (SubtleBarButtonStyle carries the state brushes of the platform subtle button without its border
                 animation, so these stretch the way any other button does)
             -->
-            <Grid Height="36" ColumnSpacing="4">
+            <Grid
+                Height="36"
+                fhUi:FocusGroup.IsEnabled="True"
+                ColumnSpacing="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -99,6 +104,7 @@
                         Width="36"
                         Padding="0"
                         VerticalAlignment="Stretch"
+                        AutomationProperties.Name="Stop"
                         Click="StopLogging_Click"
                         Style="{StaticResource SubtleBarButtonStyle}"
                         Visibility="{x:Bind ViewModel.StopButtonVisibility, Mode=OneWay}">
@@ -111,6 +117,7 @@
                         Width="36"
                         Padding="0"
                         VerticalAlignment="Stretch"
+                        AutomationProperties.Name="{x:Bind ViewModel.PauseTooltip, Mode=OneWay}"
                         Click="TogglePause_Click"
                         Style="{StaticResource SubtleBarButtonStyle}"
                         Visibility="{x:Bind ViewModel.PauseButtonVisibility, Mode=OneWay}">
@@ -268,7 +275,7 @@
                     (MinHeight is the height a default Button ends up at in the main bar, spelled out here so
                     both bars stay the same even though this one carries smaller text)
                 -->
-                <Grid ColumnSpacing="4">
+                <Grid fhUi:FocusGroup.IsEnabled="True" ColumnSpacing="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -306,6 +313,7 @@
                         Width="36"
                         Padding="0"
                         VerticalAlignment="Stretch"
+                        AutomationProperties.Name="Open in File Explorer"
                         Click="OpenLogFolder_Click"
                         ToolTipService.ToolTip="Open in File Explorer">
                         <FontIcon FontSize="14" Glyph="&#xED25;" />

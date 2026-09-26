@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Windows.System;
 
 
 namespace FluentSensors.Controls.SensorRow
@@ -86,6 +88,12 @@ namespace FluentSensors.Controls.SensorRow
             else if (e.PropertyName == nameof(SensorRowViewModel.IsSelected))
             {
                 UpdateVisualState();
+
+                // null unless a screen reader or another automation client has asked for this row
+                if (FrameworkElementAutomationPeer.FromElement(this) is SensorRowAutomationPeer peer)
+                {
+                    peer.RaiseToggleStateChanged(ViewModel?.IsSelected == true);
+                }
             }
         }
 
@@ -176,6 +184,9 @@ namespace FluentSensors.Controls.SensorRow
             if (ViewModel?.IsDisabled == true) return;
             _isPressed = true;
             UpdateVisualState();
+
+            // the clicked row takes focus too (without a focus rectangle), so the arrow keys carry on from here
+            Focus(FocusState.Pointer);
         }
 
         private void RootGrid_PointerReleased(object sender, PointerRoutedEventArgs e)
@@ -186,6 +197,79 @@ namespace FluentSensors.Controls.SensorRow
 
         // click event to toggle the sensor on/off - disabled cards cant be selected
         private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            ToggleSelection();
+        }
+
+
+        // === keyboard and screen reader ===
+
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new SensorRowAutomationPeer(this);
+        }
+
+        // space and enter toggle the row the same way a click does
+        // only while the row itself has focus; space and enter on the threshold badge inside it belong to the badge
+        //
+        // up and down between rows are left to the arrow key navigation of the surrounding list; the badge sits inside
+        // the row though, so no arrow reaches it on its own, right steps into it and left back out
+        protected override void OnKeyDown(KeyRoutedEventArgs e)
+        {
+            if (ReferenceEquals(e.OriginalSource, this))
+            {
+                if (e.Key == VirtualKey.Space || e.Key == VirtualKey.Enter)
+                {
+                    // a held key keeps repeating KeyDown, the row flips once per press
+                    if (!e.KeyStatus.WasKeyDown) ToggleSelection();
+                    e.Handled = true;
+                    return;
+                }
+
+                if (e.Key == VirtualKey.Right && IsBadgeReachable && ThresholdIndicator.Focus(FocusState.Keyboard))
+                {
+                    e.Handled = true;
+                    return;
+                }
+            }
+            else if (ReferenceEquals(e.OriginalSource, ThresholdIndicator))
+            {
+                if (e.Key == VirtualKey.Left && Focus(FocusState.Keyboard))
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                if ((e.Key == VirtualKey.Up || e.Key == VirtualKey.Down) && TryFocusNeighbourBadge(e.Key))
+                {
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            base.OnKeyDown(e);
+        }
+
+        // up and down on a badge go to the badge of the row above or below, so the threshold column can be walked like a
+        // table column; the plain arrow navigation would land on the neighbouring row instead, since that row starts
+        // closer than the badge inside it
+        private bool TryFocusNeighbourBadge(VirtualKey key)
+        {
+            if (XamlRoot == null) return false;
+
+            var direction = key == VirtualKey.Up ? FocusNavigationDirection.Up : FocusNavigationDirection.Down;
+            var options = new FindNextElementOptions { SearchRoot = XamlRoot.Content };
+
+            return FocusManager.FindNextElement(direction, options) is SensorRowControl neighbour
+                && neighbour.IsBadgeReachable
+                && neighbour.ThresholdIndicator.Focus(FocusState.Keyboard);
+        }
+
+        // collapsed in compact mode (hidden sensors window), where the row has no badge at all
+        private bool IsBadgeReachable => ThresholdIndicator.Visibility == Visibility.Visible && ThresholdIndicator.IsTabStop;
+
+        // shared by the click, the keyboard and the screen reader toggle
+        internal void ToggleSelection()
         {
             if (ViewModel == null || ViewModel.IsDisabled) return;
 
@@ -222,6 +306,9 @@ namespace FluentSensors.Controls.SensorRow
         // not just setters)
         private void UpdateDisplayState()
         {
+            // a disabled row ignores clicks, so it stays out of the tab order as well
+            IsTabStop = ViewModel?.IsDisabled != true;
+
             if (IsCompact)
             {
                 CurrentValueText.Visibility = Visibility.Collapsed;
