@@ -40,16 +40,26 @@ namespace FluentSensors.Common
         public static bool IsPortableBuild => _isPortableBuild.Value;
 
         // the store ships its own update path, so every part of the in-app updater keys off this
+        // (the store build still updates from inside the app, but through the store, see StoreUpdateSource)
         public static bool SupportsSelfUpdate => !IsPackaged;
 
         // opens the review form of this app in the Microsoft Store
-        //
-        // Launcher first and the shell as the fallback: this process runs elevated, and whether a protocol launch
-        // gets from there to the store is unverified
-        public static async Task OpenStoreReviewAsync()
-        {
-            var uri = new Uri($"ms-windows-store://review/?ProductId={StoreProductId}");
+        public static Task OpenStoreReviewAsync() =>
+            LaunchStoreAsync(new Uri($"ms-windows-store://review/?ProductId={StoreProductId}"));
 
+        // opens the product page of this app in the Microsoft Store, where an update can always be installed by hand
+        public static Task OpenStorePageAsync() =>
+            LaunchStoreAsync(new Uri($"ms-windows-store://pdp/?ProductId={StoreProductId}"));
+
+
+        // === private helpers ===
+
+        // Launcher first and the shell as the fallback
+        //
+        // from the elevated store build Launcher does reach the store, but in the update spike its answer never came
+        // back, so nothing may wait on this for anything that matters
+        private static async Task LaunchStoreAsync(Uri uri)
+        {
             try
             {
                 if (await Launcher.LaunchUriAsync(uri)) return;
@@ -62,9 +72,6 @@ namespace FluentSensors.Common
             }
             catch { /* nothing left to try, the click simply does nothing */ }
         }
-
-
-        // === private helpers ===
 
         // asking for the name with a zero length buffer is the cheap identity probe: a packaged process answers
         // ERROR_INSUFFICIENT_BUFFER, an unpackaged one answers APPMODEL_ERROR_NO_PACKAGE

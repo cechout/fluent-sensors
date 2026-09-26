@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
-using FluentSensors.Common;
 using FluentSensors.Core;
 using FluentSensors.Core.Startup;
 using FluentSensors.Common.Csv;
@@ -218,12 +217,6 @@ namespace FluentSensors.Features.Settings
                     StartupPageComboBox.SelectedItem = item;
                     break;
                 }
-            }
-
-            if (!AppDistribution.SupportsSelfUpdate)
-            {
-                CheckUpdatesCard.Description = "Installed from Microsoft Store, updates are handled by the Store";
-                CheckUpdatesToggle.Visibility = Visibility.Collapsed;
             }
 
             if (!WinAutostartService.IsSupported)

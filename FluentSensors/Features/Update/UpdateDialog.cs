@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FluentSensors.Common;
 using FluentSensors.Common.UI;
 using FluentSensors.Core.Update;
 
@@ -16,6 +17,9 @@ namespace FluentSensors.Features.Update
     // built in code rather than in XAML because every other dialog in this app is (see ShowInfoDialog and
     // ConfirmAction on the settings page), and because the same instance has to survive the download: the primary
     // button cancels its own close so the progress bar can take over the dialog that is already on screen
+    //
+    // the store build shows the same dialog, but the store downloads and installs, and doing it yourself means the
+    // store page instead of the release page
     public static class UpdateDialog
     {
         // === public api ===
@@ -27,12 +31,19 @@ namespace FluentSensors.Features.Update
         {
             if (xamlRoot == null || info == null) return;
 
+            bool isStoreBuild = !AppDistribution.SupportsSelfUpdate;
+
+            // an empty version is a store update GitHub could not name yet, see UpdateService.AskStoreAsync
+            bool hasVersion = !string.IsNullOrEmpty(info.Version);
+
             // a ticked box is remembered across restarts; the start pages update button names the skipped version
             // and is the way to undo it again
+            // a version that has no name cannot be skipped, so the box is left out for it
             var skipCheckBox = new CheckBox
             {
                 Content = "Skip this version",
-                Margin = new Thickness(0, 12, 0, 0)
+                Margin = new Thickness(0, 12, 0, 0),
+                Visibility = hasVersion ? Visibility.Visible : Visibility.Collapsed
             };
 
             var progress = new ProgressBar
@@ -52,7 +63,9 @@ namespace FluentSensors.Features.Update
             var content = new StackPanel();
             content.Children.Add(new TextBlock
             {
-                Text = $"Fluent Sensors {UpdateService.VersionLabel(info.Version)} is available. You are running {UpdateService.VersionLabel(UpdateService.CurrentVersion)}.",
+                Text = hasVersion
+                    ? $"Fluent Sensors {UpdateService.VersionLabel(info.Version)} is available. You are running {UpdateService.VersionLabel(UpdateService.CurrentVersion)}."
+                    : $"A new version of Fluent Sensors is available. You are running {UpdateService.VersionLabel(UpdateService.CurrentVersion)}.",
                 TextWrapping = TextWrapping.Wrap
             });
             content.Children.Add(skipCheckBox);
@@ -64,7 +77,7 @@ namespace FluentSensors.Features.Update
                 Title = "Update available",
                 Content = content,
                 PrimaryButtonText = "Update",
-                SecondaryButtonText = "Manual Install",
+                SecondaryButtonText = isStoreBuild ? "Open Store" : "Manual Install",
                 CloseButtonText = "Close",
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = xamlRoot,
@@ -74,6 +87,9 @@ namespace FluentSensors.Features.Update
             // non-null exactly while a download is running, which is also what turns Close into the cancel button
             CancellationTokenSource? downloadCts = null;
             bool handedOverToScript = false;
+
+            // store build only: true while the store replaces the package, which nothing can cancel any more
+            bool storeIsInstalling = false;
 
             void SetDownloading(bool downloading)
             {
@@ -96,6 +112,24 @@ namespace FluentSensors.Features.Update
                 downloadCts = new CancellationTokenSource();
                 SetDownloading(true);
                 statusText.Visibility = Visibility.Visible;
+
+                if (isStoreBuild)
+                {
+                    // the dialog stays until the store ends this process; the close button goes once there is
+                    // nothing left it could cancel
+                    await RunStoreUpdateAsync(progress, statusText, () =>
+                    {
+                        storeIsInstalling = true;
+                        dialog.CloseButtonText = "";
+                    }, downloadCts.Token);
+
+                    storeIsInstalling = false;
+                    downloadCts.Dispose();
+                    downloadCts = null;
+                    SetDownloading(false);
+                    return;
+                }
+
                 statusText.Text = $"Downloading {info.AssetName}...";
 
                 bool handedOver = await RunUpdateAsync(info, progress, statusText, downloadCts.Token);
@@ -116,10 +150,13 @@ namespace FluentSensors.Features.Update
             };
 
             // stays open on purpose: the browser opens beside the dialog and the user can still pick a button
-            dialog.SecondaryButtonClick += (_, args) =>
+            // the store build opens its store page instead of the release page
+            dialog.SecondaryButtonClick += (sender, args) =>
             {
                 args.Cancel = true;
-                OpenReleasePage(info.ReleaseUrl);
+
+                if (isStoreBuild) _ = AppDistribution.OpenStorePageAsync();
+                else OpenReleasePage(info.ReleaseUrl);
             };
 
             // Closing rather than CloseButtonClick, because this has to cover the ESC key just as reliably as the
@@ -127,6 +164,12 @@ namespace FluentSensors.Features.Update
             // report it, and one that slipped past the checkbox would silently ignore what the user just ticked
             dialog.Closing += (_, args) =>
             {
+                if (storeIsInstalling)
+                {
+                    args.Cancel = true;
+                    return;
+                }
+
                 if (downloadCts != null)
                 {
                     // mid-download this is the abort, not the exit; a 97 MB asset on a slow line would otherwise
@@ -186,6 +229,75 @@ namespace FluentSensors.Features.Update
                 OpenReleasePage(info.ReleaseUrl);
                 return false;
             }
+        }
+
+        // the store counterpart of RunUpdateAsync; it returns only once the store has given up or finished, and a
+        // finished install normally ends this process before that
+        // onInstalling fires once the store starts replacing the package
+        private static async Task RunStoreUpdateAsync(
+            ProgressBar progress, TextBlock statusText, Action onInstalling, CancellationToken ct)
+        {
+            // progress reports are posted to the UI thread, so a late one could land after the result below
+            bool isFinished = false;
+
+            var reporter = new Progress<StoreInstallProgress>(step =>
+            {
+                if (isFinished) return;
+
+                switch (step.Phase)
+                {
+                    case StoreInstallPhase.Waiting:
+                        statusText.Text = "Waiting for the Microsoft Store...";
+                        progress.IsIndeterminate = true;
+                        break;
+
+                    case StoreInstallPhase.Downloading:
+                        // the store reports 0 for a few seconds before the first bytes arrive
+                        statusText.Text = "Downloading from the Microsoft Store...";
+                        progress.IsIndeterminate = step.Fraction <= 0;
+                        progress.Value = step.Fraction;
+                        break;
+
+                    case StoreInstallPhase.Installing:
+                        statusText.Text = "Installing, the app will restart on its own";
+                        progress.IsIndeterminate = true;
+                        onInstalling();
+                        break;
+                }
+            });
+
+            statusText.Text = "Waiting for the Microsoft Store...";
+            progress.IsIndeterminate = true;
+
+            StoreInstallResult result;
+            try
+            {
+                result = await StoreUpdateSource.InstallAsync(reporter, ct);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[UpdateDialog] store update failed: {ex.Message}");
+                result = StoreInstallResult.Failed;
+            }
+
+            isFinished = true;
+            ResetProgress(progress);
+
+            if (result == StoreInstallResult.Installed)
+            {
+                statusText.Text = "Update installed, it takes effect the next time the app starts";
+                return;
+            }
+
+            // a cancel the user did not ask for is the store giving up, which is a failure like any other
+            if (result == StoreInstallResult.Canceled && ct.IsCancellationRequested)
+            {
+                statusText.Text = "Download cancelled";
+                return;
+            }
+
+            statusText.Text = "The Microsoft Store could not install the update, opening the Store instead";
+            _ = AppDistribution.OpenStorePageAsync();
         }
 
         private static void ResetProgress(ProgressBar progress)

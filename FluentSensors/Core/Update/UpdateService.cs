@@ -41,8 +41,7 @@ namespace FluentSensors.Core.Update
         UpToDate,
         UpdateAvailable,
         Skipped, // a newer release exists but the user chose to skip this exact version
-        Failed,
-        StoreManaged // packaged build; the store owns updates and this app never checks on its own
+        Failed
     }
 
 
@@ -52,6 +51,10 @@ namespace FluentSensors.Core.Update
     // the api only ever returns published, non-draft, non-prerelease releases, which lines up exactly with the
     // release workflow: it drafts a release on every version tag and a human publishes it afterwards, so a draft
     // sitting around can never reach a user as an update
+    //
+    // the store build asks the Microsoft Store instead, see StoreUpdateSource; GitHub is still read there, but only
+    // to name the version and carry its notes, never to decide whether there is one, since a GitHub release can go
+    // public before the store version has cleared certification
     public class UpdateService
     {
         // === fields ===
@@ -80,6 +83,9 @@ namespace FluentSensors.Core.Update
 
         private DispatcherQueue? _dispatcherQueue;
         private bool _hasCheckedOnStartup;
+
+        // the main window, which the store context of the store build is tied to
+        private nint _ownerWindow;
 
         // whatever the api last answered, newer than this build or not; the notes reader needs the release even
         // when there is nothing to install, since an up to date app shows the notes of the version it is running
@@ -129,17 +135,12 @@ namespace FluentSensors.Core.Update
         public static string ReleasesPage => ReleasesPageUrl;
 
         // fires the one automatic check, from wherever the app has finished starting up
-        // store builds never check: the store ships its own update path, and a packaged app is not allowed to
-        // replace itself from outside it
         // both guards live here rather than at the call site so the whole policy on when this app reaches out sits
         // in one place
-        public void Start()
+        // the window is kept even with the startup check off, since the start pages update button checks later
+        public void Start(nint ownerWindow)
         {
-            if (!AppDistribution.SupportsSelfUpdate)
-            {
-                UiState = UpdateUiState.StoreManaged;
-                return;
-            }
+            _ownerWindow = ownerWindow;
 
             if (!SettingsService.Instance.CheckUpdatesOnStartup) return;
             if (_hasCheckedOnStartup) return;
@@ -154,12 +155,6 @@ namespace FluentSensors.Core.Update
         // version they skipped earlier
         public async Task<UpdateCheckResult> CheckAsync(bool ignoreSkippedVersion = false)
         {
-            if (!AppDistribution.SupportsSelfUpdate)
-            {
-                UiState = UpdateUiState.StoreManaged;
-                return UpdateCheckResult.UpToDate;
-            }
-
             _dispatcherQueue ??= DispatcherQueue.GetForCurrentThread();
 
             // spam guard, see CheckCooldown; the state is left exactly as the last answer put it
@@ -175,9 +170,9 @@ namespace FluentSensors.Core.Update
 
             try
             {
-                string json = await _http.GetStringAsync(LatestReleaseUrl);
-
-                var parsed = ParseRelease(json, out bool isNewer);
+                var (parsed, isNewer) = AppDistribution.SupportsSelfUpdate
+                    ? await FetchLatestReleaseAsync()
+                    : await AskStoreAsync();
 
                 _latestRelease = Simulate(parsed, ref isNewer);
                 _isNewer = isNewer;
@@ -224,6 +219,7 @@ namespace FluentSensors.Core.Update
         public void SkipVersion()
         {
             if (_latestRelease == null || !_isNewer) return;
+            if (string.IsNullOrEmpty(_latestRelease.Version)) return; // a store update GitHub could not name
 
             SettingsService.Instance.SkippedUpdateVersion = _latestRelease.Version;
 
@@ -254,6 +250,46 @@ namespace FluentSensors.Core.Update
             client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
 
             return client;
+        }
+
+        private static async Task<(UpdateInfo? Release, bool IsNewer)> FetchLatestReleaseAsync()
+        {
+            string json = await _http.GetStringAsync(LatestReleaseUrl);
+
+            var release = ParseRelease(json, out bool isNewer);
+            return (release, isNewer);
+        }
+
+        // the store build: the store decides whether there is an update, the latest GitHub release only names it
+        //
+        // that release is taken as the one on offer only while it is newer than this build; one that is not yet,
+        // or a GitHub that cannot be reached, leaves the update without a version rather than without an update
+        // with nothing on offer, a GitHub release ahead of the store is dropped, so the notes reader stays on the
+        // running version instead of naming one the store does not have yet
+        private async Task<(UpdateInfo? Release, bool IsNewer)> AskStoreAsync()
+        {
+            var storeCheck = StoreUpdateSource.HasUpdateAsync(_ownerWindow);
+
+            UpdateInfo? release = null;
+            bool isNewer = false;
+
+            try
+            {
+                (release, isNewer) = await FetchLatestReleaseAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[UpdateService] release lookup failed: {ex.Message}");
+            }
+
+            // a store that cannot be reached is the check failing, so this one is left to throw
+            bool hasUpdate = await storeCheck;
+
+            if (!hasUpdate) return (isNewer ? null : release, false);
+
+            return isNewer && release != null
+                ? (release, true)
+                : (new UpdateInfo("", ReleasesPageUrl, "", "", "", 0), true);
         }
 
         // debug only switch for walking through the update ui without publishing anything: put a version higher

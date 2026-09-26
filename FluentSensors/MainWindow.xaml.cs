@@ -389,9 +389,9 @@ namespace FluentSensors
                 _ = Task.Run(() => WinAutostartService.RepairIfStale(SettingsService.Instance.DelayStartup));
             }
 
-            // last, so the one network request never competes with sensor discovery; it stays a no-op in a store build
+            // last, so the update check never competes with sensor discovery
             UpdateService.Instance.UpdateStateChanged += OnUpdateStateChanged;
-            UpdateService.Instance.Start();
+            UpdateService.Instance.Start(WinRT.Interop.WindowNative.GetWindowHandle(this));
         }
 
         // re-creates the widget window with whichever previously pinned sensors still exist on
@@ -527,7 +527,9 @@ namespace FluentSensors
         {
             var service = UpdateService.Instance;
 
-            AppStatus.UpdateVersionText = UpdateService.VersionLabel(service.Latest?.Version ?? "");
+            // a store update GitHub could not name yet still needs a label on the pill
+            string versionLabel = UpdateService.VersionLabel(service.Latest?.Version ?? "");
+            AppStatus.UpdateVersionText = versionLabel.Length > 0 ? versionLabel : "Update";
             AppStatus.IsUpdateAvailable = service.IsUpdateAvailable;
 
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);

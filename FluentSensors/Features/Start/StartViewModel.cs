@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Windows.UI;
 
+using FluentSensors.Common;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Core;
 using FluentSensors.Core.Lhm;
@@ -284,8 +285,7 @@ namespace FluentSensors.Features.Start
             ReleaseNotesSubtitle = $"Release notes for {UpdateService.VersionLabel(notesVersion)}";
 
             IsUpdateChecking = service.UiState == UpdateUiState.Checking;
-            IsUpdateActionEnabled = service.UiState != UpdateUiState.StoreManaged
-                && service.UiState != UpdateUiState.Checking;
+            IsUpdateActionEnabled = service.UiState != UpdateUiState.Checking;
 
             string lastChecked = service.LastCheckedAt.HasValue
                 ? $"Last checked {service.LastCheckedAt.Value:dd.MM. HH:mm}"
@@ -308,7 +308,10 @@ namespace FluentSensors.Features.Start
                 case UpdateUiState.UpdateAvailable:
                     SetBadge("", AccentColor());
                     UpdateStatusTitle = "Update available";
-                    UpdateStatusDescription = $"{UpdateService.VersionLabel(service.Latest?.Version)} is ready to install";
+                    // a store update GitHub could not name yet has no version to show
+                    UpdateStatusDescription = string.IsNullOrEmpty(service.Latest?.Version)
+                        ? "A new version is ready to install"
+                        : $"{UpdateService.VersionLabel(service.Latest?.Version)} is ready to install";
                     break;
 
                 case UpdateUiState.Skipped:
@@ -320,13 +323,9 @@ namespace FluentSensors.Features.Start
                 case UpdateUiState.Failed:
                     SetBadge("", CriticalColor);
                     UpdateStatusTitle = "Check failed";
-                    UpdateStatusDescription = "Could not reach GitHub, select to try again";
-                    break;
-
-                case UpdateUiState.StoreManaged:
-                    SetBadge("", NeutralColor);
-                    UpdateStatusTitle = "Managed by Microsoft Store";
-                    UpdateStatusDescription = "Updates are delivered through the Store";
+                    UpdateStatusDescription = AppDistribution.SupportsSelfUpdate
+                        ? "Could not reach GitHub, select to try again"
+                        : "Could not reach the Microsoft Store, select to try again";
                     break;
 
                 default:

@@ -160,7 +160,7 @@ namespace FluentSensors.Features.Start
             await dialog.ShowAsync();
         }
 
-        // one button, four jobs, decided by whatever state the service is in
+        // one button, three jobs, decided by whatever state the service is in
         private async void UpdateStatusButton_Click(object sender, RoutedEventArgs e)
         {
             var service = UpdateService.Instance;
@@ -176,10 +176,6 @@ namespace FluentSensors.Features.Start
                     // the release after it
                     service.ClearSkippedVersion();
                     await ShowUpdateDialogAsync(service.Latest);
-                    break;
-
-                case UpdateUiState.StoreManaged:
-                    // the button is disabled in this state anyway, this is just the matching arm
                     break;
 
                 default:
