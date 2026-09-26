@@ -111,7 +111,8 @@
                     VerticalAlignment="Center"
                     Style="{ThemeResource CaptionTextBlockStyle}"
                     Text="{x:Bind ViewModel.Name, Mode=OneWay}"
-                    TextTrimming="CharacterEllipsis" />
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap" />
             </Grid>
 
             <!--  threshold indicator/flyout, globalized control shared with SensorPanelControl  -->
