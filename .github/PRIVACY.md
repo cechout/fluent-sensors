@@ -2,7 +2,7 @@
 
 Fluent Sensors reads the sensors in your own machine and shows them. There is no account, no sign-in, no telemetry and no analytics. Your settings and your sensor readings stay on your machine.
 
-The app does go online for one thing: it asks GitHub whether a newer version exists, and it loads the release notes from there. This page explains when that happens and what is sent.
+The app does go online for one thing: updates. It checks whether a newer version exists and loads the release notes. This page explains when that happens, where the request goes and what is sent.
 
 ## 📁 What is stored, and where
 
@@ -18,11 +18,11 @@ These files hold your settings, your window sizes and positions, and which senso
 
 ## 🌐 When the app goes online
 
-The app only ever contacts `api.github.com`, and only in these three cases:
+The installer and portable builds only ever contact GitHub, and only in these three cases. The Store build differs slightly, see [Microsoft Store version](#-microsoft-store-version).
 
-* **On startup**, to ask whether a newer release exists. This can be turned off, see below.
-* **When you open the release notes**, to load the list of published versions. They are saved on your machine afterwards, so this only happens when a version is missing from that copy.
-* **When you confirm an update**, to download the new build. Nothing is downloaded before you press the update button.
+* **On startup**, to ask `api.github.com` whether a newer release exists. This can be turned off, see below.
+* **When you open the release notes**, to load the list of published versions from `api.github.com`. They are saved on your machine afterwards, so this only happens when a version is missing from that copy.
+* **When you confirm an update**, to download the new build from the releases page on `github.com`. Nothing is downloaded before you press the update button.
 
 Each of these is a plain read request. The app sends nothing along with it: no version number, no machine name, no hardware list, no sensor readings, nothing that names you.
 
@@ -48,4 +48,6 @@ Without PawnIO the app still runs and still shows GPU, storage, network and memo
 
 ## 🏪 Microsoft Store version
 
-The Store version never checks for updates and never downloads a new build, because the Store handles updates itself. It does still load the release notes, in the same way as described above.
+The Store version asks the Microsoft Store whether an update exists, in the same situations and behind the same switch as above. It still reads the latest release from `api.github.com`, but only to name the new version and show its notes. When you confirm an update, the Store downloads and installs it; nothing comes from GitHub.
+
+The Store check runs through the Store service built into Windows, which knows which version is installed, the same as for every Store app. What Microsoft does with that is covered by the [Microsoft Privacy Statement](https://privacy.microsoft.com/privacystatement). The Store can also update the app in the background on its own, as it does for all Store apps; that is a setting of the Microsoft Store, not of Fluent Sensors.
