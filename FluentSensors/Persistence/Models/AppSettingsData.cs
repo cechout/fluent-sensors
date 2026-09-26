@@ -167,8 +167,8 @@ namespace FluentSensors.Persistence.Models
 
         // hidden sensors window:
         // minimum 280 x 200, see HiddenSensorsWindow.xaml.cs
-        public const double HiddenSensorsWindowDefaultWidthDip = 300;
-        public const double HiddenSensorsWindowDefaultHeightDip = 500;
+        public const double HiddenSensorsWindowDefaultWidthDip = 340;
+        public const double HiddenSensorsWindowDefaultHeightDip = 510;
 
         // widget window:
         // the height is one panel per pinned sensor plus the title bar
