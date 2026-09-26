@@ -298,6 +298,13 @@
                                     <FontIcon Foreground="{x:Bind IconBrush, Mode=OneWay}" Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
                                 </controls:SettingsExpander.HeaderIcon>
 
+                                <!--  sensor count: shown/total  -->
+                                <TextBlock
+                                    AutomationProperties.Name="{x:Bind SensorCountName, Mode=OneWay}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="{x:Bind SensorCountText, Mode=OneWay}"
+                                    Typography.NumeralAlignment="Tabular" />
+
                                 <!--  column labels  -->
                                 <controls:SettingsExpander.ItemsHeader>
                                     <controls:SettingsCard

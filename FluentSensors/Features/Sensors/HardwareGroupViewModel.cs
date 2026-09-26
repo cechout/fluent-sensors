@@ -46,6 +46,13 @@ namespace FluentSensors.Features.Sensors
         public bool HasHiddenSensors => HiddenSensors.Count > 0;
         public Visibility HiddenPanelVisibility => HasHiddenSensors ? Visibility.Visible : Visibility.Collapsed;
 
+        // shown/total count on the right of the expander header
+        // (counted by IsHidden rather than by list, since HideSensorsCompletely=false leaves a hidden sensor in Sensors)
+        public string SensorCountText => $"{ShownSensorCount}/{TotalSensorCount}";
+        public string SensorCountName => $"{ShownSensorCount} of {TotalSensorCount} sensors shown";
+        private int ShownSensorCount => Sensors.Count(s => !s.IsHidden);
+        private int TotalSensorCount => Sensors.Count + HiddenSensors.Count;
+
         // drives IsExpanded on the sensors page expander of this group
         private bool _isExpanded;
         public bool IsExpanded
@@ -101,6 +108,8 @@ namespace FluentSensors.Features.Sensors
             {
                 Sensors.Add(sensor);
             }
+
+            NotifySensorCountChanged();
         }
 
 
@@ -141,6 +150,7 @@ namespace FluentSensors.Features.Sensors
 
             OnPropertyChanged(nameof(HasHiddenSensors));
             OnPropertyChanged(nameof(HiddenPanelVisibility));
+            NotifySensorCountChanged();
         }
 
 
@@ -176,6 +186,13 @@ namespace FluentSensors.Features.Sensors
 
             OnPropertyChanged(nameof(HasHiddenSensors));
             OnPropertyChanged(nameof(HiddenPanelVisibility));
+            NotifySensorCountChanged();
+        }
+
+        private void NotifySensorCountChanged()
+        {
+            OnPropertyChanged(nameof(SensorCountText));
+            OnPropertyChanged(nameof(SensorCountName));
         }
 
 
