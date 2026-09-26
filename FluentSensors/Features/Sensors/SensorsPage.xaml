@@ -171,13 +171,26 @@
                 <Grid HorizontalAlignment="Stretch">
 
                     <Grid Margin="32,12,32,12" HorizontalAlignment="Stretch">
+                        <!--  (value columns follow SensorRowControl, workaround: star columns fill greedily)  -->
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5*" MinWidth="80" />
                             <ColumnDefinition Width="36" />
-                            <ColumnDefinition Width="2*" MinWidth="65" />
-                            <ColumnDefinition Width="2*" MinWidth="65" />
-                            <ColumnDefinition Width="2*" MinWidth="65" />
-                            <ColumnDefinition Width="2*" MinWidth="65" />
+                            <ColumnDefinition
+                                Width="2*"
+                                MinWidth="65"
+                                MaxWidth="10000" />
+                            <ColumnDefinition
+                                Width="2*"
+                                MinWidth="65"
+                                MaxWidth="10000" />
+                            <ColumnDefinition
+                                Width="2*"
+                                MinWidth="65"
+                                MaxWidth="10000" />
+                            <ColumnDefinition
+                                Width="2*"
+                                MinWidth="65"
+                                MaxWidth="10000" />
                         </Grid.ColumnDefinitions>
 
                         <TextBlock
@@ -286,13 +299,26 @@
                                         CornerRadius="0">
 
                                         <Grid HorizontalAlignment="Stretch">
+                                            <!--  (value columns follow SensorRowControl, workaround: star columns fill greedily)  -->
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="5*" MinWidth="80" />
                                                 <ColumnDefinition Width="36" />
-                                                <ColumnDefinition Width="2*" MinWidth="65" />
-                                                <ColumnDefinition Width="2*" MinWidth="65" />
-                                                <ColumnDefinition Width="2*" MinWidth="65" />
-                                                <ColumnDefinition Width="2*" MinWidth="65" />
+                                                <ColumnDefinition
+                                                    Width="2*"
+                                                    MinWidth="65"
+                                                    MaxWidth="10000" />
+                                                <ColumnDefinition
+                                                    Width="2*"
+                                                    MinWidth="65"
+                                                    MaxWidth="10000" />
+                                                <ColumnDefinition
+                                                    Width="2*"
+                                                    MinWidth="65"
+                                                    MaxWidth="10000" />
+                                                <ColumnDefinition
+                                                    Width="2*"
+                                                    MinWidth="65"
+                                                    MaxWidth="10000" />
                                             </Grid.ColumnDefinitions>
 
                                             <TextBlock
