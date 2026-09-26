@@ -89,8 +89,7 @@
                         <controls:SettingsExpander
                             Margin="0,16,0,0"
                             fhUi:FocusGroup.IsEnabled="True"
-                            Description="{x:Bind HardwareName, Mode=OneWay}"
-                            Header="{x:Bind GroupLabel, Mode=OneWay}"
+                            AutomationProperties.Name="{x:Bind GroupLabel, Mode=OneWay}"
                             IsExpanded="{x:Bind IsExpandedInHiddenWindow, Mode=TwoWay}"
                             Visibility="{x:Bind HiddenPanelVisibility, Mode=OneWay}">
 
@@ -101,6 +100,21 @@
                             <controls:SettingsExpander.HeaderIcon>
                                 <FontIcon Foreground="{x:Bind IconBrush, Mode=OneWay}" Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
                             </controls:SettingsExpander.HeaderIcon>
+
+                            <!--  header: category and device name  -->
+                            <!--  (TextBlocks and an own accessible name for the same reason as on SensorsPage)  -->
+                            <controls:SettingsExpander.Header>
+                                <TextBlock
+                                    Text="{x:Bind GroupLabel, Mode=OneWay}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap" />
+                            </controls:SettingsExpander.Header>
+                            <controls:SettingsExpander.Description>
+                                <TextBlock
+                                    Text="{x:Bind HardwareName, Mode=OneWay}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap" />
+                            </controls:SettingsExpander.Description>
 
                             <!--  header  -->
                             <controls:SettingsExpander.ItemsHeader>

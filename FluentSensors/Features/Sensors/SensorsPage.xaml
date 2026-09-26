@@ -273,8 +273,7 @@
                             <controls:SettingsExpander
                                 Margin="0,16,0,0"
                                 fhUi:FocusGroup.IsEnabled="True"
-                                Description="{x:Bind HardwareName, Mode=OneWay}"
-                                Header="{x:Bind GroupLabel, Mode=OneWay}"
+                                AutomationProperties.Name="{x:Bind GroupLabel, Mode=OneWay}"
                                 IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
                                 ItemsSource="{x:Bind Sensors, Mode=OneWay}"
                                 Loaded="SettingsExpander_Loaded">
@@ -297,6 +296,24 @@
                                 <controls:SettingsExpander.HeaderIcon>
                                     <FontIcon Foreground="{x:Bind IconBrush, Mode=OneWay}" Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
                                 </controls:SettingsExpander.HeaderIcon>
+
+                                <!--  header: category and device name  -->
+                                <!--
+                                    (TextBlocks rather than plain strings, which the card template always wraps; a TextBlock
+                                    header also drops the automatic accessible name, so the expander sets its own above)
+                                -->
+                                <controls:SettingsExpander.Header>
+                                    <TextBlock
+                                        Text="{x:Bind GroupLabel, Mode=OneWay}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap" />
+                                </controls:SettingsExpander.Header>
+                                <controls:SettingsExpander.Description>
+                                    <TextBlock
+                                        Text="{x:Bind HardwareName, Mode=OneWay}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap" />
+                                </controls:SettingsExpander.Description>
 
                                 <!--  sensor count: shown/total  -->
                                 <TextBlock
