@@ -281,6 +281,17 @@
 
                                 <controls:SettingsExpander.Resources>
                                     <Thickness x:Key="SettingsCardHeaderIconMargin">2,0,16,0</Thickness>
+
+                                    <!--
+                                        workaround: SettingsCard left-aligns its content below the wrap threshold
+                                        problem: under SettingsCardWrapThreshold (476) the size-triggered RightWrapped state takes over
+                                        from the Vertical state these cards ask for and sets HorizontalContentAlignment to Left, so every
+                                        sensor row is laid out at its own desired width, which follows the length of its name; see
+                                        ContentAlignmentStates in https://github.com/CommunityToolkit/Windows/blob/v8.2.251219/components/SettingsControls/src/SettingsCard/SettingsCard.xaml
+                                        no public issue found for this combination
+                                        fix: a threshold of 0 keeps RightWrapped from ever triggering, so the rows stay stretched at any width
+                                    -->
+                                    <x:Double x:Key="SettingsCardWrapThreshold">0</x:Double>
                                 </controls:SettingsExpander.Resources>
 
                                 <controls:SettingsExpander.HeaderIcon>
