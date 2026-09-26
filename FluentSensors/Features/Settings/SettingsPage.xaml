@@ -336,12 +336,13 @@
                             <ComboBox
                                 x:Name="BackgroundColorSourceComboBox"
                                 Width="160"
+                                AutomationProperties.Name="Background Color Source"
                                 SelectionChanged="BackgroundColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="WidgetBackgroundColorPicker" />
+                            <controls:ColorPickerButton x:Name="WidgetBackgroundColorPicker" AutomationProperties.Name="Background Color" />
                         </StackPanel>
 
                     </controls:SettingsCard>
@@ -361,13 +362,14 @@
                             <ComboBox
                                 x:Name="GraphColorSourceComboBox"
                                 Width="160"
+                                AutomationProperties.Name="Graph Color Source"
                                 SelectionChanged="GraphColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
                                 <ComboBoxItem Content="Hardware Color" Tag="Hardware" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="GraphColorPicker" />
+                            <controls:ColorPickerButton x:Name="GraphColorPicker" AutomationProperties.Name="Graph Color" />
                         </StackPanel>
                     </controls:SettingsCard>
 
@@ -423,13 +425,14 @@
                             <ComboBox
                                 x:Name="TaskbarGraphColorSourceComboBox"
                                 Width="160"
+                                AutomationProperties.Name="Graph Color Source"
                                 SelectionChanged="TaskbarGraphColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
                                 <ComboBoxItem Content="Hardware Color" Tag="Hardware" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" />
+                            <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" AutomationProperties.Name="Graph Color" />
                         </StackPanel>
                     </controls:SettingsCard>
 
@@ -542,12 +545,13 @@
                             <ComboBox
                                 x:Name="TaskbarBackgroundColorSourceComboBox"
                                 Width="160"
+                                AutomationProperties.Name="Background Color Source"
                                 SelectionChanged="TaskbarBackgroundColorSourceComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Windows Accent" Tag="Accent" />
                                 <ComboBoxItem Content="Custom Color" Tag="Custom" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="TaskbarBackgroundColorPicker" />
+                            <controls:ColorPickerButton x:Name="TaskbarBackgroundColorPicker" AutomationProperties.Name="Background Color" />
                         </StackPanel>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>

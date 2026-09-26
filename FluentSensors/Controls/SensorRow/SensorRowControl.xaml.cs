@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Windows.System;
 
 
 namespace FluentSensors.Controls.SensorRow
@@ -86,6 +88,12 @@ namespace FluentSensors.Controls.SensorRow
             else if (e.PropertyName == nameof(SensorRowViewModel.IsSelected))
             {
                 UpdateVisualState();
+
+                // null unless a screen reader or another automation client has asked for this row
+                if (FrameworkElementAutomationPeer.FromElement(this) is SensorRowAutomationPeer peer)
+                {
+                    peer.RaiseToggleStateChanged(ViewModel?.IsSelected == true);
+                }
             }
         }
 
@@ -187,6 +195,35 @@ namespace FluentSensors.Controls.SensorRow
         // click event to toggle the sensor on/off - disabled cards cant be selected
         private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
         {
+            ToggleSelection();
+        }
+
+
+        // === keyboard and screen reader ===
+
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new SensorRowAutomationPeer(this);
+        }
+
+        // space and enter toggle the row the same way a click does
+        // only while the row itself has focus; a key pressed on the threshold badge inside it belongs to the badge
+        protected override void OnKeyDown(KeyRoutedEventArgs e)
+        {
+            if ((e.Key == VirtualKey.Space || e.Key == VirtualKey.Enter) && ReferenceEquals(e.OriginalSource, this))
+            {
+                // a held key keeps repeating KeyDown, the row flips once per press
+                if (!e.KeyStatus.WasKeyDown) ToggleSelection();
+                e.Handled = true;
+                return;
+            }
+
+            base.OnKeyDown(e);
+        }
+
+        // shared by the click, the keyboard and the screen reader toggle
+        internal void ToggleSelection()
+        {
             if (ViewModel == null || ViewModel.IsDisabled) return;
 
             ViewModel.IsSelected = !ViewModel.IsSelected;
@@ -222,6 +259,9 @@ namespace FluentSensors.Controls.SensorRow
         // not just setters)
         private void UpdateDisplayState()
         {
+            // a disabled row ignores clicks, so it stays out of the tab order as well
+            IsTabStop = ViewModel?.IsDisabled != true;
+
             if (IsCompact)
             {
                 CurrentValueText.Visibility = Visibility.Collapsed;

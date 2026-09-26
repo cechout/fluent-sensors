@@ -159,6 +159,7 @@
                 Margin="8,1,0,0"
                 Padding="0"
                 VerticalAlignment="Center"
+                AutomationProperties.Name="Toggle Status Readout"
                 Background="Transparent"
                 BorderThickness="0"
                 Click="StatusToggleButton_Click"

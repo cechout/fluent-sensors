@@ -68,6 +68,7 @@
                 Margin="0,0,0,6"
                 Padding="0"
                 VerticalAlignment="Center"
+                AutomationProperties.Name="Close"
                 Click="CloseButton_Click"
                 Style="{StaticResource SubtleBarButtonStyle}"
                 ToolTipService.ToolTip="Close">

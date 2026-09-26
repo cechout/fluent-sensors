@@ -37,6 +37,7 @@
                     Width="32"
                     Padding="0"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Back to Main Application"
                     Click="BackToDashboard_Click"
                     Style="{StaticResource SubtleButtonStyle}"
                     ToolTipService.ToolTip="Back to Main Application">
@@ -99,6 +100,7 @@
                         Width="36"
                         Padding="0"
                         VerticalAlignment="Stretch"
+                        AutomationProperties.Name="Stop"
                         Click="StopLogging_Click"
                         Style="{StaticResource SubtleBarButtonStyle}"
                         Visibility="{x:Bind ViewModel.StopButtonVisibility, Mode=OneWay}">
@@ -111,6 +113,7 @@
                         Width="36"
                         Padding="0"
                         VerticalAlignment="Stretch"
+                        AutomationProperties.Name="{x:Bind ViewModel.PauseTooltip, Mode=OneWay}"
                         Click="TogglePause_Click"
                         Style="{StaticResource SubtleBarButtonStyle}"
                         Visibility="{x:Bind ViewModel.PauseButtonVisibility, Mode=OneWay}">
@@ -306,6 +309,7 @@
                         Width="36"
                         Padding="0"
                         VerticalAlignment="Stretch"
+                        AutomationProperties.Name="Open in File Explorer"
                         Click="OpenLogFolder_Click"
                         ToolTipService.ToolTip="Open in File Explorer">
                         <FontIcon FontSize="14" Glyph="&#xED25;" />

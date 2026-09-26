@@ -33,6 +33,7 @@
                 Margin="4,4,0,0"
                 Padding="0"
                 HorizontalAlignment="Left"
+                AutomationProperties.Name="Back to Main Application"
                 Click="BackToDashboard_Click"
                 Style="{StaticResource SubtleButtonStyle}"
                 ToolTipService.ToolTip="Back to Main Application">

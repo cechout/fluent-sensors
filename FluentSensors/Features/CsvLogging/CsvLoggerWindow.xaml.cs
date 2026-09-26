@@ -3,6 +3,7 @@ using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
@@ -565,7 +566,9 @@ namespace FluentSensors.Features.CsvLogging
             // segoe fluent icons ChevronUp and ChevronDown, escaped rather than pasted so this file stays
             // plain ascii like the rest of the sources
             ToggleDetailsIcon.Glyph = _isExpanded ? "\uE70E" : "\uE70D";
-            ToolTipService.SetToolTip(ToggleDetailsButton, _isExpanded ? "Hide details" : "Show details");
+            string toggleLabel = _isExpanded ? "Hide details" : "Show details";
+            ToolTipService.SetToolTip(ToggleDetailsButton, toggleLabel);
+            AutomationProperties.SetName(ToggleDetailsButton, toggleLabel);
         }
 
         // the exact height of one row, taken from the element itself rather than from a number kept in here, so it

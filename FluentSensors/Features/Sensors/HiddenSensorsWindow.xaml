@@ -75,10 +75,12 @@
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto">
 
+            <!--  (arrow keys move between the rows, so a long list does not have to be tabbed through)  -->
             <ItemsControl
                 x:Name="HardwareGroupsItemsControl"
                 Margin="0,0,0,16"
-                ItemsSource="{x:Bind ViewModel.HardwareGroups, Mode=OneWay}">
+                ItemsSource="{x:Bind ViewModel.HardwareGroups, Mode=OneWay}"
+                XYFocusKeyboardNavigation="Enabled">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="fhSensors:HardwareGroupViewModel">
 

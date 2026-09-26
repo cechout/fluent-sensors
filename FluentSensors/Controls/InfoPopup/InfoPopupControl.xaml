@@ -128,6 +128,7 @@
                 Width="{x:Bind ButtonSize, Mode=OneWay}"
                 Height="{x:Bind ButtonSize, Mode=OneWay}"
                 VerticalAlignment="Center"
+                AutomationProperties.Name="{x:Bind GetInfoButtonName(Title), Mode=OneWay}"
                 Background="{x:Bind ButtonBackground, Mode=OneWay}"
                 BorderThickness="0"
                 Click="InfoButton_Click"

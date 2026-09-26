@@ -21,6 +21,7 @@
             VerticalAlignment="Stretch"
             HorizontalContentAlignment="Stretch"
             VerticalContentAlignment="Stretch"
+            AutomationProperties.Name="Fluent Sensors"
             Background="Transparent"
             BorderBrush="Transparent"
             BorderThickness="1"

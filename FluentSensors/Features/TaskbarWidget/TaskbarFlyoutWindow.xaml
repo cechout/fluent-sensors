@@ -111,6 +111,7 @@
                         Width="38"
                         Padding="0"
                         HorizontalAlignment="Right"
+                        AutomationProperties.Name="Close Taskbar Widget"
                         Click="CloseWidget_Click"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource SubtleBarButtonStyle}"
