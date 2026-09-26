@@ -260,9 +260,9 @@
                 BorderThickness="0,0,1,0">
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+                    <!--  (no focus group: tab walks the entries one by one, the arrow keys are in RootGrid_PreviewKeyDown)  -->
                     <ItemsControl
                         x:Name="NavItemsControl"
-                        fhUi:FocusGroup.IsEnabled="True"
                         IsEnabled="{x:Bind ViewModel.IsNavSidebarShown, Mode=OneWay}"
                         ItemsSource="{x:Bind ViewModel.NavItems, Mode=OneWay}">
                         <ItemsControl.ItemsPanel>
