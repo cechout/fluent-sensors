@@ -302,6 +302,7 @@
                                 <TextBlock
                                     AutomationProperties.Name="{x:Bind SensorCountName, Mode=OneWay}"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
                                     Text="{x:Bind SensorCountText, Mode=OneWay}"
                                     Typography.NumeralAlignment="Tabular" />
 

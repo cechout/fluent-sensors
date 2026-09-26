@@ -48,7 +48,7 @@ namespace FluentSensors.Features.Sensors
 
         // shown/total count on the right of the expander header
         // (counted by IsHidden rather than by list, since HideSensorsCompletely=false leaves a hidden sensor in Sensors)
-        public string SensorCountText => $"{ShownSensorCount}/{TotalSensorCount}";
+        public string SensorCountText => $"{ShownSensorCount}/{TotalSensorCount} sensors";
         public string SensorCountName => $"{ShownSensorCount} of {TotalSensorCount} sensors shown";
         private int ShownSensorCount => Sensors.Count(s => !s.IsHidden);
         private int TotalSensorCount => Sensors.Count + HiddenSensors.Count;
