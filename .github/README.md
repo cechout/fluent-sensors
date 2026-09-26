@@ -1,10 +1,9 @@
 <img width="2560" height="810" alt="frame9" src="https://github.com/user-attachments/assets/d5a4833b-6f2e-45d0-87fc-de07be210cd0" />
 
 <p align="left">
-  <a href="https://github.com/cechout/fluent-sensors/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/cechout/fluent-sensors?label=release&color=0078D4"></a>
-  <a href="https://github.com/cechout/fluent-sensors/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/cechout/fluent-sensors/total?color=0078D4"></a>
+  <a href="https://github.com/cechout/fluent-sensors/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/cechout/fluent-sensors?label=release&color=blueviolet"></a>
+  <a href="https://github.com/cechout/fluent-sensors/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/cechout/fluent-sensors/total?color=brightgreen"></a>
   <a href="https://github.com/cechout/fluent-sensors/releases"><img alt="Windows" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4?logo=windows11&logoColor=white"></a>
-  <a href="https://github.com/cechout/fluent-sensors/actions/workflows/pr-build.yml"><img alt="CI" src="https://github.com/cechout/fluent-sensors/actions/workflows/pr-build.yml/badge.svg?event=pull_request"></a>
 </p>
 
 ###
