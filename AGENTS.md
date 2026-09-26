@@ -1,8 +1,9 @@
 # FluentSensors Development Guidelines
 
 This project is a C#/.NET 10 WinUI 3 desktop app that reads hardware sensors through
-LibreHardwareMonitorLib and shows them in a native Windows 11 interface. It ships unpackaged and
-self-contained, and it requires administrator rights because the sensor library loads a kernel driver.
+LibreHardwareMonitorLib and shows them in a native Windows 11 interface. It ships self-contained,
+unpackaged on GitHub and as an MSIX in the Microsoft Store, and it requires administrator rights because the
+sensor library talks to the PawnIO kernel driver, which is installed separately and never shipped with the app.
 
 - Keep the work scoped to what was asked. Avoid opportunistic refactors, formatting churn, dependency
   bumps and drive-by renames.
