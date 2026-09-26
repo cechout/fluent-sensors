@@ -36,6 +36,7 @@
             x:Name="ContentScrollViewer"
             Grid.Row="0"
             Grid.Column="0"
+            fhUi:FocusSkip.IsEnabled="True"
             Background="Transparent"
             HorizontalScrollBarVisibility="Disabled"
             SizeChanged="ContentScrollViewer_SizeChanged"
@@ -323,10 +324,7 @@
                         </Grid>
 
                         <!--  current graph value tiles  -->
-                        <Grid
-                            x:Name="TilesAndStaticInfoGrid"
-                            Grid.Row="1"
-                            fhUi:FocusGroup.IsEnabled="True">
+                        <Grid x:Name="TilesAndStaticInfoGrid" Grid.Row="1">
 
                             <controls:WrapPanel
                                 Margin="4,0,4,0"
@@ -366,7 +364,6 @@
                         x:Name="AllThreadsGrid"
                         Grid.Row="0"
                         Margin="0,0,0,4"
-                        fhUi:FocusGroup.IsEnabled="True"
                         x:Load="False"
                         IsHitTestVisible="{x:Bind Cpu.AllThreadsIsHitTestVisible, Mode=OneWay}"
                         Opacity="{x:Bind Cpu.AllThreadsOpacity, Mode=OneWay}">
@@ -484,7 +481,7 @@
             Grid.RowSpan="2"
             Grid.Column="1"
             VerticalAlignment="Stretch"
-            fhUi:FocusGroup.IsEnabled="True"
+            fhUi:FocusSkip.IsEnabled="True"
             Background="Transparent"
             BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
             BorderThickness="1,0,0,0"

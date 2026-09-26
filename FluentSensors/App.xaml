@@ -449,6 +449,15 @@
                 <Setter Property="Margin" Value="0" />
                 <Setter Property="FontSize" Value="14" />
             </Style>
+
+            <!--  === item lists ===  -->
+            <!--
+                ItemsControl has no style of its own in WinUI and keeps the IsTabStop=True every Control starts
+                with, so each list was an invisible tab stop without a focus rectangle; only its items take focus
+            -->
+            <Style TargetType="ItemsControl">
+                <Setter Property="IsTabStop" Value="False" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

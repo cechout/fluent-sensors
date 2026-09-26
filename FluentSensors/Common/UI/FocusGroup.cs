@@ -1,4 +1,6 @@
+using System;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 
@@ -9,11 +11,12 @@ namespace FluentSensors.Common.UI
     // same split File Explorer and Task Manager use, so tab jumps between whole regions (the menu, a command bar, one
     // section of a list) and never walks a long list item by item
     //
-    // tab and shift+tab both enter a group at its first element; left alone, WinUI enters a group reached with
-    // shift+tab at its last element, which lands somewhere in the middle of a section instead of on its header
+    // tab and shift+tab both enter a group at its first element, and a tab pressed inside a group always leaves it;
+    // TabFocusNavigation=Once alone promises the same, but inside the SettingsExpander groups a tab still walked row by
+    // row, so the group enforces both itself
     //
-    // only for regions whose controls leave the arrow keys alone; a slider, a text box or a combo box inside a group
-    // would swallow the arrows, and everything behind it in the group could no longer be reached
+    // only for regions whose controls leave the arrow keys alone; a slider or a combo box inside a group would swallow
+    // the arrows, see ArrowNavigation for the settings page, which has both
     public static class FocusGroup
     {
         // === attached properties ===
@@ -40,6 +43,10 @@ namespace FluentSensors.Common.UI
                 group.TabFocusNavigation = KeyboardNavigationMode.Once;
                 group.XYFocusKeyboardNavigation = XYFocusKeyboardNavigationMode.Enabled;
                 group.GettingFocus += Group_GettingFocus;
+
+                // a group is only ever a container, never a stop of its own; an ItemsControl would otherwise take the
+                // entry itself and show no focus rectangle anywhere
+                if (group is Control control) control.IsTabStop = false;
             }
             else
             {
@@ -49,33 +56,119 @@ namespace FluentSensors.Common.UI
         }
 
 
-        // === group entry ===
+        // === tab handling ===
 
-        // GettingFocus bubbles, so this sees every focus change that lands inside the group; only a tab or shift+tab
-        // coming from outside is redirected, arrow keys, clicks and code keep their target
+        // GettingFocus bubbles, so this sees every focus change that lands inside the group; only tab and shift+tab
+        // are touched, arrow keys, clicks and code keep their target
         private static void Group_GettingFocus(UIElement sender, GettingFocusEventArgs args)
         {
-            if (args.InputDevice != FocusInputDeviceKind.Keyboard) return;
-            if (args.Direction != FocusNavigationDirection.Next && args.Direction != FocusNavigationDirection.Previous) return;
-            if (IsInside(args.OldFocusedElement, sender)) return;
+            bool forward = args.Direction == FocusNavigationDirection.Next;
+            if (!forward && args.Direction != FocusNavigationDirection.Previous) return;
 
-            // with one group inside another, the inner one owns the entry
+            // with one group inside another, the inner one owns the move
             if (HasGroupBetween(args.NewFocusedElement, sender)) return;
 
-            var first = FocusManager.FindFirstFocusableElement(sender);
-            if (first != null && !ReferenceEquals(first, args.NewFocusedElement))
+            DependencyObject? target = IsInside(args.OldFocusedElement, sender)
+                ? FindStopBeyond(sender, forward)
+                : FocusManager.FindFirstFocusableElement(sender);
+
+            if (target != null && !ReferenceEquals(target, args.NewFocusedElement))
             {
-                args.TrySetNewFocusedElement(first);
+                args.TrySetNewFocusedElement(target);
             }
         }
 
-        private static bool IsInside(DependencyObject? element, DependencyObject group)
+
+        // === tab order ===
+
+        // the next (or previous) stop outside region, in the order tab walks: the visual tree order, since nothing in
+        // this app sets a TabIndex; wraps around the end of the window the way tab does
+        // the stop found is adjusted to the rules above: a skipped region is passed over, a group is entered at its
+        // first element
+        internal static DependencyObject? FindStopBeyond(DependencyObject region, bool forward)
+        {
+            DependencyObject from = region;
+
+            // bounded, a window full of nothing but skipped regions must not loop forever
+            for (int hop = 0; hop < 32; hop++)
+            {
+                var stop = FindNextInTree(from, forward);
+                if (stop == null) return null;
+
+                var skipped = FindAncestor(stop, FocusSkip.GetIsEnabled);
+                if (skipped != null)
+                {
+                    from = skipped;
+                    continue;
+                }
+
+                var group = FindAncestor(stop, GetIsEnabled);
+                return group != null && !ReferenceEquals(group, region)
+                    ? FocusManager.FindFirstFocusableElement(group) ?? stop
+                    : stop;
+            }
+            return null;
+        }
+
+        private static DependencyObject? FindNextInTree(DependencyObject from, bool forward)
+        {
+            var root = (from as UIElement)?.XamlRoot?.Content;
+            int step = forward ? 1 : -1;
+
+            for (var current = from; !ReferenceEquals(current, root);)
+            {
+                var parent = VisualTreeHelper.GetParent(current);
+                if (parent == null) break;
+
+                int count = VisualTreeHelper.GetChildrenCount(parent);
+                for (int i = IndexOfChild(parent, current, count) + step; i >= 0 && i < count; i += step)
+                {
+                    var stop = FindStopWithin(VisualTreeHelper.GetChild(parent, i), forward);
+                    if (stop != null) return stop;
+                }
+                current = parent;
+            }
+
+            return root != null ? FindStopWithin(root, forward) : null;
+        }
+
+        // a focusable control comes before its own children in tab order, so it is checked first going forward and
+        // last going back
+        private static DependencyObject? FindStopWithin(DependencyObject scope, bool forward)
+        {
+            if (scope is UIElement { Visibility: Visibility.Collapsed }) return null;
+            if (forward && IsStop(scope)) return scope;
+
+            var inner = forward
+                ? FocusManager.FindFirstFocusableElement(scope)
+                : FocusManager.FindLastFocusableElement(scope);
+            if (inner != null) return inner;
+
+            return !forward && IsStop(scope) ? scope : null;
+        }
+
+        private static bool IsStop(DependencyObject element) =>
+            element is Control { IsTabStop: true, IsEnabled: true, Visibility: Visibility.Visible };
+
+        private static int IndexOfChild(DependencyObject parent, DependencyObject child, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                if (ReferenceEquals(VisualTreeHelper.GetChild(parent, i), child)) return i;
+            }
+            return count;
+        }
+
+        internal static bool IsInside(DependencyObject? element, DependencyObject region) =>
+            FindAncestor(element, d => ReferenceEquals(d, region)) != null;
+
+        private static DependencyObject? FindAncestor(DependencyObject? element, Func<DependencyObject, bool> match)
         {
             for (var current = element; current != null; current = VisualTreeHelper.GetParent(current))
             {
-                if (ReferenceEquals(current, group)) return true;
+                if (match(current)) return current;
             }
-            return false;
+            return null;
         }
 
         private static bool HasGroupBetween(DependencyObject? element, DependencyObject group)

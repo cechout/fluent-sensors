@@ -234,6 +234,7 @@ namespace FluentSensors.Features.Performance
             {
                 _currentDetailView.Opacity = 0;
                 _currentDetailView.IsHitTestVisible = false;
+                SetKeyboardReachable(_currentDetailView, false);
 
                 // the view is now hidden; stop all of its graphs from doing any per-tick rendering work
                 SensorGraphRenderingGate.SetActive(_currentDetailView, false);
@@ -252,6 +253,15 @@ namespace FluentSensors.Features.Performance
 
             view.Opacity = 1;
             view.IsHitTestVisible = true;
+            SetKeyboardReachable(view, true);
+        }
+
+        // a hidden view stays in the tree at Opacity 0 (see above), where every button in it would still be a tab stop,
+        // so tab wandered through all of them unseen; disabling the view takes it out of keyboard navigation until it
+        // is shown again, the mouse cannot reach it anyway with hit testing off
+        private static void SetKeyboardReachable(UIElement view, bool reachable)
+        {
+            if (view is Control control) control.IsEnabled = reachable;
         }
 
         // combines page-navigation and window-visibility into this pages one rendering-active state; same
@@ -324,6 +334,7 @@ namespace FluentSensors.Features.Performance
 
                 view.Opacity = 0;
                 view.IsHitTestVisible = false;
+                SetKeyboardReachable(view, false);
                 _detailViewCache[target] = view;
                 DetailHostGrid.Children.Add(view);
 
@@ -353,7 +364,8 @@ namespace FluentSensors.Features.Performance
                 _startView = new PerformanceStartView
                 {
                     Opacity = 0,
-                    IsHitTestVisible = false
+                    IsHitTestVisible = false,
+                    IsEnabled = false
                 };
                 DetailHostGrid.Children.Add(_startView);
             }
