@@ -46,7 +46,7 @@ namespace FluentSensors.Features.Sensors
         public bool HasHiddenSensors => HiddenSensors.Count > 0;
         public Visibility HiddenPanelVisibility => HasHiddenSensors ? Visibility.Visible : Visibility.Collapsed;
 
-        // drives IsExpanded on both SettingsExpanders that show this group 
+        // drives IsExpanded on the sensors page expander of this group
         private bool _isExpanded;
         public bool IsExpanded
         {
@@ -56,6 +56,21 @@ namespace FluentSensors.Features.Sensors
                 if (_isExpanded != value)
                 {
                     _isExpanded = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // the same for the hidden sensors window, kept apart so neither side opens or closes the others expanders
+        private bool _isExpandedInHiddenWindow;
+        public bool IsExpandedInHiddenWindow
+        {
+            get => _isExpandedInHiddenWindow;
+            set
+            {
+                if (_isExpandedInHiddenWindow != value)
+                {
+                    _isExpandedInHiddenWindow = value;
                     OnPropertyChanged();
                 }
             }

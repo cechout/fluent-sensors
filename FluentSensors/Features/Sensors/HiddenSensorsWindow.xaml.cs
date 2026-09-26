@@ -166,7 +166,7 @@ namespace FluentSensors.Features.Sensors
                 var firstGroupWithHidden = ViewModel.HardwareGroups.FirstOrDefault(g => g.HasHiddenSensors);
                 if (firstGroupWithHidden != null)
                 {
-                    firstGroupWithHidden.IsExpanded = true;
+                    firstGroupWithHidden.IsExpandedInHiddenWindow = true;
                 }
             });
         }

@@ -87,7 +87,7 @@
                             Margin="0,16,0,0"
                             Description="{x:Bind HardwareName, Mode=OneWay}"
                             Header="{x:Bind GroupLabel, Mode=OneWay}"
-                            IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
+                            IsExpanded="{x:Bind IsExpandedInHiddenWindow, Mode=TwoWay}"
                             Visibility="{x:Bind HiddenPanelVisibility, Mode=OneWay}">
 
                             <controls:SettingsExpander.Resources>
