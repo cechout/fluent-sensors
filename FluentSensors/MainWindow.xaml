@@ -11,7 +11,6 @@
     xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:tb="using:H.NotifyIcon"
-    xmlns:toolkit="using:CommunityToolkit.WinUI"
     xmlns:winex="using:WinUIEx"
     Title="Fluent Sensors"
     mc:Ignorable="d">
@@ -376,22 +375,11 @@
                 Spacing="16">
 
                 <!--  icon  -->
-                <Grid HorizontalAlignment="Center">
-                    <Border x:Name="ShadowReceiver" />
-                    <Image
-                        Width="80"
-                        Height="80"
-                        Source="/Assets/Icon/Icon.png">
-                        <toolkit:Effects.Shadow>
-                            <toolkit:AttachedDropShadow
-                                BlurRadius="11"
-                                CastTo="{x:Bind ShadowReceiver}"
-                                Opacity="0.22"
-                                Offset="0,3,0"
-                                Color="Black" />
-                        </toolkit:Effects.Shadow>
-                    </Image>
-                </Grid>
+                <Image
+                    Width="80"
+                    Height="80"
+                    HorizontalAlignment="Center"
+                    Source="/Assets/Icon/Icon.png" />
 
                 <ProgressBar
                     x:Name="LoadingProgressBar"

@@ -38,25 +38,7 @@
         <Border Grid.Row="1" Background="Transparent">
             <Grid HorizontalAlignment="Stretch">
 
-                <Grid Margin="32,8,32,12" HorizontalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" MinWidth="140" />
-                        <ColumnDefinition Width="40" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock
-                        Grid.Column="0"
-                        Margin="38,0,0,0"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="Sensor" />
-                    <TextBlock
-                        Grid.Column="1"
-                        HorizontalAlignment="Right"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{ThemeResource CaptionTextBlockStyle}"
-                        Text="Unit" />
-                </Grid>
+                <fhControls:SensorRowHeaderControl Margin="32,8,32,12" IsCompact="True" />
 
                 <Border
                     Height="1"
@@ -89,8 +71,7 @@
                         <controls:SettingsExpander
                             Margin="0,16,0,0"
                             fhUi:FocusGroup.IsEnabled="True"
-                            Description="{x:Bind HardwareName, Mode=OneWay}"
-                            Header="{x:Bind GroupLabel, Mode=OneWay}"
+                            AutomationProperties.Name="{x:Bind GroupLabel, Mode=OneWay}"
                             IsExpanded="{x:Bind IsExpandedInHiddenWindow, Mode=TwoWay}"
                             Visibility="{x:Bind HiddenPanelVisibility, Mode=OneWay}">
 
@@ -102,29 +83,26 @@
                                 <FontIcon Foreground="{x:Bind IconBrush, Mode=OneWay}" Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
                             </controls:SettingsExpander.HeaderIcon>
 
+                            <!--  header: category and device name  -->
+                            <!--  (TextBlocks and an own accessible name for the same reason as on SensorsPage)  -->
+                            <controls:SettingsExpander.Header>
+                                <TextBlock
+                                    Text="{x:Bind GroupLabel, Mode=OneWay}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap" />
+                            </controls:SettingsExpander.Header>
+                            <controls:SettingsExpander.Description>
+                                <TextBlock
+                                    Text="{x:Bind HardwareName, Mode=OneWay}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap" />
+                            </controls:SettingsExpander.Description>
+
                             <!--  header  -->
                             <controls:SettingsExpander.ItemsHeader>
                                 <StackPanel>
                                     <Border Padding="16,12,16,8" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                                        <Grid HorizontalAlignment="Stretch">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" MinWidth="140" />
-                                                <ColumnDefinition Width="40" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBlock
-                                                Grid.Column="0"
-                                                Margin="38,0,0,0"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Sensor" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Unit" />
-                                        </Grid>
+                                        <fhControls:SensorRowHeaderControl IsCompact="True" />
                                     </Border>
 
                                     <!--  items  -->

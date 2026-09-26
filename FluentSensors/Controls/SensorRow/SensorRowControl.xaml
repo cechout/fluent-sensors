@@ -56,11 +56,20 @@
             HorizontalAlignment="Stretch"
             DataContext="{x:Bind ViewModel, Mode=OneWay}">
 
+            <!--
+                workaround: star columns fill greedily
+                problem: the WinUI Grid hands out star space one column at a time and lifts each to its MinWidth, so on a
+                narrow page the name column takes its full share first and the value columns after it push the row wider
+                than its slot; an overflowing grid sizes its columns from its own content, and no two rows line up anymore;
+                see DistributeStarSpace in https://github.com/microsoft/microsoft-ui-xaml/blob/main/dxaml/xcp/core/core/elements/Grid.cpp
+                fix: a MaxWidth that never binds moves the value columns to the front of that order, so they settle on
+                their MinWidth first and the name column gets the rest; SensorRowHeaderControl carries the same columns
+            -->
             <Grid.ColumnDefinitions>
                 <ColumnDefinition
                     x:Name="NameColumn"
                     Width="5*"
-                    MinWidth="140" />
+                    MinWidth="70" />
                 <ColumnDefinition
                     x:Name="ThresholdColumn"
                     Width="36"
@@ -68,19 +77,23 @@
                 <ColumnDefinition
                     x:Name="CurrentColumn"
                     Width="2*"
-                    MinWidth="65" />
+                    MinWidth="60"
+                    MaxWidth="10000" />
                 <ColumnDefinition
                     x:Name="MinimumColumn"
                     Width="2*"
-                    MinWidth="65" />
+                    MinWidth="60"
+                    MaxWidth="10000" />
                 <ColumnDefinition
                     x:Name="MaximumColumn"
                     Width="2*"
-                    MinWidth="65" />
+                    MinWidth="60"
+                    MaxWidth="10000" />
                 <ColumnDefinition
                     x:Name="AverageColumn"
                     Width="2*"
-                    MinWidth="65" />
+                    MinWidth="60"
+                    MaxWidth="10000" />
                 <ColumnDefinition
                     x:Name="UnitColumn"
                     Width="0"
@@ -89,11 +102,15 @@
 
             <!--  checkbox with sensor name  -->
             <!--  (the checkbox is visual only; the whole row takes focus and reports itself as the checkbox)  -->
-            <StackPanel
+            <!--  (a grid, so the name gets a finite width and trims with an ellipsis once the column runs out)  -->
+            <Grid
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Orientation="Horizontal"
-                Spacing="10">
+                ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
                 <CheckBox
                     MinWidth="0"
@@ -103,10 +120,13 @@
                     IsTabStop="False" />
 
                 <TextBlock
+                    Grid.Column="1"
                     VerticalAlignment="Center"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind ViewModel.Name, Mode=OneWay}" />
-            </StackPanel>
+                    Text="{x:Bind ViewModel.Name, Mode=OneWay}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap" />
+            </Grid>
 
             <!--  threshold indicator/flyout, globalized control shared with SensorPanelControl  -->
             <fhThreshold:ThresholdFlyoutControl

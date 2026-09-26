@@ -73,6 +73,9 @@ namespace FluentSensors.Features.Start
 
             // whatever happened while the page was not listening
             ViewModel.RefreshUpdateState();
+            // (a theme switch on the settings page happens while this page is unloaded, and the settings page does not
+            // move HardwareColorMode.IsDarkTheme along with it, so the tile icons would come back in the old theme)
+            HardwareColorMode.IsDarkTheme = ActualTheme == ElementTheme.Dark;
             ViewModel.RefreshIconBrushes();
             ApplyHeroImage();
 

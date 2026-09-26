@@ -27,7 +27,6 @@ namespace FluentSensors.Features.Sensors
         // general fields
         public SensorsViewModel ViewModel { get; }
         private int _infoBarTicket = 0;
-        private const double SensorsPageMinContentWidth = 520;
 
         // flag to prevent event handlers from firing during initialization
         //
@@ -367,9 +366,8 @@ namespace FluentSensors.Features.Sensors
         {
             // a ScrollViewer measures its content with infinite width while horizontal scrolling is on, and * columns
             // collapse to their minimum with infinite width
-            // feeding the grid the real viewport width lets the * columns stretch again, once the viewport drops below our
-            // floor, the grid stays wider than the viewport and the horizontal scrollbar shows up on its own
-            RootGrid.Width = Math.Max(e.NewSize.Width, SensorsPageMinContentWidth);
+            // feeding the grid the real viewport width lets the * columns stretch again
+            RootGrid.Width = e.NewSize.Width;
         }
 
         // inforbar clipping

@@ -170,59 +170,7 @@
             <Border Grid.Row="1" Background="Transparent">
                 <Grid HorizontalAlignment="Stretch">
 
-                    <Grid Margin="32,12,32,12" HorizontalAlignment="Stretch">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="5*" MinWidth="140" />
-                            <ColumnDefinition Width="36" />
-                            <ColumnDefinition Width="2*" MinWidth="65" />
-                            <ColumnDefinition Width="2*" MinWidth="65" />
-                            <ColumnDefinition Width="2*" MinWidth="65" />
-                            <ColumnDefinition Width="2*" MinWidth="65" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock
-                            Grid.Column="0"
-                            Margin="38,0,0,0"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Sensor" />
-                        <TextBlock
-                            Grid.Column="1"
-                            HorizontalAlignment="Center"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="T" />
-                        <!--<FontIcon
-                            Grid.Column="1"
-                            HorizontalAlignment="Center"
-                            FontSize="12"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Glyph="&#xE7C1;" />-->
-                        <TextBlock
-                            Grid.Column="2"
-                            HorizontalAlignment="Right"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Current" />
-                        <TextBlock
-                            Grid.Column="3"
-                            HorizontalAlignment="Right"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Min" />
-                        <TextBlock
-                            Grid.Column="4"
-                            HorizontalAlignment="Right"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Max" />
-                        <TextBlock
-                            Grid.Column="5"
-                            HorizontalAlignment="Right"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Avg" />
-                    </Grid>
+                    <fhControls:SensorRowHeaderControl Margin="32,12,32,12" />
 
                     <Border
                         Height="1"
@@ -260,19 +208,55 @@
                             <controls:SettingsExpander
                                 Margin="0,16,0,0"
                                 fhUi:FocusGroup.IsEnabled="True"
-                                Description="{x:Bind HardwareName, Mode=OneWay}"
-                                Header="{x:Bind GroupLabel, Mode=OneWay}"
+                                AutomationProperties.Name="{x:Bind GroupLabel, Mode=OneWay}"
                                 IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
                                 ItemsSource="{x:Bind Sensors, Mode=OneWay}"
                                 Loaded="SettingsExpander_Loaded">
 
                                 <controls:SettingsExpander.Resources>
                                     <Thickness x:Key="SettingsCardHeaderIconMargin">2,0,16,0</Thickness>
+
+                                    <!--
+                                        workaround: SettingsCard left-aligns its content below the wrap threshold
+                                        problem: under SettingsCardWrapThreshold (476) the size-triggered RightWrapped state takes over
+                                        from the Vertical state these cards ask for and sets HorizontalContentAlignment to Left, so every
+                                        sensor row is laid out at its own desired width, which follows the length of its name; see
+                                        ContentAlignmentStates in https://github.com/CommunityToolkit/Windows/blob/v8.2.251219/components/SettingsControls/src/SettingsCard/SettingsCard.xaml
+                                        no public issue found for this combination
+                                        fix: a threshold of 0 keeps RightWrapped from ever triggering, so the rows stay stretched at any width
+                                    -->
+                                    <x:Double x:Key="SettingsCardWrapThreshold">0</x:Double>
                                 </controls:SettingsExpander.Resources>
 
                                 <controls:SettingsExpander.HeaderIcon>
                                     <FontIcon Foreground="{x:Bind IconBrush, Mode=OneWay}" Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
                                 </controls:SettingsExpander.HeaderIcon>
+
+                                <!--  header: category and device name  -->
+                                <!--
+                                    (TextBlocks rather than plain strings, which the card template always wraps; a TextBlock
+                                    header also drops the automatic accessible name, so the expander sets its own above)
+                                -->
+                                <controls:SettingsExpander.Header>
+                                    <TextBlock
+                                        Text="{x:Bind GroupLabel, Mode=OneWay}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap" />
+                                </controls:SettingsExpander.Header>
+                                <controls:SettingsExpander.Description>
+                                    <TextBlock
+                                        Text="{x:Bind HardwareName, Mode=OneWay}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap" />
+                                </controls:SettingsExpander.Description>
+
+                                <!--  sensor count: shown/total  -->
+                                <TextBlock
+                                    AutomationProperties.Name="{x:Bind SensorCountName, Mode=OneWay}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind SensorCountText, Mode=OneWay}"
+                                    Typography.NumeralAlignment="Tabular" />
 
                                 <!--  column labels  -->
                                 <controls:SettingsExpander.ItemsHeader>
@@ -285,53 +269,7 @@
                                         ContentAlignment="Vertical"
                                         CornerRadius="0">
 
-                                        <Grid HorizontalAlignment="Stretch">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="5*" MinWidth="140" />
-                                                <ColumnDefinition Width="36" />
-                                                <ColumnDefinition Width="2*" MinWidth="65" />
-                                                <ColumnDefinition Width="2*" MinWidth="65" />
-                                                <ColumnDefinition Width="2*" MinWidth="65" />
-                                                <ColumnDefinition Width="2*" MinWidth="65" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBlock
-                                                Grid.Column="0"
-                                                Margin="38,0,0,0"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Sensor" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                HorizontalAlignment="Center"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="T" />
-                                            <TextBlock
-                                                Grid.Column="2"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Current" />
-                                            <TextBlock
-                                                Grid.Column="3"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Min" />
-                                            <TextBlock
-                                                Grid.Column="4"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Max" />
-                                            <TextBlock
-                                                Grid.Column="5"
-                                                HorizontalAlignment="Right"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                Text="Avg" />
-                                        </Grid>
+                                        <fhControls:SensorRowHeaderControl />
 
                                     </controls:SettingsCard>
                                 </controls:SettingsExpander.ItemsHeader>
