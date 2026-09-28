@@ -209,8 +209,26 @@
                         </Grid>
 
                         <!--  current value tiles  -->
-                        <Grid x:Name="TilesGrid" Grid.Row="1">
+                        <Grid
+                            x:Name="TilesGrid"
+                            Grid.Row="1"
+                            RowSpacing="12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!--  graph time range  -->
+                            <!--  (inside this grid so RecalculateOverviewHeight measures it together with the tiles)  -->
+                            <TextBlock
+                                Grid.Row="0"
+                                Margin="4,0,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanText, Mode=OneWay}" />
+
                             <controls:WrapPanel
+                                Grid.Row="1"
                                 Margin="4,0,4,0"
                                 HorizontalSpacing="16"
                                 VerticalSpacing="0">

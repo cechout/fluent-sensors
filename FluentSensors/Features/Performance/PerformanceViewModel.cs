@@ -49,6 +49,13 @@ namespace FluentSensors.Features.Performance
             // never detached: this view model is created once and stays alive for the rest of the apps lifetime
             SettingsService.Instance.HardwareIconColorsChanged += RefreshNavItemIconBrushes;
 
+            // the event carries no value and fires for either time range, so both captions re-read theirs
+            SettingsService.Instance.PerformanceGraphTimeSpanChanged += () =>
+            {
+                OnPropertyChanged(nameof(StandardGraphTimeSpanText));
+                OnPropertyChanged(nameof(ExtendedGraphTimeSpanText));
+            };
+
             // every category follows the exact same discovery pattern:
             // process instances that already exist (likely true for all of them, since LhmHardwareTreeService runs from
             // app start), then keep listening for future ones
@@ -212,6 +219,11 @@ namespace FluentSensors.Features.Performance
 
         public GridLength InfoPanelColumnWidth => IsInfoPanelVisible && IsHardwareViewActive ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
         public double InfoPanelColumnMinWidth => IsInfoPanelVisible && IsHardwareViewActive ? 190 : 0;
+
+        // graph time range captions under the graphs of every hardware view, written like the settings page lists
+        // the ranges
+        public string StandardGraphTimeSpanText => $"Last {PerformanceGraphDefaults.StandardTimeSpanSeconds:0}s";
+        public string ExtendedGraphTimeSpanText => $"Last {PerformanceGraphDefaults.ExtendedTimeSpanSeconds:0}s";
 
         // true while a specific hardwares detail view is shown, false on the start page (SelectedItem null)
         // the nav sidebar and info panel only make sense next to a hardware view, so both stay collapsed on the start
