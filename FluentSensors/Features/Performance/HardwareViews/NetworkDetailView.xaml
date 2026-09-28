@@ -406,7 +406,7 @@
 
         <!--  info panel splitter  -->
         <!--  (a 9px band centered on the divider line; it resizes the content column before it)  -->
-        <controls:GridSplitter
+        <fhControls:ClampedGridSplitter
             Grid.Column="1"
             Width="9"
             Margin="-4,0,0,0"

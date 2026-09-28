@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhPerf="using:FluentSensors.Features.Performance"
@@ -340,7 +341,7 @@
 
         <!--  info panel splitter  -->
         <!--  (a 9px band centered on the divider line; it resizes the content column before it)  -->
-        <controls:GridSplitter
+        <fhControls:ClampedGridSplitter
             Grid.Column="1"
             Width="9"
             Margin="-4,0,0,0"
