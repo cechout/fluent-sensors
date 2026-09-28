@@ -193,7 +193,7 @@
                         Background="Transparent"
                         IsHitTestVisible="{x:Bind Cpu.OverallIsHitTestVisible, Mode=OneWay}"
                         Opacity="{x:Bind Cpu.OverallOpacity, Mode=OneWay}"
-                        RowSpacing="12">
+                        RowSpacing="4">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
@@ -337,7 +337,7 @@
                             <!--  (inside this grid so UpdateOverviewHeight measures it together with the tiles)  -->
                             <TextBlock
                                 Grid.Row="0"
-                                Margin="4,0,0,0"
+                                Margin="4,0,4,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanText, Mode=OneWay}" />
@@ -388,7 +388,6 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <!--  cores with threads  -->
@@ -415,6 +414,13 @@
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                             </ItemsControl>
+
+                            <!--  graph time range  -->
+                            <TextBlock
+                                Margin="4,-4,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanText, Mode=OneWay}" />
 
                             <!--  sensor tiles: averages across all cores with threads  -->
                             <controls:WrapPanel
@@ -463,6 +469,13 @@
                                 </ItemsControl.ItemsPanel>
                             </ItemsControl>
 
+                            <!--  graph time range  -->
+                            <TextBlock
+                                Margin="4,-4,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanText, Mode=OneWay}" />
+
                             <!--  sensor tiles: averages across all cores without threads  -->
                             <controls:WrapPanel
                                 Margin="4,0,4,0"
@@ -485,15 +498,6 @@
                                     ViewModel="{x:Bind Cpu.AvgClockWithoutThreads, Mode=OneWay}" />
                             </controls:WrapPanel>
                         </StackPanel>
-
-                        <!--  graph time range  -->
-                        <TextBlock
-                            Grid.Row="2"
-                            Margin="4,12,0,0"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanText, Mode=OneWay}" />
-
                     </Grid>
 
                 </Grid>
