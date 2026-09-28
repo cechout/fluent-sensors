@@ -46,6 +46,12 @@ namespace FluentSensors.Features.Sensors
         // info bar
         private bool _infoBarClipHandlersAttached = false;
 
+        // stats elapsed readout
+        // polled four times a second like the start pages uptime readout, so the shown second never skips or lags
+        // behind the clock; the view model only raises when the text moves
+        private static readonly TimeSpan StatsElapsedTimerInterval = TimeSpan.FromMilliseconds(250);
+        private DispatcherQueueTimer? _statsElapsedTimer;
+
 
         // === constructor ===
 
@@ -68,12 +74,29 @@ namespace FluentSensors.Features.Sensors
             Loaded += (s, e) => ApplyActualTheme();
             ActualThemeChanged += (s, e) => ApplyActualTheme();
 
+            // the elapsed readout only ticks while the page is loaded, and catches up the moment it comes back
+            Loaded += (s, e) =>
+            {
+                ViewModel.RefreshStatsElapsed();
+                _statsElapsedTimer ??= CreateStatsElapsedTimer();
+                _statsElapsedTimer.Start();
+            };
+            Unloaded += (s, e) => _statsElapsedTimer?.Stop();
+
             _isLoading = false;
 
             void ApplyActualTheme()
             {
                 HardwareColorMode.IsDarkTheme = ActualTheme == ElementTheme.Dark;
                 ViewModel.RefreshGroupIconBrushes();
+            }
+
+            DispatcherQueueTimer CreateStatsElapsedTimer()
+            {
+                var timer = DispatcherQueue.CreateTimer();
+                timer.Interval = StatsElapsedTimerInterval;
+                timer.Tick += (s, e) => ViewModel.RefreshStatsElapsed();
+                return timer;
             }
         }
 
@@ -283,6 +306,8 @@ namespace FluentSensors.Features.Sensors
                     sensor.ResetMinMax();
                 }
             }
+
+            ViewModel.RestartStatsElapsed();
         }
 
         private async void HideSensors_Click(object sender, RoutedEventArgs e)
