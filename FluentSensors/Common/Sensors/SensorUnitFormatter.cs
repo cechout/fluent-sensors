@@ -76,6 +76,20 @@ namespace FluentSensors.Common.Sensors
             return $"{scaledValue:F1} {unit}";
         }
 
+        // the way back: turns an amount in the displayed base unit (MB, Mbit, MB/s, Mbit/s, ...) into the raw unit
+        // a sensor value is stored in, so the step sizes and defaults in SensorTypeProfiles stay the same round
+        // numbers on screen in bytes and in bits
+        public static double ToRawValue(double displayValue, string sensorType)
+        {
+            return sensorType switch
+            {
+                "SmallData" when DataSizeBasis == DataUnitBasis.Bit => displayValue / MebibytesToMegabits,
+                "Data" when DataSizeBasis == DataUnitBasis.Bit => displayValue / GibibytesToGigabits,
+                "Throughput" when DataSpeedBasis == DataUnitBasis.Bit => displayValue / MebibytesToMegabits,
+                _ => displayValue
+            };
+        }
+
         // the bit side of the scaling above, same threshold: megabits, then gigabits
         private static (double Value, string Unit) ScaleBits(double megabits, string megabitUnit, string gigabitUnit)
         {

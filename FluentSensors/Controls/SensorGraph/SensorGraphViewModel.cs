@@ -20,8 +20,14 @@ namespace FluentSensors.Controls.SensorGraph
         // === fields ===
 
         private double _currentRaw;
-        private readonly double _yMaxStep;
         private double? _timeSpanOverrideSeconds;
+
+        // both in the displayed base unit, see SensorTypeProfile
+        private readonly double _yMaxStep;
+        private readonly double _yMaxDefault;
+
+        // true while ManualYMax is still the untouched per-type default, which then follows a data unit switch
+        private bool _isManualYMaxDefault;
 
 
         // === constructor ===
@@ -83,12 +89,14 @@ namespace FluentSensors.Controls.SensorGraph
             // per-sensor-type starting values for the y-axis; a clock sensor needs a much higher scale than a load percentage
             var profile = SensorTypeProfiles.GetProfile(sensorType);
             _yMaxStep = profile.YMaxStep;
+            _yMaxDefault = profile.YMaxDefault;
 
             // restore this sensors Y-axis state for the current presentation scope
             var existingState = SensorStateService.Instance.GetState(SensorId);
             var yAxisState = existingState.GetYAxis(Scope);
             _isAutoScaled = yAxisState.IsAutoScaled;
-            _manualYMax = yAxisState.ManualYMax ?? profile.YMaxDefault;
+            _isManualYMaxDefault = yAxisState.ManualYMax == null;
+            _manualYMax = yAxisState.ManualYMax ?? SensorUnitFormatter.ToRawValue(_yMaxDefault, sensorType);
 
             UpdateYMaxDisplay();
         }
@@ -238,6 +246,8 @@ namespace FluentSensors.Controls.SensorGraph
         // pushes only the Y-axis part of the state snapshot; Threshold manages and persists its own slice independently
         private void PushYAxisStateToService()
         {
+            _isManualYMaxDefault = false; // from here on ManualYMax is persisted, so it belongs to the user
+
             var state = SensorStateService.Instance.GetState(SensorId);
             var yAxisState = state.GetYAxis(Scope);
             yAxisState.IsAutoScaled = _isAutoScaled;
@@ -297,9 +307,19 @@ namespace FluentSensors.Controls.SensorGraph
 
         // only the unit in the title has to follow right away; the value text and the y-axis maximum are rebuilt
         // with the next data point anyway
+        //
+        // an untouched ManualYMax default is a round number in the displayed unit, so it moves along; a maximum the
+        // user or a view override already set stays exactly where it is
         private void OnDataUnitBasisChanged()
         {
             Unit = SensorUnitFormatter.GetUnit(SensorType);
+
+            if (_isManualYMaxDefault)
+            {
+                _manualYMax = SensorUnitFormatter.ToRawValue(_yMaxDefault, SensorType);
+                OnPropertyChanged(nameof(ManualYMax));
+                UpdateYMaxDisplay();
+            }
         }
 
         private void OnGraphBackgroundChanged(bool useTransparentBackground)
@@ -417,6 +437,8 @@ namespace FluentSensors.Controls.SensorGraph
                 OnPropertyChanged(nameof(IsAutoScaled));
             }
 
+            if (manualYMax.HasValue) _isManualYMaxDefault = false;
+
             if (manualYMax.HasValue && _manualYMax != manualYMax.Value)
             {
                 _manualYMax = manualYMax.Value;
@@ -439,7 +461,7 @@ namespace FluentSensors.Controls.SensorGraph
         public void IncreaseYMax()
         {
             IsAutoScaled = false; // automatically turns off the auto button in the ui
-            ManualYMax += _yMaxStep;
+            ManualYMax += SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
         }
 
         public void DecreaseYMax()
@@ -447,9 +469,10 @@ namespace FluentSensors.Controls.SensorGraph
             IsAutoScaled = false; // automatically turns off the auto button in the ui
 
             // preventing the y-axis from falling to 0 or into the negative range
-            if (ManualYMax > _yMaxStep)
+            double step = SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
+            if (ManualYMax > step)
             {
-                ManualYMax -= _yMaxStep;
+                ManualYMax -= step;
             }
         }
 

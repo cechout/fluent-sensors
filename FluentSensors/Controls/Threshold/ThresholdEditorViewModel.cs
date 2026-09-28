@@ -18,7 +18,13 @@ namespace FluentSensors.Controls.Threshold
     {
         // === fields ===
 
+        // both in the displayed base unit, see SensorTypeProfile
         private readonly double _thresholdStep;
+        private readonly double _thresholdDefault;
+
+        // true while the value is still the untouched per-type default, which then follows a data unit switch
+        private bool _isDefaultValue;
+
         private readonly DispatcherQueue _dispatcherQueue;
 
 
@@ -32,12 +38,14 @@ namespace FluentSensors.Controls.Threshold
             // per-sensor-type step size, a clock sensor needs a much bigger step than a load percentage
             var profile = SensorTypeProfiles.GetProfile(sensorType);
             _thresholdStep = profile.ThresholdStep;
+            _thresholdDefault = profile.ThresholdDefault;
 
             // restore this sensors threshold if it was already configured before; a null Value means the user never
             // touched it yet, so we fall back to this sensor types default instead of a generic one
             var existingThreshold = SensorStateService.Instance.GetState(sensorId).Threshold;
             _isEnabled = existingThreshold.IsEnabled;
-            _value = existingThreshold.Value ?? profile.ThresholdDefault;
+            _isDefaultValue = existingThreshold.Value == null;
+            _value = existingThreshold.Value ?? SensorUnitFormatter.ToRawValue(_thresholdDefault, sensorType);
             _direction = existingThreshold.Direction;
             _color = existingThreshold.Color;
 
@@ -45,6 +53,7 @@ namespace FluentSensors.Controls.Threshold
             // can be marshalled back here safely
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
             SensorStateService.Instance.StateChanged += OnStateChanged;
+            SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
         }
 
 
@@ -178,7 +187,7 @@ namespace FluentSensors.Controls.Threshold
         public void Increase()
         {
             IsEnabled = true; // auto-enable when the user adjusts the value
-            Value += _thresholdStep;
+            Value += SensorUnitFormatter.ToRawValue(_thresholdStep, SensorType);
         }
 
         public void Decrease()
@@ -186,9 +195,10 @@ namespace FluentSensors.Controls.Threshold
             IsEnabled = true;
 
             // preventing the threshold from falling to 0 or into the negative range
-            if (Value > _thresholdStep)
+            double step = SensorUnitFormatter.ToRawValue(_thresholdStep, SensorType);
+            if (Value > step)
             {
-                Value -= _thresholdStep;
+                Value -= step;
             }
         }
 
@@ -207,13 +217,27 @@ namespace FluentSensors.Controls.Threshold
         public void Cleanup()
         {
             SensorStateService.Instance.StateChanged -= OnStateChanged;
+            SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
         }
 
 
         // === private helpers ===
 
+        // an untouched default is a round number in the displayed unit, so it moves along with a data unit switch;
+        // a value the user already set stays exactly where it is
+        private void OnDataUnitBasisChanged()
+        {
+            if (!_isDefaultValue) return;
+
+            _value = SensorUnitFormatter.ToRawValue(_thresholdDefault, SensorType);
+            OnPropertyChanged(nameof(Value));
+            OnPropertyChanged(nameof(EffectiveValue));
+        }
+
         private void PushStateToService()
         {
+            _isDefaultValue = false; // from here on the value is persisted, so it belongs to the user
+
             var state = SensorStateService.Instance.GetState(SensorId);
             state.Threshold = new SensorThreshold
             {
@@ -235,6 +259,7 @@ namespace FluentSensors.Controls.Threshold
             void Apply()
             {
                 _isEnabled = state.Threshold.IsEnabled;
+                if (state.Threshold.Value != null) _isDefaultValue = false;
                 _value = state.Threshold.Value ?? _value;
                 _direction = state.Threshold.Direction;
                 _color = state.Threshold.Color;
