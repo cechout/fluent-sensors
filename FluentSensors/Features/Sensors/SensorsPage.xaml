@@ -353,7 +353,7 @@
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Stats running for" />
+                            Text="Running for" />
                         <TextBlock
                             Style="{ThemeResource CaptionTextBlockStyle}"
                             Text="{x:Bind ViewModel.StatsElapsedText, Mode=OneWay}"
