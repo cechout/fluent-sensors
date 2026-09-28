@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
 using Windows.Foundation;
@@ -70,6 +71,17 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
 
         // === event handlers ===
+
+        // the splitter rewrites both column widths while it drags; once it lets go, the content column goes back to
+        // filling the rest, and the info panel width goes to the view model, which every hardware view sizes its own
+        // info panel column from
+        private void InfoPanelSplitter_ManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
+        {
+            double width = InfoPanelColumn.ActualWidth;
+            InfoPanelColumn.Width = new GridLength(width);
+            ContentColumn.Width = new GridLength(1, GridUnitType.Star);
+            PerformanceViewModel.Instance.InfoPanelWidth = width;
+        }
 
         private void ContentScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {

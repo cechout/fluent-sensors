@@ -9,7 +9,7 @@
     mc:Ignorable="d">
 
     <Border
-        Padding="2"
+        Padding="0"
         Background="Transparent"
         CornerRadius="4">
         <StackPanel Spacing="2">

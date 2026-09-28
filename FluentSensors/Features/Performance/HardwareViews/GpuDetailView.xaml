@@ -20,12 +20,12 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="4*" />
+            <ColumnDefinition x:Name="ContentColumn" Width="4*" />
             <ColumnDefinition
                 x:Name="InfoPanelColumn"
                 Width="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnWidth, Mode=OneWay}"
                 MinWidth="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnMinWidth, Mode=OneWay}"
-                MaxWidth="300" />
+                MaxWidth="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnMaxWidth, Mode=OneWay}" />
         </Grid.ColumnDefinitions>
 
 
@@ -97,7 +97,7 @@
                         x:Name="OverviewBlockGrid"
                         Grid.Row="0"
                         Margin="0,0,0,4"
-                        RowSpacing="12">
+                        RowSpacing="4">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
@@ -223,8 +223,26 @@
                         </Grid>
 
                         <!--  current graph value tiles  -->
-                        <Grid x:Name="TilesGrid" Grid.Row="1">
+                        <Grid
+                            x:Name="TilesGrid"
+                            Grid.Row="1"
+                            RowSpacing="12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!--  graph time range  -->
+                            <!--  (inside this grid so UpdateOverviewHeight measures it together with the tiles)  -->
+                            <TextBlock
+                                Grid.Row="0"
+                                Margin="4,0,4,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanText, Mode=OneWay}" />
+
                             <controls:WrapPanel
+                                Grid.Row="1"
                                 Margin="4,0,4,0"
                                 HorizontalSpacing="16"
                                 VerticalSpacing="0">
@@ -331,6 +349,13 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.HotSpotTemperature, Mode=OneWay}" />
                             </fhControls:SquareGridPanel>
+
+                            <!--  graph time range  -->
+                            <TextBlock
+                                Margin="4,-4,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanText, Mode=OneWay}" />
                         </StackPanel>
 
                         <!--  memory; Memory Free folded into the MemoryUsed switch instead of its own cell  -->
@@ -388,6 +413,13 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.D3dSharedMemoryUsed, Mode=OneWay}" />
                             </fhControls:SquareGridPanel>
+
+                            <!--  graph time range  -->
+                            <TextBlock
+                                Margin="4,-4,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanText, Mode=OneWay}" />
                         </StackPanel>
 
                         <!--  pcie / bus  -->
@@ -433,6 +465,13 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.BusLoad, Mode=OneWay}" />
                             </fhControls:SquareGridPanel>
+
+                            <!--  graph time range  -->
+                            <TextBlock
+                                Margin="4,-4,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanText, Mode=OneWay}" />
                         </StackPanel>
 
                         <!--  engines: 1 fixed anchor + 4 switchable slots sharing the full D3D pool  -->
@@ -506,6 +545,13 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.D3dEngineSlot4, Mode=TwoWay}" />
                             </fhControls:SquareGridPanel>
+
+                            <!--  graph time range  -->
+                            <TextBlock
+                                Margin="4,-4,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanText, Mode=OneWay}" />
                         </StackPanel>
 
                     </Grid>
@@ -717,6 +763,24 @@
                 </StackPanel>
             </ScrollViewer>
         </Border>
+
+        <!--  info panel splitter  -->
+        <!--  (a 9px band centered on the divider line; it resizes the content column before it)  -->
+        <fhControls:ClampedGridSplitter
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Grid.Column="1"
+            Width="9"
+            Margin="-4,0,0,0"
+            Padding="0"
+            HorizontalAlignment="Left"
+            AutomationProperties.Name="Resize Hardware Info"
+            IsTabStop="False"
+            IsThumbVisible="False"
+            ManipulationCompleted="InfoPanelSplitter_ManipulationCompleted"
+            ResizeBehavior="PreviousAndCurrent"
+            ResizeDirection="Columns"
+            Visibility="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelVisibility, Mode=OneWay}" />
 
     </Grid>
 </UserControl>
