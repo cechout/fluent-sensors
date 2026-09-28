@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Dispatching;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -29,6 +30,9 @@ namespace FluentSensors.Features.Sensors
         // guards OnSensorRowSelectionChanged against firing while ResyncCheckboxesForActiveProfile is itself only
         // mirroring an already-persisted selection back onto the checkboxes, not a genuine user toggle
         private bool _isResyncingCheckboxes = false;
+
+        // when the min/max/avg columns started collecting; app start until the first Reset Stats click
+        private DateTime _statsStartedUtc = DateTime.UtcNow;
 
 
         // === singleton instance ===
@@ -117,6 +121,21 @@ namespace FluentSensors.Features.Sensors
                 if (_isWidgetOpen != value)
                 {
                     _isWidgetOpen = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // how long the stats have been collecting, shown in the bottom bar
+        private string _statsElapsedText = "0:00:00";
+        public string StatsElapsedText
+        {
+            get => _statsElapsedText;
+            private set
+            {
+                if (_statsElapsedText != value)
+                {
+                    _statsElapsedText = value;
                     OnPropertyChanged();
                 }
             }
@@ -377,6 +396,25 @@ namespace FluentSensors.Features.Sensors
                     sensor.IsSelected = false;
                 }
             }
+        }
+
+        // restarts the elapsed readout from zero; paired with the Reset Stats button, which clears the columns
+        public void RestartStatsElapsed()
+        {
+            _statsStartedUtc = DateTime.UtcNow;
+            RefreshStatsElapsed();
+        }
+
+        // same format as the start pages uptime readout, e.g. 2:14:37, and 1d 2:14:37 once it passes a day
+        //
+        // called far more often than once a second, see SensorsPage.StatsElapsedTimerInterval; the property only
+        // moves when the shown second actually changes
+        public void RefreshStatsElapsed()
+        {
+            TimeSpan elapsed = DateTime.UtcNow - _statsStartedUtc;
+
+            string clock = $"{elapsed.Hours}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
+            StatsElapsedText = elapsed.Days > 0 ? $"{elapsed.Days}d {clock}" : clock;
         }
 
 
