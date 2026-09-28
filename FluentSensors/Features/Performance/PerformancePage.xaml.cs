@@ -35,6 +35,12 @@ namespace FluentSensors.Features.Performance
         private const double NarrowContentThreshold = 500;
         private bool _isNarrow;
 
+        // resizable side panels: the hardware list on the left and the info panel on the right of every detail view
+        // both open at their minimum and can be dragged wider up to a share of the pages width
+        private const double NavSidebarMinWidth = 185;
+        private const double InfoPanelMinWidth = 185;
+        private const double SidePanelMaxWidthShare = 0.40; // share of the pages width either panel can grow to
+
         // how far one arrow press scrolls the hardware view from the sidebar or a bottom bar, about one mouse wheel
         // notch
         private const double ArrowScrollStep = 100;
@@ -66,6 +72,12 @@ namespace FluentSensors.Features.Performance
         public PerformancePage()
         {
             InitializeComponent();
+
+            // before any detail view is built, since every info panel column binds its width and limits from here;
+            // the maximum follows the page width once it is known, see ContentGrid_SizeChanged
+            SidebarColumn.Width = new GridLength(NavSidebarMinWidth);
+            ViewModel.InfoPanelWidth = InfoPanelMinWidth;
+            ViewModel.SetSidePanelLimits(NavSidebarMinWidth, InfoPanelMinWidth, double.PositiveInfinity);
 
             // keeps PerformanceViewModel.IsDarkTheme in sync with the pages actually applied theme, and rebuilds
             // the sidebar icon brushes, which are plain brushes rather than theme resources
@@ -181,6 +193,29 @@ namespace FluentSensors.Features.Performance
                 }
                 RecalculateCurrentDetailViewHeight();
             }
+
+            // a finished info panel drag; the detail area itself did not change width, so nothing else settles the view
+            else if (e.PropertyName == nameof(PerformanceViewModel.InfoPanelWidth))
+            {
+                RecalculateCurrentDetailViewHeight();
+            }
+        }
+
+        private void ContentGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            ViewModel.SetSidePanelLimits(NavSidebarMinWidth, InfoPanelMinWidth, e.NewSize.Width * SidePanelMaxWidthShare);
+        }
+
+        // the splitter rewrites both column widths while it drags; once it lets go, the sidebar goes back to a fixed
+        // width next to a detail area that fills the rest, so a later window resize only moves the detail area
+        // the views follow the drag live through their own SizeChanged, this is one last pass at the final width
+        private void SidebarSplitter_ManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
+        {
+            double width = SidebarColumn.ActualWidth;
+            SidebarColumn.Width = new GridLength(width);
+            DetailColumn.Width = new GridLength(1, GridUnitType.Star);
+
+            RecalculateCurrentDetailViewHeight();
         }
 
         // tracks whether DetailHostGrid currently counts as "narrow"; also handles the one case the property-changed
@@ -450,7 +485,7 @@ namespace FluentSensors.Features.Performance
         private static Windows.UI.Color? ResolveSelectedGraphBackground(bool isSelected, bool isDarkTheme) =>
             isSelected && isDarkTheme ? (Windows.UI.Color)Application.Current.Resources["ControlFillColorDisabled"] : (Windows.UI.Color?)null;
 
-        // re-measures the current detail views vertical layout after a nav sidebar/info panel visibility change;
+        // re-measures the current detail views vertical layout after a nav sidebar/info panel visibility or width change;
         // Dispatched rather than called synchronously
         private void RecalculateCurrentDetailViewHeight()
         {

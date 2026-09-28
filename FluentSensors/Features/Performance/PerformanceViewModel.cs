@@ -134,12 +134,13 @@ namespace FluentSensors.Features.Performance
 
                 // start-page <-> hardware-view transitions flip IsHardwareViewActive, which gates whether the sidebar
                 // and info panel are allowed to show at all
-                OnPropertyChanged(nameof(NavSidebarColumnWidth));
-                OnPropertyChanged(nameof(NavSidebarColumnMinWidth));
                 OnPropertyChanged(nameof(IsNavSidebarShown));
+                OnPropertyChanged(nameof(NavSidebarVisibility));
+                OnPropertyChanged(nameof(NavSidebarColumnMinWidth));
+                OnPropertyChanged(nameof(NavSidebarColumnMaxWidth));
                 OnPropertyChanged(nameof(InfoPanelVisibility));
-                OnPropertyChanged(nameof(InfoPanelColumnWidth));
                 OnPropertyChanged(nameof(InfoPanelColumnMinWidth));
+                OnPropertyChanged(nameof(InfoPanelColumnMaxWidth));
             }
         }
 
@@ -173,8 +174,8 @@ namespace FluentSensors.Features.Performance
                 _isInfoPanelVisible = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(InfoPanelVisibility));
-                OnPropertyChanged(nameof(InfoPanelColumnWidth));
                 OnPropertyChanged(nameof(InfoPanelColumnMinWidth));
+                OnPropertyChanged(nameof(InfoPanelColumnMaxWidth));
             }
         }
 
@@ -196,29 +197,69 @@ namespace FluentSensors.Features.Performance
                 if (_isNavSidebarVisible == value) return;
                 _isNavSidebarVisible = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(NavSidebarColumnWidth));
-                OnPropertyChanged(nameof(NavSidebarColumnMinWidth));
                 OnPropertyChanged(nameof(IsNavSidebarShown));
+                OnPropertyChanged(nameof(NavSidebarVisibility));
+                OnPropertyChanged(nameof(NavSidebarColumnMinWidth));
+                OnPropertyChanged(nameof(NavSidebarColumnMaxWidth));
             }
         }
-
-        // pre-computed GridLength/MinWidth pairs for the two toggleable columns (nav sidebar on PerformancePage, info
-        // panel on each detail view)
-        // Collapsing to a real zero-size column instead of only hiding the Borders content, so a hidden panel stops
-        // reserving layout space
-        // MinWidth has to collapse together with Width, since a nonzero MinWidth alone would otherwise keep forcing the
-        // column open regardless of Width
-        // both are additionally gated on IsHardwareViewActive: on the start page neither column is shown, no matter
-        // what the toggles say
-        public GridLength NavSidebarColumnWidth => IsNavSidebarVisible && IsHardwareViewActive ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
-        public double NavSidebarColumnMinWidth => IsNavSidebarVisible && IsHardwareViewActive ? 180 : 0;
 
         // the zero-width column hides the sidebar but leaves its buttons in the tab order, unseen; the sidebar list
         // binds its IsEnabled to this, so tab passes over it while it is not shown
         public bool IsNavSidebarShown => IsNavSidebarVisible && IsHardwareViewActive;
 
-        public GridLength InfoPanelColumnWidth => IsInfoPanelVisible && IsHardwareViewActive ? new GridLength(2, GridUnitType.Star) : new GridLength(0);
-        public double InfoPanelColumnMinWidth => IsInfoPanelVisible && IsHardwareViewActive ? 190 : 0;
+        private bool IsInfoPanelShown => IsInfoPanelVisible && IsHardwareViewActive;
+
+        // the splitters sit outside the column they resize, so each one is hidden on its own; the info panel splitter
+        // uses InfoPanelVisibility above
+        public Visibility NavSidebarVisibility => IsNavSidebarShown ? Visibility.Visible : Visibility.Collapsed;
+
+        // pre-computed width limits for the two toggleable columns (nav sidebar on PerformancePage, info panel on each
+        // detail view); their widths belong to the GridSplitter the user drags
+        // a hidden panel gets zero for both, which collapses its column to a real zero size so it stops reserving
+        // layout space, while the dragged width stays on the column for when the panel comes back
+        // both are additionally gated on IsHardwareViewActive: on the start page neither column is shown, no matter
+        // what the toggles say
+        public double NavSidebarColumnMinWidth => IsNavSidebarShown ? _navSidebarMinWidth : 0;
+        public double NavSidebarColumnMaxWidth => IsNavSidebarShown ? _navSidebarMaxWidth : 0;
+        public double InfoPanelColumnMinWidth => IsInfoPanelShown ? _infoPanelMinWidth : 0;
+        public double InfoPanelColumnMaxWidth => IsInfoPanelShown ? _infoPanelMaxWidth : 0;
+
+        // the limits themselves, handed in by PerformancePage, which holds the values
+        private double _navSidebarMinWidth;
+        private double _navSidebarMaxWidth = double.PositiveInfinity;
+        private double _infoPanelMinWidth;
+        private double _infoPanelMaxWidth = double.PositiveInfinity;
+
+        public void SetSidePanelLimits(double navSidebarMinWidth, double infoPanelMinWidth, double maxWidth)
+        {
+            _navSidebarMinWidth = navSidebarMinWidth;
+            _navSidebarMaxWidth = Math.Max(navSidebarMinWidth, maxWidth);
+            _infoPanelMinWidth = infoPanelMinWidth;
+            _infoPanelMaxWidth = Math.Max(infoPanelMinWidth, maxWidth);
+
+            OnPropertyChanged(nameof(NavSidebarColumnMinWidth));
+            OnPropertyChanged(nameof(NavSidebarColumnMaxWidth));
+            OnPropertyChanged(nameof(InfoPanelColumnMinWidth));
+            OnPropertyChanged(nameof(InfoPanelColumnMaxWidth));
+        }
+
+        // info panel width, shared by every detail view so switching hardware keeps it; the splitter of whichever
+        // view was dragged hands it over once the drag ends
+        private double _infoPanelWidth;
+        public double InfoPanelWidth
+        {
+            get => _infoPanelWidth;
+            set
+            {
+                if (_infoPanelWidth == value) return;
+                _infoPanelWidth = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(InfoPanelColumnWidth));
+            }
+        }
+
+        public GridLength InfoPanelColumnWidth => new GridLength(InfoPanelWidth);
 
         // graph time range captions under the graphs of every hardware view, written like the settings page lists
         // the ranges

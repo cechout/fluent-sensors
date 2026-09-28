@@ -20,12 +20,12 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="4*" />
+            <ColumnDefinition x:Name="ContentColumn" Width="4*" />
             <ColumnDefinition
                 x:Name="InfoPanelColumn"
                 Width="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnWidth, Mode=OneWay}"
                 MinWidth="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnMinWidth, Mode=OneWay}"
-                MaxWidth="300" />
+                MaxWidth="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnMaxWidth, Mode=OneWay}" />
         </Grid.ColumnDefinitions>
 
 
@@ -763,6 +763,24 @@
                 </StackPanel>
             </ScrollViewer>
         </Border>
+
+        <!--  info panel splitter  -->
+        <!--  (a 9px band centered on the divider line; it resizes the content column before it)  -->
+        <controls:GridSplitter
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Grid.Column="1"
+            Width="9"
+            Margin="-4,0,0,0"
+            Padding="0"
+            HorizontalAlignment="Left"
+            AutomationProperties.Name="Resize Hardware Info"
+            IsTabStop="False"
+            IsThumbVisible="False"
+            ManipulationCompleted="InfoPanelSplitter_ManipulationCompleted"
+            ResizeBehavior="PreviousAndCurrent"
+            ResizeDirection="Columns"
+            Visibility="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelVisibility, Mode=OneWay}" />
 
     </Grid>
 </UserControl>

@@ -3,6 +3,7 @@
     x:Class="FluentSensors.Features.Performance.PerformancePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhUi="using:FluentSensors.Common.UI"
@@ -242,14 +243,14 @@
 
 
         <!--  content: hardware selection sidebar + detail area  -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" SizeChanged="ContentGrid_SizeChanged">
+            <!--  (the sidebar width belongs to the splitter below, its limits and starting width to PerformancePage.xaml.cs)  -->
             <Grid.ColumnDefinitions>
                 <ColumnDefinition
                     x:Name="SidebarColumn"
-                    Width="{x:Bind ViewModel.NavSidebarColumnWidth, Mode=OneWay}"
                     MinWidth="{x:Bind ViewModel.NavSidebarColumnMinWidth, Mode=OneWay}"
-                    MaxWidth="180" />
-                <ColumnDefinition Width="5*" />
+                    MaxWidth="{x:Bind ViewModel.NavSidebarColumnMaxWidth, Mode=OneWay}" />
+                <ColumnDefinition x:Name="DetailColumn" Width="5*" />
             </Grid.ColumnDefinitions>
 
             <!--  sidebar: hardware selection  -->
@@ -280,8 +281,8 @@
 
                                     <Grid HorizontalAlignment="Stretch" ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="4*" />
-                                            <ColumnDefinition Width="3*" />
+                                            <ColumnDefinition Width="6*" />
+                                            <ColumnDefinition Width="3*" MinWidth="60" />
                                         </Grid.ColumnDefinitions>
 
                                         <!--  mini utilization graph  -->
@@ -330,6 +331,22 @@
                 x:Name="DetailHostGrid"
                 Grid.Column="1"
                 SizeChanged="DetailHostGrid_SizeChanged" />
+
+            <!--  sidebar splitter  -->
+            <!--  (a 9px band centered on the divider line, which is the last pixel of the sidebar; it resizes the sidebar column before it)  -->
+            <controls:GridSplitter
+                Grid.Column="1"
+                Width="9"
+                Margin="-5,0,0,0"
+                Padding="0"
+                HorizontalAlignment="Left"
+                AutomationProperties.Name="Resize Hardware List"
+                IsTabStop="False"
+                IsThumbVisible="False"
+                ManipulationCompleted="SidebarSplitter_ManipulationCompleted"
+                ResizeBehavior="PreviousAndCurrent"
+                ResizeDirection="Columns"
+                Visibility="{x:Bind ViewModel.NavSidebarVisibility, Mode=OneWay}" />
         </Grid>
 
 
