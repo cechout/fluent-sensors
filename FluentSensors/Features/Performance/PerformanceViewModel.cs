@@ -231,12 +231,13 @@ namespace FluentSensors.Features.Performance
         private double _infoPanelMinWidth;
         private double _infoPanelMaxWidth = double.PositiveInfinity;
 
-        public void SetSidePanelLimits(double navSidebarMinWidth, double infoPanelMinWidth, double maxWidth)
+        // a maximum below its minimum, on a page too narrow for it, falls back to the minimum
+        public void SetSidePanelLimits(double navSidebarMinWidth, double navSidebarMaxWidth, double infoPanelMinWidth, double infoPanelMaxWidth)
         {
             _navSidebarMinWidth = navSidebarMinWidth;
-            _navSidebarMaxWidth = Math.Max(navSidebarMinWidth, maxWidth);
+            _navSidebarMaxWidth = Math.Max(navSidebarMinWidth, navSidebarMaxWidth);
             _infoPanelMinWidth = infoPanelMinWidth;
-            _infoPanelMaxWidth = Math.Max(infoPanelMinWidth, maxWidth);
+            _infoPanelMaxWidth = Math.Max(infoPanelMinWidth, infoPanelMaxWidth);
 
             OnPropertyChanged(nameof(NavSidebarColumnMinWidth));
             OnPropertyChanged(nameof(NavSidebarColumnMaxWidth));

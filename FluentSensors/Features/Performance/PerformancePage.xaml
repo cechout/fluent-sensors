@@ -243,7 +243,10 @@
 
 
         <!--  content: hardware selection sidebar + detail area  -->
-        <Grid Grid.Row="1" SizeChanged="ContentGrid_SizeChanged">
+        <Grid
+            x:Name="ContentGrid"
+            Grid.Row="1"
+            SizeChanged="ContentGrid_SizeChanged">
             <!--  (the sidebar width belongs to the splitter below, its limits and starting width to PerformancePage.xaml.cs)  -->
             <Grid.ColumnDefinitions>
                 <ColumnDefinition
@@ -327,10 +330,7 @@
                 content, so its info panel can start flush with that header instead of only next to the content
                 below it; see e.g. CpuDetailView.xaml root Grid
             -->
-            <Grid
-                x:Name="DetailHostGrid"
-                Grid.Column="1"
-                SizeChanged="DetailHostGrid_SizeChanged" />
+            <Grid x:Name="DetailHostGrid" Grid.Column="1" />
 
             <!--  sidebar splitter  -->
             <!--  (a 9px band centered on the divider line, which is the last pixel of the sidebar; it resizes the sidebar column before it)  -->

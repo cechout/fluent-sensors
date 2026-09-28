@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -29,17 +30,18 @@ namespace FluentSensors.Features.Performance
 
         public PerformanceViewModel ViewModel => PerformanceViewModel.Instance;
 
-        // below this DetailHostGrid width, the nav sidebar and info panel become mutually exclusive - both eat into
-        // the same remaining space after the nav sidebar's own column, so a narrow DetailHostGrid means too little is
-        // left for usable content if both stay open at once
-        private const double NarrowContentThreshold = 500;
+        // the narrowest the hardware view itself may get between the two panels; below it, the nav sidebar and the
+        // info panel become mutually exclusive
+        // measured as if both were open at their current widths, whichever of them is shown right now, so toggling
+        // one of them never flips the result
+        private const double NarrowContentThreshold = 315;
         private bool _isNarrow;
 
         // resizable side panels: the hardware list on the left and the info panel on the right of every detail view
         // both open at their minimum and can be dragged wider up to a share of the pages width
         private const double NavSidebarMinWidth = 185;
         private const double InfoPanelMinWidth = 185;
-        private const double SidePanelMaxWidthShare = 0.40; // share of the pages width either panel can grow to
+        private const double SidePanelMaxWidthShare = 0.50; // share of the pages width either panel can grow to
 
         // how far one arrow press scrolls the hardware view from the sidebar or a bottom bar, about one mouse wheel
         // notch
@@ -74,10 +76,10 @@ namespace FluentSensors.Features.Performance
             InitializeComponent();
 
             // before any detail view is built, since every info panel column binds its width and limits from here;
-            // the maximum follows the page width once it is known, see ContentGrid_SizeChanged
+            // the maximum follows the page width once it is known, see UpdateSidePanelLayout
             SidebarColumn.Width = new GridLength(NavSidebarMinWidth);
             ViewModel.InfoPanelWidth = InfoPanelMinWidth;
-            ViewModel.SetSidePanelLimits(NavSidebarMinWidth, InfoPanelMinWidth, double.PositiveInfinity);
+            ViewModel.SetSidePanelLimits(NavSidebarMinWidth, double.PositiveInfinity, InfoPanelMinWidth, double.PositiveInfinity);
 
             // keeps PerformanceViewModel.IsDarkTheme in sync with the pages actually applied theme, and rebuilds
             // the sidebar icon brushes, which are plain brushes rather than theme resources
@@ -173,6 +175,9 @@ namespace FluentSensors.Features.Performance
             if (e.PropertyName == nameof(PerformanceViewModel.SelectedItem))
             {
                 UpdateDetailView();
+
+                // leaving the start page brings both panels back, and with them the drag limit between them
+                UpdateSidePanelLayout();
             }
 
             // narrow-width exclusivity
@@ -182,6 +187,7 @@ namespace FluentSensors.Features.Performance
                 {
                     ViewModel.IsInfoPanelVisible = false;
                 }
+                UpdateSidePanelLayout();
                 RecalculateCurrentDetailViewHeight();
             }
 
@@ -191,19 +197,21 @@ namespace FluentSensors.Features.Performance
                 {
                     ViewModel.IsNavSidebarVisible = false;
                 }
+                UpdateSidePanelLayout();
                 RecalculateCurrentDetailViewHeight();
             }
 
             // a finished info panel drag; the detail area itself did not change width, so nothing else settles the view
             else if (e.PropertyName == nameof(PerformanceViewModel.InfoPanelWidth))
             {
+                UpdateSidePanelLayout();
                 RecalculateCurrentDetailViewHeight();
             }
         }
 
         private void ContentGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            ViewModel.SetSidePanelLimits(NavSidebarMinWidth, InfoPanelMinWidth, e.NewSize.Width * SidePanelMaxWidthShare);
+            UpdateSidePanelLayout();
         }
 
         // the splitter rewrites both column widths while it drags; once it lets go, the sidebar goes back to a fixed
@@ -215,22 +223,8 @@ namespace FluentSensors.Features.Performance
             SidebarColumn.Width = new GridLength(width);
             DetailColumn.Width = new GridLength(1, GridUnitType.Star);
 
+            UpdateSidePanelLayout();
             RecalculateCurrentDetailViewHeight();
-        }
-
-        // tracks whether DetailHostGrid currently counts as "narrow"; also handles the one case the property-changed
-        // logic above can't cover - the window shrinking while both panels are already open, with neither one having
-        // just been toggled
-        private void DetailHostGrid_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            bool wasNarrow = _isNarrow;
-            _isNarrow = e.NewSize.Width < NarrowContentThreshold;
-
-            if (_isNarrow && !wasNarrow && ViewModel.IsNavSidebarVisible && ViewModel.IsInfoPanelVisible)
-            {
-                // hardcoded priority: info panel always loses when space runs out from a resize, not a toggle click
-                ViewModel.IsInfoPanelVisible = false;
-            }
         }
 
         // hardware discovered after this page was already constructed (e.g. a second GPU, or any category that
@@ -484,6 +478,41 @@ namespace FluentSensors.Features.Performance
         // override is not part of that and stays on its normal default there
         private static Windows.UI.Color? ResolveSelectedGraphBackground(bool isSelected, bool isDarkTheme) =>
             isSelected && isDarkTheme ? (Windows.UI.Color)Application.Current.Resources["ControlFillColorDisabled"] : (Windows.UI.Color?)null;
+
+        // re-derives everything that hangs on the page width and the two panel widths: whether both panels still fit
+        // next to each other, and how far each one may be dragged
+        // runs on a window resize, on every panel toggle and once a drag has finished; during a drag the limits set
+        // here are what stops the splitter
+        private void UpdateSidePanelLayout()
+        {
+            // not laid out yet; ContentGrid_SizeChanged runs this again once it is
+            double pageWidth = ContentGrid.ActualWidth;
+            if (pageWidth <= 0) return;
+
+            double maxWidth = pageWidth * SidePanelMaxWidthShare;
+
+            // the width each panel has, or comes back at while hidden; a column narrowed by a smaller window only
+            // shows as much as its maximum allows
+            double sidebarWidth = Math.Min(SidebarColumn.Width.Value, maxWidth);
+            double infoPanelWidth = Math.Min(ViewModel.InfoPanelWidth, maxWidth);
+
+            _isNarrow = pageWidth - sidebarWidth - infoPanelWidth < NarrowContentThreshold;
+
+            if (_isNarrow && ViewModel.IsNavSidebarVisible && ViewModel.IsInfoPanelVisible)
+            {
+                // hardcoded priority: info panel always loses when space runs out from a resize, not a toggle click
+                // the toggle handler runs this method again with the panel closed, which sets the limits
+                ViewModel.IsInfoPanelVisible = false;
+                return;
+            }
+
+            // while both are open, a drag stops where the hardware view between them would drop below the threshold
+            bool bothShown = ViewModel.IsNavSidebarShown && ViewModel.IsInfoPanelVisible;
+            double sidebarMaxWidth = bothShown ? Math.Min(maxWidth, pageWidth - infoPanelWidth - NarrowContentThreshold) : maxWidth;
+            double infoPanelMaxWidth = bothShown ? Math.Min(maxWidth, pageWidth - sidebarWidth - NarrowContentThreshold) : maxWidth;
+
+            ViewModel.SetSidePanelLimits(NavSidebarMinWidth, sidebarMaxWidth, InfoPanelMinWidth, infoPanelMaxWidth);
+        }
 
         // re-measures the current detail views vertical layout after a nav sidebar/info panel visibility or width change;
         // Dispatched rather than called synchronously
