@@ -96,6 +96,38 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
+            <!--  data units  -->
+            <!--  (reaches every displayed value; csv recordings keep the byte units the raw values are stored in)  -->
+            <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
+                Description="Bytes or bits for data sizes and speeds"
+                Header="Data Units"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE8EF;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Header="Data Size">
+                        <ComboBox
+                            x:Name="DataSizeUnitComboBox"
+                            Width="150"
+                            SelectionChanged="DataSizeUnitComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Byte" Tag="Byte" />
+                            <ComboBoxItem Content="Bit" Tag="Bit" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Header="Data Speed">
+                        <ComboBox
+                            x:Name="DataSpeedUnitComboBox"
+                            Width="150"
+                            SelectionChanged="DataSpeedUnitComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Byte" Tag="Byte" />
+                            <ComboBoxItem Content="Bit" Tag="Bit" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
             <!--  title bar status readout  -->
             <controls:SettingsExpander
                 fhUi:FocusGroup.IsEnabled="True"

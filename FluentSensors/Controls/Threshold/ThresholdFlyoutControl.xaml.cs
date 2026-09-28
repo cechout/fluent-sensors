@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Windows.System;
 using FluentSensors.Common.Sensors;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Controls.Threshold
@@ -109,6 +110,9 @@ namespace FluentSensors.Controls.Threshold
                 _isThresholdSubscribed = true;
             }
 
+            // the badge scales its value like every other readout, so a data unit switch has to redraw it as well
+            SettingsService.Instance.DataUnitBasisChanged += UpdateIndicator;
+
             UpdateIndicator();
         }
 
@@ -123,6 +127,8 @@ namespace FluentSensors.Controls.Threshold
                 Threshold.PropertyChanged -= Threshold_PropertyChanged;
                 _isThresholdSubscribed = false;
             }
+
+            SettingsService.Instance.DataUnitBasisChanged -= UpdateIndicator;
         }
 
 

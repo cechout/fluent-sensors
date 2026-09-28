@@ -39,6 +39,7 @@ namespace FluentSensors.Features.Settings
             RestoreCsvFormatSelection();
             RestoreGraphLineStyleSelection();
             RestoreGraphFillFadeSelection();
+            RestoreDataUnitSelection();
             RestoreHardwareIconColorsSelection();
 
             RestorePerformanceGraphTimeSpanSelection();
@@ -466,8 +467,8 @@ namespace FluentSensors.Features.Settings
         {
             var format = CsvRowFormat.Resolve();
 
-            string clock = format.FormatValue(2515.862, SensorUnitFormatter.GetUnit("Clock"));
-            string temperature = format.FormatValue(41.375, SensorUnitFormatter.GetUnit("Temperature"));
+            string clock = format.FormatValue(2515.862, SensorUnitFormatter.GetRawUnit("Clock"));
+            string temperature = format.FormatValue(41.375, SensorUnitFormatter.GetRawUnit("Temperature"));
 
             CsvFormatExampleTextBlock.Text = clock + format.Separator + temperature;
         }
@@ -522,6 +523,36 @@ namespace FluentSensors.Features.Settings
         private void RestoreGraphFillFadeSelection()
         {
             GraphFillFadeToggle.IsOn = SettingsService.Instance.GraphFillFade;
+        }
+
+        // bytes or bits, once for sizes and once for speeds, so a network speed can read Mbit/s while memory stays
+        // in MB
+        private void DataSizeUnitComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (DataSizeUnitComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out DataUnitBasis basis))
+            {
+                SettingsService.Instance.DataSizeUnitBasis = basis;
+            }
+        }
+
+        private void DataSpeedUnitComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (DataSpeedUnitComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out DataUnitBasis basis))
+            {
+                SettingsService.Instance.DataSpeedUnitBasis = basis;
+            }
+        }
+
+        private void RestoreDataUnitSelection()
+        {
+            SelectByTag(DataSizeUnitComboBox, SettingsService.Instance.DataSizeUnitBasis.ToString());
+            SelectByTag(DataSpeedUnitComboBox, SettingsService.Instance.DataSpeedUnitBasis.ToString());
         }
 
         // reaches every hardware category glyph: start page tiles, sensor list and hidden sensor group headers,

@@ -74,6 +74,7 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
             SettingsService.Instance.GraphLineStyleChanged += OnGraphLineStyleChanged;
             SettingsService.Instance.GraphFillFadeChanged += OnGraphFillFadeChanged;
+            SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
 
             // owns this sensors threshold config; shared logic/state lives there, this VM only reacts to it for coloring
             Threshold = new ThresholdEditorViewModel(sensorId, sensorType);
@@ -119,7 +120,18 @@ namespace FluentSensors.Controls.SensorGraph
             set { _sensorName = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayNameWithUnit)); }
         }
 
-        public string Unit { get; }
+        private string _unit = "";
+        public string Unit
+        {
+            get => _unit;
+            private set
+            {
+                if (_unit == value) return;
+                _unit = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayNameWithUnit));
+            }
+        }
 
         public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? SensorName : $"{SensorName} ({Unit})";
 
@@ -283,6 +295,13 @@ namespace FluentSensors.Controls.SensorGraph
             GraphFillFade = fillFade;
         }
 
+        // only the unit in the title has to follow right away; the value text and the y-axis maximum are rebuilt
+        // with the next data point anyway
+        private void OnDataUnitBasisChanged()
+        {
+            Unit = SensorUnitFormatter.GetUnit(SensorType);
+        }
+
         private void OnGraphBackgroundChanged(bool useTransparentBackground)
         {
             IsCardBackgroundVisible = !useTransparentBackground;
@@ -335,6 +354,7 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             SettingsService.Instance.GraphLineStyleChanged -= OnGraphLineStyleChanged;
             SettingsService.Instance.GraphFillFadeChanged -= OnGraphFillFadeChanged;
+            SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
             Threshold.PropertyChanged -= OnThresholdPropertyChanged;
             Threshold.Cleanup();
         }
