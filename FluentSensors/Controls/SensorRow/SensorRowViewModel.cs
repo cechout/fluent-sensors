@@ -44,9 +44,18 @@ namespace FluentSensors.Controls.SensorRow
 
         // the unit column is resolved from the sensor type once, so only a data unit switch in the settings moves it;
         // the four values pick the new unit up on their own with the next tick
+        //
+        // also the one place that resets this sensors threshold and y-axis values to their defaults: every live
+        // sensor has exactly one row, hidden ones included, so this reaches graphs in windows that are not open too
         private void OnDataUnitBasisChanged()
         {
-            if (_entry != null) Unit = SensorUnitFormatter.GetUnit(_entry.SensorType);
+            if (_entry == null) return;
+
+            string unit = SensorUnitFormatter.GetUnit(_entry.SensorType);
+            if (unit == Unit) return; // the switch was for the other data unit setting
+
+            Unit = unit;
+            SensorStateService.Instance.ResetUnitDependentValues(_entry.Id);
         }
 
 

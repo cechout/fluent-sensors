@@ -26,8 +26,8 @@ namespace FluentSensors.Controls.SensorGraph
         private readonly double _yMaxStep;
         private readonly double _yMaxDefault;
 
-        // true while ManualYMax is still the untouched per-type default, which then follows a data unit switch
-        private bool _isManualYMaxDefault;
+        // set once a view override owns ManualYMax (see ApplyViewOverrides); a data unit switch leaves it alone then
+        private bool _hasManualYMaxOverride;
 
 
         // === constructor ===
@@ -95,7 +95,6 @@ namespace FluentSensors.Controls.SensorGraph
             var existingState = SensorStateService.Instance.GetState(SensorId);
             var yAxisState = existingState.GetYAxis(Scope);
             _isAutoScaled = yAxisState.IsAutoScaled;
-            _isManualYMaxDefault = yAxisState.ManualYMax == null;
             _manualYMax = yAxisState.ManualYMax ?? SensorUnitFormatter.ToRawValue(_yMaxDefault, sensorType);
 
             UpdateYMaxDisplay();
@@ -246,8 +245,6 @@ namespace FluentSensors.Controls.SensorGraph
         // pushes only the Y-axis part of the state snapshot; Threshold manages and persists its own slice independently
         private void PushYAxisStateToService()
         {
-            _isManualYMaxDefault = false; // from here on ManualYMax is persisted, so it belongs to the user
-
             var state = SensorStateService.Instance.GetState(SensorId);
             var yAxisState = state.GetYAxis(Scope);
             yAxisState.IsAutoScaled = _isAutoScaled;
@@ -308,13 +305,18 @@ namespace FluentSensors.Controls.SensorGraph
         // only the unit in the title has to follow right away; the value text and the y-axis maximum are rebuilt
         // with the next data point anyway
         //
-        // an untouched ManualYMax default is a round number in the displayed unit, so it moves along; a maximum the
-        // user or a view override already set stays exactly where it is
+        // ManualYMax goes back to its per-type default, so it stays a round number in the new unit; the persisted
+        // copy is reset by the sensors row (SensorRowViewModel.OnDataUnitBasisChanged), which reaches every scope
+        // a view override is left alone, it is a real sensor value like the total memory, not a number the user
+        // picked
         private void OnDataUnitBasisChanged()
         {
-            Unit = SensorUnitFormatter.GetUnit(SensorType);
+            string unit = SensorUnitFormatter.GetUnit(SensorType);
+            if (unit == Unit) return; // the switch was for the other data unit setting
 
-            if (_isManualYMaxDefault)
+            Unit = unit;
+
+            if (!_hasManualYMaxOverride)
             {
                 _manualYMax = SensorUnitFormatter.ToRawValue(_yMaxDefault, SensorType);
                 OnPropertyChanged(nameof(ManualYMax));
@@ -437,7 +439,7 @@ namespace FluentSensors.Controls.SensorGraph
                 OnPropertyChanged(nameof(IsAutoScaled));
             }
 
-            if (manualYMax.HasValue) _isManualYMaxDefault = false;
+            if (manualYMax.HasValue) _hasManualYMaxOverride = true;
 
             if (manualYMax.HasValue && _manualYMax != manualYMax.Value)
             {

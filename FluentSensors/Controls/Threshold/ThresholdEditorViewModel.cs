@@ -22,9 +22,6 @@ namespace FluentSensors.Controls.Threshold
         private readonly double _thresholdStep;
         private readonly double _thresholdDefault;
 
-        // true while the value is still the untouched per-type default, which then follows a data unit switch
-        private bool _isDefaultValue;
-
         private readonly DispatcherQueue _dispatcherQueue;
 
 
@@ -44,8 +41,7 @@ namespace FluentSensors.Controls.Threshold
             // touched it yet, so we fall back to this sensor types default instead of a generic one
             var existingThreshold = SensorStateService.Instance.GetState(sensorId).Threshold;
             _isEnabled = existingThreshold.IsEnabled;
-            _isDefaultValue = existingThreshold.Value == null;
-            _value = existingThreshold.Value ?? SensorUnitFormatter.ToRawValue(_thresholdDefault, sensorType);
+            _value = existingThreshold.Value ?? ResolveDefaultValue();
             _direction = existingThreshold.Direction;
             _color = existingThreshold.Color;
 
@@ -53,7 +49,6 @@ namespace FluentSensors.Controls.Threshold
             // can be marshalled back here safely
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
             SensorStateService.Instance.StateChanged += OnStateChanged;
-            SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
         }
 
 
@@ -217,27 +212,19 @@ namespace FluentSensors.Controls.Threshold
         public void Cleanup()
         {
             SensorStateService.Instance.StateChanged -= OnStateChanged;
-            SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
         }
 
 
         // === private helpers ===
 
-        // an untouched default is a round number in the displayed unit, so it moves along with a data unit switch;
-        // a value the user already set stays exactly where it is
-        private void OnDataUnitBasisChanged()
+        // this sensor types default, in whichever data unit is active right now
+        private double ResolveDefaultValue()
         {
-            if (!_isDefaultValue) return;
-
-            _value = SensorUnitFormatter.ToRawValue(_thresholdDefault, SensorType);
-            OnPropertyChanged(nameof(Value));
-            OnPropertyChanged(nameof(EffectiveValue));
+            return SensorUnitFormatter.ToRawValue(_thresholdDefault, SensorType);
         }
 
         private void PushStateToService()
         {
-            _isDefaultValue = false; // from here on the value is persisted, so it belongs to the user
-
             var state = SensorStateService.Instance.GetState(SensorId);
             state.Threshold = new SensorThreshold
             {
@@ -252,6 +239,9 @@ namespace FluentSensors.Controls.Threshold
         // reacts to threshold changes made anywhere else (the other window editing the same sensor); applies the
         // incoming values directly to the backing fields instead of the property setters, so this does not re-trigger
         // PushStateToService and echo the change back out
+        //
+        // a null value is the per-type default, the same as in the constructor; that is how a data unit switch
+        // (SensorStateService.ResetUnitDependentValues) brings the value back to a round number in the new unit
         private void OnStateChanged(string sensorId, SensorState state)
         {
             if (sensorId != SensorId) return;
@@ -259,8 +249,7 @@ namespace FluentSensors.Controls.Threshold
             void Apply()
             {
                 _isEnabled = state.Threshold.IsEnabled;
-                if (state.Threshold.Value != null) _isDefaultValue = false;
-                _value = state.Threshold.Value ?? _value;
+                _value = state.Threshold.Value ?? ResolveDefaultValue();
                 _direction = state.Threshold.Direction;
                 _color = state.Threshold.Color;
 
