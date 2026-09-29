@@ -220,6 +220,40 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // bytes or bits for data sizes (SmallData, Data) and for speeds (Throughput); mirrored onto
+        // SensorUnitFormatter for the same reason as UseHardwareIconColors above, the formatter sits in Common
+        private DataUnitBasis _dataSizeUnitBasis = Defaults.DataSizeUnitBasis;
+        public DataUnitBasis DataSizeUnitBasis
+        {
+            get => _dataSizeUnitBasis;
+            set
+            {
+                if (_dataSizeUnitBasis != value)
+                {
+                    _dataSizeUnitBasis = value;
+                    SensorUnitFormatter.DataSizeBasis = value;
+                    DataUnitBasisChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private DataUnitBasis _dataSpeedUnitBasis = Defaults.DataSpeedUnitBasis;
+        public DataUnitBasis DataSpeedUnitBasis
+        {
+            get => _dataSpeedUnitBasis;
+            set
+            {
+                if (_dataSpeedUnitBasis != value)
+                {
+                    _dataSpeedUnitBasis = value;
+                    SensorUnitFormatter.DataSpeedBasis = value;
+                    DataUnitBasisChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
 
         // --- Performance Page Graph Settings ---
 
@@ -777,6 +811,10 @@ namespace FluentSensors.Persistence.Services
             _graphFillFade = data.GraphFillFade;
             _useHardwareIconColors = data.UseHardwareIconColors;
             HardwareColorMode.UseIconColors = _useHardwareIconColors;
+            _dataSizeUnitBasis = data.DataSizeUnitBasis;
+            _dataSpeedUnitBasis = data.DataSpeedUnitBasis;
+            SensorUnitFormatter.DataSizeBasis = _dataSizeUnitBasis;
+            SensorUnitFormatter.DataSpeedBasis = _dataSpeedUnitBasis;
             _performanceGraphTimeSpanSeconds = data.PerformanceGraphTimeSpanSeconds;
             _performanceExtendedGraphTimeSpanSeconds = data.PerformanceExtendedGraphTimeSpanSeconds;
 
@@ -835,6 +873,8 @@ namespace FluentSensors.Persistence.Services
                 GraphLineStyle = _graphLineStyle,
                 GraphFillFade = _graphFillFade,
                 UseHardwareIconColors = _useHardwareIconColors,
+                DataSizeUnitBasis = _dataSizeUnitBasis,
+                DataSpeedUnitBasis = _dataSpeedUnitBasis,
                 PerformanceGraphTimeSpanSeconds = _performanceGraphTimeSpanSeconds,
                 PerformanceExtendedGraphTimeSpanSeconds = _performanceExtendedGraphTimeSpanSeconds,
 
@@ -904,6 +944,9 @@ namespace FluentSensors.Persistence.Services
 
         // carries no value; every consumer only re-reads the switch and refreshes the brush it drew from it
         public event Action HardwareIconColorsChanged;
+
+        // carries no value; both data unit settings raise it and consumers re-read their unit from SensorUnitFormatter
+        public event Action DataUnitBasisChanged;
 
         // carries no value; both performance time spans raise it and consumers re-read whichever one they use
         public event Action PerformanceGraphTimeSpanChanged;

@@ -49,6 +49,28 @@ namespace FluentSensors.Persistence.Services
             SetState(sensorId, state);
         }
 
+        // puts this sensors threshold value and its manual y-axis maximum in every scope back to their per-type
+        // defaults; used when a data unit switch moves its unit, where a kept value would turn into an odd number
+        // (50 Mbit/s reads as 6 MB/s)
+        // the switches stay as they are: threshold on/off, direction, color, auto scaling and visibility
+        //
+        // always raises StateChanged, even for a sensor that was never configured, so every open editor re-resolves
+        // its default in the new unit; only a configured sensor is actually written
+        public void ResetUnitDependentValues(string sensorId)
+        {
+            if (!_states.TryGetValue(sensorId, out var state))
+            {
+                StateChanged?.Invoke(sensorId, new SensorState());
+                return;
+            }
+
+            state.Threshold.Value = null;
+            state.PerformanceYAxis.ManualYMax = null;
+            state.WidgetYAxis.ManualYMax = null;
+            state.TaskbarYAxis.ManualYMax = null;
+            SetState(sensorId, state);
+        }
+
         // persistence
         // returns the live dictionary directly; PersistenceService only reads it when its debounce timer fires, so no
         // snapshot copy is needed here

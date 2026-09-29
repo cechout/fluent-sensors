@@ -31,6 +31,7 @@ namespace FluentSensors.Controls.SensorRow
         public SensorRowViewModel()
         {
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
+            SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
         }
 
         private void OnThemeChanged(string newTheme)
@@ -39,6 +40,22 @@ namespace FluentSensors.Controls.SensorRow
                 _dispatcherQueue.TryEnqueue(RecalculateColors);
             else
                 RecalculateColors();
+        }
+
+        // the unit column is resolved from the sensor type once, so only a data unit switch in the settings moves it;
+        // the four values pick the new unit up on their own with the next tick
+        //
+        // also the one place that resets this sensors threshold and y-axis values to their defaults: every live
+        // sensor has exactly one row, hidden ones included, so this reaches graphs in windows that are not open too
+        private void OnDataUnitBasisChanged()
+        {
+            if (_entry == null) return;
+
+            string unit = SensorUnitFormatter.GetUnit(_entry.SensorType);
+            if (unit == Unit) return; // the switch was for the other data unit setting
+
+            Unit = unit;
+            SensorStateService.Instance.ResetUnitDependentValues(_entry.Id);
         }
 
 
@@ -82,7 +99,19 @@ namespace FluentSensors.Controls.SensorRow
         public string Name => _entry?.Name ?? "Unknown Sensor";
         public string SensorType => _entry?.SensorType ?? "";
         public int SortOrder { get; set; } // original creation order
-        public string Unit { get; private set; } = "";
+        private string _unit = "";
+        public string Unit
+        {
+            get => _unit;
+            private set
+            {
+                if (_unit != value)
+                {
+                    _unit = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         // threshold, owned by the shared editor; created once Entry is set (see InitializeThreshold), null before that
         public ThresholdEditorViewModel Threshold { get; private set; }
@@ -222,6 +251,7 @@ namespace FluentSensors.Controls.SensorRow
         public void Cleanup()
         {
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+            SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
             if (_entry != null) _entry.PropertyChanged -= OnEntryPropertyChanged;
             Threshold?.Cleanup();
             if (Threshold != null) Threshold.PropertyChanged -= OnThresholdPropertyChanged;

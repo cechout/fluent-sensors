@@ -20,8 +20,14 @@ namespace FluentSensors.Controls.SensorGraph
         // === fields ===
 
         private double _currentRaw;
-        private readonly double _yMaxStep;
         private double? _timeSpanOverrideSeconds;
+
+        // both in the displayed base unit, see SensorTypeProfile
+        private readonly double _yMaxStep;
+        private readonly double _yMaxDefault;
+
+        // set once a view override owns ManualYMax (see ApplyViewOverrides); a data unit switch leaves it alone then
+        private bool _hasManualYMaxOverride;
 
 
         // === constructor ===
@@ -74,6 +80,7 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
             SettingsService.Instance.GraphLineStyleChanged += OnGraphLineStyleChanged;
             SettingsService.Instance.GraphFillFadeChanged += OnGraphFillFadeChanged;
+            SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
 
             // owns this sensors threshold config; shared logic/state lives there, this VM only reacts to it for coloring
             Threshold = new ThresholdEditorViewModel(sensorId, sensorType);
@@ -82,12 +89,13 @@ namespace FluentSensors.Controls.SensorGraph
             // per-sensor-type starting values for the y-axis; a clock sensor needs a much higher scale than a load percentage
             var profile = SensorTypeProfiles.GetProfile(sensorType);
             _yMaxStep = profile.YMaxStep;
+            _yMaxDefault = profile.YMaxDefault;
 
             // restore this sensors Y-axis state for the current presentation scope
             var existingState = SensorStateService.Instance.GetState(SensorId);
             var yAxisState = existingState.GetYAxis(Scope);
             _isAutoScaled = yAxisState.IsAutoScaled;
-            _manualYMax = yAxisState.ManualYMax ?? profile.YMaxDefault;
+            _manualYMax = yAxisState.ManualYMax ?? SensorUnitFormatter.ToRawValue(_yMaxDefault, sensorType);
 
             UpdateYMaxDisplay();
         }
@@ -119,7 +127,18 @@ namespace FluentSensors.Controls.SensorGraph
             set { _sensorName = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayNameWithUnit)); }
         }
 
-        public string Unit { get; }
+        private string _unit = "";
+        public string Unit
+        {
+            get => _unit;
+            private set
+            {
+                if (_unit == value) return;
+                _unit = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayNameWithUnit));
+            }
+        }
 
         public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? SensorName : $"{SensorName} ({Unit})";
 
@@ -283,6 +302,28 @@ namespace FluentSensors.Controls.SensorGraph
             GraphFillFade = fillFade;
         }
 
+        // only the unit in the title has to follow right away; the value text and the y-axis maximum are rebuilt
+        // with the next data point anyway
+        //
+        // ManualYMax goes back to its per-type default, so it stays a round number in the new unit; the persisted
+        // copy is reset by the sensors row (SensorRowViewModel.OnDataUnitBasisChanged), which reaches every scope
+        // a view override is left alone, it is a real sensor value like the total memory, not a number the user
+        // picked
+        private void OnDataUnitBasisChanged()
+        {
+            string unit = SensorUnitFormatter.GetUnit(SensorType);
+            if (unit == Unit) return; // the switch was for the other data unit setting
+
+            Unit = unit;
+
+            if (!_hasManualYMaxOverride)
+            {
+                _manualYMax = SensorUnitFormatter.ToRawValue(_yMaxDefault, SensorType);
+                OnPropertyChanged(nameof(ManualYMax));
+                UpdateYMaxDisplay();
+            }
+        }
+
         private void OnGraphBackgroundChanged(bool useTransparentBackground)
         {
             IsCardBackgroundVisible = !useTransparentBackground;
@@ -335,6 +376,7 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             SettingsService.Instance.GraphLineStyleChanged -= OnGraphLineStyleChanged;
             SettingsService.Instance.GraphFillFadeChanged -= OnGraphFillFadeChanged;
+            SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
             Threshold.PropertyChanged -= OnThresholdPropertyChanged;
             Threshold.Cleanup();
         }
@@ -397,6 +439,8 @@ namespace FluentSensors.Controls.SensorGraph
                 OnPropertyChanged(nameof(IsAutoScaled));
             }
 
+            if (manualYMax.HasValue) _hasManualYMaxOverride = true;
+
             if (manualYMax.HasValue && _manualYMax != manualYMax.Value)
             {
                 _manualYMax = manualYMax.Value;
@@ -419,7 +463,7 @@ namespace FluentSensors.Controls.SensorGraph
         public void IncreaseYMax()
         {
             IsAutoScaled = false; // automatically turns off the auto button in the ui
-            ManualYMax += _yMaxStep;
+            ManualYMax += SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
         }
 
         public void DecreaseYMax()
@@ -427,9 +471,10 @@ namespace FluentSensors.Controls.SensorGraph
             IsAutoScaled = false; // automatically turns off the auto button in the ui
 
             // preventing the y-axis from falling to 0 or into the negative range
-            if (ManualYMax > _yMaxStep)
+            double step = SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
+            if (ManualYMax > step)
             {
-                ManualYMax -= _yMaxStep;
+                ManualYMax -= step;
             }
         }
 

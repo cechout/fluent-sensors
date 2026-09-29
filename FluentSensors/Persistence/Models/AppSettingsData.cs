@@ -32,6 +32,12 @@ namespace FluentSensors.Persistence.Models
         // fades the area under the line out towards the bottom instead of filling it in one flat tone; global
         public bool GraphFillFade { get; set; } = false;
 
+        // data units:
+        // bytes or bits, separately for sizes (SmallData, Data) and speeds (Throughput); reaches every displayed
+        // value, while csv recordings keep the byte units the raw values are stored in
+        public DataUnitBasis DataSizeUnitBasis { get; set; } = DataUnitBasis.Byte;
+        public DataUnitBasis DataSpeedUnitBasis { get; set; } = DataUnitBasis.Byte;
+
         // title bar status:
         public bool StatusReadoutEnabled { get; set; } = true;
         // which of the two title bar status groups are shown, and which one comes first

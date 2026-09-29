@@ -161,11 +161,13 @@ namespace FluentSensors.Features.CsvLogging
 
             var hardwareNames = BuildHardwareNameMap();
 
+            // the raw unit and never the displayed one: rows carry the raw value, so a bit based data unit setting
+            // would label byte values as bits
             _sensors.Clear();
             foreach (var sensor in selectedSensors)
             {
                 _sensors.Add(new CsvLoggedSensor(sensor.Id, BuildHeader(sensor, hardwareNames),
-                    SensorUnitFormatter.GetUnit(sensor.SensorType)));
+                    SensorUnitFormatter.GetRawUnit(sensor.SensorType)));
             }
 
             StateChanged?.Invoke();
@@ -449,7 +451,7 @@ namespace FluentSensors.Features.CsvLogging
 
         private static string BuildHeader(SensorRowViewModel sensor, Dictionary<string, string> hardwareNames)
         {
-            string unit = SensorUnitFormatter.GetUnit(sensor.SensorType);
+            string unit = SensorUnitFormatter.GetRawUnit(sensor.SensorType);
             string name = hardwareNames.TryGetValue(sensor.Id, out string hardwareName) && !string.IsNullOrEmpty(hardwareName)
                 ? $"{hardwareName} {sensor.Name}"
                 : sensor.Name;

@@ -3,6 +3,8 @@
     // starting values for threshold and y-axis controls, tuned per LibreHardwareMonitor sensor type a "%"-based sensor
     // and a "MHz"-based sensor need vastly different scales, this table is the single place that maps a sensor type to
     // its own default value and step size
+    // all values are in the displayed base unit (MB or Mbit, MB/s or Mbit/s); consumers turn them into raw values
+    // through SensorUnitFormatter.ToRawValue at the moment they use them
     public readonly struct SensorTypeProfile
     {
         public double ThresholdDefault { get; init; }
