@@ -1,5 +1,6 @@
 # builds the win-x64 installer plus the portable zip and drafts a GitHub release whenever a version tag is pushed
 # csproj Version is the single source of truth, Inno Setup receives it as a command line define
+# the store job then hands the msix to the microsoft store, see the comment above it
 name: release
 
 on:
@@ -121,3 +122,54 @@ jobs:
         with:
           name: FluentSensors_Store
           path: Setup/MsixOutput/*.msixupload
+
+  # submits the msix to the microsoft store with release notes built from the feat and fix pull requests, so the
+  # store version goes into certification while the github release is still a draft
+  #
+  # the STORE_SUBMISSION repository variable picks what happens, changeable without a commit:
+  # draft - uploaded, left in partner center to be submitted there by hand
+  # manual - submitted, held after certification until it is published by hand in partner center
+  # immediate - submitted, published by the store as soon as certification passes
+  # unset or anything else only writes the release notes into the run summary, for an upload by hand
+  #
+  # a job of its own, so a failed submission can be re-run without drafting the github release a second time
+  store:
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      STORE_MODE: ${{ (vars.STORE_SUBMISSION == 'draft' || vars.STORE_SUBMISSION == 'manual' || vars.STORE_SUBMISSION == 'immediate') && vars.STORE_SUBMISSION || '' }}
+    steps:
+      # the whole history, the release notes are read from the commits since the previous tag
+      - name: checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: download msix artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: FluentSensors_Store
+          path: Setup/MsixOutput
+
+      # pinned: the script needs submission payloads read from a file and the base price kept on publish, and
+      # v0.4.3 is the first release with both
+      - name: setup msstore cli
+        if: env.STORE_MODE != ''
+        uses: microsoft/microsoft-store-apppublisher@v1
+        with:
+          version: v0.4.3
+
+      - name: sign in to partner center
+        if: env.STORE_MODE != ''
+        env:
+          TENANT_ID: ${{ secrets.PARTNER_CENTER_TENANT_ID }}
+          SELLER_ID: ${{ secrets.PARTNER_CENTER_SELLER_ID }}
+          CLIENT_ID: ${{ secrets.PARTNER_CENTER_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.PARTNER_CENTER_CLIENT_SECRET }}
+        run: msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+
+      - name: submit to the store
+        run: ./Setup/submit-store.ps1 -Tag "${{ github.ref_name }}" -Mode "$env:STORE_MODE"
