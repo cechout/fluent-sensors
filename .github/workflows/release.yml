@@ -1,5 +1,6 @@
 # builds the win-x64 installer plus the portable zip and drafts a GitHub release whenever a version tag is pushed
 # csproj Version is the single source of truth, Inno Setup receives it as a command line define
+# the store job then hands the msix to the microsoft store, see the comment above it
 name: release
 
 on:
@@ -121,3 +122,45 @@ jobs:
         with:
           name: FluentSensors_Store
           path: Setup/MsixOutput/*.msixupload
+
+  # uploads the msix into a draft submission in partner center, with its release notes cleared; the notes follow
+  # from store-release-notes.yml once the github release text is final, and submitting the draft stays a click in
+  # partner center
+  #
+  # runs only while the STORE_SUBMISSION repository variable is draft, so it can be switched off without a commit
+  #
+  # a job of its own, so a failed upload can be re-run without drafting the github release a second time
+  store:
+    needs: build
+    if: vars.STORE_SUBMISSION == 'draft'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7
+
+      - name: download msix artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: FluentSensors_Store
+          path: Setup/MsixOutput
+
+      # pinned: the script needs submission payloads read from a file and the base price kept on publish, and
+      # v0.4.3 is the first release with both
+      - name: setup msstore cli
+        uses: microsoft/microsoft-store-apppublisher@v1
+        with:
+          version: v0.4.3
+
+      - name: sign in to partner center
+        env:
+          TENANT_ID: ${{ secrets.PARTNER_CENTER_TENANT_ID }}
+          SELLER_ID: ${{ secrets.PARTNER_CENTER_SELLER_ID }}
+          CLIENT_ID: ${{ secrets.PARTNER_CENTER_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.PARTNER_CENTER_CLIENT_SECRET }}
+        run: msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+
+      - name: upload a store draft
+        run: ./Setup/submit-store.ps1 -Tag "${{ github.ref_name }}" -Upload

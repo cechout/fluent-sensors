@@ -73,8 +73,9 @@ FluentSensors/
 └── Properties/   PublishProfiles
 ```
 
-`Setup/` holds the Inno Setup installer script and the MSIX packaging script. `.github/` holds the
-workflows, the issue and pull request templates and the public README.
+`Setup/` holds the Inno Setup installer script, the MSIX packaging script and the Microsoft Store
+submission script. `.github/` holds the workflows, the issue and pull request templates and the public
+README.
 
 ## Build
 
