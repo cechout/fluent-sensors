@@ -1,0 +1,48 @@
+# copies the intro and changelog of a finished github release into the microsoft store draft that release.yml
+# uploaded on the tag push; submitting the draft stays a click in partner center
+#
+# runs by itself when the github release is published; run it by hand (actions, run workflow) while the release is
+# still a draft to get the store submission into certification before the github release goes public
+name: store release notes
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. v1.7.0"
+        required: true
+
+jobs:
+  notes:
+    if: vars.STORE_SUBMISSION == 'draft'
+    runs-on: windows-latest
+    timeout-minutes: 15
+    # write although it only reads: a draft release is only visible with push access, and the run by hand reads one
+    permissions:
+      contents: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7
+
+      # pinned to the same version as the upload in release.yml
+      - name: setup msstore cli
+        uses: microsoft/microsoft-store-apppublisher@v1
+        with:
+          version: v0.4.3
+
+      - name: sign in to partner center
+        env:
+          TENANT_ID: ${{ secrets.PARTNER_CENTER_TENANT_ID }}
+          SELLER_ID: ${{ secrets.PARTNER_CENTER_SELLER_ID }}
+          CLIENT_ID: ${{ secrets.PARTNER_CENTER_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.PARTNER_CENTER_CLIENT_SECRET }}
+        run: msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+
+      - name: copy the release notes into the store draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: ./Setup/submit-store.ps1 -Tag $env:TAG -ReleaseNotes
