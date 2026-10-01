@@ -29,7 +29,6 @@
                     VerticalAlignment="Stretch"
                     IsGraphHoverEnabled="False"
                     IsHitTestVisible="False"
-                    LabelRowSpacing="0"
                     ShowGraphCardBackground="{x:Bind IsCardBackgroundVisible, Mode=OneWay}"
                     ShowGraphCardBorder="False"
                     ShowGraphLabel="True"

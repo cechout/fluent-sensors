@@ -53,7 +53,7 @@ namespace FluentSensors.Features.TaskbarWidget
         public const double OuterMarginDip = 2.0; // gap on the screen edge side of the widget in DIP (1 mm = 3.78 DIP)
         // the small taskbar sets its own buttons closer to its edges, so it gets its own pair (WinTaskbarInfo.IsCompact)
         public const double CompactInnerMarginDip = 0.8; // gap on the desktop side on a small taskbar in DIP
-        public const double CompactOuterMarginDip = 1.0; // gap on the screen edge side on a small taskbar in DIP
+        public const double CompactOuterMarginDip = 0.2; // gap on the screen edge side on a small taskbar in DIP
         private const int AnchorOffsetDip = 10; // gap between the widget and the anchored end of the taskbar
         private const int TaskbarEndPaddingDip = 10; // minimum margin to both ends of the taskbar
         private const int SensorSlotWidthDip = 120; // width per pinned sensor slot
@@ -65,8 +65,8 @@ namespace FluentSensors.Features.TaskbarWidget
         private const double ButtonPaddingEndsDip = 4; // at both ends of the slot row
         private const double ButtonPaddingInnerDip = 0.5; // on the desktop side
         private const double ButtonPaddingOuterDip = 2.5; // on the screen edge side
-        private const double CompactButtonPaddingInnerDip = 0.5; // on the desktop side on a small taskbar
-        private const double CompactButtonPaddingOuterDip = 2.5; // on the screen edge side on a small taskbar
+        private const double CompactButtonPaddingInnerDip = -0.3; // on the desktop side on a small taskbar
+        private const double CompactButtonPaddingOuterDip = 1.7; // on the screen edge side on a small taskbar
 
         // maybe a user setting?
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;

@@ -17,7 +17,6 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 IsGraphHoverEnabled="False"
-                LabelRowSpacing="0"
                 ShowGraphCardBackground="{x:Bind ViewModel.IsCardBackgroundVisible, Mode=OneWay}"
                 ShowGraphCardBorder="False"
                 ShowGraphLabel="False"
