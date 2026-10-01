@@ -12,11 +12,20 @@
 
     <!--  background has to stay transparent; an opaque root paints over the backdrop  -->
     <Grid x:Name="RootGrid" Background="Transparent">
+        <Grid.Resources>
+            <!--  slot panels, picked by the taskbar orientation in TaskbarWidgetWindow.ApplyEdgeLayout  -->
+            <ItemsPanelTemplate x:Key="HorizontalSlotsPanel">
+                <fhControls:HorizontalStretchPanel Spacing="6" />
+            </ItemsPanelTemplate>
+            <ItemsPanelTemplate x:Key="VerticalSlotsPanel">
+                <fhControls:VerticalStretchPanel Spacing="6" />
+            </ItemsPanelTemplate>
+        </Grid.Resources>
 
         <!--  the entire taskbar widget is one unified button containing all sensor graphs  -->
+        <!--  (padding depends on the taskbar edge and is set from code)  -->
         <Button
             x:Name="TaskbarButton"
-            Padding="4,0.5,4,2.5"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             HorizontalContentAlignment="Stretch"
@@ -123,15 +132,12 @@
                 </ControlTemplate>
             </Button.Template>
 
-            <!--  inner horizontal list of compact sensor graphs  -->
-            <!--  (stretching equally across widget width)  -->
-            <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <fhControls:HorizontalStretchPanel Spacing="6" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-
+            <!--  list of compact sensor graphs along the taskbar  -->
+            <!--  (stretching equally across the widget length, panel from RootGrid.Resources)  -->
+            <ItemsControl
+                x:Name="SlotsItemsControl"
+                ItemsPanel="{StaticResource HorizontalSlotsPanel}"
+                ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
                         <fhGraph:SensorPanelControl

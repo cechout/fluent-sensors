@@ -21,6 +21,10 @@ namespace FluentSensors.Core.Taskbar
         uint Dpi, // DPI value of the monitor containing the taskbar
         bool IsAutoHide, // whether auto-hide taskbar behavior is enabled
         IntPtr Monitor // native monitor handle hosting this taskbar
-    );
+    )
+    {
+        // docked to the left or right screen edge, so its long axis runs top to bottom
+        public bool IsVertical => Edge is ScreenEdge.Left or ScreenEdge.Right;
+    }
 }
 
