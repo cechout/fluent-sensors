@@ -445,6 +445,16 @@
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Taskbar Widget &amp; Flyout Appearance" />
 
+            <!--  taskbar position the per position settings below belong to  -->
+            <!--  (the position is filled in at runtime from the edge the taskbar sits on)  -->
+            <controls:SettingsCard
+                fhUi:FocusGroup.IsEnabled="True"
+                Description="Time range, graph width, flyout alignment and widget position are kept for each position"
+                Header="Taskbar Position"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE7C2;}">
+                <TextBlock x:Name="TaskbarPositionText" VerticalAlignment="Center" />
+            </controls:SettingsCard>
+
             <!--  drag lock for the widget position on the taskbar  -->
             <controls:SettingsCard
                 fhUi:FocusGroup.IsEnabled="True"
@@ -515,15 +525,15 @@
                         <Slider
                             x:Name="TaskbarGraphWidthSlider"
                             Width="200"
-                            Maximum="240"
-                            Minimum="60"
+                            Maximum="180"
+                            Minimum="30"
                             StepFrequency="5"
                             TickFrequency="20"
                             ValueChanged="TaskbarGraphWidthSlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <!--  side taskbar slot, only used while the taskbar sits on the left or right  -->
-                    <controls:SettingsCard Description="When the taskbar is on the left or right" Header="Side Taskbar Graph Direction">
+                    <!--  side taskbar slot, only shown while the taskbar sits on the left or right  -->
+                    <controls:SettingsCard x:Name="TaskbarSideGraphDirectionCard" Header="Side Taskbar Graph Direction">
                         <ComboBox
                             x:Name="TaskbarSideGraphDirectionComboBox"
                             Width="160"
@@ -533,7 +543,7 @@
                             <ComboBoxItem Content="Bottom to Top" Tag="BottomToTop" />
                         </ComboBox>
                     </controls:SettingsCard>
-                    <controls:SettingsCard Description="When the taskbar is on the left or right" Header="Side Taskbar Name Lines">
+                    <controls:SettingsCard x:Name="TaskbarSideTitleLinesCard" Header="Side Taskbar Name Lines">
                         <ComboBox
                             x:Name="TaskbarSideTitleLinesComboBox"
                             Width="160"

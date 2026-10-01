@@ -30,26 +30,30 @@
         </fhControls:RotatedContentPanel>
 
         <!--  sensor name  -->
-        <!--  (one or two lines, set in ApplyLayout)  -->
+        <!--  (one or two lines, set in ApplyLayout; LineHeight is the knob for the gap between the two)  -->
         <TextBlock
             x:Name="NameText"
             Margin="4,1,4,0"
             VerticalAlignment="Top"
             FontSize="10"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            LineHeight="11"
+            LineStackingStrategy="BlockLineHeight"
             MaxLines="1"
             Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap" />
 
         <!--  current value and unit  -->
-        <!--  (breaks between value and unit when both do not fit one line)  -->
+        <!--  (breaks between value and unit when both do not fit one line; LineHeight is the knob for that gap)  -->
         <TextBlock
             Margin="4,0,4,1"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
             FontSize="10"
             Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+            LineHeight="13"
+            LineStackingStrategy="BlockLineHeight"
             MaxLines="2"
             Text="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}"
             TextTrimming="CharacterEllipsis"

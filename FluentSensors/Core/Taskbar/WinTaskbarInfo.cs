@@ -23,8 +23,14 @@ namespace FluentSensors.Core.Taskbar
         IntPtr Monitor // native monitor handle hosting this taskbar
     )
     {
+        // the small taskbar from the Windows taskbar size setting is really thinner, 32 DIP against the standard 48
+        // (measured on build 26300 at 175 percent scaling), so its thickness tells it apart without reading the setting
+        private const double CompactThicknessLimitDip = 40;
+
         // docked to the left or right screen edge, so its long axis runs top to bottom
         public bool IsVertical => Edge is ScreenEdge.Left or ScreenEdge.Right;
+
+        public bool IsCompact => Dpi > 0 && (IsVertical ? Rect.Width : Rect.Height) * 96.0 / Dpi < CompactThicknessLimitDip;
     }
 }
 

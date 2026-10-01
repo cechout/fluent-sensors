@@ -51,6 +51,9 @@ namespace FluentSensors.Features.TaskbarWidget
         // taskbar that is above and below the widget
         public const double InnerMarginDip = 2.5; // gap on the desktop side of the widget in DIP (1 mm = 3.78 DIP)
         public const double OuterMarginDip = 2.0; // gap on the screen edge side of the widget in DIP (1 mm = 3.78 DIP)
+        // the small taskbar sets its own buttons closer to its edges, so it gets its own pair (WinTaskbarInfo.IsCompact)
+        public const double CompactInnerMarginDip = 1.5; // gap on the desktop side on a small taskbar in DIP
+        public const double CompactOuterMarginDip = 1.0; // gap on the screen edge side on a small taskbar in DIP
         private const int AnchorOffsetDip = 10; // gap between the widget and the anchored end of the taskbar
         private const int TaskbarEndPaddingDip = 10; // minimum margin to both ends of the taskbar
         private const int SensorSlotWidthDip = 120; // width per pinned sensor slot
@@ -62,6 +65,8 @@ namespace FluentSensors.Features.TaskbarWidget
         private const double ButtonPaddingEndsDip = 4; // at both ends of the slot row
         private const double ButtonPaddingInnerDip = 0.5; // on the desktop side
         private const double ButtonPaddingOuterDip = 2.5; // on the screen edge side
+        private const double CompactButtonPaddingInnerDip = 0.5; // on the desktop side on a small taskbar
+        private const double CompactButtonPaddingOuterDip = 2.5; // on the screen edge side on a small taskbar
 
         // maybe a user setting?
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
@@ -83,31 +88,20 @@ namespace FluentSensors.Features.TaskbarWidget
         private WinTaskbarInfo? _dragTaskbar;
         private RectInt32 _currentScreenRect;
 
-        // drag offsets from the start of the taskbar, one per orientation; an offset dragged along a horizontal
-        // taskbar means nothing on a vertical one, so moving the taskbar to another edge keeps the other offset intact
-        private int _horizontalOffsetDip = AnchorOffsetDip;
-        private int _verticalOffsetDip = AnchorOffsetDip;
+        // drag offsets from the start of the taskbar, one per screen edge; every taskbar position keeps its own widget
+        // place, so moving the taskbar away and back finds the widget where it was left
+        private readonly Dictionary<ScreenEdge, int> _offsetsDip = new();
 
         // taskbar snapshot the widget was last laid out for; FollowTaskbar compares against it to skip polls that
         // only changed a secondary taskbar
         private WinTaskbarInfo? _placedTaskbar;
 
-        private bool IsVertical => _placedTaskbar?.IsVertical ?? false;
+        private ScreenEdge PlacedEdge => _placedTaskbar?.Edge ?? ScreenEdge.Bottom;
 
         private int CurrentOffsetDip
         {
-            get => IsVertical ? _verticalOffsetDip : _horizontalOffsetDip;
-            set
-            {
-                if (IsVertical)
-                {
-                    _verticalOffsetDip = value;
-                }
-                else
-                {
-                    _horizontalOffsetDip = value;
-                }
-            }
+            get => _offsetsDip.TryGetValue(PlacedEdge, out int offsetDip) ? offsetDip : AnchorOffsetDip;
+            set => _offsetsDip[PlacedEdge] = value;
         }
 
         // --- taskbar button animation settings ---
@@ -160,11 +154,13 @@ namespace FluentSensors.Features.TaskbarWidget
         // rebuild path: takes over the ViewModel of the window it replaces, so the pinned graphs keep their history
         // and the old instance leaves no second HardwareDataUpdated subscription behind
         // see TaskbarFlyoutWindow.ScheduleRecreation for why the window is rebuilt at all
-        private TaskbarWidgetWindow(TaskbarWidgetViewModel viewModel, int horizontalOffsetDip, int verticalOffsetDip, bool restoreFlyout)
+        private TaskbarWidgetWindow(TaskbarWidgetViewModel viewModel, Dictionary<ScreenEdge, int> offsetsDip, bool restoreFlyout)
         {
             ViewModel = viewModel;
-            _horizontalOffsetDip = horizontalOffsetDip;
-            _verticalOffsetDip = verticalOffsetDip;
+            foreach (var pair in offsetsDip)
+            {
+                _offsetsDip[pair.Key] = pair.Value;
+            }
             _isRebuild = true;
             _restoreFlyoutAfterEmbed = restoreFlyout;
             Initialize();
@@ -183,20 +179,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 // restore previously saved drag offsets along the taskbar if available
                 // a rebuild already carries the offsets of the window it replaces, see the rebuild constructor
-                //
-                // Y reads 0 in every file written before vertical taskbars were handled, and a dragged offset never
-                // gets below TaskbarEndPaddingDip, so 0 there means nothing was saved yet
                 if (!_isRebuild)
                 {
-                    var savedState = WindowStateService.Instance.GetState(WindowKey);
-                    if (savedState != null && savedState.X >= 0)
-                    {
-                        _horizontalOffsetDip = savedState.X;
-                    }
-                    if (savedState != null && savedState.Y > 0)
-                    {
-                        _verticalOffsetDip = savedState.Y;
-                    }
+                    LoadOffsets();
                 }
 
                 // --- workaround: CreateForContextMenu crashes unpackaged ---
@@ -424,8 +409,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 var live = CurrentInstance;
                 var carriedViewModel = live?.ViewModel;
-                int carriedHorizontalOffsetDip = live?._horizontalOffsetDip ?? AnchorOffsetDip;
-                int carriedVerticalOffsetDip = live?._verticalOffsetDip ?? AnchorOffsetDip;
+                var carriedOffsetsDip = new Dictionary<ScreenEdge, int>(live?._offsetsDip ?? new Dictionary<ScreenEdge, int>());
 
                 // the replacement window otherwise shows the pre-change accent: every rebuild trigger refreshes
                 // everything it rebuilds, and this carried ViewModel is precisely the thing that does not
@@ -450,9 +434,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 // one dispatcher hop, so the Close above drains before the replacement window is built
                 var queue = DispatcherQueue.GetForCurrentThread() ?? MainWindow.CurrentInstance?.DispatcherQueue;
-                if (queue == null || !queue.TryEnqueue(() => _ = new TaskbarWidgetWindow(carriedViewModel, carriedHorizontalOffsetDip, carriedVerticalOffsetDip, restoreFlyout)))
+                if (queue == null || !queue.TryEnqueue(() => _ = new TaskbarWidgetWindow(carriedViewModel, carriedOffsetsDip, restoreFlyout)))
                 {
-                    _ = new TaskbarWidgetWindow(carriedViewModel, carriedHorizontalOffsetDip, carriedVerticalOffsetDip, restoreFlyout);
+                    _ = new TaskbarWidgetWindow(carriedViewModel, carriedOffsetsDip, restoreFlyout);
                 }
             }
             finally
@@ -614,8 +598,8 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             double scale = taskbar.Dpi / 96.0;
             int lengthPx = (int)(CalculateWidgetLengthDip(ViewModel.PinnedSensors.Count) * scale);
-            int innerMarginPx = (int)Math.Round(InnerMarginDip * scale);
-            int outerMarginPx = (int)Math.Round(OuterMarginDip * scale);
+            int innerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactInnerMarginDip : InnerMarginDip) * scale);
+            int outerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactOuterMarginDip : OuterMarginDip) * scale);
 
             return TaskbarWidgetPlacement.Calculate(
                 taskbar,
@@ -649,6 +633,9 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             _placedTaskbar = taskbar;
 
+            // graph width, time range, flyout alignment and the side slot layout are kept per edge and follow it here
+            SettingsService.Instance.ActiveTaskbarEdge = taskbar.Edge.ToString();
+
             var slotsPanel = (ItemsPanelTemplate)RootGrid.Resources[taskbar.IsVertical ? "VerticalSlotsPanel" : "HorizontalSlotsPanel"];
             if (SlotsItemsControl.ItemsPanel != slotsPanel)
             {
@@ -663,12 +650,14 @@ namespace FluentSensors.Features.TaskbarWidget
 
             RefreshSideSlots();
 
+            double paddingInner = taskbar.IsCompact ? CompactButtonPaddingInnerDip : ButtonPaddingInnerDip;
+            double paddingOuter = taskbar.IsCompact ? CompactButtonPaddingOuterDip : ButtonPaddingOuterDip;
             TaskbarButton.Padding = taskbar.Edge switch
             {
-                ScreenEdge.Top => new Thickness(ButtonPaddingEndsDip, ButtonPaddingOuterDip, ButtonPaddingEndsDip, ButtonPaddingInnerDip),
-                ScreenEdge.Left => new Thickness(ButtonPaddingOuterDip, ButtonPaddingEndsDip, ButtonPaddingInnerDip, ButtonPaddingEndsDip),
-                ScreenEdge.Right => new Thickness(ButtonPaddingInnerDip, ButtonPaddingEndsDip, ButtonPaddingOuterDip, ButtonPaddingEndsDip),
-                _ => new Thickness(ButtonPaddingEndsDip, ButtonPaddingInnerDip, ButtonPaddingEndsDip, ButtonPaddingOuterDip)
+                ScreenEdge.Top => new Thickness(ButtonPaddingEndsDip, paddingOuter, ButtonPaddingEndsDip, paddingInner),
+                ScreenEdge.Left => new Thickness(paddingOuter, ButtonPaddingEndsDip, paddingInner, ButtonPaddingEndsDip),
+                ScreenEdge.Right => new Thickness(paddingInner, ButtonPaddingEndsDip, paddingOuter, ButtonPaddingEndsDip),
+                _ => new Thickness(ButtonPaddingEndsDip, paddingInner, ButtonPaddingEndsDip, paddingOuter)
             };
         }
 
@@ -741,15 +730,41 @@ namespace FluentSensors.Features.TaskbarWidget
             WidgetStateChanged?.Invoke();
         }
 
-        // writes the current taskbar offsets and open state to the window state store
-        // X and Y carry the drag offsets along a horizontal and a vertical taskbar, not a window position
+        // writes the open state to the shared window state and every known drag offset to the state of its edge
+        // (WindowKey + edge name), where X carries the offset rather than a window position
         private void SaveWindowState(bool wasOpen = true)
         {
             var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
-            state.X = _horizontalOffsetDip;
-            state.Y = _verticalOffsetDip;
             state.WasOpen = wasOpen;
             WindowStateService.Instance.SetState(WindowKey, state);
+
+            foreach (var pair in _offsetsDip)
+            {
+                var edgeState = WindowStateService.Instance.GetState(WindowKey + pair.Key) ?? new Persistence.Models.WindowState();
+                edgeState.X = pair.Value;
+                WindowStateService.Instance.SetState(WindowKey + pair.Key, edgeState);
+            }
+        }
+
+        // the counterpart of SaveWindowState
+        // an edge without a state of its own yet takes the offset the shared state held before every edge had one,
+        // which was always a horizontal one, so only the bottom and top edge inherit it
+        private void LoadOffsets()
+        {
+            var shared = WindowStateService.Instance.GetState(WindowKey);
+
+            foreach (var edge in Enum.GetValues<ScreenEdge>())
+            {
+                var edgeState = WindowStateService.Instance.GetState(WindowKey + edge);
+                if (edgeState != null && edgeState.X >= 0)
+                {
+                    _offsetsDip[edge] = edgeState.X;
+                }
+                else if (shared != null && shared.X >= 0 && edge is ScreenEdge.Bottom or ScreenEdge.Top)
+                {
+                    _offsetsDip[edge] = shared.X;
+                }
+            }
         }
 
         // --- memory leak: TaskbarWidgetWindow never released after close ---
