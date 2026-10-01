@@ -61,12 +61,18 @@ namespace FluentSensors.Features.TaskbarWidget
         private const int ButtonPaddingDip = 0; // inner horizontal padding of the taskbar button
         private const int MinimumWidgetLengthDip = 60; // fallback length along the taskbar when no sensors are pinned
 
-        // padding inside the taskbar button, mapped onto the taskbar edge the same way as the margins above
+        // padding inside the taskbar button, in the frame of the graph rather than of the taskbar edge: the graph is not
+        // symmetric by itself (SensorPanelControl keeps a 3 DIP gap above it for its hidden label row, the chart reaches
+        // 2 DIP below its card), and that stays with the graph whichever edge the taskbar sits on, see ApplyButtonPadding
+        // calibrated on the bottom taskbar, where the graph top faces the desktop
         private const double ButtonPaddingEndsDip = 4; // at both ends of the slot row
-        private const double ButtonPaddingInnerDip = 0.5; // on the desktop side
-        private const double ButtonPaddingOuterDip = 2.5; // on the screen edge side
-        private const double CompactButtonPaddingInnerDip = -0.3; // on the desktop side on a small taskbar
-        private const double CompactButtonPaddingOuterDip = 1.7; // on the screen edge side on a small taskbar
+        private const double ButtonPaddingGraphTopDip = 0.5; // on the side of the graph top
+        private const double ButtonPaddingGraphBottomDip = 2.5; // on the side of the graph baseline
+        private const double CompactButtonPaddingGraphTopDip = -0.3; // on the side of the graph top on a small taskbar
+        private const double CompactButtonPaddingGraphBottomDip = 1.7; // on the side of the graph baseline on a small taskbar
+        // an unturned graph on a side taskbar has its top and bottom along the taskbar, so across it the graph is
+        // symmetric and gets one padding on both sides; a first guess, not calibrated yet
+        private const double SideButtonPaddingAcrossDip = 1.5;
 
         // maybe a user setting?
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
@@ -649,15 +655,26 @@ namespace FluentSensors.Features.TaskbarWidget
             }
 
             RefreshSideSlots();
+            ApplyButtonPadding(taskbar);
+        }
 
-            double paddingInner = taskbar.IsCompact ? CompactButtonPaddingInnerDip : ButtonPaddingInnerDip;
-            double paddingOuter = taskbar.IsCompact ? CompactButtonPaddingOuterDip : ButtonPaddingOuterDip;
+        // the padding follows the graph, not the edge, unlike the margins in CalculateScreenRect:
+        // bottom and top - the graph stands upright on both, so both get the bottom calibration unmirrored
+        // left and right, turned graph - its baseline sits on the screen edge side, which puts its top toward the
+        //   desktop just like on the bottom taskbar
+        // left and right, unturned graph - symmetric across the taskbar, SideButtonPaddingAcrossDip on both sides
+        private void ApplyButtonPadding(WinTaskbarInfo taskbar)
+        {
+            double graphTop = taskbar.IsCompact ? CompactButtonPaddingGraphTopDip : ButtonPaddingGraphTopDip;
+            double graphBottom = taskbar.IsCompact ? CompactButtonPaddingGraphBottomDip : ButtonPaddingGraphBottomDip;
+            bool isGraphTurned = TaskbarSideSlot.TurnsGraph(SettingsService.Instance.TaskbarSideGraphDirection);
+
             TaskbarButton.Padding = taskbar.Edge switch
             {
-                ScreenEdge.Top => new Thickness(ButtonPaddingEndsDip, paddingOuter, ButtonPaddingEndsDip, paddingInner),
-                ScreenEdge.Left => new Thickness(paddingOuter, ButtonPaddingEndsDip, paddingInner, ButtonPaddingEndsDip),
-                ScreenEdge.Right => new Thickness(paddingInner, ButtonPaddingEndsDip, paddingOuter, ButtonPaddingEndsDip),
-                _ => new Thickness(ButtonPaddingEndsDip, paddingInner, ButtonPaddingEndsDip, paddingOuter)
+                ScreenEdge.Left when isGraphTurned => new Thickness(graphBottom, ButtonPaddingEndsDip, graphTop, ButtonPaddingEndsDip),
+                ScreenEdge.Right when isGraphTurned => new Thickness(graphTop, ButtonPaddingEndsDip, graphBottom, ButtonPaddingEndsDip),
+                ScreenEdge.Left or ScreenEdge.Right => new Thickness(SideButtonPaddingAcrossDip, ButtonPaddingEndsDip, SideButtonPaddingAcrossDip, ButtonPaddingEndsDip),
+                _ => new Thickness(ButtonPaddingEndsDip, graphTop, ButtonPaddingEndsDip, graphBottom)
             };
         }
 
@@ -896,9 +913,18 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        // the button padding depends on whether the graph is turned, see ApplyButtonPadding
         private void OnTaskbarSideGraphDirectionChanged(string newDirection)
         {
-            this.DispatcherQueue.TryEnqueue(RefreshSideSlots);
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                RefreshSideSlots();
+
+                if (_placedTaskbar != null)
+                {
+                    ApplyButtonPadding(_placedTaskbar);
+                }
+            });
         }
 
         private void OnTaskbarSideTitleLinesChanged(int newLines)

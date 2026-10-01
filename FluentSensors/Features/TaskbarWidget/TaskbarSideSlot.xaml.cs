@@ -58,6 +58,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === public methods ===
 
+        public static bool TurnsGraph(string graphDirection) => graphDirection is "TopToBottom" or "BottomToTop";
+
         // turns the graph so its values run in the picked direction, with the graph baseline on the screen edge side:
         // RightToLeft - not turned, the same graph as on a horizontal taskbar
         // TopToBottom - counterclockwise, newest value at the top, baseline on the right
