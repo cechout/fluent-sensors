@@ -17,6 +17,7 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 IsGraphHoverEnabled="False"
+                LabelRowSpacing="0"
                 ShowGraphCardBackground="{x:Bind ViewModel.IsCardBackgroundVisible, Mode=OneWay}"
                 ShowGraphCardBorder="False"
                 ShowGraphLabel="False"
@@ -45,8 +46,9 @@
             TextWrapping="NoWrap" />
 
         <!--  current value and unit  -->
-        <!--  (breaks between value and unit when both do not fit one line; LineHeight is the knob for that gap)  -->
+        <!--  (the unit is left out when both do not fit the slot width, see FitValueText; LineHeight sets the line box)  -->
         <TextBlock
+            x:Name="ValueText"
             Margin="4,0,4,1"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
@@ -54,10 +56,8 @@
             Foreground="{ThemeResource TextFillColorPrimaryBrush}"
             LineHeight="13"
             LineStackingStrategy="BlockLineHeight"
-            MaxLines="2"
-            Text="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}"
-            TextTrimming="CharacterEllipsis"
-            TextWrapping="WrapWholeWords"
+            Text="{x:Bind FitValueText(ViewModel.CurrentValueText, SlotWidth), Mode=OneWay}"
+            TextWrapping="NoWrap"
             Typography.NumeralAlignment="Tabular" />
     </Grid>
 </UserControl>

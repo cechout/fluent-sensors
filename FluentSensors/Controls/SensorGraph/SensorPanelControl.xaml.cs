@@ -248,6 +248,21 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
+        // gap between the label row and the graph
+        // the grid keeps it even while both label rows are hidden, so the graph then starts this far below an empty
+        // row; layouts that size the graph against outside edges, like the taskbar slots, set it to 0
+        public double LabelRowSpacing
+        {
+            get => (double)GetValue(LabelRowSpacingProperty);
+            set => SetValue(LabelRowSpacingProperty, value);
+        }
+        public static readonly DependencyProperty LabelRowSpacingProperty =
+            DependencyProperty.Register(
+                nameof(LabelRowSpacing),
+                typeof(double),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(3.0));
+
         // toggles visibility of sensor name inside graph header overlay
         public bool ShowGraphName
         {

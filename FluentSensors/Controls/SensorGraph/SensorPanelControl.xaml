@@ -13,7 +13,7 @@
     fhUi:FocusGroup.IsEnabled="True"
     mc:Ignorable="d">
 
-    <Grid Background="Transparent" RowSpacing="3">
+    <Grid Background="Transparent" RowSpacing="{x:Bind LabelRowSpacing, Mode=OneWay}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
