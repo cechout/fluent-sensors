@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:local="using:FluentSensors.Features.TaskbarWidget"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Taskbar Widget"
     mc:Ignorable="d">
@@ -13,13 +14,38 @@
     <!--  background has to stay transparent; an opaque root paints over the backdrop  -->
     <Grid x:Name="RootGrid" Background="Transparent">
         <Grid.Resources>
-            <!--  slot panels, picked by the taskbar orientation in TaskbarWidgetWindow.ApplyEdgeLayout  -->
+            <!--  slot panels and templates, picked by the taskbar orientation in ApplyEdgeLayout  -->
             <ItemsPanelTemplate x:Key="HorizontalSlotsPanel">
                 <fhControls:HorizontalStretchPanel Spacing="6" />
             </ItemsPanelTemplate>
             <ItemsPanelTemplate x:Key="VerticalSlotsPanel">
                 <fhControls:VerticalStretchPanel Spacing="6" />
             </ItemsPanelTemplate>
+
+            <!--  slot on a horizontal taskbar: graph with name and value in its top row  -->
+            <DataTemplate x:Key="HorizontalSlotTemplate" x:DataType="fhGraph:SensorGraphViewModel">
+                <fhGraph:SensorPanelControl
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    IsGraphHoverEnabled="False"
+                    IsHitTestVisible="False"
+                    ShowGraphCardBackground="{x:Bind IsCardBackgroundVisible, Mode=OneWay}"
+                    ShowGraphCardBorder="False"
+                    ShowGraphLabel="True"
+                    ShowStatusRow="False"
+                    ShowThresholdControls="False"
+                    ShowThresholdFlyoutIndicator="False"
+                    ShowYAxisControls="False"
+                    ThresholdLabelAlwaysVisible="False"
+                    UseGraphColorCardBackground="True"
+                    ViewModel="{x:Bind}" />
+            </DataTemplate>
+
+            <!--  slot on a side taskbar  -->
+            <!--  (layout pushed from code once loaded, see TaskbarWidgetWindow.ApplySideSlotLayout)  -->
+            <DataTemplate x:Key="SideSlotTemplate" x:DataType="fhGraph:SensorGraphViewModel">
+                <local:TaskbarSideSlot Loaded="SideSlot_Loaded" ViewModel="{x:Bind}" />
+            </DataTemplate>
         </Grid.Resources>
 
         <!--  the entire taskbar widget is one unified button containing all sensor graphs  -->
@@ -133,31 +159,12 @@
             </Button.Template>
 
             <!--  list of compact sensor graphs along the taskbar  -->
-            <!--  (stretching equally across the widget length, panel from RootGrid.Resources)  -->
+            <!--  (stretching equally across the widget length, panel and template from RootGrid.Resources)  -->
             <ItemsControl
                 x:Name="SlotsItemsControl"
+                ItemTemplate="{StaticResource HorizontalSlotTemplate}"
                 ItemsPanel="{StaticResource HorizontalSlotsPanel}"
-                ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
-                        <fhGraph:SensorPanelControl
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch"
-                            IsGraphHoverEnabled="False"
-                            IsHitTestVisible="False"
-                            ShowGraphCardBackground="{x:Bind IsCardBackgroundVisible, Mode=OneWay}"
-                            ShowGraphCardBorder="False"
-                            ShowGraphLabel="True"
-                            ShowStatusRow="False"
-                            ShowThresholdControls="False"
-                            ShowThresholdFlyoutIndicator="False"
-                            ShowYAxisControls="False"
-                            ThresholdLabelAlwaysVisible="False"
-                            UseGraphColorCardBackground="True"
-                            ViewModel="{x:Bind}" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}" />
         </Button>
     </Grid>
 </Window>

@@ -224,6 +224,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow.Closing += AppWindow_Closing;
 
                 SettingsService.Instance.TaskbarGraphWidthChanged += OnTaskbarGraphWidthChanged;
+                SettingsService.Instance.TaskbarSideGraphDirectionChanged += OnTaskbarSideGraphDirectionChanged;
+                SettingsService.Instance.TaskbarSideTitleLinesChanged += OnTaskbarSideTitleLinesChanged;
                 ApplyWindowsTheme();
 
                 // wire left-button press/release/drag animations and movement even when Button internally handles clicks
@@ -367,6 +369,8 @@ namespace FluentSensors.Features.TaskbarWidget
             try
             {
                 SettingsService.Instance.TaskbarGraphWidthChanged -= OnTaskbarGraphWidthChanged;
+                SettingsService.Instance.TaskbarSideGraphDirectionChanged -= OnTaskbarSideGraphDirectionChanged;
+                SettingsService.Instance.TaskbarSideTitleLinesChanged -= OnTaskbarSideTitleLinesChanged;
                 StopTrackingTaskbar();
             }
             catch { }
@@ -637,8 +641,10 @@ namespace FluentSensors.Features.TaskbarWidget
             return Math.Clamp(offsetPx, minOffset, maxOffset);
         }
 
-        // turns the slot row and the button padding to the edge the taskbar sits on; the slot panel is only swapped
-        // when the orientation actually changes, a new panel rebuilds every graph in the row
+        // turns the slot row and the button padding to the edge the taskbar sits on; the slot panel and template are
+        // only swapped when the orientation actually changes, a new panel or template rebuilds every graph in the row
+        //
+        // side slots that already exist still get the new edge, a move from the left to the right edge keeps them
         private void ApplyEdgeLayout(WinTaskbarInfo taskbar)
         {
             _placedTaskbar = taskbar;
@@ -648,6 +654,14 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 SlotsItemsControl.ItemsPanel = slotsPanel;
             }
+
+            var slotTemplate = (DataTemplate)RootGrid.Resources[taskbar.IsVertical ? "SideSlotTemplate" : "HorizontalSlotTemplate"];
+            if (SlotsItemsControl.ItemTemplate != slotTemplate)
+            {
+                SlotsItemsControl.ItemTemplate = slotTemplate;
+            }
+
+            RefreshSideSlots();
 
             TaskbarButton.Padding = taskbar.Edge switch
             {
@@ -821,6 +835,60 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 SensorGraphRenderingGate.SetActive(root, active);
             }
+        }
+
+
+        // === side taskbar slots ===
+
+        // a side slot gets its layout as soon as it exists; later changes reach it through RefreshSideSlots
+        private void SideSlot_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is TaskbarSideSlot slot)
+            {
+                ApplySideSlotLayout(slot);
+            }
+        }
+
+        private void ApplySideSlotLayout(TaskbarSideSlot slot)
+        {
+            slot.ApplyLayout(
+                _placedTaskbar?.Edge ?? ScreenEdge.Left,
+                SettingsService.Instance.TaskbarSideGraphDirection,
+                SettingsService.Instance.TaskbarSideTitleLines);
+        }
+
+        // walks the slot row the same way SensorGraphRenderingGate walks a graph subtree; on a horizontal taskbar it
+        // finds nothing and does nothing
+        private void RefreshSideSlots()
+        {
+            VisitSideSlots(SlotsItemsControl);
+        }
+
+        private void VisitSideSlots(DependencyObject parent)
+        {
+            int childCount = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < childCount; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+
+                if (child is TaskbarSideSlot slot)
+                {
+                    ApplySideSlotLayout(slot);
+                    continue;
+                }
+
+                VisitSideSlots(child);
+            }
+        }
+
+        private void OnTaskbarSideGraphDirectionChanged(string newDirection)
+        {
+            this.DispatcherQueue.TryEnqueue(RefreshSideSlots);
+        }
+
+        private void OnTaskbarSideTitleLinesChanged(int newLines)
+        {
+            this.DispatcherQueue.TryEnqueue(RefreshSideSlots);
         }
 
 

@@ -445,6 +445,38 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // graph direction in a slot on a side taskbar: "RightToLeft", "TopToBottom" or "BottomToTop"
+        private string _taskbarSideGraphDirection = Defaults.TaskbarSideGraphDirection;
+        public string TaskbarSideGraphDirection
+        {
+            get => _taskbarSideGraphDirection;
+            set
+            {
+                if (_taskbarSideGraphDirection != value)
+                {
+                    _taskbarSideGraphDirection = value;
+                    TaskbarSideGraphDirectionChanged?.Invoke(_taskbarSideGraphDirection);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // lines the sensor name may take in a slot on a side taskbar, 1 or 2
+        private int _taskbarSideTitleLines = Defaults.TaskbarSideTitleLines;
+        public int TaskbarSideTitleLines
+        {
+            get => _taskbarSideTitleLines;
+            set
+            {
+                if (_taskbarSideTitleLines != value)
+                {
+                    _taskbarSideTitleLines = value;
+                    TaskbarSideTitleLinesChanged?.Invoke(_taskbarSideTitleLines);
+                    SaveDebounced();
+                }
+            }
+        }
+
         // flyout horizontal placement over the taskbar widget: "Center", "Left" or "Right"
         private string _taskbarFlyoutAlignment = Defaults.TaskbarFlyoutAlignment;
         public string TaskbarFlyoutAlignment
@@ -829,6 +861,8 @@ namespace FluentSensors.Persistence.Services
             _taskbarGraphTimeSpanSeconds = data.TaskbarGraphTimeSpanSeconds;
             _taskbarGraphWidthDip = data.TaskbarGraphWidthDip;
             _taskbarUseTransparentGraphBackground = data.TaskbarUseTransparentGraphBackground;
+            _taskbarSideGraphDirection = data.TaskbarSideGraphDirection;
+            _taskbarSideTitleLines = data.TaskbarSideTitleLines;
             _taskbarFlyoutAlignment = data.TaskbarFlyoutAlignment;
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
 
@@ -888,6 +922,8 @@ namespace FluentSensors.Persistence.Services
                 TaskbarGraphTimeSpanSeconds = _taskbarGraphTimeSpanSeconds,
                 TaskbarGraphWidthDip = _taskbarGraphWidthDip,
                 TaskbarUseTransparentGraphBackground = _taskbarUseTransparentGraphBackground,
+                TaskbarSideGraphDirection = _taskbarSideGraphDirection,
+                TaskbarSideTitleLines = _taskbarSideTitleLines,
                 TaskbarFlyoutAlignment = _taskbarFlyoutAlignment,
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
 
@@ -958,6 +994,8 @@ namespace FluentSensors.Persistence.Services
         public event Action<double> TaskbarGraphTimeSpanChanged;
         public event Action<int> TaskbarGraphWidthChanged;
         public event Action<bool> TaskbarGraphBackgroundChanged;
+        public event Action<string> TaskbarSideGraphDirectionChanged;
+        public event Action<int> TaskbarSideTitleLinesChanged;
         public event Action<string> TaskbarFlyoutAlignmentChanged;
         public event Action<bool> TaskbarWidgetPositionLockedChanged;
 

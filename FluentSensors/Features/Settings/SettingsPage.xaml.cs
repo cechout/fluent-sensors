@@ -53,6 +53,7 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarGraphBackgroundSourceSelection();
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarGraphWidthSelection();
+            RestoreTaskbarSideSlotSelection();
             RestoreTaskbarFlyoutAlignmentSelection();
             RestoreLockWidgetPositionSelection();
 
@@ -934,6 +935,33 @@ namespace FluentSensors.Features.Settings
         private void RestoreTaskbarGraphWidthSelection()
         {
             TaskbarGraphWidthSlider.Value = SettingsService.Instance.TaskbarGraphWidthDip;
+        }
+
+        // slot layout on a side taskbar
+        private void TaskbarSideGraphDirectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarSideGraphDirectionComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarSideGraphDirection = tag;
+            }
+        }
+
+        private void TaskbarSideTitleLinesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarSideTitleLinesComboBox.SelectedItem is ComboBoxItem item && int.TryParse(item.Tag?.ToString(), out int lines))
+            {
+                SettingsService.Instance.TaskbarSideTitleLines = lines;
+            }
+        }
+
+        private void RestoreTaskbarSideSlotSelection()
+        {
+            SelectByTag(TaskbarSideGraphDirectionComboBox, SettingsService.Instance.TaskbarSideGraphDirection);
+            SelectByTag(TaskbarSideTitleLinesComboBox, SettingsService.Instance.TaskbarSideTitleLines.ToString());
         }
 
         // flyout alignment over the widget

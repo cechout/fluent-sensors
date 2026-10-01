@@ -461,7 +461,7 @@
             <!--  taskbar graph appearance  -->
             <controls:SettingsExpander
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Taskbar graph color, background, time range and graph Width"
+                Description="Taskbar graph color, background, time range, graph Width and side taskbar layout"
                 Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
@@ -520,6 +520,27 @@
                             StepFrequency="5"
                             TickFrequency="20"
                             ValueChanged="TaskbarGraphWidthSlider_ValueChanged" />
+                    </controls:SettingsCard>
+
+                    <!--  side taskbar slot, only used while the taskbar sits on the left or right  -->
+                    <controls:SettingsCard Description="When the taskbar is on the left or right" Header="Side Taskbar Graph Direction">
+                        <ComboBox
+                            x:Name="TaskbarSideGraphDirectionComboBox"
+                            Width="160"
+                            SelectionChanged="TaskbarSideGraphDirectionComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Right to Left" Tag="RightToLeft" />
+                            <ComboBoxItem Content="Top to Bottom" Tag="TopToBottom" />
+                            <ComboBoxItem Content="Bottom to Top" Tag="BottomToTop" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Description="When the taskbar is on the left or right" Header="Side Taskbar Name Lines">
+                        <ComboBox
+                            x:Name="TaskbarSideTitleLinesComboBox"
+                            Width="160"
+                            SelectionChanged="TaskbarSideTitleLinesComboBox_SelectionChanged">
+                            <ComboBoxItem Content="One Line" Tag="1" />
+                            <ComboBoxItem Content="Two Lines" Tag="2" />
+                        </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

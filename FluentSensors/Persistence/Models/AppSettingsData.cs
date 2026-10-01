@@ -107,6 +107,13 @@ namespace FluentSensors.Persistence.Models
         public double TaskbarGraphTimeSpanSeconds { get; set; } = 35;
         public int TaskbarGraphWidthDip { get; set; } = 100;
 
+        // side taskbar slot:
+        // only used while the taskbar sits on the left or right screen edge
+        // graph direction: "RightToLeft" (as on a horizontal taskbar), "TopToBottom" or "BottomToTop", named after the
+        // way the values run, so "TopToBottom" brings new values in at the top
+        public string TaskbarSideGraphDirection { get; set; } = "RightToLeft";
+        public int TaskbarSideTitleLines { get; set; } = 1; // 1 or 2 lines for the sensor name
+
         // flyout alignment
         // flyout horizontal placement over the taskbar widget: "Center", "Left" or "Right"
         public string TaskbarFlyoutAlignment { get; set; } = "Center";
