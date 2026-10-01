@@ -447,11 +447,7 @@
 
             <!--  taskbar position the per position settings below belong to  -->
             <!--  (the position is filled in at runtime from the edge the taskbar sits on)  -->
-            <controls:SettingsCard
-                fhUi:FocusGroup.IsEnabled="True"
-                Description="Time range, graph width, flyout alignment and widget position are kept for each position"
-                Header="Taskbar Position"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE7C2;}">
+            <controls:SettingsCard fhUi:FocusGroup.IsEnabled="True" Header="Current Taskbar Position">
                 <TextBlock x:Name="TaskbarPositionText" VerticalAlignment="Center" />
             </controls:SettingsCard>
 
