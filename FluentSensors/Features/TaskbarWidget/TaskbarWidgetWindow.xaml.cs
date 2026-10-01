@@ -70,9 +70,6 @@ namespace FluentSensors.Features.TaskbarWidget
         private const double ButtonPaddingGraphBottomDip = 2.5; // on the side of the graph baseline
         private const double CompactButtonPaddingGraphTopDip = -0.3; // on the side of the graph top on a small taskbar
         private const double CompactButtonPaddingGraphBottomDip = 1.7; // on the side of the graph baseline on a small taskbar
-        // an unturned graph on a side taskbar has its top and bottom along the taskbar, so across it the graph is
-        // symmetric and gets one padding on both sides; a first guess, not calibrated yet
-        private const double SideButtonPaddingAcrossDip = 1.5;
 
         // maybe a user setting?
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
@@ -607,6 +604,12 @@ namespace FluentSensors.Features.TaskbarWidget
             int innerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactInnerMarginDip : InnerMarginDip) * scale);
             int outerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactOuterMarginDip : OuterMarginDip) * scale);
 
+            // a side taskbar centers the widget across it, with the smaller of the two gaps on both sides
+            if (taskbar.IsVertical)
+            {
+                innerMarginPx = outerMarginPx = Math.Min(innerMarginPx, outerMarginPx);
+            }
+
             return TaskbarWidgetPlacement.Calculate(
                 taskbar,
                 Anchor,
@@ -660,22 +663,17 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // the padding follows the graph, not the edge, unlike the margins in CalculateScreenRect:
         // bottom and top - the graph stands upright on both, so both get the bottom calibration unmirrored
-        // left and right, turned graph - its baseline sits on the screen edge side, which puts its top toward the
-        //   desktop just like on the bottom taskbar
-        // left and right, unturned graph - symmetric across the taskbar, SideButtonPaddingAcrossDip on both sides
+        // left and right - the graphs are centered across the taskbar, with the smaller of the two paddings on both
+        //   sides, in every graph direction
         private void ApplyButtonPadding(WinTaskbarInfo taskbar)
         {
             double graphTop = taskbar.IsCompact ? CompactButtonPaddingGraphTopDip : ButtonPaddingGraphTopDip;
             double graphBottom = taskbar.IsCompact ? CompactButtonPaddingGraphBottomDip : ButtonPaddingGraphBottomDip;
-            bool isGraphTurned = TaskbarSideSlot.TurnsGraph(SettingsService.Instance.TaskbarSideGraphDirection);
 
-            TaskbarButton.Padding = taskbar.Edge switch
-            {
-                ScreenEdge.Left when isGraphTurned => new Thickness(graphBottom, ButtonPaddingEndsDip, graphTop, ButtonPaddingEndsDip),
-                ScreenEdge.Right when isGraphTurned => new Thickness(graphTop, ButtonPaddingEndsDip, graphBottom, ButtonPaddingEndsDip),
-                ScreenEdge.Left or ScreenEdge.Right => new Thickness(SideButtonPaddingAcrossDip, ButtonPaddingEndsDip, SideButtonPaddingAcrossDip, ButtonPaddingEndsDip),
-                _ => new Thickness(ButtonPaddingEndsDip, graphTop, ButtonPaddingEndsDip, graphBottom)
-            };
+            double across = Math.Min(graphTop, graphBottom);
+            TaskbarButton.Padding = taskbar.IsVertical
+                ? new Thickness(across, ButtonPaddingEndsDip, across, ButtonPaddingEndsDip)
+                : new Thickness(ButtonPaddingEndsDip, graphTop, ButtonPaddingEndsDip, graphBottom);
         }
 
         // the startup slide comes in from the screen edge the taskbar is docked to
@@ -913,18 +911,9 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // the button padding depends on whether the graph is turned, see ApplyButtonPadding
         private void OnTaskbarSideGraphDirectionChanged(string newDirection)
         {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                RefreshSideSlots();
-
-                if (_placedTaskbar != null)
-                {
-                    ApplyButtonPadding(_placedTaskbar);
-                }
-            });
+            this.DispatcherQueue.TryEnqueue(RefreshSideSlots);
         }
 
         private void OnTaskbarSideTitleLinesChanged(int newLines)
