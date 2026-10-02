@@ -238,20 +238,37 @@
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource SubtleBarButtonStyle}" />
 
-                    <!--  close the taskbar widget  -->
-                    <Button
-                        x:Name="CloseWidgetButton"
-                        Width="38"
-                        Height="{StaticResource FlyoutBarButtonHeight}"
-                        Padding="0"
-                        HorizontalAlignment="Right"
-                        AutomationProperties.Name="Close Taskbar Widget"
-                        Click="CloseWidget_Click"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{StaticResource SubtleBarButtonStyle}"
-                        ToolTipService.ToolTip="Close Taskbar Widget">
-                        <FontIcon FontSize="14" Glyph="&#xE711;" />
-                    </Button>
+                    <!--  taskbar widget settings and close, at the right end  -->
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+
+                        <!--  open the settings page on its taskbar section  -->
+                        <Button
+                            x:Name="TaskbarSettingsButton"
+                            Width="38"
+                            Height="{StaticResource FlyoutBarButtonHeight}"
+                            Padding="0"
+                            AutomationProperties.Name="Taskbar Widget Settings"
+                            Click="TaskbarSettings_Click"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource SubtleBarButtonStyle}"
+                            ToolTipService.ToolTip="Taskbar Widget Settings">
+                            <FontIcon FontSize="14" Glyph="&#xE713;" />
+                        </Button>
+
+                        <!--  close the taskbar widget  -->
+                        <Button
+                            x:Name="CloseWidgetButton"
+                            Width="38"
+                            Height="{StaticResource FlyoutBarButtonHeight}"
+                            Padding="0"
+                            AutomationProperties.Name="Close Taskbar Widget"
+                            Click="CloseWidget_Click"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource SubtleBarButtonStyle}"
+                            ToolTipService.ToolTip="Close Taskbar Widget">
+                            <FontIcon FontSize="14" Glyph="&#xE711;" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
         </Grid>

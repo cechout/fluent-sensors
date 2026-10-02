@@ -414,7 +414,9 @@
 
 
             <!--  taskbar widget & flyout appearance settings  -->
+            <!--  (the jump target of the gear button in the taskbar flyout, see ScrollToTaskbarSection)  -->
             <TextBlock
+                x:Name="TaskbarSectionHeader"
                 Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Taskbar Widget &amp; Flyout Appearance" />

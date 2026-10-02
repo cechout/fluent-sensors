@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
 
@@ -35,6 +36,9 @@ namespace FluentSensors.Features.Settings
         // the flyout shortcut button records the next key combination; the key up after it is swallowed too
         private bool _isCapturingShortcut;
         private bool _isSwallowingShortcutKeyUp;
+
+        // the gear button of the taskbar flyout asked for the taskbar section before the page was loaded
+        private bool _isTaskbarSectionScrollPending;
 
 
         // === constructor ===
@@ -126,6 +130,12 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnTimeRangeChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged += OnTimeRangeChanged;
             OnTimeRangesChanged();
+
+            if (_isTaskbarSectionScrollPending)
+            {
+                _isTaskbarSectionScrollPending = false;
+                QueueScrollToTaskbarSection();
+            }
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -169,6 +179,30 @@ namespace FluentSensors.Features.Settings
         }
 
         private void OnTimeRangeChanged(double newTimeSpanSeconds) => OnTimeRangesChanged();
+
+        // the taskbar section at the top, for the gear button of the taskbar flyout; a page that is not loaded yet
+        // (first visit, or back from the navigation cache) scrolls once it is
+        public void ScrollToTaskbarSection()
+        {
+            if (IsLoaded) QueueScrollToTaskbarSection();
+            else _isTaskbarSectionScrollPending = true;
+        }
+
+        // at Low priority, after the layout pass; the target reaches up over the header margin, so the gap above the
+        // heading stays in view
+        private void QueueScrollToTaskbarSection()
+        {
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            {
+                double gap = TaskbarSectionHeader.Margin.Top;
+                TaskbarSectionHeader.StartBringIntoView(new BringIntoViewOptions
+                {
+                    TargetRect = new Rect(0, -gap, TaskbarSectionHeader.ActualWidth, TaskbarSectionHeader.ActualHeight + gap),
+                    VerticalAlignmentRatio = 0,
+                    AnimationDesired = true
+                });
+            });
+        }
 
         // for writes from outside this page; a write from here echoes back and would reset the control mid handler
         private void OnStatusReadoutChanged()

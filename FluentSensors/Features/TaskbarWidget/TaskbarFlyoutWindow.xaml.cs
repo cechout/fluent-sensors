@@ -1243,6 +1243,22 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        private void TaskbarSettings_Click(object sender, RoutedEventArgs e)
+        {
+            HideFlyout();
+
+            if (MainWindow.CurrentInstance != null)
+            {
+                MainWindow.CurrentInstance.OpenTaskbarSettings();
+            }
+            else
+            {
+                var newMainWindow = new MainWindow();
+                newMainWindow.Activate();
+                newMainWindow.OpenTaskbarSettings();
+            }
+        }
+
         private void CloseWidget_Click(object sender, RoutedEventArgs e)
         {
             HideFlyout();
