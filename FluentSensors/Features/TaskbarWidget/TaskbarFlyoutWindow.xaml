@@ -21,6 +21,25 @@
         BorderThickness="1"
         CornerRadius="8">
 
+        <!--
+            layout: insets and heights of the rows; the height math in code-behind reads these keys, so the window
+            always fits its rows
+        -->
+        <Border.Resources>
+            <!--  graph list; (a margin, not padding on the surface, so the scrollbar rides the window edge)  -->
+            <Thickness x:Key="FlyoutGraphsMargin">4,9,4,8</Thickness>
+            <x:Double x:Key="FlyoutGraphSpacing">8</x:Double>
+
+            <!--  title row and bottom bar; (the title row is the bar without its separator)  -->
+            <Thickness x:Key="FlyoutBarPadding">6,5,6,5</Thickness>
+            <x:Double x:Key="FlyoutBarButtonHeight">36</x:Double>
+            <Thickness x:Key="FlyoutBottomBarSeparatorThickness">0,1,0,0</Thickness>
+
+            <!--  time range row  -->
+            <Thickness x:Key="FlyoutTimeRangeRowPadding">4,5,4,5</Thickness>
+            <x:Double x:Key="FlyoutTimeRangePickerHeight">22</x:Double>
+        </Border.Resources>
+
         <Grid x:Name="RootGrid" Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -57,8 +76,11 @@
                 </Grid.RowDefinitions>
 
                 <!--  title row: title, shortcut hint and snapshot button  -->
-                <!--  (the height and padding of the bottom bar, set from code)  -->
-                <Grid x:Name="TitleRowGrid" Grid.Row="0">
+                <!--  (the height and padding of the bottom bar)  -->
+                <Grid
+                    x:Name="TitleRowGrid"
+                    Grid.Row="0"
+                    Padding="{StaticResource FlyoutBarPadding}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -90,10 +112,10 @@
                         Visibility="Collapsed">
                         <StackPanel.Resources>
                             <Style x:Key="ShortcutKeyBorderStyle" TargetType="Border">
-                                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrongStrokeColorDefaultBrush}" />
+                                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
                                 <Setter Property="BorderThickness" Value="1" />
                                 <Setter Property="CornerRadius" Value="2" />
-                                <Setter Property="Padding" Value="2,0,2,0" />
+                                <Setter Property="Padding" Value="3,0,3,0" />
                             </Style>
                             <Style
                                 x:Key="ShortcutKeyTextStyle"
@@ -101,6 +123,7 @@
                                 TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
                                 <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="FontSize" Value="10" />
                             </Style>
                         </StackPanel.Resources>
                     </StackPanel>
@@ -111,6 +134,7 @@
                         x:Name="PauseButton"
                         Grid.Column="2"
                         Width="38"
+                        Height="{StaticResource FlyoutBarButtonHeight}"
                         Padding="0"
                         HorizontalAlignment="Right"
                         Click="PauseButton_Click"
@@ -120,7 +144,8 @@
                     </Button>
                 </Grid>
 
-                <!--  scrolls only once the pinned sensors pass the height cap (switched in ApplyGraphsScrollMode)  -->
+                <!--  content  -->
+                <!--  (scrolls only once the pinned sensors pass the height cap; switched in ApplyGraphsScrollMode)  -->
                 <ScrollViewer
                     x:Name="GraphsScrollViewer"
                     Grid.Row="1"
@@ -129,10 +154,13 @@
                     VerticalScrollBarVisibility="Disabled"
                     VerticalScrollMode="Disabled"
                     ZoomMode="Disabled">
-                    <ItemsControl x:Name="GraphsItemsControl" ItemsSource="{x:Bind ViewModel.FlyoutSensors, Mode=OneWay}">
+                    <ItemsControl
+                        x:Name="GraphsItemsControl"
+                        Margin="{StaticResource FlyoutGraphsMargin}"
+                        ItemsSource="{x:Bind ViewModel.FlyoutSensors, Mode=OneWay}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <fhControls:VerticalStretchPanel />
+                                <fhControls:VerticalStretchPanel Spacing="{StaticResource FlyoutGraphSpacing}" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
 
@@ -152,9 +180,11 @@
                 <Grid
                     x:Name="TimeRangeRowGrid"
                     Grid.Row="2"
+                    Padding="{StaticResource FlyoutTimeRangeRowPadding}"
                     fhUi:FocusGroup.IsEnabled="True">
                     <fhTimeRange:TimeRangePickerControl
                         x:Name="TaskbarTimeRangePicker"
+                        Height="{StaticResource FlyoutTimeRangePickerHeight}"
                         AccessibleName="Taskbar Time Range"
                         Label="Taskbar"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
@@ -162,6 +192,7 @@
 
                     <fhTimeRange:TimeRangePickerControl
                         x:Name="FlyoutTimeRangePicker"
+                        Height="{StaticResource FlyoutTimeRangePickerHeight}"
                         HorizontalAlignment="Right"
                         AccessibleName="Flyout Time Range"
                         Label="Flyout"
@@ -178,14 +209,18 @@
                 Margin="0,0,0,1"
                 Background="{ThemeResource FlyoutBottomBarBackground}"
                 BorderBrush="{ThemeResource FlyoutBottomBarSeparatorBrush}"
-                BorderThickness="0,1,0,0"
+                BorderThickness="{StaticResource FlyoutBottomBarSeparatorThickness}"
                 CornerRadius="0,0,7,7">
 
-                <Grid x:Name="BottomBarContentGrid" fhUi:FocusGroup.IsEnabled="True">
+                <Grid
+                    x:Name="BottomBarContentGrid"
+                    Padding="{StaticResource FlyoutBarPadding}"
+                    fhUi:FocusGroup.IsEnabled="True">
 
                     <!--  open the sensor list on the taskbar profile  -->
                     <Button
                         x:Name="BackToDashboardButton"
+                        Height="{StaticResource FlyoutBarButtonHeight}"
                         Padding="11,0,11,0"
                         HorizontalAlignment="Left"
                         Click="BackToDashboard_Click"
@@ -198,6 +233,7 @@
                     <Button
                         x:Name="CloseWidgetButton"
                         Width="38"
+                        Height="{StaticResource FlyoutBarButtonHeight}"
                         Padding="0"
                         HorizontalAlignment="Right"
                         AutomationProperties.Name="Close Taskbar Widget"
