@@ -193,24 +193,25 @@ namespace FluentSensors.Features.TaskbarWidget
         // --- flyout layout ---
 
         // the interior insets; (the graphs inset is a margin on the list, not padding on the surface, so the
-        // scrollbar rides the window edge)
-        public static readonly Thickness FlyoutGraphsMargin = new Thickness(4, 6, 4, 2);
-        public static readonly Thickness FlyoutTitleRowPadding = new Thickness(8, 6, 4, 0);
-        public static readonly Thickness FlyoutTimeRangeRowPadding = new Thickness(4, 0, 4, 4);
+        // scrollbar rides the window edge; the title row takes FlyoutBottomBarPadding)
+        public static readonly Thickness FlyoutGraphsMargin = new Thickness(4, 9, 4, 8);
+        public static readonly Thickness FlyoutTimeRangeRowPadding = new Thickness(4, 5, 4, 5);
         public static readonly Thickness FlyoutBottomBarPadding = new Thickness(6, 5, 6, 5);
 
-        // the snapshot button and the two time range pickers; (set from code like the bar buttons)
-        public const double FlyoutRowControlHeightDip = 22;
+        // the two time range pickers; (set from code like the bar buttons)
+        public const double FlyoutTimeRangePickerHeightDip = 22;
 
-        // the title row and the time range row in the height math; (derived, so they follow their padding)
+        // the title row and the time range row in the height math; (derived, the title row is the bottom bar without
+        // its separator)
         private static double FlyoutTitleRowHeightDip =>
-            FlyoutTitleRowPadding.Top + FlyoutRowControlHeightDip + FlyoutTitleRowPadding.Bottom;
+            FlyoutBottomBarPadding.Top + FlyoutBottomBarButtonHeightDip + FlyoutBottomBarPadding.Bottom;
         private static double FlyoutTimeRangeRowHeightDip =>
-            FlyoutTimeRangeRowPadding.Top + FlyoutRowControlHeightDip + FlyoutTimeRangeRowPadding.Bottom;
+            FlyoutTimeRangeRowPadding.Top + FlyoutTimeRangePickerHeightDip + FlyoutTimeRangeRowPadding.Bottom;
 
         public const double FlyoutGraphSpacingDip = 8;
 
-        // both bar buttons; (set from code, the height math runs before the bar is ever measured)
+        // both bar buttons and the snapshot button; (set from code, the height math runs before the bar is ever
+        // measured)
         public const double FlyoutBottomBarButtonHeightDip = 36;
 
         // the top border of FlyoutBottomBarBorder
@@ -350,11 +351,11 @@ namespace FluentSensors.Features.TaskbarWidget
             // layout constants pushed onto the controls, so the height math and the rendered bar agree (button width
             // and padding stay in the xaml, they do not enter that math)
             GraphsItemsControl.Margin = FlyoutGraphsMargin;
-            TitleRowGrid.Padding = FlyoutTitleRowPadding;
+            TitleRowGrid.Padding = FlyoutBottomBarPadding;
             TimeRangeRowGrid.Padding = FlyoutTimeRangeRowPadding;
-            PauseButton.Height = FlyoutRowControlHeightDip;
-            TaskbarTimeRangePicker.Height = FlyoutRowControlHeightDip;
-            FlyoutTimeRangePicker.Height = FlyoutRowControlHeightDip;
+            PauseButton.Height = FlyoutBottomBarButtonHeightDip;
+            TaskbarTimeRangePicker.Height = FlyoutTimeRangePickerHeightDip;
+            FlyoutTimeRangePicker.Height = FlyoutTimeRangePickerHeightDip;
             BottomBarContentGrid.Padding = FlyoutBottomBarPadding;
             BackToDashboardButton.Height = FlyoutBottomBarButtonHeightDip;
             CloseWidgetButton.Height = FlyoutBottomBarButtonHeightDip;

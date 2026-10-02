@@ -413,13 +413,13 @@
             </controls:SettingsExpander>
 
 
-            <!--  taskbar widget & flyout settings  -->
+            <!--  taskbar widget & flyout appearance settings  -->
             <TextBlock
                 Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Taskbar Widget &amp; Flyout Appearance" />
 
-            <!--  the taskbar edge the settings below belong to  -->
+            <!--  the taskbar edge the per edge settings below belong to  -->
             <!--
                 (the position is filled in at runtime from the edge the taskbar sits on; MinHeight and Padding
                 override the 68 and 16 the toolkit style sets, so this read only row stays lower than the others)
@@ -433,29 +433,16 @@
                 <TextBlock x:Name="TaskbarPositionText" VerticalAlignment="Center" />
             </controls:SettingsCard>
 
-            <!--  drag lock for the widget position on the taskbar  -->
-            <controls:SettingsCard
-                fhUi:FocusGroup.IsEnabled="True"
-                Description="Stop the taskbar widget from being dragged along the taskbar"
-                Header="Lock Taskbar Widget Position"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE72E;}">
-                <ToggleSwitch
-                    x:Name="LockWidgetPositionToggle"
-                    OffContent="Off"
-                    OnContent="On"
-                    Toggled="LockWidgetPositionToggle_Toggled" />
-            </controls:SettingsCard>
-
             <!--  taskbar graph appearance  -->
             <controls:SettingsExpander
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Taskbar graph color, background, time range, graph Width and side taskbar layout"
-                Header="Graph"
+                Description="Graph color, background, time range, width and side taskbar layout"
+                Header="Taskbar Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Graph Color Source">
+                    <controls:SettingsCard Description="(Taskbar and flyout)" Header="Graph Color Source">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="TaskbarGraphColorSourceComboBox"
@@ -542,7 +529,7 @@
             <!--  flyout graph appearance  -->
             <controls:SettingsExpander
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Flyout graph time range and graph height"
+                Description="Graph time range and height"
                 Header="Flyout Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
@@ -633,6 +620,26 @@
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
+
+
+            <!--  taskbar widget & flyout behavior settings  -->
+            <TextBlock
+                Margin="4,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="Taskbar Widget &amp; Flyout Behavior" />
+
+            <!--  drag lock for the widget position on the taskbar  -->
+            <controls:SettingsCard
+                fhUi:FocusGroup.IsEnabled="True"
+                Description="Stop the taskbar widget from being dragged along the taskbar"
+                Header="Lock Taskbar Widget Position"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE72E;}">
+                <ToggleSwitch
+                    x:Name="LockWidgetPositionToggle"
+                    OffContent="Off"
+                    OnContent="On"
+                    Toggled="LockWidgetPositionToggle_Toggled" />
+            </controls:SettingsCard>
 
 
             <!--  csv logging settings  -->

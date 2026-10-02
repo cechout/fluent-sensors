@@ -57,6 +57,7 @@
                 </Grid.RowDefinitions>
 
                 <!--  title row: title and snapshot button  -->
+                <!--  (the height and padding of the bottom bar, set from code)  -->
                 <Grid x:Name="TitleRowGrid" Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -64,7 +65,9 @@
                     </Grid.ColumnDefinitions>
 
                     <!--  title  -->
+                    <!--  (the margin is the button padding of the bottom bar, so it lines up with its text)  -->
                     <TextBlock
+                        Margin="11,0,0,0"
                         VerticalAlignment="Center"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Text="System Sensors"
@@ -76,11 +79,12 @@
                     <Button
                         x:Name="PauseButton"
                         Grid.Column="1"
-                        Width="32"
+                        Width="38"
                         Padding="0"
-                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
                         Click="PauseButton_Click"
-                        Style="{StaticResource SubtleButtonStyle}">
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource SubtleBarButtonStyle}">
                         <FontIcon x:Name="PauseButtonIcon" FontSize="14" />
                     </Button>
                 </Grid>
