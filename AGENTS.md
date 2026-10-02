@@ -66,7 +66,8 @@ double hyphen inside a comment is an XML parse error, so anomaly tags are writte
 ```text
 FluentSensors/
 ├── Common/       cross-cutting helpers: Csv, Markdown, Sensors, UI
-├── Controls/     reusable controls: InfoPopup, SensorGraph, SensorRow, SensorTile, Threshold
+├── Controls/     reusable controls: InfoPopup, SensorGraph, SensorRow, SensorTile, Threshold,
+│                 TimeRange
 ├── Core/         infrastructure: Lhm, Startup, StaticInfo, Taskbar, Update
 ├── Diagnostics/
 ├── Features/     one folder per screen or feature, view plus view model and any window it owns:

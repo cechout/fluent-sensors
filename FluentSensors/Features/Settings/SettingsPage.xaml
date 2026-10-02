@@ -289,32 +289,16 @@
                         <ComboBox
                             x:Name="PerformanceGraphTimeSpanComboBox"
                             Width="40"
-                            SelectionChanged="PerformanceGraphTimeSpanComboBox_SelectionChanged">
-                            <ComboBoxItem Content="30s" Tag="30" />
-                            <ComboBoxItem Content="45s" Tag="45" />
-                            <ComboBoxItem Content="60s" Tag="60" />
-                            <ComboBoxItem Content="75s" Tag="75" />
-                            <ComboBoxItem Content="90s" Tag="90" />
-                            <ComboBoxItem Content="120s" Tag="120" />
-                            <ComboBoxItem Content="180s" Tag="180" />
-                            <ComboBoxItem Content="240s" Tag="240" />
-                        </ComboBox>
+                            DisplayMemberPath="DisplayName"
+                            SelectionChanged="PerformanceGraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
 
                     <controls:SettingsCard Header="Extended Time Range">
                         <ComboBox
                             x:Name="PerformanceExtendedGraphTimeSpanComboBox"
                             Width="40"
-                            SelectionChanged="PerformanceExtendedGraphTimeSpanComboBox_SelectionChanged">
-                            <ComboBoxItem Content="15s" Tag="15" />
-                            <ComboBoxItem Content="20s" Tag="20" />
-                            <ComboBoxItem Content="25s" Tag="25" />
-                            <ComboBoxItem Content="30s" Tag="30" />
-                            <ComboBoxItem Content="35s" Tag="35" />
-                            <ComboBoxItem Content="40s" Tag="40" />
-                            <ComboBoxItem Content="45s" Tag="45" />
-                            <ComboBoxItem Content="60s" Tag="60" />
-                        </ComboBox>
+                            DisplayMemberPath="DisplayName"
+                            SelectionChanged="PerformanceExtendedGraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
@@ -422,18 +406,8 @@
                         <ComboBox
                             x:Name="GraphTimeSpanComboBox"
                             Width="40"
-                            SelectionChanged="GraphTimeSpanComboBox_SelectionChanged">
-                            <ComboBoxItem Content="15s" Tag="15" />
-                            <ComboBoxItem Content="20s" Tag="20" />
-                            <ComboBoxItem Content="30s" Tag="30" />
-                            <ComboBoxItem Content="45s" Tag="45" />
-                            <ComboBoxItem Content="60s" Tag="60" />
-                            <ComboBoxItem Content="75s" Tag="75" />
-                            <ComboBoxItem Content="90s" Tag="90" />
-                            <ComboBoxItem Content="120s" Tag="120" />
-                            <ComboBoxItem Content="180s" Tag="180" />
-                            <ComboBoxItem Content="240s" Tag="240" />
-                        </ComboBox>
+                            DisplayMemberPath="DisplayName"
+                            SelectionChanged="GraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
@@ -512,18 +486,8 @@
                         <ComboBox
                             x:Name="TaskbarGraphTimeSpanComboBox"
                             Width="40"
-                            SelectionChanged="TaskbarGraphTimeSpanComboBox_SelectionChanged">
-                            <ComboBoxItem Content="15s" Tag="15" />
-                            <ComboBoxItem Content="20s" Tag="20" />
-                            <ComboBoxItem Content="25s" Tag="25" />
-                            <ComboBoxItem Content="30s" Tag="30" />
-                            <ComboBoxItem Content="35s" Tag="35" />
-                            <ComboBoxItem Content="40s" Tag="40" />
-                            <ComboBoxItem Content="45s" Tag="45" />
-                            <ComboBoxItem Content="60s" Tag="60" />
-                            <ComboBoxItem Content="90s" Tag="90" />
-                            <ComboBoxItem Content="120s" Tag="120" />
-                        </ComboBox>
+                            DisplayMemberPath="DisplayName"
+                            SelectionChanged="TaskbarGraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
                     <controls:SettingsCard Header="Graph Width">
                         <Slider

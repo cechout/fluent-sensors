@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,6 +44,12 @@ namespace FluentSensors.Features.Settings
             RestoreGraphFillFadeSelection();
             RestoreDataUnitSelection();
             RestoreHardwareIconColorsSelection();
+
+            // the time range lists the pickers share; from code, the restores below run before x:Bind would
+            PerformanceGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Performance;
+            PerformanceExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
+            GraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Widget;
+            TaskbarGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
 
             RestorePerformanceGraphTimeSpanSelection();
 
@@ -99,12 +106,19 @@ namespace FluentSensors.Features.Settings
                 SettingsService.Instance.ActiveTaskbarEdge = primaryTaskbar.Edge.ToString();
             }
             OnActiveTaskbarEdgeChanged(SettingsService.Instance.ActiveTaskbarEdge);
+
+            // the time range pickers under the graphs and in the widget write the same settings
+            SettingsService.Instance.PerformanceGraphTimeSpanChanged += OnTimeRangesChanged;
+            SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
+            OnTimeRangesChanged();
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             SettingsService.Instance.StatusReadoutChanged -= OnStatusReadoutChanged;
             SettingsService.Instance.ActiveTaskbarEdgeChanged -= OnActiveTaskbarEdgeChanged;
+            SettingsService.Instance.PerformanceGraphTimeSpanChanged -= OnTimeRangesChanged;
+            SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
         }
 
         // the values of the active taskbar edge; the side cards only on the left and right edge
@@ -123,6 +137,17 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarFlyoutAlignmentSelection();
             _isLoading = false;
         }
+
+        // a pick in a time range picker; (a write from here echoes back as a no-op)
+        private void OnTimeRangesChanged()
+        {
+            _isLoading = true;
+            RestorePerformanceGraphTimeSpanSelection();
+            RestoreGraphTimeSpanSelection();
+            _isLoading = false;
+        }
+
+        private void OnGraphTimeSpanChanged(double newTimeSpanSeconds) => OnTimeRangesChanged();
 
         // for writes from outside this page; a write from here echoes back and would reset the control mid handler
         private void OnStatusReadoutChanged()
@@ -589,12 +614,9 @@ namespace FluentSensors.Features.Settings
         {
             if (_isLoading) return;
 
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
             {
-                if (selectedItem.Tag != null && double.TryParse(selectedItem.Tag.ToString(), out double newTimeSpanSeconds))
-                {
-                    SettingsService.Instance.PerformanceGraphTimeSpanSeconds = newTimeSpanSeconds;
-                }
+                SettingsService.Instance.PerformanceGraphTimeSpanSeconds = option.Seconds;
             }
         }
 
@@ -602,12 +624,9 @@ namespace FluentSensors.Features.Settings
         {
             if (_isLoading) return;
 
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
             {
-                if (selectedItem.Tag != null && double.TryParse(selectedItem.Tag.ToString(), out double newTimeSpanSeconds))
-                {
-                    SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds = newTimeSpanSeconds;
-                }
+                SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds = option.Seconds;
             }
         }
 
@@ -617,16 +636,10 @@ namespace FluentSensors.Features.Settings
             SelectTimeSpanItem(PerformanceExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds);
         }
 
+        // nothing selected for a value the list does not have
         private static void SelectTimeSpanItem(ComboBox comboBox, double timeSpanSeconds)
         {
-            foreach (ComboBoxItem item in comboBox.Items)
-            {
-                if (item.Tag?.ToString() == timeSpanSeconds.ToString())
-                {
-                    comboBox.SelectedItem = item;
-                    break;
-                }
-            }
+            comboBox.SelectedItem = GraphTimeRanges.Find(comboBox.ItemsSource as IReadOnlyList<GraphTimeRange>, timeSpanSeconds);
         }
 
 
@@ -748,12 +761,9 @@ namespace FluentSensors.Features.Settings
         {
             if (_isLoading) return;
 
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
             {
-                if (selectedItem.Tag != null && double.TryParse(selectedItem.Tag.ToString(), out double newTimeSpanSeconds))
-                {
-                    SettingsService.Instance.GraphTimeSpanSeconds = newTimeSpanSeconds;
-                }
+                SettingsService.Instance.GraphTimeSpanSeconds = option.Seconds;
             }
         }
 
@@ -767,16 +777,7 @@ namespace FluentSensors.Features.Settings
 
         private void RestoreGraphTimeSpanSelection()
         {
-            double currentTimeSpanSeconds = SettingsService.Instance.GraphTimeSpanSeconds;
-
-            foreach (ComboBoxItem item in GraphTimeSpanComboBox.Items)
-            {
-                if (item.Tag?.ToString() == currentTimeSpanSeconds.ToString())
-                {
-                    GraphTimeSpanComboBox.SelectedItem = item;
-                    break;
-                }
-            }
+            SelectTimeSpanItem(GraphTimeSpanComboBox, SettingsService.Instance.GraphTimeSpanSeconds);
         }
 
 
@@ -895,12 +896,9 @@ namespace FluentSensors.Features.Settings
         {
             if (_isLoading) return;
 
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
             {
-                if (selectedItem.Tag != null && double.TryParse(selectedItem.Tag.ToString(), out double newTimeSpanSeconds))
-                {
-                    SettingsService.Instance.TaskbarGraphTimeSpanSeconds = newTimeSpanSeconds;
-                }
+                SettingsService.Instance.TaskbarGraphTimeSpanSeconds = option.Seconds;
             }
         }
 
@@ -920,16 +918,7 @@ namespace FluentSensors.Features.Settings
 
         private void RestoreTaskbarGraphTimeSpanSelection()
         {
-            double currentTimeSpanSeconds = SettingsService.Instance.TaskbarGraphTimeSpanSeconds;
-
-            foreach (ComboBoxItem item in TaskbarGraphTimeSpanComboBox.Items)
-            {
-                if (item.Tag?.ToString() == currentTimeSpanSeconds.ToString())
-                {
-                    TaskbarGraphTimeSpanComboBox.SelectedItem = item;
-                    break;
-                }
-            }
+            SelectTimeSpanItem(TaskbarGraphTimeSpanComboBox, SettingsService.Instance.TaskbarGraphTimeSpanSeconds);
         }
 
         private void TaskbarGraphWidthSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)

@@ -44,11 +44,11 @@ namespace FluentSensors.Features.Performance
             // detached, this lives for the session
             SettingsService.Instance.HardwareIconColorsChanged += RefreshNavItemIconBrushes;
 
-            // no value, either range; both captions re-read
+            // no value, either range; both pickers re-read
             SettingsService.Instance.PerformanceGraphTimeSpanChanged += () =>
             {
-                OnPropertyChanged(nameof(StandardGraphTimeSpanText));
-                OnPropertyChanged(nameof(ExtendedGraphTimeSpanText));
+                OnPropertyChanged(nameof(StandardGraphTimeSpanSeconds));
+                OnPropertyChanged(nameof(ExtendedGraphTimeSpanSeconds));
             };
 
             // every category the same way: the existing instances, then later ones; getPrimaryGraph picks the
@@ -239,9 +239,18 @@ namespace FluentSensors.Features.Performance
 
         public GridLength InfoPanelColumnWidth => new GridLength(InfoPanelWidth);
 
-        // the time range captions under the graphs, worded like the settings page
-        public string StandardGraphTimeSpanText => $"Last {PerformanceGraphDefaults.StandardTimeSpanSeconds:0}s";
-        public string ExtendedGraphTimeSpanText => $"Last {PerformanceGraphDefaults.ExtendedTimeSpanSeconds:0}s";
+        // the time range pickers under the graphs; a pick is the setting itself
+        public double StandardGraphTimeSpanSeconds
+        {
+            get => PerformanceGraphDefaults.StandardTimeSpanSeconds;
+            set => SettingsService.Instance.PerformanceGraphTimeSpanSeconds = value;
+        }
+
+        public double ExtendedGraphTimeSpanSeconds
+        {
+            get => PerformanceGraphDefaults.ExtendedTimeSpanSeconds;
+            set => SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds = value;
+        }
 
         // a detail view is shown (false on the start page); sidebar and info panel need one, whatever the toggles say
         private bool IsHardwareViewActive => SelectedItem != null;

@@ -5,8 +5,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhCommon="using:FluentSensors.Common.Sensors"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Fluent Sensors"
     mc:Ignorable="d">
@@ -25,23 +28,37 @@
             Height="auto"
             Background="Transparent">
 
-            <!--  back to the main window  -->
-            <Button
-                x:Name="BackToDashboardButton"
-                Width="32"
-                Height="22"
+            <StackPanel
                 Margin="4,4,0,0"
-                Padding="0"
                 HorizontalAlignment="Left"
-                AutomationProperties.Name="Back to Main Application"
-                Click="BackToDashboard_Click"
-                Style="{StaticResource SubtleButtonStyle}"
-                ToolTipService.ToolTip="Back to Main Application">
-                <FontIcon
-                    FontSize="14"
-                    FontWeight="SemiLight"
-                    Glyph="&#xE944;" />
-            </Button>
+                fhUi:FocusGroup.IsEnabled="True"
+                Orientation="Horizontal"
+                Spacing="4">
+
+                <!--  back to the main window  -->
+                <Button
+                    x:Name="BackToDashboardButton"
+                    Width="32"
+                    Height="22"
+                    Padding="0"
+                    AutomationProperties.Name="Back to Main Application"
+                    Click="BackToDashboard_Click"
+                    Style="{StaticResource SubtleButtonStyle}"
+                    ToolTipService.ToolTip="Back to Main Application">
+                    <FontIcon
+                        FontSize="14"
+                        FontWeight="SemiLight"
+                        Glyph="&#xE944;" />
+                </Button>
+
+                <!--  graph time range  -->
+                <fhTimeRange:TimeRangePickerControl
+                    x:Name="TimeRangePicker"
+                    Height="22"
+                    Options="{x:Bind fhCommon:GraphTimeRanges.Widget}"
+                    SizeChanged="TimeRangePicker_SizeChanged"
+                    TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
         </Grid>
 
 
