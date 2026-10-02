@@ -1,6 +1,6 @@
-# builds the win-x64 installer plus the portable zip and drafts a GitHub release whenever a version tag is pushed
-# csproj Version is the single source of truth, Inno Setup receives it as a command line define
-# the store job then hands the msix to the microsoft store, see the comment above it
+# on a version tag: the win-x64 installer, the portable zip and a draft GitHub release, then the msix for
+# the store (see the store job)
+# the csproj Version is the one source, Inno Setup gets it as a define
 name: release
 
 on:
@@ -26,7 +26,7 @@ jobs:
       - name: setup msbuild
         uses: microsoft/setup-msbuild@v3
 
-      # reads the version once so the csproj stays the only place it gets bumped by hand
+      # the csproj stays the only place the version is bumped
       - name: read version from csproj
         id: version
         shell: pwsh
@@ -36,21 +36,19 @@ jobs:
           "version=$version" >> $env:GITHUB_OUTPUT
 
       # --- workaround: dotnet build cannot resolve COMReference ---
-      # problem: ResolveComReference is not implemented in the .NET Core version of MSBuild, only
-      # the full .NET Framework MSBuild (msbuild.exe) supports it, dotnet build/publish fail with MSB4803
+      # problem: ResolveComReference exists only in the .NET Framework MSBuild (msbuild.exe), dotnet build
+      # and publish fail with MSB4803:
       # https://aka.ms/msbuild/MSB4803
-      # fix: restore via dotnet CLI as usual, then build/publish through msbuild.exe from microsoft/setup-msbuild
+      # fix: restore with the dotnet CLI, build and publish with msbuild.exe from microsoft/setup-msbuild
       - name: restore
         run: dotnet restore FluentSensors/FluentSensors.csproj -p:Platform=x64 -r win-x64 -p:SelfContained=true
 
-      # WinUI3 x:Bind on types defined in this project (like SourceLink) needs a full Build pass
-      # first, so MarkupCompilePass2 gets the LocalAssembly it resolves them against, otherwise the
-      # XAML compiler fails on a from-scratch checkout with no prior obj state (WMC0909/WMC9999)
+      # a full build first: x:Bind on project types (SourceLink) resolves against the LocalAssembly in
+      # MarkupCompilePass2, a fresh checkout fails with WMC0909 or WMC9999 otherwise
       - name: build win-x64
         run: msbuild FluentSensors/FluentSensors.csproj -p:Configuration=Release -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -p:SelfContained=true
 
-      # uses the real FolderProfile.pubxml (Properties/PublishProfiles) so CI applies the exact same
-      # settings as a local Visual Studio publish, PublishTrimmed=false included
+      # the real FolderProfile.pubxml, so CI publishes like Visual Studio does (PublishTrimmed=false included)
       - name: publish win-x64
         run: msbuild FluentSensors/FluentSensors.csproj -t:Publish -p:Configuration=Release -p:Platform=x64 -p:PublishProfile=FolderProfile -p:NoBuild=true
 
@@ -64,9 +62,8 @@ jobs:
           /DMyAppVersion=${{ steps.version.outputs.version }}
           Setup\Inno_Setup.iss
 
-      # portable variant: the exact same publish output the installer just consumed, staged into its own folder and
-      # given the marker file that makes the app store its settings next to the exe instead of in %LocalAppData%
-      # staged instead of zipped in place so the marker can never end up in the installer payload
+      # portable: the publish output with the marker file that moves the settings next to the exe; staged apart, so the
+      # marker never reaches the installer
       - name: package portable zip
         shell: pwsh
         run: |
@@ -88,7 +85,7 @@ jobs:
           name: FluentSensors_Portable
           path: Setup/Output/FluentSensors_Portable_${{ steps.version.outputs.version }}.zip
 
-      # create draft only
+      # a draft only; a human publishes it
       - name: create draft release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -98,12 +95,10 @@ jobs:
           Setup/Output/FluentSensors_Portable_${{ steps.version.outputs.version }}.zip
           --draft --generate-notes --title "FluentSensors ${{ github.ref_name }}"
 
-      # built last, after the draft release already exists: this needs no signing secrets, but it does need the
-      # msix packaging targets that ship with visual studio, and if a runner turns out not to carry them then a
-      # red step here must not cost the installer, the zip and the release that are already done
-      # StoreUpload produces a .msixupload holding an unsigned bundle, which is what partner center takes; the
-      # store signs it itself
-      # no version is passed: the StampAppxManifestVersion target in the csproj writes it into the manifest
+      # last, after the draft exists: it needs the msix targets of Visual Studio, and a runner without them must not
+      # cost the installer, the zip or the release
+      # StoreUpload makes a .msixupload with an unsigned bundle, which partner center takes and the store signs;
+      # StampAppxManifestVersion in the csproj writes the version
       - name: package msix for the store
         run: >
           msbuild FluentSensors/FluentSensors.csproj -t:Publish
@@ -115,21 +110,17 @@ jobs:
           -p:AppxPackageSigningEnabled=false
           "-p:AppxPackageDir=${{ github.workspace }}\Setup\MsixOutput\\"
 
-      # deliberately not a release asset: a .msixupload belongs in partner center and nobody can install it from
-      # a release page, so it stays an artifact to pick up by hand
+      # an artifact, not a release asset; nobody can install a .msixupload from a release page
       - name: upload msix artifact
         uses: actions/upload-artifact@v7
         with:
           name: FluentSensors_Store
           path: Setup/MsixOutput/*.msixupload
 
-  # uploads the msix into a draft submission in partner center, with its release notes cleared; the notes follow
-  # from store-release-notes.yml once the github release text is final, and submitting the draft stays a click in
-  # partner center
-  #
-  # runs only while the STORE_SUBMISSION repository variable is draft, so it can be switched off without a commit
-  #
-  # a job of its own, so a failed upload can be re-run without drafting the github release a second time
+  # uploads the msix into a draft submission in partner center with its notes cleared; store-release-notes.yml adds them
+  # once the github text is final, submitting stays a click
+  # runs while the STORE_SUBMISSION variable is draft; a job of its own, so a failed upload re-runs
+  # without a second github draft
   store:
     needs: build
     if: vars.STORE_SUBMISSION == 'draft'
@@ -147,8 +138,7 @@ jobs:
           name: FluentSensors_Store
           path: Setup/MsixOutput
 
-      # pinned: the script needs submission payloads read from a file and the base price kept on publish, and
-      # v0.4.3 is the first release with both
+      # pinned; v0.4.3 is the first to read payloads from a file and keep the base price on publish
       - name: setup msstore cli
         uses: microsoft/microsoft-store-apppublisher@v1
         with:

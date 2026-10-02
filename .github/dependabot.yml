@@ -6,16 +6,11 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 5
     groups:
-      # the windows app sdk components have to move together with the metapackage, in one pull request
-      #
-      # the csproj deselects .AI, .ML and .Widgets plus Microsoft.Windows.AI.MachineLearning via
-      # ExcludeAssets, and the self-contained targets build the embedded regfree WinRT manifest from the
-      # package fragments those still ship; if one of them is bumped on its own the manifest ends up
-      # declaring activatable classes in binaries that are no longer there, and the app fails to start
-      # with "side-by-side configuration is incorrect"
-      #
-      # this group is listed first on purpose, dependabot puts a dependency in the first group it matches
-      # and minor-and-patch below would otherwise swallow the minor bumps
+      # the windows app sdk components move with the metapackage in one pull request
+      # the csproj excludes .AI, .ML, .Widgets and Microsoft.Windows.AI.MachineLearning, whose fragments still feed
+      # the regfree WinRT manifest; one bumped alone declares classes in missing binaries ("side-by-side
+      # configuration is incorrect")
+      # first on purpose, dependabot takes the first matching group and minor-and-patch would swallow the minor bumps
       windows-app-sdk:
         patterns:
           - "Microsoft.WindowsAppSDK"

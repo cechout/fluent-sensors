@@ -3,7 +3,7 @@
     <OutputType>WinExe</OutputType>
 	  <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
 	  
-	  <!-- only place the version gets bumped, AssemblyVersion/FileVersion/InformationalVersion derive from this automatically -->
+	  <!-- the one version to bump; AssemblyVersion, FileVersion and InformationalVersion derive from it -->
 	  <Version>1.6.0</Version>
 
 	  <Authors>Daniel Čech</Authors>
@@ -79,19 +79,16 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
     <!--
-      the metapackage drags in the AI, ML and widgets components, and this app calls none of their APIs
-      each component also contributes an appxfragment that declares regfree WinRT activatable classes into
-      the generated app manifest, so deleting the binaries alone would leave the manifest pointing at files
-      that are gone, which can fail the process start outright
-      excluding all assets keeps the component props out of the build, so payload and manifest entries drop
-      together
+      the metapackage drags in AI, ML and widgets, none of which the app calls; each declares regfree WinRT
+      classes into the app manifest through its appxfragment, so deleting only the binaries can fail the start
+      excluding all assets keeps the props out, payload and manifest entries drop together
     -->
     <PackageReference Include="Microsoft.WindowsAppSDK.AI" Version="2.2.3" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.WindowsAppSDK.ML" Version="2.1.70" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.WindowsAppSDK.Widgets" Version="2.0.5" ExcludeAssets="all" />
     <!--
-      onnxruntime and DirectML ride in transitively through the ML component, and excluding a package does
-      not prune its dependency graph, so this one has to be named on its own
+      onnxruntime and DirectML come in through the ML component, and an excluded package keeps its
+      dependency graph, so this one is named on its own
     -->
     <PackageReference Include="Microsoft.Windows.AI.MachineLearning" Version="2.1.70" ExcludeAssets="all" />
     <PackageReference Include="System.Management" Version="10.0.10" />
@@ -100,11 +97,8 @@
   </ItemGroup>
   
   <!--
-    UI Automation, for WinTaskbarUiaProbe (taskbar sub-elements that have no window handle of their own):
-    tlbimp generates a strongly-typed interop assembly from the typelib thats registered on every Windows install,
-    no WPF/UseWpf needed for this
-    UIA is referenced alongside UIAutomationClient because UIAutomationClient.idl itself references types from it
-    (e.g. the UIA_PropertyIds enum used by CreatePropertyCondition)
+    UI Automation for WinTaskbarUiaProbe: tlbimp builds an interop assembly from the typelib every Windows
+    install registers, no WPF needed; UIA alongside, since UIAutomationClient.idl uses its types (UIA_PropertyIds)
   -->
   <ItemGroup>
     <COMReference Include="UIAutomationClient">
@@ -140,9 +134,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <!--
-      the release banners need this exactly as much as the two above: the default content glob puts them in the
-      build output, which is why they show up in a local run, but publish skips an item that carries no copy
-      metadata of its own, so an installed build had no Assets\Releases folder at all
+      the release banners too: the content glob puts them in the build output, but publish skips an item
+      without copy metadata, which leaves an installed build without Assets\Releases
     -->
     <Content Update="Assets\Releases\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -151,11 +144,8 @@
   </ItemGroup>
 
   <!--
-    the tiles, logos and splash images the package manifest names; same trap as the release banners above, the
-    default content glob puts them in the build output but publish skips an item with no copy metadata of its
-    own, so an msix layout built from the publish output would carry no visuals at all
-    scoped to the packaged build, since an unpackaged one has no manifest that could reference them and the
-    installer payload should not grow by a tile set nothing ever shows
+    the tiles, logos and splash images of the package manifest, the same publish trap as the banners above;
+    packaged builds only, the installer payload should not carry a tile set nothing shows
   -->
   <ItemGroup Condition="'$(WindowsPackageType)' != 'None'">
     <Content Update="Assets\*.png">
@@ -262,27 +252,17 @@
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-    <!--
-      PublishTrimmed stays unset on purpose, trimming strips the WinRT and COM interop types this app needs
-      and the published build then crashes on startup
-    -->
+    <!--  PublishTrimmed stays unset, trimming strips the WinRT and COM interop and the app crashes on start  -->
   </PropertyGroup>
   <!--
-    the self contained publish carries binaries this app never loads
-    the mscordaccore/mscordbi/DiaSymReader set is only ever pulled in by an attached debugger or a dump
-    reader, clrgc and clrgcexp are alternative collectors that stay dormant unless System.GC.Name is set in
-    the runtimeconfig, msquic is HTTP/3, and Mono.Posix is the linux sensor path inside
-    LibreHardwareMonitorLib
-    the pdb is dropped here instead of suppressed via DebugType so the symbols still sit next to the build
-    for local triage
-    this runs after Publish, so the installer and the portable zip both pick up the smaller payload
+    binaries the self-contained publish carries but the app never loads: mscordaccore, mscordbi and
+    DiaSymReader (debugger and dump readers only), clrgc and clrgcexp (only with System.GC.Name), msquic
+    (HTTP/3), Mono.Posix (the linux path of LibreHardwareMonitorLib); the pdb leaves the publish output only,
+    so it stays next to the build; after Publish, so the installer and the zip both get the smaller payload
 
-    do NOT add the mui locale folders here, they look like translations for 83 languages this app does not
-    offer, but Microsoft.ui.xaml.dll keeps its resources only in those mui files with no neutral copy inside
-    the dll, so the resource load fails as soon as the visual tree is built and the process dies with
-    STATUS_STOWED_EXCEPTION (0xc000027b) in Microsoft.UI.Xaml.dll
-    the folder that gets loaded is the one matching the Windows UI language, so trimming this down to en-US
-    breaks every machine that is not running english
+    do NOT add the mui locale folders: Microsoft.ui.xaml.dll keeps its resources only there, no neutral copy,
+    and the folder of the Windows UI language is the one loaded; without it the visual tree dies with
+    STATUS_STOWED_EXCEPTION (0xc000027b), so en-US alone breaks every machine not running english
   -->
   <Target Name="CollectUnusedPublishPayload">
     <ItemGroup>
@@ -300,8 +280,8 @@
       <_PrunedPublishFile Include="$(PublishDir)clrgcexp.dll" />
       <_PrunedPublishFile Include="$(PublishDir)msquic.dll" />
       <!--
-        left behind by the excluded ML component, ExcludeAssets drops a package own assets but not the
-        dependencies it declares, and nothing else in the graph references it
+        left by the excluded ML component; ExcludeAssets keeps the declared dependencies, and nothing else
+        references this one
       -->
       <_PrunedPublishFile Include="$(PublishDir)System.Numerics.Tensors.dll" />
     </ItemGroup>
@@ -312,19 +292,15 @@
   </Target>
 
   <!--
-    the msix payload is assembled out of the publish output while PruneUnusedPublishPayload only runs after the
-    Publish target has finished, so without this the package would ship every file that list drops
-    the payload item is filtered rather than the files deleted, which keeps this independent of who runs first;
-    a delete would have to hit the window between the publish copy and the payload computation
-    matched by file name because the payload identities are not guaranteed to be spelled like PublishDir
+    the msix payload comes from the publish output before PruneUnusedPublishPayload runs, so the item is
+    filtered here, independent of the order (a delete would have to hit the window between copy and payload);
+    by file name, the payload identities need not be spelled like PublishDir
   -->
   <Target Name="PruneUnusedAppxPayload" AfterTargets="_ComputeAppxPackagePayload" DependsOnTargets="CollectUnusedPublishPayload" Condition="'$(WindowsPackageType)' != 'None'">
     <!--
-      the names go through a property first; an item reference and a batching qualifier in the same condition
-      make msbuild batch both sides against each other, which silently matches nothing
-      the semicolons around each side anchor the match, so clrgc.dll cannot swallow a file called gc.dll
-      mscordaccore is matched by prefix instead: the list above resolves its versioned name through a glob over
-      the publish folder, which is empty on the run right after a prune emptied it
+      through a property, since an item and a batching qualifier in one condition batch against each other and
+      match nothing; the semicolons anchor the names (clrgc.dll never swallows gc.dll); mscordaccore by prefix,
+      its versioned name comes from a glob over a publish folder a previous prune may have emptied
     -->
     <PropertyGroup>
       <_PrunedPayloadNames>;@(_PrunedPublishFile->'%(Filename)%(Extension)');</_PrunedPayloadNames>
@@ -338,13 +314,9 @@
   </Target>
 
   <!--
-    the store wants a four part version and the csproj is the only place one gets bumped by hand, so the
-    manifest is stamped at build time instead of keeping a second number in Package.appxmanifest
-    the stamp goes onto a copy in obj and @(AppxManifest) is pointed at that copy, because
-    _ValidatePresenceOfAppxManifestItems reads the version out of the source item and everything downstream
-    hangs off it: the package file name, the bundle manifest version and the final manifest
-    poking the generated manifest afterwards instead would leave a package called _1.0.0.0_ around a payload
-    that says 1.4.0.0
+    the store wants a four part version, stamped from the csproj at build time onto a copy in obj that
+    @(AppxManifest) points at; _ValidatePresenceOfAppxManifestItems reads the source item and the file name,
+    bundle version and final manifest follow it (stamping the output instead names a 1.4.0.0 payload _1.0.0.0_)
   -->
   <Target Name="StampAppxManifestVersion" BeforeTargets="_ValidatePresenceOfAppxManifestItems" Condition="'$(WindowsPackageType)' != 'None' and '@(AppxManifest)' != ''">
     <PropertyGroup>
@@ -363,13 +335,9 @@
   </Target>
 
   <!--
-    the generated manifest gets its TargetDeviceFamily written by the packaging tooling out of
-    TargetPlatformMinVersion, so whatever Package.appxmanifest says is overwritten and the package would claim the
-    same 10.0.19041 floor the github build targets
-    the store build has to say windows 11 instead, because an elevated msix is not supported below build 22000
-    corrected here rather than by raising TargetPlatformMinVersion for the packaged build, which would compile the
-    same source against a different platform floor and hand out two different binaries
-    runs before _ValidateAppxManifest, so the corrected values are what gets validated and packed
+    the tooling writes TargetDeviceFamily from TargetPlatformMinVersion (the 10.0.19041 of the github build),
+    but an elevated msix needs build 22000; set here, not by a second platform floor and binary, and before
+    _ValidateAppxManifest, so the corrected values are validated and packed
   -->
   <Target Name="SetAppxTargetDeviceFamily" AfterTargets="_GenerateCurrentProjectAppxManifest" Condition="'$(WindowsPackageType)' != 'None'">
     <PropertyGroup>

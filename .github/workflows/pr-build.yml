@@ -1,5 +1,5 @@
-# validates that a pull request actually compiles before review, and reports how large the publish payload got
-# deliberately lighter than release.yml: no installer step, no portable zip, not tied to a version tag
+# a pull request has to compile before review, and reports its publish size; (lighter than release.yml,
+# no installer, no zip, no tag)
 name: pr build check
 
 on:
@@ -11,23 +11,17 @@ permissions:
   pull-requests: read
 
 jobs:
-  # build and format are required status checks on main, so this workflow has to report them on every pull
-  # request, including doc-only ones
-  #
-  # paths-ignore cannot do that: a workflow skipped by path filtering never reports its checks at all, they
-  # stay pending and the pull request can never be merged
-  # a job skipped by an if condition does report, as success, so the gate has to sit on the jobs instead
+  # build and format are required checks on main, so they report on every pull request, doc-only ones too
+  # not with paths-ignore: a workflow skipped by path never reports and blocks the merge; a job skipped by an if reports
+  # success, so the gate sits on the jobs
   # https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/troubleshooting-required-status-checks
   changes:
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.filter.outputs.code }}
     steps:
-      # asks the api for the changed files instead of diffing a checkout, so there is no clone and no
-      # guessing about how deep the history has to be fetched for a merge base
-      #
-      # every uncertain path sets code=true on purpose: a skipped job reports success, so guessing wrong
-      # in the other direction would wave an unbuilt pull request through the required checks
+      # the changed files from the api, no clone and no merge base depth to guess
+      # every uncertain path sets code=true; a wrong skip would wave an unbuilt pull request through
       - name: check whether anything buildable changed
         id: filter
         env:
@@ -53,8 +47,7 @@ jobs:
             echo "code=false" >> "$GITHUB_OUTPUT"
           fi
 
-  # only an explicit code=false skips the build; if the filter job itself failed the output is empty and
-  # this still runs, so a broken filter costs a build rather than waving the pull request through
+  # only an explicit code=false skips; a failed filter leaves the output empty and this runs
   build:
     needs: changes
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
@@ -74,27 +67,23 @@ jobs:
         uses: microsoft/setup-msbuild@v3
 
       # --- workaround: dotnet build cannot resolve COMReference ---
-      # problem: ResolveComReference is not implemented in the .NET Core version of MSBuild, only
-      # the full .NET Framework MSBuild (msbuild.exe) supports it, dotnet build fails with MSB4803
+      # problem: ResolveComReference exists only in the .NET Framework MSBuild (msbuild.exe),
+      # dotnet build fails with MSB4803:
       # https://aka.ms/msbuild/MSB4803
-      # fix: restore via dotnet CLI as usual, then build through msbuild.exe from microsoft/setup-msbuild
+      # fix: restore with the dotnet CLI, build with msbuild.exe from microsoft/setup-msbuild
       - name: restore
         run: dotnet restore FluentSensors/FluentSensors.csproj -p:Platform=x64 -r win-x64 -p:SelfContained=true
 
-      # same build command release.yml relies on, a single full build pass feeds both the publish below
-      # and the size report
+      # the build of release.yml; one pass feeds the publish and the size report
       - name: build win-x64
         run: msbuild FluentSensors/FluentSensors.csproj -p:Configuration=Release -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -p:SelfContained=true
 
-      # publish is what makes the size number mean anything: PruneUnusedPublishPayload runs
-      # AfterTargets="Publish", so the build output on its own still carries payload the app never ships
-      # NoBuild reuses the pass above, and it also proves the publish path still works before a tag depends
-      # on it, which is where the WMC0909 failures used to surface
+      # publish makes the size real (PruneUnusedPublishPayload runs after Publish); NoBuild reuses the pass above and
+      # proves the publish path before a tag depends on it
       - name: publish win-x64
         run: msbuild FluentSensors/FluentSensors.csproj -t:Publish -p:Configuration=Release -p:Platform=x64 -p:PublishProfile=FolderProfile -p:NoBuild=true
 
-      # absolute numbers only, diffing against main would mean building main too
-      # the ten largest files are there so a jump can be attributed without downloading anything
+      # absolute numbers (a diff would build main too); the ten largest files explain a jump
       - name: report publish size
         shell: pwsh
         run: |
@@ -127,19 +116,13 @@ jobs:
       - name: checkout
         uses: actions/checkout@v7
 
-      # no cache here, unlike the build job, dotnet format whitespace does not
-      # reliably populate the nuget packages folder the cache action expects to save
+      # no cache; format does not reliably fill the packages folder the cache saves
       - name: setup dotnet
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
-      # scoped to whitespace only, matches the .editorconfig, not style/analyzers
-      #
-      # no -p:Platform here, dotnet format has no MSBuild property option and answers one with its
-      # usage help and a non zero exit, so the check would never actually run
-      #
-      # end_of_line = lf only holds because .gitattributes pins the checkout to lf; without it the
-      # runner default core.autocrlf=true hands out a crlf tree and every line fails
+      # whitespace only, per the .editorconfig; no -p:Platform (format answers it with its usage and a failure)
+      # end_of_line = lf holds because .gitattributes pins the checkout; the runner autocrlf would fail every line
       - name: dotnet format whitespace check
         run: dotnet format whitespace FluentSensors/FluentSensors.csproj --verify-no-changes --verbosity diagnostic
