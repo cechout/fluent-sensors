@@ -31,25 +31,29 @@
 
         <!--  sensor name  -->
         <!--
-            (one or two lines, set in ApplyLayout; LineHeight is the knob for the gap between the two; the top margin
-            is 2 more than the bottom margin of the value, because the smaller LineHeight leaves less room above the
-            letters than the value has below its digits)
+            (one or two lines, set in ApplyLayout; LineHeight is the knob for the gap between the two; the top Margin
+            counts from the top of the graph card, NameHost moves the name down to where the card starts)
         -->
-        <TextBlock
-            x:Name="NameText"
-            Margin="4,3,4,0"
-            VerticalAlignment="Top"
-            FontSize="10"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            LineHeight="11"
-            LineStackingStrategy="BlockLineHeight"
-            MaxLines="1"
-            Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
-            TextTrimming="CharacterEllipsis"
-            TextWrapping="NoWrap" />
+        <Grid x:Name="NameHost" VerticalAlignment="Top">
+            <TextBlock
+                x:Name="NameText"
+                Margin="4,3,4,0"
+                VerticalAlignment="Top"
+                FontSize="10"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                LineHeight="11"
+                LineStackingStrategy="BlockLineHeight"
+                MaxLines="1"
+                Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap" />
+        </Grid>
 
         <!--  current value and unit  -->
-        <!--  (the unit is left out when both do not fit the slot width, see FitValueText; LineHeight sets the line box)  -->
+        <!--
+            (the unit is left out when both do not fit the slot width, see FitValueText; LineHeight sets the line box;
+            the bottom Margin counts from the bottom of the graph card, which is also the bottom of the slot)
+        -->
         <TextBlock
             x:Name="ValueText"
             Margin="4,0,4,1"

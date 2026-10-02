@@ -46,6 +46,9 @@ namespace FluentSensors.Features.TaskbarWidget
         // off-tree copy of ValueText, used only to measure a candidate text
         private TextBlock? _measureText;
 
+        // SensorPanelControl keeps this gap above its graph card for the label row it hides here (its RowSpacing)
+        private const double PanelLabelRowGapDip = 3;
+
 
         // === constructor ===
 
@@ -82,6 +85,10 @@ namespace FluentSensors.Features.TaskbarWidget
                     GraphRotation.IsMirrored = false;
                     break;
             }
+
+            // the name margin counts from the top of the graph card: an unturned card starts PanelLabelRowGapDip below
+            // the slot top, a turned one has that gap on its side and fills the slot along the taskbar
+            NameHost.Padding = new Thickness(0, GraphRotation.QuarterTurns == 0 ? PanelLabelRowGapDip : 0, 0, 0);
 
             bool twoLines = nameLines == 2;
             NameText.MaxLines = twoLines ? 2 : 1;
