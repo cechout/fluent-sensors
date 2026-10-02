@@ -26,7 +26,8 @@
                 TitleTextTrimming="CharacterEllipsis"
                 TitleTextWrapping="NoWrap" />
 
-            <!--  current value (a property path, so it updates live) or "not found"  -->
+            <!--  current value  -->
+            <!--  (a property path, so it updates live; or "not found")  -->
             <Grid>
 
                 <!--  invisible width anchor  -->

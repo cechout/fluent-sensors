@@ -58,26 +58,8 @@
 
 
     <Grid x:Name="RootGrid" MinHeight="{x:Bind ButtonSize, Mode=OneWay}">
-
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="PopupStates">
-
-                <!--  rest state, no setters: the defaults or a consumer TitleForeground and ButtonGlyphForeground  -->
-                <VisualState x:Name="PopupClosed" />
-
-                <!--  (setters, since a Foreground from code cuts the ThemeResource and the theme switch with it)  -->
-                <VisualState x:Name="PopupOpen">
-                    <VisualState.Setters>
-                        <Setter Target="TitleTextBlock.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <Setter Target="ButtonGlyphIcon.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <Setter Target="TitleContentPresenter.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                    </VisualState.Setters>
-                </VisualState>
-
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
-
-        <!--  optional title, collapsed without Title or TitleContent  -->
+        <!--  optional title  -->
+        <!--  (collapsed without Title or TitleContent)  -->
         <Grid
             x:Name="TitleHost"
             VerticalAlignment="Center"
@@ -93,7 +75,8 @@
                 TextTrimming="{x:Bind TitleTextTrimming, Mode=OneWay}"
                 TextWrapping="{x:Bind TitleTextWrapping, Mode=OneWay}" />
 
-            <!--  consumer content instead of Title; shares the cell, the unused one measures zero  -->
+            <!--  consumer content instead of Title  -->
+            <!--  (shares the cell, the unused one measures zero)  -->
             <ContentPresenter
                 x:Name="TitleContentPresenter"
                 Margin="{x:Bind GetTitleMargin(ButtonSize, ShowInfoButton), Mode=OneWay}"
@@ -156,7 +139,8 @@
                     <!--  top to bottom: source intro, source links (or the plain source line), description  -->
                     <StackPanel Spacing="4">
 
-                        <!--  source intro, collapsed by default  -->
+                        <!--  source intro  -->
+                        <!--  (collapsed by default)  -->
                         <ItemsControl ItemsSource="{x:Bind SplitParagraphs(SourceIntro), Mode=OneWay}" Visibility="{x:Bind GetSourceIntroVisibility(SourceIntro), Mode=OneWay}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -174,7 +158,8 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <!--  source links, one HyperlinkButton each  -->
+                        <!--  source links  -->
+                        <!--  (one HyperlinkButton each)  -->
                         <ItemsControl
                             Margin="0,0,0,8"
                             ItemsSource="{x:Bind SourceLinks}"
@@ -202,7 +187,8 @@
                             TextWrapping="Wrap"
                             Visibility="{x:Bind GetSourceVisibility(Source, SourceLinks), Mode=OneWay}" />
 
-                        <!--  description, one TextBlock per paragraph  -->
+                        <!--  description  -->
+                        <!--  (one TextBlock per paragraph)  -->
                         <ItemsControl ItemsSource="{x:Bind SplitParagraphs(Description), Mode=OneWay}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -222,5 +208,23 @@
                 </Border>
             </Popup>
         </Grid>
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="PopupStates">
+
+                <!--  rest state, no setters: the defaults or a consumer TitleForeground and ButtonGlyphForeground  -->
+                <VisualState x:Name="PopupClosed" />
+
+                <!--  (setters, since a Foreground from code cuts the ThemeResource and the theme switch with it)  -->
+                <VisualState x:Name="PopupOpen">
+                    <VisualState.Setters>
+                        <Setter Target="TitleTextBlock.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <Setter Target="ButtonGlyphIcon.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <Setter Target="TitleContentPresenter.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                    </VisualState.Setters>
+                </VisualState>
+
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
 </UserControl>

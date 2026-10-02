@@ -20,7 +20,8 @@
         </Grid.RowDefinitions>
 
 
-        <!--  label row; the title and status rows overlap, toggled by ShowTitleRow and ShowStatusRow  -->
+        <!--  label row  -->
+        <!--  (the title and status rows overlap, toggled by ShowTitleRow and ShowStatusRow)  -->
         <Grid Grid.Row="0">
 
 
@@ -50,7 +51,8 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!--  toggle button, per ButtonTapAction  -->
+                <!--  toggle button  -->
+                <!--  (per ButtonTapAction)  -->
                 <Button
                     Grid.Column="0"
                     Width="32"
@@ -81,10 +83,8 @@
                     Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
                     Typography.NumeralAlignment="Tabular" />
 
-                <!--
-                    name (and unit with ShowUnitInStatusRow); when switchable a subtle button with a chevron that
-                    opens the hidden combobox in one click
-                -->
+                <!--  name (and unit with ShowUnitInStatusRow)  -->
+                <!--  (when switchable a subtle button with a chevron that opens the hidden combobox in one click)  -->
                 <Button
                     x:Name="SwitchButton"
                     Grid.Column="2"
@@ -101,7 +101,8 @@
                     </StackPanel>
                 </Button>
 
-                <!--  the real selection, invisible; the button opens its dropdown  -->
+                <!--  the real selection  -->
+                <!--  (invisible; the button opens its dropdown)  -->
                 <ComboBox
                     x:Name="SwitchCandidateComboBox"
                     Grid.Column="2"
@@ -138,7 +139,8 @@
             </Grid>
 
 
-            <!--  compact status row, no toggle and no switch; ShowCompactStatusRow picks it  -->
+            <!--  compact status row  -->
+            <!--  (no toggle and no switch; ShowCompactStatusRow picks it)  -->
             <Grid
                 Height="18"
                 Padding="0,0,0,0"

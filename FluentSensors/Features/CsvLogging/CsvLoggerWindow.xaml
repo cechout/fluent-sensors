@@ -32,7 +32,8 @@
                 VerticalAlignment="Stretch"
                 Orientation="Horizontal">
 
-                <!--  back to main application button (same one the widget window carries)  -->
+                <!--  back to main application button  -->
+                <!--  (same one the widget window carries)  -->
                 <Button
                     x:Name="BackToDashboardButton"
                     Width="32"

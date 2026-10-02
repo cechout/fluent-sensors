@@ -100,8 +100,9 @@
                     MinWidth="0" />
             </Grid.ColumnDefinitions>
 
+            <!--  checkbox with sensor name  -->
             <!--
-                checkbox with sensor name; the checkbox is visual only, the row takes focus and reports itself as one
+                the checkbox is visual only, the row takes focus and reports itself as one
                 (a grid, so the name gets a finite width and trims with an ellipsis)
             -->
             <Grid
@@ -186,7 +187,8 @@
                 Text="{x:Bind ViewModel.AverageValue, Mode=OneWay}"
                 Typography.NumeralAlignment="Tabular" />
 
-            <!--  unit, compact mode only; tells apart sensors with the same name  -->
+            <!--  unit  -->
+            <!--  (compact mode only; tells apart sensors with the same name)  -->
             <TextBlock
                 x:Name="UnitText"
                 Grid.Column="6"

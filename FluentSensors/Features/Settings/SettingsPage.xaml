@@ -669,10 +669,6 @@
                 </ComboBox>
 
                 <!--
-                    the one element here that is not a setting, so it sits in the one slot that is not a
-                    settings row
-                -->
-                <!--
                     (same top bar the sensors page puts above its sensor rows; text is built from code, through
                     the same formatter that writes the file)
                 -->

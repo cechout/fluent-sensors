@@ -45,7 +45,8 @@
         </Grid>
 
 
-        <!--  the graphs, stretched to fill the height together  -->
+        <!--  the graphs  -->
+        <!--  (stretched to fill the height together)  -->
         <Grid Grid.Row="1" Padding="4,0,4,5">
             <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
                 <ItemsControl.ItemsPanel>

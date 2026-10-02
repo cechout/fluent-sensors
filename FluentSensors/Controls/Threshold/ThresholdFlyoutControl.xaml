@@ -26,8 +26,9 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
+    <!--  badge: "-" or the configured value on the threshold color  -->
     <!--
-        badge: "-" or the configured value on the threshold color, a tap opens the editor flyout
+        a tap opens the editor flyout
         the Border is the Content of the UserControl, so the VisualStateGroups live on it; GoToState
         looks only at the Content root
     -->

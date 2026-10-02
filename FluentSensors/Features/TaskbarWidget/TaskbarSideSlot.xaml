@@ -11,7 +11,8 @@
 
     <Grid IsHitTestVisible="False">
 
-        <!--  graph, turned in the vertical directions so its values run along the taskbar  -->
+        <!--  graph  -->
+        <!--  (turned in the vertical directions so its values run along the taskbar)  -->
         <fhControls:RotatedContentPanel x:Name="GraphRotation">
             <fhGraph:SensorPanelControl
                 HorizontalAlignment="Stretch"
@@ -29,9 +30,11 @@
                 ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
         </fhControls:RotatedContentPanel>
 
+        <!--  sensor name  -->
         <!--
-            sensor name, one or two lines (ApplyLayout); LineHeight sets the gap, the top Margin counts from the
-            top of the graph card, where NameHost moves the name down to
+            one or two lines (ApplyLayout);
+            LineHeight sets the gap, the top Margin counts from the top of the graph card, where NameHost moves
+            the name down to
         -->
         <Grid x:Name="NameHost" VerticalAlignment="Top">
             <TextBlock
@@ -48,9 +51,11 @@
                 TextWrapping="NoWrap" />
         </Grid>
 
+        <!--  value and unit  -->
         <!--
-            value and unit, the unit dropped when both do not fit (FitValueText); LineHeight sets the line box,
-            the bottom Margin counts from the bottom of the graph card, also the bottom of the slot
+            the unit dropped when both do not fit (FitValueText);
+            LineHeight sets the line box, the bottom Margin counts from the bottom of the graph card, also the
+            bottom of the slot
         -->
         <TextBlock
             x:Name="ValueText"

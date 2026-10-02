@@ -169,7 +169,8 @@
                 </ControlTemplate>
             </Button.Template>
 
-            <!--  the graphs along the taskbar, stretched equally (panel and template from RootGrid.Resources)  -->
+            <!--  the graphs along the taskbar  -->
+            <!--  (stretched equally; panel and template from RootGrid.Resources)  -->
             <ItemsControl
                 x:Name="SlotsItemsControl"
                 ItemTemplate="{StaticResource HorizontalSlotTemplate}"

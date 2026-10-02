@@ -32,7 +32,8 @@
                 XAxes="{Binding XAxes, ElementName=Root}"
                 YAxes="{Binding YAxes, ElementName=Root}" />
 
-            <!--  title and value overlay in the top row, with IsLabelVisible  -->
+            <!--  title and value overlay in the top row  -->
+            <!--  (with IsLabelVisible)  -->
             <Grid
                 Margin="4,1,4,0"
                 VerticalAlignment="Top"
