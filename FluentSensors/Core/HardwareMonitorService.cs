@@ -9,32 +9,27 @@ using System.Net.NetworkInformation;
 
 namespace FluentSensors.Core
 {
-    // record container for all the relevant data about one sensor
+    // one sensor reading
     public record SensorData(
-        string Id, // e.g. "/intelcpu/0/load/1" 
+        string Id, // e.g. "/intelcpu/0/load/1"
         string Name, // e.g. "CPU Package"
         string HardwareName, // e.g. "Intel Core i9-12900H"
         string HardwareType, // e.g. "Cpu", "GpuNvidia", "Memory"
         string SensorType, // e.g. "Power", "Temperature", "Load"
-        double Value // the actual value of the sensor
+        double Value
     );
 
 
-    // owns the single background polling loop every sensor value in the app comes from, plus the LHM hardware
-    // discovery behind it
-    // the loop is hand-written rather than timer-driven and its timing is the non-obvious part of this class,
-    // see LoopAsync
+    // the hardware monitor:
+    // owns the one polling loop every sensor value comes from, plus the LHM discovery behind it; the timing is the
+    // non-obvious part, see LoopAsync
     public class HardwareMonitorService
     {
         // === fields ===
 
         private readonly Computer _computer;
 
-        // the dynamic list:
-        // it contains all sensors we want to monitor
-        // the manual way would be:
-        // "private IHardware? _cpuHardware;" 
-        // "private ISensor? _cpuPackagePowerSensor;" and so on
+        // every discovered sensor, read each tick
         private readonly List<ISensor> _activeSensors = new();
 
         private readonly object _sensorLock = new object();
@@ -42,26 +37,22 @@ namespace FluentSensors.Core
         private Task? _loopTask;
         private readonly HashSet<string> _excludedSensorIds = new();
 
-        // how many recent read durations the broadcast schedule plans against, and how much slack it leaves on top
-        // of them; the margin absorbs the small run-to-run noise a sample window cannot see coming
+        // read durations the schedule plans against, and the slack on top (for run-to-run noise)
         private const int ReadDurationSampleCount = 8;
         private const double ReadScheduleMarginMs = 5;
 
-        // how long the cached network adapter snapshot may be reused before it gets rebuilt regardless of events
+        // max age of the network adapter snapshot, events or not
         private const double NetworkAdapterSnapshotMaxAgeMs = 10000;
 
-        // ring buffer of the last read durations, touched only by the polling loop
-        // the schedule plans against the slowest of them rather than the average: one slow read has to pull the
-        // following reads earlier, and a maximum drops back on its own once that read ages out of the window
+        // ring buffer of the last read durations, polling loop only; (the schedule takes the
+        // slowest, see PredictReadDurationMs)
         private readonly double[] _readDurationSamples = new double[ReadDurationSampleCount];
         private int _readDurationSampleIndex;
 
-        // wakes the polling loop out of a pending wait when the rate changes, so switching from 2000ms to 250ms
-        // takes effect right away instead of after the wait it is already sitting in
+        // cuts a pending wait short when the rate changes, so a new rate applies right away
         private readonly SemaphoreSlim _intervalChangedSignal = new(0, 1);
 
-        // set by the NetworkChange handler, consumed by the polling loop; the rebuild itself deliberately runs on the
-        // loop and not on the OS callback thread, see RefreshNetworkAdapters
+        // set by the NetworkChange handler; the rebuild runs on the polling loop, see RefreshNetworkAdapters
         private volatile bool _networkAdaptersDirty = true;
 
         // currently "up" network adapters, see RefreshNetworkAdapters; touched only by the polling loop
@@ -71,8 +62,6 @@ namespace FluentSensors.Core
 
         // === singleton instance ===
 
-        // this class is a singleton, because we want to have only one instance of this service that runs in the
-        // background and updates the sensor values
         private static readonly HardwareMonitorService _instance = new HardwareMonitorService();
         public static HardwareMonitorService Instance => _instance;
 
@@ -83,9 +72,7 @@ namespace FluentSensors.Core
         {
             _computer = new Computer
             {
-                // all hardware components are explicitly disabled here to prevent the UI thread from freezing 
-                // the actual initialization is deferred and chunked into the asynchronous pipeline methods (Init...Async)
-                // below
+                // everything off here; the slow enabling runs step by step in the Init...Async methods
                 IsCpuEnabled = false,
                 IsGpuEnabled = false,
                 IsMemoryEnabled = false,
@@ -112,9 +99,7 @@ namespace FluentSensors.Core
                 {
                     _updateIntervalMs = value;
 
-                    // pull the polling loop out of its current wait so the new rate applies from here instead of once
-                    // the old one runs out; a signal nobody is waiting on only makes the next wait re-evaluate once,
-                    // which is harmless
+                    // cuts the current wait short; (a signal nobody waits on only makes the next wait re-check once)
                     if (_intervalChangedSignal.CurrentCount == 0)
                     {
                         _intervalChangedSignal.Release();
@@ -125,12 +110,9 @@ namespace FluentSensors.Core
             }
         }
 
-        // measured real cadence between two broadcasts, not just the requested UpdateIntervalMs; the loop below holds
-        // every broadcast to at least UpdateIntervalMs, so this sits on the aimed-for value while LHM keeps up and
-        // rises above it only once a read alone outruns the interval
-        //
-        // read cross-thread by AppStatusService; double reads/writes are not guaranteed atomic, Interlocked keeps
-        // this lock-free instead of adding a lock for a single number
+        // measured cadence between two broadcasts; sits on UpdateIntervalMs while LHM keeps up, rises
+        // once a read alone outruns it
+        // (read cross-thread by AppStatusService; Interlocked, since a double is not atomic)
         private double _actualUpdateIntervalMs;
         public double ActualUpdateIntervalMs
         {
@@ -138,11 +120,9 @@ namespace FluentSensors.Core
             private set => Interlocked.Exchange(ref _actualUpdateIntervalMs, value);
         }
 
-        // how long the last full sensor read took (hardware.Update() plus payload building)
-        // this is the number that says whether a rate is reachable at all: once it approaches UpdateIntervalMs there
-        // is no headroom left and the cadence starts slipping, which is why the status bar shows it
-        //
-        // cross-thread like ActualUpdateIntervalMs above, same reasoning for Interlocked
+        // the last full read (hardware.Update() plus the payload); says whether a rate is reachable at all, which is
+        // why the status bar shows it
+        // (cross-thread, Interlocked like above)
         private double _lastReadDurationMs;
         public double LastReadDurationMs
         {
@@ -150,10 +130,7 @@ namespace FluentSensors.Core
             private set => Interlocked.Exchange(ref _lastReadDurationMs, value);
         }
 
-        // asynchronous initialization pipeline:
-        // lhm heavily blocks the calling thread when enabling all the hardware components
-        // to prevent application freezes, these methods allow any consuming class or caller to trigger the 
-        // hardware discovery step-by-step on isolated background threads (via Task.Run)
+        // init pipeline; enabling a component blocks for a long time, so each step runs on a background thread
         public Task InitMotherboardAsync()
         {
             return Task.Run(() => { _computer.IsMotherboardEnabled = true; });
@@ -188,13 +165,10 @@ namespace FluentSensors.Core
             return Task.Run(() => { _computer.IsNetworkEnabled = true; });
         }
 
-        // monitoring control:
-        // starts the background polling loop to read sensor values
-        // this method gets called from the outside (e.g. MainWindow); only after the asynchronous initialization pipeline has
-        // fully completed of course
+        // starts the polling loop, once the init pipeline has completed
         public void StartMonitoring()
         {
-            // prevent double execution
+            // already running
             if (_cts != null) return;
 
             InitAllSensors();
@@ -203,9 +177,7 @@ namespace FluentSensors.Core
 
             _cts = new CancellationTokenSource();
 
-            // task.run() creates a new thread in the background, and puts explicitly the method
-            // LoopAsync on this new thread
-            // we keep the reference so StopMonitoring can actually wait for the loop to finish, not just ask it to stop
+            // kept, so StopMonitoring can wait for the loop to finish
             _loopTask = Task.Run(() => LoopAsync(_cts.Token));
         }
 
@@ -217,8 +189,8 @@ namespace FluentSensors.Core
 
             _cts.Cancel();
 
-            // block until the loop has fully exited (including a possibly already in-flight update), so once this method
-            // returns, callers can be 100% sure HardwareDataUpdated will never fire again
+            // waits up to 2s for the loop to exit, in-flight read included, so
+            // HardwareDataUpdated does not fire after this
             _loopTask?.Wait(2000);
 
             _cts = null;
@@ -231,8 +203,8 @@ namespace FluentSensors.Core
             _computer.Close();
         }
 
-        // exclusion API:
-        // the service stays blind about the meaning of "excluded" (hidden, disabled, whatever); it just skips these ids
+        // exclusion api; the service does not care what excluded means (hidden, disabled), it skips these ids (the skip
+        // is currently off, see LoopAsync)
         public void AddExcludedSensor(string sensorId)
         {
             lock (_sensorLock)
@@ -265,60 +237,38 @@ namespace FluentSensors.Core
 
         // === events ===
 
-        // the master event:
-        // instead of having multiple events for each sensor, we can have one event that
-        // sends a list of all the sensor data at once
-        // the manual way would be:
-        // "public event Action<double>? CpuPackagePowerUpdated;"
-        // "public event Action<double>? CpuIaPowerUpdated;" and so on
+        // one event per tick with every sensor reading
         public event Action<List<SensorData>>? HardwareDataUpdated;
 
-        // fires whenever the polling interval changes at runtime; graphs use
-        // this to keep their visible time span correct, since point count depends on both time span and interval
+        // the polling interval changed; graphs keep their time span with it (point count = span / interval)
         public event Action<int>? UpdateIntervalChanged;
 
 
         // === private helpers ===
 
-        // polling loop
-        //
-        // the scheduling below is the whole reason this is a hand-written loop and not a plain timer, and it exists to
-        // keep the broadcast cadence off the read duration:
-        // waiting a full interval after the read made the visible cadence interval + read time, so a 250ms setting
-        // broadcast every ~350ms on a machine where a read takes 100ms
-        // Sizing that wait from the previous read instead made the cadence interval + (this read minus the previous
-        // read), which drops below the configured rate every time a read comes back faster than the one before it
-        // Every graph shifts exactly one point per broadcast (see SensorGraphViewModel.AddDataPoint), so uneven
-        // spacing is directly visible as uneven scroll speed, and a tick that lands early looks worse than a late one
-        //
-        // so the configured rate is the target and the floor at the same time
-        // one tick, at a 250ms rate with a ~100ms read:
+        // polling loop; hand-written so the broadcast cadence stays off the read duration (every graph shifts one point
+        // per broadcast, so uneven spacing shows as uneven scroll speed, and an early tick looks worse than a late one)
+        // the configured rate is target and floor at once; one tick at 250ms with a ~100ms read:
         //
         // |.........idle.........|--read--|FIRE
         // 0                     145      250 <- deadline = previous FIRE + interval
-        //                    
-        // the deadline is anchored to the previous broadcast and never to an absolute grid, so an overrun shifts the
-        // phase instead of getting paid back by a too-early next tick
-        // the read is scheduled to end just before the deadline, planned against the slowest of the recent reads plus
-        // a small margin; that keeps broadcast values a few ms old at every rate, instead of almost a full interval
-        // old at the slow ones the way reading right after the previous broadcast would
-        // a read that outruns the interval broadcasts late, and the next deadline counts from that late broadcast
-        // waits only ever overshoot and never undershoot (see WaitSinceAsync), so the real cadence is the configured
-        // interval plus a small overshoot and never below it
-        // measured in the running app that overshoot is 1 to 3ms at every rate (252ms at the 250 setting, 501 at 500,
-        // 2003 at 2000); its ceiling is the systems timer granularity, ~15.6ms unless something in the process holds a
-        // finer resolution, and this process evidently does without asking for it
+        //
+        // the deadline counts from the previous broadcast, not from a fixed grid, so an overrun shifts the phase
+        // instead of being paid back by an early tick
+        // the read is planned to end just before the deadline (slowest recent read plus a margin), so values
+        // are a few ms old at every rate
+        // waits only ever overshoot (see WaitSinceAsync), so the cadence is the interval plus
+        // a few ms and never below it
         private async Task LoopAsync(CancellationToken token)
         {
             RefreshNetworkAdapters();
 
-            // backdated by one interval so the very first tick reads and broadcasts right away, instead of idling
-            // through a full interval before the app shows any data at all
+            // backdated one interval, so the first tick broadcasts right away
             long lastBroadcastTimestamp = Stopwatch.GetTimestamp() - (long)(Stopwatch.Frequency * (UpdateIntervalMs / 1000.0));
 
             while (!token.IsCancellationRequested)
             {
-                // snapshotted per tick, the settings page can change the property at any point
+                // per tick; the settings page can change it any time
                 int intervalMs = UpdateIntervalMs;
 
                 // hold the read back so it lands on the deadline instead of running right after the last broadcast
@@ -327,12 +277,12 @@ namespace FluentSensors.Core
 
                 if (outcome == WaitOutcome.Cancelled) break;
 
-                // the rate changed while we were idle, which leaves the schedule above stale; recompute it
+                // a rate change while idle; recompute the schedule
                 if (outcome == WaitOutcome.RateChanged) continue;
 
                 long readStartTimestamp = Stopwatch.GetTimestamp();
 
-                // update hardware (lhm fetches new values from the sensor)
+                // LHM reads the hardware
                 foreach (var hardware in _computer.Hardware)
                 {
                     hardware.Update();
@@ -385,8 +335,7 @@ namespace FluentSensors.Core
                 // the "up" network adapter snapshot this tick filters against, see RefreshNetworkAdapters
                 var activeNetworkAdapters = _activeNetworkAdapters;
 
-                // this is the exact list for the big event HardwareDataUpdated, we create a new list
-                // and every iteration fill it with the current values of all the sensors we want to monitor
+                // a fresh payload per tick
                 var payload = new List<SensorData>();
 
                 lock (_sensorLock)
@@ -395,41 +344,39 @@ namespace FluentSensors.Core
                     {
                         string id = sensor.Identifier.ToString();
 
-                        // skip sensors that were excluded by the user (e.g. hidden in the UI); no payload entry means no
-                        // UI update and no widget graph update for this tick
-                        // TEMP: temporarily disabled to allow all sensors to be visible in PerformancePage
+                        // excluded sensors would be skipped here (no payload entry, no UI or graph update)
+                        // TEMP: disabled, so PerformancePage sees every sensor
                         //if (_excludedSensorIds.Contains(id)) continue;
 
-                        // skip sensors belonging to network adapters that are not currently active; Windows creates a huge
-                        // amount of virtual/filter pseudo-adapters alongside every real one (QoS, WFP, Wi-Fi Direct, etc.),
-                        // and those never carry meaningful data
+                        // adapters that are not up; (Windows adds filter pseudo adapters next to every real
+                        // one, QoS, WFP, Wi-Fi Direct)
                         if (sensor.Hardware.HardwareType == HardwareType.Network &&
                             !activeNetworkAdapters.Contains(sensor.Hardware.Name))
                         {
                             continue;
                         }
 
-                        if (sensor.Value.HasValue) // some sensors might not have a value at the moment
+                        if (sensor.Value.HasValue) // no value right now
                         {
                             double value = sensor.Value.Value;
 
-                            // some sensors report NaN/Infinity instead of leaving Value unset; never broadcast garbage values
+                            // some sensors report NaN or Infinity instead of no value
                             if (double.IsNaN(value) || double.IsInfinity(value))
                             {
                                 continue;
                             }
 
-                            // LHM reports throughput in raw bytes/s; normalized to MB/s here so every consumer sees a sane unit
+                            // LHM reports throughput in bytes/s; MB/s for every consumer
                             if (sensor.SensorType == SensorType.Throughput)
                             {
-                                value /= 1_048_576.0; // bytes/s -> MB/s
+                                value /= 1_048_576.0;
                             }
 
-                            // some NVMe controllers report a name padded with non-printable control characters instead of a real
-                            // string; IsNullOrWhiteSpace does not catch those, so they get stripped out first
+                            // some NVMe names are padded with control characters, which
+                            // IsNullOrWhiteSpace does not catch
                             string cleanedName = new string(sensor.Hardware.Name.Where(c => !char.IsControl(c)).ToArray()).Trim();
 
-                            // falls back to hardware type + LHMs internal identifier so the UI never shows a blank group name
+                            // hardware type and LHM identifier, so a group name is never blank
                             string hardwareName = string.IsNullOrWhiteSpace(cleanedName)
                                 ? $"{sensor.Hardware.HardwareType} ({sensor.Hardware.Identifier})"
                                 : cleanedName;
@@ -448,12 +395,11 @@ namespace FluentSensors.Core
 
                 RecordReadDuration(Stopwatch.GetElapsedTime(readStartTimestamp).TotalMilliseconds);
 
-                // extra guard: skip the broadcast entirely if a shutdown was requested while we were building the payload above
+                // a shutdown requested during the read
                 if (token.IsCancellationRequested) break;
 
-                // hold the finished payload until the deadline; a rate change while holding moves that deadline, so
-                // re-evaluate against the new one instead of firing on the old
-                // the wait is already over when the read alone outran the interval, and the tick is then simply late
+                // holds the payload until the deadline, re-evaluated on a rate change; (a read that outran
+                // the interval is simply late)
                 do
                 {
                     outcome = await WaitSinceAsync(lastBroadcastTimestamp, UpdateIntervalMs, token);
@@ -462,22 +408,19 @@ namespace FluentSensors.Core
 
                 if (outcome == WaitOutcome.Cancelled) break;
 
-                // real time since the previous broadcast, the actual cadence consumers see
+                // the cadence consumers actually see
                 long broadcastTimestamp = Stopwatch.GetTimestamp();
                 ActualUpdateIntervalMs = Stopwatch.GetElapsedTime(lastBroadcastTimestamp, broadcastTimestamp).TotalMilliseconds;
                 lastBroadcastTimestamp = broadcastTimestamp;
 
-                // we fire the event with the new list of sensor data
                 HardwareDataUpdated?.Invoke(payload);
 
-                // the gap between this broadcast and the next read is the one place where a rebuild costs nothing,
-                // so the adapter snapshot gets refreshed here rather than in the middle of a read
+                // the idle gap after a broadcast, where a rebuild costs nothing
                 RefreshNetworkAdapters();
             }
         }
 
-        // outcome of a wait in the polling loop above; RateChanged means the wait was cut short because the polling
-        // rate changed, so whatever it was waiting for has to be recomputed against the new rate
+        // RateChanged: cut short by a rate change, the target has to be recomputed
         private enum WaitOutcome
         {
             Reached,
@@ -485,12 +428,8 @@ namespace FluentSensors.Core
             Cancelled
         }
 
-        // waits until targetMs have passed since anchorTimestamp, coming back early when the rate changes or when
-        // monitoring is cancelled
-        //
-        // re-checks against the anchor in a loop rather than trusting a single wait: coming back short is the one
-        // thing the polling loop must not do, so a wait that returns early turns into a second short wait here
-        // instead of an early broadcast
+        // waits until targetMs since anchorTimestamp, early only for a rate change or a cancel; re-checks the anchor in
+        // a loop, so a wait that comes back short never becomes an early broadcast
         private async Task<WaitOutcome> WaitSinceAsync(long anchorTimestamp, double targetMs, CancellationToken token)
         {
             while (true)
@@ -498,8 +437,7 @@ namespace FluentSensors.Core
                 double remainingMs = targetMs - Stopwatch.GetElapsedTime(anchorTimestamp).TotalMilliseconds;
                 if (remainingMs <= 0) return WaitOutcome.Reached;
 
-                // rounded up because the timeout is taken in whole milliseconds: a fractional remainder truncates to a
-                // zero timeout, comes straight back, and leaves the re-check above spinning through the rest of it
+                // rounded up; a fractional remainder would truncate to a zero timeout and spin
                 var remaining = TimeSpan.FromMilliseconds(Math.Ceiling(remainingMs));
 
                 try
@@ -511,16 +449,13 @@ namespace FluentSensors.Core
                 }
                 catch (OperationCanceledException)
                 {
-                    // StopMonitoring cancelled the token while we were waiting; the caller exits the loop cleanly on
-                    // this, so the task completes normally instead of ending up in the Canceled state
+                    // StopMonitoring; the loop exits cleanly instead of ending Canceled
                     return WaitOutcome.Cancelled;
                 }
             }
         }
 
-        // the slowest of the recent reads, which is what the schedule has to survive
-        // an average would leave every spike broadcasting late, a permanent worst case would never recover from a
-        // single one
+        // the slowest recent read; (an average leaves every spike late, a permanent maximum never recovers from one)
         private double PredictReadDurationMs()
         {
             double slowestMs = 0;
@@ -541,20 +476,16 @@ namespace FluentSensors.Core
             _readDurationSampleIndex = (_readDurationSampleIndex + 1) % ReadDurationSampleCount;
         }
 
-        // only flags the snapshot as due, the rebuild itself runs on the polling loop; see RefreshNetworkAdapters
+        // only flags the snapshot; the rebuild runs on the polling loop
         private void OnNetworkAddressChanged(object? sender, EventArgs e)
         {
             _networkAdaptersDirty = true;
         }
 
-        // rebuilds the "up" network adapter snapshot, which has to stay current because Wi-Fi/Ethernet can connect or
-        // disconnect while the app is running
-        // rebuilt only when an address change flagged it, or when the last rebuild got old enough that a transition
-        // NetworkAddressChanged does not raise would start to show
-        //
-        // called from the polling loops idle window on purpose: GetAllNetworkInterfaces plus GetIPProperties per
-        // adapter is a multi-millisecond roundtrip whose cost spikes, and rebuilding it per tick put that spike
-        // straight into the read window the broadcast schedule has to plan against
+        // rebuilds the snapshot of up adapters when an address change flagged it or it got old (for transitions
+        // NetworkAddressChanged misses)
+        // runs in the idle window; GetAllNetworkInterfaces plus GetIPProperties is a
+        // multi-millisecond call whose cost spikes
         private void RefreshNetworkAdapters()
         {
             bool isStale = Stopwatch.GetElapsedTime(_networkAdapterRefreshTimestamp).TotalMilliseconds >= NetworkAdapterSnapshotMaxAgeMs;
@@ -563,11 +494,9 @@ namespace FluentSensors.Core
             _networkAdaptersDirty = false;
             _networkAdapterRefreshTimestamp = Stopwatch.GetTimestamp();
 
-            // keyed by NetworkInterface.Name
-            // (matches LHM's Hardware.Name 1:1)
-            // filter layers (QoS Packet Scheduler, WFP, Native/Virtual WiFi Filter Driver) and WAN Miniport stubs as "Up"
-            // even though they carry no real traffic; requiring at least one assigned IP address filters those out, since
-            // only the actual physical/virtual adapter above them gets an address
+            // keyed by NetworkInterface.Name, which matches the LHM Hardware.Name
+            // Windows reports filter layers (QoS Packet Scheduler, WFP, WiFi filter drivers) and WAN Miniport stubs as
+            // up; only a real adapter has an IP address
             _activeNetworkAdapters = new HashSet<string>(
                 NetworkInterface.GetAllNetworkInterfaces()
                     .Where(nic => nic.OperationalStatus == OperationalStatus.Up &&
@@ -575,17 +504,13 @@ namespace FluentSensors.Core
                     .Select(nic => nic.Name));
         }
 
-        // sensor discovery:
-        // goes through the discovered hardware tree and registers relevant sensors into the flat list
-        // this process is protected by _sensorLock to ensure thread-safety, preventing collection modification crashes if the
-        // background polling loop is preparing to run simultaneously
+        // flattens the hardware tree into _activeSensors, under _sensorLock against the polling loop
         private void InitAllSensors()
         {
             lock (_sensorLock)
             {
                 _activeSensors.Clear();
 
-                // we go through every sensor that lhm detects
                 foreach (var hardware in _computer.Hardware)
                 {
                     DiscoverSensors(hardware);
@@ -600,8 +525,7 @@ namespace FluentSensors.Core
                 _activeSensors.Add(sensor);
             }
 
-            // some hardware (like motherboards or big GPUs) have sub-hardware
-            // we traverse them recursively here
+            // sub-hardware, e.g. the super I/O chips under a motherboard
             foreach (var subHardware in hardware.SubHardware)
             {
                 DiscoverSensors(subHardware);

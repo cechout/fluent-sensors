@@ -13,26 +13,21 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // discovers every CPU instance from LhmHardwareTreeService and creates one LhmCpuInstanceViewModel per
-    // instance; parses each raw LHM sensor into the right property on the right instance
-    // the instance itself stays a dumb data holder, all "which sensor goes where" logic lives here
+    // cpu discovery:
+    // one LhmCpuInstanceViewModel per CPU in LhmHardwareTreeService, every raw LHM sensor parsed into its property; the
+    // instance stays a data holder
     public class LhmCpuPerformanceViewModel
     {
-        // matches "CPU Core #<n>" or "CPU Core #<n> Thread #<m>" (Load sensors); "CPU Core Max" and "CPU
-        // Total" do not have a "#" right after "Core ", so they are excluded automatically, no special case needed
+        // Load "CPU Core #<n>" or "CPU Core #<n> Thread #<m>"; "CPU Core Max" and "CPU Total" lack the "#" and drop out
         private static readonly Regex LoadCorePattern = new Regex(@"^CPU Core #(\d+)( Thread #\d+)?$", RegexOptions.Compiled);
 
-        // matches a per-core Temperature/Clock sensor name like "P-Core #3" or "E-Core #12"
-        // a label followed by " #" and digits, with nothing else after
-        // this is what excludes sibling sensors that share the same prefix but are not a plain per-core reading, e.g.
-        // "P-Core #1 Distance to TjMax" does NOT match (it does not end right after the digits); no hardcoded exclusion
-        // list needed
+        // a per-core Temperature or Clock name ("P-Core #3", "E-Core #12"), nothing after the digits; so "P-Core #1
+        // Distance to TjMax" drops out
         private static readonly Regex CoreLabelPattern = new Regex(@"^(.+) #\d+$", RegexOptions.Compiled);
 
-        // preferred sensor per switchable category, best first; this only decides which candidate starts out active,
-        // it never filters the list: every non-per-core sensor of the categorys type is offered
-        // LHM names the same reading differently per vendor (Intel "Core Max" and "CPU Package" power against AMD
-        // "Core (Tctl/Tdie)" and "Package"), so matching on a fixed name list left AMD machines with empty tiles
+        // the preferred start sensor per category, best first; never a filter, every non-per-core
+        // sensor of the type is offered
+        // (LHM names one reading per vendor: Intel "Core Max" and "CPU Package", AMD "Core (Tctl/Tdie)" and "Package")
         private static readonly string[] LoadPreference = { "CPU Total" };
         private static readonly string[] TemperaturePreference =
         {
@@ -91,10 +86,9 @@ namespace FluentSensors.Features.Performance.Lhm
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(cpu, e);
         }
 
-        // runs once after the initial sensor batch, per category: if nothing was ever persisted, the best ranked
-        // candidate of the preference list wins over whichever candidate happened to be discovered first; if nothing
-        // is active at all yet (e.g. a persisted choice never showed up, or this vendor names every sensor of the
-        // category differently), falls back to the first candidate present
+        // once after the first sensor batch, per category: without a saved choice the best ranked candidate
+        // beats discovery order; with nothing active (a saved choice that never showed up, an unknown vendor
+        // naming), the first candidate
         private static void ApplyCategoryFallbacks(LhmCpuInstanceViewModel cpu)
         {
             ActivateDefault(cpu.HardwareName, "Load", cpu.TotalLoadOptions, () => cpu.TotalLoad, cpu.SetTotalLoadWithoutPersisting, LoadPreference);
@@ -126,8 +120,7 @@ namespace FluentSensors.Features.Performance.Lhm
             if (getActive() == null) setActiveWithoutPersisting(options[0].Resolve());
         }
 
-        // walks the preference list, not the candidate list, so a lower ranked name that happened to be discovered
-        // first never beats a better ranked one discovered later
+        // walks the preference list, so an earlier discovered lower rank never wins
         private static SensorSwitchCandidate FindPreferred(ObservableCollection<SensorSwitchCandidate> options, string[] preferredNames)
         {
             foreach (string name in preferredNames)
@@ -150,9 +143,8 @@ namespace FluentSensors.Features.Performance.Lhm
 
         private void OnSensorDiscovered(LhmCpuInstanceViewModel cpu, LhmSensorEntry entry)
         {
-            // every per-core and per-thread reading carries a "#<n>" in its name, whatever the vendor calls the rest
-            // of it, and no package-wide reading does; so the three overview tiles take every sensor of their own
-            // type without a "#" instead of a fixed set of names, and the core grid below keeps the rest
+            // every per-core and per-thread name carries a "#<n>" for every vendor, no package-wide one does; the
+            // overview tiles take the rest of their type
             bool isPerCoreName = entry.Name.Contains('#');
 
             if (entry.SensorType == "Load")
@@ -168,14 +160,14 @@ namespace FluentSensors.Features.Performance.Lhm
                 if (loadMatch.Success)
                 {
                     string coreNumber = loadMatch.Groups[1].Value;
-                    bool hasThreads = loadMatch.Groups[2].Success; // only matched if " Thread #M" was present
+                    bool hasThreads = loadMatch.Groups[2].Success; // " Thread #M" present
 
                     var core = cpu.GetOrCreateCore(coreNumber, hasThreads);
 
                     var threadGraph = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     core.Threads.Add(threadGraph);
                     PushDataPoint(threadGraph, entry);
-                    cpu.RecomputeLoadAverage(hasThreads); // All Threads tile: first reading for this thread
+                    cpu.RecomputeLoadAverage(hasThreads); // first All Threads point
                     entry.PropertyChanged += (s, e) =>
                     {
                         OnEntryValueChanged(threadGraph, entry, e);
@@ -199,7 +191,7 @@ namespace FluentSensors.Features.Performance.Lhm
                         var graph = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                         var core = cpu.MatchNextTemperature(graph, label);
                         PushDataPoint(graph, entry);
-                        if (core != null) cpu.RecomputeTemperatureAverage(core.HasThreads); // All Threads tile: first reading for this core
+                        if (core != null) cpu.RecomputeTemperatureAverage(core.HasThreads); // first All Threads point
                         entry.PropertyChanged += (s, e) =>
                         {
                             OnEntryValueChanged(graph, entry, e);
@@ -210,7 +202,7 @@ namespace FluentSensors.Features.Performance.Lhm
             }
             else if (entry.SensorType == "Clock")
             {
-                // "Bus Speed" has no " #<n>" suffix at all, so it never matches here; excluded automatically
+                // "Bus Speed" has no " #<n>" and drops out
                 var labelMatch = CoreLabelPattern.Match(entry.Name);
                 if (labelMatch.Success)
                 {
@@ -218,7 +210,7 @@ namespace FluentSensors.Features.Performance.Lhm
                     var graph = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     var core = cpu.MatchNextClock(graph, label);
                     PushDataPoint(graph, entry);
-                    if (core != null) cpu.RecomputeClockAverage(core.HasThreads); // All Threads tile: first reading for this core
+                    if (core != null) cpu.RecomputeClockAverage(core.HasThreads); // first All Threads point
                     entry.PropertyChanged += (s, e) =>
                     {
                         OnEntryValueChanged(graph, entry, e);
@@ -236,9 +228,8 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // adds entry as a candidate, and activates it if nothing is active yet and it matches the persisted choice
-        // (or nothing was ever persisted, first-found-wins for now; ApplyCategoryFallbacks corrects to the preferred
-        // candidate afterward if one is present and discovery order picked something else)
+        // adds a candidate, active when nothing is yet and it is the saved choice (or none was saved, first found;
+        // ApplyCategoryFallbacks corrects to the preferred one)
         private void RegisterCategoryCandidate(
             LhmCpuInstanceViewModel cpu,
             string category,

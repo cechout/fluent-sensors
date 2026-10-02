@@ -8,11 +8,9 @@ using FluentSensors.Core.StaticInfo;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // one entry per detected physical memory group; LHM reports this as a single "Total Memory" instance in
-    // practice, but this stays correct if that ever differs on unusual hardware (e.g. NUMA)
-    // Also absorbs LHMs separate "Virtual Memory" hardware group into this same instance, since the app shows both as
-    // one combined RAM view rather than a separate nav entry
-    // A plain data holder; all sensor discovery/parsing lives in LhmMemoryPerformanceViewModel instead
+    // one memory group:
+    // in practice the single "Total Memory" of LHM (more would be NUMA), with the separate "Virtual Memory" group
+    // folded in, one RAM view; a data holder, LhmMemoryPerformanceViewModel parses
     public class LhmMemoryInstanceViewModel : INotifyPropertyChanged
     {
         // === constructor ===
@@ -41,8 +39,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _available = value; OnPropertyChanged(); }
         }
 
-        // Used + Available, rounded up to a clean step (see LhmMemoryPerformanceViewModel); used as the Y-max for
-        // the Used graph so the axis shows a readable total instead of e.g. "31.7"
+        // Used + Available rounded up to 4 GB, the Used graph y-max; a readable total instead of "31.7"
         private double _roundedTotalMemory;
         public double RoundedTotalMemory
         {
@@ -57,8 +54,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _virtualMemoryUsed = value; OnPropertyChanged(); }
         }
 
-        // Used + Available for virtual memory, deliberately NOT rounded (unlike RoundedTotalMemory); used purely
-        // as this graphs own Y-max
+        // Used + Available of virtual memory, unrounded; the graph y-max
         private double _virtualMemoryTotal;
         public double VirtualMemoryTotal
         {
@@ -69,19 +65,13 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === static info properties ===
 
-        // RAM never has more than one instance in practice (see class doc comment above), so unlike
-        // GPU/Storage/Network this needs no HardwareNameMatcher lookup; WinStaticInfoService.Instance.Memory is
-        // taken directly
-        // read-only, purely computed, WinStaticInfoService never changes after the singletons first access, so nothing
-        // to raise OnPropertyChanged for here
+        // static info; one RAM instance, so WinStaticInfoService.Instance.Memory directly without
+        // HardwareNameMatcher, and it never changes
         public string MemoryTotalSlotsText => WinStaticInfoService.Instance.Memory.TotalSlots.ToString();
         public IReadOnlyList<WinMemoryModuleInfo> MemoryModules => WinStaticInfoService.Instance.Memory.Modules;
 
-        // display-only name for the Performance page nav item/header/tiles; composed instead of using LHMs raw
-        // HardwareName 
-        // Size comes from RoundedTotalMemory (already computed above), type from the first modules SmbiosMemoryType;
-        // falls back to HardwareName while either piece is not available yet
-        // display-only: does not replace HardwareName, which stays LHMs raw name for anything outside this page
+        // the performance page name, RoundedTotalMemory and the SmbiosMemoryType of the first module; HardwareName
+        // until both exist (and the raw LHM name everywhere else)
         public string PerformanceDisplayName
         {
             get

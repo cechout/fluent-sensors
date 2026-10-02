@@ -19,22 +19,15 @@ using FluentSensors.Core.Update;
 
 namespace FluentSensors.Features.Start
 {
-    // backs the start page
-    //
-    // the static facts of the snapshot are built once per page instance and never refreshed: WinStaticInfoService
-    // resolves the whole machine during the splash and states plainly that none of it changes afterwards, so
-    // those bind OneTime
-    // the sensor count per tile is the exception and moves with LHMs ongoing discovery, the tile icon colour
-    // follows the hardware colour setting, and the update block moves whenever UpdateService answers
+    // the start page view model:
+    // the static snapshot facts are built once and bind OneTime (WinStaticInfoService never changes after the splash);
+    // the sensor counts follow the LHM discovery, the icon colour its setting, the update block UpdateService
     public class StartViewModel : INotifyPropertyChanged
     {
         // === badge colours ===
 
-        // literal rather than theme resources, the same choice PowerToys makes for its own update badge: a status
-        // colour means the same thing in light and dark, and a coloured plate with a white glyph reads correctly
-        // against both
-        // the accent state is the exception and comes from the system accent, which is a user setting rather than
-        // a theme one
+        // literals, not theme resources (like the PowerToys update badge): a status colour means the same in both
+        // themes, and a white glyph on a coloured plate reads on both; the accent state uses the system accent
         private static readonly Color SuccessColor = Color.FromArgb(0xFF, 0x4C, 0xA2, 0x2E);
         private static readonly Color CautionColor = Color.FromArgb(0xFF, 0xC1, 0x8A, 0x1B);
         private static readonly Color CriticalColor = Color.FromArgb(0xFF, 0xC4, 0x3E, 0x1C);
@@ -44,8 +37,7 @@ namespace FluentSensors.Features.Start
 
         // === switches ===
 
-        // a mainboard reports no sensors at all on plenty of systems, and a tile with nothing to say is only
-        // taking up room; later a setting
+        // many mainboards report no sensors, and an empty tile only takes room; (a setting candidate)
         private const bool ShowHardwareWithoutSensors = false;
 
 
@@ -59,7 +51,7 @@ namespace FluentSensors.Features.Start
         private bool _isUpdateChecking;
         private bool _isUpdateActionEnabled = true;
 
-        // the full set; SystemSnapshot below is the filtered view of it that the page actually binds to
+        // the full set; the page binds the filtered SystemSnapshot
         private readonly List<SystemSnapshotEntry> _allSnapshotEntries;
 
         private string _sensorsFoundText = "-";
@@ -68,8 +60,7 @@ namespace FluentSensors.Features.Start
         private string _ramTileValue = "-";
         private string _uptimeTileValue = "-";
 
-        // the moment this process started, read once; the splash counts towards the uptime as well
-        // (utc, so a daylight saving switch does not move the uptime by an hour)
+        // process start, the splash included; utc, so daylight saving does not move the uptime
         private static readonly DateTime ProcessStartTimeUtc = Process.GetCurrentProcess().StartTime.ToUniversalTime();
 
 
@@ -113,21 +104,21 @@ namespace FluentSensors.Features.Start
             private set { _updateStatusDescription = value; OnPropertyChanged(); }
         }
 
-        // what the release notes button says underneath its title, e.g. "Release notes for 1.3.0"
+        // under the release notes button title, e.g. "Release notes for 1.3.0"
         public string ReleaseNotesSubtitle
         {
             get => _releaseNotesSubtitle;
             private set { _releaseNotesSubtitle = value; OnPropertyChanged(); }
         }
 
-        // swaps the badge for a progress ring while a check is in flight
+        // a progress ring instead of the badge while a check runs
         public bool IsUpdateChecking
         {
             get => _isUpdateChecking;
             private set { _isUpdateChecking = value; OnPropertyChanged(); }
         }
 
-        // a store build has nothing for the button to do, the store owns updates there
+        // off while a check runs
         public bool IsUpdateActionEnabled
         {
             get => _isUpdateActionEnabled;
@@ -135,8 +126,7 @@ namespace FluentSensors.Features.Start
         }
 
 
-        // how many sensors LHM found, against how many are actually drawing right now; two numbers rather than
-        // one string, they sit side by side as their own values
+        // sensors found by LHM and sensors drawing right now, two values side by side
         public string SensorsFoundText
         {
             get => _sensorsFoundText;
@@ -170,8 +160,7 @@ namespace FluentSensors.Features.Start
 
         // === live app status ===
 
-        // fed from AppStatusService, the same snapshot the title bar readout already runs on, so both always
-        // agree; the service raises it from the UI thread, so nothing is dispatched here
+        // from AppStatusService, the snapshot of the title bar readout, so both agree; (raised on the UI thread)
         public void ApplyStatus(AppStatusData data)
         {
             SensorsFoundText = data.SensorsFound.ToString();
@@ -182,10 +171,8 @@ namespace FluentSensors.Features.Start
             RefreshSensorCounts();
         }
 
-        // how long this session has been running, e.g. 2:14:37, and 1d 2:14:37 once it passes a day
-        //
-        // called far more often than once a second, see StartPage.UptimeTimerInterval; the property only moves when
-        // the shown second actually changes
+        // session uptime, 2:14:37, past a day 1d 2:14:37; called more often than once a second (see
+        // StartPage.UptimeTimerInterval), the property only moves with the shown second
         public void RefreshUptime()
         {
             TimeSpan uptime = DateTime.UtcNow - ProcessStartTimeUtc;
@@ -196,11 +183,8 @@ namespace FluentSensors.Features.Start
             if (text != UptimeTileValue) UptimeTileValue = text;
         }
 
-        // pairs every snapshot tile with the LHM instance or instances that report its sensors, then reads the
-        // count off them
-        //
-        // re-resolved on every tick rather than bound once, because LhmHardwareTreeService fills in gradually and
-        // can still report a drive or an adapter for the first time long after this page was built
+        // pairs every tile with the LHM instances behind it and counts their sensors; on every tick, since
+        // LhmHardwareTreeService can report a drive or adapter long after the page was built
         public void RefreshSensorCounts()
         {
             var available = LhmHardwareTreeService.Instance.HardwareGroups.ToList();
@@ -227,11 +211,8 @@ namespace FluentSensors.Features.Start
             SyncVisibleEntries();
         }
 
-        // SquareGridPanel measures and arranges every child by raw index and never looks at Visibility, so a
-        // collapsed tile would still hold its cell open; the list itself has to be the filter
-        //
-        // only touched when the membership actually changes, otherwise the whole row would be rebuilt on every
-        // poll tick
+        // SquareGridPanel lays out by index and ignores Visibility, so the list is the filter; only touched
+        // when the membership changes
         private void SyncVisibleEntries()
         {
             var wanted = _allSnapshotEntries
@@ -244,11 +225,8 @@ namespace FluentSensors.Features.Start
             foreach (var entry in wanted) SystemSnapshot.Add(entry);
         }
 
-        // a category that only ever produces one tile takes every group LHM filed under it; LibreHardwareMonitor
-        // splits memory across several groups, so anything else would report a fraction of the real count
-        //
-        // the categories that produce one tile per device pick a single group each, and a group is consumed once
-        // it has been claimed, so two GPUs never both show the sensors of the one group LHM has found so far
+        // a single-tile category takes every group LHM filed under it (LHM splits memory into several); a per-device
+        // category claims one group each, so two GPUs never share one
         private static List<LhmHardwareInstance> MatchInstances(
             SystemSnapshotEntry entry, List<LhmHardwareInstance> candidates)
         {
@@ -270,15 +248,14 @@ namespace FluentSensors.Features.Start
 
         // === update state ===
 
-        // pulled rather than bound, so the page can call it both when UpdateService answers and when the theme
-        // changes; the badge brush is a plain brush and would otherwise keep a stale accent
+        // pulled, so the page calls it on an UpdateService answer and on a theme change (the plain badge
+        // brush would keep a stale accent)
         public void RefreshUpdateState()
         {
             var service = UpdateService.Instance;
             var release = service.LatestRelease;
 
-            // before the first successful check there is no release to name, so the button offers the notes of the
-            // version that is actually running
+            // before the first answer the notes of the running version
             string notesVersion = release != null && !string.IsNullOrEmpty(release.Version)
                 ? release.Version
                 : UpdateService.CurrentVersion;
@@ -308,7 +285,7 @@ namespace FluentSensors.Features.Start
                 case UpdateUiState.UpdateAvailable:
                     SetBadge("", AccentColor());
                     UpdateStatusTitle = "Update available";
-                    // a store update GitHub could not name yet has no version to show
+                    // a store update without a GitHub name has no version
                     UpdateStatusDescription = string.IsNullOrEmpty(service.Latest?.Version)
                         ? "A new version is ready to install"
                         : $"{UpdateService.VersionLabel(service.Latest?.Version)} is ready to install";
@@ -342,7 +319,7 @@ namespace FluentSensors.Features.Start
             UpdateBadgeBrush = new SolidColorBrush(color);
         }
 
-        // the users Windows accent, which is independent of light/dark; falls back to the WinUI default accent
+        // the Windows accent, else the WinUI default
         private static Color AccentColor() =>
             Application.Current.Resources.TryGetValue("SystemAccentColor", out object value) && value is Color color
                 ? color
@@ -351,8 +328,7 @@ namespace FluentSensors.Features.Start
 
         // === snapshot ===
 
-        // ordered the way HardwareGroupKind itself is ordered, so the snapshot reads in the same sequence as the
-        // sensor list and the hardware view
+        // in HardwareGroupKind order, like the sensor list and the hardware view
         private static List<SystemSnapshotEntry> BuildSnapshot()
         {
             var info = WinStaticInfoService.Instance;
@@ -368,11 +344,8 @@ namespace FluentSensors.Features.Start
             return rows;
         }
 
-        // the icon, colour and category label all come from HardwareGroupInfo, the same profile the sensor list
-        // and the hardware view draw from, so one category never looks like two different things
-        //
-        // the formatters answer "-" for anything this machine does not report; those are dropped here rather
-        // than rendered, a snapshot tile should not show a bare dash where a value belongs
+        // icon, colour and label from HardwareGroupInfo, like the sensor list and the hardware view; a "-" from the
+        // formatters is dropped, not shown
         private static SystemSnapshotEntry Row(HardwareGroupKind kind, string title, params string[] details)
         {
             var profile = HardwareGroupInfo.GetProfile(kind);
@@ -380,12 +353,8 @@ namespace FluentSensors.Features.Start
             return LabelledRow(kind, profile.IconGlyph, profile.Label, title, details);
         }
 
-        // deliberately a different name rather than an overload of Row: an overload taking one more string would
-        // also match every Row(kind, title, detail, detail) call, and C# prefers the form that does not have to
-        // expand params, so the device name would silently land in the category and the first fact in the title
-        //
-        // the glyph is passed in rather than read off the profile, because a network adapter tile picks its own, see
-        // AddAdapters
+        // not an overload of Row: one more string would match Row(kind, title, detail, detail) without expanding params
+        // and shift every argument; the glyph comes in, a network tile picks its own
         private static SystemSnapshotEntry LabelledRow(HardwareGroupKind kind, string iconGlyph, string category, string title, params string[] details)
         {
             return new SystemSnapshotEntry(
@@ -399,8 +368,7 @@ namespace FluentSensors.Features.Start
         }
 
 
-        // re-resolves every tile icon after the hardware icon colour setting was flipped; nothing else about a
-        // tile depends on it, so the list itself is left alone rather than rebuilt
+        // re-resolves the tile icons after the icon colour setting flipped; the list stays
         public void RefreshIconBrushes()
         {
             foreach (var entry in _allSnapshotEntries)
@@ -412,8 +380,7 @@ namespace FluentSensors.Features.Start
 
         // === one adder per category ===
 
-        // the processor name is the single fact WinCpuInfo does not carry, so it comes from LHM here, exactly
-        // as the hardware view resolves it
+        // the processor name comes from LHM, like in the hardware view (WinCpuInfo has none)
         private static void AddCpu(List<SystemSnapshotEntry> rows, WinStaticInfoService info)
         {
             var cpu = info.Cpu;
@@ -429,7 +396,7 @@ namespace FluentSensors.Features.Start
                 ? HardwareInfoFormatter.FormatMhz((uint)cpu.MaxClockSpeedMhz)
                 : "";
 
-            // level 5 is L3 in the raw WMI numbering WinCpuCacheEntry keeps, see HardwareInfoFormatter
+            // level 5 is L3 in the raw WMI numbering, see HardwareInfoFormatter
             string cache = HardwareInfoFormatter.FormatCacheLevelTotal(cpu.CacheEntries, level: 5);
             if (cache != "-") cache = $"{cache} L3";
 
@@ -444,8 +411,7 @@ namespace FluentSensors.Features.Start
             ulong total = 0;
             foreach (var module in memory.Modules) total += module.CapacityBytes;
 
-            // a mixed kit is possible but rare; the first module is taken as speaking for the set rather than
-            // listing every stick on a page that is meant to be an overview
+            // the first module speaks for the set; (a mixed kit is rare)
             var first = memory.Modules[0];
 
             string name = $"{first.Manufacturer} {first.PartNumber}".Trim();
@@ -505,7 +471,7 @@ namespace FluentSensors.Features.Start
                     ? HardwareInfoFormatter.FormatBitsPerSecond(adapter.SpeedBitsPerSecond)
                     : "";
 
-                // the one tile whose glyph depends on the device, a wireless adapter shows the wi-fi one
+                // the glyph depends on the device, wi-fi for a wireless adapter
                 rows.Add(LabelledRow(
                     HardwareGroupKind.Network,
                     HardwareGroupInfo.GetNetworkIconGlyph(adapter.InterfaceType),
@@ -516,8 +482,7 @@ namespace FluentSensors.Features.Start
             }
         }
 
-        // LHM files a motherboard under HardwareGroupKind.Other, which labels it "Other"; that is right for a
-        // sensor group and wrong for a snapshot row, so only the label is swapped out
+        // LHM files a motherboard under Other; the row gets the label "Motherboard"
         private static void AddMotherboard(List<SystemSnapshotEntry> rows, WinStaticInfoService info)
         {
             var board = info.Motherboard;

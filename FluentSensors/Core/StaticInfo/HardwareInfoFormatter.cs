@@ -4,12 +4,10 @@ using System.Net.NetworkInformation;
 
 namespace FluentSensors.Core.StaticInfo
 {
-    // shared, static formatting helpers for raw WinStaticInfoService facts, used by the Performance pages
-    // per-hardware info panels
+    // formatting of the WinStaticInfoService facts for the hardware view info panels
     public static class HardwareInfoFormatter
     {
-        // === Shared ===
-        // generic unit formatting with no single hardware type owning it
+        // === shared ===
 
         public static string FormatYesNo(bool value) => value ? "Yes" : "No";
 
@@ -22,12 +20,10 @@ namespace FluentSensors.Core.StaticInfo
         }
 
 
-        // === CPU ===
+        // === cpu ===
 
-        // sums every distinct Win32_CacheMemory entry at the given Level; "distinct" (by Level+CacheType+Size)
-        // is what correctly separates two genuinely different physical caches (e.g. P-Core L1 vs E-Core L1,
-        // which differ in size) from the same shared cache reported more than once (e.g. L3, which came back
-        // twice with an identical size on a real system; once per core group its associated with)
+        // sums the distinct Win32_CacheMemory entries of a Level; distinct by type and size, so P and E core L1 both
+        // count while an L3 reported once per core group counts once
         public static string FormatCacheLevelTotal(IReadOnlyList<WinCpuCacheEntry> entries, uint level)
         {
             if (entries == null) return "-";
@@ -48,9 +44,7 @@ namespace FluentSensors.Core.StaticInfo
         private static string FormatCacheSizeKb(uint sizeKb) =>
             sizeKb >= 1024 ? $"{sizeKb / 1024.0:0.##} MB" : $"{sizeKb} KB";
 
-        // Win32_CacheMemory.CacheType is a numeric enum
-        // Unlike Level (see WinCpuCacheEntry) this mapping is confirmed by Microsofts own SMBIOS-sourced
-        // documentation
+        // Win32_CacheMemory.CacheType; unlike Level (see WinCpuCacheEntry) documented by Microsoft
         public static string FormatCacheType(uint cacheType)
         {
             return cacheType switch
@@ -65,7 +59,7 @@ namespace FluentSensors.Core.StaticInfo
         }
 
 
-        // === GPU ===
+        // === gpu ===
 
         public static string FormatPciId(uint id) => $"0x{id:X4}";
 
@@ -82,13 +76,10 @@ namespace FluentSensors.Core.StaticInfo
         }
 
 
-        // === RAM ===
+        // === ram ===
 
-        // maps the raw SMBIOS "Memory Device Type" code (Win32_PhysicalMemory.SMBIOSMemoryType) to a readable
-        // label
-        // Only values realistically seen on consumer/workstation hardware are named, anything else falls
-        // back to a raw numeric label instead of guessing
-        // source: DMTF SMBIOS spec, Memory Device structure, Type field
+        // the SMBIOS Memory Device Type (Win32_PhysicalMemory.SMBIOSMemoryType); consumer values only, others stay
+        // numeric (DMTF SMBIOS spec, Memory Device, Type)
         public static string FormatMemoryType(uint smbiosType)
         {
             return smbiosType switch
@@ -103,20 +94,13 @@ namespace FluentSensors.Core.StaticInfo
             };
         }
 
-        // SMBIOS/WMI name these fields "...ClockSpeedMhz", but the reported number is actually the DDR effective
-        // transfer rate (MT/s), not the real clock frequency;
-        // MT/s is 2x the real MHz for double data rate memory
+        // the "ClockSpeed" fields carry the DDR transfer rate in MT/s, twice the real clock
         public static string FormatMemorySpeed(uint speedMts) => $"{speedMts} MT/s";
 
         // --- workaround: Win32_PhysicalMemory.FormFactor off-by-one vs SMBIOS spec ---
-        // problem: the DMTF SMBIOS spec table starts at 1=Other, but Microsofts WMI/CIM provider reindexes it
-        // internally and reports one lower per value (0=Other instead of 1=Other, and so on); the spec-numbered
-        // table produced wrong labels in practice (12 read as "RIMM" on a system where CPU-Zs SPD tab, which
-        // reads the modules SPD chip directly rather than going through SMBIOS/WMI at all, confirmed "SO-DIMM";
-        // a second, independent real dump elsewhere also showed 8 on an actual desktop DIMM)
-        // no public issue found for this exact WMI/CIM provider behavior
-        // fix: shift the DMTF list down by one; verified against those two real systems rather than trusted
-        // from the spec document alone
+        // problem: the DMTF table starts at 1=Other, the WMI provider reports one lower; the spec numbering read a
+        // SO-DIMM (CPU-Z SPD) as "RIMM" (12), a desktop DIMM came as 8; no public issue found
+        // fix: the DMTF list shifted down by one, verified on those two systems
         public static string FormatFormFactor(uint formFactor)
         {
             return formFactor switch
@@ -147,27 +131,24 @@ namespace FluentSensors.Core.StaticInfo
 
         public static string FormatMillivolts(uint millivolts) => millivolts > 0 ? $"{millivolts / 1000.0:0.##} V" : "-";
 
-        // combined because x:Bind cannot mix multiple function calls with literal separator text in one attribute
+        // combined; x:Bind cannot mix several calls with literal text in one attribute
         public static string FormatVoltageRange(uint configuredMillivolts, uint minMillivolts, uint maxMillivolts)
         {
             return $"{FormatMillivolts(configuredMillivolts)} / {FormatMillivolts(minMillivolts)} / {FormatMillivolts(maxMillivolts)}";
         }
 
-        // combined because x:Bind cannot mix multiple function calls with literal separator text in one attribute
-        // (same reasoning as FormatVoltageRange above)
+        // combined, like FormatVoltageRange
         public static string FormatSpeedPair(uint configuredSpeedMhz, uint ratedSpeedMhz) =>
             $"{FormatMemorySpeed(configuredSpeedMhz)} / {FormatMemorySpeed(ratedSpeedMhz)}";
 
 
-        // === Storage ===
+        // === storage ===
 
         public static string FormatCelsius(uint? celsius) => celsius.HasValue ? $"{celsius} °C" : "-";
         public static string FormatHours(uint? hours) => hours.HasValue ? $"{hours} h" : "-";
         public static string FormatPercent(uint? percent) => percent.HasValue ? $"{percent}%" : "-";
 
-        // if all three are unreported, shows one plain "-" instead of a noisy "?, ?, ?"; if only some are
-        // unreported (e.g. Total known, Corrected not), shows "?" for just those parts instead of hiding the
-        // whole line for a single missing field
+        // "-" when none is reported, a "?" only for the missing parts otherwise
         public static string FormatErrorCounts(ulong? total, ulong? corrected, ulong? uncorrected)
         {
             if (!total.HasValue && !corrected.HasValue && !uncorrected.HasValue) return "-";
@@ -189,9 +170,9 @@ namespace FluentSensors.Core.StaticInfo
         }
 
 
-        // === Network ===
+        // === network ===
 
-        // NetworkInterface.Speed is bits/second; picks Gbps or Mbps
+        // NetworkInterface.Speed is in bit/s
         public static string FormatBitsPerSecond(long bitsPerSecond)
         {
             if (bitsPerSecond <= 0) return "-";
@@ -203,8 +184,7 @@ namespace FluentSensors.Core.StaticInfo
             return $"{mbps:0.#} Mbps";
         }
 
-        // NetworkInterface.GetPhysicalAddress().ToString() returns a bare 12-character hex string (e.g.
-        // "A1B2C3D4E5F6"); this inserts the conventional colon separators for display
+        // "A1B2C3D4E5F6" with colons
         public static string FormatMacAddress(string rawAddress)
         {
             if (string.IsNullOrEmpty(rawAddress) || rawAddress.Length != 12) return rawAddress ?? "-";
@@ -223,8 +203,7 @@ namespace FluentSensors.Core.StaticInfo
             return string.Join(", ", ipAddresses);
         }
 
-        // NetworkInterfaceType.ToString() is already readable for most values (Ethernet, GigabitEthernet, ...);
-        // Wireless80211 is the one exception worth a friendlier label
+        // the enum name reads fine, except Wireless80211
         public static string FormatInterfaceType(NetworkInterfaceType type)
         {
             return type == NetworkInterfaceType.Wireless80211 ? "Wi-Fi" : type.ToString();

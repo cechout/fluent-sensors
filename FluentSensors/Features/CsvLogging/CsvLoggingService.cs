@@ -17,8 +17,7 @@ using FluentSensors.Persistence.Services;
 namespace FluentSensors.Features.CsvLogging
 {
     // one column of a recording:
-    // the sensor id every payload is matched against, plus the header text written once into the first line of
-    // the file
+    // the sensor id the payloads are matched against, and the header text of the first line
     public class CsvLoggedSensor
     {
         public CsvLoggedSensor(string id, string header, string unit)
@@ -31,16 +30,14 @@ namespace FluentSensors.Features.CsvLogging
         public string Id { get; }
         public string Header { get; }
 
-        // written next to every value while that option is on; empty for sensor types that carry no unit
+        // next to every value while that option is on; empty for unitless types
         public string Unit { get; }
     }
 
 
-    // owns a running csv recording: the column set, the open file, the row counter and the elapsed clock
-    //
-    // deliberately a service and not window state; CsvLoggerWindow only hides itself when closed (the WinUI
-    // retained-instance pattern) and gets fully rebuilt when Windows theme or transparency changes, and a recording
-    // has to survive both without dropping a single row
+    // the csv logging service:
+    // owns a running recording, its column set, open file, row counter and elapsed clock; a service and not window
+    // state, since a recording has to survive the window hiding and being rebuilt without dropping a row
     public class CsvLoggingService
     {
         // === fields ===
@@ -48,24 +45,20 @@ namespace FluentSensors.Features.CsvLogging
         private readonly List<CsvLoggedSensor> _sensors = new();
         private readonly object _writeLock = new();
 
-        // the column set the open file was started with, snapshotted so the monitor thread never reads _sensors
-        // while the sensors page is replacing it
+        // the column set of the open file, a snapshot, so the monitor thread never reads _sensors mid replacement
         private CsvLoggedSensor[] _activeColumns;
 
-        // the format the open file was started with, snapshotted the same way _activeColumns is:
-        // a switch of the separators, the decimal count or the units midway through a recording would leave one
-        // half of the file formatted differently from the other, and nothing reading it would notice
+        // the format of the open file, a snapshot too, so a settings change mid recording cannot
+        // split the file in two formats
         private CsvRowFormat _rowFormat;
 
-        // how much of Elapsed was spent holding, and how often; both reset with every fresh start
+        // time and count of the pauses; reset with every start
         private TimeSpan _pausedTotal;
         private DateTime _pauseStartedAt;
         private int _pauseCount;
 
-        // set by Pause, cleared by Resume; the file and the column set stay open the whole time, only the rows
-        // stop arriving
-        // volatile because the click that sets it and the monitor thread that reads it never share a lock, and a
-        // resume that the writer only notices two polls later would drop measurements for no reason
+        // set by Pause, cleared by Resume; the file stays open, only the rows stop
+        // (volatile, the click and the monitor thread share no lock)
         private volatile bool _isPaused;
 
         private StreamWriter _writer;
@@ -88,19 +81,16 @@ namespace FluentSensors.Features.CsvLogging
 
         public bool IsRunning { get; private set; }
 
-        // true only while a recording is open and holding; IsRunning stays true through a pause, so the elapsed
-        // clock keeps counting and the file stays claimed
+        // holding; IsRunning stays true through a pause, the clock keeps counting and the file stays claimed
         public bool IsPaused { get; private set; }
         public string CurrentFilePath { get; private set; }
         public int SensorCount => _sensors.Count;
         public long RowCount => Interlocked.Read(ref _rowCount);
 
-        // set when a start attempt could not open its file, cleared by the next successful start; the logger window
-        // is the only place this surfaces
+        // a start that could not open its file, until the next successful start; shown in the logger window
         public string LastError { get; private set; }
 
-        // where recordings are written; the settings value while one has been picked, otherwise a subfolder in
-        // Documents so the logs land somewhere the user can actually find them
+        // the picked folder, otherwise a subfolder in Documents
         public string ResolvedLogFolder
         {
             get
@@ -112,8 +102,7 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        // keeps counting while recording, then freezes on the final duration, so the readout still shows how long
-        // the finished recording ran
+        // counts while recording, then holds the final duration
         public TimeSpan Elapsed
         {
             get
@@ -123,10 +112,8 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        // the stretch that is actually covered by rows, so the main bar readout can never contradict the row
-        // counter sitting next to it: at a 500 ms poll, 1200 rows are ten minutes, and after a pause the wall
-        // clock would claim thirteen
-        // the running pause is subtracted on the fly, so the number freezes the instant the button is hit
+        // the time covered by rows, so the readout never contradicts the row counter next to it; a running pause is
+        // subtracted on the fly, so it freezes the instant the button is hit
         public TimeSpan RecordedElapsed
         {
             get
@@ -139,30 +126,24 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        // what explains the gap between Elapsed and RecordedElapsed, and at the same time how many seam rows the
-        // file carries
+        // explains the gap between Elapsed and RecordedElapsed; also the seam row count
         public int PauseCount => _pauseCount;
 
-        // fires on start, stop and on a taken-over selection; always from the UI thread since every caller is a
-        // click handler;
-        // The row counter deliberately has no event of its own, CsvLoggerViewModel polls it on a timer instead so
-        // the recording never touches the UI thread at all
+        // start, stop and a taken-over selection, always on the UI thread; (the row counter has no event,
+        // CsvLoggerViewModel polls it, so the recording never touches the UI thread)
         public event Action StateChanged;
 
 
         // === public api ===
 
-        // takes over the sensor selection pushed from the sensors page
-        // Ignored while a recording runs: the column set is written into the file header once at start, changing it
-        // afterwards would silently invalidate every row before it
+        // takes over the selection from the sensors page; ignored while recording, the header is already written
         public void SetSensors(List<SensorRowViewModel> selectedSensors)
         {
             if (IsRunning) return;
 
             var hardwareNames = BuildHardwareNameMap();
 
-            // the raw unit and never the displayed one: rows carry the raw value, so a bit based data unit setting
-            // would label byte values as bits
+            // the raw unit, never the displayed one; (the rows carry raw values, a bits setting would mislabel them)
             _sensors.Clear();
             foreach (var sensor in selectedSensors)
             {
@@ -173,12 +154,8 @@ namespace FluentSensors.Features.CsvLogging
             StateChanged?.Invoke();
         }
 
-        // opens a fresh csv file in the configured folder and starts recording; returns false when there is nothing
-        // to record or the file could not be opened
-        //
-        // deliberately asks nothing: the folder is picked up front from the logger window, so pressing start is a
-        // single click even for a long series of recordings, and the file name is always a fresh timestamp so no
-        // earlier recording can be overwritten
+        // opens a fresh file and starts recording; false with nothing to record or an unopenable file
+        // asks nothing, the folder is picked up front and the timestamp name never overwrites an earlier recording
         public bool Start()
         {
             if (IsRunning || _sensors.Count == 0) return false;
@@ -192,19 +169,16 @@ namespace FluentSensors.Features.CsvLogging
             {
                 Directory.CreateDirectory(folder);
 
-                // utf-8 with BOM so a double click in Excel picks up the encoding on its own and unit symbols like
-                // the degree sign survive
-                // AutoFlush is not optional: the tray Exit and the settings restart both end in Process.Kill(),
-                // which skips finalizers and every closing handler, so a buffered tail would be lost without a trace
+                // utf-8 with BOM, so Excel picks up the encoding and the degree sign survives
+                // AutoFlush, since tray Exit and the settings restart end in Process.Kill(),
+                // which would lose a buffered tail
                 _writer = new StreamWriter(path, false, new UTF8Encoding(true)) { AutoFlush = true };
                 _writer.WriteLine(BuildHeaderLine(columns, rowFormat.Separator));
             }
             catch
             {
-                // a folder we cannot write to (protected location, drive gone, file open elsewhere) leaves the
-                // recording unstarted;
-                // The reason is named rather than swallowed, this is the one failure the user
-                // can actually fix
+                // an unwritable folder (protected, drive gone, file open elsewhere) leaves the recording unstarted;
+                // named, since the user can fix it
                 try { _writer?.Dispose(); } catch { }
                 _writer = null;
 
@@ -231,8 +205,7 @@ namespace FluentSensors.Features.CsvLogging
             return true;
         }
 
-        // drops a previous start failure, called after the user picked a different folder so the old message does
-        // not keep pointing at a location that is no longer the target
+        // after a new folder is picked, the old failure no longer applies
         public void ClearLastError()
         {
             if (LastError == null) return;
@@ -241,14 +214,8 @@ namespace FluentSensors.Features.CsvLogging
             StateChanged?.Invoke();
         }
 
-        // clears what a finished recording left behind, so the readout comes back up empty instead of showing the
-        // counters of a session that is long over
-        //
-        // has to be explicit because CsvLoggerWindow is only hidden when it is closed and reused afterwards; the
-        // sensor selection is deliberately kept, it comes from the sensors page and is what makes the next start
-        // possible at all
-        //
-        // a running recording is never touched: closing the readout stops the readout, never the logging
+        // clears a finished recording, so the reused window comes back empty; keeps the sensor selection, never
+        // touches a running recording
         public void ResetCompletedRecording()
         {
             if (IsRunning) return;
@@ -265,8 +232,7 @@ namespace FluentSensors.Features.CsvLogging
             StateChanged?.Invoke();
         }
 
-        // holds the recording without giving up the file: the columns, the header and the row counter all stay,
-        // only the incoming payloads are dropped
+        // holds the recording; file, columns and counter stay, only the payloads are dropped
         public void Pause()
         {
             if (!IsRunning || _isPaused) return;
@@ -283,8 +249,7 @@ namespace FluentSensors.Features.CsvLogging
         {
             if (!IsRunning || !_isPaused) return;
 
-            // the seam is written before the flag is cleared, so a payload arriving in between cannot slip a real
-            // measurement in front of the gap row
+            // the seam before the flag clears, so no payload slips in front of it
             if (SettingsService.Instance.CsvPauseSeam == CsvPauseSeam.Gap)
             {
                 WriteSeamRow();
@@ -305,8 +270,7 @@ namespace FluentSensors.Features.CsvLogging
             _stoppedAt = DateTime.UtcNow;
             IsRunning = false;
 
-            // a recording stopped while it was holding still has that last interval open; closing it against the
-            // stop instant is what keeps the final recorded duration correct
+            // a stop while holding closes the last pause at the stop instant
             if (_isPaused)
             {
                 _pausedTotal += _stoppedAt - _pauseStartedAt;
@@ -314,11 +278,10 @@ namespace FluentSensors.Features.CsvLogging
                 IsPaused = false;
             }
 
-            // a payload that arrived just before the unsubscribe can still be inside the write below, so closing the
-            // file takes the same lock the rows do
+            // a payload from just before the unsubscribe can still be writing, so the close takes the row lock
             lock (_writeLock)
             {
-                try { _writer?.Dispose(); } catch { /* every row is already flushed, a failing dispose loses nothing */ }
+                try { _writer?.Dispose(); } catch { /* every row is flushed already */ }
                 _writer = null;
                 _activeColumns = null;
             }
@@ -329,14 +292,13 @@ namespace FluentSensors.Features.CsvLogging
 
         // === recording ===
 
-        // runs on the HardwareMonitorService background thread and deliberately stays there; writing a row is pure
-        // file I/O and touches nothing bindable, so there is no reason to pay a dispatcher hop per poll
+        // stays on the monitor thread; a row is file I/O and touches nothing bindable
         private void OnHardwareDataUpdated(List<SensorData> payload)
         {
             var columns = _activeColumns;
             if (columns == null) return;
 
-            // a paused recording keeps its file open and simply lets the payload go by
+            // paused; the payload goes by
             if (_isPaused) return;
 
             var rowFormat = _rowFormat;
@@ -350,31 +312,26 @@ namespace FluentSensors.Features.CsvLogging
                 values[sensor.Id] = sensor.Value;
             }
 
-            // one instant for both time columns, so the wall clock and the elapsed seconds can never disagree by the
-            // few microseconds two separate reads would drift apart
+            // one instant for both time columns, so they never disagree
             DateTime nowUtc = DateTime.UtcNow;
 
             var line = new StringBuilder();
-            // the timestamp stays invariant in both formats; its separators are the ISO ones, and running them
-            // through a culture would swap the date and time separators for no gain
+            // the timestamp stays invariant in both formats, with the ISO separators
             line.Append(nowUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture));
             line.Append(separator);
 
-            // the elapsed column keeps its own fixed single decimal and ignores the configured value precision:
-            // its resolution belongs to the poll interval, not to how precisely a sensor is worth reading, and a
-            // tenth of a second is already finer than the 500 ms the monitor runs at by default
+            // elapsed keeps one decimal whatever the value precision; its resolution belongs to the poll interval
             line.Append((nowUtc - _startedAt).TotalSeconds.ToString("0.0", rowFormat.ValueCulture));
 
             foreach (var column in columns)
             {
                 line.Append(separator);
 
-                // a sensor missing from this payload (hidden after the recording started, or hardware gone) leaves
-                // the field empty; a zero would read as a real measurement
+                // a sensor missing from the payload leaves the field empty; a zero would read as a measurement
                 if (values.TryGetValue(column.Id, out double value))
                 {
-                    // the raw value, never the SensorUnitFormatter scaling: that switches MHz to GHz above 1000 and
-                    // would change a columns unit halfway through the file
+                    // the raw value, never the SensorUnitFormatter scaling (MHz to GHz above 1000
+                    // would change the column unit)
                     line.Append(rowFormat.FormatValue(value, column.Unit));
                 }
             }
@@ -389,7 +346,7 @@ namespace FluentSensors.Features.CsvLogging
                 }
                 catch
                 {
-                    // best-effort; a disk that stopped accepting writes must not tear down the monitoring loop
+                    // best-effort; a full disk must not tear down the monitoring loop
                     return;
                 }
             }
@@ -397,19 +354,15 @@ namespace FluentSensors.Features.CsvLogging
             Interlocked.Increment(ref _rowCount);
         }
 
-        // one row of empty fields at the point a pause was resumed, so a chart drawn from the file breaks its line
-        // there instead of interpolating across a stretch that was never measured
-        //
-        // deliberately not counted into _rowCount: it carries no measurement, and the readout would otherwise claim
-        // rows the recording never took
+        // a row of empty fields where a pause ended, so a chart from the file breaks its line instead of interpolating;
+        // not counted, it carries no measurement
         private void WriteSeamRow()
         {
             var columns = _activeColumns;
             var rowFormat = _rowFormat;
             if (columns == null || rowFormat == null) return;
 
-            // two fixed columns (timestamp and elapsed) plus one per sensor, so the seam keeps the column count of
-            // every other row and reads back as empty cells rather than as a short row
+            // timestamp, elapsed and one per sensor, so the seam keeps the column count
             string line = new StringBuilder()
                 .Insert(0, rowFormat.Separator, columns.Length + 1)
                 .ToString();
@@ -424,7 +377,7 @@ namespace FluentSensors.Features.CsvLogging
                 }
                 catch
                 {
-                    // same best-effort rule the rows follow
+                    // best-effort, like the rows
                 }
             }
         }
@@ -432,8 +385,7 @@ namespace FluentSensors.Features.CsvLogging
 
         // === private helpers ===
 
-        // maps every known sensor id to the hardware it sits on, so two identically named sensors on different
-        // hardware ("Temperature" on the CPU and on the GPU) never collapse into the same column title
+        // sensor id to hardware name, so "Temperature" on CPU and GPU never share a column title
         private static Dictionary<string, string> BuildHardwareNameMap()
         {
             var map = new Dictionary<string, string>();
@@ -461,8 +413,7 @@ namespace FluentSensors.Features.CsvLogging
 
         private static string BuildHeaderLine(CsvLoggedSensor[] columns, string separator)
         {
-            // the elapsed column sits next to the wall clock deliberately: it is what makes two recordings comparable
-            // on one axis without subtracting timestamps first
+            // elapsed next to the wall clock makes two recordings comparable on one axis
             var line = new StringBuilder("Timestamp").Append(separator).Append("Elapsed [s]");
 
             foreach (var column in columns)
@@ -473,8 +424,7 @@ namespace FluentSensors.Features.CsvLogging
             return line.ToString();
         }
 
-        // header text only; hardware names can carry the separator ("AMD Ryzen 7 5800X, 8-Core"), the numeric
-        // fields never can, their decimal separator is never the field one
+        // header text only; a hardware name can carry the separator ("AMD Ryzen 7 5800X, 8-Core"), a number never does
         private static string EscapeCsvField(string field, string separator)
         {
             if (!field.Contains(separator) && field.IndexOf('"') < 0) return field;

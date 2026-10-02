@@ -6,11 +6,10 @@ using FluentSensors.Common.Sensors;
 
 namespace FluentSensors.Core.Lhm
 {
-    // central, single subscriber to HardwareMonitorService.HardwareDataUpdated:
-    // turns the raw payload into a grouped, live-updating tree (HardwareInstance -> Sensors) that every page/ViewModel reads
-    // from instead of each one scanning the payload itself
-    // pure discovery + grouping + live values, nothing else; threshold, min/max/avg, sorting, graphs, hide/show all stay
-    // page-specific concerns layered on top of this
+    // the hardware tree:
+    // the one HardwareDataUpdated subscriber, a live tree (hardware instance, its sensors) that every page
+    // reads instead of the payload
+    // discovery, grouping and live values only; thresholds, statistics, sorting, graphs and hiding belong to the pages
     public class LhmHardwareTreeService
     {
         // === fields ===
@@ -20,9 +19,7 @@ namespace FluentSensors.Core.Lhm
 
         // === singleton instance ===
 
-        // lazy on purpose (like PerformanceViewModel): only created the first time a consumer asks for it
-        // note: SensorsViewModel is eager at splash screen and depends on this service, so in practice it still ends up
-        // running from app start; accepted side effect, not a bug
+        // lazy like PerformanceViewModel; the eager SensorsViewModel creates it at the splash anyway
         private static LhmHardwareTreeService _instance;
         public static LhmHardwareTreeService Instance => _instance ??= new LhmHardwareTreeService();
 
@@ -33,8 +30,7 @@ namespace FluentSensors.Core.Lhm
         {
             HardwareGroups = new ObservableCollection<LhmHardwareInstance>();
 
-            // captures the thread this singleton is first created on; HardwareDataUpdated fires from the background polling
-            // thread, so every mutation below must be marshalled back here
+            // the creating thread; HardwareDataUpdated fires on the polling thread, so every mutation comes back here
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
             HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
@@ -64,8 +60,7 @@ namespace FluentSensors.Core.Lhm
                     var entry = instance.Sensors.FirstOrDefault(s => s.Id == data.Id);
                     if (entry == null)
                     {
-                        // value set before adding, so any consumer reacting to Sensors.CollectionChanged already sees the
-                        // correct first value instead of the default 0
+                        // the value before the add, so a CollectionChanged consumer never sees the default 0
                         entry = new LhmSensorEntry(data.Id, data.Name, data.SensorType);
                         entry.Value = data.Value;
                         instance.Sensors.Add(entry);

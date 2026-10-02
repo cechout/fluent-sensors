@@ -9,14 +9,13 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // one entry per detected drive
-    // A plain data holder; all sensor discovery/parsing lives in LhmStoragePerformanceViewModel instead
+    // one drive:
+    // a data holder, LhmStoragePerformanceViewModel parses
     public class LhmStorageInstanceViewModel : INotifyPropertyChanged
     {
         // === fields ===
 
-        // best-effort match against WMI-reported drives; see HardwareNameMatcher for the matching approach and
-        // its limitations; null if no candidate matched at all
+        // best-effort match against the WMI drives (see HardwareNameMatcher); null without a match
         private readonly WinStorageDriveInfo _staticInfo;
 
 
@@ -41,8 +40,8 @@ namespace FluentSensors.Features.Performance.Lhm
 
         public string HardwareName { get; }
 
-        // public setter persists the choice, SetXWithoutPersisting is for the default/restored graph during
-        // discovery; ReadRate/WriteRate further below follow the same shape silently
+        // the public setter persists the choice, SetXWithoutPersisting is for the default or restored graph;
+        // ReadRate and WriteRate alike
         private SensorGraphViewModel _totalActivity;
         public SensorGraphViewModel TotalActivity
         {
@@ -63,9 +62,7 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(TotalActivity));
         }
 
-        // not charted, just a Y-max helper for TotalActivity (covers both its Total Activity % and Free Space GB
-        // candidates, see StorageDetailView.xaml)
-        // the drives own reported total, no rounding needed
+        // not charted; the TotalActivity y-max for its Free Space candidate, the reported total
         private double _totalSpace;
         public double TotalSpace
         {
@@ -116,7 +113,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === static info text properties ===
 
-        // read-only, purely computed from the matched WinStorageDriveInfo
+        // static info from the matched WinStorageDriveInfo
         public string StorageFriendlyNameText => _staticInfo?.FriendlyName ?? "-";
         public string StorageSerialNumberText => _staticInfo?.SerialNumber ?? "-";
         public string StorageFirmwareRevisionText => _staticInfo?.FirmwareRevision ?? "-";
@@ -125,13 +122,10 @@ namespace FluentSensors.Features.Performance.Lhm
         public string StoragePnpDeviceIdText => _staticInfo?.PnpDeviceId ?? "-";
         public string StorageManufactureDateText => !string.IsNullOrEmpty(_staticInfo?.ManufactureDate) ? _staticInfo.ManufactureDate : "-";
 
-        // display-only name for the Performance page nav item/header/tiles; the matched drives own model name reads
-        // far better there than LHMs raw HardwareName
-        // display-only: does not replace HardwareName itself, which stays LHMs raw name everywhere else 
+        // the performance page name, the model over the raw LHM name; HardwareName stays raw everywhere else
         public string PerformanceDisplayName => _staticInfo?.FriendlyName ?? HardwareName;
 
-        // everything below goes through HardwareInfoFormatter, which itself returns "-" per field when Windows
-        // didnt report it 
+        // through HardwareInfoFormatter, "-" per field Windows did not report
         public string StorageTemperatureText => HardwareInfoFormatter.FormatCelsius(_staticInfo?.TemperatureCelsius);
         public string StorageTemperatureMaxText => HardwareInfoFormatter.FormatCelsius(_staticInfo?.TemperatureMaxCelsius);
         public string StorageWearText => HardwareInfoFormatter.FormatPercent(_staticInfo?.WearPercent);

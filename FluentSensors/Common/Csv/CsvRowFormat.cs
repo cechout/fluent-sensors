@@ -5,11 +5,9 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Common.Csv
 {
-    // everything a recorded row needs to turn a double into text, resolved once from the settings
-    //
-    // bundled into one object because a recording has to snapshot all of it together: switching any single piece
-    // midway through an open file would leave the rows before and after it formatted differently, and nothing
-    // reading the file would notice
+    // the csv row format:
+    // everything to turn a double into text, resolved once; one snapshot, since a switch midway would format the
+    // rows of one file differently
     public sealed class CsvRowFormat
     {
         private CsvRowFormat(string separator, CultureInfo valueCulture, string valueFormat, bool includeUnits)
@@ -26,9 +24,7 @@ namespace FluentSensors.Common.Csv
         public string Separator { get; }
         public CultureInfo ValueCulture { get; }
 
-        // "0", "0.0", "0.00" or "0.000"
-        // fixed rather than trimming ("0.###"), so every cell of a column is the same width and the settings page
-        // can show one sample that stands for all of them
+        // "0" to "0.000"; fixed, not trimmed ("0.###"), so a column has one width and the settings page one sample
         public string ValueFormat { get; }
 
         public bool IncludeUnits { get; }
@@ -36,9 +32,7 @@ namespace FluentSensors.Common.Csv
 
         // === resolution ===
 
-        // resolves the configured format into the pieces a row actually needs
-        // Local reads the machines own regional settings rather than hardcoding german, so the file matches
-        // whatever spreadsheet app is installed on the system that wrote it
+        // Local reads the regional settings, so the file matches the spreadsheet app of the machine
         public static CsvRowFormat Resolve()
         {
             var settings = SettingsService.Instance;
@@ -54,8 +48,8 @@ namespace FluentSensors.Common.Csv
             var culture = CultureInfo.CurrentCulture;
             string separator = culture.TextInfo.ListSeparator;
 
-            // a locale whose list separator is also its decimal separator would write rows nothing can read back;
-            // the semicolon is what every spreadsheet falls back to in that case
+            // a list separator equal to the decimal separator is unreadable, every spreadsheet
+            // falls back to the semicolon
             if (separator == culture.NumberFormat.NumberDecimalSeparator) separator = ";";
 
             return new CsvRowFormat(separator, culture, valueFormat, includeUnits);
@@ -71,9 +65,7 @@ namespace FluentSensors.Common.Csv
 
         // === formatting ===
 
-        // one measurement as it lands in the file
-        // the unit is appended only when it was asked for; note that this turns the cell into text, so a file
-        // written that way is for reading and no longer for charting
+        // one measurement; the unit only on request, which makes the cell text (for reading, no longer for charting)
         public string FormatValue(double value, string unit)
         {
             string text = value.ToString(ValueFormat, ValueCulture);

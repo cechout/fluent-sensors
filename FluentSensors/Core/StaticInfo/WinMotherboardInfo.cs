@@ -1,9 +1,7 @@
 ﻿namespace FluentSensors.Core.StaticInfo
 {
-    // Manufacturer/Product/Version can legitimately be blank or "To Be Filled By O.E.M."; a known, widespread
-    // SMBIOS/DMI firmware quirk (dodgy vendor BIOS defaults, not Windows- or us-specific), not a bug on our end
-    // No single official spec page documents the exact placeholder string, but its confirmed cross-platform,
-    // e.g. a Linux kernel maintainer calling it out directly:
+    // the board; Manufacturer, Product and Version can be blank or "To Be Filled By O.E.M.", a widespread firmware
+    // default, undocumented but called out by a kernel maintainer:
     // https://lkml.iu.edu/hypermail/linux/kernel/0912.0/03206.html
     public record WinMotherboardInfo(
         string Manufacturer,

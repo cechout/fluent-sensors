@@ -5,7 +5,8 @@ using FluentSensors.Persistence.Models;
 
 namespace FluentSensors.Persistence.Services
 {
-    // which sensor is active per switchable category slot, keyed by hardware instance + category rather than sensor id
+    // the switch states:
+    // the active sensor per switchable slot, keyed by hardware instance and category, not sensor id
     public class SensorSwitchStateService
     {
         // === fields ===
@@ -25,7 +26,7 @@ namespace FluentSensors.Persistence.Services
 
         // === public api ===
 
-        // null means this slot was never switched away from its default
+        // null while the slot shows its default
         public string GetSelectedSensorId(string hardwareName, string category)
         {
             return _states.TryGetValue(BuildKey(hardwareName, category), out var state) ? state.SelectedSensorId : null;
@@ -35,12 +36,11 @@ namespace FluentSensors.Persistence.Services
         {
             string key = BuildKey(hardwareName, category);
             _states[key] = new SensorSwitchState { SelectedSensorId = sensorId };
+            // the live dictionary; PersistenceService reads it only when the debounce fires, so no copy
             PersistenceService.Instance.SaveSensorSwitchStatesDebounced(_states);
         }
 
         // persistence
-        // returns the live dictionary directly; PersistenceService only reads it when its debounce timer fires, so no
-        // snapshot copy is needed here
         public void LoadFromDisk(Dictionary<string, SensorSwitchState> loaded)
         {
             _states.Clear();

@@ -14,52 +14,41 @@ using Windows.UI.Text;
 
 namespace FluentSensors.Common.Markdown
 {
-    // turns the markdown body of a GitHub release into rendered content
-    //
-    // deliberately not a general markdown implementation and not a library: the only input it ever sees is a
-    // release body, which in practice is headings, bullet lists, bold runs, inline code, links and GitHub
-    // callouts, and the one package that would cover the rest is a 0.1.x preview that would ship in a release
-    // build
-    // anything it does not recognise falls through as plain text rather than being dropped, so an unexpected
-    // construct degrades to something readable instead of disappearing
-    //
-    // renders into a Panel rather than a single RichTextBlock, because a RichTextBlocks Blocks only take
-    // Paragraph, and a callout needs a real Border to draw its rule down the side of several paragraphs
+    // the markdown renderer:
+    // renders the body of a GitHub release; not a general implementation, a release body is headings, lists, bold,
+    // inline code, links and callouts (the one library is a 0.1.x preview)
+    // anything unrecognised falls through as plain text instead of disappearing
+    // renders into a Panel, since RichTextBlock.Blocks only takes Paragraph and a callout needs a Border for its rule
     public static class MarkdownRenderer
     {
         // === layout constants ===
 
-        // --- heading sizes and spacing (a release dialog is narrow, so these sit well below the sizes a full
-        // page would use) ---
+        // --- heading sizes and spacing (below full page sizes, a release dialog is narrow) ---
         private const double H1FontSize = 20;
         private const double H2FontSize = 17;
         private const double H3FontSize = 15;
-        private const double HeadingTopMargin = 16; // gap above a heading, except the very first one
+        private const double HeadingTopMargin = 16; // except the very first one
         private const double HeadingBottomMargin = 5;
         private const double ParagraphBottomMargin = 9;
         private const double ListItemBottomMargin = 3;
 
-        // a list packs its items tight, so a paragraph that follows one has to bring the gap itself; without it
-        // it ends up sitting on the last bullet
+        // a list packs its items tight, so the paragraph after it brings the gap
         private const double ParagraphTopMarginAfterList = 18;
 
-        // vertical rhythm of the running text; turn this up for airier notes and down to tighten them
-        // it is a minimum rather than a fixed value, see LineStackingStrategy below, so a heading keeps the
-        // taller line box its own font size asks for
+        // running text rhythm; a minimum (see NewTextBlock), so a heading keeps its taller line box
         private const double BodyLineHeight = 22;
-        private const double BulletIndent = 16; // left inset of a list item
-        private const double BulletHang = -11; // pulls the marker itself back out of that inset
-        private const double InlineImageMaxWidth = 420; // an image in the running text never pushes the page wider
+        private const double BulletIndent = 16; // list item inset
+        private const double BulletHang = -11; // pulls the marker back out of it
+        private const double InlineImageMaxWidth = 420;
 
         // --- callout geometry ---
-        private const double AlertRuleThickness = 3; // the vertical bar down the left of a callout
-        private const double AlertInset = 14; // gap between that bar and the callout text
+        private const double AlertRuleThickness = 3; // the bar down the left
+        private const double AlertInset = 14; // bar to text
 
 
         // === callout colours ===
 
-        // GitHub Primer, one pair per alert kind, the same values github.com renders these with
-        // a status colour carries its meaning independently of the app theme, only light against dark changes
+        // GitHub Primer, the values github.com uses; one light and dark pair per alert kind
         private static readonly Dictionary<string, (Color Light, Color Dark)> AlertColors = new(StringComparer.OrdinalIgnoreCase)
         {
             ["NOTE"] = (Rgb(0x09, 0x69, 0xDA), Rgb(0x44, 0x93, 0xF8)),
@@ -74,7 +63,7 @@ namespace FluentSensors.Common.Markdown
 
         // === dropped sections ===
 
-        // matched against heading text, case insensitive and as a substring, so an emoji in front does not matter
+        // a case insensitive substring of the heading, so an emoji in front does not matter
         private static readonly string[] DroppedSections = { "Installation" };
 
 
@@ -87,17 +76,14 @@ namespace FluentSensors.Common.Markdown
 
         private static readonly Regex QuotePattern = new(@"^\s*>\s?(.*)$", RegexOptions.Compiled);
 
-        // GitHub renders these as a coloured callout inside a blockquote; without their own case the marker line
-        // would show up as literal "[!IMPORTANT]" text in the middle of the notes
+        // GitHub callouts inside a blockquote; otherwise "[!IMPORTANT]" would show as text
         private static readonly Regex AlertPattern = new(
             @"^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        // one pass over every inline form that is supported, in precedence order; the alternation is what keeps
-        // "**bold**" from being read as an italic star pair, and what keeps an image from matching the link arm
-        // and leaving a stray "!" behind
-        // underscore emphasis is deliberately absent: release notes carry identifiers like Some_Name_Here far more
-        // often than they carry underscore italics, and treating those as markup mangles them
+        // one pass over every inline form in precedence order, so "**bold**" is no italic pair and
+        // an image leaves no stray "!"
+        // no underscore emphasis, it would mangle identifiers like Some_Name_Here
         private static readonly Regex InlinePattern = new(
             @"(?<image>!\[(?<imageAlt>[^\]]*)\]\((?<imageUrl>[^\s)]+)\))" +
             @"|(?<link>\[(?<linkText>[^\]]+)\]\((?<linkUrl>[^\s)]+)\))" +
@@ -107,8 +93,7 @@ namespace FluentSensors.Common.Markdown
             @"|(?<italic>\*(?<italicText>[^*\s][^*]*?)\*)",
             RegexOptions.Compiled);
 
-        // markdown and the html form GitHub writes when an image is pasted into a release body; both count as
-        // an image, and whichever appears first becomes the header image
+        // markdown and the html GitHub writes for a pasted image; the first one is the header image
         private static readonly Regex StandaloneImagePattern = new(
             @"!\[[^\]]*\]\((?<imageUrl>[^\s)]+)\)" +
             @"|<img[^>]*?\ssrc\s*=\s*[""'](?<imageUrl>[^""']+)[""'][^>]*>",
@@ -116,23 +101,19 @@ namespace FluentSensors.Common.Markdown
 
         private static readonly Regex HtmlImagePattern = new(@"<img[^>]*>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        // a row of hashes with nothing after it; GitHub leaves these behind and they would render as literal text
+        // a bare row of hashes, which GitHub leaves behind
         private static readonly Regex EmptyHeadingPattern = new(@"^\s*#{1,6}\s*$", RegexOptions.Compiled);
 
-        // a release body ends on this line, and it has to survive whatever section removal happens above it
+        // a release body ends on this line; it survives every section removal
         private static readonly Regex ChangelogLinkPattern = new(@"^\s*\*\*Full Changelog\*\*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        // the url on that line, which is all ExtractChangelogLink keeps of it
+        // all ExtractChangelogLink keeps of that line
         private static readonly Regex UrlPattern = new(@"https?://[^\s<>""]+", RegexOptions.Compiled);
 
 
         // === public api ===
 
-        // pulls the first image out of the body and hands it back separately, so a release can carry a header
-        // image simply by starting its notes with one and it does not also appear in the running text
-        //
-        // PowerToys solves the same problem by keying on "Hero" in the alt text; taking whichever image comes
-        // first means nothing has to be spelled a particular way when a release is written
+        // lifts the first image out as the header image, so it does not show in the running text too
         public static string ExtractLeadingImage(string markdown, out string imageUrl)
         {
             imageUrl = null;
@@ -144,14 +125,12 @@ namespace FluentSensors.Common.Markdown
             imageUrl = match.Groups["imageUrl"].Value;
             string rest = markdown.Remove(match.Index, match.Length);
 
-            // whatever html images are left would otherwise show up as raw tags in the running text
+            // leftover html images would show as raw tags
             return HtmlImagePattern.Replace(rest, "");
         }
 
-        // strips whole sections the dialog has no use for, from their heading down to the next heading of any
-        // level or to the full changelog line, whichever comes first
-        //
-        // the installation steps belong on the release page, not in an app that is already installed
+        // strips sections the dialog has no use for (installation steps), down to the next
+        // heading or the full changelog line
         public static string DropSections(string markdown)
         {
             if (string.IsNullOrWhiteSpace(markdown)) return markdown;
@@ -181,11 +160,8 @@ namespace FluentSensors.Common.Markdown
             return string.Join("\n", kept);
         }
 
-        // pulls the closing full changelog line out of the body and hands back the url on it, the same way the
-        // header image is lifted out above
-        //
-        // the release page renders it as a row of its own in XAML, where the label follows the theme and the
-        // address becomes the apps own link button rather than staying a bare url in running text
+        // lifts the full changelog line out and returns its url; the release page shows it as its own XAML row, with a
+        // themed label and a link button
         public static string ExtractChangelogLink(string markdown, out string url)
         {
             url = null;
@@ -200,7 +176,7 @@ namespace FluentSensors.Common.Markdown
                 {
                     string found = UrlPattern.Match(line).Value;
 
-                    // a changelog line without a usable address stays in the body rather than vanishing from it
+                    // without a usable address the line stays in the body
                     if (found.Length > 0)
                     {
                         url = found;
@@ -214,7 +190,7 @@ namespace FluentSensors.Common.Markdown
             return string.Join("\n", kept);
         }
 
-        // replaces whatever the target currently holds, so re-rendering into the same panel is safe
+        // replaces the target content, so re-rendering is safe
         public static void Render(Panel target, string markdown)
         {
             if (target == null) return;
@@ -222,13 +198,13 @@ namespace FluentSensors.Common.Markdown
             target.Children.Clear();
             if (string.IsNullOrWhiteSpace(markdown)) return;
 
-            // ActualTheme rather than the application theme, because the app sets its theme per element
+            // ActualTheme, the app sets its theme per element
             bool isDark = target.ActualTheme == ElementTheme.Dark;
 
             var lines = markdown.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
             var writer = new BlockWriter(target);
 
-            // collects consecutive plain lines so a soft-wrapped paragraph stays one paragraph
+            // consecutive plain lines, so a soft-wrapped paragraph stays one
             var pending = new List<string>();
 
             void FlushPending()
@@ -248,8 +224,7 @@ namespace FluentSensors.Common.Markdown
             {
                 string line = raw.TrimEnd();
 
-                // a blank line, a horizontal rule and an empty heading all read as a break, and all three close
-                // an open callout
+                // a blank line, a rule or an empty heading breaks and closes an open callout
                 if (string.IsNullOrWhiteSpace(line) || RulePattern.IsMatch(line) || EmptyHeadingPattern.IsMatch(line))
                 {
                     FlushPending();
@@ -271,7 +246,7 @@ namespace FluentSensors.Common.Markdown
                     continue;
                 }
 
-                // anything that is not a quote line ends the callout it would otherwise be swallowed into
+                // any non-quote line ends the callout
                 writer.EndAlert();
 
                 var heading = HeadingPattern.Match(line);
@@ -308,8 +283,7 @@ namespace FluentSensors.Common.Markdown
 
         // === block writer ===
 
-        // keeps the running RichTextBlock that ordinary paragraphs accumulate into, and swaps it for a callouts
-        // own one while an alert is open, so the alert can sit in a Border that draws the rule down its side
+        // the running RichTextBlock, swapped for the callout one while an alert is open, inside a Border for the rule
         private sealed class BlockWriter
         {
             private readonly Panel _target;
@@ -322,10 +296,10 @@ namespace FluentSensors.Common.Markdown
 
             public bool IsInAlert => _inAlert;
 
-            // only true until the very first block lands, which is what keeps a leading heading flush with the top
+            // until the first block lands; keeps a leading heading flush with the top
             public bool IsFirstBlock => !_anyBlockWritten;
 
-            // what the paragraph after a list needs to know to bring its own top gap
+            // so the paragraph after a list brings its gap
             public bool LastBlockWasListItem => _lastWasListItem;
 
             public void Add(Block block, bool isListItem = false)
@@ -361,7 +335,7 @@ namespace FluentSensors.Common.Markdown
                 stack.Children.Add(label);
                 stack.Children.Add(body);
 
-                // the rule is the Borders own left edge, so it spans whatever height the callout ends up with
+                // the rule is the Border left edge, so it spans the whole callout
                 _target.Children.Add(new Border
                 {
                     BorderBrush = brush,
@@ -371,7 +345,7 @@ namespace FluentSensors.Common.Markdown
                     Child = stack
                 });
 
-                // everything until EndAlert lands inside the callout instead of the running text
+                // everything until EndAlert lands in the callout
                 _current = body;
                 _anyBlockWritten = true;
                 _lastWasListItem = false;
@@ -393,8 +367,7 @@ namespace FluentSensors.Common.Markdown
                 return block;
             }
 
-            // MaxHeight rather than BlockLineHeight: the line height set here then acts as a floor, so ordinary
-            // text loosens up while a heading still gets the room its own size needs
+            // MaxHeight, so the line height is a floor; text loosens up and a heading still gets its room
             private static RichTextBlock NewTextBlock() => new RichTextBlock
             {
                 IsTextSelectionEnabled = true,
@@ -419,7 +392,7 @@ namespace FluentSensors.Common.Markdown
                 _ => H3FontSize
             };
 
-            // the leading heading sits flush with the top of the dialog, everything after it gets its gap
+            // a leading heading sits flush with the top
             var paragraph = new Paragraph
             {
                 FontSize = fontSize,
@@ -431,8 +404,7 @@ namespace FluentSensors.Common.Markdown
             return paragraph;
         }
 
-        // a quote inside a callout already sits behind the rule, so it drops the inset and the dimming it would
-        // otherwise carry as an ordinary blockquote
+        // a quote inside a callout sits behind the rule already, without inset and dimming
         private static Paragraph BuildQuote(string text, bool isInAlert)
         {
             var paragraph = new Paragraph
@@ -450,14 +422,12 @@ namespace FluentSensors.Common.Markdown
             return paragraph;
         }
 
-        // resolved in code rather than bound, so it lands on the application theme, which is fixed at process
-        // start and does not follow a theme switch; a blockquote is the only thing still coming through here,
-        // the full changelog row moved into the release pages XAML for exactly that reason
+        // resolves against the application theme, fixed at process start and blind to a theme switch; only blockquotes
+        // use it, which is why the changelog row is XAML
         private static Brush ThemeBrush(string key) =>
             Application.Current.Resources.TryGetValue(key, out object value) ? value as Brush : null;
 
-        // hanging indent: the inset moves the whole item right and the negative first-line indent pulls the
-        // marker back out of it, so wrapped lines align under the text rather than under the bullet
+        // hanging indent, so wrapped lines align under the text, not the bullet
         private static Paragraph BuildListItem(string marker, string text)
         {
             var paragraph = new Paragraph
@@ -510,8 +480,7 @@ namespace FluentSensors.Common.Markdown
 
             if (match.Groups["url"].Success)
             {
-                // a url that ends a sentence swallows the punctuation without this, since none of it is illegal
-                // in a url and the pattern cannot tell the two apart
+                // a url ending a sentence would swallow the punctuation
                 string url = match.Groups["url"].Value.TrimEnd('.', ',', ';', ':', ')');
                 return BuildHyperlink(url, url);
             }
@@ -533,10 +502,8 @@ namespace FluentSensors.Common.Markdown
             return new Run { Text = match.Groups["italicText"].Value, FontStyle = FontStyle.Italic };
         }
 
-        // an image inside the running text; the header image is pulled out before rendering, so this only ever
-        // sees the extra ones a release body happens to contain
-        // these load straight from their url and are therefore the one part of a release that stays blank without
-        // a connection, unlike the header image, which ReleaseCatalog keeps on disk
+        // an extra image in the running text; loads from its url, so it stays blank offline (unlike the header image,
+        // which ReleaseCatalog keeps on disk)
         private static Inline BuildImage(string url)
         {
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
@@ -555,8 +522,7 @@ namespace FluentSensors.Common.Markdown
             return new InlineUIContainer { Child = image };
         }
 
-        // a malformed url would throw on the Uri, and one bad link should not cost the whole release notes, so it
-        // falls back to the plain text it was written as
+        // a malformed url falls back to its plain text instead of costing the whole notes
         private static Inline BuildHyperlink(string text, string url)
         {
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))

@@ -8,28 +8,25 @@ using Windows.Graphics;
 
 namespace FluentSensors.Core.Taskbar
 {
-    // cross-process UIA lookups for taskbar sub-elements that have no window handle of their own (the taskbar
-    // frame root, the system tray, the widgets button);
-    // GetWindowRect/SHAppBarMessage in WinTaskbarService only know the taskbar windows own bounds, not what
-    // explorer.exe actually renders inside it
-    // every query can return null at any time; this is optional enrichment only, taskbar placement logic must
-    // keep working with this returning null
+    // the taskbar UIA probe:
+    // cross-process UIA lookups for taskbar parts without a window handle (the frame, the tray, the widgets button),
+    // which GetWindowRect and SHAppBarMessage cannot see
+    // optional enrichment; any query can return null and placement must still work
     public class WinTaskbarUiaProbe
     {
         // === fields ===
 
-        // a single UIA round trip to an unresponsive explorer.exe should never block the caller longer than this;
-        // also set as the native ConnectionTimeout/TransactionTimeout on the automation object itself
+        // the longest a round trip to a hung explorer.exe blocks the caller; also the native
+        // ConnectionTimeout and TransactionTimeout
         private const int QueryTimeoutMs = 500;
 
-        // taskbar UI structure basically never changes while explorer.exe keeps running, no need to re-query more often
+        // the taskbar structure hardly changes while explorer.exe runs
         private const int CacheDurationMs = 5000;
 
         // KNOWN UNRELIABLE:
-        // these class names and automation IDs have no official Microsoft documentation; they are internal
-        // implementation details of explorer.exes XAML Islands taskbar UI and can shift between Windows 11 builds
-        // confirmed against live UIA tree dumps on real Windows 11 hardware (WinTaskbarDebugDump.DumpTaskbarTree)
-        // TaskbarFrame carries a real AutomationId, TrayNotifyWnd is a classic Win32 child class name
+        // undocumented internals of the XAML Islands taskbar of explorer.exe that can shift between Windows 11 builds,
+        // confirmed against live UIA tree dumps
+        // TaskbarFrame is an AutomationId, TrayNotifyWnd a classic Win32 child class name
         private const string TaskbarFrameAutomationId = "TaskbarFrame";
         private const string TrayClassName = "TrayNotifyWnd";
         private const string WidgetsButtonAutomationId = "WidgetsButton";
@@ -53,7 +50,7 @@ namespace FluentSensors.Core.Taskbar
 
         // === public api ===
 
-        // returns cached or fresh snapshot; cached null is returned as-is to avoid continuous slow cross-process retries
+        // cached or fresh; a cached null stays, so a failing explorer.exe is not retried on every call
         public WinTaskbarUiaSnapshot? Probe(IntPtr taskbarHwnd)
         {
             lock (_lock)
@@ -78,16 +75,15 @@ namespace FluentSensors.Core.Taskbar
 
         // === private helpers ===
 
-        // background-thread timeout wrapper:
-        // UIA calls are synchronous COM with no cancellation support; if explorer.exe hangs, the worker thread
-        // stays blocked inside the call, so this stops waiting instead of trying to cancel it
+        // UIA is synchronous COM without cancellation; on a hung explorer.exe the worker stays
+        // blocked and this stops waiting
         private static WinTaskbarUiaSnapshot? RunWithTimeout(Func<WinTaskbarUiaSnapshot?> query)
         {
             var task = Task.Run(query);
             return task.Wait(QueryTimeoutMs) ? task.Result : null;
         }
 
-        // catches all exceptions; this probe is optional enrichment only
+        // catches everything, the probe is optional
         private WinTaskbarUiaSnapshot? ProbeNow(IntPtr taskbarHwnd)
         {
             try
@@ -121,7 +117,7 @@ namespace FluentSensors.Core.Taskbar
             return _automation;
         }
 
-        // full subtree search instead of just direct children
+        // the full subtree, not only direct children
         private static IUIAutomationElement? FindDescendant(IUIAutomation2 automation, IUIAutomationElement root, int propertyId, string value)
         {
             var condition = automation.CreatePropertyCondition(propertyId, value);

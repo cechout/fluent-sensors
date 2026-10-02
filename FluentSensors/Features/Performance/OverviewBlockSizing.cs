@@ -6,30 +6,27 @@ using System.Collections.Generic;
 
 namespace FluentSensors.Features.Performance
 {
-    // sizes the overview block of a hardware detail view, the same way for all five of them
-    //
-    // the block fills whatever height the viewport has left and grows past it into a scroll once its own content no
-    // longer fits; what is left is read off the live tree instead of numbers kept in code, so a padding, spacing,
-    // border or margin changed in the XAML is picked up on its own:
-    // the scroll contents inset, every other shown child of it with its margin and the spacing between them, and the
-    // margin and inset of each container from the block up to the scroll content, the blocks own margin included
-    // the one thing it relies on is the shape: the block sits somewhere inside one child of the StackPanel that is
-    // the scroll content, and shares its row with nothing taller than itself
+    // the overview block sizing:
+    // the overview block of all five detail views fills the height the viewport has left and scrolls
+    // once its content no longer fits
+    // the rest is read off the live tree, so XAML changes count on their own: the scroll content inset, its
+    // other shown children with margins and spacing, and margin and inset of each container from the block
+    // up, its own margin included
+    // relies on the shape: the block sits inside one child of the StackPanel scroll content, beside nothing taller
     public static class OverviewBlockSizing
     {
         // === fields ===
 
-        // layout rounding snaps every offset and size to whole device pixels, and at a scale like 125% or 175% a DIP
-        // value such as the StackPanel spacing of 14 lands on half a pixel (24.5px at 175%); those roundings add up
-        // to a pixel or two the DIP arithmetic below cannot see, which was just enough to make every view scroll by
-        // that much
-        // held back from the height instead, which leaves at most a sliver of empty space under the block
+        // layout rounding snaps to device pixels, and at 125% or 175% a DIP value lands on half a pixel
+        // (spacing 14 is 24.5px at 175%)
+        // that adds up to a pixel or two the DIP arithmetic cannot see and would scroll every view; held
+        // back, it leaves a sliver at most
         private const double LayoutRoundingAllowanceDip = 2;
 
 
         // === public api ===
 
-        // the viewport minus everything around the block, but never below the blocks own natural minimum
+        // the viewport minus everything around the block, never below its natural minimum
         public static double Height(ScrollViewer scrollViewer, StackPanel content, FrameworkElement block, double naturalMinHeight)
         {
             Thickness contentInset = Inset(content);
@@ -40,7 +37,7 @@ namespace FluentSensors.Features.Performance
             {
                 space += element.Margin.Top + element.Margin.Bottom;
 
-                // the blocks own inset is inside the height it is given, only the containers above it add theirs
+                // the block inset is inside its height, only the containers above add theirs
                 if (element != block)
                 {
                     Thickness inset = Inset(element);
@@ -66,7 +63,7 @@ namespace FluentSensors.Features.Performance
             return Math.Max(scrollViewer.ActualHeight - space - LayoutRoundingAllowanceDip, naturalMinHeight);
         }
 
-        // the width the blocks content is laid out at, for measuring parts of it before the block has its final size
+        // the content width of the block, for measuring before it has its final size
         public static double ContentWidth(ScrollViewer scrollViewer, StackPanel content, FrameworkElement block)
         {
             Thickness contentInset = Inset(content);
@@ -89,7 +86,7 @@ namespace FluentSensors.Features.Performance
 
         // === private helpers ===
 
-        // the block and every container above it, up to but not including the scroll content itself
+        // the block and every container above it, without the scroll content
         private static IEnumerable<FrameworkElement> ChainUpTo(FrameworkElement block, Panel content)
         {
             for (var current = block; current != null && current != content; current = current.Parent as FrameworkElement)
@@ -98,7 +95,7 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // padding plus border, the space a container keeps between its own edge and its children
+        // padding plus border
         private static Thickness Inset(FrameworkElement element) => element switch
         {
             Grid grid => Add(grid.Padding, grid.BorderThickness),

@@ -15,12 +15,11 @@ namespace FluentSensors.Persistence.Services
     {
         // === singleton instance ===
 
-        // the defaults every field below starts from, so AppSettingsData stays the one place a default is written
-        // declared above _instance on purpose: static fields initialize in order, and the constructor call below
-        // already runs the field initializers that read this
+        // the defaults every field starts from, so a default is only written in AppSettingsData; (above _instance,
+        // static fields initialize in order)
         private static readonly AppSettingsData Defaults = new AppSettingsData();
 
-        // the keys of the per taskbar position settings, ScreenEdge names; above _instance for the same reason
+        // the per edge keys, ScreenEdge names; above _instance too
         private static readonly string[] TaskbarEdgeNames = { "Bottom", "Top", "Left", "Right" };
 
         private static readonly SettingsService _instance = new SettingsService();
@@ -50,7 +49,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // --- Widget Window Appearance Settings ---
+        // --- widget window appearance ---
 
         private string _backdropType = Defaults.BackdropType;
         public string BackdropType
@@ -127,7 +126,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // where the widget window graphs take their line colour from
+        // the widget graph line colour
         private GraphColorSource _graphColorSource = AppSettingsData.DefaultGraphColorSource;
         public GraphColorSource GraphColorSource
         {
@@ -158,7 +157,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // seconds of history shown on a graph that does not have its own fixed override (e.g. the Widget)
+        // seconds of history on a graph without its own override (the widget)
         private double _graphTimeSpanSeconds = Defaults.GraphTimeSpanSeconds;
         public double GraphTimeSpanSeconds
         {
@@ -174,7 +173,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // stepline or smooth line rendering; one global switch for every graph, regardless of scope
+        // stepline or smooth; global, every scope
         private GraphLineStyle _graphLineStyle = Defaults.GraphLineStyle;
         public GraphLineStyle GraphLineStyle
         {
@@ -190,7 +189,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // fades the area under the line out towards the bottom; global, same reach as GraphLineStyle above
+        // the area under the line fades towards the bottom; global like GraphLineStyle
         private bool _graphFillFade = Defaults.GraphFillFade;
         public bool GraphFillFade
         {
@@ -206,8 +205,8 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // hardware category icon color; mirrored onto HardwareColorMode rather than read from here, because
-        // HardwareGroupInfo resolves the brush and sits in Common, which must not reach into persistence
+        // hardware category icon color; mirrored onto HardwareColorMode (HardwareGroupInfo sits in Common, which must
+        // not reach into persistence)
         private bool _useHardwareIconColors = Defaults.UseHardwareIconColors;
         public bool UseHardwareIconColors
         {
@@ -224,8 +223,8 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // bytes or bits for data sizes (SmallData, Data) and for speeds (Throughput); mirrored onto
-        // SensorUnitFormatter for the same reason as UseHardwareIconColors above, the formatter sits in Common
+        // bytes or bits for sizes (SmallData, Data) and speeds (Throughput); mirrored onto
+        // SensorUnitFormatter in Common, like above
         private DataUnitBasis _dataSizeUnitBasis = Defaults.DataSizeUnitBasis;
         public DataUnitBasis DataSizeUnitBasis
         {
@@ -259,9 +258,9 @@ namespace FluentSensors.Persistence.Services
         }
 
 
-        // --- Performance Page Graph Settings ---
+        // --- performance page graphs ---
 
-        // seconds of history on the performance pages overview graphs
+        // seconds of history on the overview graphs
         private double _performanceGraphTimeSpanSeconds = Defaults.PerformanceGraphTimeSpanSeconds;
         public double PerformanceGraphTimeSpanSeconds
         {
@@ -277,9 +276,8 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // seconds of history on the denser performance grids (cpu all-threads, gpu extended)
-        // kept apart from the value above because those graphs are small and many, so they usually want a
-        // shorter window than the overview blocks
+        // seconds of history on the dense grids (cpu all-threads, gpu extended); (small and many,
+        // they want a shorter window)
         private double _performanceExtendedGraphTimeSpanSeconds = Defaults.PerformanceExtendedGraphTimeSpanSeconds;
         public double PerformanceExtendedGraphTimeSpanSeconds
         {
@@ -296,7 +294,7 @@ namespace FluentSensors.Persistence.Services
         }
 
 
-        // --- Taskbar Ecosystem (Widget + Flyout) Appearance Settings ---
+        // --- taskbar widget and flyout appearance ---
 
         private string _taskbarBackdropType = Defaults.TaskbarBackdropType;
         public string TaskbarBackdropType
@@ -403,7 +401,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // when true the taskbar widget graphs drop their calculated card tint and stay fully transparent
+        // the taskbar widget graphs drop their card tint
         private bool _taskbarUseTransparentGraphBackground = Defaults.TaskbarUseTransparentGraphBackground;
         public bool TaskbarUseTransparentGraphBackground
         {
@@ -419,7 +417,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // when true, the taskbar widget cannot be dragged along the taskbar
+        // no dragging the taskbar widget along the taskbar
         private bool _taskbarWidgetPositionLocked = Defaults.TaskbarWidgetPositionLocked;
         public bool TaskbarWidgetPositionLocked
         {
@@ -438,19 +436,15 @@ namespace FluentSensors.Persistence.Services
 
         // --- per taskbar position ---
 
-        // time range, graph width, flyout alignment and the side taskbar layout are kept once per screen edge the
-        // taskbar can sit on (TaskbarEdgeSettings); the properties below read and write the edge in ActiveTaskbarEdge,
-        // so every consumer keeps using them as before and simply follows when the taskbar moves
+        // time range, graph width, flyout alignment and side layout per taskbar edge (TaskbarEdgeSettings); the
+        // properties below go through ActiveTaskbarEdge, so consumers follow a taskbar move
         private Dictionary<string, TaskbarEdgeSettings> _taskbarEdges = SeedTaskbarEdges(null, Defaults);
         private string _activeTaskbarEdge = "Bottom";
 
         private TaskbarEdgeSettings ActiveEdge => _taskbarEdges[_activeTaskbarEdge];
 
-        // the screen edge the taskbar sits on right now, as a ScreenEdge name; set by whoever looks at the taskbar
-        // (the taskbar widget when it places itself, the settings page when it opens), never persisted
-        //
-        // switching raises the change event of every per position value that differs between the two edges, so the
-        // widget, the flyout and the settings page refresh exactly as they do after an edit
+        // the current taskbar edge, a ScreenEdge name; set by the taskbar widget and the settings page, never persisted
+        // a switch raises the change event of every value that differs between the two edges, like an edit would
         public string ActiveTaskbarEdge
         {
             get => _activeTaskbarEdge;
@@ -515,7 +509,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // flyout placement over the taskbar widget: "Center", "Left" or "Right"
+        // "Center", "Left" or "Right"
         public string TaskbarFlyoutAlignment
         {
             get => ActiveEdge.FlyoutAlignment;
@@ -530,7 +524,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // graph direction in a slot on a side taskbar: "RightToLeft", "TopToBottom" or "BottomToTop"
+        // "RightToLeft", "TopToBottom" or "BottomToTop"
         public string TaskbarSideGraphDirection
         {
             get => ActiveEdge.SideGraphDirection;
@@ -545,7 +539,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // lines the sensor name may take in a slot on a side taskbar, 1 or 2
+        // lines for the sensor name in a side slot, 1 or 2
         public int TaskbarSideTitleLines
         {
             get => ActiveEdge.SideTitleLines;
@@ -560,8 +554,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // every edge from the saved dictionary, or, in a file written before the split, from the single legacy values
-        // that used to cover all edges at once
+        // every edge from the saved dictionary, or from the legacy single values in an older file
         private static Dictionary<string, TaskbarEdgeSettings> SeedTaskbarEdges(
             Dictionary<string, TaskbarEdgeSettings>? saved, AppSettingsData data)
         {
@@ -585,7 +578,7 @@ namespace FluentSensors.Persistence.Services
             return edges;
         }
 
-        // a copy for the debounced writer, which serializes on another thread while the live values keep changing
+        // a copy for the debounced writer, which serializes on another thread
         private Dictionary<string, TaskbarEdgeSettings> CloneTaskbarEdges()
         {
             var copy = new Dictionary<string, TaskbarEdgeSettings>();
@@ -597,7 +590,7 @@ namespace FluentSensors.Persistence.Services
         }
 
 
-        // --- App Behavior Settings ---
+        // --- app behavior ---
 
         private bool _minimizeToTray = Defaults.MinimizeToTray;
         public bool MinimizeToTray
@@ -616,11 +609,10 @@ namespace FluentSensors.Persistence.Services
 
         // --- startup settings ---
 
-        // none of these four fire a change event; three are read once while the app starts and the two autostart
-        // ones are written straight into the task scheduler by the settings page, so there is nothing to notify
+        // none of the four raises a change event: they are read at startup, and the autostart pair goes
+        // straight into the task scheduler
 
-        // mirrors whether the scheduled task exists, see WinAutostartService for why the task and not this is the
-        // authority on it
+        // mirrors the scheduled task, which is the authority (see WinAutostartService)
         private bool _runOnStartup = Defaults.RunOnStartup;
         public bool RunOnStartup
         {
@@ -677,7 +669,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // no change event either: UpdateService is the only reader and asks at the moment it needs the answer
+        // no change event; UpdateService asks when it needs it
         private string _skippedUpdateVersion = Defaults.SkippedUpdateVersion;
         public string SkippedUpdateVersion
         {
@@ -692,8 +684,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // deliberately without a change event, like CheckUpdatesOnStartup above: MainWindow reads this once
-        // during the splash reveal, so a change only shows on the next launch
+        // no change event; MainWindow reads it once at the splash reveal
         private StartupPage _startupPage = Defaults.StartupPage;
         public StartupPage StartupPage
         {
@@ -723,7 +714,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // master on/off for the whole title bar status readout, set from the settings page
+        // master switch of the title bar status readout
         private bool _statusReadoutEnabled = Defaults.StatusReadoutEnabled;
         public bool StatusReadoutEnabled
         {
@@ -739,8 +730,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // whether the readout is currently collapsed by the toggle button in the title bar; that button only hides
-        // what the master switch above allows in the first place
+        // collapsed by the title bar toggle, which only hides what the master switch allows
         private bool _statusReadoutCollapsed = Defaults.StatusReadoutCollapsed;
         public bool StatusReadoutCollapsed
         {
@@ -756,7 +746,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // which of the two status groups are shown, and which one comes first
+        // the two status groups and their order
         private bool _statusLhmGroupEnabled = Defaults.StatusLhmGroupEnabled;
         public bool StatusLhmGroupEnabled
         {
@@ -802,9 +792,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // folder csv recordings are written into, picked from the logger window itself
-        // deliberately without a change event, unlike every other property here: the logger window is both the only
-        // writer and the only reader, and it refreshes its own button right after setting this
+        // the recording folder, picked in the logger window; no change event, that window is the only writer and reader
         private string _csvLogFolder = Defaults.CsvLogFolder;
         public string CsvLogFolder
         {
@@ -819,9 +807,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // separators a recording is written with
-        // no change event either, for the same reason as the folder above: CsvLoggingService snapshots this once
-        // when a recording starts, since switching separators inside an open file would corrupt it
+        // the separators; no change event, CsvLoggingService snapshots it at the start of a recording
         private CsvNumberFormat _csvNumberFormat = Defaults.CsvNumberFormat;
         public CsvNumberFormat CsvNumberFormat
         {
@@ -836,8 +822,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // how many decimals a recorded value carries, written as a fixed count rather than a trimmed one
-        // snapshotted at start like the separators above, for the same reason
+        // decimals per value, a fixed count; snapshotted like the separators
         private int _csvDecimalPlaces = Defaults.CsvDecimalPlaces;
         public int CsvDecimalPlaces
         {
@@ -852,7 +837,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // whether every value carries its unit next to it; the column header carries it either way
+        // the unit next to every value; (the header has it anyway)
         private bool _csvIncludeUnits = Defaults.CsvIncludeUnits;
         public bool CsvIncludeUnits
         {
@@ -867,9 +852,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // what a resumed recording writes at the seam
-        // unlike the three above this one is read live rather than snapshotted: it only takes effect at the moment
-        // of resuming and cannot invalidate a row that was already written
+        // what a resume writes at the seam; read live, it cannot invalidate a written row
         private CsvPauseSeam _csvPauseSeam = Defaults.CsvPauseSeam;
         public CsvPauseSeam CsvPauseSeam
         {
@@ -884,8 +867,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // the profile the sensors page was last switched to, so it comes back on the same one
-        // read only while the page is being built, which is why it gets by without a change event
+        // the last sensors page profile; read while the page builds, no change event
         private SensorSelectionProfile _lastSensorProfile = Defaults.LastSensorProfile;
         public SensorSelectionProfile LastSensorProfile
         {
@@ -900,8 +882,7 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // the saved selector when the file has one; otherwise the accent/custom bool of a file written before
-        // Hardware became a third graph colour option, and with neither, a fresh install, the default
+        // the saved selector, else the legacy accent/custom bool, else (a fresh install) the default
         private static GraphColorSource ResolveGraphColorSource(
             GraphColorSource? saved, bool? legacyUseAccent, GraphColorSource fallback) =>
             saved ?? legacyUseAccent switch
@@ -912,8 +893,8 @@ namespace FluentSensors.Persistence.Services
             };
 
         // persistence
-        // writes every property straight to its backing field, skipping change events and the save trigger; used only
-        // once at startup, before any window or listener exists yet
+        // straight into the backing fields, no change events and no save; at startup before any listener exists, and
+        // after an import right before the restart
         public void LoadFromData(AppSettingsData data)
         {
             _appTheme = data.AppTheme;
@@ -969,11 +950,11 @@ namespace FluentSensors.Persistence.Services
             _csvPauseSeam = data.CsvPauseSeam;
             _lastSensorProfile = data.LastSensorProfile;
 
-            // lives on HardwareMonitorService at runtime, not here, but shares this settings file
+            // lives on HardwareMonitorService at runtime, shares this file
             HardwareMonitorService.Instance.UpdateIntervalMs = data.UpdateIntervalMs;
         }
 
-        // snapshots the current live values into a plain serializable object for disk saving
+        // the live values as a serializable snapshot
         private AppSettingsData ToData()
         {
             return new AppSettingsData
@@ -1029,17 +1010,14 @@ namespace FluentSensors.Persistence.Services
             };
         }
 
-        // called by every setter above; public so code that changes UpdateIntervalMs directly on HardwareMonitorService
-        // (its own change event does not trigger a save) can trigger a save too
+        // every setter calls this; public for UpdateIntervalMs, which changes on HardwareMonitorService
         public void SaveDebounced()
         {
             PersistenceService.Instance.SaveSettingsDebounced(ToData());
         }
 
-        // forces the current in-memory values to be queued for an immediate write, bypassing the "only save on change" guard
-        // in every property setter above
-        // used by Export so a backup always reflects the live session state, even if settings.json was deleted (e.g. by a
-        // previous reset) and nothing has changed since
+        // an immediate write past the save-on-change guard; Export uses it, so a backup is live even if
+        // settings.json was deleted by a reset
         public void SaveImmediate()
         {
             PersistenceService.Instance.SaveSettingsDebounced(ToData());
@@ -1057,13 +1035,13 @@ namespace FluentSensors.Persistence.Services
         public event Action<GraphLineStyle> GraphLineStyleChanged;
         public event Action<bool> GraphFillFadeChanged;
 
-        // carries no value; every consumer only re-reads the switch and refreshes the brush it drew from it
+        // no value; consumers re-read the switch
         public event Action HardwareIconColorsChanged;
 
-        // carries no value; both data unit settings raise it and consumers re-read their unit from SensorUnitFormatter
+        // no value; both unit settings raise it, consumers re-read from SensorUnitFormatter
         public event Action DataUnitBasisChanged;
 
-        // carries no value; both performance time spans raise it and consumers re-read whichever one they use
+        // no value; both performance time spans raise it
         public event Action PerformanceGraphTimeSpanChanged;
 
         public event Action<string> TaskbarBackdropTypeChanged;
@@ -1081,8 +1059,7 @@ namespace FluentSensors.Persistence.Services
 
         public event Action<bool> MinimizeToTrayChanged;
         public event Action<bool> HideSensorsCompletelyChanged;
-        // one event for all five status readout settings; the title bar reads them back as a set, so a single
-        // argument would not cover it
+        // one event for all five status readout settings, read back as a set
         public event Action StatusReadoutChanged;
     }
 }

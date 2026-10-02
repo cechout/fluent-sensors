@@ -12,10 +12,9 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // discovers every active network adapter from LhmHardwareTreeService and creates one
-    // LhmNetworkInstanceViewModel per adapter; parses each raw LHM sensor into the right property on the right
-    // instance
-    // the instance itself stays a dumb data holder
+    // network discovery:
+    // one LhmNetworkInstanceViewModel per active adapter in LhmHardwareTreeService, every raw LHM sensor parsed into
+    // its property; the instance stays a data holder
     public class LhmNetworkPerformanceViewModel
     {
         // === constructor ===
@@ -67,10 +66,8 @@ namespace FluentSensors.Features.Performance.Lhm
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(adapter, e);
         }
 
-        // runs once after the initial sensor batch, per category: if nothing was ever persisted and one candidate
-        // is explicitly flagged IsDefault, that one wins over whichever candidate happened to be discovered first;
-        // if nothing is active at all yet (e.g. a persisted choice never showed up), falls back to the first
-        // candidate present
+        // once after the first sensor batch, per category: without a saved choice the IsDefault candidate beats
+        // discovery order; with nothing active, the first candidate
         private static void ApplyCategoryFallbacks(LhmNetworkInstanceViewModel adapter)
         {
             ActivateDefault(adapter.HardwareName, "Utilization", adapter.NetworkUtilizationOptions, () => adapter.NetworkUtilization, adapter.SetNetworkUtilizationWithoutPersisting);
@@ -115,7 +112,7 @@ namespace FluentSensors.Features.Performance.Lhm
             switch (entry.Name)
             {
                 case "Upload Speed":
-                    // guard: see LhmStoragePerformanceViewModel.OnSensorDiscovered for the full explanation
+                    // guard; OnSensorDiscovered reruns for a known sensor, which keeps its graph
                     adapter.UploadSpeed ??= new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(adapter.UploadSpeed, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(adapter.UploadSpeed, entry, e);
@@ -144,10 +141,9 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // adds entry as a candidate, and activates it if nothing is active yet and it matches the persisted choice
-        // (or nothing was ever persisted, first-found-wins for now; ApplyCategoryFallbacks corrects to the flagged
-        // default afterward if one exists and discovery order picked something else)
-        // guard: see LhmStoragePerformanceViewModel.OnSensorDiscovered for why a duplicate-candidate check is needed
+        // adds a candidate, active when nothing is yet and it is the saved choice (or none was saved, first found;
+        // ApplyCategoryFallbacks corrects to the flagged default)
+        // guard; OnSensorDiscovered reruns for a known sensor, which must not add a second candidate
         private void RegisterCategoryCandidate(
             LhmNetworkInstanceViewModel adapter,
             string category,
@@ -172,7 +168,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
             options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve, isDefault, yMaxOverride));
 
-            if (getActive(adapter) != null) return; // already resolved, this is just an additional alternative
+            if (getActive(adapter) != null) return; // resolved, one more alternative
 
             string persistedId = SensorSwitchStateService.Instance.GetSelectedSensorId(adapter.HardwareName, category);
             if (persistedId == entry.Id || persistedId == null)

@@ -1,10 +1,10 @@
 ﻿namespace FluentSensors.Common.Sensors
 {
-    // starting values for threshold and y-axis controls, tuned per LibreHardwareMonitor sensor type a "%"-based sensor
-    // and a "MHz"-based sensor need vastly different scales, this table is the single place that maps a sensor type to
-    // its own default value and step size
-    // all values are in the displayed base unit (MB or Mbit, MB/s or Mbit/s); consumers turn them into raw values
-    // through SensorUnitFormatter.ToRawValue at the moment they use them
+    // the sensor type profiles:
+    // defaults and steps of the threshold and y-axis controls per LHM sensor type, since percent and
+    // MHz need very different scales
+    // in the displayed base unit (MB or Mbit, MB/s or Mbit/s); consumers convert through
+    // SensorUnitFormatter.ToRawValue on use
     public readonly struct SensorTypeProfile
     {
         public double ThresholdDefault { get; init; }
@@ -15,7 +15,7 @@
 
     public static class SensorTypeProfiles
     {
-        // fallback profile, matches the values every sensor used before per-type profiles existed
+        // the fallback
         private static readonly SensorTypeProfile Default = new()
         {
             ThresholdDefault = 50,
@@ -24,8 +24,7 @@
             YMaxStep = 10
         };
 
-        // clock speeds sit in the thousands (MHz), the generic default/step would need hundreds of clicks to reach a
-        // realistic value
+        // thousands of MHz, the fallback step would need hundreds of clicks
         private static readonly SensorTypeProfile Clock = new()
         {
             ThresholdDefault = 2000,
@@ -34,7 +33,7 @@
             YMaxStep = 100
         };
 
-        // cumulative read/written data over uptime, can climb into the hundreds of GB
+        // cumulative over uptime, into the hundreds of GB
         private static readonly SensorTypeProfile Data = new()
         {
             ThresholdDefault = 20,
@@ -43,7 +42,7 @@
             YMaxStep = 10
         };
 
-        // gpu memory usage and similar, commonly in the low thousands of MB
+        // gpu memory and similar, low thousands of MB
         private static readonly SensorTypeProfile SmallData = new()
         {
             ThresholdDefault = 500,
@@ -52,7 +51,7 @@
             YMaxStep = 100
         };
 
-        // case/gpu fans, typically a few hundred to a few thousand rpm
+        // a few hundred to a few thousand rpm
         private static readonly SensorTypeProfile Fan = new()
         {
             ThresholdDefault = 2000,
@@ -61,8 +60,8 @@
             YMaxStep = 100
         };
 
-        // compromise profile: this sensor type spans both cpu core voltage (~0.8-1.5V) and psu rails (3.3V/5V/12V)
-        // under the same type, so this is tuned for core voltage precision and stays coarse for rail voltages
+        // a compromise, the type spans core voltage (0.8 to 1.5 V) and psu rails (3.3, 5, 12 V); precise
+        // for the core, coarse for rails
         private static readonly SensorTypeProfile Voltage = new()
         {
             ThresholdDefault = 1.5,
@@ -71,8 +70,7 @@
             YMaxStep = 0.1
         };
 
-        // disk/network throughput, normalized to MB/s at the source (HardwareMonitorService); tuned for typical
-        // SSD/NVMe write bursts, idle traffic will just sit near 0
+        // disk and network, MB/s from HardwareMonitorService; tuned for SSD write bursts, idle sits near 0
         private static readonly SensorTypeProfile Throughput = new()
         {
             ThresholdDefault = 50,
@@ -81,7 +79,7 @@
             YMaxStep = 25
         };
 
-        // sensorType is the raw LibreHardwareMonitor SensorType.ToString() value (e.g. "Clock", "Load")
+        // the raw SensorType.ToString() ("Clock", "Load")
         public static SensorTypeProfile GetProfile(string sensorType)
         {
             return sensorType switch

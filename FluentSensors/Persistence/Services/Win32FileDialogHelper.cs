@@ -4,26 +4,20 @@ using System.Runtime.InteropServices;
 
 namespace FluentSensors.Persistence.Services
 {
-    // drop-in replacement for the WinRT FileSavePicker/FileOpenPicker (Windows.Storage.Pickers), which crash with
-    // COMException 0x80004005 when the calling process runs elevated
-    // confirmed as expected behavior, not a bug, Microsofts own docs state these APIs "are not designed to be used in an
-    // elevated app": https://learn.microsoft.com/en-us/uwp/api/windows.storage.pickers.filesavepicker
-    // matching crash reports: https://github.com/microsoft/WindowsAppSDK/issues/2504,
+    // the win32 file dialogs:
+    // the WinRT pickers throw COMException 0x80004005 in an elevated process, as documented ("not designed to be used
+    // in an elevated app"), and this app always runs elevated:
+    // https://learn.microsoft.com/en-us/uwp/api/windows.storage.pickers.filesavepicker
+    // https://github.com/microsoft/WindowsAppSDK/issues/2504
     // https://github.com/microsoft/WindowsAppSDK/issues/2731
-    //
-    // since this app always needs admin rights for LibreHardwareMonitor, the WinRT pickers can never be used here
-    // these classic Win32 COM dialogs (IFileSaveDialog/IFileOpenDialog) run in-process instead of going through a broker, so
-    // process elevation does not affect them
-    // this is also Microsofts own recommended fallback for elevated apps, just hand-rolled here via ComImport instead of the
-    // CsWin32 source generator they suggest
+    // the classic COM dialogs (IFileSaveDialog, IFileOpenDialog) run in-process, the documented fallback, by
+    // ComImport rather than CsWin32
     public static class Win32FileDialogHelper
     {
         // === public api ===
 
-        // thin synchronous wrappers around the native dialogs; all of them return the picked path, or null if the
-        // user cancelled or the dialog failed, and release the COM object again immediately after use
+        // synchronous wrappers; the picked path or null (cancelled or failed), the COM object released right after
 
-        // returns the picked file path, or null if the user cancelled (or the dialog failed)
         public static string PickSaveFile(IntPtr ownerHwnd, string title, string suggestedFileName, string filterName, string filterExtension)
         {
             var dialog = (IFileSaveDialog)new FileSaveDialogRCW();
@@ -73,9 +67,8 @@ namespace FluentSensors.Persistence.Services
         }
 
 
-        // picks a folder rather than a file, by putting the same open dialog into folder mode via FOS_PICKFOLDERS
-        // initialFolder is where the dialog opens; ignored when it does not exist anymore, Windows then falls back to
-        // its own last-used location
+        // the open dialog in folder mode (FOS_PICKFOLDERS); a missing initialFolder falls
+        // back to the last-used location
         public static string PickFolder(IntPtr ownerHwnd, string title, string initialFolder)
         {
             var dialog = (IFileOpenDialog)new FileOpenDialogRCW();
@@ -115,12 +108,10 @@ namespace FluentSensors.Persistence.Services
 
         // === com interop declarations ===
 
-        // manual COM interop instead of the CsWin32 source generator Microsofts docs suggest, to keep this
-        // self-contained
-        // minimal subset of shobjidl_core.h; just enough surface for a single-file save/open dialog plus folder
-        // picking, not a general-purpose wrapper (no multi-select, no custom places)
+        // the subset of shobjidl_core.h for single-file save and open plus folder picking, by
+        // hand to stay self-contained
 
-        // FOS_PICKFOLDERS, the _FILEOPENDIALOGOPTIONS flag that turns the open dialog into a folder browser
+        // the _FILEOPENDIALOGOPTIONS flag for a folder browser
         private const uint FOS_PICKFOLDERS = 0x00000020;
 
         private static Guid IID_IShellItem = new Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe");
@@ -161,14 +152,13 @@ namespace FluentSensors.Persistence.Services
         [ComImport, Guid("84bccd23-5fde-4cdb-aea4-af64b83d78ab"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         private interface IFileSaveDialog : IFileDialog
         {
-            // IFileSaveDialog adds SetSaveAsItem/SetProperties/etc. after the inherited IFileDialog members; not
-            // declared here since we never call them, we only need the base members above
+            // its own members after the IFileDialog ones are never called, so not declared
         }
 
         [ComImport, Guid("d57c7288-d4ad-4768-be02-9d969532d960"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         private interface IFileOpenDialog : IFileDialog
         {
-            // IFileOpenDialog adds GetResults/GetSelectedItems (multi-select); not needed here either
+            // GetResults and GetSelectedItems (multi-select) are not needed
         }
 
         [ComImport, Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

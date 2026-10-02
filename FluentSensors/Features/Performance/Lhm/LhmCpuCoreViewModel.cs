@@ -9,15 +9,11 @@ using FluentSensors.Controls.SensorGraph;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // one physical core, bundling however many threads it has (1 for cores without SMT, 2+ for cores with it)
-    // plus its own Temperature/Clock graphs once matched by LhmCpuInstanceViewModel
-    // TemperatureLabel/ClockLabel hold whatever raw label text LHM itself used (e.g. "P-Core", "E-Core") for this
-    // core in its Temperature/Clock sensor name
-    //
-    // Load sensors usually do not carry that distinction by lhm, so this is the only place it can come from, and it
-    // is stored as-is rather than interpreted or hardcoded to any particular vendors naming
-    // kept as two separate fields since the two sensor families could in theory disagree; not resolved/displayed
-    // anywhere yet, just preserved for later
+    // one cpu core:
+    // a physical core with its threads (1 without SMT) and its Temperature and Clock graphs once
+    // LhmCpuInstanceViewModel matched them
+    // TemperatureLabel and ClockLabel keep the raw LHM label ("P-Core", "E-Core"), which Load names lack; two fields,
+    // the families could disagree, not displayed yet
     public class LhmCpuCoreViewModel : INotifyPropertyChanged
     {
         // === constructor ===
@@ -33,7 +29,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         public bool HasThreads { get; }
 
-        // one entry per "CPU Core #N[ Thread #M]" Load sensor belonging to this physical core
+        // one per "CPU Core #N[ Thread #M]" Load sensor of this core
         public ObservableCollection<SensorGraphViewModel> Threads { get; }
 
         private SensorGraphViewModel _temperature;

@@ -1,18 +1,14 @@
 namespace FluentSensors.Common.Csv
 {
-    // how a recording writes its separators and decimals
-    //
-    // the distinction is not cosmetic: a german Excel or LibreOffice reads the point in "2515.862" as a thousands
-    // separator and opens the value as 2515862, because a three digit group is exactly what a thousands group looks
-    // like; only values with one or two decimals survive that, which is why the damage looks random
+    // the csv number format:
+    // separators and decimals; a german Excel or LibreOffice opens "2515.862" as 2515862 (a three digit group), only
+    // one or two decimals survive, so the damage looks random
     public enum CsvNumberFormat
     {
-        // separators taken from the machines own regional settings, so the file opens correctly by double click
-        // in the spreadsheet app that is installed on it
+        // the regional settings, so a double click opens it right in the local spreadsheet app
         Local,
 
-        // RFC 4180: comma separated, point decimal, no matter where the file is written
-        // what scripts, pandas and every non-localized reader expect
+        // RFC 4180, comma and point everywhere; for scripts, pandas and every non-localized reader
         Invariant
     }
 }

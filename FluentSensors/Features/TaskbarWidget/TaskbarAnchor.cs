@@ -1,10 +1,10 @@
 namespace FluentSensors.Features.TaskbarWidget
 {
-    // taskbar end where widget anchors
+    // the taskbar end the widget anchors to
     public enum TaskbarAnchor
     {
-        Start, // left edge on left-to-right systems, right of start button / widgets
-        End // right edge, left of system tray / notification area
+        Start, // left (top on a side taskbar), past the start button and widgets
+        End // right (bottom), before the notification area
     }
 }
 

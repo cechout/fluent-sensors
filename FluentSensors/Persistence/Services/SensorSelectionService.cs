@@ -7,8 +7,9 @@ using FluentSensors.Persistence.Models;
 
 namespace FluentSensors.Persistence.Services
 {
-    // central in-memory store for the three ordered sensor selection profiles (widget window, csv, taskbar)
-    // pure selection storage, knows nothing about checkboxes, ViewModels, or windows
+    // the sensor selections:
+    // the three ordered selection profiles in memory (widget window, csv, taskbar); knows nothing of
+    // checkboxes, view models or windows
     public class SensorSelectionService
     {
         // === fields ===
@@ -28,15 +29,13 @@ namespace FluentSensors.Persistence.Services
 
         // === public api ===
 
-        // returns the live list directly, callers must not mutate it, use SetMembership so changes actually persist
+        // the live list; read only, changes go through SetMembership so they persist
         public IReadOnlyList<string> GetSelection(SensorSelectionProfile profile) => GetList(profile);
 
         public bool IsSelected(SensorSelectionProfile profile, string sensorId) => GetList(profile).Contains(sensorId);
 
-        // adds or removes a single sensor from a profiles selection, called live on every checkbox toggle rather than
-        // in a batch, so persistence never depends on some separate commit step happening afterward
-        // a newly added sensor is appended at the end, the existing order of everything already in the list is left
-        // untouched
+        // one sensor in or out, live on every checkbox toggle, so nothing waits on a commit
+        // step; a new one goes to the end
         public void SetMembership(SensorSelectionProfile profile, string sensorId, bool isMember)
         {
             var list = GetList(profile);
@@ -54,9 +53,8 @@ namespace FluentSensors.Persistence.Services
             Persist();
         }
 
-        // one-time migration from the pre-profile widget pin list (WindowState "Widget" PinnedSensorIds)
-        // no-ops once HasMigratedLegacyWidgetSelection is set, regardless of what WidgetWindow contains by then, so a
-        // user who later empties their widget selection on purpose never gets the old list silently brought back
+        // one-time migration from the widget pin list (WindowState "Widget" PinnedSensorIds); after
+        // HasMigratedLegacyWidgetSelection a deliberately emptied selection stays empty
         public void MigrateFromLegacyWidgetPins(List<string> legacyPinnedSensorIds)
         {
             if (_state.HasMigratedLegacyWidgetSelection) return;

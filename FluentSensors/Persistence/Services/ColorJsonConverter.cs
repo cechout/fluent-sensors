@@ -6,8 +6,7 @@ using Windows.UI;
 
 namespace FluentSensors.Persistence.Services
 {
-    // Windows.UI.Color exposes its channels as fields, not properties, so System.Text.Json cant serialize it out of
-    // the box, this converter writes it as a readable "#AARRGGBB" string
+    // Windows.UI.Color has fields, not properties, which System.Text.Json skips; written as "#AARRGGBB"
     public class ColorJsonConverter : JsonConverter<Color>
     {
         public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

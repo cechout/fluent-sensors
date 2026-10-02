@@ -3,18 +3,18 @@ using Windows.Graphics;
 
 namespace FluentSensors.Core.Taskbar
 {
-    // UIA element found inside a taskbar
+    // one UIA element of a taskbar
     public record WinTaskbarUiaElement(
-        RectInt32 BoundingRectangle, // element bounding rectangle in screen coordinates
-        string ClassName, // native UI element class name (e.g. TaskbarFrame, SystemTray)
-        string AutomationId // automation identifier if assigned by Windows
+        RectInt32 BoundingRectangle, // screen coordinates
+        string ClassName, // TaskbarFrame, SystemTray
+        string AutomationId // when Windows assigns one
     );
 
-    // snapshot of UIA query result for a single taskbar
+    // the UIA result of one taskbar
     public record WinTaskbarUiaSnapshot(
-        WinTaskbarUiaElement? Frame, // taskbar frame container
-        WinTaskbarUiaElement? Tray, // system tray notification area
-        WinTaskbarUiaElement? WidgetsButton // widgets button element
+        WinTaskbarUiaElement? Frame,
+        WinTaskbarUiaElement? Tray, // the notification area
+        WinTaskbarUiaElement? WidgetsButton
     );
 }
 

@@ -10,12 +10,11 @@ using FluentSensors.Common;
 
 namespace FluentSensors.Core.Update
 {
-    // downloads the release asset that matches this build and hands the actual replacement over to a detached
-    // powershell, because a process cannot overwrite or reinstall itself while it is still running
-    //
-    // the two GitHub channels need different treatment; copying the portable zip over an installed build would
-    // leave the inno uninstall entry pointing at the old version, and the portable.txt inside that zip would
-    // silently move an installed builds settings into the program files folder
+    // the update installer:
+    // downloads the asset of this build and hands the replacement to a detached powershell, since a running
+    // process cannot replace itself
+    // the two GitHub channels differ: the portable zip over an installed build would leave a stale uninstall entry and
+    // move the settings into program files (portable.txt)
     public static class UpdateInstaller
     {
         // === fields ===
@@ -24,7 +23,7 @@ namespace FluentSensors.Core.Update
         private const string PortableAssetPrefix = "FluentSensors_Portable_";
         private const string DownloadFolderName = "FluentSensors_Update";
 
-        // separate from the check client: a 97 MB portable zip does not fit in the ten second api timeout
+        // apart from the check client; a portable zip of about 100 MB outlasts the ten second api timeout
         private static readonly HttpClient _http = CreateClient();
 
 
@@ -36,8 +35,8 @@ namespace FluentSensors.Core.Update
         public static string DownloadFolder =>
             Path.Combine(Path.GetTempPath(), DownloadFolderName);
 
-        // streams the asset to disk and reports 0 to 1 along the way; returns null when the release carries no
-        // matching asset, which leaves the caller to open the release page instead
+        // streams the asset to disk with progress 0 to 1; null without a matching asset (the
+        // caller opens the release page)
         public static async Task<string?> DownloadAsync(UpdateInfo? info, IProgress<double>? progress, CancellationToken ct)
         {
             if (info == null || string.IsNullOrEmpty(info.AssetUrl)) return null;
@@ -70,8 +69,7 @@ namespace FluentSensors.Core.Update
             }
             catch
             {
-                // a cancelled or failed transfer leaves a partial file of up to a hundred megabytes sitting in
-                // %TEMP% until Windows gets around to it
+                // or a partial file of up to 100 MB sits in %TEMP%
                 TryDeletePartial(targetPath);
                 throw;
             }
@@ -79,8 +77,7 @@ namespace FluentSensors.Core.Update
             return targetPath;
         }
 
-        // starts the handoff script and returns immediately; the caller is expected to exit the app right after,
-        // the script waits for exactly that before touching anything
+        // starts the handoff script; the caller exits right after, which the script waits for
         public static void ApplyAndRestart(string downloadedPath)
         {
             string? exePath = Environment.ProcessPath;
@@ -97,9 +94,8 @@ namespace FluentSensors.Core.Update
                 FileName = "powershell",
                 UseShellExecute = false,
 
-                // no console at any point; the installer path shows innos own progress window instead, and the
-                // portable path is silent between the app closing and reopening, which is why the extraction below
-                // avoids the slow cmdlet
+                // no console; the installer shows the inno progress, the portable path is silent (why its
+                // extraction avoids the slow cmdlet)
                 CreateNoWindow = true,
                 WorkingDirectory = DownloadFolder
             };
@@ -124,15 +120,10 @@ namespace FluentSensors.Core.Update
             return client;
         }
 
-        // the zip carries a single top level folder because the release workflow compresses the staging directory
-        // itself rather than its contents, so the copy has to come out of that inner folder
-        //
-        // ExtractToDirectory rather than Expand-Archive: the cmdlet is very slow across the roughly one thousand
-        // files of a publish output, and nothing is on screen while it runs, so every second of it reads as a
-        // crashed app to whoever is waiting
-        //
-        // every path is single quoted with embedded quotes doubled, and the exe is relaunched from finally so a
-        // half-failed copy still leaves the user with a running app rather than nothing
+        // the zip has one top level folder (the workflow compresses the staging folder), so the copy comes out of it
+        // ExtractToDirectory, not Expand-Archive, which is slow over a thousand files with nothing on screen
+        // paths single quoted with quotes doubled; the relaunch sits in finally, so a half-failed
+        // copy still leaves a running app
         private static string BuildPortableScript(string zipPath, string appFolder, string exePath)
         {
             string extractPath = Path.Combine(DownloadFolder, "extract");
@@ -153,9 +144,8 @@ namespace FluentSensors.Core.Update
                    $"finally {{ Start-Process -FilePath {Quote(exePath)} }}";
         }
 
-        // /SILENT rather than /VERYSILENT so inno still shows its progress window; the apps own window is gone by
-        // then and a completely invisible minute of nothing looks like a crash
-        // the .iss marks its post install launch skipifsilent, so the relaunch has to happen here
+        // /SILENT, not /VERYSILENT, so the inno progress shows (an invisible minute looks like a crash); the .iss
+        // launch is skipifsilent, so the relaunch happens here
         private static string BuildInstallerScript(string installerPath, string exePath)
         {
             return "$ErrorActionPreference='Stop'; " +

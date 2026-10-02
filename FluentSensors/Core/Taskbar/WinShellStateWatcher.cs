@@ -5,17 +5,15 @@ using System.Threading.Tasks;
 
 namespace FluentSensors.Core.Taskbar
 {
-    // monitors explorer.exe restart broadcasts and active fullscreen applications
-    //
-    // StartWatching must be called from the UI thread, not from a background Task:
-    // the TaskbarCreated broadcast only reaches this class through the calling threads Win32 message pump;
-    // a message-only window on a thread pool thread has no pump and would never receive messages
+    // the shell state watcher:
+    // explorer.exe restarts and fullscreen apps; StartWatching on the UI thread, a thread pool thread has no
+    // message pump for TaskbarCreated
     // https://learn.microsoft.com/en-us/windows/win32/shell/taskbar#taskbar-creation-notification
     public class WinShellStateWatcher
     {
         // === fields ===
 
-        // gives explorer.exe time to finish creating its new taskbar windows before querying
+        // lets explorer.exe finish its new taskbar windows
         private const int StabilizationDelayMs = 1500;
 
         private const string MessageWindowClassName = "FluentSensorsShellStateWatcher";
@@ -38,7 +36,7 @@ namespace FluentSensors.Core.Taskbar
 
         // === public api ===
 
-        // registers a message-only window and begins listening for the system TaskbarCreated broadcast
+        // a message-only window for the TaskbarCreated broadcast
         public void StartWatching()
         {
             if (_messageWindowHwnd != IntPtr.Zero) return;
@@ -55,14 +53,13 @@ namespace FluentSensors.Core.Taskbar
             };
             NativeMethods.RegisterClassExW(ref wndClass);
 
-            // no visible surface, no title, no size: HWND_MESSAGE parent makes it message-only
+            // HWND_MESSAGE as parent makes it message-only
             _messageWindowHwnd = NativeMethods.CreateWindowExW(
                 0, MessageWindowClassName, null, 0,
                 0, 0, 0, 0,
                 NativeMethods.HWND_MESSAGE, IntPtr.Zero, wndClass.hInstance, IntPtr.Zero);
         }
 
-        // tears down the message-only window and stops listening for broadcast messages
         public void StopWatching()
         {
             if (_messageWindowHwnd == IntPtr.Zero) return;
@@ -72,13 +69,12 @@ namespace FluentSensors.Core.Taskbar
             _wndProcDelegate = null;
         }
 
-        // computed fresh on every call: checks if foreground window covers full monitor bounds (excluding desktop and taskbars)
+        // fresh on every call: the foreground window covers its monitor (not the desktop, not a taskbar)
         public bool IsFullscreenAppActive()
         {
             var foreground = NativeMethods.GetForegroundWindow();
             if (foreground == IntPtr.Zero) return false;
 
-            // the desktop itself or a taskbar cannot be a fullscreen app
             if (foreground == NativeMethods.GetShellWindow()) return false;
             if (IsTaskbarWindow(foreground)) return false;
 
@@ -88,7 +84,7 @@ namespace FluentSensors.Core.Taskbar
             var monitorInfo = new NativeMethods.MONITORINFO { cbSize = (uint)Marshal.SizeOf<NativeMethods.MONITORINFO>() };
             if (!NativeMethods.GetMonitorInfoW(monitor, ref monitorInfo)) return false;
 
-            // covers full monitor bounds, not just work area, since fullscreen apps draw over the taskbar area too
+            // the monitor bounds, not the work area; fullscreen covers the taskbar too
             return windowRect.Left <= monitorInfo.rcMonitor.Left &&
                    windowRect.Top <= monitorInfo.rcMonitor.Top &&
                    windowRect.Right >= monitorInfo.rcMonitor.Right &&
@@ -98,7 +94,7 @@ namespace FluentSensors.Core.Taskbar
 
         // === events ===
 
-        // fires once explorer.exe has finished recreating its taskbar windows after a restart
+        // once explorer.exe recreated its taskbar windows
         public event Action? ExplorerRestarted;
 
 

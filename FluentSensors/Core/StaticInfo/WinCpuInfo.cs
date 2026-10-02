@@ -3,26 +3,23 @@
 
 namespace FluentSensors.Core.StaticInfo
 {
-    // static, one-time facts about the CPU;
-    // queried once at startup, never refreshed; core count, cache size, and socket do not change while the app runs
+    // the CPU facts, queried once at startup
     public record WinCpuInfo(
         int PhysicalCores,
         int LogicalProcessors,
-        int MaxClockSpeedMhz, // rated/base clock as reported by SMBIOS, not real-time boost
+        int MaxClockSpeedMhz, // the SMBIOS base clock, not the live boost
         string SocketDesignation,
 
         // KNOWN UNRELIABLE:
-        // Win32_Processor.VirtualizationFirmwareEnabled/VMMonitorModeExtensions have been observed reporting False
-        // on systems where virtualization is confirmed enabled and working (Task Manager shows "Enabled", Hyper-V/WSL2
-        // functions normally)
-        // A documented, unresolved WMI provider inaccuracy on some modern systems, not something we can correct on our end
-        // Confirmed case (Core Ultra 9, clean Windows install, same result):
+        // Win32_Processor.VirtualizationFirmwareEnabled and VMMonitorModeExtensions report False with
+        // virtualization on and working (Task Manager "Enabled", Hyper-V and WSL2 run); an open WMI fault, Core
+        // Ultra 9 on a clean install:
         // https://learn.microsoft.com/en-us/answers/questions/5523363/virtualizationfirmwareenabled-false-returned-despi
-        // Do not treat a False value here as ground truth without cross-checking Task Manager
+        // a False is no ground truth without Task Manager
         bool VirtualizationFirmwareEnabled,
         bool VirtualizationExtensionsSupported,
 
         IReadOnlyList<WinCpuCoreTopologyEntry> CoreTopology,
-        IReadOnlyList<WinCpuCacheEntry> CacheEntries // raw per-instance cache facts, see WinCpuCacheEntry for the Level numbering
+        IReadOnlyList<WinCpuCacheEntry> CacheEntries // raw per instance, see WinCpuCacheEntry for the levels
     );
 }

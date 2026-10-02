@@ -7,9 +7,6 @@ using FluentSensors.Common.UI;
 
 namespace FluentSensors.Common.Sensors
 {
-    // single source of truth for how a raw LibreHardwareMonitor HardwareType string maps to a broad category (HardwareGroupKind),
-    // and what that category displays as (label + icon + accent color)
-    // shared by SensorsPage and the PerformancePage so both show identical labels/icons for the same hardware
     public readonly struct HardwareGroupProfile
     {
         public string Label { get; init; }
@@ -17,12 +14,15 @@ namespace FluentSensors.Common.Sensors
         public Windows.UI.Color Color { get; init; }
     }
 
+    // the hardware categories:
+    // maps a raw LHM HardwareType to a HardwareGroupKind with its label, icon and color, one source for the
+    // sensors and performance pages
     public static class HardwareGroupInfo
     {
         // === glyphs ===
 
-        // the cpu and ram glyphs exist only in Segoe Fluent Icons, which Windows 10 does not ship; the icon font
-        // falls back to Segoe MDL2 Assets there, which has nothing at those code points and would draw an empty box
+        // the cpu and ram glyphs exist only in Segoe Fluent Icons; Windows 10 falls back to Segoe
+        // MDL2 Assets, an empty box there
         private static readonly bool HasFluentIconGlyphs = Environment.OSVersion.Version.Build >= 22000;
 
         private const string CpuGlyph = "\uEEA1";
@@ -33,8 +33,7 @@ namespace FluentSensors.Common.Sensors
         private const string WirelessNetworkGlyph = "\uE701";
 
 
-        // hardwareType here is Hardware.HardwareType.ToString() (e.g. "Cpu", "GpuNvidia", "Memory")
-        // named this way to avoid confusion with SensorData.SensorType
+        // Hardware.HardwareType.ToString() ("Cpu", "GpuNvidia", "Memory"); named apart from SensorData.SensorType
         public static HardwareGroupKind GetKind(string hardwareType)
         {
             return hardwareType switch
@@ -48,12 +47,8 @@ namespace FluentSensors.Common.Sensors
             };
         }
 
-        // the brush every hardware category icon paints itself with, tinted only while hardware icon colours are
-        // on; off gives the ordinary foreground, which is what makes the glyph read as a plain white one in the
-        // dark theme
-        //
-        // graph colours deliberately do not come through here; those are resolved per sensor in
-        // SensorGraphViewModel and answer to a separate setting
+        // the category icon brush: tinted with icon colours on, the plain foreground off; (graph colours come from
+        // SensorGraphViewModel, another setting)
         public static SolidColorBrush GetIconBrush(HardwareGroupKind kind)
         {
             if (HardwareColorMode.UseIconColors)
@@ -61,12 +56,9 @@ namespace FluentSensors.Common.Sensors
                 return new SolidColorBrush(GetProfile(kind).Color);
             }
 
-            // the untinted case goes through DefaultTextColor instead of reading TextFillColorPrimaryBrush out of
-            // Application.Current.Resources: that lookup answers with the light theme value from code behind and
-            // never moves again when the theme does, which left these icons as the only elements in the app
-            // ignoring a theme switch
-            // ForTheme rather than Resolve, because the theme that counts is the one actually applied to the page,
-            // not the app theme setting, see HardwareColorMode.IsDarkTheme
+            // DefaultTextColor, since TextFillColorPrimaryBrush from Application.Current.Resources answers the light
+            // value in code behind and never follows the theme
+            // ForTheme, since the applied page theme counts, not the setting (see HardwareColorMode.IsDarkTheme)
             return DefaultTextColor.ForTheme(HardwareColorMode.IsDarkTheme) as SolidColorBrush
                 ?? new SolidColorBrush(Microsoft.UI.Colors.White);
         }
@@ -81,12 +73,11 @@ namespace FluentSensors.Common.Sensors
                 HardwareGroupKind.Storage => new HardwareGroupProfile { Label = "Storage", IconGlyph = "\uEDA2", Color = Windows.UI.Color.FromArgb(0xFF, 0x90, 0xC2, 0x42) },
                 // the category glyph is the wired one; a wireless adapter swaps it, see GetNetworkIconGlyph
                 HardwareGroupKind.Network => new HardwareGroupProfile { Label = "Network", IconGlyph = WiredNetworkGlyph, Color = Windows.UI.Color.FromArgb(0xFF, 0xBF, 0x59, 0x77) },
-                _ => new HardwareGroupProfile { Label = "Other", IconGlyph = "\uEA1F", Color = Windows.UI.Color.FromArgb(0xFF, 0x80, 0x80, 0x80) } // placeholder color, none specified yet
+                _ => new HardwareGroupProfile { Label = "Other", IconGlyph = "\uEA1F", Color = Windows.UI.Color.FromArgb(0xFF, 0x80, 0x80, 0x80) } // placeholder color
             };
         }
 
-        // network is the one category whose glyph depends on the device rather than the category: a wireless
-        // adapter shows the wi-fi glyph, a wired one or one without a WMI match keeps the category glyph
+        // the one glyph per device: wireless shows wi-fi, wired or without a WMI match keeps the category glyph
         public static string GetNetworkIconGlyph(NetworkInterfaceType? interfaceType) =>
             interfaceType == NetworkInterfaceType.Wireless80211 ? WirelessNetworkGlyph : WiredNetworkGlyph;
     }

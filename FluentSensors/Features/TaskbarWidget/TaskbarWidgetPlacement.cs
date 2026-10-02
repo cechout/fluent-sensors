@@ -5,10 +5,11 @@ using FluentSensors.Core.Taskbar;
 
 namespace FluentSensors.Features.TaskbarWidget
 {
-    // calculates screen coordinates for taskbar widget placement based on taskbar geometry
+    // the taskbar widget placement:
+    // the screen rect of the widget from the taskbar geometry
     public static class TaskbarWidgetPlacement
     {
-        // all dimensions and offsets are physical pixels scaled to taskbar DPI
+        // physical pixels at the taskbar DPI
         // offset and length run along the taskbar, the margins across it:
         // inner - the side facing the desktop
         // outer - the side facing the screen edge

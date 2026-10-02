@@ -7,13 +7,9 @@ using System.Threading.Tasks;
 
 namespace FluentSensors.Core.Taskbar
 {
-    // provides helper routines to interact with Windows 11 shell components and wake dormant taskbar subsystems
-    //
-    // on Windows 11, Shell_TrayWnd hosts XAML Islands for taskbar elements (like Widgets)
-    // if the Widgets feature has not been initialized since boot, Shell_TrayWnd composition structures
-    // may reject foreign SetParent calls until the shell host is prompted to initialize
-    //
-    // reference:
+    // the shell helper:
+    // on Windows 11 Shell_TrayWnd hosts XAML Islands (Widgets among them); with Widgets not initialized since boot it
+    // may reject a foreign SetParent until the host is woken
     // https://learn.microsoft.com/en-us/windows/apps/develop/widgets/
     internal static class WinShellHelper
     {
@@ -30,19 +26,18 @@ namespace FluentSensors.Core.Taskbar
 
         // === public methods ===
 
-        // wakes the Windows 11 taskbar widgets subsystem by briefly toggling the TaskbarDa registry setting and notifying Explorer
+        // wakes the widgets host by briefly toggling TaskbarDa and notifying Explorer
         internal static async Task<bool> WakeWidgetsSubsystemAsync()
         {
             try
             {
-                // step 1: check if TaskbarDa registry key exists
                 using var key = Registry.CurrentUser.OpenSubKey(AdvancedRegistryKeyPath, true);
                 if (key != null)
                 {
                     object rawValue = key.GetValue(TaskbarDaValueName);
                     int currentValue = rawValue is int val ? val : 0;
 
-                    // toggle TaskbarDa to 1 (show) then back to original value (0) to force Explorer to initialize its XAML host
+                    // to 1 (shown) and, if it was off, back to 0; that makes Explorer initialize its XAML host
                     key.SetValue(TaskbarDaValueName, 1, RegistryValueKind.DWord);
                     SendNotifyMessage(HWND_BROADCAST, WM_SETTINGCHANGE, UIntPtr.Zero, "TraySettings");
 
@@ -60,12 +55,12 @@ namespace FluentSensors.Core.Taskbar
             }
             catch
             {
-                // fallback to protocol launch if registry access fails
+                // the protocol launch below
             }
 
             try
             {
-                // step 2: fallback to launching the ms-widgets protocol to wake the background host
+                // fallback: the ms-widgets protocol wakes the host
                 var psi = new ProcessStartInfo
                 {
                     FileName = "ms-widgets:",

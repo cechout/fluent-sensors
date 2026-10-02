@@ -27,11 +27,10 @@ namespace FluentSensors.Features.Sensors
         private TaskCompletionSource<bool> _initialLoadTcs = new TaskCompletionSource<bool>();
         public Task WaitForInitialLoadAsync() => _initialLoadTcs.Task; // MainWindow waits on this
 
-        // guards OnSensorRowSelectionChanged against firing while ResyncCheckboxesForActiveProfile is itself only
-        // mirroring an already-persisted selection back onto the checkboxes, not a genuine user toggle
+        // keeps OnSensorRowSelectionChanged quiet while ResyncCheckboxesForActiveProfile mirrors a saved selection
         private bool _isResyncingCheckboxes = false;
 
-        // when the min/max/avg columns started collecting; app start until the first Reset Stats click
+        // when the min, max and avg columns started; app start, then the last Reset Stats
         private DateTime _statsStartedUtc = DateTime.UtcNow;
 
 
@@ -55,26 +54,25 @@ namespace FluentSensors.Features.Sensors
 
         private SensorsViewModel()
         {
-            HardwareGroups = new ObservableCollection<HardwareGroupViewModel>(); // initialize the empty list of hardware groups
+            HardwareGroups = new ObservableCollection<HardwareGroupViewModel>();
 
-            // this is the first access site that creates LhmHardwareTreeService (lazy singleton), since SensorsViewModel
-            // itself is eager at splash screen; this is an accepted side effect, the tree service effectively also
-            // runs from app start instead of only once the Performance page is first visited
+            // the first access creates the lazy LhmHardwareTreeService; since this view model is built at the splash,
+            // the tree runs from app start
             var tree = LhmHardwareTreeService.Instance;
 
-            // process whatever the tree service already discovered before we subscribed, then track further discoveries live
+            // what the tree already found, then every later discovery
             foreach (var instance in tree.HardwareGroups)
             {
                 OnHardwareInstanceDiscovered(instance);
             }
             tree.HardwareGroups.CollectionChanged += OnTreeHardwareGroupsChanged;
 
-            // covers the case where a widget auto-reopened (saved state) before this VM was constructed
+            // a widget may have reopened from its saved state before this view model existed
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
             WidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
             TaskbarWidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
 
-            // never detached: this view model is eager at the splash screen and lives for the whole session
+            // never detached; this view model lives for the whole session
             SettingsService.Instance.HardwareIconColorsChanged += RefreshGroupIconBrushes;
         }
 
@@ -84,7 +82,7 @@ namespace FluentSensors.Features.Sensors
         public ObservableCollection<HardwareGroupViewModel> HardwareGroups { get; set; }
         public bool HasHiddenSensors => HardwareGroups.Any(g => g.HasHiddenSensors);
 
-        // which selection profile the checkboxes currently reflect and persist to
+        // the profile the checkboxes reflect and persist to
         private SensorSelectionProfile _activeProfile = SensorSelectionProfile.WidgetWindow;
         public SensorSelectionProfile ActiveProfile
         {
@@ -126,7 +124,7 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // how long the stats have been collecting, shown in the bottom bar
+        // how long the stats have been collecting; the bottom bar
         private string _statsElapsedText = "0:00:00";
         public string StatsElapsedText
         {
@@ -144,7 +142,7 @@ namespace FluentSensors.Features.Sensors
 
         // === event handlers ===
 
-        // reacts to newly discovered hardware instances (e.g. a GPU appearing for the first time)
+        // newly discovered hardware instances
         private void OnTreeHardwareGroupsChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.Action != NotifyCollectionChangedAction.Add) return;
@@ -155,7 +153,7 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // reacts to newly discovered sensors on an already-known hardware instance
+        // newly discovered sensors on a known instance
         private void OnInstanceSensorsChanged(HardwareGroupViewModel group, NotifyCollectionChangedEventArgs e)
         {
             if (e.Action != NotifyCollectionChangedAction.Add) return;
@@ -166,7 +164,7 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // relays a groups hidden-state change into our own aggregated properties
+        // a group hidden-state change into the aggregate
         private void Group_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(HardwareGroupViewModel.HasHiddenSensors))
@@ -175,17 +173,15 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // keeps IsWidgetOpen and IsPinnedAvailable in sync whenever widget/taskbar opens or closes
+        // IsWidgetOpen and IsPinnedAvailable follow the widget and the taskbar widget
         private void OnWidgetStateChanged()
         {
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
             OnPropertyChanged(nameof(IsPinnedAvailable));
         }
 
-        // persists every genuine checkbox toggle on the active profile immediately; this is purely a data write, it
-        // never opens or reconfigures anything, that only happens when the corresponding action button is clicked
-        // hidden sensors are excluded: a checkbox toggled from the Hidden Sensors window is the profile-independent
-        // restore selection, not a pin, this is the same distinction ResyncCheckboxesForActiveProfile already makes
+        // persists every real toggle on the active profile, a data write only (the action buttons open things); hidden
+        // sensors are left out, their checkbox is the restore selection of the hidden sensors window
         private void OnSensorRowSelectionChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName != nameof(SensorRowViewModel.IsSelected)) return;
@@ -198,9 +194,8 @@ namespace FluentSensors.Features.Sensors
 
         // === private helpers ===
 
-        // re-resolves every group header icon after the hardware icon colour setting flipped or the theme moved;
-        // the sensors page and the hidden sensors window bind the same groups, so both follow from here
-        // public because the theme side is driven by whichever of those two saw its own ActualTheme move
+        // re-resolves the group header icons after the icon colour setting or the theme moved; public, the sensors page
+        // and the hidden sensors window (same groups) drive the theme side
         public void RefreshGroupIconBrushes()
         {
             foreach (var group in HardwareGroups)
@@ -209,8 +204,7 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // creates the expander group for a newly discovered hardware instance, then processes its sensors
-        // (already-known ones immediately, future ones reactively)
+        // the expander group of a new instance, with its sensors now and later
         private void OnHardwareInstanceDiscovered(LhmHardwareInstance instance)
         {
             var profile = HardwareGroupInfo.GetProfile(instance.Kind);
@@ -233,9 +227,8 @@ namespace FluentSensors.Features.Sensors
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(group, e);
         }
 
-        // display-only, does not touch instance.HardwareName itself: for storage and network, the matched
-        // hardwares own model name / adapter description (same matches PerformanceViewModel does for its own nav
-        // items) reads better than LHMs raw name; every other kind keeps showing exactly what it always has
+        // display only: storage and network show the matched model or adapter description (like PerformanceViewModel),
+        // which reads better than the LHM name
         private static string GetDisplayName(LhmHardwareInstance instance)
         {
             switch (instance.Kind)
@@ -259,8 +252,7 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // the category glyph, except for network, where a wireless adapter gets a glyph of its own; matched the
-        // same way GetDisplayName above matches it
+        // the category glyph; a wireless adapter gets its own, matched like GetDisplayName
         private static string GetIconGlyph(LhmHardwareInstance instance)
         {
             if (instance.Kind != HardwareGroupKind.Network) return HardwareGroupInfo.GetProfile(instance.Kind).IconGlyph;
@@ -272,12 +264,8 @@ namespace FluentSensors.Features.Sensors
             return HardwareGroupInfo.GetNetworkIconGlyph(adapter?.InterfaceType);
         }
 
-        // mirrors every visible sensors checkbox onto the active profiles persisted selection, so switching profiles
-        // always shows exactly what that profile currently contains
-        //
-        // hidden sensors are excluded even though group.Sensors should never contain one
-        // (HideSensorsCompletely=false leaves a soft-hidden sensor (IsHidden=true, IsDisabled=true) sitting right there,
-        // same guard SelectPinnedSensors already relied on)
+        // mirrors the saved selection of the active profile onto every visible checkbox
+        // hidden sensors stay off; (HideSensorsCompletely=false leaves a soft-hidden sensor in group.Sensors)
         private void ResyncCheckboxesForActiveProfile()
         {
             _isResyncingCheckboxes = true;
@@ -293,17 +281,15 @@ namespace FluentSensors.Features.Sensors
             _isResyncingCheckboxes = false;
         }
 
-        // creates and places the row for one newly discovered sensor; a sensor discovered for the first time this
-        // session may already have persisted state from a previous run (e.g. it was hidden or selected before closing)
+        // the row of a newly discovered sensor; (it may carry state from an earlier run, hidden or selected)
         private void OnSensorDiscovered(HardwareGroupViewModel group, LhmSensorEntry entry)
         {
             var persistedState = SensorStateService.Instance.GetState(entry.Id);
             bool isHidden = persistedState.IsHidden;
 
-            // IsHidden must be set before Entry, and Entry before IsSelected:
-            // Entrys setter does the initial value sync and skips it if IsHidden is already true; IsSelected's setter
-            // persists immediately and needs Entry.Id to already be available
-            // checkbox seeds from the active profiles persisted selection, not from persistedState.IsSelected, that
+            // IsHidden, then Entry, then IsSelected: the Entry setter syncs the value unless hidden, the IsSelected
+            // setter persists and needs Entry.Id
+            // the checkbox seeds from the active profile selection, not from persistedState.IsSelected
             var newRow = new SensorRowViewModel
             {
                 SortOrder = group.Sensors.Count + group.HiddenSensors.Count,
@@ -316,14 +302,14 @@ namespace FluentSensors.Features.Sensors
 
             if (isHidden)
             {
-                // sensor was hidden before app was closed: block the backend from sending further values right away,
-                // so no CPU cycles are wasted on a sensor the user does not want to see
+                // hidden in an earlier run; registered as excluded (the skip itself is off, see
+                // HardwareMonitorService.LoopAsync)
                 HardwareMonitorService.Instance.AddExcludedSensor(entry.Id);
             }
 
             group.AddDiscoveredSensor(newRow, isHidden);
 
-            // signalize that the first sensor has been successfully processed
+            // the first sensor is in; MainWindow may go on
             if (!_initialLoadTcs.Task.IsCompleted && HardwareGroups.Count > 0)
             {
                 HardwareGroups[0].IsExpanded = true;
@@ -334,7 +320,7 @@ namespace FluentSensors.Features.Sensors
 
         // === public methods ===
 
-        // hides every currently selected sensor, across all hardware groups at once
+        // every selected sensor, across all groups
         public void HideSelectedSensors()
         {
             foreach (var group in HardwareGroups)
@@ -342,7 +328,7 @@ namespace FluentSensors.Features.Sensors
                 group.HideSelectedSensors();
             }
         }
-        // restores every currently selected hidden sensor, across all hardware groups at once
+        // every selected hidden sensor, across all groups
         public void RestoreSelectedHiddenSensors()
         {
             foreach (var group in HardwareGroups)
@@ -351,8 +337,7 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // sets the checkbox exactly on the sensors currently pinned to the active widget or taskbar widget
-        // all other visible sensors get deselected so the checkbox state mirrors the widget contents 1:1
+        // checks exactly the sensors pinned to the active widget or taskbar widget, every other visible one goes off
         public void SelectPinnedSensors()
         {
             HashSet<string> pinnedIds = null;
@@ -378,15 +363,13 @@ namespace FluentSensors.Features.Sensors
             {
                 foreach (var sensor in group.Sensors)
                 {
-                    // a sensor that got hidden after being pinned still lingers in the widgets PinnedSensors list
-                    // (it just stops receiving updates); never select it back, no matter which mode hid it
+                    // a sensor hidden after pinning lingers in PinnedSensors; never selected back
                     sensor.IsSelected = !sensor.IsHidden && pinnedIds.Contains(sensor.Id);
                 }
             }
         }
 
-        // clears every checkbox in the main sensor list
-        // hidden sensors are untouched because they live in their own window with their own selection scope
+        // clears the main list; hidden sensors keep the selection of their own window
         public void DeselectAllSensors()
         {
             foreach (var group in HardwareGroups)
@@ -398,17 +381,15 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // restarts the elapsed readout from zero; paired with the Reset Stats button, which clears the columns
+        // the elapsed readout from zero, with Reset Stats
         public void RestartStatsElapsed()
         {
             _statsStartedUtc = DateTime.UtcNow;
             RefreshStatsElapsed();
         }
 
-        // same format as the start pages uptime readout, e.g. 2:14:37, and 1d 2:14:37 once it passes a day
-        //
-        // called far more often than once a second, see SensorsPage.StatsElapsedTimerInterval; the property only
-        // moves when the shown second actually changes
+        // formatted like the start page uptime, 2:14:37 or 1d 2:14:37; called more often than once a second (see
+        // SensorsPage.StatsElapsedTimerInterval), the property only moves with the shown second
         public void RefreshStatsElapsed()
         {
             TimeSpan elapsed = DateTime.UtcNow - _statsStartedUtc;

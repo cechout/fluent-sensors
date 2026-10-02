@@ -12,9 +12,9 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // discovers every storage drive instance from LhmHardwareTreeService and creates one LhmStorageInstanceViewModel
-    // per drive; parses each raw LHM sensor into the right property on the right instance
-    // The instance itself stays a dumb data holder
+    // storage discovery:
+    // one LhmStorageInstanceViewModel per drive in LhmHardwareTreeService, every raw LHM sensor parsed into its
+    // property; the instance stays a data holder
     public class LhmStoragePerformanceViewModel
     {
         // === constructor ===
@@ -66,10 +66,8 @@ namespace FluentSensors.Features.Performance.Lhm
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(drive, e);
         }
 
-        // runs once after the initial sensor batch, per category: if nothing was ever persisted and one candidate
-        // is explicitly flagged IsDefault, that one wins over whichever candidate happened to be discovered first;
-        // if nothing is active at all yet (e.g. a persisted choice never showed up), falls back to the first
-        // candidate present
+        // once after the first sensor batch, per category: without a saved choice the IsDefault candidate beats
+        // discovery order; with nothing active, the first candidate
         private static void ApplyCategoryFallbacks(LhmStorageInstanceViewModel drive)
         {
             ActivateDefault(drive.HardwareName, "TotalActivity", drive.TotalActivityOptions, () => drive.TotalActivity, drive.SetTotalActivityWithoutPersisting);
@@ -121,8 +119,7 @@ namespace FluentSensors.Features.Performance.Lhm
                     break;
 
                 case "Free Space":
-                    // scales to the drives full capacity instead of the panels default; live Func since Total Space
-                    // may be discovered after this candidate is registered
+                    // scaled to the drive capacity; a live Func, Total Space may come later
                     RegisterCategoryCandidate(drive, "TotalActivity", entry,
                         d => d.TotalActivity, (d, v) => d.SetTotalActivityWithoutPersisting(v), drive.TotalActivityOptions,
                         yMaxOverride: () => drive.TotalSpace > 0 ? drive.TotalSpace : (double?)null);
@@ -155,11 +152,10 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // adds entry as a candidate, and activates it if nothing is active yet and it matches the persisted choice
-        // (or nothing was ever persisted, first-found-wins for now; ApplyCategoryFallbacks corrects to the flagged
-        // default afterward if one exists and discovery order picked something else)
-        // guard: OnSensorDiscovered can run again for a sensor already registered here (e.g. re-triggered via
-        // instance.Sensors.CollectionChanged); without it every rerun would add a duplicate candidate
+        // adds a candidate, active when nothing is yet and it is the saved choice (or none was saved, first found;
+        // ApplyCategoryFallbacks corrects to the flagged default)
+        // guard; OnSensorDiscovered can rerun for a registered sensor (instance.Sensors.CollectionChanged), which
+        // must not add a second candidate
         private void RegisterCategoryCandidate(
             LhmStorageInstanceViewModel drive,
             string category,
@@ -184,7 +180,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
             options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve, isDefault, yMaxOverride));
 
-            if (getActive(drive) != null) return; // already resolved, this is just an additional alternative
+            if (getActive(drive) != null) return; // resolved, one more alternative
 
             string persistedId = SensorSwitchStateService.Instance.GetSelectedSensorId(drive.HardwareName, category);
             if (persistedId == entry.Id || persistedId == null)

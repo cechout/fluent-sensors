@@ -7,25 +7,20 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.Performance
 {
-    // keeps a hardware detail views header icon on the current hardware icon color setting and the current theme
-    // for as long as the view is on screen
-    //
-    // GroupIconBrush resolves against the setting on every read and has nothing of its own to push when it flips;
-    // the refresh is therefore the views generated Bindings.Update, handed in as a callback because that member
-    // exists per view type and cannot be reached from here
-    //
-    // the subscription shape mirrors PerformanceGraphDefaults.BindTimeSpan, guard against a stacked handler
-    // included; refreshing on Loaded as well is what catches a flip that happened while the view was off screen
+    // the detail view icon colour:
+    // keeps the header icon on the icon color setting and the theme while the view is on screen
+    // GroupIconBrush resolves on every read and pushes nothing, so the refresh is the generated Bindings.Update of the
+    // view, passed in since it exists per view type
+    // shaped like PerformanceGraphDefaults.BindTimeSpan with its stacking guard; the Loaded refresh
+    // catches a flip while off screen
     public static class HardwareIconColorBinding
     {
         public static void Bind(FrameworkElement root, Action refresh)
         {
             bool isSubscribed = false;
 
-            // the untinted brush is a plain brush rather than a theme resource, so a theme switch needs the same
-            // refresh the colour setting gets
-            // driven off the views own ActualThemeChanged rather than SettingsService.ThemeChanged, which fires
-            // before the new theme has been applied and would refresh against the old one
+            // the untinted brush is no theme resource, so a theme switch refreshes too; by ActualThemeChanged, since
+            // SettingsService.ThemeChanged fires before the theme applies
             void onThemeChanged(FrameworkElement sender, object args)
             {
                 HardwareColorMode.IsDarkTheme = root.ActualTheme == ElementTheme.Dark;

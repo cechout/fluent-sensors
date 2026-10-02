@@ -12,12 +12,11 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Core.Update
 {
-    // everything the app knows about a newer release: the bare version for display and comparison, the page to send
-    // a user to, and the one asset that matches this builds distribution channel
+    // a release: the bare version, its page, and the asset matching this distribution channel
     public record UpdateInfo(
-        string Version, // three part, no leading v, e.g. "1.3.0"
+        string Version, // three part, no v, e.g. "1.3.0"
         string ReleaseUrl,
-        string Notes, // the raw markdown body of the release, what the start pages notes reader renders
+        string Notes, // the raw markdown body, for the notes reader
         string AssetName,
         string AssetUrl,
         long AssetSize
@@ -28,33 +27,27 @@ namespace FluentSensors.Core.Update
     {
         UpToDate,
         UpdateAvailable,
-        Failed // no network, rate limited, malformed response; the reason is never shown, only that it did not work
+        Failed // no network, rate limited, malformed response; the reason is never shown
     }
 
 
-    // what the start pages update button shows; wider than UpdateCheckResult because that one answers a single
-    // call while this one also has to describe the states between and around calls
+    // what the start page update button shows; (wider than UpdateCheckResult, it covers the states between calls)
     public enum UpdateUiState
     {
-        Unknown, // nothing asked yet, either because the startup check is off or because it has not run
+        Unknown, // nothing asked yet (startup check off, or not run yet)
         Checking,
         UpToDate,
         UpdateAvailable,
-        Skipped, // a newer release exists but the user chose to skip this exact version
+        Skipped, // a newer release the user skipped
         Failed
     }
 
 
-    // asks the GitHub releases api once per app start whether a newer version exists, and hands the answer to the
-    // title bar and the settings page
-    //
-    // the api only ever returns published, non-draft, non-prerelease releases, which lines up exactly with the
-    // release workflow: it drafts a release on every version tag and a human publishes it afterwards, so a draft
-    // sitting around can never reach a user as an update
-    //
-    // the store build asks the Microsoft Store instead, see StoreUpdateSource; GitHub is still read there, but only
-    // to name the version and carry its notes, never to decide whether there is one, since a GitHub release can go
-    // public before the store version has cleared certification
+    // the update service:
+    // asks the GitHub releases api once per app start for a newer version, for the title bar and the start page; the
+    // api returns published releases only, so a release workflow draft never reaches a user
+    // the store build asks the Microsoft Store instead (see StoreUpdateSource); GitHub only names the version there,
+    // since a GitHub release can go public before the store version clears certification
     public class UpdateService
     {
         // === fields ===
@@ -62,33 +55,26 @@ namespace FluentSensors.Core.Update
         private const string LatestReleaseUrl = "https://api.github.com/repos/cechout/fluent-sensors/releases/latest";
         private const string ReleasesPageUrl = "https://github.com/cechout/fluent-sensors/releases";
 
-        // one client for the process; a per-call "using" would burn a socket per check and leave it in TIME_WAIT
-        //
-        // the published build has no HTTP/3: msquic.dll is removed from the payload by the PruneUnusedPublishPayload
-        // target in the csproj
-        // the default request version is 1.1 with RequestVersionOrLower, so nothing here ever reaches for it; raising
-        // it would work in a debug build and fail only in a release one
+        // one client per process; a per-call using would leave a socket in TIME_WAIT per check
+        // no HTTP/3: the csproj prunes msquic.dll from the published build, so raising the request version from
+        // 1.1 would only fail in release
         private static readonly HttpClient _http = CreateClient();
 
-        // GitHub answers an unauthenticated api request 60 times per hour and per ip, and the release notes dialog
-        // spends from the same budget, so a manual check that lands inside this window is answered with the last
-        // result instead of a new request; the button already names when that was
-        // a failed check deliberately leaves LastCheckedAt alone, so a retry after a dropped connection is never
-        // held back
+        // GitHub allows 60 unauthenticated requests per hour and ip, shared with the release notes dialog, so
+        // a manual check inside this window gets the last result; (a failed check leaves LastCheckedAt alone,
+        // a retry is never held back)
         private static readonly TimeSpan CheckCooldown = TimeSpan.FromSeconds(60);
 
-        // shared with ReleaseCatalog rather than duplicated there: the user agent and accept headers below are
-        // what GitHub requires, and two copies of that would drift
+        // shared with ReleaseCatalog, so the headers GitHub requires exist once
         internal static HttpClient Http => _http;
 
         private DispatcherQueue? _dispatcherQueue;
         private bool _hasCheckedOnStartup;
 
-        // the main window, which the store context of the store build is tied to
+        // the main window, which the store context is tied to
         private nint _ownerWindow;
 
-        // whatever the api last answered, newer than this build or not; the notes reader needs the release even
-        // when there is nothing to install, since an up to date app shows the notes of the version it is running
+        // the last answer, newer or not; an up to date app shows the notes of its own version
         private UpdateInfo? _latestRelease;
         private bool _isNewer;
 
@@ -103,41 +89,35 @@ namespace FluentSensors.Core.Update
 
         // === public api ===
 
-        // raised from the UI thread whenever IsUpdateAvailable or Latest moves, which is both the moment a newer
-        // release is found and the moment one is skipped; a single event keeps the title bar and the settings page
-        // in step no matter which of the two triggered the change
+        // on the UI thread whenever IsUpdateAvailable or Latest moves (found or skipped); one event keeps
+        // title bar and start page in step
         public event Action? UpdateStateChanged;
 
-        // what the start pages update button renders; the title bar pill only cares about IsUpdateAvailable below
+        // the start page update button; the title bar pill only reads IsUpdateAvailable
         public UpdateUiState UiState { get; private set; } = UpdateUiState.Unknown;
 
-        // the last check that actually reached GitHub; a failed one deliberately leaves this alone, so the button
-        // keeps naming the last answer it really got
+        // the last check that reached GitHub; a failed one leaves it alone
         public DateTimeOffset? LastCheckedAt { get; private set; }
 
         public bool IsUpdateAvailable => UiState == UpdateUiState.UpdateAvailable;
 
-        // the release this app would install; null unless one is genuinely newer and not skipped, which is what
-        // keeps the pill and the update dialog off a version the user already declined
+        // the release to install; null unless newer and not skipped, which keeps pill and dialog off a declined version
         public UpdateInfo? Latest => _isNewer && UiState != UpdateUiState.Skipped ? _latestRelease : null;
 
-        // the release the notes reader shows, newer or not; on an up to date app this is the running version
+        // the release the notes reader shows, newer or not
         public UpdateInfo? LatestRelease => _latestRelease;
 
         public static string CurrentVersion => FormatVersion(Assembly.GetExecutingAssembly().GetName().Version);
 
-        // the shape every version takes in front of the user, always with the v, e.g. v1.3.0
-        // the bare three part string stays the internal one: asset names, the skipped version setting and every
-        // comparison are built from that, so the prefix is added on the way out and never stored
+        // every version in front of the user, with the v (v1.3.0); internally the bare string stays (asset names, the
+        // skipped version, comparisons)
         public static string VersionLabel(string? version) =>
             string.IsNullOrWhiteSpace(version) ? "" : $"v{version.TrimStart('v', 'V')}";
 
         public static string ReleasesPage => ReleasesPageUrl;
 
-        // fires the one automatic check, from wherever the app has finished starting up
-        // both guards live here rather than at the call site so the whole policy on when this app reaches out sits
-        // in one place
-        // the window is kept even with the startup check off, since the start pages update button checks later
+        // the one automatic check, once the app has started; the guards live here, so the policy on reaching out sits
+        // in one place (the window is kept even with the check off, the start page checks later)
         public void Start(nint ownerWindow)
         {
             _ownerWindow = ownerWindow;
@@ -151,13 +131,12 @@ namespace FluentSensors.Core.Update
             _ = CheckAsync();
         }
 
-        // ignoreSkippedVersion is what the start pages update button passes when the user explicitly asks to see a
-        // version they skipped earlier
+        // ignoreSkippedVersion, from the start page button when the user asks for a skipped version
         public async Task<UpdateCheckResult> CheckAsync(bool ignoreSkippedVersion = false)
         {
             _dispatcherQueue ??= DispatcherQueue.GetForCurrentThread();
 
-            // spam guard, see CheckCooldown; the state is left exactly as the last answer put it
+            // see CheckCooldown; the state stays as the last answer left it
             if (LastCheckedAt.HasValue && DateTimeOffset.Now - LastCheckedAt.Value < CheckCooldown)
             {
                 return UiState == UpdateUiState.UpdateAvailable
@@ -185,8 +164,8 @@ namespace FluentSensors.Core.Update
                     return UpdateCheckResult.UpToDate;
                 }
 
-                // a skipped version stays out of the pill and out of the dialog, but the release itself is kept
-                // so the notes reader and the way back out of the skip both still have something to work with
+                // a skipped version stays out of pill and dialog; the release is kept for the
+                // notes reader and the way back
                 bool skipped = !ignoreSkippedVersion && IsSkipped(_latestRelease.Version);
                 if (skipped)
                 {
@@ -211,15 +190,12 @@ namespace FluentSensors.Core.Update
             }
         }
 
-        // remembers the version across restarts, which is what the dialogs "Skip this version" label has always
-        // promised
-        //
-        // safe to persist only because the start pages update button is the way back out: it names the skipped
-        // version and clears it again, so a skip can no longer strand a release until the one after it
+        // persisted across restarts, as "Skip this version" promises; safe because the start page button names the
+        // skipped version and clears it
         public void SkipVersion()
         {
             if (_latestRelease == null || !_isNewer) return;
-            if (string.IsNullOrEmpty(_latestRelease.Version)) return; // a store update GitHub could not name
+            if (string.IsNullOrEmpty(_latestRelease.Version)) return; // a store update without a GitHub name
 
             SettingsService.Instance.SkippedUpdateVersion = _latestRelease.Version;
 
@@ -227,7 +203,7 @@ namespace FluentSensors.Core.Update
             RaiseStateChanged();
         }
 
-        // the counterpart the start page offers once a version is skipped
+        // the way back the start page offers
         public void ClearSkippedVersion()
         {
             SettingsService.Instance.SkippedUpdateVersion = "";
@@ -245,7 +221,7 @@ namespace FluentSensors.Core.Update
         {
             var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
 
-            // GitHub rejects an api request without a user agent outright
+            // GitHub rejects a request without a user agent
             client.DefaultRequestHeaders.Add("User-Agent", "FluentSensors");
             client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
 
@@ -260,12 +236,9 @@ namespace FluentSensors.Core.Update
             return (release, isNewer);
         }
 
-        // the store build: the store decides whether there is an update, the latest GitHub release only names it
-        //
-        // that release is taken as the one on offer only while it is newer than this build; one that is not yet,
-        // or a GitHub that cannot be reached, leaves the update without a version rather than without an update
-        // with nothing on offer, a GitHub release ahead of the store is dropped, so the notes reader stays on the
-        // running version instead of naming one the store does not have yet
+        // the store build: the store decides, the latest GitHub release only names it, and only while newer
+        // than this build (otherwise the update has no version); with nothing on offer a GitHub release
+        // ahead of the store is dropped
         private async Task<(UpdateInfo? Release, bool IsNewer)> AskStoreAsync()
         {
             var storeCheck = StoreUpdateSource.HasUpdateAsync(_ownerWindow);
@@ -282,7 +255,7 @@ namespace FluentSensors.Core.Update
                 Debug.WriteLine($"[UpdateService] release lookup failed: {ex.Message}");
             }
 
-            // a store that cannot be reached is the check failing, so this one is left to throw
+            // an unreachable store fails the check, so this one throws
             bool hasUpdate = await storeCheck;
 
             if (!hasUpdate) return (isNewer ? null : release, false);
@@ -292,15 +265,12 @@ namespace FluentSensors.Core.Update
                 : (new UpdateInfo("", ReleasesPageUrl, "", "", "", 0), true);
         }
 
-        // debug only switch for walking through the update ui without publishing anything: put a version higher
-        // than the running one into simulatedVersion and every check reports that release as available
-        // only the version is swapped, the notes, the release url and the asset stay the real ones, so the dialog
-        // behaves exactly as it would for a genuine update, download and install included
-        // compiled out of a release build entirely, so a value left behind by accident can never ship
+        // debug only: a simulatedVersion above the running one makes every check report that release, with the real
+        // notes, url and asset; compiled out of release
         private static UpdateInfo? Simulate(UpdateInfo? release, ref bool isNewer)
         {
 #if DEBUG
-            const string simulatedVersion = ""; // e.g. "9.9.9", empty turns the simulation off
+            const string simulatedVersion = ""; // e.g. "9.9.9"; empty = off
 
             if (simulatedVersion.Length > 0 && release != null)
             {
@@ -314,9 +284,7 @@ namespace FluentSensors.Core.Update
             return release;
         }
 
-        // hands back whatever the api described rather than only an installable update, because the notes reader
-        // needs a release even when the app is current; whether it is worth installing is the separate isNewer answer
-        // null is reserved for a response that is not a usable release at all
+        // whatever the api described, installable or not (isNewer says that); null only for an unusable response
         private static UpdateInfo? ParseRelease(string json, out bool isNewer)
         {
             isNewer = false;
@@ -331,8 +299,8 @@ namespace FluentSensors.Core.Update
             var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
             if (currentVersion == null) return null;
 
-            // both sides are cut to three parts before comparing: the tag parses as 1.3.0 with Revision -1 while the
-            // assembly always carries a fourth component, and -1 sorts below 0 on every otherwise equal pair
+            // both cut to three parts; the tag parses with Revision -1, the assembly has a
+            // fourth part, and -1 sorts below 0
             isNewer = Normalize(releaseVersion) > Normalize(currentVersion);
 
             string releaseUrl = root.TryGetProperty("html_url", out var htmlUrl)
@@ -364,8 +332,7 @@ namespace FluentSensors.Core.Update
                 }
             }
 
-            // a newer release whose matching asset is missing still counts as an update, the dialog then falls back
-            // to opening the release page instead of downloading anything
+            // a release without the matching asset still counts; the dialog opens the release page instead
             return new UpdateInfo(formattedVersion, releaseUrl, notes, "", "", 0);
         }
 
@@ -379,8 +346,7 @@ namespace FluentSensors.Core.Update
         private static string FormatVersion(Version? version) =>
             version == null ? "" : $"{version.Major}.{version.Minor}.{Math.Max(version.Build, 0)}";
 
-        // the check may resume off the UI thread, so the event is marshalled here once and consumers do not
-        // dispatch again
+        // the check may resume off the UI thread; marshalled once here, consumers do not dispatch again
         private void RaiseStateChanged()
         {
             var queue = _dispatcherQueue;

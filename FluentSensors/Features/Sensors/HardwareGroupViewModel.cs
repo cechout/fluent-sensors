@@ -17,20 +17,18 @@ namespace FluentSensors.Features.Sensors
     {
         // === fields ===
 
-        public string HardwareName { get; set; } = "Hardware Name not provided"; // description of expander 
+        public string HardwareName { get; set; } = "Hardware Name not provided"; // expander description
 
-        // the raw LhmHardwareInstance name behind this group; HardwareName above is a display name and for
-        // storage and network deliberately differs from it, so anything addressing a specific group from
-        // outside has to match on this one
+        // the raw LHM name; HardwareName is a display name (it differs for storage and network), so
+        // outside callers match on this
         public string LhmHardwareName { get; set; } = "";
-        public string GroupLabel { get; set; } = "Hardware"; // header of expander 
-        public string IconGlyph { get; set; } = ""; // header icon glyph, resolved via HardwareGroupInfo
+        public string GroupLabel { get; set; } = "Hardware"; // expander header
+        public string IconGlyph { get; set; } = ""; // from HardwareGroupInfo
 
-        // the category this group was built from; kept rather than discarded after the profile lookup, because the
-        // rows below need it to colour their widget and taskbar graphs
+        // kept for the rows, which colour their widget and taskbar graphs by it
         public HardwareGroupKind Kind { get; set; } = HardwareGroupKind.Other;
 
-        // header icon colour, follows the hardware icon colour setting; see RefreshIconBrush
+        // follows the icon colour setting, see RefreshIconBrush
         private SolidColorBrush _iconBrush;
         public SolidColorBrush IconBrush
         {
@@ -39,21 +37,21 @@ namespace FluentSensors.Features.Sensors
         }
 
         public void RefreshIconBrush() => IconBrush = HardwareGroupInfo.GetIconBrush(Kind);
-        public ObservableCollection<SensorRowViewModel> Sensors { get; set; } // content of expander
-        public ObservableCollection<SensorRowViewModel> HiddenSensors { get; set; } // sensors hidden from the main list
+        public ObservableCollection<SensorRowViewModel> Sensors { get; set; } // expander content
+        public ObservableCollection<SensorRowViewModel> HiddenSensors { get; set; }
 
-        // true as soon as at least one sensor sits in the hidden list; lets the UI grey out or hide the "Show Hidden Sensors" button
+        // for the "Show Hidden Sensors" button
         public bool HasHiddenSensors => HiddenSensors.Count > 0;
         public Visibility HiddenPanelVisibility => HasHiddenSensors ? Visibility.Visible : Visibility.Collapsed;
 
-        // shown/total count on the right of the expander header
-        // (counted by IsHidden rather than by list, since HideSensorsCompletely=false leaves a hidden sensor in Sensors)
+        // shown/total on the expander header; (by IsHidden, HideSensorsCompletely=false leaves
+        // a hidden sensor in Sensors)
         public string SensorCountText => $"{ShownSensorCount}/{TotalSensorCount} sensors";
         public string SensorCountName => $"{ShownSensorCount} of {TotalSensorCount} sensors shown";
         private int ShownSensorCount => Sensors.Count(s => !s.IsHidden);
         private int TotalSensorCount => Sensors.Count + HiddenSensors.Count;
 
-        // drives IsExpanded on the sensors page expander of this group
+        // the sensors page expander
         private bool _isExpanded;
         public bool IsExpanded
         {
@@ -68,7 +66,7 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // the same for the hidden sensors window, kept apart so neither side opens or closes the others expanders
+        // the hidden sensors window expander, apart so neither side moves the other
         private bool _isExpandedInHiddenWindow;
         public bool IsExpandedInHiddenWindow
         {
@@ -88,14 +86,13 @@ namespace FluentSensors.Features.Sensors
 
         public HardwareGroupViewModel()
         {
-            // initializes the empty lists for this specific hardware
             Sensors = new ObservableCollection<SensorRowViewModel>();
             HiddenSensors = new ObservableCollection<SensorRowViewModel>();
         }
 
 
-        // adds a newly discovered sensor into the correct list based on its persisted hidden state, and notifies bound UI
-        // immediately so the "Show Hidden Sensors" button reflects it without waiting for a manual hide/restore action
+        // a new sensor into its list by its saved hidden state, notified right away for the
+        // "Show Hidden Sensors" button
         public void AddDiscoveredSensor(SensorRowViewModel sensor, bool isHidden)
         {
             if (isHidden)
@@ -113,7 +110,7 @@ namespace FluentSensors.Features.Sensors
         }
 
 
-        // moves every currently checked sensor from the main list into the hidden list
+        // every checked sensor into the hidden list
         public void HideSelectedSensors()
         {
             var selectedSensors = Sensors.Where(s => s.IsSelected).ToList();
@@ -123,13 +120,13 @@ namespace FluentSensors.Features.Sensors
                 sensor.IsSelected = false;
                 sensor.IsHidden = true;
                 SensorStateService.Instance.SetHidden(sensor.Id, true);
-                HardwareMonitorService.Instance.AddExcludedSensor(sensor.Id); // stop the backend from broadcasting values for this sensor
+                HardwareMonitorService.Instance.AddExcludedSensor(sensor.Id); // recorded only, the skip is disabled
 
                 if (SettingsService.Instance.HideSensorsCompletely)
                 {
                     Sensors.Remove(sensor);
 
-                    // find the first hidden sensor that originally came after this one, insert right before it
+                    // before the first hidden sensor that came after it
                     var insertBeforeSensor = HiddenSensors.FirstOrDefault(s => s.SortOrder > sensor.SortOrder);
 
                     if (insertBeforeSensor != null)
@@ -138,7 +135,7 @@ namespace FluentSensors.Features.Sensors
                     }
                     else
                     {
-                        // no later sensor found; place at the very end
+                        // none later; at the end
                         HiddenSensors.Add(sensor);
                     }
                 }
@@ -154,7 +151,7 @@ namespace FluentSensors.Features.Sensors
         }
 
 
-        // moves every currently checked sensor from the hidden list back into the main list
+        // every checked hidden sensor back into the main list
         public void RestoreSelectedHiddenSensors()
         {
             var selectedSensors = HiddenSensors.Where(s => s.IsSelected).ToList();
@@ -166,11 +163,11 @@ namespace FluentSensors.Features.Sensors
                 sensor.IsDisabled = false;
                 sensor.ResetMinMax();
                 SensorStateService.Instance.SetHidden(sensor.Id, false);
-                HardwareMonitorService.Instance.RemoveExcludedSensor(sensor.Id); // let the backend broadcast values for this sensor again
+                HardwareMonitorService.Instance.RemoveExcludedSensor(sensor.Id);
 
                 HiddenSensors.Remove(sensor);
 
-                // find the first sensor in the visible list that originally came after this one, insert right before it
+                // before the first visible sensor that came after it
                 var insertBeforeSensor = Sensors.FirstOrDefault(s => s.SortOrder > sensor.SortOrder);
 
                 if (insertBeforeSensor != null)
@@ -179,7 +176,7 @@ namespace FluentSensors.Features.Sensors
                 }
                 else
                 {
-                    // no later sensor found; place at the very end
+                    // none later; at the end
                     Sensors.Add(sensor);
                 }
             }
@@ -196,7 +193,8 @@ namespace FluentSensors.Features.Sensors
         }
 
 
-        // INotifyPropertyChanged implementation
+        // === INotifyPropertyChanged implementation ===
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

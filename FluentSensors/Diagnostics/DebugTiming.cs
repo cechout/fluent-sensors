@@ -4,13 +4,11 @@ using System.Diagnostics;
 
 namespace FluentSensors.Diagnostics
 {
-    // ad-hoc timing helper for empirically isolating slow spots, wrap a block in a using statement and the
-    // elapsed time gets logged via Debug.WriteLine when the block ends
-    // Nested Scope() calls indent automatically so a sub-step reads as nested under whichever Scope() its running
-    // inside
+    // the debug timer:
+    // ad hoc timing of slow spots; a using block logs its elapsed time through Debug.WriteLine, nested scopes indent
     public sealed class DebugTiming : IDisposable
     {
-        // === Fields ===
+        // === fields ===
 
         [ThreadStatic]
         private static int _depth;
@@ -19,7 +17,7 @@ namespace FluentSensors.Diagnostics
         private readonly Stopwatch _stopwatch;
 
 
-        // === Constructor ===
+        // === constructor ===
 
         private DebugTiming(string label)
         {
@@ -31,13 +29,12 @@ namespace FluentSensors.Diagnostics
         }
 
 
-        // === Public Binding Surface ===
+        // === public api ===
 
         // usage: using (DebugTiming.Scope("PerformancePage load")) { ... }
         public static DebugTiming Scope(string label) => new DebugTiming(label);
 
-        // single timestamped checkpoint, for pinpointing when a specific line runs relative to everything else,
-        // without measuring a duration
+        // one checkpoint without a duration, for when a line runs relative to the rest
         public static void Mark(string label) => Debug.WriteLine($"{Indent()}. {label}");
 
         public void Dispose()
@@ -48,7 +45,7 @@ namespace FluentSensors.Diagnostics
         }
 
 
-        // === Private Helpers ===
+        // === private helpers ===
 
         private static string Indent() => new string(' ', Math.Max(_depth, 0) * 2);
     }

@@ -13,12 +13,10 @@ namespace FluentSensors.Features.Performance.Lhm
     {
         // === fields ===
 
-        // best-effort match against WMI-reported GPUs; see HardwareNameMatcher for the matching approach and its
-        // limitations; null if no candidate matched at all (e.g. Win32_VideoController returned nothing)
+        // best-effort match against the WMI GPUs (see HardwareNameMatcher); null without a match
         private readonly WinGpuInfo _staticInfo;
 
-        // number of independent, switchable D3D engine graph slots in the Extended views Engines group; all share
-        // D3dEngineOptions, see D3dEngineSlot1..4 below
+        // switchable D3D engine slots in the Extended Engines group, all on D3dEngineOptions
         public const int D3dEngineSlotCount = 4;
         private readonly SensorGraphViewModel[] _d3dEngineSlots = new SensorGraphViewModel[D3dEngineSlotCount];
         private static readonly string[] D3dEngineSlotPropertyNames =
@@ -50,10 +48,9 @@ namespace FluentSensors.Features.Performance.Lhm
 
         public string HardwareName { get; }
 
-        // overview categories (Temperature/Power); public setter persists the choice, SetXWithoutPersisting is for
-        // the default/restored graph during discovery
-        // PackagePower/MemoryUsed further below follow the same shape silently
-        // CoreLoad has no known switch partner, so it stays a plain static graph like CoreClock/CoreTemperature below
+        // overview categories; the public setter persists the choice, SetXWithoutPersisting is for the default or
+        // restored graph (PackagePower and MemoryUsed alike)
+        // CoreLoad has no switch partner and stays a plain graph
         private SensorGraphViewModel _coreLoad;
         public SensorGraphViewModel CoreLoad
         {
@@ -120,18 +117,16 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
-        // problem/fix: see GpuDetailView.xaml.cs SetLayoutActive; the Overall/Extended switch hits the same trap,
-        // so it gets the same Opacity+IsHitTestVisible treatment instead of a real Visibility toggle
+        // problem and fix: see GpuDetailView.SetLayoutActive; the Overall/Extended switch hides by
+        // Opacity and IsHitTestVisible too
         public double OverallOpacity => IsShowingExtended ? 0 : 1;
         public bool OverallIsHitTestVisible => !IsShowingExtended;
 
         public double ExtendedOpacity => IsShowingExtended ? 1 : 0;
         public bool ExtendedIsHitTestVisible => IsShowingExtended;
 
-        // extended view, Core group; the same sensor as CoreLoad, but a graph of its own
-        // a graph keeps exactly as many points as its time span needs, and the overview and the Extended view
-        // plot different spans; sharing one graph let whichever view applied its span last cut the other ones
-        // history, so no graph is shared between the two views
+        // Extended Core group; the CoreLoad sensor with a graph of its own (a graph keeps the points of one span, the
+        // two views plot different spans)
         private SensorGraphViewModel _extendedCoreLoad;
         public SensorGraphViewModel ExtendedCoreLoad
         {
@@ -139,8 +134,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _extendedCoreLoad = value; OnPropertyChanged(); }
         }
 
-        // extended view, Core group; a Power slot of its own with its own candidates and its own persisted
-        // choice, for the same reason as ExtendedCoreLoad above, so switching it leaves the overview alone
+        // Extended Core group; a Power slot with its own candidates and choice, like ExtendedCoreLoad
         private SensorGraphViewModel _extendedPackagePower;
         public SensorGraphViewModel ExtendedPackagePower
         {
@@ -161,7 +155,7 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(ExtendedPackagePower));
         }
 
-        // extended view, Core group; Clock is a fixed anchor, never switchable
+        // Extended Core group; a fixed anchor
         private SensorGraphViewModel _coreClock;
         public SensorGraphViewModel CoreClock
         {
@@ -169,8 +163,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _coreClock = value; OnPropertyChanged(); }
         }
 
-        // extended view, Core group; shown alongside HotSpotTemperature below regardless of what the overviews
-        // switchable Temperature slot currently shows
+        // Extended Core group; beside HotSpotTemperature, whatever the overview slot shows
         private SensorGraphViewModel _coreTemperature;
         public SensorGraphViewModel CoreTemperature
         {
@@ -185,8 +178,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _hotSpotTemperature = value; OnPropertyChanged(); }
         }
 
-        // extended view, Memory group; switches between LHMs native reading, Windows D3D-reported figure, and the
-        // "free" complement of the same reading
+        // Extended Memory group; the LHM reading, the D3D figure or the free complement
         private SensorGraphViewModel _memoryUsed;
         public SensorGraphViewModel MemoryUsed
         {
@@ -228,8 +220,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _d3dSharedMemoryUsed = value; OnPropertyChanged(); }
         }
 
-        // not charted, just a Y-max helper for MemoryUsed
-        // the hardwares own reported total, no rounding needed
+        // not charted; the y-axis maximum of MemoryUsed, the reported total
         private double _memoryTotal;
         public double MemoryTotal
         {
@@ -237,7 +228,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _memoryTotal = value; OnPropertyChanged(); }
         }
 
-        // extended view, PCIe/Bus group; none of these three have a known alternative reading, so no Options list
+        // Extended PCIe and Bus group; no alternatives, no Options list
         private SensorGraphViewModel _pcieRx;
         public SensorGraphViewModel PcieRx
         {
@@ -259,8 +250,8 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _busLoad = value; OnPropertyChanged(); }
         }
 
-        // extended view, Engines group; VideoEngineLoad is a fixed anchor, D3dEngineSlot1..5 are the switchable
-        // slots sharing the D3dEngineOptions pool below
+        // Extended Engines group; VideoEngineLoad is a fixed anchor, D3dEngineSlot1..4 switch
+        // over the D3dEngineOptions pool
         private SensorGraphViewModel _videoEngineLoad;
         public SensorGraphViewModel VideoEngineLoad
         {
@@ -275,8 +266,7 @@ namespace FluentSensors.Features.Performance.Lhm
         public SensorGraphViewModel D3dEngineSlot3 { get => _d3dEngineSlots[2]; set => SetD3dEngineSlot(2, value); }
         public SensorGraphViewModel D3dEngineSlot4 { get => _d3dEngineSlots[3]; set => SetD3dEngineSlot(3, value); }
 
-        // persistence category key for one D3D engine slot; shared with LhmGpuPerformanceViewModel so both sides
-        // agree on the same keys
+        // the persistence key of a slot, shared with LhmGpuPerformanceViewModel
         public static string D3dEngineCategory(int slotIndex) => $"D3DEngine{slotIndex + 1}";
 
         internal SensorGraphViewModel GetD3dEngineSlot(int slotIndex) => _d3dEngineSlots[slotIndex];
@@ -289,7 +279,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
 
         // === static info text properties ===
-        // read-only, purely computed from the matched WinGpuInfo
+        // computed from the matched WinGpuInfo
         public string GpuNameText => _staticInfo?.Name ?? "-";
         public string GpuVendorText => _staticInfo != null ? HardwareInfoFormatter.FormatVendorName(_staticInfo.VendorId) : "-";
         public string GpuDriverVersionText => _staticInfo?.DriverVersion ?? "-";
@@ -301,7 +291,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === private helpers ===
 
-        // shared by all five D3dEngineSlotN setters above; persists per slot index ("D3DEngine1".."D3DEngine5")
+        // the D3dEngineSlot setters; persisted per slot ("D3DEngine1" to "D3DEngine4")
         private void SetD3dEngineSlot(int slotIndex, SensorGraphViewModel value)
         {
             if (_d3dEngineSlots[slotIndex] == value) return;

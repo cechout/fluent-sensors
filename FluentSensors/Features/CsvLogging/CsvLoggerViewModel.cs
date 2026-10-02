@@ -11,10 +11,9 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.CsvLogging
 {
-    // readout for CsvLoggerWindow: what the two buttons are allowed to do plus the three live counters
-    //
-    // holds no recording state of its own, everything is read back from CsvLoggingService, so a window that was
-    // hidden and later reopened (or fully rebuilt) picks the running recording up exactly where it stands
+    // the csv logger readout:
+    // button states and live counters of CsvLoggerWindow; no recording state of its own, so a reopened or rebuilt
+    // window picks the recording up where it stands
     public class CsvLoggerViewModel : INotifyPropertyChanged
     {
         // === fields ===
@@ -22,15 +21,13 @@ namespace FluentSensors.Features.CsvLogging
         private readonly DispatcherQueue _dispatcherQueue;
         private DispatcherQueueTimer _tickTimer;
 
-        // how often the elapsed clock and the row counter are updated in UI
+        // elapsed clock and row counter
         private const int TickIntervalMs = 500;
 
-        // whether the window is actually on screen; a hidden or minimized logger stops ticking, the recording in
-        // CsvLoggingService keeps running either way
+        // the window is on screen; a hidden or minimized logger stops ticking, the recording runs on
         private bool _isReadoutActive = true;
 
-        // one-off message set when the sensors page pushes a selection at a running recording; cleared again by the
-        // next real state change
+        // set when the sensors page pushes a selection at a running recording, until the next state change
         private string _transientHint;
 
 
@@ -82,16 +79,14 @@ namespace FluentSensors.Features.CsvLogging
         public bool CanStart => !CsvLoggingService.Instance.IsRunning && CsvLoggingService.Instance.SensorCount > 0;
         public bool CanStop => CsvLoggingService.Instance.IsRunning;
 
-        // start and stop share the same slot in the main bar, only one of them is ever up
+        // start and stop share one slot
         public Visibility StartButtonVisibility => CsvLoggingService.Instance.IsRunning ? Visibility.Collapsed : Visibility.Visible;
         public Visibility StopButtonVisibility => CsvLoggingService.Instance.IsRunning ? Visibility.Visible : Visibility.Collapsed;
 
-        // the pause button only exists while there is a recording to hold; unlike start and stop it is a single
-        // button that swaps its glyph, the way the details chevron next to it does
+        // only while recording; one button that swaps its glyph, like the details chevron
         public Visibility PauseButtonVisibility => CsvLoggingService.Instance.IsRunning ? Visibility.Visible : Visibility.Collapsed;
 
-        // segoe fluent icons Pause and Play, escaped rather than pasted so this file stays plain ascii like the
-        // rest of the sources
+        // Pause and Play, escaped to keep the source ascii
         public string PauseGlyph => IsPaused ? "\uE768" : "\uE769";
         public string PauseTooltip => IsPaused ? "Resume" : "Pause";
 
@@ -167,7 +162,7 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        // elapsed clock and row counter for the main bar
+        // the main bar
         private string _elapsedRowsText = "00:00:00 | 0";
         public string ElapsedRowsText
         {
@@ -231,7 +226,7 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        // takes over a folder the user just picked and drops any earlier start failure with it
+        // a picked folder, which drops an earlier start failure
         public void SetLogFolder(string folder)
         {
             SettingsService.Instance.CsvLogFolder = folder;
@@ -240,16 +235,14 @@ namespace FluentSensors.Features.CsvLogging
             LogFolderText = CsvLoggingService.Instance.ResolvedLogFolder;
         }
 
-        // shown when the sensors page pushes a new selection while a recording runs; the columns are already fixed
-        // in the open file, so the selection was not taken over and the window has to say so
+        // a selection pushed during a recording is not taken over (the columns are fixed); the window says so
         public void ShowSelectionLockedHint()
         {
             _transientHint = "stop the recording first to change the sensor selection";
             StatusText = BuildStatusText();
         }
 
-        // pauses the readout while the window is hidden or minimized, so a logger nobody is looking at costs
-        // nothing; the recording itself is untouched, only the text stops updating
+        // pauses the readout of a hidden or minimized window; the recording is untouched
         public void SetReadoutActive(bool active)
         {
             if (_isReadoutActive == active) return;
@@ -283,7 +276,7 @@ namespace FluentSensors.Features.CsvLogging
             UpdateTickTimer();
         }
 
-        // the polling rate is a setting, so it is picked up when it changes instead of polled on the tick below
+        // a setting, so taken on change rather than per tick
         private void OnUpdateIntervalChanged(int newIntervalMs)
         {
             PollingText = FormatPolling();
@@ -297,7 +290,7 @@ namespace FluentSensors.Features.CsvLogging
 
         // === private helpers ===
 
-        // the timer only exists while a visible window is showing a running recording
+        // a timer only while a visible window shows a running recording
         private void UpdateTickTimer()
         {
             bool shouldTick = _isReadoutActive && CsvLoggingService.Instance.IsRunning;
@@ -352,14 +345,12 @@ namespace FluentSensors.Features.CsvLogging
             StatusText = BuildStatusText();
         }
 
-        // set polling rate
         private static string FormatPolling()
         {
             return $"{HardwareMonitorService.Instance.UpdateIntervalMs} ms";
         }
 
-        // hours are counted as a running total rather than through a TimeSpan format string; the "hh" specifier wraps
-        // at 24 and would silently show a two day recording as a two hour one
+        // total hours, since "hh" wraps at 24
         private static string FormatElapsed(TimeSpan elapsed)
         {
             return $"{(int)elapsed.TotalHours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
