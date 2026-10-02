@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using FluentSensors.Core.Taskbar;
 using FluentSensors.Persistence.Services;
@@ -19,14 +20,14 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === public api ===
 
-        // the registered shortcut as text ("Ctrl+Alt+S"), null when none is registered
-        public static string? RegisteredText
+        // the keys of the registered shortcut ("Ctrl", "Alt", "S"), null when none is registered
+        public static IReadOnlyList<string>? RegisteredKeys
         {
             get
             {
                 var shortcut = SettingsService.Instance.TaskbarFlyoutShortcut;
                 if (shortcut == null || !WinHotkeyService.Instance.IsRegistered) return null;
-                return WinHotkeyService.Format(shortcut.Modifiers, shortcut.VirtualKey);
+                return WinHotkeyService.FormatKeys(shortcut.Modifiers, shortcut.VirtualKey);
             }
         }
 

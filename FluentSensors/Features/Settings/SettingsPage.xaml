@@ -555,29 +555,6 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
-            <!--  flyout shortcut  -->
-            <!--  (a click records the next key combination: Escape cancels, Backspace clears; text set from code)  -->
-            <controls:SettingsCard
-                fhUi:FocusGroup.IsEnabled="True"
-                Description="Opens the flyout while the taskbar widget is open; click, then press the keys (Backspace clears)"
-                Header="Flyout Shortcut"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE765;}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock
-                        x:Name="FlyoutShortcutStatusText"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                        Visibility="Collapsed" />
-                    <Button
-                        x:Name="FlyoutShortcutButton"
-                        MinWidth="160"
-                        Click="FlyoutShortcutButton_Click"
-                        LostFocus="FlyoutShortcutButton_LostFocus"
-                        PreviewKeyDown="FlyoutShortcutButton_PreviewKeyDown"
-                        PreviewKeyUp="FlyoutShortcutButton_PreviewKeyUp" />
-                </StackPanel>
-            </controls:SettingsCard>
-
             <!--  flyout background material  -->
             <controls:SettingsExpander
                 fhUi:FocusGroup.IsEnabled="True"
@@ -662,6 +639,29 @@
                     OffContent="Off"
                     OnContent="On"
                     Toggled="LockWidgetPositionToggle_Toggled" />
+            </controls:SettingsCard>
+
+            <!--  flyout shortcut  -->
+            <!--  (a click records the next key combination: Escape cancels, Backspace clears; text set from code)  -->
+            <controls:SettingsCard
+                fhUi:FocusGroup.IsEnabled="True"
+                Description="Open the flyout from the keyboard while the taskbar widget is open; click and press the keys, Backspace clears"
+                Header="Flyout Shortcut"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE765;}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock
+                        x:Name="FlyoutShortcutStatusText"
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                        Visibility="Collapsed" />
+                    <Button
+                        x:Name="FlyoutShortcutButton"
+                        MinWidth="160"
+                        Click="FlyoutShortcutButton_Click"
+                        LostFocus="FlyoutShortcutButton_LostFocus"
+                        PreviewKeyDown="FlyoutShortcutButton_PreviewKeyDown"
+                        PreviewKeyUp="FlyoutShortcutButton_PreviewKeyUp" />
+                </StackPanel>
             </controls:SettingsCard>
 
 

@@ -75,13 +75,19 @@ namespace FluentSensors.Core.Taskbar
         // "Ctrl+Alt+S"
         public static string Format(uint modifiers, uint virtualKey)
         {
-            var parts = new List<string>();
-            if ((modifiers & ModControl) != 0) parts.Add("Ctrl");
-            if ((modifiers & ModAlt) != 0) parts.Add("Alt");
-            if ((modifiers & ModShift) != 0) parts.Add("Shift");
-            if ((modifiers & ModWin) != 0) parts.Add("Win");
-            parts.Add(FormatKey(virtualKey));
-            return string.Join("+", parts);
+            return string.Join("+", FormatKeys(modifiers, virtualKey));
+        }
+
+        // "Ctrl", "Alt", "S"; the modifiers in the order Windows writes them, the key last
+        public static IReadOnlyList<string> FormatKeys(uint modifiers, uint virtualKey)
+        {
+            var keys = new List<string>();
+            if ((modifiers & ModControl) != 0) keys.Add("Ctrl");
+            if ((modifiers & ModAlt) != 0) keys.Add("Alt");
+            if ((modifiers & ModShift) != 0) keys.Add("Shift");
+            if ((modifiers & ModWin) != 0) keys.Add("Win");
+            keys.Add(FormatKey(virtualKey));
+            return keys;
         }
 
 

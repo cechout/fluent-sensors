@@ -75,18 +75,35 @@
                         TextTrimming="CharacterEllipsis"
                         TextWrapping="NoWrap" />
 
-                    <!--  shortcut hint  -->
-                    <!--  (only while the flyout shortcut is registered, see ApplyShortcutHint)  -->
-                    <TextBlock
-                        x:Name="ShortcutHintText"
+                    <!--  shortcut hint: [Ctrl]+[Alt]+[S]  -->
+                    <!--
+                        (one bordered key per part, built in ApplyShortcutHint and only while the shortcut is
+                        registered; the styles live here, so code-built keys still follow a theme switch)
+                    -->
+                    <StackPanel
+                        x:Name="ShortcutHintPanel"
                         Grid.Column="1"
                         Margin="8,0,0,0"
                         VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{StaticResource CaptionTextBlockStyle}"
-                        TextTrimming="CharacterEllipsis"
-                        TextWrapping="NoWrap"
-                        Visibility="Collapsed" />
+                        Orientation="Horizontal"
+                        Spacing="2"
+                        Visibility="Collapsed">
+                        <StackPanel.Resources>
+                            <Style x:Key="ShortcutKeyBorderStyle" TargetType="Border">
+                                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrongStrokeColorDefaultBrush}" />
+                                <Setter Property="BorderThickness" Value="1" />
+                                <Setter Property="CornerRadius" Value="2" />
+                                <Setter Property="Padding" Value="2,0,2,0" />
+                            </Style>
+                            <Style
+                                x:Key="ShortcutKeyTextStyle"
+                                BasedOn="{StaticResource CaptionTextBlockStyle}"
+                                TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+                        </StackPanel.Resources>
+                    </StackPanel>
 
                     <!--  snapshot button  -->
                     <!--  (pauses and resumes the flyout graphs; name, tooltip and glyph set in ApplyPauseState)  -->

@@ -1286,11 +1286,27 @@ namespace FluentSensors.Features.TaskbarWidget
             AutomationProperties.SetName(PauseButton, label);
         }
 
+        // [Ctrl]+[Alt]+[S]: a bordered key per part, a plain plus between them
         private void ApplyShortcutHint()
         {
-            string? text = FlyoutShortcutRegistration.RegisteredText;
-            ShortcutHintText.Text = text ?? "";
-            ShortcutHintText.Visibility = text != null ? Visibility.Visible : Visibility.Collapsed;
+            var keys = FlyoutShortcutRegistration.RegisteredKeys;
+            ShortcutHintPanel.Children.Clear();
+            ShortcutHintPanel.Visibility = keys != null ? Visibility.Visible : Visibility.Collapsed;
+            if (keys == null) return;
+
+            var borderStyle = (Style)ShortcutHintPanel.Resources["ShortcutKeyBorderStyle"];
+            var textStyle = (Style)ShortcutHintPanel.Resources["ShortcutKeyTextStyle"];
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+                if (i > 0) ShortcutHintPanel.Children.Add(new TextBlock { Style = textStyle, Text = "+" });
+
+                ShortcutHintPanel.Children.Add(new Border
+                {
+                    Style = borderStyle,
+                    Child = new TextBlock { Style = textStyle, Text = keys[i] }
+                });
+            }
         }
 
         private void OnShortcutRegistrationChanged()
