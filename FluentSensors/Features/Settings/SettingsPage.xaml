@@ -539,6 +539,35 @@
                 </ComboBox>
             </controls:SettingsCard>
 
+            <!--  flyout graph appearance  -->
+            <controls:SettingsExpander
+                fhUi:FocusGroup.IsEnabled="True"
+                Description="Flyout graph time range and graph height"
+                Header="Flyout Graph"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Header="Time Range">
+                        <ComboBox
+                            x:Name="TaskbarFlyoutGraphTimeSpanComboBox"
+                            Width="40"
+                            DisplayMemberPath="DisplayName"
+                            SelectionChanged="TaskbarFlyoutGraphTimeSpanComboBox_SelectionChanged" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Graph Height">
+                        <Slider
+                            x:Name="TaskbarFlyoutGraphHeightSlider"
+                            Width="200"
+                            Maximum="200"
+                            Minimum="80"
+                            StepFrequency="5"
+                            TickFrequency="20"
+                            ValueChanged="TaskbarFlyoutGraphHeightSlider_ValueChanged" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
             <!--  flyout background material  -->
             <controls:SettingsExpander
                 fhUi:FocusGroup.IsEnabled="True"

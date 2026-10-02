@@ -433,6 +433,38 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // seconds of history on the flyout graphs; shared by every edge
+        private double _taskbarFlyoutGraphTimeSpanSeconds = Defaults.TaskbarFlyoutGraphTimeSpanSeconds;
+        public double TaskbarFlyoutGraphTimeSpanSeconds
+        {
+            get => _taskbarFlyoutGraphTimeSpanSeconds;
+            set
+            {
+                if (_taskbarFlyoutGraphTimeSpanSeconds != value)
+                {
+                    _taskbarFlyoutGraphTimeSpanSeconds = value;
+                    TaskbarFlyoutGraphTimeSpanChanged?.Invoke(_taskbarFlyoutGraphTimeSpanSeconds);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // one flyout graph slot in DIP; shared by every edge
+        private double _taskbarFlyoutGraphHeightDip = Defaults.TaskbarFlyoutGraphHeightDip;
+        public double TaskbarFlyoutGraphHeightDip
+        {
+            get => _taskbarFlyoutGraphHeightDip;
+            set
+            {
+                if (_taskbarFlyoutGraphHeightDip != value)
+                {
+                    _taskbarFlyoutGraphHeightDip = value;
+                    TaskbarFlyoutGraphHeightChanged?.Invoke(_taskbarFlyoutGraphHeightDip);
+                    SaveDebounced();
+                }
+            }
+        }
+
 
         // --- per taskbar position ---
 
@@ -929,6 +961,8 @@ namespace FluentSensors.Persistence.Services
             _taskbarUseTransparentGraphBackground = data.TaskbarUseTransparentGraphBackground;
             _taskbarEdges = SeedTaskbarEdges(data.TaskbarEdges, data);
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
+            _taskbarFlyoutGraphTimeSpanSeconds = data.TaskbarFlyoutGraphTimeSpanSeconds;
+            _taskbarFlyoutGraphHeightDip = data.TaskbarFlyoutGraphHeightDip;
 
             _minimizeToTray = data.MinimizeToTray;
             _runOnStartup = data.RunOnStartup;
@@ -986,6 +1020,8 @@ namespace FluentSensors.Persistence.Services
                 TaskbarUseTransparentGraphBackground = _taskbarUseTransparentGraphBackground,
                 TaskbarEdges = CloneTaskbarEdges(),
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
+                TaskbarFlyoutGraphTimeSpanSeconds = _taskbarFlyoutGraphTimeSpanSeconds,
+                TaskbarFlyoutGraphHeightDip = _taskbarFlyoutGraphHeightDip,
 
                 MinimizeToTray = _minimizeToTray,
                 RunOnStartup = _runOnStartup,
@@ -1056,6 +1092,8 @@ namespace FluentSensors.Persistence.Services
         public event Action<int> TaskbarSideTitleLinesChanged;
         public event Action<string> TaskbarFlyoutAlignmentChanged;
         public event Action<bool> TaskbarWidgetPositionLockedChanged;
+        public event Action<double> TaskbarFlyoutGraphTimeSpanChanged;
+        public event Action<double> TaskbarFlyoutGraphHeightChanged;
 
         public event Action<bool> MinimizeToTrayChanged;
         public event Action<bool> HideSensorsCompletelyChanged;

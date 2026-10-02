@@ -5,8 +5,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhCommon="using:FluentSensors.Common.Sensors"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
     xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Fluent Sensors Flyout"
@@ -41,22 +43,58 @@
             </Canvas>
 
 
-            <!--  vertical list of sensor graphs  -->
+            <!--  title row, vertical list of sensor graphs, time range row  -->
+            <!--  (one surface for all three; title and time ranges stay put, only the graphs scroll)  -->
             <Grid
                 x:Name="GraphsContentGrid"
                 Grid.Row="0"
                 Background="{ThemeResource FlyoutGraphsBackground}"
                 CornerRadius="7,7,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!--  title row: title and snapshot button  -->
+                <Grid x:Name="TitleRowGrid" Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  title  -->
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Text="System Sensors"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap" />
+
+                    <!--  snapshot button  -->
+                    <!--  (pauses and resumes the flyout graphs; name, tooltip and glyph set in ApplyPauseState)  -->
+                    <Button
+                        x:Name="PauseButton"
+                        Grid.Column="1"
+                        Width="32"
+                        Padding="0"
+                        VerticalAlignment="Center"
+                        Click="PauseButton_Click"
+                        Style="{StaticResource SubtleButtonStyle}">
+                        <FontIcon x:Name="PauseButtonIcon" FontSize="14" />
+                    </Button>
+                </Grid>
 
                 <!--  scrolls only once the pinned sensors pass the height cap (switched in ApplyGraphsScrollMode)  -->
                 <ScrollViewer
                     x:Name="GraphsScrollViewer"
+                    Grid.Row="1"
                     HorizontalScrollBarVisibility="Disabled"
                     HorizontalScrollMode="Disabled"
                     VerticalScrollBarVisibility="Disabled"
                     VerticalScrollMode="Disabled"
                     ZoomMode="Disabled">
-                    <ItemsControl x:Name="GraphsItemsControl" ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
+                    <ItemsControl x:Name="GraphsItemsControl" ItemsSource="{x:Bind ViewModel.FlyoutSensors, Mode=OneWay}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <fhControls:VerticalStretchPanel />
@@ -74,6 +112,27 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
+
+                <!--  time range row: taskbar graphs left, flyout graphs right  -->
+                <Grid
+                    x:Name="TimeRangeRowGrid"
+                    Grid.Row="2"
+                    fhUi:FocusGroup.IsEnabled="True">
+                    <fhTimeRange:TimeRangePickerControl
+                        x:Name="TaskbarTimeRangePicker"
+                        AccessibleName="Taskbar Time Range"
+                        Label="Taskbar"
+                        Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
+                        TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                    <fhTimeRange:TimeRangePickerControl
+                        x:Name="FlyoutTimeRangePicker"
+                        HorizontalAlignment="Right"
+                        AccessibleName="Flyout Time Range"
+                        Label="Flyout"
+                        Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
+                        TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </Grid>
             </Grid>
 
 

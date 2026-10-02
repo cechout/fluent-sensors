@@ -5,6 +5,7 @@ namespace FluentSensors.Common.Sensors
     {
         Performance,
         Widget,
-        Taskbar
+        Taskbar,
+        TaskbarFlyout // the taskbar colors and y-axis, its own time range
     }
 }

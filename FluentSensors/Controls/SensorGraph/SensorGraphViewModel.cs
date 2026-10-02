@@ -1,12 +1,15 @@
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
 using FluentSensors.Core;
+using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
@@ -28,6 +31,14 @@ namespace FluentSensors.Controls.SensorGraph
 
         // a view override owns ManualYMax (see ApplyViewOverrides); a data unit switch leaves it alone
         private bool _hasManualYMaxOverride;
+
+        // the UI thread of this graph, for a y-axis change from another window (see OnSensorStateChanged)
+        private readonly DispatcherQueue _dispatcherQueue;
+
+        // snapshot (see SetFrozen); the values that arrive meanwhile, at most one graph full, and the latest text
+        private bool _isFrozen;
+        private readonly Queue<double> _pendingValues = new();
+        private string? _pendingValueText;
 
 
         // === constructor ===
@@ -56,20 +67,30 @@ namespace FluentSensors.Controls.SensorGraph
             // the plotted points, a flat zero baseline at start
             SensorData = new ObservableCollection<double?>(Enumerable.Repeat<double?>(0.0, initialPointCount));
 
-            if (Scope == SensorGraphScope.Taskbar)
+            if (IsTaskbarScope)
             {
                 GraphColor = ResolveGraphColor(SettingsService.Instance.TaskbarGraphColorSource, SettingsService.Instance.TaskbarGraphCustomColor);
                 _isCardBackgroundVisible = !SettingsService.Instance.TaskbarUseTransparentGraphBackground;
                 SettingsService.Instance.TaskbarGraphColorChanged += OnGraphColorChanged;
-                SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnGraphTimeSpanChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged += OnGraphBackgroundChanged;
+
+                // the taskbar and its flyout are two graphs on one y-axis state
+                SensorStateService.Instance.StateChanged += OnSensorStateChanged;
             }
             else
             {
                 GraphColor = ResolveGraphColor(SettingsService.Instance.GraphColorSource, SettingsService.Instance.GraphCustomColor);
                 SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
-                SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
             }
+
+            switch (Scope)
+            {
+                case SensorGraphScope.Taskbar: SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnGraphTimeSpanChanged; break;
+                case SensorGraphScope.TaskbarFlyout: SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged += OnGraphTimeSpanChanged; break;
+                default: SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged; break;
+            }
+
+            _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
             // line style and fill fade are global, the same for every scope
             GraphLineStyle = SettingsService.Instance.GraphLineStyle;
@@ -103,6 +124,9 @@ namespace FluentSensors.Controls.SensorGraph
         // === bindable properties ===
 
         public SensorGraphScope Scope { get; }
+
+        // the taskbar widget or its flyout; both follow the taskbar graph settings
+        private bool IsTaskbarScope => Scope is SensorGraphScope.Taskbar or SensorGraphScope.TaskbarFlyout;
 
         // only for the graph colour (see ResolveGraphColor); Other resolves like hardware colours off
         public HardwareGroupKind HardwareKind { get; }
@@ -332,6 +356,28 @@ namespace FluentSensors.Controls.SensorGraph
             RecalculatePointCount();
         }
 
+        // the other graph of the taskbar pair moved the shared y-axis; taken over without pushing it back
+        private void OnSensorStateChanged(string sensorId, SensorState state)
+        {
+            if (sensorId != SensorId) return;
+
+            void Apply()
+            {
+                var yAxisState = state.GetYAxis(Scope);
+                double manualYMax = yAxisState.ManualYMax ?? SensorUnitFormatter.ToRawValue(_yMaxDefault, SensorType);
+                if (_isAutoScaled == yAxisState.IsAutoScaled && _manualYMax == manualYMax) return;
+
+                _isAutoScaled = yAxisState.IsAutoScaled;
+                _manualYMax = manualYMax;
+                OnPropertyChanged(nameof(IsAutoScaled));
+                OnPropertyChanged(nameof(ManualYMax));
+                UpdateYMaxDisplay();
+            }
+
+            if (_dispatcherQueue != null) _dispatcherQueue.TryEnqueue(Apply);
+            else Apply();
+        }
+
 
         // === public methods ===
 
@@ -339,7 +385,7 @@ namespace FluentSensors.Controls.SensorGraph
         // change reaches this instance
         public void RefreshGraphColor()
         {
-            GraphColor = Scope == SensorGraphScope.Taskbar
+            GraphColor = IsTaskbarScope
                 ? ResolveGraphColor(SettingsService.Instance.TaskbarGraphColorSource, SettingsService.Instance.TaskbarGraphCustomColor)
                 : ResolveGraphColor(SettingsService.Instance.GraphColorSource, SettingsService.Instance.GraphCustomColor);
         }
@@ -347,17 +393,20 @@ namespace FluentSensors.Controls.SensorGraph
         // unsubscribes everything, or a removed row keeps reacting
         public void Cleanup()
         {
-            if (Scope == SensorGraphScope.Taskbar)
+            if (IsTaskbarScope)
             {
                 SettingsService.Instance.TaskbarGraphColorChanged -= OnGraphColorChanged;
-                SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged -= OnGraphBackgroundChanged;
+                SensorStateService.Instance.StateChanged -= OnSensorStateChanged;
             }
             else
             {
                 SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
-                SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
             }
+
+            SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+            SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+            SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
 
             HardwareMonitorService.Instance.UpdateIntervalChanged -= OnUpdateIntervalChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
@@ -370,6 +419,14 @@ namespace FluentSensors.Controls.SensorGraph
 
         public void AddDataPoint(double newValue, string formattedValueText)
         {
+            if (_isFrozen)
+            {
+                _pendingValues.Enqueue(newValue);
+                if (_pendingValues.Count > SensorData.Count) _pendingValues.Dequeue();
+                _pendingValueText = formattedValueText;
+                return;
+            }
+
             _currentRaw = newValue;
 
             CurrentValueText = formattedValueText;
@@ -393,8 +450,7 @@ namespace FluentSensors.Controls.SensorGraph
         // a flat zero baseline when a closed widget reopens; (not on minimize, a minimized widget keeps its history)
         public void ResetToBaseline()
         {
-            double effectiveSeconds = _timeSpanOverrideSeconds ?? SettingsService.Instance.GraphTimeSpanSeconds;
-            int pointCount = CalculatePointCount(effectiveSeconds, HardwareMonitorService.Instance.UpdateIntervalMs);
+            int pointCount = CalculatePointCount(ResolveTimeSpanSeconds(), HardwareMonitorService.Instance.UpdateIntervalMs);
 
             SensorData.Clear();
             for (int i = 0; i < pointCount; i++)
@@ -403,6 +459,29 @@ namespace FluentSensors.Controls.SensorGraph
             }
 
             CurrentValueText = "-";
+        }
+
+        // snapshot: frozen, line, value and y-axis stay where they are while the values that arrive are collected;
+        // thawed, the graph takes them over and jumps to now with the history of the pause
+        public void SetFrozen(bool frozen)
+        {
+            if (_isFrozen == frozen) return;
+            _isFrozen = frozen;
+
+            if (frozen || _pendingValues.Count == 0) return;
+
+            // one new collection, so one repaint instead of one per value
+            var values = SensorData.Concat(_pendingValues.Select(v => (double?)v)).ToList();
+            SensorData = new ObservableCollection<double?>(values.Skip(values.Count - SensorData.Count));
+            OnPropertyChanged(nameof(SensorData));
+
+            _currentRaw = _pendingValues.Last();
+            CurrentValueText = _pendingValueText ?? CurrentValueText;
+            _pendingValues.Clear();
+            _pendingValueText = null;
+
+            UpdateYMaxDisplay();
+            RecalculateColor();
         }
 
         // view-specific time span and Y-axis, never persisted (the performance page fixes them per view)
@@ -473,9 +552,12 @@ namespace FluentSensors.Controls.SensorGraph
         {
             if (_timeSpanOverrideSeconds.HasValue) return _timeSpanOverrideSeconds.Value;
 
-            return Scope == SensorGraphScope.Taskbar
-                ? SettingsService.Instance.TaskbarGraphTimeSpanSeconds
-                : SettingsService.Instance.GraphTimeSpanSeconds;
+            return Scope switch
+            {
+                SensorGraphScope.Taskbar => SettingsService.Instance.TaskbarGraphTimeSpanSeconds,
+                SensorGraphScope.TaskbarFlyout => SettingsService.Instance.TaskbarFlyoutGraphTimeSpanSeconds,
+                _ => SettingsService.Instance.GraphTimeSpanSeconds
+            };
         }
 
         // points to cover timeSpanSeconds at the interval; 30s at 500ms = 60

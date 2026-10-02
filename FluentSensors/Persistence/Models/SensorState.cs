@@ -41,7 +41,7 @@ namespace FluentSensors.Persistence.Models
         {
             SensorGraphScope.Performance => PerformanceYAxis,
             SensorGraphScope.Widget => WidgetYAxis,
-            SensorGraphScope.Taskbar => TaskbarYAxis,
+            SensorGraphScope.Taskbar or SensorGraphScope.TaskbarFlyout => TaskbarYAxis,
             _ => WidgetYAxis
         };
     }
