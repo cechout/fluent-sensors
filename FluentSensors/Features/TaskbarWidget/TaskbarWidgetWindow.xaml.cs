@@ -47,14 +47,29 @@ namespace FluentSensors.Features.TaskbarWidget
         // === fields ===
 
         // logical pixels, scaled to the taskbars DPI before use, so these read the same at any scaling
-        public const double VerticalMarginTopDip = 2.5; // gap above widget in DIP (1 mm = 3.78 DIP)
-        public const double VerticalMarginBottomDip = 2.0; // gap below widget in DIP (1 mm = 3.78 DIP)
+        // inner is the side of the taskbar facing the desktop, outer the side facing the screen edge; on a bottom
+        // taskbar that is above and below the widget
+        public const double InnerMarginDip = 2.5; // gap on the desktop side of the widget in DIP (1 mm = 3.78 DIP)
+        public const double OuterMarginDip = 2.0; // gap on the screen edge side of the widget in DIP (1 mm = 3.78 DIP)
+        // the small taskbar sets its own buttons closer to its edges, so it gets its own pair (WinTaskbarInfo.IsCompact)
+        public const double CompactInnerMarginDip = 0.8; // gap on the desktop side on a small taskbar in DIP
+        public const double CompactOuterMarginDip = 0.2; // gap on the screen edge side on a small taskbar in DIP
         private const int AnchorOffsetDip = 10; // gap between the widget and the anchored end of the taskbar
-        private const int TaskbarHorizontalPaddingDip = 10; // minimum margin to the outer left/right edges of the taskbar
+        private const int TaskbarEndPaddingDip = 10; // minimum margin to both ends of the taskbar
         private const int SensorSlotWidthDip = 120; // width per pinned sensor slot
         private const int SensorSlotSpacingDip = 8; // spacing between sensor slots
         private const int ButtonPaddingDip = 0; // inner horizontal padding of the taskbar button
-        private const int MinimumWidgetWidthDip = 60; // fallback width when no sensors are pinned
+        private const int MinimumWidgetLengthDip = 60; // fallback length along the taskbar when no sensors are pinned
+
+        // padding inside the taskbar button, in the frame of the graph rather than of the taskbar edge: the graph is not
+        // symmetric by itself (SensorPanelControl keeps a 3 DIP gap above it for its hidden label row, the chart reaches
+        // 2 DIP below its card), and that stays with the graph whichever edge the taskbar sits on, see ApplyButtonPadding
+        // calibrated on the bottom taskbar, where the graph top faces the desktop
+        private const double ButtonPaddingEndsDip = 4; // at both ends of the slot row
+        private const double ButtonPaddingGraphTopDip = 0.5; // on the side of the graph top
+        private const double ButtonPaddingGraphBottomDip = 2.5; // on the side of the graph baseline
+        private const double CompactButtonPaddingGraphTopDip = -0.3; // on the side of the graph top on a small taskbar
+        private const double CompactButtonPaddingGraphBottomDip = 1.7; // on the side of the graph baseline on a small taskbar
 
         // maybe a user setting?
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
@@ -71,12 +86,26 @@ namespace FluentSensors.Features.TaskbarWidget
         private bool _isPotentialDrag;
         private bool _isDragging;
         private bool _suppressClick;
-        private int _dragStartCursorScreenX;
-        private int _dragStartWindowScreenX;
-        private RectInt32 _dragTaskbarRect;
-        private uint _dragTaskbarDpi;
+        private int _dragStartCursorAlong; // cursor position along the taskbar when the press started
+        private int _dragStartWindowAlong; // widget position along the taskbar when the press started
+        private WinTaskbarInfo? _dragTaskbar;
         private RectInt32 _currentScreenRect;
-        private int _currentOffsetDip = AnchorOffsetDip;
+
+        // drag offsets from the start of the taskbar, one per screen edge; every taskbar position keeps its own widget
+        // place, so moving the taskbar away and back finds the widget where it was left
+        private readonly Dictionary<ScreenEdge, int> _offsetsDip = new();
+
+        // taskbar snapshot the widget was last laid out for; FollowTaskbar compares against it to skip polls that
+        // only changed a secondary taskbar
+        private WinTaskbarInfo? _placedTaskbar;
+
+        private ScreenEdge PlacedEdge => _placedTaskbar?.Edge ?? ScreenEdge.Bottom;
+
+        private int CurrentOffsetDip
+        {
+            get => _offsetsDip.TryGetValue(PlacedEdge, out int offsetDip) ? offsetDip : AnchorOffsetDip;
+            set => _offsetsDip[PlacedEdge] = value;
+        }
 
         // --- taskbar button animation settings ---
         private const int HoverBackgroundDelayMs = 0; // delay before hover background starts (Standard Windows: 0ms)
@@ -101,7 +130,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private bool _embedGaveUp;
         public bool IsEmbedded => _isEmbedded;
 
-        // set only on the window a rebuild creates to replace a live one: it carries its predecessors drag offset,
+        // set only on the window a rebuild creates to replace a live one: it carries its predecessors drag offsets,
         // skips the startup animation, and reopens the flyout if the rebuild interrupted an open one
         private bool _isRebuild;
         private bool _restoreFlyoutAfterEmbed;
@@ -128,10 +157,13 @@ namespace FluentSensors.Features.TaskbarWidget
         // rebuild path: takes over the ViewModel of the window it replaces, so the pinned graphs keep their history
         // and the old instance leaves no second HardwareDataUpdated subscription behind
         // see TaskbarFlyoutWindow.ScheduleRecreation for why the window is rebuilt at all
-        private TaskbarWidgetWindow(TaskbarWidgetViewModel viewModel, int offsetDip, bool restoreFlyout)
+        private TaskbarWidgetWindow(TaskbarWidgetViewModel viewModel, Dictionary<ScreenEdge, int> offsetsDip, bool restoreFlyout)
         {
             ViewModel = viewModel;
-            _currentOffsetDip = offsetDip;
+            foreach (var pair in offsetsDip)
+            {
+                _offsetsDip[pair.Key] = pair.Value;
+            }
             _isRebuild = true;
             _restoreFlyoutAfterEmbed = restoreFlyout;
             Initialize();
@@ -148,15 +180,11 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow.IsShownInSwitchers = false;
                 _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-                // restore previously saved drag offset along the taskbar if available
-                // a rebuild already carries the offset of the window it replaces, see the rebuild constructor
+                // restore previously saved drag offsets along the taskbar if available
+                // a rebuild already carries the offsets of the window it replaces, see the rebuild constructor
                 if (!_isRebuild)
                 {
-                    var savedState = WindowStateService.Instance.GetState(WindowKey);
-                    if (savedState != null && savedState.X >= 0)
-                    {
-                        _currentOffsetDip = savedState.X;
-                    }
+                    LoadOffsets();
                 }
 
                 // --- workaround: CreateForContextMenu crashes unpackaged ---
@@ -184,6 +212,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow.Closing += AppWindow_Closing;
 
                 SettingsService.Instance.TaskbarGraphWidthChanged += OnTaskbarGraphWidthChanged;
+                SettingsService.Instance.TaskbarSideGraphDirectionChanged += OnTaskbarSideGraphDirectionChanged;
+                SettingsService.Instance.TaskbarSideTitleLinesChanged += OnTaskbarSideTitleLinesChanged;
                 ApplyWindowsTheme();
 
                 // wire left-button press/release/drag animations and movement even when Button internally handles clicks
@@ -327,6 +357,9 @@ namespace FluentSensors.Features.TaskbarWidget
             try
             {
                 SettingsService.Instance.TaskbarGraphWidthChanged -= OnTaskbarGraphWidthChanged;
+                SettingsService.Instance.TaskbarSideGraphDirectionChanged -= OnTaskbarSideGraphDirectionChanged;
+                SettingsService.Instance.TaskbarSideTitleLinesChanged -= OnTaskbarSideTitleLinesChanged;
+                StopTrackingTaskbar();
             }
             catch { }
 
@@ -379,7 +412,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 var live = CurrentInstance;
                 var carriedViewModel = live?.ViewModel;
-                int carriedOffsetDip = live?._currentOffsetDip ?? AnchorOffsetDip;
+                var carriedOffsetsDip = new Dictionary<ScreenEdge, int>(live?._offsetsDip ?? new Dictionary<ScreenEdge, int>());
 
                 // the replacement window otherwise shows the pre-change accent: every rebuild trigger refreshes
                 // everything it rebuilds, and this carried ViewModel is precisely the thing that does not
@@ -404,9 +437,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 // one dispatcher hop, so the Close above drains before the replacement window is built
                 var queue = DispatcherQueue.GetForCurrentThread() ?? MainWindow.CurrentInstance?.DispatcherQueue;
-                if (queue == null || !queue.TryEnqueue(() => _ = new TaskbarWidgetWindow(carriedViewModel, carriedOffsetDip, restoreFlyout)))
+                if (queue == null || !queue.TryEnqueue(() => _ = new TaskbarWidgetWindow(carriedViewModel, carriedOffsetsDip, restoreFlyout)))
                 {
-                    _ = new TaskbarWidgetWindow(carriedViewModel, carriedOffsetDip, restoreFlyout);
+                    _ = new TaskbarWidgetWindow(carriedViewModel, carriedOffsetsDip, restoreFlyout);
                 }
             }
             finally
@@ -433,19 +466,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 _taskbarHwnd = primaryTaskbar.Hwnd;
 
-                int widthDip = CalculateWidgetWidthDip(ViewModel.PinnedSensors.Count);
-                double scale = primaryTaskbar.Dpi / 96.0;
-                int topMarginPx = (int)Math.Round(VerticalMarginTopDip * scale);
-
-                int bottomMarginPx = (int)Math.Round(VerticalMarginBottomDip * scale);
-
-                var screenRect = TaskbarWidgetPlacement.Calculate(
-                    primaryTaskbar,
-                    Anchor,
-                    (int)(_currentOffsetDip * scale),
-                    (int)(widthDip * scale),
-                    topMarginPx,
-                    bottomMarginPx);
+                ApplyEdgeLayout(primaryTaskbar);
+                var screenRect = CalculateScreenRect(primaryTaskbar);
 
                 _currentScreenRect = screenRect;
 
@@ -501,6 +523,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 _embedAttempt = 0;
                 _isEmbedded = true;
                 SaveWindowState(wasOpen: true);
+                StartTrackingTaskbar();
 
                 // a rebuild replaces a widget that is already sitting on the taskbar, so it skips the startup
                 // sequence; otherwise every OS accent or transparency change would blank the button for
@@ -516,8 +539,7 @@ namespace FluentSensors.Features.TaskbarWidget
                             var visual = ElementCompositionPreview.GetElementVisual(TaskbarButton);
                             if (visual != null)
                             {
-                                float slideDistPx = (float)(TaskbarStartupSlideDistanceDip * scale);
-                                visual.Offset = new Vector3(0, slideDistPx, 0);
+                                visual.Offset = GetStartupSlideOffset(primaryTaskbar);
                                 visual.Opacity = TaskbarStartupStartOpacity;
                             }
                         }
@@ -560,27 +582,106 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // repositions and resizes the already-embedded window according to the current sensor count
+        // repositions and resizes the already-embedded window according to the current sensor count and taskbar edge
         private void PositionOnTaskbar()
         {
             var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
             if (primaryTaskbar == null) return;
 
-            int widthDip = CalculateWidgetWidthDip(ViewModel.PinnedSensors.Count);
-            double scale = primaryTaskbar.Dpi / 96.0;
-            int topMarginPx = (int)Math.Round(VerticalMarginTopDip * scale);
-            int bottomMarginPx = (int)Math.Round(VerticalMarginBottomDip * scale);
-
-            var screenRect = TaskbarWidgetPlacement.Calculate(
-                primaryTaskbar,
-                Anchor,
-                (int)(_currentOffsetDip * scale),
-                (int)(widthDip * scale),
-                topMarginPx,
-                bottomMarginPx);
+            ApplyEdgeLayout(primaryTaskbar);
+            var screenRect = CalculateScreenRect(primaryTaskbar);
 
             _currentScreenRect = screenRect;
             WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
+        }
+
+        // the widget rect on the given taskbar: length from the pinned sensor count, position from the drag offset
+        // of the matching orientation, kept inside the taskbar the same way a drag is
+        private RectInt32 CalculateScreenRect(WinTaskbarInfo taskbar)
+        {
+            double scale = taskbar.Dpi / 96.0;
+            int lengthPx = (int)(CalculateWidgetLengthDip(ViewModel.PinnedSensors.Count) * scale);
+            int innerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactInnerMarginDip : InnerMarginDip) * scale);
+            int outerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactOuterMarginDip : OuterMarginDip) * scale);
+
+            return TaskbarWidgetPlacement.Calculate(
+                taskbar,
+                Anchor,
+                ClampOffsetPx(taskbar, (int)(CurrentOffsetDip * scale), lengthPx),
+                lengthPx,
+                innerMarginPx,
+                outerMarginPx);
+        }
+
+        // keeps an offset along the taskbar at least TaskbarEndPaddingDip away from both of its ends; the start end
+        // wins when the widget is too long to honor both
+        private static int ClampOffsetPx(WinTaskbarInfo taskbar, int offsetPx, int lengthPx)
+        {
+            double scale = taskbar.Dpi / 96.0;
+            int paddingPx = (int)Math.Round(TaskbarEndPaddingDip * scale);
+            int barLength = taskbar.IsVertical ? taskbar.Rect.Height : taskbar.Rect.Width;
+
+            int minOffset = paddingPx;
+            int maxOffset = barLength - lengthPx - paddingPx;
+            if (maxOffset < minOffset) maxOffset = minOffset;
+
+            return Math.Clamp(offsetPx, minOffset, maxOffset);
+        }
+
+        // turns the slot row and the button padding to the edge the taskbar sits on; the slot panel and template are
+        // only swapped when the orientation actually changes, a new panel or template rebuilds every graph in the row
+        //
+        // side slots that already exist still get the new edge, a move from the left to the right edge keeps them
+        private void ApplyEdgeLayout(WinTaskbarInfo taskbar)
+        {
+            _placedTaskbar = taskbar;
+
+            // graph width, time range, flyout alignment and the side slot layout are kept per edge and follow it here
+            SettingsService.Instance.ActiveTaskbarEdge = taskbar.Edge.ToString();
+
+            var slotsPanel = (ItemsPanelTemplate)RootGrid.Resources[taskbar.IsVertical ? "VerticalSlotsPanel" : "HorizontalSlotsPanel"];
+            if (SlotsItemsControl.ItemsPanel != slotsPanel)
+            {
+                SlotsItemsControl.ItemsPanel = slotsPanel;
+            }
+
+            var slotTemplate = (DataTemplate)RootGrid.Resources[taskbar.IsVertical ? "SideSlotTemplate" : "HorizontalSlotTemplate"];
+            if (SlotsItemsControl.ItemTemplate != slotTemplate)
+            {
+                SlotsItemsControl.ItemTemplate = slotTemplate;
+            }
+
+            RefreshSideSlots();
+            ApplyButtonPadding(taskbar);
+        }
+
+        // the padding follows the graph, not the edge, unlike the margins in CalculateScreenRect:
+        // bottom and top - the graph stands upright on both, so both get the bottom calibration unmirrored
+        // left and right - the graphs are centered across the taskbar, with the larger of the two paddings on both
+        //   sides, in every graph direction
+        private void ApplyButtonPadding(WinTaskbarInfo taskbar)
+        {
+            double graphTop = taskbar.IsCompact ? CompactButtonPaddingGraphTopDip : ButtonPaddingGraphTopDip;
+            double graphBottom = taskbar.IsCompact ? CompactButtonPaddingGraphBottomDip : ButtonPaddingGraphBottomDip;
+
+            double across = Math.Max(graphTop, graphBottom);
+            TaskbarButton.Padding = taskbar.IsVertical
+                ? new Thickness(across, ButtonPaddingEndsDip, across, ButtonPaddingEndsDip)
+                : new Thickness(ButtonPaddingEndsDip, graphTop, ButtonPaddingEndsDip, graphBottom);
+        }
+
+        // the startup slide comes in from the screen edge the taskbar is docked to
+        private static Vector3 GetStartupSlideOffset(WinTaskbarInfo taskbar)
+        {
+            float distance = (float)(TaskbarStartupSlideDistanceDip * (taskbar.Dpi / 96.0));
+
+            return taskbar.Edge switch
+            {
+                ScreenEdge.Top => new Vector3(0, -distance, 0),
+                ScreenEdge.Left => new Vector3(-distance, 0, 0),
+                ScreenEdge.Right => new Vector3(distance, 0, 0),
+                _ => new Vector3(0, distance, 0)
+            };
         }
 
         // retries embedding a few times before giving up: a transient failure (start menu open, another app mid-embed,
@@ -624,6 +725,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             SetGraphsRenderingActive(false);
             ViewModel?.SetLiveDataActive(false);
+            StopTrackingTaskbar();
 
             if (_taskbarHwnd != IntPtr.Zero)
             {
@@ -637,13 +739,41 @@ namespace FluentSensors.Features.TaskbarWidget
             WidgetStateChanged?.Invoke();
         }
 
-        // writes the current taskbar offset and open state to the window state store
+        // writes the open state to the shared window state and every known drag offset to the state of its edge
+        // (WindowKey + edge name), where X carries the offset rather than a window position
         private void SaveWindowState(bool wasOpen = true)
         {
             var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
-            state.X = _currentOffsetDip;
             state.WasOpen = wasOpen;
             WindowStateService.Instance.SetState(WindowKey, state);
+
+            foreach (var pair in _offsetsDip)
+            {
+                var edgeState = WindowStateService.Instance.GetState(WindowKey + pair.Key) ?? new Persistence.Models.WindowState();
+                edgeState.X = pair.Value;
+                WindowStateService.Instance.SetState(WindowKey + pair.Key, edgeState);
+            }
+        }
+
+        // the counterpart of SaveWindowState
+        // an edge without a state of its own yet takes the offset the shared state held before every edge had one,
+        // which was always a horizontal one, so only the bottom and top edge inherit it
+        private void LoadOffsets()
+        {
+            var shared = WindowStateService.Instance.GetState(WindowKey);
+
+            foreach (var edge in Enum.GetValues<ScreenEdge>())
+            {
+                var edgeState = WindowStateService.Instance.GetState(WindowKey + edge);
+                if (edgeState != null && edgeState.X >= 0)
+                {
+                    _offsetsDip[edge] = edgeState.X;
+                }
+                else if (shared != null && shared.X >= 0 && edge is ScreenEdge.Bottom or ScreenEdge.Top)
+                {
+                    _offsetsDip[edge] = shared.X;
+                }
+            }
         }
 
         // --- memory leak: TaskbarWidgetWindow never released after close ---
@@ -691,12 +821,13 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
-        // maps sensor count to total DIP width, including button padding, slot widths, and slot gaps
-        private static int CalculateWidgetWidthDip(int sensorCount)
+        // maps sensor count to total DIP length along the taskbar, including button padding, slot widths, and slot gaps;
+        // on a vertical taskbar the graph width setting becomes the slot height
+        private static int CalculateWidgetLengthDip(int sensorCount)
         {
             if (sensorCount <= 0)
             {
-                return MinimumWidgetWidthDip;
+                return MinimumWidgetLengthDip;
             }
 
             int slotWidth = SettingsService.Instance.TaskbarGraphWidthDip;
@@ -728,6 +859,111 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 SensorGraphRenderingGate.SetActive(root, active);
             }
+        }
+
+
+        // === side taskbar slots ===
+
+        // a side slot gets its layout as soon as it exists; later changes reach it through RefreshSideSlots
+        private void SideSlot_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is TaskbarSideSlot slot)
+            {
+                ApplySideSlotLayout(slot);
+            }
+        }
+
+        private void ApplySideSlotLayout(TaskbarSideSlot slot)
+        {
+            slot.ApplyLayout(
+                _placedTaskbar?.Edge ?? ScreenEdge.Left,
+                SettingsService.Instance.TaskbarSideGraphDirection,
+                SettingsService.Instance.TaskbarSideTitleLines);
+        }
+
+        // walks the slot row the same way SensorGraphRenderingGate walks a graph subtree; on a horizontal taskbar it
+        // finds nothing and does nothing
+        private void RefreshSideSlots()
+        {
+            VisitSideSlots(SlotsItemsControl);
+        }
+
+        private void VisitSideSlots(DependencyObject parent)
+        {
+            int childCount = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < childCount; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+
+                if (child is TaskbarSideSlot slot)
+                {
+                    ApplySideSlotLayout(slot);
+                    continue;
+                }
+
+                VisitSideSlots(child);
+            }
+        }
+
+        private void OnTaskbarSideGraphDirectionChanged(string newDirection)
+        {
+            this.DispatcherQueue.TryEnqueue(RefreshSideSlots);
+        }
+
+        private void OnTaskbarSideTitleLinesChanged(int newLines)
+        {
+            this.DispatcherQueue.TryEnqueue(RefreshSideSlots);
+        }
+
+
+        // === taskbar tracking ===
+
+        private bool _isTrackingTaskbar;
+
+        // follows the taskbar while the widget sits on it; moving it to another screen edge, a resolution or scaling
+        // change and explorer.exe recreating it all show up as a changed snapshot in the WinTaskbarService poll
+        private void StartTrackingTaskbar()
+        {
+            if (_isTrackingTaskbar) return;
+            _isTrackingTaskbar = true;
+
+            WinTaskbarService.Instance.TaskbarsChanged += OnTaskbarsChanged;
+            WinTaskbarService.Instance.StartMonitoring();
+        }
+
+        private void StopTrackingTaskbar()
+        {
+            if (!_isTrackingTaskbar) return;
+            _isTrackingTaskbar = false;
+
+            WinTaskbarService.Instance.TaskbarsChanged -= OnTaskbarsChanged;
+            WinTaskbarService.Instance.StopMonitoring();
+        }
+
+        // raised on the polling thread
+        private void OnTaskbarsChanged(IReadOnlyList<WinTaskbarInfo> taskbars)
+        {
+            this.DispatcherQueue.TryEnqueue(() => FollowTaskbar(taskbars.FirstOrDefault()));
+        }
+
+        // a new taskbar handle means explorer.exe built a new taskbar and the widget, a child of the old one, may have
+        // gone down with it, so that case rebuilds the widget instead of moving it; an empty snapshot while explorer.exe
+        // restarts is skipped, the next poll brings the new taskbar
+        //
+        // an open flyout is closed rather than moved, the next click opens it at the new place
+        private void FollowTaskbar(WinTaskbarInfo? primaryTaskbar)
+        {
+            if (_isClosed || !_isEmbedded || primaryTaskbar == null || primaryTaskbar == _placedTaskbar) return;
+
+            TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
+
+            if (primaryTaskbar.Hwnd != _taskbarHwnd)
+            {
+                RecreateWindow(restoreFlyout: false);
+                return;
+            }
+
+            PositionOnTaskbar();
         }
 
 
@@ -763,8 +999,9 @@ namespace FluentSensors.Features.TaskbarWidget
             if (compositor == null) return;
 
             var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
-            double scale = primaryTaskbar != null ? (primaryTaskbar.Dpi / 96.0) : 1.0;
-            float slideDistPx = (float)(TaskbarStartupSlideDistanceDip * scale);
+            var startOffset = primaryTaskbar != null
+                ? GetStartupSlideOffset(primaryTaskbar)
+                : new Vector3(0, TaskbarStartupSlideDistanceDip, 0);
 
             // Fluent 2 Decelerate Curve: cubic-bezier(0, 0, 0, 1)
             var easeOut = compositor.CreateCubicBezierEasingFunction(
@@ -772,7 +1009,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 new Vector2(0.0f, 1.0f));
 
             var offsetAnim = compositor.CreateVector3KeyFrameAnimation();
-            offsetAnim.InsertKeyFrame(0.0f, new Vector3(0, slideDistPx, 0));
+            offsetAnim.InsertKeyFrame(0.0f, startOffset);
             offsetAnim.InsertKeyFrame(1.0f, new Vector3(0, 0, 0), easeOut);
             offsetAnim.Duration = TimeSpan.FromMilliseconds(TaskbarStartupDurationMs);
             visual.StartAnimation("Offset", offsetAnim);
@@ -1026,17 +1263,13 @@ namespace FluentSensors.Features.TaskbarWidget
             // skip all drag bookkeeping while the position is locked; press feedback and click-to-toggle stay live
             if (!SettingsService.Instance.TaskbarWidgetPositionLocked && NativeMethods.GetCursorPos(out var cursorPos))
             {
-                _dragStartCursorScreenX = cursorPos.X;
-                _dragStartWindowScreenX = _currentScreenRect.X;
+                _dragTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
+                bool isVertical = _dragTaskbar?.IsVertical ?? false;
+
+                _dragStartCursorAlong = isVertical ? cursorPos.Y : cursorPos.X;
+                _dragStartWindowAlong = isVertical ? _currentScreenRect.Y : _currentScreenRect.X;
                 _isPotentialDrag = true;
                 _isDragging = false;
-
-                var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
-                if (primaryTaskbar != null)
-                {
-                    _dragTaskbarRect = primaryTaskbar.Rect;
-                    _dragTaskbarDpi = primaryTaskbar.Dpi;
-                }
             }
 
             _isPressed = true;
@@ -1050,9 +1283,11 @@ namespace FluentSensors.Features.TaskbarWidget
 
             if (!NativeMethods.GetCursorPos(out var currentCursorPos)) return;
 
-            int deltaX = currentCursorPos.X - _dragStartCursorScreenX;
+            // the drag runs along the taskbar, X on a horizontal one and Y on a vertical one
+            bool isVertical = _dragTaskbar?.IsVertical ?? false;
+            int delta = (isVertical ? currentCursorPos.Y : currentCursorPos.X) - _dragStartCursorAlong;
 
-            if (!_isDragging && Math.Abs(deltaX) >= DragThresholdPixels)
+            if (!_isDragging && Math.Abs(delta) >= DragThresholdPixels)
             {
                 _isDragging = true;
 
@@ -1069,23 +1304,23 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
             }
 
-            if (_isDragging && _dragTaskbarRect.Width > 0)
+            if (_isDragging && _dragTaskbar != null)
             {
-                double scale = (_dragTaskbarDpi > 0 ? _dragTaskbarDpi : 96.0) / 96.0;
-                int paddingPx = (int)Math.Round(TaskbarHorizontalPaddingDip * scale);
+                double scale = (_dragTaskbar.Dpi > 0 ? _dragTaskbar.Dpi : 96.0) / 96.0;
+                int barStart = isVertical ? _dragTaskbar.Rect.Y : _dragTaskbar.Rect.X;
+                int lengthPx = isVertical ? _currentScreenRect.Height : _currentScreenRect.Width;
+                int currentAlong = isVertical ? _currentScreenRect.Y : _currentScreenRect.X;
 
-                int minX = _dragTaskbarRect.X + paddingPx;
-                int maxX = _dragTaskbarRect.X + _dragTaskbarRect.Width - _currentScreenRect.Width - paddingPx;
-                if (maxX < minX) maxX = minX;
+                int targetAlong = barStart + ClampOffsetPx(_dragTaskbar, _dragStartWindowAlong + delta - barStart, lengthPx);
 
-                int targetScreenX = Math.Clamp(_dragStartWindowScreenX + deltaX, minX, maxX);
-
-                if (targetScreenX != _currentScreenRect.X)
+                if (targetAlong != currentAlong)
                 {
-                    _currentScreenRect = new RectInt32(targetScreenX, _currentScreenRect.Y, _currentScreenRect.Width, _currentScreenRect.Height);
+                    _currentScreenRect = isVertical
+                        ? new RectInt32(_currentScreenRect.X, targetAlong, _currentScreenRect.Width, _currentScreenRect.Height)
+                        : new RectInt32(targetAlong, _currentScreenRect.Y, _currentScreenRect.Width, _currentScreenRect.Height);
                     WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, _currentScreenRect);
 
-                    _currentOffsetDip = (int)Math.Round((targetScreenX - _dragTaskbarRect.X) / scale);
+                    CurrentOffsetDip = (int)Math.Round((targetAlong - barStart) / scale);
                 }
             }
         }
@@ -1124,7 +1359,7 @@ namespace FluentSensors.Features.TaskbarWidget
             TaskbarButton_PointerExited(sender, e);
         }
 
-        // the single place a drag is committed; the moved offset only lives in _currentOffsetDip until this runs
+        // the single place a drag is committed; the moved offset only lives in CurrentOffsetDip until this runs
         //
         // releasing the pointer produces both a PointerReleased and a PointerCaptureLost, in an order that is not
         // guaranteed, and a capture can also be lost mid drag with no release at all; every one of those paths ends

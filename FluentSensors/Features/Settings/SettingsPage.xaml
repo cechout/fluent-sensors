@@ -445,6 +445,20 @@
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Taskbar Widget &amp; Flyout Appearance" />
 
+            <!--  taskbar position the per position settings below belong to  -->
+            <!--
+                (the position is filled in at runtime from the edge the taskbar sits on; MinHeight and Padding
+                override the 68 and 16 the toolkit style sets, so this read only row stays lower than the others)
+            -->
+            <controls:SettingsCard
+                MinHeight="40"
+                Padding="16,12,16,12"
+                fhUi:FocusGroup.IsEnabled="True"
+                Background="{ThemeResource ControlFillColorTertiaryBrush}"
+                Header="Current Taskbar Position">
+                <TextBlock x:Name="TaskbarPositionText" VerticalAlignment="Center" />
+            </controls:SettingsCard>
+
             <!--  drag lock for the widget position on the taskbar  -->
             <controls:SettingsCard
                 fhUi:FocusGroup.IsEnabled="True"
@@ -461,7 +475,7 @@
             <!--  taskbar graph appearance  -->
             <controls:SettingsExpander
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Taskbar graph color, background, time range and graph Width"
+                Description="Taskbar graph color, background, time range, graph Width and side taskbar layout"
                 Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
@@ -515,11 +529,32 @@
                         <Slider
                             x:Name="TaskbarGraphWidthSlider"
                             Width="200"
-                            Maximum="240"
-                            Minimum="60"
+                            Maximum="180"
+                            Minimum="30"
                             StepFrequency="5"
                             TickFrequency="20"
                             ValueChanged="TaskbarGraphWidthSlider_ValueChanged" />
+                    </controls:SettingsCard>
+
+                    <!--  side taskbar slot, only shown while the taskbar sits on the left or right  -->
+                    <controls:SettingsCard x:Name="TaskbarSideGraphDirectionCard" Header="Side Taskbar Graph Direction">
+                        <ComboBox
+                            x:Name="TaskbarSideGraphDirectionComboBox"
+                            Width="160"
+                            SelectionChanged="TaskbarSideGraphDirectionComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Right to Left" Tag="RightToLeft" />
+                            <ComboBoxItem Content="Top to Bottom" Tag="TopToBottom" />
+                            <ComboBoxItem Content="Bottom to Top" Tag="BottomToTop" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard x:Name="TaskbarSideTitleLinesCard" Header="Side Taskbar Name Lines">
+                        <ComboBox
+                            x:Name="TaskbarSideTitleLinesComboBox"
+                            Width="160"
+                            SelectionChanged="TaskbarSideTitleLinesComboBox_SelectionChanged">
+                            <ComboBoxItem Content="One Line" Tag="1" />
+                            <ComboBoxItem Content="Two Lines" Tag="2" />
+                        </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

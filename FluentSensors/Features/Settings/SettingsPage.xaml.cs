@@ -2,12 +2,14 @@
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
 using FluentSensors.Core.Startup;
+using FluentSensors.Core.Taskbar;
 using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
@@ -53,6 +55,7 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarGraphBackgroundSourceSelection();
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarGraphWidthSelection();
+            RestoreTaskbarSideSlotSelection();
             RestoreTaskbarFlyoutAlignmentSelection();
             RestoreLockWidgetPositionSelection();
 
@@ -88,11 +91,39 @@ namespace FluentSensors.Features.Settings
         {
             SettingsService.Instance.StatusReadoutChanged += OnStatusReadoutChanged;
             OnStatusReadoutChanged();
+
+            // the per position settings follow the taskbar even while the taskbar widget is closed and not tracking it
+            SettingsService.Instance.ActiveTaskbarEdgeChanged += OnActiveTaskbarEdgeChanged;
+            var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
+            if (primaryTaskbar != null)
+            {
+                SettingsService.Instance.ActiveTaskbarEdge = primaryTaskbar.Edge.ToString();
+            }
+            OnActiveTaskbarEdgeChanged(SettingsService.Instance.ActiveTaskbarEdge);
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             SettingsService.Instance.StatusReadoutChanged -= OnStatusReadoutChanged;
+            SettingsService.Instance.ActiveTaskbarEdgeChanged -= OnActiveTaskbarEdgeChanged;
+        }
+
+        // shows the values of the taskbar position that is active now; the side taskbar cards only mean something on
+        // the left and right edge
+        private void OnActiveTaskbarEdgeChanged(string edge)
+        {
+            TaskbarPositionText.Text = edge;
+
+            var sideVisibility = edge is "Left" or "Right" ? Visibility.Visible : Visibility.Collapsed;
+            TaskbarSideGraphDirectionCard.Visibility = sideVisibility;
+            TaskbarSideTitleLinesCard.Visibility = sideVisibility;
+
+            _isLoading = true;
+            RestoreTaskbarGraphTimeSpanSelection();
+            RestoreTaskbarGraphWidthSelection();
+            RestoreTaskbarSideSlotSelection();
+            RestoreTaskbarFlyoutAlignmentSelection();
+            _isLoading = false;
         }
 
         // only meant for writes from outside this page; a write from here echoes straight back into this method,
@@ -934,6 +965,33 @@ namespace FluentSensors.Features.Settings
         private void RestoreTaskbarGraphWidthSelection()
         {
             TaskbarGraphWidthSlider.Value = SettingsService.Instance.TaskbarGraphWidthDip;
+        }
+
+        // slot layout on a side taskbar
+        private void TaskbarSideGraphDirectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarSideGraphDirectionComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarSideGraphDirection = tag;
+            }
+        }
+
+        private void TaskbarSideTitleLinesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarSideTitleLinesComboBox.SelectedItem is ComboBoxItem item && int.TryParse(item.Tag?.ToString(), out int lines))
+            {
+                SettingsService.Instance.TaskbarSideTitleLines = lines;
+            }
+        }
+
+        private void RestoreTaskbarSideSlotSelection()
+        {
+            SelectByTag(TaskbarSideGraphDirectionComboBox, SettingsService.Instance.TaskbarSideGraphDirection);
+            SelectByTag(TaskbarSideTitleLinesComboBox, SettingsService.Instance.TaskbarSideTitleLines.ToString());
         }
 
         // flyout alignment over the widget

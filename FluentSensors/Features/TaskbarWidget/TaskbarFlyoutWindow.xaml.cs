@@ -31,7 +31,7 @@ using FluentSensors.Features.CsvLogging;
 
 namespace FluentSensors.Features.TaskbarWidget
 {
-    // companion flyout window displaying live telemetry graphs directly anchored above the taskbar widget
+    // companion flyout window displaying live telemetry graphs directly anchored next to the taskbar widget
     //
     // WinUI 3 has no built-in support for anchoring a borderless, non-activating window to an external Win32 shell
     // window; this window combines several low-level techniques:
@@ -188,16 +188,16 @@ namespace FluentSensors.Features.TaskbarWidget
         private const string WindowKey = "TaskbarFlyout";
 
         // Anchor offsets configurable in code-behind
-        // the taskbar gap doubles as the gap to the top of the work area, and that pair is what caps the window
-        // height, see PositionAboveTaskbar
-        public const int FlyoutMarginToTaskbarDip = 12; // vertical gap between taskbar top and flyout bottom edge
-        public const int FlyoutMarginToScreenEdgeDip = 12; // smallest gap the flyout keeps to the left and right screen edges
+        // the taskbar gap doubles as the gap to the far side of the work area, and that pair is what caps the window
+        // height on a horizontal taskbar, see PositionNextToTaskbar
+        public const int FlyoutMarginToTaskbarDip = 12; // gap between the taskbar and the facing flyout edge
+        public const int FlyoutMarginToScreenEdgeDip = 12; // smallest gap the flyout keeps to the screen edges along the taskbar
 
-        // horizontal offset from the aligned edge, meaning depends on TaskbarFlyoutAlignment:
-        // Left = pixels to move right (inward from the widget left edge)
-        // Right = pixels to move left (inward from the widget right edge)
+        // offset from the aligned edge along the taskbar, meaning depends on TaskbarFlyoutAlignment:
+        // Left = pixels to move inward from the widget left edge (top edge on a vertical taskbar)
+        // Right = pixels to move inward from the widget right edge (bottom edge on a vertical taskbar)
         // Center = unused
-        public const int FlyoutHorizontalOffsetDip = 0;
+        public const int FlyoutAlignmentOffsetDip = 0;
 
         // fixed width in DIP; the value lives with the other window sizes in AppSettingsData
         public const double FlyoutDefaultWidthDip = AppSettingsData.TaskbarFlyoutWidthDip;
@@ -234,7 +234,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private WindowMessageMonitor _messageMonitor;
         private UISettings? _uiSettings;
 
-        private int _bottomAnchorY;
+        private bool _isAnchored; // set once PositionNextToTaskbar has placed the window
         private int _targetX;
         private int _targetY;
         private bool _isAdjustingPosition;
@@ -259,10 +259,11 @@ namespace FluentSensors.Features.TaskbarWidget
         private bool _animIsEntering;
         private Action? _animOnComplete;
 
-        // both slides travel this many physical pixels; computed once per open in PositionAboveTaskbar from the
-        // taskbars own DPI, and read from here rather than recomputed against the window DPI at slide time, which
-        // could disagree with it on a mixed-DPI setup and jump the first frame
-        private int _slideDistancePx;
+        // both slides travel this offset in physical pixels, from the target position toward the taskbar; computed once
+        // per open in PositionNextToTaskbar from the taskbars own DPI, and read from here rather than recomputed against
+        // the window DPI at slide time, which could disagree with it on a mixed-DPI setup and jump the first frame
+        private int _slideOffsetX;
+        private int _slideOffsetY;
 
         public TaskbarWidgetViewModel ViewModel { get; }
         public static TaskbarFlyoutWindow? CurrentInstance { get; private set; }
@@ -464,11 +465,11 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             if (CurrentInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
             {
-                CurrentInstance.PositionAboveTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                CurrentInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
             }
             else if (_retainedInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
             {
-                _retainedInstance.PositionAboveTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                _retainedInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
             }
         }
 
@@ -481,7 +482,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             var window = new TaskbarFlyoutWindow(widgetWindow.ViewModel);
             _retainedInstance = window;
-            window.PositionAboveTaskbar(widgetWindow, startForSlideAnimation: false);
+            window.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: false);
 
             if (KeepFlyoutGraphsActiveInBackground)
             {
@@ -500,7 +501,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // toggles visibility of the flyout directly above the taskbar widget
+        // toggles visibility of the flyout directly next to the taskbar widget
         public static void Toggle(TaskbarWidgetWindow widgetWindow)
         {
             if (widgetWindow == null) return;
@@ -521,12 +522,12 @@ namespace FluentSensors.Features.TaskbarWidget
             if (CurrentInstance != null)
             {
                 CurrentInstance.ApplyTheme(SettingsService.Instance.AppTheme);
-                CurrentInstance.PositionAboveTaskbar(widgetWindow, startForSlideAnimation: true);
+                CurrentInstance.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: true);
                 CurrentInstance.SetGraphsRenderingActive(true);
                 CurrentInstance._appWindow.Show();
                 CurrentInstance.EnsureBehindTaskbarZOrder();
                 CurrentInstance.Activate();
-                CurrentInstance.SlideInFromBottom();
+                CurrentInstance.SlideIn();
                 return;
             }
 
@@ -537,23 +538,23 @@ namespace FluentSensors.Features.TaskbarWidget
                 CurrentInstance = window;
 
                 window.ApplyTheme(SettingsService.Instance.AppTheme);
-                window.PositionAboveTaskbar(widgetWindow, startForSlideAnimation: true);
+                window.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: true);
                 window.SetGraphsRenderingActive(true);
                 window._appWindow.Show();
                 window.EnsureBehindTaskbarZOrder();
                 window.Activate();
-                window.SlideInFromBottom();
+                window.SlideIn();
                 return;
             }
 
             var newWindow = new TaskbarFlyoutWindow(widgetWindow.ViewModel);
             newWindow.ApplyTheme(SettingsService.Instance.AppTheme);
-            newWindow.PositionAboveTaskbar(widgetWindow, startForSlideAnimation: true);
+            newWindow.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: true);
             newWindow.SetGraphsRenderingActive(true);
             newWindow._appWindow.Show();
             newWindow.EnsureBehindTaskbarZOrder();
             newWindow.Activate();
-            newWindow.SlideInFromBottom();
+            newWindow.SlideIn();
         }
 
         public void HideFlyout()
@@ -561,7 +562,7 @@ namespace FluentSensors.Features.TaskbarWidget
             if (_isHiding || !_appWindow.IsVisible) return;
             _isHiding = true;
 
-            SlideOutToBottom(() =>
+            SlideOut(() =>
             {
                 _isHiding = false;
                 SetGraphsRenderingActive(false);
@@ -824,7 +825,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === physical window slide & content fade animations ===
 
-        private void SlideInFromBottom()
+        private void SlideIn()
         {
             TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(true);
 
@@ -833,14 +834,15 @@ namespace FluentSensors.Features.TaskbarWidget
             // 1. Content Fade (DirectComposition)
             PlayContentFade(EnterFadeStartOpacity, EnterFadeEndOpacity, durationMs, isEntering: true);
 
-            // 2. Physical Window Slide Up
-            int startY = _targetY + _slideDistancePx;
+            // 2. Physical Window Slide, out from behind the taskbar
+            int startX = _targetX + _slideOffsetX;
+            int startY = _targetY + _slideOffsetY;
 
             EnsureBehindTaskbarZOrder();
-            AnimateNativeWindowPosition(_targetX, startY, _targetX, _targetY, durationMs, isEntering: true);
+            AnimateNativeWindowPosition(startX, startY, _targetX, _targetY, durationMs, isEntering: true);
         }
 
-        private void SlideOutToBottom(Action onCompleted)
+        private void SlideOut(Action onCompleted)
         {
             TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
 
@@ -849,13 +851,14 @@ namespace FluentSensors.Features.TaskbarWidget
             // 1. Content Fade (DirectComposition)
             PlayContentFade(1.0f, ExitFadeEndOpacity, durationMs, isEntering: false);
 
-            // 2. Physical Window Slide Down
+            // 2. Physical Window Slide, back behind the taskbar; only the axis the slide runs on moves
             int currentX = _appWindow.Position.X;
             int currentY = _appWindow.Position.Y;
-            int endY = _targetY + _slideDistancePx;
+            int endX = _slideOffsetX != 0 ? _targetX + _slideOffsetX : currentX;
+            int endY = _slideOffsetY != 0 ? _targetY + _slideOffsetY : currentY;
 
             EnsureBehindTaskbarZOrder();
-            AnimateNativeWindowPosition(currentX, currentY, currentX, endY, durationMs, isEntering: false, onComplete: onCompleted);
+            AnimateNativeWindowPosition(currentX, currentY, endX, endY, durationMs, isEntering: false, onComplete: onCompleted);
         }
 
         // the shared scaling law: how far a value moves from its base with the number of graph rows the flyout is
@@ -873,7 +876,7 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // the distance both slides travel, in physical pixels
-        // PositionAboveTaskbar parks the window on the same value before the enter slide, so it has to come from here
+        // PositionNextToTaskbar parks the window on the same value before the enter slide, so it has to come from here
         // rather than from WindowSlideDistanceDip directly
         private int GetSlideDistancePx(double scaleFactor)
         {
@@ -970,10 +973,11 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === window sizing and positioning ===
 
-        // places the flyout horizontally over the taskbar widget per TaskbarFlyoutAlignment (centered, left or right)
-        // and anchors its bottom edge just above the taskbar, then clamps the result so it never leaves the primary
-        // work area
-        private void PositionAboveTaskbar(TaskbarWidgetWindow widgetWindow, bool startForSlideAnimation = false)
+        // places the flyout next to the taskbar widget on the desktop side of whichever screen edge the taskbar sits on:
+        // along the taskbar per TaskbarFlyoutAlignment (centered, left or right; top or bottom on a vertical taskbar),
+        // across it FlyoutMarginToTaskbarDip away from the taskbar, then clamps the result so it never leaves the
+        // primary work area
+        private void PositionNextToTaskbar(TaskbarWidgetWindow widgetWindow, bool startForSlideAnimation = false)
         {
             var widgetHwnd = WinRT.Interop.WindowNative.GetWindowHandle(widgetWindow);
             NativeMethods.GetWindowRect(widgetHwnd, out var widgetRect);
@@ -981,26 +985,35 @@ namespace FluentSensors.Features.TaskbarWidget
             var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
             double scale = primaryTaskbar != null ? (primaryTaskbar.Dpi / 96.0) : GetScaleFactor();
 
+            // without a taskbar the widget rect stands in for it, on the default bottom edge
+            var edge = primaryTaskbar?.Edge ?? ScreenEdge.Bottom;
+            var bar = primaryTaskbar?.Rect
+                ?? new RectInt32(widgetRect.Left, widgetRect.Top, widgetRect.Right - widgetRect.Left, widgetRect.Bottom - widgetRect.Top);
+
             // width is fixed to FlyoutDefaultWidthDip
             int desiredWidthPx = (int)Math.Round(FlyoutDefaultWidthDip * scale);
 
             int sensorCount = ViewModel.PinnedSensors.Count;
 
-            // vertical gap above the taskbar, horizontal placement over the widget per TaskbarFlyoutAlignment
+            // gap to the taskbar, placement along it over the widget per TaskbarFlyoutAlignment
             int marginPx = (int)Math.Round(FlyoutMarginToTaskbarDip * scale);
-            int offsetPx = (int)Math.Round(FlyoutHorizontalOffsetDip * scale);
+            int offsetPx = (int)Math.Round(FlyoutAlignmentOffsetDip * scale);
             int edgeMarginPx = (int)Math.Round(FlyoutMarginToScreenEdgeDip * scale);
 
-            _bottomAnchorY = primaryTaskbar != null ? (primaryTaskbar.Rect.Y - marginPx) : (widgetRect.Top - marginPx);
-
-            // the gap that holds the flyout off the taskbar is also the gap it keeps to the top of the work area, and
-            // that pair caps the height; without the cap enough pinned sensors produce a window taller than the screen
-            // whose bottom edge ends up behind the taskbar
+            // on a horizontal taskbar the gap that holds the flyout off the taskbar is also the gap it keeps to the far
+            // side of the work area, and that pair caps the height; beside a vertical taskbar the cap is the work area
+            // height less the screen edge gap at both ends
+            // without the cap enough pinned sensors produce a window taller than the screen whose edge ends up behind
+            // the taskbar
             // one graph slot is the floor, so a taskbar on a very short work area cannot produce a zero height window
             var workArea = DisplayArea.Primary.WorkArea;
-            int maxHeightPx = Math.Max(
-                CalculateFlyoutDefaultHeight(1, scale),
-                _bottomAnchorY - (workArea.Y + marginPx));
+            int availableHeightPx = edge switch
+            {
+                ScreenEdge.Top => (workArea.Y + workArea.Height - marginPx) - (bar.Y + bar.Height + marginPx),
+                ScreenEdge.Left or ScreenEdge.Right => workArea.Height - (2 * edgeMarginPx),
+                _ => (bar.Y - marginPx) - (workArea.Y + marginPx)
+            };
+            int maxHeightPx = Math.Max(CalculateFlyoutDefaultHeight(1, scale), availableHeightPx);
 
             int desiredHeightPx = CalculateFlyoutDefaultHeight(sensorCount, scale);
             bool isScrolling = desiredHeightPx > maxHeightPx;
@@ -1013,37 +1026,125 @@ namespace FluentSensors.Features.TaskbarWidget
             _animationSensorCount = isScrolling ? CountFittingGraphSlots(maxHeightPx, scale) : sensorCount;
             ApplyGraphsScrollMode(isScrolling);
 
-            // computed from the taskbars own DPI (scale, above), the same source _targetX/Y and desiredWidthPx/
-            // desiredHeightPx already use; SlideInFromBottom/SlideOutToBottom read this instead of recomputing
-            // against the window DPI, which could disagree with it on a mixed-DPI setup and jump the first frame
-            _slideDistancePx = GetSlideDistancePx(scale);
-
-            // Left/Right anchor to the matching widget edge and let the offset pull the flyout inward;
-            // Center ignores the offset and lines the flyout center up with the widget center
-            _targetX = SettingsService.Instance.TaskbarFlyoutAlignment switch
+            if (edge is ScreenEdge.Left or ScreenEdge.Right)
             {
-                "Left" => widgetRect.Left + offsetPx,
-                "Right" => widgetRect.Right - desiredWidthPx - offsetPx,
-                _ => ((widgetRect.Left + widgetRect.Right) / 2) - (desiredWidthPx / 2)
-            };
-            _targetY = _bottomAnchorY - desiredHeightPx;
+                // beside the taskbar; Left/Right of the alignment setting anchor to the top and bottom widget edge
+                _targetX = edge == ScreenEdge.Left
+                    ? bar.X + bar.Width + marginPx
+                    : bar.X - marginPx - desiredWidthPx;
+                _targetY = SettingsService.Instance.TaskbarFlyoutAlignment switch
+                {
+                    "Left" => widgetRect.Top + offsetPx,
+                    "Right" => widgetRect.Bottom - desiredHeightPx - offsetPx,
+                    _ => ((widgetRect.Top + widgetRect.Bottom) / 2) - (desiredHeightPx / 2)
+                };
 
-            // clamp within the primary work area, never closer than edgeMarginPx to a left or right screen edge;
-            // the left edge wins when the screen is too narrow to honor both sides at once
-            // the top needs no clamp of its own, the height cap above already lands _targetY on marginPx
-            int rightLimitX = workArea.X + workArea.Width - desiredWidthPx - edgeMarginPx;
-            int leftLimitX = workArea.X + edgeMarginPx;
-            _targetX = Math.Max(leftLimitX, Math.Min(_targetX, rightLimitX));
+                // clamp within the primary work area, never closer than edgeMarginPx to the top or bottom screen edge;
+                // the top edge wins when the screen is too short to honor both
+                int bottomLimitY = workArea.Y + workArea.Height - desiredHeightPx - edgeMarginPx;
+                int topLimitY = workArea.Y + edgeMarginPx;
+                _targetY = Math.Max(topLimitY, Math.Min(_targetY, bottomLimitY));
+            }
+            else
+            {
+                // Left/Right anchor to the matching widget edge and let the offset pull the flyout inward;
+                // Center ignores the offset and lines the flyout center up with the widget center
+                _targetX = SettingsService.Instance.TaskbarFlyoutAlignment switch
+                {
+                    "Left" => widgetRect.Left + offsetPx,
+                    "Right" => widgetRect.Right - desiredWidthPx - offsetPx,
+                    _ => ((widgetRect.Left + widgetRect.Right) / 2) - (desiredWidthPx / 2)
+                };
+                _targetY = edge == ScreenEdge.Top
+                    ? bar.Y + bar.Height + marginPx
+                    : bar.Y - marginPx - desiredHeightPx;
 
-            int initialY = startForSlideAnimation
-                ? (_targetY + _slideDistancePx)
-                : _targetY;
+                // clamp within the primary work area, never closer than edgeMarginPx to a left or right screen edge;
+                // the left edge wins when the screen is too narrow to honor both sides at once
+                // the far edge needs no clamp of its own, the height cap above already lands _targetY on marginPx
+                int rightLimitX = workArea.X + workArea.Width - desiredWidthPx - edgeMarginPx;
+                int leftLimitX = workArea.X + edgeMarginPx;
+                _targetX = Math.Max(leftLimitX, Math.Min(_targetX, rightLimitX));
+            }
+
+            _isAnchored = true;
+
+            // computed from the taskbars own DPI (scale, above), the same source _targetX/Y and desiredWidthPx/
+            // desiredHeightPx already use; SlideIn/SlideOut read this instead of recomputing against the window DPI,
+            // which could disagree with it on a mixed-DPI setup and jump the first frame
+            (_slideOffsetX, _slideOffsetY) = CalculateSlideOffset(edge, GetSlideDistancePx(scale), desiredWidthPx, desiredHeightPx);
+
+            int initialX = startForSlideAnimation ? (_targetX + _slideOffsetX) : _targetX;
+            int initialY = startForSlideAnimation ? (_targetY + _slideOffsetY) : _targetY;
 
             _isAdjustingPosition = true;
-            _appWindow.MoveAndResize(new RectInt32(_targetX, initialY, desiredWidthPx, desiredHeightPx));
+            _appWindow.MoveAndResize(new RectInt32(initialX, initialY, desiredWidthPx, desiredHeightPx));
             _isAdjustingPosition = false;
 
             UpdateShadowPolicy();
+        }
+
+        // the slide runs from the target position toward the screen edge the taskbar sits on, where the window is
+        // hidden behind the taskbar or off screen
+        //
+        // past the monitor edge the window is normally just off screen, but a neighboring monitor on that side would
+        // show it sliding across; only then the travel is cut to what stays on the taskbars own monitor
+        private (int X, int Y) CalculateSlideOffset(ScreenEdge edge, int distancePx, int widthPx, int heightPx)
+        {
+            var monitor = DisplayArea.Primary.OuterBounds;
+
+            (int X, int Y) direction = edge switch
+            {
+                ScreenEdge.Top => (0, -1),
+                ScreenEdge.Left => (-1, 0),
+                ScreenEdge.Right => (1, 0),
+                _ => (0, 1)
+            };
+
+            // distance until the far window edge reaches the monitor edge
+            int roomPx = edge switch
+            {
+                ScreenEdge.Top => _targetY - monitor.Y,
+                ScreenEdge.Left => _targetX - monitor.X,
+                ScreenEdge.Right => (monitor.X + monitor.Width) - (_targetX + widthPx),
+                _ => (monitor.Y + monitor.Height) - (_targetY + heightPx)
+            };
+
+            if (distancePx > roomPx)
+            {
+                // the whole path from the parked start to the target
+                var path = new RectInt32(
+                    Math.Min(_targetX, _targetX + (direction.X * distancePx)),
+                    Math.Min(_targetY, _targetY + (direction.Y * distancePx)),
+                    widthPx + Math.Abs(direction.X * distancePx),
+                    heightPx + Math.Abs(direction.Y * distancePx));
+
+                if (OverlapsOtherDisplay(path, monitor))
+                {
+                    distancePx = Math.Max(0, roomPx);
+                }
+            }
+
+            return (direction.X * distancePx, direction.Y * distancePx);
+        }
+
+        private static bool OverlapsOtherDisplay(RectInt32 rect, RectInt32 ownMonitor)
+        {
+            // indexed loop instead of foreach: iterating DisplayArea.FindAll() with foreach throws an
+            // InvalidCastException due to a WinRT interop bug in its enumerator; indexer access avoids it
+            var displayAreas = DisplayArea.FindAll();
+            for (int i = 0; i < displayAreas.Count; i++)
+            {
+                var bounds = displayAreas[i].OuterBounds;
+                if (bounds.Equals(ownMonitor)) continue;
+
+                if (rect.X < bounds.X + bounds.Width && rect.X + rect.Width > bounds.X &&
+                    rect.Y < bounds.Y + bounds.Height && rect.Y + rect.Height > bounds.Y)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private double GetScaleFactor()
@@ -1084,7 +1185,7 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             if (_isAdjustingPosition || _isAnimating) return;
 
-            if (args.DidSizeChange && _bottomAnchorY > 0)
+            if (args.DidSizeChange && _isAnchored)
             {
                 UpdateShadowPolicy();
                 SaveWindowState();
@@ -1279,7 +1380,7 @@ namespace FluentSensors.Features.TaskbarWidget
             this.DispatcherQueue.TryEnqueue(() =>
             {
                 if (_isClosed || TaskbarWidgetWindow.CurrentInstance == null) return;
-                PositionAboveTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
             });
         }
 

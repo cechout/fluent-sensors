@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Windows.UI;
 
 using FluentSensors.Persistence.Models;
@@ -18,6 +19,9 @@ namespace FluentSensors.Persistence.Services
         // declared above _instance on purpose: static fields initialize in order, and the constructor call below
         // already runs the field initializers that read this
         private static readonly AppSettingsData Defaults = new AppSettingsData();
+
+        // the keys of the per taskbar position settings, ScreenEdge names; above _instance for the same reason
+        private static readonly string[] TaskbarEdgeNames = { "Bottom", "Top", "Left", "Right" };
 
         private static readonly SettingsService _instance = new SettingsService();
         public static SettingsService Instance => _instance;
@@ -399,36 +403,6 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private double _taskbarGraphTimeSpanSeconds = Defaults.TaskbarGraphTimeSpanSeconds;
-        public double TaskbarGraphTimeSpanSeconds
-        {
-            get => _taskbarGraphTimeSpanSeconds;
-            set
-            {
-                if (_taskbarGraphTimeSpanSeconds != value)
-                {
-                    _taskbarGraphTimeSpanSeconds = value;
-                    TaskbarGraphTimeSpanChanged?.Invoke(_taskbarGraphTimeSpanSeconds);
-                    SaveDebounced();
-                }
-            }
-        }
-
-        private int _taskbarGraphWidthDip = Defaults.TaskbarGraphWidthDip;
-        public int TaskbarGraphWidthDip
-        {
-            get => _taskbarGraphWidthDip;
-            set
-            {
-                if (_taskbarGraphWidthDip != value)
-                {
-                    _taskbarGraphWidthDip = value;
-                    TaskbarGraphWidthChanged?.Invoke(_taskbarGraphWidthDip);
-                    SaveDebounced();
-                }
-            }
-        }
-
         // when true the taskbar widget graphs drop their calculated card tint and stay fully transparent
         private bool _taskbarUseTransparentGraphBackground = Defaults.TaskbarUseTransparentGraphBackground;
         public bool TaskbarUseTransparentGraphBackground
@@ -440,22 +414,6 @@ namespace FluentSensors.Persistence.Services
                 {
                     _taskbarUseTransparentGraphBackground = value;
                     TaskbarGraphBackgroundChanged?.Invoke(_taskbarUseTransparentGraphBackground);
-                    SaveDebounced();
-                }
-            }
-        }
-
-        // flyout horizontal placement over the taskbar widget: "Center", "Left" or "Right"
-        private string _taskbarFlyoutAlignment = Defaults.TaskbarFlyoutAlignment;
-        public string TaskbarFlyoutAlignment
-        {
-            get => _taskbarFlyoutAlignment;
-            set
-            {
-                if (_taskbarFlyoutAlignment != value)
-                {
-                    _taskbarFlyoutAlignment = value;
-                    TaskbarFlyoutAlignmentChanged?.Invoke(_taskbarFlyoutAlignment);
                     SaveDebounced();
                 }
             }
@@ -475,6 +433,167 @@ namespace FluentSensors.Persistence.Services
                     SaveDebounced();
                 }
             }
+        }
+
+
+        // --- per taskbar position ---
+
+        // time range, graph width, flyout alignment and the side taskbar layout are kept once per screen edge the
+        // taskbar can sit on (TaskbarEdgeSettings); the properties below read and write the edge in ActiveTaskbarEdge,
+        // so every consumer keeps using them as before and simply follows when the taskbar moves
+        private Dictionary<string, TaskbarEdgeSettings> _taskbarEdges = SeedTaskbarEdges(null, Defaults);
+        private string _activeTaskbarEdge = "Bottom";
+
+        private TaskbarEdgeSettings ActiveEdge => _taskbarEdges[_activeTaskbarEdge];
+
+        // the screen edge the taskbar sits on right now, as a ScreenEdge name; set by whoever looks at the taskbar
+        // (the taskbar widget when it places itself, the settings page when it opens), never persisted
+        //
+        // switching raises the change event of every per position value that differs between the two edges, so the
+        // widget, the flyout and the settings page refresh exactly as they do after an edit
+        public string ActiveTaskbarEdge
+        {
+            get => _activeTaskbarEdge;
+            set
+            {
+                if (_activeTaskbarEdge == value || !_taskbarEdges.ContainsKey(value)) return;
+
+                var previous = ActiveEdge;
+                _activeTaskbarEdge = value;
+                var current = ActiveEdge;
+
+                ActiveTaskbarEdgeChanged?.Invoke(_activeTaskbarEdge);
+
+                if (previous.GraphTimeSpanSeconds != current.GraphTimeSpanSeconds)
+                {
+                    TaskbarGraphTimeSpanChanged?.Invoke(current.GraphTimeSpanSeconds);
+                }
+                if (previous.GraphWidthDip != current.GraphWidthDip)
+                {
+                    TaskbarGraphWidthChanged?.Invoke(current.GraphWidthDip);
+                }
+                if (previous.FlyoutAlignment != current.FlyoutAlignment)
+                {
+                    TaskbarFlyoutAlignmentChanged?.Invoke(current.FlyoutAlignment);
+                }
+                if (previous.SideGraphDirection != current.SideGraphDirection)
+                {
+                    TaskbarSideGraphDirectionChanged?.Invoke(current.SideGraphDirection);
+                }
+                if (previous.SideTitleLines != current.SideTitleLines)
+                {
+                    TaskbarSideTitleLinesChanged?.Invoke(current.SideTitleLines);
+                }
+            }
+        }
+
+        public double TaskbarGraphTimeSpanSeconds
+        {
+            get => ActiveEdge.GraphTimeSpanSeconds;
+            set
+            {
+                if (ActiveEdge.GraphTimeSpanSeconds != value)
+                {
+                    ActiveEdge.GraphTimeSpanSeconds = value;
+                    TaskbarGraphTimeSpanChanged?.Invoke(value);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        public int TaskbarGraphWidthDip
+        {
+            get => ActiveEdge.GraphWidthDip;
+            set
+            {
+                if (ActiveEdge.GraphWidthDip != value)
+                {
+                    ActiveEdge.GraphWidthDip = value;
+                    TaskbarGraphWidthChanged?.Invoke(value);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // flyout placement over the taskbar widget: "Center", "Left" or "Right"
+        public string TaskbarFlyoutAlignment
+        {
+            get => ActiveEdge.FlyoutAlignment;
+            set
+            {
+                if (ActiveEdge.FlyoutAlignment != value)
+                {
+                    ActiveEdge.FlyoutAlignment = value;
+                    TaskbarFlyoutAlignmentChanged?.Invoke(value);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // graph direction in a slot on a side taskbar: "RightToLeft", "TopToBottom" or "BottomToTop"
+        public string TaskbarSideGraphDirection
+        {
+            get => ActiveEdge.SideGraphDirection;
+            set
+            {
+                if (ActiveEdge.SideGraphDirection != value)
+                {
+                    ActiveEdge.SideGraphDirection = value;
+                    TaskbarSideGraphDirectionChanged?.Invoke(value);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // lines the sensor name may take in a slot on a side taskbar, 1 or 2
+        public int TaskbarSideTitleLines
+        {
+            get => ActiveEdge.SideTitleLines;
+            set
+            {
+                if (ActiveEdge.SideTitleLines != value)
+                {
+                    ActiveEdge.SideTitleLines = value;
+                    TaskbarSideTitleLinesChanged?.Invoke(value);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // every edge from the saved dictionary, or, in a file written before the split, from the single legacy values
+        // that used to cover all edges at once
+        private static Dictionary<string, TaskbarEdgeSettings> SeedTaskbarEdges(
+            Dictionary<string, TaskbarEdgeSettings>? saved, AppSettingsData data)
+        {
+            var edges = new Dictionary<string, TaskbarEdgeSettings>();
+
+            foreach (var name in TaskbarEdgeNames)
+            {
+                if (saved != null && saved.TryGetValue(name, out var savedEdge) && savedEdge != null)
+                {
+                    edges[name] = savedEdge.Clone();
+                    continue;
+                }
+
+                var seeded = new TaskbarEdgeSettings();
+                seeded.GraphTimeSpanSeconds = data.TaskbarGraphTimeSpanSeconds ?? seeded.GraphTimeSpanSeconds;
+                seeded.GraphWidthDip = data.TaskbarGraphWidthDip ?? seeded.GraphWidthDip;
+                seeded.FlyoutAlignment = data.TaskbarFlyoutAlignment ?? seeded.FlyoutAlignment;
+                edges[name] = seeded;
+            }
+
+            return edges;
+        }
+
+        // a copy for the debounced writer, which serializes on another thread while the live values keep changing
+        private Dictionary<string, TaskbarEdgeSettings> CloneTaskbarEdges()
+        {
+            var copy = new Dictionary<string, TaskbarEdgeSettings>();
+            foreach (var pair in _taskbarEdges)
+            {
+                copy[pair.Key] = pair.Value.Clone();
+            }
+            return copy;
         }
 
 
@@ -826,10 +945,8 @@ namespace FluentSensors.Persistence.Services
             _taskbarGraphColorSource = ResolveGraphColorSource(
                 data.TaskbarGraphColorSource, data.TaskbarUseGraphAccentColor, AppSettingsData.DefaultTaskbarGraphColorSource);
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
-            _taskbarGraphTimeSpanSeconds = data.TaskbarGraphTimeSpanSeconds;
-            _taskbarGraphWidthDip = data.TaskbarGraphWidthDip;
             _taskbarUseTransparentGraphBackground = data.TaskbarUseTransparentGraphBackground;
-            _taskbarFlyoutAlignment = data.TaskbarFlyoutAlignment;
+            _taskbarEdges = SeedTaskbarEdges(data.TaskbarEdges, data);
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
 
             _minimizeToTray = data.MinimizeToTray;
@@ -885,10 +1002,8 @@ namespace FluentSensors.Persistence.Services
                 TaskbarCustomTintColor = _taskbarCustomTintColor,
                 TaskbarGraphColorSource = _taskbarGraphColorSource,
                 TaskbarGraphCustomColor = _taskbarGraphCustomColor,
-                TaskbarGraphTimeSpanSeconds = _taskbarGraphTimeSpanSeconds,
-                TaskbarGraphWidthDip = _taskbarGraphWidthDip,
                 TaskbarUseTransparentGraphBackground = _taskbarUseTransparentGraphBackground,
-                TaskbarFlyoutAlignment = _taskbarFlyoutAlignment,
+                TaskbarEdges = CloneTaskbarEdges(),
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
 
                 MinimizeToTray = _minimizeToTray,
@@ -958,6 +1073,9 @@ namespace FluentSensors.Persistence.Services
         public event Action<double> TaskbarGraphTimeSpanChanged;
         public event Action<int> TaskbarGraphWidthChanged;
         public event Action<bool> TaskbarGraphBackgroundChanged;
+        public event Action<string> ActiveTaskbarEdgeChanged;
+        public event Action<string> TaskbarSideGraphDirectionChanged;
+        public event Action<int> TaskbarSideTitleLinesChanged;
         public event Action<string> TaskbarFlyoutAlignmentChanged;
         public event Action<bool> TaskbarWidgetPositionLockedChanged;
 

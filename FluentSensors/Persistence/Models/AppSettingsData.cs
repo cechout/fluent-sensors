@@ -1,4 +1,5 @@
-﻿using Windows.UI;
+﻿using System.Collections.Generic;
+using Windows.UI;
 
 using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
@@ -104,12 +105,12 @@ namespace FluentSensors.Persistence.Models
         public GraphColorSource? TaskbarGraphColorSource { get; set; } = null;
         public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public bool TaskbarUseTransparentGraphBackground { get; set; } = true;
-        public double TaskbarGraphTimeSpanSeconds { get; set; } = 35;
-        public int TaskbarGraphWidthDip { get; set; } = 100;
 
-        // flyout alignment
-        // flyout horizontal placement over the taskbar widget: "Center", "Left" or "Right"
-        public string TaskbarFlyoutAlignment { get; set; } = "Center";
+        // per taskbar position:
+        // time range, graph width, flyout alignment and the side taskbar layout, keyed by the screen edge the taskbar
+        // sits on ("Bottom", "Top", "Left", "Right"); the defaults live in TaskbarEdgeSettings
+        // null in a file written before the split, SettingsService then seeds every edge from the legacy values below
+        public Dictionary<string, TaskbarEdgeSettings>? TaskbarEdges { get; set; } = null;
 
         // flyout background material:
         public string TaskbarBackdropType { get; set; } = "Mica";
@@ -201,5 +202,11 @@ namespace FluentSensors.Persistence.Models
         // null means the file never had them, which leaves a fresh install on the defaults above
         public bool? UseGraphAccentColor { get; set; } = null;
         public bool? TaskbarUseGraphAccentColor { get; set; } = null;
+
+        // the taskbar time range, graph width and flyout alignment were one value for every taskbar edge before
+        // TaskbarEdges; SettingsService copies them onto all four edges the first time
+        public double? TaskbarGraphTimeSpanSeconds { get; set; } = null;
+        public int? TaskbarGraphWidthDip { get; set; } = null;
+        public string? TaskbarFlyoutAlignment { get; set; } = null;
     }
 }
