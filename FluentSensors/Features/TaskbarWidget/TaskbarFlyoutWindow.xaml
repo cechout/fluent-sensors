@@ -27,12 +27,13 @@
         -->
         <Border.Resources>
             <!--  graph list; (a margin, not padding on the surface, so the scrollbar rides the window edge)  -->
-            <Thickness x:Key="FlyoutGraphsMargin">4,9,4,8</Thickness>
+            <Thickness x:Key="FlyoutGraphsMargin">4,4,4,4</Thickness>
             <x:Double x:Key="FlyoutGraphSpacing">8</x:Double>
 
-            <!--  title row and bottom bar; (the title row is the bar without its separator)  -->
-            <Thickness x:Key="FlyoutBarPadding">6,5,6,5</Thickness>
+            <!--  title row and bottom bar; (one button height, a padding each)  -->
             <x:Double x:Key="FlyoutBarButtonHeight">36</x:Double>
+            <Thickness x:Key="FlyoutTitleRowPadding">6,5,6,5</Thickness>
+            <Thickness x:Key="FlyoutBottomBarPadding">6,5,6,5</Thickness>
             <Thickness x:Key="FlyoutBottomBarSeparatorThickness">0,1,0,0</Thickness>
 
             <!--  time range row  -->
@@ -76,11 +77,11 @@
                 </Grid.RowDefinitions>
 
                 <!--  title row: title, shortcut hint and snapshot button  -->
-                <!--  (the height and padding of the bottom bar)  -->
+                <!--  (the button height of the bottom bar, a padding of its own)  -->
                 <Grid
                     x:Name="TitleRowGrid"
                     Grid.Row="0"
-                    Padding="{StaticResource FlyoutBarPadding}">
+                    Padding="{StaticResource FlyoutTitleRowPadding}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -214,7 +215,7 @@
 
                 <Grid
                     x:Name="BottomBarContentGrid"
-                    Padding="{StaticResource FlyoutBarPadding}"
+                    Padding="{StaticResource FlyoutBottomBarPadding}"
                     fhUi:FocusGroup.IsEnabled="True">
 
                     <!--  open the sensor list on the taskbar profile  -->

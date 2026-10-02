@@ -195,18 +195,20 @@ namespace FluentSensors.Features.TaskbarWidget
         // reads them, since it runs before the rows are ever measured
         private Thickness FlyoutGraphsMargin => LayoutResource<Thickness>("FlyoutGraphsMargin");
         private double FlyoutGraphSpacingDip => LayoutResource<double>("FlyoutGraphSpacing");
-        private Thickness FlyoutBarPadding => LayoutResource<Thickness>("FlyoutBarPadding");
         private double FlyoutBarButtonHeightDip => LayoutResource<double>("FlyoutBarButtonHeight");
+        private Thickness FlyoutTitleRowPadding => LayoutResource<Thickness>("FlyoutTitleRowPadding");
+        private Thickness FlyoutBottomBarPadding => LayoutResource<Thickness>("FlyoutBottomBarPadding");
         private double FlyoutBottomBarSeparatorDip => LayoutResource<Thickness>("FlyoutBottomBarSeparatorThickness").Top;
         private Thickness FlyoutTimeRangeRowPadding => LayoutResource<Thickness>("FlyoutTimeRangeRowPadding");
         private double FlyoutTimeRangePickerHeightDip => LayoutResource<double>("FlyoutTimeRangePickerHeight");
 
-        // the rows in the height math; (the title row is the bottom bar without its separator)
+        // the rows in the height math
         private double FlyoutTitleRowHeightDip =>
-            FlyoutBarPadding.Top + FlyoutBarButtonHeightDip + FlyoutBarPadding.Bottom;
+            FlyoutTitleRowPadding.Top + FlyoutBarButtonHeightDip + FlyoutTitleRowPadding.Bottom;
         private double FlyoutTimeRangeRowHeightDip =>
             FlyoutTimeRangeRowPadding.Top + FlyoutTimeRangePickerHeightDip + FlyoutTimeRangeRowPadding.Bottom;
-        private double FlyoutBottomBarHeightDip => FlyoutBottomBarSeparatorDip + FlyoutTitleRowHeightDip;
+        private double FlyoutBottomBarHeightDip =>
+            FlyoutBottomBarSeparatorDip + FlyoutBottomBarPadding.Top + FlyoutBarButtonHeightDip + FlyoutBottomBarPadding.Bottom;
 
         private AppWindow _appWindow;
         private IntPtr _hwnd;
