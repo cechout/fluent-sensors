@@ -11,7 +11,8 @@ namespace FluentSensors.Controls.TimeRange
     // the time range picker:
     // the graph time range as a subtle button with a chevron; a click opens the dropdown of Options, a pick writes
     // SelectedSeconds, which the consumer binds TwoWay to its setting
-    // the consumer sets Height; (18 by default, the status row of SensorPanelControl)
+    // the consumer sets Height and Padding; (18 and 4,0,4,0 by default, the status row of SensorPanelControl and its
+    // switch button)
     public sealed partial class TimeRangePickerControl : UserControl
     {
         // === constructor ===

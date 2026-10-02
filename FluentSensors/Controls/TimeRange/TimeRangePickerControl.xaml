@@ -6,16 +6,20 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Height="18"
+    Padding="4,0,4,0"
     HorizontalAlignment="Left"
     mc:Ignorable="d">
 
     <Grid>
 
         <!--  the time range with a chevron  -->
-        <!--  (a subtle button that opens the hidden combobox in one click, like the sensor switch of SensorPanelControl)  -->
+        <!--
+            (a subtle button that opens the hidden combobox in one click, like the sensor switch of SensorPanelControl;
+            it takes the Padding of the control, which a UserControl does not apply itself)
+        -->
         <Button
             x:Name="PickerButton"
-            Padding="4,0,4,0"
+            Padding="{x:Bind Padding, Mode=OneWay}"
             HorizontalAlignment="Left"
             VerticalAlignment="Stretch"
             HorizontalContentAlignment="Left"
