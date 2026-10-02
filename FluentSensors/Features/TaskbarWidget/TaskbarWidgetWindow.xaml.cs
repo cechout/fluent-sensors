@@ -26,11 +26,9 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.TaskbarWidget
 {
-    // the taskbar widget window, embedded as a direct child of Shell_TrayWnd rather than floating above it
-    //
-    // as a direct child of the taskbar (WS_CHILD via SetParent), there is no z-order contest with other windows
-    // and the widget belongs to the taskbar directly without flickering
-    // clicking the widget button toggles the companion TaskbarFlyoutWindow positioned above it
+    // the taskbar widget:
+    // a child of Shell_TrayWnd (WS_CHILD via SetParent) rather than a window floating above it, so there is no z-order
+    // contest and no flicker; its button toggles the TaskbarFlyoutWindow next to it
     //
     // references:
     // https://devblogs.microsoft.com/oldnewthing/20130605-00/?p=4183 (cross-process child window embedding)
@@ -46,53 +44,51 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === fields ===
 
-        // logical pixels, scaled to the taskbars DPI before use, so these read the same at any scaling
-        // inner is the side of the taskbar facing the desktop, outer the side facing the screen edge; on a bottom
-        // taskbar that is above and below the widget
-        public const double InnerMarginDip = 2.5; // gap on the desktop side of the widget in DIP (1 mm = 3.78 DIP)
-        public const double OuterMarginDip = 2.0; // gap on the screen edge side of the widget in DIP (1 mm = 3.78 DIP)
-        // the small taskbar sets its own buttons closer to its edges, so it gets its own pair (WinTaskbarInfo.IsCompact)
-        public const double CompactInnerMarginDip = 0.8; // gap on the desktop side on a small taskbar in DIP
-        public const double CompactOuterMarginDip = 0.2; // gap on the screen edge side on a small taskbar in DIP
-        private const int AnchorOffsetDip = 10; // gap between the widget and the anchored end of the taskbar
-        private const int TaskbarEndPaddingDip = 10; // minimum margin to both ends of the taskbar
-        private const int SensorSlotWidthDip = 120; // width per pinned sensor slot
-        private const int SensorSlotSpacingDip = 8; // spacing between sensor slots
-        private const int ButtonPaddingDip = 0; // inner horizontal padding of the taskbar button
-        private const int MinimumWidgetLengthDip = 60; // fallback length along the taskbar when no sensors are pinned
+        // in DIP, scaled to the taskbar DPI; inner faces the desktop, outer the screen edge (above and below the
+        // widget on a bottom taskbar)
+        public const double InnerMarginDip = 2.5;
+        public const double OuterMarginDip = 2.0;
+        // the small taskbar sets its own buttons closer to its edges (WinTaskbarInfo.IsCompact)
+        public const double CompactInnerMarginDip = 0.8;
+        public const double CompactOuterMarginDip = 0.2;
+        private const int AnchorOffsetDip = 10; // to the anchored end of the taskbar
+        private const int TaskbarEndPaddingDip = 10; // minimum to both ends of the taskbar
+        private const int SensorSlotWidthDip = 120; // unused; the slot width is the graph width setting
+        private const int SensorSlotSpacingDip = 8;
+        private const int ButtonPaddingDip = 0; // along the taskbar, in the length math
+        private const int MinimumWidgetLengthDip = 60; // with no sensors pinned
 
-        // padding inside the taskbar button, in the frame of the graph rather than of the taskbar edge: the graph is not
-        // symmetric by itself (SensorPanelControl keeps a 3 DIP gap above it for its hidden label row, the chart reaches
-        // 2 DIP below its card), and that stays with the graph whichever edge the taskbar sits on, see ApplyButtonPadding
-        // calibrated on the bottom taskbar, where the graph top faces the desktop
-        private const double ButtonPaddingEndsDip = 4; // at both ends of the slot row
-        private const double ButtonPaddingGraphTopDip = 0.5; // on the side of the graph top
-        private const double ButtonPaddingGraphBottomDip = 2.5; // on the side of the graph baseline
-        private const double CompactButtonPaddingGraphTopDip = -0.3; // on the side of the graph top on a small taskbar
-        private const double CompactButtonPaddingGraphBottomDip = 1.7; // on the side of the graph baseline on a small taskbar
+        // button padding in the frame of the graph, not of the taskbar edge; (the graph is asymmetric by itself,
+        // a 3 DIP label gap above it and the chart 2 DIP below its card); calibrated on the bottom
+        // taskbar, see ApplyButtonPadding
+        private const double ButtonPaddingEndsDip = 4; // both ends of the slot row
+        private const double ButtonPaddingGraphTopDip = 0.5;
+        private const double ButtonPaddingGraphBottomDip = 2.5; // the graph baseline side
+        private const double CompactButtonPaddingGraphTopDip = -0.3;
+        private const double CompactButtonPaddingGraphBottomDip = 1.7;
 
-        // maybe a user setting?
+        // fixed; (could become a user setting)
         private const TaskbarAnchor Anchor = TaskbarAnchor.Start;
 
         // --- taskbar startup animation settings ---
-        public const int TaskbarStartupSlideDistanceDip = 40; // startup slide distance in DIP/pixels (e.g. 30 to 60)
-        public const int TaskbarStartupDurationMs = 260; // startup animation duration in milliseconds
-        public const int TaskbarStartupDelayMs = 1200; // startup animation delay in milliseconds (delays animation until window creation/charts finish)
-        public const float TaskbarStartupStartOpacity = 0.0f; // startup fade opacity (0.0f = full fade in, 1.0f = no fade)
+        public const int TaskbarStartupSlideDistanceDip = 40;
+        public const int TaskbarStartupDurationMs = 260;
+        public const int TaskbarStartupDelayMs = 1200; // until window and charts are ready
+        public const float TaskbarStartupStartOpacity = 0.0f;
 
         // --- drag-to-reposition settings ---
         private const string WindowKey = "TaskbarWidget";
-        private const int DragThresholdPixels = 4; // minimum movement in physical pixels before entering drag mode
+        private const int DragThresholdPixels = 4; // physical px before a drag starts
         private bool _isPotentialDrag;
         private bool _isDragging;
         private bool _suppressClick;
-        private int _dragStartCursorAlong; // cursor position along the taskbar when the press started
-        private int _dragStartWindowAlong; // widget position along the taskbar when the press started
+        private int _dragStartCursorAlong; // along the taskbar, at press
+        private int _dragStartWindowAlong;
         private WinTaskbarInfo? _dragTaskbar;
         private RectInt32 _currentScreenRect;
 
-        // drag offsets from the start of the taskbar, one per screen edge; every taskbar position keeps its own widget
-        // place, so moving the taskbar away and back finds the widget where it was left
+        // drag offsets from the taskbar start, one per screen edge, so the widget is where it was left
+        // when the taskbar comes back
         private readonly Dictionary<ScreenEdge, int> _offsetsDip = new();
 
         // taskbar snapshot the widget was last laid out for; FollowTaskbar compares against it to skip polls that
@@ -108,30 +104,30 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // --- taskbar button animation settings ---
-        private const int HoverBackgroundDelayMs = 0; // delay before hover background starts (Standard Windows: 0ms)
-        private const int HoverBackgroundDurationMs = 83; // duration of hover background fade-in (Standard Windows: 83ms [ControlFastAnimationDuration])
-        private const int HoverStrokeDurationMs = 0; // duration of border stroke appearance on hover (Standard Windows: 0ms instant)
-        private const int ExitBackgroundDurationMs = 167; // duration of background fade-out on exit (Standard Windows: 167ms [ControlNormalAnimationDuration])
-        private const int ExitStrokeDurationMs = 40; // duration of border stroke fade-out on exit (Standard Windows: 40ms [ControlFasterAnimationDuration])
-        private const int PressDurationMs = 50; // duration of press feedback animation (Standard Windows: 50ms)
-        private const float PressContentOpacity = 0.75f; // content dim while the button is held, same value in both themes
+        // in ms; (each one matches the Windows taskbar button)
+        private const int HoverBackgroundDelayMs = 0;
+        private const int HoverBackgroundDurationMs = 83; // ControlFasterAnimationDuration
+        private const int HoverStrokeDurationMs = 0;
+        private const int ExitBackgroundDurationMs = 167; // ControlFastAnimationDuration
+        private const int ExitStrokeDurationMs = 40;
+        private const int PressDurationMs = 50;
+        private const float PressContentOpacity = 0.75f; // content dim while held; both themes
 
-        // embedding can fail transiently, e.g. while the start menu is open or another app is mid-embed
-        // retrying up to 5 times avoids reporting a false failure
+        // embedding can fail transiently (start menu open, another app mid-embed), so it is retried before reporting
         private const int MaxEmbedAttempts = 5;
         private static readonly TimeSpan EmbedRetryDelay = TimeSpan.FromMilliseconds(500);
         private int _embedAttempt;
 
         private AppWindow _appWindow;
         private IntPtr _hwnd;
-        private IntPtr _taskbarHwnd; // parent we are embedded into, zero while detached
+        private IntPtr _taskbarHwnd; // the parent; zero while detached
         private WindowMessageMonitor _nonActivatingMonitor; // see WinNonActivatingWindow.Apply; must stay alive in field
         private bool _isEmbedded;
         private bool _embedGaveUp;
         public bool IsEmbedded => _isEmbedded;
 
-        // set only on the window a rebuild creates to replace a live one: it carries its predecessors drag offsets,
-        // skips the startup animation, and reopens the flyout if the rebuild interrupted an open one
+        // only on a window a rebuild creates: carries the drag offsets, skips the startup animation,
+        // reopens an interrupted flyout
         private bool _isRebuild;
         private bool _restoreFlyoutAfterEmbed;
 
@@ -154,9 +150,8 @@ namespace FluentSensors.Features.TaskbarWidget
             Initialize();
         }
 
-        // rebuild path: takes over the ViewModel of the window it replaces, so the pinned graphs keep their history
-        // and the old instance leaves no second HardwareDataUpdated subscription behind
-        // see TaskbarFlyoutWindow.ScheduleRecreation for why the window is rebuilt at all
+        // rebuild path: takes over the ViewModel of the window it replaces, so the graphs keep their history and no
+        // second HardwareDataUpdated subscription is left; (why it rebuilds: TaskbarFlyoutWindow.ScheduleRecreation)
         private TaskbarWidgetWindow(TaskbarWidgetViewModel viewModel, Dictionary<ScreenEdge, int> offsetsDip, bool restoreFlyout)
         {
             ViewModel = viewModel;
@@ -180,19 +175,17 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow.IsShownInSwitchers = false;
                 _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-                // restore previously saved drag offsets along the taskbar if available
-                // a rebuild already carries the offsets of the window it replaces, see the rebuild constructor
+                // saved drag offsets; (a rebuild carries its predecessors)
                 if (!_isRebuild)
                 {
                     LoadOffsets();
                 }
 
                 // --- workaround: CreateForContextMenu crashes unpackaged ---
-                // problem: OverlappedPresenter.CreateForContextMenu() throws a TargetInvocationException
-                // in unpackaged apps (WindowsPackageType=None, which FluentSensors uses); confirmed
-                // Microsoft-internal repro matches our exact csproj setup:
+                // problem: OverlappedPresenter.CreateForContextMenu() throws a TargetInvocationException in unpackaged
+                // apps (WindowsPackageType=None, the GitHub builds); a confirmed Microsoft repro matches this csproj:
                 // https://github.com/microsoft/microsoft-ui-xaml/issues/6765
-                // fix: build the same visual result by hand via OverlappedPresenter.Create()
+                // fix: the same result by hand via OverlappedPresenter.Create()
                 var presenter = OverlappedPresenter.Create();
                 presenter.SetBorderAndTitleBar(false, false);
                 presenter.IsResizable = false;
@@ -201,12 +194,11 @@ namespace FluentSensors.Features.TaskbarWidget
                 // deliberately no IsAlwaysOnTop: an embedded child is ordered inside the taskbar
                 _appWindow.SetPresenter(presenter);
 
-                // the widget sits on the taskbar, so it has to let the bar show through instead of painting a rectangle of its own
-                // set here, while the window is still a normal top level one: WinUIEx TransparentTintBackdrop
-                // is built on DwmExtendFrameIntoClientArea and DwmEnableBlurBehindWindow, and DWM only manages top level windows
+                // transparent, so the taskbar shows through; set while still a top level window (WinUIEx
+                // TransparentTintBackdrop works through DWM, which only manages top level windows)
                 this.SystemBackdrop = new TransparentTintBackdrop();
 
-                // move offscreen before initial activation so no un-embedded frame or border flashes on the desktop
+                // off screen before the first activation, so no frame flashes on the desktop
                 _appWindow.Move(new Windows.Graphics.PointInt32(-10000, -10000));
 
                 _appWindow.Closing += AppWindow_Closing;
@@ -216,7 +208,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 SettingsService.Instance.TaskbarSideTitleLinesChanged += OnTaskbarSideTitleLinesChanged;
                 ApplyWindowsTheme();
 
-                // wire left-button press/release/drag animations and movement even when Button internally handles clicks
+                // with handledEventsToo, the Button handles the pointer events itself
                 TaskbarButton.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(TaskbarButton_PointerPressed), true);
                 TaskbarButton.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(TaskbarButton_PointerReleased), true);
                 TaskbarButton.AddHandler(UIElement.PointerMovedEvent, new PointerEventHandler(TaskbarButton_PointerMoved), true);
@@ -233,8 +225,7 @@ namespace FluentSensors.Features.TaskbarWidget
                     this.DispatcherQueue.TryEnqueue(UpdateVisualState);
                 };
 
-                // embedding is queued immediately and also guarded via Loaded and a watchdog timer
-                // ensuring offscreen windows during cold startup never miss initialization
+                // embedding is queued right away and again on Loaded, so a cold start never misses it
                 ((FrameworkElement)this.Content).Loaded += (s, e) =>
                 {
                     if (!_isEmbedded && !_embedGaveUp)
@@ -265,8 +256,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === public methods ===
 
-        // shows the widget with the given sensors, reusing the previously hidden window instance if one exists instead of
-        // creating a new one every time (see _retainedInstance), same pattern as WidgetWindow
+        // shows the widget, reusing the hidden _retainedInstance if there is one (same pattern as WidgetWindow)
         public static void ShowWithSensors(List<SensorRowViewModel> selectedSensors)
         {
             if (CurrentInstance != null)
@@ -275,8 +265,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 CurrentInstance.ViewModel.SetLiveDataActive(true);
                 CurrentInstance.SetGraphsRenderingActive(true);
 
-                // if the window was never successfully embedded (e.g. startup failed or previously gave up),
-                // reset attempt counters and trigger embedding cleanly
+                // never embedded or gave up: reset the attempts and embed again
                 if (!CurrentInstance._isEmbedded || CurrentInstance._embedGaveUp)
                 {
                     CurrentInstance._embedAttempt = 0;
@@ -315,7 +304,7 @@ namespace FluentSensors.Features.TaskbarWidget
             _ = new TaskbarWidgetWindow(selectedSensors);
         }
 
-        // shows the widget using whatever sensors are currently saved under SensorSelectionProfile.Taskbar
+        // with the sensors saved under the taskbar profile
         public static void ShowWidget()
         {
             var ids = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.Taskbar);
@@ -323,7 +312,7 @@ namespace FluentSensors.Features.TaskbarWidget
             ShowWithSensors(sensors);
         }
 
-        // rebuilds the widgets content and updates the window width on the taskbar
+        // rebuilds the content and resizes the widget on the taskbar
         public void ReconfigureFor(List<SensorRowViewModel> selectedSensors)
         {
             ViewModel.Reconfigure(selectedSensors);
@@ -333,22 +322,18 @@ namespace FluentSensors.Features.TaskbarWidget
                 PositionOnTaskbar();
             }
 
-            // reset flyout size on button click so it is cleanly recalculated
+            // the flyout follows the new sensor count
             TaskbarFlyoutWindow.ResetGeometry();
         }
 
         private bool _isClosed = false;
 
         // --- memory leak: taskbar widget instance never released after a real close ---
-        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
-        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
-        // everywhere else the answer is hide-and-reuse (CloseWidget re-registers _retainedInstance); this method is
-        // the one place that deliberately destroys the window, because a global transparency or accent change is only
-        // picked up by a window built after it, see TaskbarFlyoutWindow.ScheduleRecreation
-        // price: one leaked CCW per OS theme or transparency change, knowingly paid
-        //
-        // only ever call this from RecreateWindow, never from the normal close path
+        // fix: none here; the one place that destroys for real, since an OS theme or transparency change only reaches a
+        // window built after it (see TaskbarFlyoutWindow.ScheduleRecreation); one leaked CCW per change, knowingly paid
+        // only ever called from RecreateWindow
         public void SafeDestroy(bool disposeViewModel)
         {
             if (_isClosed) return;
@@ -363,8 +348,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             catch { }
 
-            // AppWindow_Closing cancels the close and re-registers this instance as _retainedInstance; detaching it
-            // here is what lets the Close below go through instead of resurrecting a window that is already torn down
+            // detached first, or AppWindow_Closing cancels the Close below and brings this
+            // window back as _retainedInstance
             try
             {
                 _appWindow.Closing -= AppWindow_Closing;
@@ -384,8 +369,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
             try
             {
-                // only the instance whose ViewModel nobody takes over releases it; the live one hands it to its
-                // replacement, and cleaning it up here would drop the graph history and the sensor subscription
+                // only an instance nobody takes the ViewModel from releases it; (the live one
+                // hands it to its replacement)
                 if (disposeViewModel)
                 {
                     ViewModel?.Cleanup();
@@ -400,8 +385,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private static bool _isRecreating = false;
 
-        // fully destroys and rebuilds the taskbar widget when Windows global transparency or accent color changes,
-        // and tells the new window whether it has to bring an open flyout back with it
+        // destroys and rebuilds the widget, on an OS theme or transparency change and when explorer.exe rebuilt the
+        // taskbar; tells the new window whether to bring an open flyout back
         public static void RecreateWindow(bool restoreFlyout)
         {
             if (_isRecreating) return;
@@ -414,8 +399,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 var carriedViewModel = live?.ViewModel;
                 var carriedOffsetsDip = new Dictionary<ScreenEdge, int>(live?._offsetsDip ?? new Dictionary<ScreenEdge, int>());
 
-                // the replacement window otherwise shows the pre-change accent: every rebuild trigger refreshes
-                // everything it rebuilds, and this carried ViewModel is precisely the thing that does not
+                // the carried ViewModel is not rebuilt, so its graph colors are refreshed for
+                // an accent change mid-rebuild
                 carriedViewModel?.RefreshGraphColors();
 
                 if (live != null)
@@ -424,8 +409,7 @@ namespace FluentSensors.Features.TaskbarWidget
                     live.SafeDestroy(disposeViewModel: false);
                 }
 
-                // a hidden widget has nothing on screen to refresh, so it is dropped rather than rebuilt; the next
-                // ShowWidget then builds one that matches the new OS settings
+                // a hidden widget is dropped, not rebuilt; the next ShowWidget builds a fresh one
                 if (_retainedInstance != null)
                 {
                     var old = _retainedInstance;
@@ -481,7 +465,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 // suppresses focus stealing on click via WM_MOUSEACTIVATE returning MA_NOACTIVATE
                 _nonActivatingMonitor = WinNonActivatingWindow.Apply(_hwnd);
 
-                // Win32-level mouse tracking: ensures the very first hover triggers instantly without needing a prior click
+                // win32 mouse tracking, so the first hover registers without a prior click:
                 // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-trackmouseevent
                 _nonActivatingMonitor.WindowMessageReceived += (s, e) =>
                 {
@@ -525,12 +509,11 @@ namespace FluentSensors.Features.TaskbarWidget
                 SaveWindowState(wasOpen: true);
                 StartTrackingTaskbar();
 
-                // a rebuild replaces a widget that is already sitting on the taskbar, so it skips the startup
-                // sequence; otherwise every OS accent or transparency change would blank the button for
-                // TaskbarStartupDelayMs and slide it in again
+                // a rebuild skips the startup sequence; (otherwise every rebuild would blank the
+                // button for TaskbarStartupDelayMs)
                 if (!_isRebuild)
                 {
-                    // hide TaskbarButton initially before the delayed startup animation begins
+                    // hidden until the delayed startup animation
                     if (TaskbarButton != null)
                     {
                         try
@@ -546,7 +529,7 @@ namespace FluentSensors.Features.TaskbarWidget
                         catch { }
                     }
 
-                    // play smooth slide-up startup animation on TaskbarButton after the specified startup delay
+                    // the startup animation, after TaskbarStartupDelayMs
                     if (TaskbarStartupDelayMs > 0)
                     {
                         var animTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(TaskbarStartupDelayMs) };
@@ -563,9 +546,8 @@ namespace FluentSensors.Features.TaskbarWidget
                     }
                 }
 
-                // preload flyout window into memory to eliminate first-open latency
-                // a rebuild that interrupted an open flyout reopens it here instead: the flyout anchors to the widget
-                // rect, so it can only be placed once the new widget sits on the taskbar again
+                // preloads the flyout; a rebuild that interrupted an open flyout reopens it here instead, once the
+                // new widget sits on the taskbar
                 if (_restoreFlyoutAfterEmbed)
                 {
                     _restoreFlyoutAfterEmbed = false;
@@ -582,7 +564,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // repositions and resizes the already-embedded window according to the current sensor count and taskbar edge
+        // repositions the embedded widget for the current sensor count and taskbar edge
         private void PositionOnTaskbar()
         {
             var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
@@ -628,10 +610,8 @@ namespace FluentSensors.Features.TaskbarWidget
             return Math.Clamp(offsetPx, minOffset, maxOffset);
         }
 
-        // turns the slot row and the button padding to the edge the taskbar sits on; the slot panel and template are
-        // only swapped when the orientation actually changes, a new panel or template rebuilds every graph in the row
-        //
-        // side slots that already exist still get the new edge, a move from the left to the right edge keeps them
+        // turns the slot row and button padding to the taskbar edge; panel and template only swap on an orientation
+        // change (a swap rebuilds every graph), existing side slots just get the new edge
         private void ApplyEdgeLayout(WinTaskbarInfo taskbar)
         {
             _placedTaskbar = taskbar;
@@ -655,10 +635,9 @@ namespace FluentSensors.Features.TaskbarWidget
             ApplyButtonPadding(taskbar);
         }
 
-        // the padding follows the graph, not the edge, unlike the margins in CalculateScreenRect:
-        // bottom and top - the graph stands upright on both, so both get the bottom calibration unmirrored
-        // left and right - the graphs are centered across the taskbar, with the larger of the two paddings on both
-        //   sides, in every graph direction
+        // follows the graph, not the edge (unlike the margins in CalculateScreenRect):
+        // bottom and top - the graph stands upright, the bottom calibration unmirrored
+        // left and right - centered across the taskbar, the larger padding on both sides
         private void ApplyButtonPadding(WinTaskbarInfo taskbar)
         {
             double graphTop = taskbar.IsCompact ? CompactButtonPaddingGraphTopDip : ButtonPaddingGraphTopDip;
@@ -684,15 +663,14 @@ namespace FluentSensors.Features.TaskbarWidget
             };
         }
 
-        // retries embedding a few times before giving up: a transient failure (start menu open, another app mid-embed,
-        // or dormant Windows 11 Widgets shell host) usually clears up a moment later on its own
+        // retries a few times before giving up; a transient failure (start menu open, another app mid-embed, a dormant
+        // Widgets host) usually clears a moment later
         private void RetryOrReportFailure(string reason)
         {
             _embedAttempt++;
             if (_embedAttempt < MaxEmbedAttempts)
             {
-                // on the first failed attempt, wake the dormant Windows 11 Widgets shell host
-                // to ensure Shell_TrayWnd initializes its XAML Island composition tree
+                // the first failure wakes the dormant Widgets host, so Shell_TrayWnd builds its XAML Island tree
                 if (_embedAttempt == 1)
                 {
                     _ = Task.Run(async () =>
@@ -715,7 +693,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // closes both the taskbar widget and flyout cleanly, detaching from the taskbar shell
+        // hides widget and flyout and detaches from the taskbar; (the instance is retained)
         public void CloseWidget()
         {
             TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
@@ -739,8 +717,8 @@ namespace FluentSensors.Features.TaskbarWidget
             WidgetStateChanged?.Invoke();
         }
 
-        // writes the open state to the shared window state and every known drag offset to the state of its edge
-        // (WindowKey + edge name), where X carries the offset rather than a window position
+        // the open state goes to the shared window state, every drag offset to the state of its edge (WindowKey +
+        // edge), where X carries the offset
         private void SaveWindowState(bool wasOpen = true)
         {
             var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
@@ -755,9 +733,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // the counterpart of SaveWindowState
-        // an edge without a state of its own yet takes the offset the shared state held before every edge had one,
-        // which was always a horizontal one, so only the bottom and top edge inherit it
+        // the counterpart of SaveWindowState; an edge without its own state takes the legacy shared offset, a
+        // horizontal one, so only bottom and top inherit it
         private void LoadOffsets()
         {
             var shared = WindowStateService.Instance.GetState(WindowKey);
@@ -777,29 +754,23 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // --- memory leak: TaskbarWidgetWindow never released after close ---
-        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
-        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
-        // fix: hide instead of actually closing, and keep this instance around (_retainedInstance) for reuse
-        // same approach as WidgetWindow
+        // fix: hide instead of closing and keep the instance as _retainedInstance (same as WidgetWindow)
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
-            // SafeDestroy is tearing this instance down: let the close proceed instead of handing a window that is
-            // already torn down back to _retainedInstance, where the next ShowWithSensors would try to reuse it
+            // SafeDestroy is closing for real; a closed window must not land in _retainedInstance
+            // for ShowWithSensors to reuse
             if (_isClosed) return;
 
             args.Cancel = true;
             CloseWidget();
         }
 
-        // this window sits inside the Windows taskbar, so it follows the Windows theme and deliberately ignores the
-        // apps own theme setting; every other window (main, widget, hidden sensors, taskbar flyout) keeps following
-        // the setting, so a light app on a dark Windows leaves this one dark and blending into the taskbar
-        //
-        // ElementTheme.Default inherits the app level theme, which is the Windows theme here since the app never
-        // overrides it
-        // set once and never revisited on purpose: Default keeps tracking Windows by itself from there, including a
-        // theme switch while the app is running
+        // sits inside the Windows taskbar, so it follows the Windows theme and ignores the app theme setting (every
+        // other window follows the setting)
+        // ElementTheme.Default inherits the app level theme, which is the Windows one, and keeps
+        // tracking it, so this is set once
         private void ApplyWindowsTheme()
         {
             if (this.Content is FrameworkElement rootElement)
@@ -821,8 +792,7 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
-        // maps sensor count to total DIP length along the taskbar, including button padding, slot widths, and slot gaps;
-        // on a vertical taskbar the graph width setting becomes the slot height
+        // length along the taskbar for n sensors; (on a vertical taskbar the graph width setting is the slot height)
         private static int CalculateWidgetLengthDip(int sensorCount)
         {
             if (sensorCount <= 0)
@@ -842,9 +812,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 return new List<SensorRowViewModel>();
             }
 
-            // walks the groups rather than the id list so the row order matches what PinToWidget_Click and
-            // PinToTaskbar_Click produce; the persisted list is membership in toggle order, not display order,
-            // and mapping over it put restored graphs in a different order than a live pin of the same sensors
+            // walks the groups, not the id list, so the order matches a live pin; (the saved list is in toggle order)
             var wantedIds = new HashSet<string>(sensorIds);
 
             return SensorsViewModel.Instance.HardwareGroups
@@ -881,8 +849,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 SettingsService.Instance.TaskbarSideTitleLines);
         }
 
-        // walks the slot row the same way SensorGraphRenderingGate walks a graph subtree; on a horizontal taskbar it
-        // finds nothing and does nothing
+        // walks the slot row like SensorGraphRenderingGate does; (finds nothing on a horizontal taskbar)
         private void RefreshSideSlots()
         {
             VisitSideSlots(SlotsItemsControl);
@@ -920,8 +887,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private bool _isTrackingTaskbar;
 
-        // follows the taskbar while the widget sits on it; moving it to another screen edge, a resolution or scaling
-        // change and explorer.exe recreating it all show up as a changed snapshot in the WinTaskbarService poll
+        // follows the taskbar while embedded; an edge move, a resolution or scaling change and an explorer.exe restart
+        // all arrive as a changed snapshot
         private void StartTrackingTaskbar()
         {
             if (_isTrackingTaskbar) return;
@@ -946,11 +913,9 @@ namespace FluentSensors.Features.TaskbarWidget
             this.DispatcherQueue.TryEnqueue(() => FollowTaskbar(taskbars.FirstOrDefault()));
         }
 
-        // a new taskbar handle means explorer.exe built a new taskbar and the widget, a child of the old one, may have
-        // gone down with it, so that case rebuilds the widget instead of moving it; an empty snapshot while explorer.exe
-        // restarts is skipped, the next poll brings the new taskbar
-        //
-        // an open flyout is closed rather than moved, the next click opens it at the new place
+        // a new taskbar handle means explorer.exe rebuilt the taskbar, maybe with the child widget, so that case
+        // rebuilds; an empty snapshot mid restart is skipped
+        // an open flyout is closed, not moved; the next click opens it at the new place
         private void FollowTaskbar(WinTaskbarInfo? primaryTaskbar)
         {
             if (_isClosed || !_isEmbedded || primaryTaskbar == null || primaryTaskbar == _placedTaskbar) return;
@@ -967,7 +932,7 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
 
-        // === user interaction & directcomposition visual states ===
+        // === user interaction and composition visual states ===
 
         private Visual _backgroundVisual;
         private Visual _pressedVisual;
@@ -1003,7 +968,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 ? GetStartupSlideOffset(primaryTaskbar)
                 : new Vector3(0, TaskbarStartupSlideDistanceDip, 0);
 
-            // Fluent 2 Decelerate Curve: cubic-bezier(0, 0, 0, 1)
+            // Fluent 2 decelerate, cubic-bezier(0, 0, 0, 1)
             var easeOut = compositor.CreateCubicBezierEasingFunction(
                 new Vector2(0.0f, 0.0f),
                 new Vector2(0.0f, 1.0f));
@@ -1091,10 +1056,8 @@ namespace FluentSensors.Features.TaskbarWidget
             EnsureCompositionElements();
             if (_compositor == null) return;
 
-            // the border/stroke layers only fade when the button crosses the rest <-> engaged boundary; between
-            // engaged sub-states they snap, so no two 1px edges ever crossfade through the same tone and flicker
-            // the fill layers (and the content dim) always fade with their normal timing; a fill crossfade blends
-            // smoothly and does not flicker the way a hairline does
+            // stroke layers fade only across the rest/engaged boundary and snap between engaged states, so two 1px
+            // edges never crossfade and flicker; fills and the content dim always fade
             bool engaged = _isPointerOver || _isPressed || _isFlyoutActive;
             bool animate = engaged != _wasEngaged;
             _wasEngaged = engaged;
@@ -1102,7 +1065,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             if (!_isFlyoutActive)
             {
-                // === Flyout Closed ===
+                // flyout closed
                 AnimateVisualOpacity(_activeHoverStrokeVisual, 0.0f, Dur(ExitStrokeDurationMs));
                 AnimateVisualOpacity(_activePressedStrokeVisual, 0.0f, Dur(ExitStrokeDurationMs));
 
@@ -1112,8 +1075,8 @@ namespace FluentSensors.Features.TaskbarWidget
                     AnimateVisualOpacity(_activeHoverVisual, 0.0f, PressDurationMs);
                     AnimateVisualOpacity(_activePressedVisual, 0.0f, PressDurationMs);
                     AnimateVisualOpacity(_pressedVisual, 1.0f, PressDurationMs);
-                    // the pressed border snaps (gated) while the fill above crossfades; StrokeBorder would shift the
-                    // pressed side target and is off in this state
+                    // the pressed border snaps while the fill crossfades; StrokeBorder is off here, it
+                    // would shift the pressed target
                     AnimateVisualOpacity(_pressedStrokeVisual, 1.0f, Dur(PressDurationMs));
                     AnimateVisualOpacity(_strokeVisual, 0.0f, Dur(PressDurationMs));
                 }
@@ -1138,7 +1101,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             else
             {
-                // === Flyout Open ===
+                // flyout open
                 AnimateVisualOpacity(_strokeVisual, 0.0f, Dur(ExitStrokeDurationMs));
                 AnimateVisualOpacity(_pressedStrokeVisual, 0.0f, Dur(PressDurationMs));
 
@@ -1164,7 +1127,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
                 else
                 {
-                    // Active Rest: stays in visual state "hover"
+                    // active rest; looks like hover
                     AnimateVisualOpacity(_backgroundVisual, 1.0f, ExitBackgroundDurationMs);
                     AnimateVisualOpacity(_activeHoverVisual, 0.0f, ExitBackgroundDurationMs);
                     AnimateVisualOpacity(_activePressedVisual, 0.0f, ExitBackgroundDurationMs);
@@ -1273,7 +1236,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
 
             _isPressed = true;
-            // UpdateVisualState drives the content press dim (to PressContentOpacity, matched across light and dark)
+            // also drives the content press dim
             UpdateVisualState();
         }
 
@@ -1291,11 +1254,8 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 _isDragging = true;
 
-                // the click guard goes up here, at the first moved pixel, rather than when the drag ends
-                // ButtonBase raises Click from inside its own PointerReleased class handler, and that class handler
-                // runs ahead of our instance handlers; both the release we listen to and the capture loss therefore
-                // arrive after the click has already been raised, so a guard set at drag end is always too late
-                // it stays up until the next press clears it, which also covers releasing outside the widget
+                // the click guard goes up at the first moved pixel: ButtonBase raises Click from its PointerReleased
+                // class handler, ahead of ours, so a guard set at drag end is too late; the next press clears it
                 _suppressClick = true;
 
                 if (e != null)
@@ -1336,7 +1296,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             _isPressed = false;
 
-            // determine if pointer is still over the button in its new position
+            // still over the button in its new position
             bool isOverNow = false;
             if (NativeMethods.GetCursorPos(out var pt))
             {
@@ -1359,13 +1319,9 @@ namespace FluentSensors.Features.TaskbarWidget
             TaskbarButton_PointerExited(sender, e);
         }
 
-        // the single place a drag is committed; the moved offset only lives in CurrentOffsetDip until this runs
-        //
-        // releasing the pointer produces both a PointerReleased and a PointerCaptureLost, in an order that is not
-        // guaranteed, and a capture can also be lost mid drag with no release at all; every one of those paths ends
-        // the drag, so whichever arrives first saves and the rest find nothing left to do
-        // the click guard is deliberately not set here, see TaskbarButton_PointerMoved for why it has to go up at the
-        // start of the drag instead
+        // the one place a drag is committed; release and capture loss both land here in no fixed order (or a capture
+        // loss alone), the first one saves
+        // (the click guard goes up in TaskbarButton_PointerMoved instead)
         private void EndDrag()
         {
             if (_isDragging)

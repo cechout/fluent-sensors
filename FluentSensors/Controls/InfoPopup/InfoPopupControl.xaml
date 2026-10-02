@@ -31,8 +31,7 @@
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup x:Name="CommonStates">
 
-                                    <!--  rest state  -->
-                                    <!--  whatever ButtonBackground is bound to (Transparent by default)  -->
+                                    <!--  rest state, the bound ButtonBackground (Transparent by default)  -->
                                     <VisualState x:Name="Normal" />
 
                                     <VisualState x:Name="PointerOver">
@@ -54,7 +53,7 @@
             </Setter>
         </Style>
 
-        <!--  (SourceLinkButtonStyle sits in App.xaml, the release dialog carries the same link look)  -->
+        <!--  (SourceLinkButtonStyle sits in App.xaml, shared with the release dialog)  -->
     </UserControl.Resources>
 
 
@@ -63,17 +62,10 @@
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="PopupStates">
 
-                <!--  rest state  -->
-                <!--
-                    (no setters, so both keep whatever Foreground they have underneath: the XAML defaults or a
-                    consumers TitleForeground / ButtonGlyphForeground)
-                -->
+                <!--  rest state, no setters: the defaults or a consumer TitleForeground and ButtonGlyphForeground  -->
                 <VisualState x:Name="PopupClosed" />
 
-                <!--
-                    (setters rather than assigning Foreground from code, which would sever the ThemeResource
-                    for good and stop either of them following a theme switch)
-                -->
+                <!--  (setters, since a Foreground from code cuts the ThemeResource and the theme switch with it)  -->
                 <VisualState x:Name="PopupOpen">
                     <VisualState.Setters>
                         <Setter Target="TitleTextBlock.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
@@ -85,8 +77,7 @@
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
 
-        <!--  optional title  -->
-        <!--  (collapses entirely, including its layout space, when neither Title nor TitleContent is set)  -->
+        <!--  optional title, collapsed without Title or TitleContent  -->
         <Grid
             x:Name="TitleHost"
             VerticalAlignment="Center"
@@ -102,11 +93,7 @@
                 TextTrimming="{x:Bind TitleTextTrimming, Mode=OneWay}"
                 TextWrapping="{x:Bind TitleTextWrapping, Mode=OneWay}" />
 
-            <!--  consumer content, the alternative to Title  -->
-            <!--
-                (shares the cell with the TextBlock above; the unused one measures zero, so they never
-                actually overlap)
-            -->
+            <!--  consumer content instead of Title; shares the cell, the unused one measures zero  -->
             <ContentPresenter
                 x:Name="TitleContentPresenter"
                 Margin="{x:Bind GetTitleMargin(ButtonSize, ShowInfoButton), Mode=OneWay}"
@@ -166,14 +153,10 @@
                     CornerRadius="4"
                     SizeChanged="PopupContent_SizeChanged">
 
-                    <!--
-                        order top to bottom: source intro, source links (or the plain source line as
-                        fallback), description
-                    -->
+                    <!--  top to bottom: source intro, source links (or the plain source line), description  -->
                     <StackPanel Spacing="4">
 
-                        <!--  source intro  -->
-                        <!--  (empty and collapsed by default)  -->
+                        <!--  source intro, collapsed by default  -->
                         <ItemsControl ItemsSource="{x:Bind SplitParagraphs(SourceIntro), Mode=OneWay}" Visibility="{x:Bind GetSourceIntroVisibility(SourceIntro), Mode=OneWay}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -191,8 +174,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <!--  source links  -->
-                        <!--  (clickable sources, one HyperlinkButton per entry)  -->
+                        <!--  source links, one HyperlinkButton each  -->
                         <ItemsControl
                             Margin="0,0,0,8"
                             ItemsSource="{x:Bind SourceLinks}"
@@ -212,7 +194,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <!--  (fallback plain text line, only shown while SourceLinks is still empty)  -->
+                        <!--  (the plain source line while SourceLinks is empty)  -->
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
@@ -220,8 +202,7 @@
                             TextWrapping="Wrap"
                             Visibility="{x:Bind GetSourceVisibility(Source, SourceLinks), Mode=OneWay}" />
 
-                        <!--  description  -->
-                        <!--  (each paragraph in its own TextBlock instead of one block with embedded line breaks)  -->
+                        <!--  description, one TextBlock per paragraph  -->
                         <ItemsControl ItemsSource="{x:Bind SplitParagraphs(Description), Mode=OneWay}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>

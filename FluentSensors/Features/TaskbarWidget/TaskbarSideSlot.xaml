@@ -29,10 +29,9 @@
                 ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
         </fhControls:RotatedContentPanel>
 
-        <!--  sensor name  -->
         <!--
-            (one or two lines, set in ApplyLayout; LineHeight is the knob for the gap between the two; the top Margin
-            counts from the top of the graph card, NameHost moves the name down to where the card starts)
+            sensor name, one or two lines (ApplyLayout); LineHeight sets the gap, the top Margin counts from the
+            top of the graph card, where NameHost moves the name down to
         -->
         <Grid x:Name="NameHost" VerticalAlignment="Top">
             <TextBlock
@@ -49,10 +48,9 @@
                 TextWrapping="NoWrap" />
         </Grid>
 
-        <!--  current value and unit  -->
         <!--
-            (the unit is left out when both do not fit the slot width, see FitValueText; LineHeight sets the line box;
-            the bottom Margin counts from the bottom of the graph card, which is also the bottom of the slot)
+            value and unit, the unit dropped when both do not fit (FitValueText); LineHeight sets the line box,
+            the bottom Margin counts from the bottom of the graph card, also the bottom of the slot
         -->
         <TextBlock
             x:Name="ValueText"

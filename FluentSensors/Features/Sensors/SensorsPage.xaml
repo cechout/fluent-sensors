@@ -31,8 +31,7 @@
 
 
             <!--  header: control buttons  -->
-            <!--  (border has background: {ThemeResource SolidBackgroundFillColorTertiaryBrush})  -->
-            <!--  (also: controlbar has automatic right padding, thats why here only padding 10 on the right)  -->
+            <!--  (the command bar pads its right side itself, so only 10 here)  -->
             <Border
                 Grid.Row="0"
                 Padding="16,0,10,1"
@@ -42,7 +41,7 @@
 
                 <Grid x:Name="SensorListHeaderGrid" SizeChanged="SensorListHeaderGrid_SizeChanged">
                     <Grid.ColumnDefinitions>
-                        <!--  column 0 reserves a fixed minimum width measured from SensorListTitleText  -->
+                        <!--  column 0 reserves a minimum width from SensorListTitleText  -->
                         <ColumnDefinition Width="Auto" MinWidth="260" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
@@ -58,7 +57,7 @@
                             Style="{ThemeResource BodyStrongTextBlockStyle}"
                             Text="Sensor List" />
 
-                        <!--  switches which profile the checkboxes below reflect and commit to  -->
+                        <!--  the profile the checkboxes reflect and commit to  -->
                         <ComboBox
                             x:Name="SelectionProfileComboBox"
                             Margin="12,0,0,0"
@@ -72,7 +71,7 @@
                         </ComboBox>
                     </StackPanel>
 
-                    <!--  command bar is in column 1, bounded by column 0's minimum distance from title  -->
+                    <!--  command bar in column 1, after the minimum of column 0  -->
                     <CommandBar
                         x:Name="SensorListCommandBar"
                         Grid.Column="1"
@@ -165,8 +164,7 @@
                 </Grid>
             </Border>
 
-            <!--  header: items header labels  -->
-            <!--  (border has background: {ThemeResource SolidBackgroundFillColorTertiaryBrush})  -->
+            <!--  header: column labels  -->
             <Border Grid.Row="1" Background="Transparent">
                 <Grid HorizontalAlignment="Stretch">
 
@@ -183,19 +181,14 @@
             </Border>
 
 
-            <!--  content: scrollviewer with all the cards of different hardware groups  -->
-            <!--  cpu: &#xE950; or &#xEEA1;  -->
-            <!--  ram: &#xE964;  -->
-            <!--  gpu: &#xF211;  -->
-            <!--  ethernet: &#xE839;  -->
-            <!--  wifi: &#xE701;  -->
-            <!--  drive: &#xEDA2;  -->
+            <!--  content: the hardware group cards  -->
+            <!--  (the group glyphs come from HardwareGroupInfo)  -->
             <ScrollViewer
                 x:Name="MainScrollViewer"
                 Grid.Row="2"
                 Padding="16,0,16,0">
 
-                <!--  (tab jumps from one hardware group to the next, the arrow keys move through the rows across all of them)  -->
+                <!--  (tab jumps between groups, the arrow keys walk the rows across all of them)  -->
                 <ItemsControl
                     x:Name="HardwareItemsControl"
                     Margin="0,0,0,16"
@@ -204,7 +197,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="fhSensors:HardwareGroupViewModel">
 
-                            <!--  settings expander (containing all the sensors for one hardware group)  -->
+                            <!--  one expander per hardware group  -->
                             <controls:SettingsExpander
                                 Margin="0,16,0,0"
                                 fhUi:FocusGroup.IsEnabled="True"
@@ -218,12 +211,11 @@
 
                                     <!--
                                         workaround: SettingsCard left-aligns its content below the wrap threshold
-                                        problem: under SettingsCardWrapThreshold (476) the size-triggered RightWrapped state takes over
-                                        from the Vertical state these cards ask for and sets HorizontalContentAlignment to Left, so every
-                                        sensor row is laid out at its own desired width, which follows the length of its name; see
-                                        ContentAlignmentStates in https://github.com/CommunityToolkit/Windows/blob/v8.2.251219/components/SettingsControls/src/SettingsCard/SettingsCard.xaml
-                                        no public issue found for this combination
-                                        fix: a threshold of 0 keeps RightWrapped from ever triggering, so the rows stay stretched at any width
+                                        problem: below SettingsCardWrapThreshold (476) RightWrapped beats the
+                                        Vertical state and aligns the content left, so each row takes the width
+                                        of its name (ContentAlignmentStates):
+                                        https://github.com/CommunityToolkit/Windows/blob/v8.2.251219/components/SettingsControls/src/SettingsCard/SettingsCard.xaml
+                                        fix: a threshold of 0, RightWrapped never triggers; no public issue found
                                     -->
                                     <x:Double x:Key="SettingsCardWrapThreshold">0</x:Double>
                                 </controls:SettingsExpander.Resources>
@@ -250,7 +242,7 @@
                                         TextWrapping="NoWrap" />
                                 </controls:SettingsExpander.Description>
 
-                                <!--  sensor count: shown/total  -->
+                                <!--  sensor count, shown/total  -->
                                 <TextBlock
                                     AutomationProperties.Name="{x:Bind SensorCountName, Mode=OneWay}"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -328,7 +320,6 @@
 
 
             <!--  bottom: control buttons  -->
-            <!--  (border has background: {ThemeResource SolidBackgroundFillColorTertiaryBrush})  -->
             <Border
                 x:Name="BottomBar"
                 Grid.Row="3"
@@ -378,7 +369,7 @@
                             <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
                         </CommandBar.Resources>
 
-                        <!--  Select Pinned Sensors button  -->
+                        <!--  select pinned sensors button  -->
                         <AppBarButton
                             x:Name="SelectPinnedButton"
                             Click="SelectPinned_Click"
@@ -390,7 +381,7 @@
                             </AppBarButton.Icon>
                         </AppBarButton>
 
-                        <!--  Unselect All Sensors button  -->
+                        <!--  unselect all sensors button  -->
                         <AppBarButton
                             x:Name="DeselectAllButton"
                             Click="DeselectAll_Click"

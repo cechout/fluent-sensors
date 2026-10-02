@@ -14,11 +14,9 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Controls.Threshold
 {
-    // self-contained threshold badge + editor flyout:
-    // extracted from SensorRowControl so SensorPanelControl (and any future consumer) can reuse the exact same
-    // compact threshold editing UI without duplicating it unlike the original SensorRowControl version, this derives
-    // its own badge text/color reactively from the Threshold VM directly instead of requiring the consumer to
-    // precompute and expose them
+    // the threshold badge:
+    // a badge with its editor flyout, shared by SensorRowControl and SensorPanelControl; it derives text and color from
+    // the Threshold view model itself
     public sealed partial class ThresholdFlyoutControl : UserControl, INotifyPropertyChanged
     {
         // === fields ===
@@ -53,11 +51,8 @@ namespace FluentSensors.Controls.Threshold
                 typeof(ThresholdFlyoutControl),
                 new PropertyMetadata(null, OnThresholdChanged));
 
-        // re-subscribes to the new Thresholds PropertyChanged so the badge stays in sync, and refreshes the x:Bind
-        // bindings in the flyout (Threshold.Increase etc.) to point at the new instance
-        // note: this only fires when the DP value actually changes; if a recycled container gets rebound to the exact
-        // same Threshold reference it held before, WinUI skips this callback entirely
-        // OnLoaded below is what catches that case and re-subscribes
+        // follows the new Threshold and points the flyout bindings at it; a recycle onto the same reference never
+        // fires this, OnLoaded covers that
         private static void OnThresholdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is not ThresholdFlyoutControl control) return;
@@ -97,11 +92,8 @@ namespace FluentSensors.Controls.Threshold
 
         // === lifecycle events ===
 
-        // re-attaches the subscription after this control comes back from being pulled out of the visual tree
-        // (SettingsExpander/ItemsRepeater container recycling):
-        // if it gets rebound to the same Threshold reference it already had, OnThresholdChanged never fires again
-        // (old == new), so this is the only place that reliably re-establishes it; also refreshes the badge in case
-        // the threshold changed elsewhere while unloaded
+        // re-attaches after a recycle (OnThresholdChanged skips the same reference) and refreshes the badge for
+        // changes made while unloaded
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             if (Threshold != null && !_isThresholdSubscribed)
@@ -110,16 +102,14 @@ namespace FluentSensors.Controls.Threshold
                 _isThresholdSubscribed = true;
             }
 
-            // the badge scales its value like every other readout, so a data unit switch has to redraw it as well
+            // the badge scales its value, so a data unit switch redraws it
             SettingsService.Instance.DataUnitBasisChanged += UpdateIndicator;
 
             UpdateIndicator();
         }
 
-        // memory leak fix:
-        // Threshold is owned by the parent SensorGraphViewModel/SensorRowViewModel, which can outlive this control
-        // across recycling; without detaching here every instance ever created would stay reachable through the
-        // thresholds PropertyChanged event
+        // Threshold belongs to a longer-lived SensorGraphViewModel or SensorRowViewModel; without the detach its
+        // PropertyChanged keeps every instance alive
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             if (Threshold != null && _isThresholdSubscribed)
@@ -134,8 +124,7 @@ namespace FluentSensors.Controls.Threshold
 
         // === public methods ===
 
-        // opens the threshold editor flyout programmatically; used by consumers like SensorPanelControl that want
-        // a tap on the graph itself (not just this badge) to open the same flyout
+        // for SensorPanelControl, where a tap on the graph opens the flyout too
         public void ShowFlyout()
         {
             FlyoutBase.ShowAttachedFlyout(IndicatorBorder);
@@ -179,8 +168,7 @@ namespace FluentSensors.Controls.Threshold
             UpdateVisualState();
             e.Handled = true;
 
-            // where it is a tab stop, the clicked badge takes focus as well, so closing the flyout returns there
-            // instead of to whatever had keyboard focus before
+            // a tab stop badge takes the focus, so the closing flyout returns there
             if (IsTabStop) Focus(FocusState.Pointer);
         }
 
@@ -199,14 +187,14 @@ namespace FluentSensors.Controls.Threshold
 
         // === keyboard and screen reader ===
 
-        // the badge reads as a button named after the threshold wherever it sits; whether it is also a tab stop is up
-        // to the consumer, the sensor row sets IsTabStop while the graph panels reach the flyout through the graph
+        // a button named after the threshold; the consumer decides IsTabStop (the sensor row sets it, the graph
+        // panels open through the graph)
         protected override AutomationPeer OnCreateAutomationPeer()
         {
             return new ThresholdFlyoutAutomationPeer(this);
         }
 
-        // space and enter open the editor flyout the same way a tap does
+        // space and enter open the flyout like a tap
         protected override void OnKeyDown(KeyRoutedEventArgs e)
         {
             if ((e.Key == VirtualKey.Space || e.Key == VirtualKey.Enter) && ReferenceEquals(e.OriginalSource, this))
@@ -219,14 +207,13 @@ namespace FluentSensors.Controls.Threshold
             base.OnKeyDown(e);
         }
 
-        // what a screen reader announces for the badge: the configured value, or that none is set
+        // the configured value, or that none is set
         internal string AutomationName => Threshold?.IsEnabled == true ? $"Threshold {IndicatorText}" : "Threshold, not set";
 
 
         // === private helpers ===
 
-        // recomputes badge text/color: "-" and transparent when unconfigured, otherwise the scaled value and the
-        // thresholds own color
+        // "-" and transparent when unset, otherwise the scaled value in the threshold color
         private void UpdateIndicator()
         {
             if (Threshold != null && Threshold.IsEnabled)

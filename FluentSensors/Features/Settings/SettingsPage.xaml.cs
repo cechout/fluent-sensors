@@ -19,10 +19,10 @@ namespace FluentSensors.Features.Settings
 {
     public sealed partial class SettingsPage : Page
     {
-        // flag to prevent event handlers from firing during initialization
+        // keeps the handlers quiet during initialization
         private bool _isLoading = true;
 
-        // set while this page writes a status readout setting itself, see OnStatusReadoutChanged
+        // while this page writes a status readout setting itself, see OnStatusReadoutChanged
         private bool _isWritingStatusReadout;
 
 
@@ -32,7 +32,7 @@ namespace FluentSensors.Features.Settings
         {
             this.InitializeComponent();
 
-            // restore the previous user selections
+            // the saved selections
             RestoreThemeSelection();
             RestoreIntervalSelection();
             RestoreMinimizeToTraySelection();
@@ -62,7 +62,7 @@ namespace FluentSensors.Features.Settings
             ShowAppDataFolderPath();
 
 
-            // event listeners
+            // color picker callbacks
             WidgetBackgroundColorPicker.RegisterPropertyChangedCallback(
                 CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
                 WidgetBackgroundColorPicker_SelectedColorChanged);
@@ -85,14 +85,13 @@ namespace FluentSensors.Features.Settings
 
         // === page lifecycle ===
 
-        // the toggle button in the title bar writes the same master setting these controls show, so they can go
-        // stale while this page sits in the navigation cache
+        // the title bar toggle writes the same master setting, so the controls can go stale in the navigation cache
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             SettingsService.Instance.StatusReadoutChanged += OnStatusReadoutChanged;
             OnStatusReadoutChanged();
 
-            // the per position settings follow the taskbar even while the taskbar widget is closed and not tracking it
+            // the per edge settings follow the taskbar even while the taskbar widget is closed
             SettingsService.Instance.ActiveTaskbarEdgeChanged += OnActiveTaskbarEdgeChanged;
             var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
             if (primaryTaskbar != null)
@@ -108,8 +107,7 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.ActiveTaskbarEdgeChanged -= OnActiveTaskbarEdgeChanged;
         }
 
-        // shows the values of the taskbar position that is active now; the side taskbar cards only mean something on
-        // the left and right edge
+        // the values of the active taskbar edge; the side cards only on the left and right edge
         private void OnActiveTaskbarEdgeChanged(string edge)
         {
             TaskbarPositionText.Text = edge;
@@ -126,8 +124,7 @@ namespace FluentSensors.Features.Settings
             _isLoading = false;
         }
 
-        // only meant for writes from outside this page; a write from here echoes straight back into this method,
-        // and restoring mid handler would push the control the user is operating back to a half written state
+        // for writes from outside this page; a write from here echoes back and would reset the control mid handler
         private void OnStatusReadoutChanged()
         {
             if (_isWritingStatusReadout) return;
@@ -151,15 +148,15 @@ namespace FluentSensors.Features.Settings
 
                 SettingsService.Instance.AppTheme = themeTag;
 
-                // we get the absolute root element of the current window
+                // the window root
                 if (this.XamlRoot?.Content is FrameworkElement rootElement)
                 {
-                    // Match-Mapping for the ElementTheme enum
+                    // tag to ElementTheme
                     rootElement.RequestedTheme = themeTag switch
                     {
                         "Light" => ElementTheme.Light,
                         "Dark" => ElementTheme.Dark,
-                        _ => ElementTheme.Default // system default
+                        _ => ElementTheme.Default
                     };
                 }
             }
@@ -167,15 +164,12 @@ namespace FluentSensors.Features.Settings
 
         private void RestoreThemeSelection()
         {
-            // we read the current theme value from the SettingsService
             string currentTheme = SettingsService.Instance.AppTheme;
 
-            // we search through all the items in the ThemeComboBox and compare their Tag with the current theme
             foreach (ComboBoxItem item in ThemeComboBox.Items)
             {
                 if (item.Tag?.ToString() == currentTheme)
                 {
-                    // match found -> activate the item
                     ThemeComboBox.SelectedItem = item;
                     break;
                 }
@@ -191,7 +185,7 @@ namespace FluentSensors.Features.Settings
             {
                 if (selectedItem.Tag != null && int.TryParse(selectedItem.Tag.ToString(), out int newIntervalMs))
                 {
-                    // we access the one HardwareMonitorService instance and change the interval at runtime
+                    // applies at runtime
                     HardwareMonitorService.Instance.UpdateIntervalMs = newIntervalMs;
                     SettingsService.Instance.SaveDebounced();
                 }
@@ -200,15 +194,12 @@ namespace FluentSensors.Features.Settings
 
         private void RestoreIntervalSelection()
         {
-            // we read the current interval value from the HardwareMonitorService instance
             int currentInterval = HardwareMonitorService.Instance.UpdateIntervalMs;
 
-            // we search through all the items in the IntervalComboBox and compare their tag with the current interval value
             foreach (ComboBoxItem item in IntervalComboBox.Items)
             {
                 if (item.Tag?.ToString() == currentInterval.ToString())
                 {
-                    // match found -> activate the item
                     IntervalComboBox.SelectedItem = item;
                     break;
                 }
@@ -230,9 +221,8 @@ namespace FluentSensors.Features.Settings
 
         // startup
 
-        // the scheduled task is the authority on autostart, not the setting, so a task someone removed by hand in
-        // the task scheduler shows up here as off rather than as a switch that lies
-        // a portable build has no autostart at all, because the task would outlive the folder it points at
+        // the scheduled task decides, not the setting, so a task removed by hand shows as off; the portable build has
+        // no autostart (the task would outlive its folder)
         private void RestoreStartupSelection()
         {
             var settings = SettingsService.Instance;
@@ -240,7 +230,7 @@ namespace FluentSensors.Features.Settings
             StartMinimizedToggle.IsOn = settings.StartMinimizedToTray;
             CheckUpdatesToggle.IsOn = settings.CheckUpdatesOnStartup;
 
-            // deliberately above the two early returns below, the landing page is not tied to autostart at all
+            // above the early return below; the landing page has nothing to do with autostart
             string currentStartupPage = settings.StartupPage.ToString();
             foreach (ComboBoxItem item in StartupPageComboBox.Items)
             {
@@ -260,8 +250,7 @@ namespace FluentSensors.Features.Settings
                 return;
             }
 
-            // a task pointing at a moved exe is repaired at app start, not here, so it is fixed even for someone
-            // who never opens this page
+            // a task on a moved exe is repaired at app start, not here, so it is fixed without visiting this page
             bool taskExists = WinAutostartService.IsEnabled();
             if (settings.RunOnStartup != taskExists) settings.RunOnStartup = taskExists;
 
@@ -270,9 +259,8 @@ namespace FluentSensors.Features.Settings
             UpdateStartupCardStates();
         }
 
-        // both rows only do anything while windows is the one launching the app: a delay needs a scheduled task
-        // to delay, and start-minimized is explicitly about the sign-in launch, see MainWindow.StartsHiddenInTray
-        // the portable build has no task at all, so neither row can be honoured there whatever the toggle says
+        // both rows only matter while Windows launches the app: a delay needs the task, start minimized is about the
+        // sign-in launch (see MainWindow.StartsHiddenInTray); the portable build has neither
         private void UpdateStartupCardStates()
         {
             bool autostartActive = WinAutostartService.IsSupported && RunOnStartupToggle.IsOn;
@@ -293,7 +281,7 @@ namespace FluentSensors.Features.Settings
                 return;
             }
 
-            // the task scheduler refused, so put the switch back rather than showing a state that does not exist
+            // the task scheduler refused; the switch goes back
             _isLoading = true;
             RunOnStartupToggle.IsOn = !wanted;
             _isLoading = false;
@@ -308,7 +296,7 @@ namespace FluentSensors.Features.Settings
 
             bool wanted = DelayStartupToggle.IsOn;
 
-            // the delay lives in the task trigger, so changing it means writing the task again
+            // the delay lives in the task trigger, so the task is written again
             if (WinAutostartService.Apply(true, wanted))
             {
                 SettingsService.Instance.DelayStartup = wanted;
@@ -339,13 +327,11 @@ namespace FluentSensors.Features.Settings
         {
             if (_isLoading) return;
 
-            // read once up front: this handler writes two settings, and the control must not be able to change
-            // underneath the second write
+            // read once, the handler writes two settings
             bool isOn = StatusReadoutToggle.IsOn;
             _isWritingStatusReadout = true;
 
-            // switching it back on here also undoes a collapse from the title bar button, otherwise the readout would
-            // stay hidden while this toggle claims it is on
+            // switching on also undoes a collapse from the title bar button, or the readout would stay hidden
             if (isOn) SettingsService.Instance.StatusReadoutCollapsed = false;
 
             SettingsService.Instance.StatusReadoutEnabled = isOn;
@@ -374,7 +360,7 @@ namespace FluentSensors.Features.Settings
             UpdateStatusReadoutCardStates();
         }
 
-        // takes effect on the next launch, MainWindow reads the setting once during the splash reveal
+        // takes effect on the next launch; MainWindow reads it once at the splash reveal
         private void StartupPageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -418,8 +404,7 @@ namespace FluentSensors.Features.Settings
             UpdateStatusReadoutCardStates();
         }
 
-        // the rows below the master toggle only do anything while it is on, and an order only exists while both
-        // readouts are actually shown
+        // the rows below the master toggle need it on, and an order needs both readouts shown
         private void UpdateStatusReadoutCardStates()
         {
             bool readoutEnabled = StatusReadoutToggle.IsOn;
@@ -429,8 +414,7 @@ namespace FluentSensors.Features.Settings
             StatusGroupOrderCard.IsEnabled = readoutEnabled && StatusLhmGroupToggle.IsOn && StatusWindowsGroupToggle.IsOn;
         }
 
-        // csv format; all four pieces are only read when a recording starts, so switching any of them never
-        // touches an open file
+        // csv format; read only when a recording starts, so a switch never touches an open file
         private void CsvNumberFormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -490,10 +474,8 @@ namespace FluentSensors.Features.Settings
             UpdateCsvFormatExample();
         }
 
-        // one sample row that stands for all four options at once
-        //
-        // built through the same CsvRowFormat a recording uses, so what the expander shows and what lands in the
-        // file can not drift apart; the units come from SensorUnitFormatter for the same reason
+        // one sample row for all four options, built through the CsvRowFormat and SensorUnitFormatter a recording uses,
+        // so it never drifts from the file
         private void UpdateCsvFormatExample()
         {
             var format = CsvRowFormat.Resolve();
@@ -504,7 +486,7 @@ namespace FluentSensors.Features.Settings
             CsvFormatExampleTextBlock.Text = clock + format.Separator + temperature;
         }
 
-        // picks the entry whose Tag matches, used by every combo box that is restored from a single value
+        // the entry whose Tag matches, for every combo box restored from a single value
         private static void SelectByTag(ComboBox comboBox, string tag)
         {
             foreach (ComboBoxItem item in comboBox.Items)
@@ -517,7 +499,7 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        // graph line style (stepline / smooth), one global switch for every graph
+        // graph line style, stepline or smooth; one global switch for every graph
         private void GraphLineStyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -556,8 +538,7 @@ namespace FluentSensors.Features.Settings
             GraphFillFadeToggle.IsOn = SettingsService.Instance.GraphFillFade;
         }
 
-        // bytes or bits, once for sizes and once for speeds, so a network speed can read Mbit/s while memory stays
-        // in MB
+        // bytes or bits, separately for sizes and speeds, so a network speed reads Mbit/s while memory stays in MB
         private void DataSizeUnitComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -586,11 +567,8 @@ namespace FluentSensors.Features.Settings
             SelectByTag(DataSpeedUnitComboBox, SettingsService.Instance.DataSpeedUnitBasis.ToString());
         }
 
-        // reaches every hardware category glyph: start page tiles, sensor list and hidden sensor group headers,
-        // and the hardware views own headers
-        //
-        // graph colors are deliberately not here; each surface picks its own source next to its custom color, see
-        // GraphColorSourceComboBox and TaskbarGraphColorSourceComboBox
+        // every hardware category glyph: start page tiles, sensor list and hidden sensor group headers, hardware view
+        // headers; (graph colors have their own source per surface)
         private void HardwareIconColorsToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
@@ -606,8 +584,7 @@ namespace FluentSensors.Features.Settings
 
         // === performance page appearance settings ===
 
-        // two ranges because the page has two graph densities; Extended covers the cpu all-threads and
-        // gpu extended grids, which show many small graphs at once
+        // two ranges for two graph densities; Extended covers the cpu all-threads and gpu extended grids
         private void PerformanceGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -666,9 +643,8 @@ namespace FluentSensors.Features.Settings
             UpdateBackgroundMaterialCardStates();
         }
 
-        // the backdrop in the header decides which rows below it do anything: both opacity sliders are acrylic
-        // only, and mica brings its own color, so only acrylic and solid have a color to source at all
-        // the picker answers to the source next to it rather than to the backdrop
+        // the backdrop decides which rows apply: the opacity sliders are acrylic only, a color source only exists for
+        // acrylic and solid (mica brings its own); the picker follows its source
         private void UpdateBackgroundMaterialCardStates()
         {
             string backdrop = SettingsService.Instance.BackdropType;
@@ -705,7 +681,7 @@ namespace FluentSensors.Features.Settings
 
             if (sender is CommunityToolkit.WinUI.Controls.ColorPickerButton colorPicker)
             {
-                // if user manually picks a color, we switch the source to "custom"
+                // a picked color switches the source to custom
                 SettingsService.Instance.UseAccentColor = false;
                 BackgroundColorSourceComboBox.SelectedIndex = 1;
 
@@ -735,7 +711,7 @@ namespace FluentSensors.Features.Settings
             UpdateBackgroundMaterialCardStates();
         }
 
-        // Graph
+        // graph
         private void GraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (GraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
@@ -747,7 +723,7 @@ namespace FluentSensors.Features.Settings
             UpdateGraphColorPickerStates();
         }
 
-        // a color picker is only worth reaching while the selector next to it actually says custom
+        // a picker only while its selector says custom
         private void UpdateGraphColorPickerStates()
         {
             GraphColorPicker.IsEnabled = SettingsService.Instance.GraphColorSource == GraphColorSource.Custom;
@@ -759,7 +735,7 @@ namespace FluentSensors.Features.Settings
 
             if (sender is CommunityToolkit.WinUI.Controls.ColorPickerButton colorPicker)
             {
-                // if user picks a color for the graph, we switch the source to "custom"
+                // a picked color switches the source to custom
                 SettingsService.Instance.GraphColorSource = GraphColorSource.Custom;
                 SelectByTag(GraphColorSourceComboBox, nameof(GraphColorSource.Custom));
 
@@ -882,7 +858,7 @@ namespace FluentSensors.Features.Settings
             UpdateTaskbarBackgroundMaterialCardStates();
         }
 
-        // Graph
+        // graph
         private void TaskbarGraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (TaskbarGraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
@@ -1034,9 +1010,8 @@ namespace FluentSensors.Features.Settings
 
         // === backup and restore settings ===
 
-        // the folder differs per channel and a store build puts it somewhere nobody would guess, so the card names
-        // the real path instead of describing it in the abstract; the description in the markup is only what shows
-        // at design time
+        // the real path, since the folder differs per channel and the store one is hard to guess; (the markup
+        // description is design time only)
         private void ShowAppDataFolderPath()
         {
             string folder = PersistenceService.Instance.RootFolder;
@@ -1071,7 +1046,7 @@ namespace FluentSensors.Features.Settings
 
             try
             {
-                // ensure settings.json reflects the live state even if it was never re-written to disk this session
+                // settings.json with the live state, even if nothing was saved this session
                 SettingsService.Instance.SaveImmediate();
                 PersistenceService.Instance.ExportBackup(path);
                 await ShowInfoDialog("Export Successful", "Your settings have been exported.");
@@ -1098,9 +1073,8 @@ namespace FluentSensors.Features.Settings
             bool success = PersistenceService.Instance.ImportBackup(path);
             if (success)
             {
-                // reload every in-memory singleton from the freshly imported files immediately; otherwise, even with the
-                // AppWindow_Changed guard above, any other future code path that saves during shutdown would still be working
-                // with stale pre-import data
+                // every singleton reloads from the imported files right away, so nothing saving on the way out writes
+                // pre-import data (beyond the MainWindow.AppWindow_Changed guard)
                 SettingsService.Instance.LoadFromData(PersistenceService.Instance.LoadSettings());
                 WindowStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadWindowStates());
                 SensorStateService.Instance.LoadFromDisk(PersistenceService.Instance.LoadSensorStates());
@@ -1146,9 +1120,8 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        // window and page states cover three things that all fall under "what the window/page layout currently
-        // looks like": window position/size, the title bar status readout, and which sensor is picked per graph
-        // slot on the Performance page
+        // window and page states: window position and size, the title bar status readout, the sensor
+        // picked per performance page slot
         private async void ResetWindowAndPageStates_Click(object sender, RoutedEventArgs e)
         {
             if (await ConfirmReset("Window and Page States"))
@@ -1156,9 +1129,8 @@ namespace FluentSensors.Features.Settings
                 PersistenceService.Instance.ResetWindowStates();
                 PersistenceService.Instance.ResetSensorSwitchStates();
 
-                // these live inside settings.json next to unrelated general settings (theme, tray behavior, etc), so
-                // they are reset in place through their own setters instead of deleting that whole file; the debounced
-                // save this queues still reaches disk before restart, ForceExit() flushes any pending write on its way out
+                // these live in settings.json next to unrelated settings, so they reset through their setters;
+                // ForceExit() flushes the queued save
                 var defaultSettings = new AppSettingsData();
                 SettingsService.Instance.StatusReadoutEnabled = defaultSettings.StatusReadoutEnabled;
                 SettingsService.Instance.StatusReadoutCollapsed = defaultSettings.StatusReadoutCollapsed;

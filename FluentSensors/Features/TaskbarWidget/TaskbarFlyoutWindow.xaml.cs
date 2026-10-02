@@ -31,16 +31,15 @@ using FluentSensors.Features.CsvLogging;
 
 namespace FluentSensors.Features.TaskbarWidget
 {
-    // companion flyout window displaying live telemetry graphs directly anchored next to the taskbar widget
-    //
-    // WinUI 3 has no built-in support for anchoring a borderless, non-activating window to an external Win32 shell
-    // window; this window combines several low-level techniques:
-    // 1. eliminates the non-client titlebar stripe via WM_NCCALCSIZE (0x0083) returning 0
-    // 2. caps its own height against the work area and scrolls the graph list rather than growing past it
-    // 3. places the window directly beneath Shell_TrayWnd in Z-order so it slides out from under the taskbar
-    // 4. coordinates a physical window slide via CompositionTarget.Rendering with direct composition opacity fading
-    // 5. applies dynamic DWM corner preferences and shadow suppression depending on the Windows transparency setting
-    // 6. integrates DesktopAcrylicController / Mica system backdrop with a swapchain kick on theme changes
+    // the taskbar flyout:
+    // the live graphs of the taskbar profile, anchored next to the taskbar widget; WinUI has no way to anchor a
+    // borderless window to a shell window, so this combines:
+    // 1. no titlebar stripe, WM_NCCALCSIZE returning 0
+    // 2. a height capped against the work area, the graph list scrolls past it
+    // 3. Z-order directly beneath Shell_TrayWnd, so it slides out from under the taskbar
+    // 4. a real window slide on CompositionTarget.Rendering plus a composition opacity fade
+    // 5. DWM corner and shadow settings that follow the Windows transparency setting
+    // 6. a DesktopAcrylicController backdrop with a swapchain kick after a rebuild
     //
     // references:
     // https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.input.inputnonclientpointersource
@@ -130,55 +129,43 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // --- animation & performance settings ---
 
-        // physical window slide distance in DIP/pixels
         public const int WindowSlideDistanceDip = 300;
 
-        // animation duration in milliseconds
-        public const int EnterAnimationDurationMs = 240; // duration on open (move-in)
-        public const int ExitAnimationDurationMs = 140;  // duration on close (move-out)
+        // in ms
+        public const int EnterAnimationDurationMs = 240;
+        public const int ExitAnimationDurationMs = 140;
 
-        // how far the two durations and the slide distance above follow the pinned sensor count: all three are
-        // tuned for AnimationReferenceSensorCount sensors, every sensor above or below scales them by their own factor
-        // these three are the knobs to turn; 0 pins a value to its base, 0.18 makes a three sensor flyout 18 percent
-        // slower than a two sensor one
+        // scaling with the pinned sensor count; durations and distance are tuned for AnimationReferenceSensorCount,
+        // each sensor above or below scales them by its factor (0 = fixed, 0.18 = 18 percent per sensor)
         public const int AnimationReferenceSensorCount = 2;
-        public const double EnterDurationPerSensorFactor = 0.20; // scaling per sensor on open
-        public const double ExitDurationPerSensorFactor = 0.14;  // scaling per sensor on close
-        public const double SlideDistancePerSensorFactor = 0.10; // scaling per sensor on the travelled distance
+        public const double EnterDurationPerSensorFactor = 0.20;
+        public const double ExitDurationPerSensorFactor = 0.14;
+        public const double SlideDistancePerSensorFactor = 0.10;
 
-        // keeps a single sensor from snapping open and a full height flyout from crawling
+        // clamps the scaling, so one sensor does not snap open and a full flyout does not crawl
         public const double MinAnimationScaleFactor = 0.75;
         public const double MaxAnimationScaleFactor = 3.0;
 
-        // fade opacity (1.0f = no fade, 0.0f = full fade)
-        public const float EnterFadeStartOpacity = 0.0f; // initial opacity when opening
-        public const float EnterFadeEndOpacity = 1.0f; // target opacity when opening
-        public const float ExitFadeEndOpacity = 0.9f; // target opacity when closing
+        // fade opacity
+        public const float EnterFadeStartOpacity = 0.0f;
+        public const float EnterFadeEndOpacity = 1.0f;
+        public const float ExitFadeEndOpacity = 0.9f;
 
-        // background live graph rendering toggle
-        // keeps graphs rendering continuously in background so they are instantly visible on open
+        // keeps the graphs rendering while hidden, so they are current the moment the flyout opens
         public const bool KeepFlyoutGraphsActiveInBackground = true;
 
-        // --- Mica Flyout Blur Preset Settings (used when BackdropType == "Mica" and Transparency is ON) ---
-        // over a flat backdrop the controller resolves to lerp(backdrop, tint, luminosity), so measuring one
-        // surface over a dark and over a bright background yields both unknowns; run against the native shell
-        // flyouts that gives 4 percent backdrop transmission in dark and 9 percent in light
-        //
-        // no TintOpacity here on purpose: the tint sits in a blend that carries hue and saturation only, so a
-        // neutral gray tint turns that layer into a no-op and luminosity is the one knob that moves the result
-        // the effect graph is public; note that the source flags its own BlendEffectMode names as swapped, so the
-        // tint layer reads as Luminosity there while it behaves as a color blend:
+        // --- mica preset (BackdropType "Mica" with Windows transparency on) ---
+        // over a flat backdrop the controller resolves to lerp(backdrop, tint, luminosity); the native shell flyouts
+        // measure as 4 percent backdrop transmission in dark and 9 in light
+        // no TintOpacity: the tint blend carries hue and saturation only, so a gray tint makes it a no-op (the source
+        // names its BlendEffectMode swapped, the tint layer reads as Luminosity there):
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.cpp
-        //
-        // the tints are the Fluent acrylic base tones, AcrylicBackgroundFillColorBaseBrush:
+        // tints are the Fluent acrylic base tones, AcrylicBackgroundFillColorBaseBrush, not pre-compensated (the
+        // render shift applies once to the finished composite):
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush_19h1_themeresources.xaml
-        // they are not pre-compensated the way the opaque literals are, because the render shift applies once to
-        // the finished composite and is already contained in the measurements these were derived from
-        // Dark Mode Preset:
         public static readonly Windows.UI.Color MicaPresetDarkTintColor = Windows.UI.Color.FromArgb(255, 0x20, 0x20, 0x20);
         public const float MicaPresetDarkLuminosity = 0.96f;
 
-        // Light Mode Preset:
         public static readonly Windows.UI.Color MicaPresetLightTintColor = Windows.UI.Color.FromArgb(255, 0xF3, 0xF3, 0xF3);
         public const float MicaPresetLightLuminosity = 0.91f;
 
@@ -187,44 +174,36 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private const string WindowKey = "TaskbarFlyout";
 
-        // Anchor offsets configurable in code-behind
-        // the taskbar gap doubles as the gap to the far side of the work area, and that pair is what caps the window
-        // height on a horizontal taskbar, see PositionNextToTaskbar
-        public const int FlyoutMarginToTaskbarDip = 12; // gap between the taskbar and the facing flyout edge
-        public const int FlyoutMarginToScreenEdgeDip = 12; // smallest gap the flyout keeps to the screen edges along the taskbar
+        // anchor gaps; (on a horizontal taskbar the taskbar gap is also the gap to the far side of the work
+        // area, which caps the height)
+        public const int FlyoutMarginToTaskbarDip = 12;
+        public const int FlyoutMarginToScreenEdgeDip = 12; // along the taskbar
 
-        // offset from the aligned edge along the taskbar, meaning depends on TaskbarFlyoutAlignment:
-        // Left = pixels to move inward from the widget left edge (top edge on a vertical taskbar)
-        // Right = pixels to move inward from the widget right edge (bottom edge on a vertical taskbar)
-        // Center = unused
+        // inward offset from the widget edge TaskbarFlyoutAlignment picks; (Center ignores it)
         public const int FlyoutAlignmentOffsetDip = 0;
 
-        // fixed width in DIP; the value lives with the other window sizes in AppSettingsData
+        // fixed width
         public const double FlyoutDefaultWidthDip = AppSettingsData.TaskbarFlyoutWidthDip;
 
-        // height of a single graph slot in DIP, from AppSettingsData as well
+        // height of one graph slot
         public const double FlyoutDefaultGraphHeightDip = AppSettingsData.TaskbarFlyoutGraphHeightDip;
 
         // --- flyout layout ---
 
-        // the two insets the interior is built from;
-        // the graphs inset is a margin on the list rather than padding on the surface below it, so the scroll region
-        // stays the full width of the window and the scrollbar rides the window edge instead of the inset
+        // the two interior insets; (the graphs inset is a margin on the list, not padding on the surface, so the
+        // scrollbar rides the window edge)
         public static readonly Thickness FlyoutGraphsMargin = new Thickness(4, 9, 4, 8);
         public static readonly Thickness FlyoutBottomBarPadding = new Thickness(6, 5, 6, 5);
 
-        // gap between two stacked graphs
         public const double FlyoutGraphSpacingDip = 8;
 
-        // height of both bottom bar buttons, assigned to them further down; the window height math runs long before
-        // the bar is ever measured, so the value cannot be read back off the controls
+        // both bar buttons; (set from code, the height math runs before the bar is ever measured)
         public const double FlyoutBottomBarButtonHeightDip = 36;
 
-        // separator drawn as the top border of FlyoutBottomBarBorder
+        // the top border of FlyoutBottomBarBorder
         private const double FlyoutBottomBarSeparatorDip = 1;
 
-        // bottom action bar strip, added on top of the graph slots in the window height math; derived, so
-        // changing FlyoutBottomBarPadding corrects that math on its own
+        // the bottom bar strip in the height math; (derived, so it follows FlyoutBottomBarPadding)
         private static double FlyoutBottomBarHeightDip =>
             FlyoutBottomBarSeparatorDip + FlyoutBottomBarPadding.Top
             + FlyoutBottomBarButtonHeightDip + FlyoutBottomBarPadding.Bottom;
@@ -240,18 +219,16 @@ namespace FluentSensors.Features.TaskbarWidget
         private bool _isAdjustingPosition;
         private bool _isHiding;
 
-        // sensor count the slide durations are scaled by; capped at what still fits once the window reaches its
-        // height cap, because past that point the window stops growing
+        // sensor count the slide is scaled by; (capped at what fits under the height cap)
         private int _animationSensorCount = AnimationReferenceSensorCount;
 
-        // the graph rows sit in an ItemsPanelTemplate and cannot be named in XAML, so the panel is cached the first
-        // time a layout pass produces it; _isGraphsScrolling holds the mode until then
+        // the items panel, cached on the first layout pass (an ItemsPanelTemplate cannot be named);
+        // _isGraphsScrolling holds the mode until then
         private FluentSensors.Controls.VerticalStretchPanel? _graphsPanel;
         private bool _isGraphsScrolling;
 
-        // native window animation, ticked from CompositionTarget.Rendering rather than a DispatcherTimer:
-        // a DispatcherTimer cannot go below the ~15.6ms Windows scheduler granularity (~64 fps) regardless of the
-        // requested interval, while the compositor frame tick tracks the displays actual refresh rate
+        // native window slide, ticked from CompositionTarget.Rendering; (a DispatcherTimer caps out near 60 fps, the
+        // compositor tick follows the display refresh rate)
         private bool _isAnimating;
         private Stopwatch? _animStopwatch;
         private int _animStartX, _animStartY, _animTargetX, _animTargetY;
@@ -259,9 +236,8 @@ namespace FluentSensors.Features.TaskbarWidget
         private bool _animIsEntering;
         private Action? _animOnComplete;
 
-        // both slides travel this offset in physical pixels, from the target position toward the taskbar; computed once
-        // per open in PositionNextToTaskbar from the taskbars own DPI, and read from here rather than recomputed against
-        // the window DPI at slide time, which could disagree with it on a mixed-DPI setup and jump the first frame
+        // slide offset in px, from the target toward the taskbar; set per open from the taskbar DPI (recomputing it
+        // against the window DPI could jump the first frame on a mixed-DPI setup)
         private int _slideOffsetX;
         private int _slideOffsetY;
 
@@ -269,8 +245,7 @@ namespace FluentSensors.Features.TaskbarWidget
         public static TaskbarFlyoutWindow? CurrentInstance { get; private set; }
         private static TaskbarFlyoutWindow? _retainedInstance;
 
-        // system backdrop controllers
-        // no MicaController here on purpose: material "Mica" is served by _acrylicController too, see SetBackdrop
+        // system backdrop; (no MicaController, "Mica" runs through _acrylicController too, see SetBackdrop)
         private DesktopAcrylicController? _acrylicController;
         private SystemBackdropConfiguration? _configurationSource;
 
@@ -291,16 +266,16 @@ namespace FluentSensors.Features.TaskbarWidget
             _appWindow.SetIcon("Assets\\Icon\\Icon.ico");
             _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-            // frameless presenter without default OS caption buttons (no top-right close/min/max)
+            // frameless presenter, no caption buttons
             var presenter = OverlappedPresenter.Create();
             presenter.SetBorderAndTitleBar(false, false);
-            presenter.IsAlwaysOnTop = false; // do not force topmost above taskbar shell
+            presenter.IsAlwaysOnTop = false; // sits behind the taskbar
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = false;
-            presenter.IsResizable = false; // the height is always derived from the pinned sensor count, never dragged
+            presenter.IsResizable = false; // height follows the sensor count
             _appWindow.SetPresenter(presenter);
 
-            // remove WS_THICKFRAME and WS_CAPTION and apply WS_POPUP and WS_EX_TOOLWINDOW
+            // popup tool window without frame or caption
             int style = GetWindowLong(_hwnd, GWL_STYLE);
             SetWindowLong(_hwnd, GWL_STYLE, (style | WS_POPUP) & ~WS_THICKFRAME & ~WS_CAPTION);
 
@@ -318,16 +293,14 @@ namespace FluentSensors.Features.TaskbarWidget
 
             SetWindowPos(_hwnd, IntPtr.Zero, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
-            // hook win32 messages:
-            // 1. WM_NCCALCSIZE (0x0083): eliminates the 8px non-client white titlebar stripe completely
-            // 2. WM_SYSCOMMAND (0x0112): prevents dragging/moving the window
+            // win32 hooks; WM_NCCALCSIZE drops the 8px titlebar stripe, WM_SYSCOMMAND blocks moving
             _messageMonitor = new WindowMessageMonitor(_hwnd);
             _messageMonitor.WindowMessageReceived += OnWindowMessageReceived;
 
-            // initialize shadow policy & UISettings based on Windows transparency setting
+            // shadow policy follows the Windows transparency setting
             InitializeShadowPolicy();
 
-            // theming & backdrop (Taskbar ecosystem)
+            // theming and backdrop, from the taskbar settings
             SetBackdrop(SettingsService.Instance.TaskbarBackdropType);
             ApplyTheme(SettingsService.Instance.AppTheme);
 
@@ -349,9 +322,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 });
             };
 
-            // the insets and the bar button height come from the layout constants above, which is what keeps the
-            // window height math and the rendered bar in sync; width and padding of the buttons themselves stay in
-            // the xaml, they do not enter that math
+            // layout constants pushed onto the controls, so the height math and the rendered bar agree (button width
+            // and padding stay in the xaml, they do not enter that math)
             GraphsItemsControl.Margin = FlyoutGraphsMargin;
             BottomBarContentGrid.Padding = FlyoutBottomBarPadding;
             BackToDashboardButton.Height = FlyoutBottomBarButtonHeightDip;
@@ -367,7 +339,7 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
 
-        // === shadow policy (based on Windows Transparency Effects) ===
+        // === shadow policy ===
 
         private void InitializeShadowPolicy()
         {
@@ -381,16 +353,12 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             catch
             {
-                // safety guard if UISettings is unavailable
+                // UISettings unavailable; no shadow policy
             }
         }
 
-        // a named handler rather than a lambda, so SafeDestroy can detach it again; every rebuilt window subscribes
-        // anew and without the detach the UISettings handler list grows by one per rebuild
-        //
-        // routes to RouteSystemVisualsChange rather than ScheduleRecreation directly: AdvancedEffectsEnabledChanged
-        // always means a rebuild (the DWM acrylic rebind, see ScheduleRecreation below), but ColorValuesChanged also
-        // fires for a pure accent change, which the router resolves into the cheap in-place refresh instead
+        // named so SafeDestroy can detach it (every rebuilt window subscribes anew); goes through the router, since
+        // ColorValuesChanged also fires for a pure accent change that needs no rebuild
         private void OnSystemVisualSettingsChanged(UISettings sender, object args)
         {
             RouteSystemVisualsChange(sender);
@@ -404,7 +372,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             if (isTransparencyEnabled)
             {
-                // Transparency ON: Native Windows 11 rounded window corners (8px) with GPU DWM clipping (eliminates black box)
+                // transparency on; DWM rounds the corners and clips the acrylic (the native shadow comes with it)
                 int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
                 DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPreference, sizeof(int));
 
@@ -416,7 +384,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             else
             {
-                // Transparency OFF: 100% transparent HWND with zero DWM drop shadow and XAML 8px rounded solid canvas
+                // transparency off; no DWM rounding and no shadow, the XAML border draws the 8px corners
                 int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DONOTROUND;
                 DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPreference, sizeof(int));
 
@@ -442,7 +410,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 if (e.Message.WParam != 0)
                 {
-                    // 0 = client area covers 100% of the window rectangle, eliminating the 8px top border gap
+                    // client area covers the whole window rect
                     e.Result = IntPtr.Zero;
                     e.Handled = true;
                 }
@@ -460,7 +428,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === public methods ===
 
-        // recalculates the flyout geometry so the next open reflects the current pinned sensor count
+        // re-places the flyout for the current pinned sensor count
         public static void ResetGeometry()
         {
             if (CurrentInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
@@ -473,11 +441,10 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // preloads the flyout instance into memory at taskbar initialization to eliminate first-open latency
+        // builds the flyout at taskbar startup, so the first open has no latency
         public static void Preload(TaskbarWidgetWindow widgetWindow)
         {
-            // a retained instance is assumed to be a live window; if a destroyed one ever sits there this silently
-            // skips the rebuild and the flyout stays dead for the rest of the session, see AppWindow_Closing
+            // assumes a retained instance is live (a destroyed one here leaves the flyout dead, see AppWindow_Closing)
             if (widgetWindow == null || CurrentInstance != null || _retainedInstance != null) return;
 
             var window = new TaskbarFlyoutWindow(widgetWindow.ViewModel);
@@ -490,18 +457,16 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // ensures the flyout is placed directly behind the taskbar shell in Z-order
         private void EnsureBehindTaskbarZOrder()
         {
             var taskbarHwnd = FindWindow("Shell_TrayWnd", null);
             if (taskbarHwnd != IntPtr.Zero)
             {
-                // place behind taskbar: SWP_NOSIZE (0x1) | SWP_NOMOVE (0x2) | SWP_NOACTIVATE (0x10) | SWP_NOOWNERZORDER (0x200)
+                // SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOOWNERZORDER
                 SetWindowPos(_hwnd, taskbarHwnd, 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010 | 0x0200);
             }
         }
 
-        // toggles visibility of the flyout directly next to the taskbar widget
         public static void Toggle(TaskbarWidgetWindow widgetWindow)
         {
             if (widgetWindow == null) return;
@@ -575,23 +540,17 @@ namespace FluentSensors.Features.TaskbarWidget
         private bool _isClosed = false;
 
         // --- memory leak: flyout instance never released after a real close ---
-        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
-        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
-        // everywhere else in this project the answer is hide-and-reuse (_retainedInstance); this method is the one
-        // place that deliberately does the opposite and destroys the window for real, because DWM does not rebind
-        // DesktopAcrylicController to a fresh swapchain without a full recreation, see ScheduleRecreation below
-        // price: one leaked CCW per OS theme or transparency change, knowingly paid, because the alternative was a
-        // flyout that silently stopped repainting and switching theme for the rest of the session
-        //
-        // only ever call this from ExecuteFullRebuild, never from the normal hide path
+        // fix: none here; the one place that destroys for real, since DWM only rebinds the acrylic on a full
+        // recreation (see ScheduleRecreation); one leaked CCW per OS theme or transparency change, knowingly paid
+        // only ever called from ExecuteFullRebuild
         public void SafeDestroy()
         {
             if (_isClosed) return;
             _isClosed = true;
 
-            // unhooks CompositionTarget.Rendering if a slide is still in flight; that event is static and keeps
-            // firing for the life of the process otherwise, ticking a handler on a window that no longer exists
+            // a slide still in flight would keep the static Rendering event ticking a dead window
             StopSlide();
 
             try
@@ -615,8 +574,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             catch { }
 
-            // AppWindow_Closing cancels the close and re-registers this instance as _retainedInstance; detaching it
-            // here is what lets the Close below go through instead of resurrecting a window that is already torn down
+            // detached first, or AppWindow_Closing cancels the Close below and brings this
+            // window back as _retainedInstance
             try
             {
                 _appWindow.Closing -= AppWindow_Closing;
@@ -640,18 +599,15 @@ namespace FluentSensors.Features.TaskbarWidget
         private static Microsoft.UI.Dispatching.DispatcherQueueTimer? _recreateDebounceTimer;
         private static Microsoft.UI.Dispatching.DispatcherQueueTimer? _accentRefreshDebounceTimer;
 
-        // last seen OS visual state; ColorValuesChanged fires for an accent change and for a light/dark switch
-        // alike, and the event carries no detail of what changed, so telling them apart means comparing snapshots
+        // last seen OS visual state; (ColorValuesChanged does not say whether accent or theme
+        // changed, so snapshots are compared)
         private static Windows.UI.Color _lastAccentColor;
         private static Windows.UI.Color _lastBackgroundColor;
         private static bool _lastAdvancedEffectsEnabled;
         private static bool _hasVisualSnapshot;
 
-        // establishes the baseline before any UISettings event has fired, so the first real event diffs against
-        // the actual prior state instead of every field reading as changed and forcing a rebuild unconditionally
-        //
-        // both WidgetWindow and TaskbarFlyoutWindow own a UISettings instance and call this from their own
-        // constructor; harmless to call twice, it always just records the current true state
+        // baseline before the first UISettings event, so that event diffs against real state instead of forcing a
+        // rebuild (called from both WidgetWindow and this constructor, calling twice is harmless)
         public static void SeedSystemVisualsSnapshot(UISettings settings)
         {
             _lastAccentColor = settings.GetColorValue(UIColorType.Accent);
@@ -660,12 +616,8 @@ namespace FluentSensors.Features.TaskbarWidget
             _hasVisualSnapshot = true;
         }
 
-        // routes a Windows-level visual settings change to the cheap in-place accent refresh or the expensive
-        // full rebuild, depending on what actually changed
-        //
-        // WidgetWindow and TaskbarFlyoutWindow each own a UISettings instance and both land here for the same OS
-        // event, so a single accent change calls this twice; the second call sees no further difference and does
-        // nothing, which is also what dedupes a picker being dragged through several colors in quick succession
+        // routes a Windows visual settings change to the in-place accent refresh or the full rebuild
+        // (both windows land here for the same OS event; the second call sees no difference and does nothing)
         public static void RouteSystemVisualsChange(UISettings sender)
         {
             var accent = sender.GetColorValue(UIColorType.Accent);
@@ -696,9 +648,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // debounced entry point for a pure accent color change: refreshes every accent-driven surface in place,
-        // no window is torn down; the 150ms debounce matches ScheduleRecreation, Windows can raise
-        // ColorValuesChanged repeatedly while a color is being dragged through a picker
+        // debounced pure accent change, refreshed in place; (150ms like ScheduleRecreation, a picker drag raises
+        // ColorValuesChanged repeatedly)
         private static void ScheduleAccentRefresh()
         {
             var queue = TaskbarWidgetWindow.CurrentInstance?.DispatcherQueue
@@ -728,12 +679,8 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
-        // refreshes every accent-driven surface across all three windows in place: pinned graph colors, and for
-        // the taskbar widget the card tint that rides on the same GraphColor, plus the acrylic tint and solid
-        // background on WidgetWindow and the flyout; none of these need a window rebuild to pick up a new accent
-        //
-        // the taskbar widget and the flyout share one TaskbarWidgetViewModel (see ShowFlyout / Preload), so
-        // refreshing it through TaskbarWidgetWindow.CurrentInstance already covers the flyouts graphs too
+        // refreshes the accent surfaces of all three windows: graph colors (and the taskbar card tint riding on them),
+        // acrylic tint and solid background; the flyout shares the taskbar widget ViewModel, so its graphs come along
         private static void ExecuteAccentRefresh()
         {
             TaskbarWidgetWindow.CurrentInstance?.ViewModel.RefreshGraphColors();
@@ -747,16 +694,12 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // --- workaround: window recreation on global OS theme/transparency change ---
-        // problem: the exact underlying reason why Windows DWM fails to bind DesktopAcrylicController blur properly
-        // without a complete window recreation is not fully clear and is based purely on empirical observation
-        // fix: upon receiving a global theme or transparency change from Windows, all three windows
-        // (TaskbarFlyoutWindow, WidgetWindow and TaskbarWidgetWindow, each if open) are fully destroyed and rebuilt;
-        // each rebuilt window then kicks its own backdrop from its constructor via KickBackdropRefresh, which goes
-        // through SetBackdrop parameters only
-        //
-        // only ever driven by the Windows-level UISettings events; an in-app theme switch must not land here, and a
-        // persisted SettingsService property must never be toggled to force a repaint: every setter snapshots the whole
-        // settings object into the debounced writer, so an interrupted toggle persists its intermediate value
+        // problem: after a Windows theme or transparency change, DWM does not bind the DesktopAcrylicController blur
+        // without a full window recreation (empirical, cause unknown)
+        // fix: destroy and rebuild every open window (this flyout, WidgetWindow, TaskbarWidgetWindow, CsvLoggerWindow);
+        // the acrylic ones kick their backdrop from the constructor via KickBackdropRefresh
+        // only the Windows-level UISettings events land here; never toggle a persisted setting to force a repaint
+        // instead (an interrupted toggle persists its intermediate value)
         public static void ScheduleRecreation()
         {
             var queue = TaskbarWidgetWindow.CurrentInstance?.DispatcherQueue
@@ -786,16 +729,13 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
-        // tears both flyout instances down for real and rebuilds all three windows, the destructive half of the
-        // workaround documented on ScheduleRecreation above
-        //
-        // the only caller of SafeDestroy; the flyout goes first and comes back last, because it anchors its geometry
-        // to the taskbar widget and the new widget has to sit on the taskbar before the new flyout can be placed
+        // the destructive half of the ScheduleRecreation workaround and the only caller of SafeDestroy; the flyout
+        // goes first and comes back last, since it anchors to the new taskbar widget
         private static void ExecuteFullRebuild()
         {
             bool flyoutWasVisible = CurrentInstance != null && CurrentInstance._appWindow != null && CurrentInstance._appWindow.IsVisible;
 
-            // 1. Safely destroy existing TaskbarFlyoutWindow instances
+            // 1. both flyout instances
             if (CurrentInstance != null)
             {
                 var old = CurrentInstance;
@@ -810,20 +750,18 @@ namespace FluentSensors.Features.TaskbarWidget
                 old.SafeDestroy();
             }
 
-            // 2. Safely destroy and rebuild WidgetWindow if open
+            // 2. WidgetWindow, if open
             WidgetWindow.RecreateWindow();
 
-            // 3. Safely destroy and rebuild TaskbarWidgetWindow; the rebuilt widget brings the flyout back itself
-            // from the end of its embedding step, see TaskbarWidgetWindow.RecreateWindow
+            // 3. TaskbarWidgetWindow; (the rebuilt widget reopens the flyout itself once embedded)
             TaskbarWidgetWindow.RecreateWindow(restoreFlyout: flyoutWasVisible);
 
-            // 4. Safely destroy and rebuild the csv logger window; a running recording is unaffected, it lives in
-            // CsvLoggingService and the rebuilt window just reads it again
+            // 4. CsvLoggerWindow; (a running recording lives in CsvLoggingService and is unaffected)
             CsvLoggerWindow.RecreateWindow();
         }
 
 
-        // === physical window slide & content fade animations ===
+        // === window slide and content fade ===
 
         private void SlideIn()
         {
@@ -831,10 +769,10 @@ namespace FluentSensors.Features.TaskbarWidget
 
             int durationMs = ScaleAnimationDuration(EnterAnimationDurationMs, EnterDurationPerSensorFactor);
 
-            // 1. Content Fade (DirectComposition)
+            // 1. content fade
             PlayContentFade(EnterFadeStartOpacity, EnterFadeEndOpacity, durationMs, isEntering: true);
 
-            // 2. Physical Window Slide, out from behind the taskbar
+            // 2. window slide, out from behind the taskbar
             int startX = _targetX + _slideOffsetX;
             int startY = _targetY + _slideOffsetY;
 
@@ -848,10 +786,10 @@ namespace FluentSensors.Features.TaskbarWidget
 
             int durationMs = ScaleAnimationDuration(ExitAnimationDurationMs, ExitDurationPerSensorFactor);
 
-            // 1. Content Fade (DirectComposition)
+            // 1. content fade
             PlayContentFade(1.0f, ExitFadeEndOpacity, durationMs, isEntering: false);
 
-            // 2. Physical Window Slide, back behind the taskbar; only the axis the slide runs on moves
+            // 2. window slide, back behind the taskbar; (only the slide axis moves)
             int currentX = _appWindow.Position.X;
             int currentY = _appWindow.Position.Y;
             int endX = _slideOffsetX != 0 ? _targetX + _slideOffsetX : currentX;
@@ -861,8 +799,7 @@ namespace FluentSensors.Features.TaskbarWidget
             AnimateNativeWindowPosition(currentX, currentY, endX, endY, durationMs, isEntering: false, onComplete: onCompleted);
         }
 
-        // the shared scaling law: how far a value moves from its base with the number of graph rows the flyout is
-        // showing, so a tall window does not open in the time a two row one does
+        // shared scaling law: how far a value moves from its base with the number of graph rows shown
         private double AnimationScaleFactor(double perSensorFactor)
         {
             double factor = 1.0 + ((_animationSensorCount - AnimationReferenceSensorCount) * perSensorFactor);
@@ -875,18 +812,14 @@ namespace FluentSensors.Features.TaskbarWidget
             return (int)Math.Round(baseDurationMs * AnimationScaleFactor(perSensorFactor));
         }
 
-        // the distance both slides travel, in physical pixels
-        // PositionNextToTaskbar parks the window on the same value before the enter slide, so it has to come from here
-        // rather than from WindowSlideDistanceDip directly
+        // slide distance in px; (PositionNextToTaskbar parks the window on the same value, so both read it here)
         private int GetSlideDistancePx(double scaleFactor)
         {
             return (int)Math.Round(WindowSlideDistanceDip * AnimationScaleFactor(SlideDistancePerSensorFactor) * scaleFactor);
         }
 
-        // enter and exit share the flyouts native window slide curve so the two never visibly diverge: Fluent 2
-        // Fast-Out-Slow-In on enter (cubic ease-out, 1-(1-p)^3) and Slow-Out-Fast-In on exit (cubic ease-in, p^3);
-        // expressed as the equivalent cubic-bezier control points, since CompositionEasingFunction only takes a
-        // bezier, not an arbitrary polynomial: (1/3,1)/(2/3,1) reduces to exactly 1-(1-p)^3, (1/3,0)/(2/3,0) to p^3
+        // same curve as the window slide, so fade and slide never diverge: ease-out 1-(1-p)^3 on enter, ease-in p^3
+        // on exit, as the bezier points (1/3,1)/(2/3,1) and (1/3,0)/(2/3,0) that reduce to exactly those
         private void PlayContentFade(float fromOpacity, float toOpacity, int durationMs, bool isEntering)
         {
             if (RootGrid == null) return;
@@ -898,7 +831,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 ? compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 1f), new Vector2(2f / 3f, 1f))
                 : compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 0f), new Vector2(2f / 3f, 0f));
 
-            // NO inner offset animation on RootGrid - only smooth opacity fade
+            // opacity only; the window itself does the moving
             var opacityAnim = compositor.CreateScalarKeyFrameAnimation();
             opacityAnim.InsertKeyFrame(0.0f, fromOpacity);
             opacityAnim.InsertKeyFrame(1.0f, toOpacity, easing);
@@ -927,17 +860,14 @@ namespace FluentSensors.Features.TaskbarWidget
             Microsoft.UI.Xaml.Media.CompositionTarget.Rendering += OnSlideFrame;
         }
 
-        // ticks with the compositors own frame rate rather than a fixed interval, so the slide keeps pace with
-        // whatever refresh rate the display actually runs at; a DispatcherTimer cannot, see the field comment above
+        // ticks with the compositor frame, so the slide keeps pace with the display refresh rate
         private void OnSlideFrame(object? sender, object e)
         {
             if (_animStopwatch == null) return;
 
             double progress = Math.Clamp((double)_animStopwatch.ElapsedMilliseconds / _animDurationMs, 0.0, 1.0);
 
-            // Fluent 2 Easing curves:
-            // Enter: Fast Out, Slow In (Cubic ease-out) = 1 - (1 - p)^3
-            // Exit: Slow Out, Fast In (Cubic ease-in) = p^3
+            // Fluent 2 easing; enter 1-(1-p)^3, exit p^3
             double ease = _animIsEntering
                 ? (1.0 - Math.Pow(1.0 - progress, 3))
                 : Math.Pow(progress, 3);
@@ -958,9 +888,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // unhooks the per-frame handler; CompositionTarget.Rendering is static and keeps firing for the life of
-        // the process once subscribed, so every path that can end a slide (completion, an overlapping new slide,
-        // window teardown in SafeDestroy) has to call this or the compositor never stops ticking a dead flyout
+        // every path that ends a slide (completion, a new slide, SafeDestroy) calls this; the static Rendering event
+        // otherwise keeps ticking for the life of the process
         private void StopSlide()
         {
             if (!_isAnimating) return;
@@ -973,10 +902,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === window sizing and positioning ===
 
-        // places the flyout next to the taskbar widget on the desktop side of whichever screen edge the taskbar sits on:
-        // along the taskbar per TaskbarFlyoutAlignment (centered, left or right; top or bottom on a vertical taskbar),
-        // across it FlyoutMarginToTaskbarDip away from the taskbar, then clamps the result so it never leaves the
-        // primary work area
+        // places the flyout beside the taskbar widget, on the desktop side of the taskbar edge: along the taskbar per
+        // TaskbarFlyoutAlignment, FlyoutMarginToTaskbarDip off it, clamped to the primary work area
         private void PositionNextToTaskbar(TaskbarWidgetWindow widgetWindow, bool startForSlideAnimation = false)
         {
             var widgetHwnd = WinRT.Interop.WindowNative.GetWindowHandle(widgetWindow);
@@ -990,22 +917,17 @@ namespace FluentSensors.Features.TaskbarWidget
             var bar = primaryTaskbar?.Rect
                 ?? new RectInt32(widgetRect.Left, widgetRect.Top, widgetRect.Right - widgetRect.Left, widgetRect.Bottom - widgetRect.Top);
 
-            // width is fixed to FlyoutDefaultWidthDip
             int desiredWidthPx = (int)Math.Round(FlyoutDefaultWidthDip * scale);
 
             int sensorCount = ViewModel.PinnedSensors.Count;
 
-            // gap to the taskbar, placement along it over the widget per TaskbarFlyoutAlignment
+            // gaps and alignment offset
             int marginPx = (int)Math.Round(FlyoutMarginToTaskbarDip * scale);
             int offsetPx = (int)Math.Round(FlyoutAlignmentOffsetDip * scale);
             int edgeMarginPx = (int)Math.Round(FlyoutMarginToScreenEdgeDip * scale);
 
-            // on a horizontal taskbar the gap that holds the flyout off the taskbar is also the gap it keeps to the far
-            // side of the work area, and that pair caps the height; beside a vertical taskbar the cap is the work area
-            // height less the screen edge gap at both ends
-            // without the cap enough pinned sensors produce a window taller than the screen whose edge ends up behind
-            // the taskbar
-            // one graph slot is the floor, so a taskbar on a very short work area cannot produce a zero height window
+            // height cap: the work area less the taskbar gap at both ends (horizontal taskbar) or the screen edge
+            // gap at both ends (vertical), floored at one graph slot; past it the graphs scroll
             var workArea = DisplayArea.Primary.WorkArea;
             int availableHeightPx = edge switch
             {
@@ -1022,7 +944,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 desiredHeightPx = maxHeightPx;
             }
 
-            // once capped the window stops growing, so the slide durations stop growing with it too
+            // a capped window stops growing, so the slide scaling stops too
             _animationSensorCount = isScrolling ? CountFittingGraphSlots(maxHeightPx, scale) : sensorCount;
             ApplyGraphsScrollMode(isScrolling);
 
@@ -1039,16 +961,14 @@ namespace FluentSensors.Features.TaskbarWidget
                     _ => ((widgetRect.Top + widgetRect.Bottom) / 2) - (desiredHeightPx / 2)
                 };
 
-                // clamp within the primary work area, never closer than edgeMarginPx to the top or bottom screen edge;
-                // the top edge wins when the screen is too short to honor both
+                // clamp to the work area with edgeMarginPx; (the top edge wins when both do not fit)
                 int bottomLimitY = workArea.Y + workArea.Height - desiredHeightPx - edgeMarginPx;
                 int topLimitY = workArea.Y + edgeMarginPx;
                 _targetY = Math.Max(topLimitY, Math.Min(_targetY, bottomLimitY));
             }
             else
             {
-                // Left/Right anchor to the matching widget edge and let the offset pull the flyout inward;
-                // Center ignores the offset and lines the flyout center up with the widget center
+                // Left/Right anchor to the matching widget edge plus the offset; Center lines up the centers
                 _targetX = SettingsService.Instance.TaskbarFlyoutAlignment switch
                 {
                     "Left" => widgetRect.Left + offsetPx,
@@ -1059,9 +979,8 @@ namespace FluentSensors.Features.TaskbarWidget
                     ? bar.Y + bar.Height + marginPx
                     : bar.Y - marginPx - desiredHeightPx;
 
-                // clamp within the primary work area, never closer than edgeMarginPx to a left or right screen edge;
-                // the left edge wins when the screen is too narrow to honor both sides at once
-                // the far edge needs no clamp of its own, the height cap above already lands _targetY on marginPx
+                // clamp to the work area with edgeMarginPx; (the left edge wins when both do not fit, the height cap
+                // already keeps the far edge on marginPx)
                 int rightLimitX = workArea.X + workArea.Width - desiredWidthPx - edgeMarginPx;
                 int leftLimitX = workArea.X + edgeMarginPx;
                 _targetX = Math.Max(leftLimitX, Math.Min(_targetX, rightLimitX));
@@ -1069,9 +988,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             _isAnchored = true;
 
-            // computed from the taskbars own DPI (scale, above), the same source _targetX/Y and desiredWidthPx/
-            // desiredHeightPx already use; SlideIn/SlideOut read this instead of recomputing against the window DPI,
-            // which could disagree with it on a mixed-DPI setup and jump the first frame
+            // from the taskbar DPI like the rest of the geometry, see _slideOffsetX
             (_slideOffsetX, _slideOffsetY) = CalculateSlideOffset(edge, GetSlideDistancePx(scale), desiredWidthPx, desiredHeightPx);
 
             int initialX = startForSlideAnimation ? (_targetX + _slideOffsetX) : _targetX;
@@ -1084,11 +1001,8 @@ namespace FluentSensors.Features.TaskbarWidget
             UpdateShadowPolicy();
         }
 
-        // the slide runs from the target position toward the screen edge the taskbar sits on, where the window is
-        // hidden behind the taskbar or off screen
-        //
-        // past the monitor edge the window is normally just off screen, but a neighboring monitor on that side would
-        // show it sliding across; only then the travel is cut to what stays on the taskbars own monitor
+        // slide vector from the target toward the taskbar edge, where the window hides behind the taskbar or off
+        // screen; cut to the taskbar monitor only when the path would cross a neighboring monitor
         private (int X, int Y) CalculateSlideOffset(ScreenEdge edge, int distancePx, int widthPx, int heightPx)
         {
             var monitor = DisplayArea.Primary.OuterBounds;
@@ -1130,8 +1044,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private static bool OverlapsOtherDisplay(RectInt32 rect, RectInt32 ownMonitor)
         {
-            // indexed loop instead of foreach: iterating DisplayArea.FindAll() with foreach throws an
-            // InvalidCastException due to a WinRT interop bug in its enumerator; indexer access avoids it
+            // indexed loop; foreach over DisplayArea.FindAll() throws an InvalidCastException (WinRT enumerator bug)
             var displayAreas = DisplayArea.FindAll();
             for (int i = 0; i < displayAreas.Count; i++)
             {
@@ -1158,7 +1071,7 @@ namespace FluentSensors.Features.TaskbarWidget
             return (int)(CalculateFlyoutContentHeight(sensorCount, FlyoutDefaultGraphHeightDip) * scaleFactor);
         }
 
-        // how many graph slots still fit inside a capped window height, at the standard slot height
+        // graph slots that fit under a capped window height
         private static int CountFittingGraphSlots(int maxHeightPx, double scaleFactor)
         {
             double interiorDip = (maxHeightPx / scaleFactor) - FlyoutBottomBarHeightDip
@@ -1170,7 +1083,7 @@ namespace FluentSensors.Features.TaskbarWidget
             return Math.Max(1, slots);
         }
 
-        // window height for n graph slots: the bar strip, the graphs padding, n slots and the n-1 gaps between them
+        // window height for n graph slots: the bar strip, the graphs margin, n slots and the n-1 gaps between them
         private static double CalculateFlyoutContentHeight(int sensorCount, double graphHeightDip)
         {
             if (sensorCount <= 0) return FlyoutBottomBarHeightDip;
@@ -1205,17 +1118,14 @@ namespace FluentSensors.Features.TaskbarWidget
             state.Y = _appWindow.Position.Y;
             state.WasOpen = false;
 
-            // the size is no longer persisted at all, it is derived from the pinned sensor count and the height cap
-            // on every open; clearing it here drops whatever a resizable flyout left behind
+            // the size is derived on every open, never persisted; zeroed so no stale size survives
             state.Width = 0;
             state.Height = 0;
 
             WindowStateService.Instance.SetState(WindowKey, state);
         }
 
-        // the graph panel sits inside an ItemsPanelTemplate and cannot be named, so FlyoutGraphSpacingDip and the
-        // scroll mode are pushed onto it from here; the items host only exists after the first layout pass, hence
-        // the retry
+        // pushes spacing and scroll mode onto the unnamed items panel, once the first layout pass has created it
         private void OnGraphsItemsControlLayoutUpdated(object? sender, object e)
         {
             if (GraphsItemsControl.ItemsPanelRoot is FluentSensors.Controls.VerticalStretchPanel panel)
@@ -1227,11 +1137,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // switches the graph list between filling the window and stacking at the standard slot height inside a scroll
-        // region; the fixed height is what the panel needs there, a ScrollViewer measures with infinite height and an
-        // equal split has nothing to divide
-        //
-        // two explicit modes rather than one permanently scrolling viewer, so a rounding difference of a single pixel
+        // fills the window, or stacks fixed-height slots in a scroll region (a ScrollViewer measures with infinite
+        // height, an equal split has nothing to divide); two explicit modes, so a one pixel rounding difference
         // cannot put a scrollbar on a window that fits
         private void ApplyGraphsScrollMode(bool isScrolling)
         {
@@ -1266,19 +1173,17 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void Window_Activated(object sender, WindowActivatedEventArgs args)
         {
-            // deliberately always true, instead of the usual
-            // IsInputActive = args.WindowActivationState != WindowActivationState.Deactivated
-            // a light-dismiss flyout counts as deactivated the moment focus leaves it, which would drop the blur while
-            // the window is still on screen; same reasoning as WidgetWindow.Window_Activated
+            // always input active; a light-dismiss flyout is deactivated the moment focus leaves it, which would drop
+            // the blur while it is still on screen
             if (_configurationSource != null)
             {
                 _configurationSource.IsInputActive = true;
             }
 
-            // light dismiss: when user clicks outside the flyout window, close it cleanly
+            // light dismiss
             if (args.WindowActivationState == WindowActivationState.Deactivated)
             {
-                // if click occurred on the taskbar widget, let the widget click handler handle toggling
+                // a click on the taskbar widget is left to its own toggle
                 if (TaskbarWidgetWindow.CurrentInstance != null)
                 {
                     var widgetHwnd = WinRT.Interop.WindowNative.GetWindowHandle(TaskbarWidgetWindow.CurrentInstance);
@@ -1300,8 +1205,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // the bottom bar action lands on the sensor list with the taskbar profile active, because picking which
-        // sensors are pinned is the one thing the flyout itself cannot do
+        // opens the sensor list on the taskbar profile, the one thing the flyout cannot do itself
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)
         {
             HideFlyout();
@@ -1325,16 +1229,14 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // --- memory leak: TaskbarFlyoutWindow never released after close ---
-        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
-        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
-        // fix: hide instead of actually closing, and keep this instance around (_retainedInstance) for reuse
-        // same approach as WidgetWindow and TaskbarWidgetWindow
+        // fix: hide instead of closing and keep the instance as _retainedInstance (same as
+        // WidgetWindow and TaskbarWidgetWindow)
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
-            // SafeDestroy is tearing this instance down: let the close proceed, and above all do not hand a window
-            // with _isClosed set back to _retainedInstance, which makes Preload skip building a live one and leaves
-            // the flyout permanently unable to repaint or switch theme
+            // SafeDestroy is closing for real; a closed window handed back as _retainedInstance would leave the flyout
+            // unable to repaint for the rest of the session
             if (_isClosed) return;
 
             args.Cancel = true;
@@ -1344,11 +1246,10 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
 
-        // === theme and backdrop application (Taskbar Ecosystem) ===
+        // === theme and backdrop ===
 
-        // ApplyTheme already re-runs SetConfigurationSourceTheme, UpdateAcrylicProperties and UpdateSolidBackground,
-        // so an in-app theme switch is a plain repaint; recreating the window here tore down the live instance
-        // mid-switch, which is what produced the closed-window COMException
+        // an in-app theme switch is a plain repaint through ApplyTheme, never a rebuild (that would tear down
+        // the live instance mid-switch)
         private void OnThemeChanged(string newTheme)
         {
             this.DispatcherQueue.TryEnqueue(() => ApplyTheme(newTheme));
@@ -1373,8 +1274,7 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
-        // re-anchors the flyout when the alignment setting changes; the flyout is usually hidden at that point, so
-        // this just refreshes the target for the next open, same as ResetGeometry does after a size reset
+        // re-anchors for the next open (the flyout is usually hidden when the setting changes)
         private void OnFlyoutAlignmentChanged(string newAlignment)
         {
             this.DispatcherQueue.TryEnqueue(() =>
@@ -1449,7 +1349,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 if (backdropType == "Mica")
                 {
-                    // Use dedicated custom Mica blur preset
+                    // mica preset
                     if (isLight)
                     {
                         _acrylicController.TintColor = MicaPresetLightTintColor;
@@ -1465,8 +1365,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
                 else
                 {
-                    // "Acrylic" uses user-configured settings sliders
-                    // fallback tint when no accent/custom color applies: #EDEDED Light, #222222 Dark (matches the opaque path)
+                    // "Acrylic" follows the settings sliders
+                    // fallback tint when no accent or custom color applies (matches the opaque path)
                     Windows.UI.Color defaultTint = isLight
                         ? Windows.UI.Color.FromArgb(255, 0xED, 0xED, 0xED)
                         : Windows.UI.Color.FromArgb(255, 0x22, 0x22, 0x22);
@@ -1483,21 +1383,13 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // paints every visible flyout surface for the current backdrop mode
-        //
-        // three mutually exclusive cases, in this order:
-        // 1. a backdrop controller is attached: root and bar stay transparent so the blur comes through, the graphs
-        //    area keeps its semi-transparent lift so the hierarchy survives on glass
-        // 2. material "None" (Solid): the root takes the users own pick from settings, accent or custom and theme
-        //    independent, the graphs area keeps the same lift on top of it
-        // 3. otherwise (Mica/Acrylic while Windows transparency is off): every surface is its own flat opaque color
-        //    and the graphs area carries no overlay at all
-        //
-        // case 3 is deliberately alpha free: bar and content used to be coupled through that overlay, so correcting
-        // the base moved both at once and no measurement could be attributed to a single surface
-        // all colors come out of the App.xaml theme dictionary, so every hex value lives in exactly one place; the
-        // {ThemeResource} markup in the XAML is the first paint only, every later value is a local assignment from
-        // here and a local value permanently outranks the markup expression
+        // paints every flyout surface for the current backdrop mode, three exclusive cases in this order:
+        // 1. a backdrop controller is attached; root and bar transparent, the graphs area keeps its translucent lift
+        // 2. material "None" (Solid); the root takes the users accent or custom color, the graphs area the same lift
+        // 3. otherwise (Mica/Acrylic with Windows transparency off); every surface its own flat opaque color, no
+        //    overlay, so each one can be calibrated on its own
+        // colors come from the App.xaml theme dictionary; (the XAML {ThemeResource} is only the first paint, a local
+        // value from here outranks it)
         private void UpdateSolidBackground()
         {
             if (_isClosed || FlyoutRootBorder == null) return;
@@ -1534,9 +1426,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 GraphsContentGrid.Background = transparent;
             }
 
-            // the window stroke is one opaque line in every mode
-            // the separator is not: on glass the native line stays translucent and darkens the material rather
-            // than covering it, so an opaque stroke there stands still while everything around it moves
+            // the window stroke is opaque in every mode, the separator only off glass (an opaque line on glass stands
+            // still while the material around it moves)
             FlyoutRootBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutWindowBorderBrush"];
             FlyoutBottomBarBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary[
                 onGlass ? "FlyoutBottomBarSeparatorOnGlassBrush" : "FlyoutBottomBarSeparatorBrush"];
@@ -1549,8 +1440,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // re-reads the live SystemAccentColor into the acrylic tint and the solid background, for a pure OS
-        // accent change; both already resolve the accent fresh on every call, so no window rebuild is needed
+        // for a pure OS accent change; both calls resolve the accent fresh, no rebuild needed
         private void RefreshAccentSurfaces()
         {
             UpdateAcrylicProperties();
@@ -1559,25 +1449,21 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === acrylic grain ===
 
-        // the acrylic recipe composites a noise layer as its final step at 2 percent opacity, but the system
-        // backdrop controller does not draw it, which is why the flyout reads as one perfectly flat tone while
-        // the native shell surfaces scatter across a few levels
-        // sc_noiseOpacity 0.02f and sc_blurRadius 30.0f are the published recipe constants:
+        // the acrylic recipe ends with a 2 percent noise layer (sc_noiseOpacity) that the backdrop controller does
+        // not draw; painted here by hand, one random grayscale bitmap under every surface fill:
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.h
-        // this fills that layer in: one random grayscale bitmap, painted under every surface fill
         private const int NoiseSeed = 0x5EED;
 
-        // layer opacity stays the recipe constant; how strong the grain reads is set through the value range
-        // instead, which keeps the mean at 128 so tuning the grain never moves the calibrated surface colors
+        // opacity stays the recipe constant, the strength is the value range around a mean of 128; (so tuning the
+        // grain never moves the calibrated colors)
         private const double NoiseLayerOpacity = 0.02;
         private const double NoiseSpreadLevels = 3.5;
 
         private Microsoft.UI.Xaml.Media.Imaging.WriteableBitmap? _noiseBitmap;
         private double _noiseScale;
 
-        // grows on demand and never shrinks, so only a resize past the current bitmap rebuilds it
-        // sized in physical pixels and scaled back down, so one noise pixel lands on one physical pixel instead
-        // of being smeared across the DPI scale factor, which is what makes the grain look coarse
+        // grows on demand, never shrinks; sized in physical pixels and scaled back down, so one noise pixel lands on
+        // one physical pixel instead of being smeared into coarse grain
         private void EnsureNoiseBitmap(double widthDip, double heightDip)
         {
             if (_isClosed || widthDip <= 0 || heightDip <= 0) return;
@@ -1634,7 +1520,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 ScaleY = 1.0 / scale
             };
 
-            // Stretch None keeps one bitmap pixel on one physical pixel, any stretching smears the grain away
+            // Stretch None; any stretching smears the grain
             FlyoutNoiseOverlay.Fill = new Microsoft.UI.Xaml.Media.ImageBrush
             {
                 ImageSource = bitmap,
@@ -1651,13 +1537,10 @@ namespace FluentSensors.Features.TaskbarWidget
             EnsureNoiseBitmap(e.NewSize.Width, e.NewSize.Height);
         }
 
-        // applies the backdrop material for the current setting and the Windows transparency state
-        //
-        // "Mica" deliberately runs through DesktopAcrylicController as well, with the MicaPreset constants at the top
-        // of this file instead of the settings sliders: real Mica only samples the wallpaper and shows next to nothing
-        // on a small flyout sitting above the taskbar, while acrylic blurs what is actually behind the window
-        // WidgetWindow uses a real MicaController for the same setting name, so the two windows differ on purpose
-        // the tint and luminosity sliders from settings only reach the "Acrylic" branch of UpdateAcrylicProperties
+        // applies the backdrop for the current setting and the Windows transparency state
+        // "Mica" runs through DesktopAcrylicController too, with the MicaPreset constants instead of the sliders: real
+        // Mica only samples the wallpaper and shows next to nothing on a small flyout (WidgetWindow uses a real
+        // MicaController for the same setting)
         public void SetBackdrop(string backdropType)
         {
             if (_isClosed) return;
@@ -1681,7 +1564,7 @@ namespace FluentSensors.Features.TaskbarWidget
             if (isTransparencyEnabled && (backdropType == "Acrylic" || backdropType == "Mica") && DesktopAcrylicController.IsSupported())
             {
                 _acrylicController = new DesktopAcrylicController();
-                // Base is the acrylic variant the Windows 11 shell surfaces use; Default lets the system pick
+                // Base is the variant the Windows 11 shell surfaces use:
                 // https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.composition.systembackdrops.desktopacrylickind
                 _acrylicController.Kind = DesktopAcrylicKind.Base;
                 _acrylicController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
@@ -1694,7 +1577,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 this.SystemBackdrop = new TransparentTintBackdrop();
             }
 
-            // single entry point for the base color, it reads the controller fields set just above
+            // the base color, read off the controller set above
             UpdateSolidBackground();
 
             UpdateShadowPolicy();
@@ -1710,9 +1593,9 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // --- workaround: DWM backdrop swapchain kick ---
-        // problem: when Windows transparency/theme changes, WinUI 3 DesktopAcrylicController needs a backdrop re-bind
-        // to attach its blur shader to the newly created DWM swapchain
-        // fix: after window recreation, briefly kick the backdrop pipeline (None -> Mica/Acrylic) to force DWM compositor refresh
+        // problem: after a Windows transparency or theme change, DesktopAcrylicController needs a rebind to attach its
+        // blur to the new DWM swapchain
+        // fix: after a rebuild, kick the backdrop once (None, then the current one), with parameters only
         private void KickBackdropRefresh()
         {
             if (_isClosed) return;

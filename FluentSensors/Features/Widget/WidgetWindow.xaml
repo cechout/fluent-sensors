@@ -25,7 +25,7 @@
             Height="auto"
             Background="Transparent">
 
-            <!--  back to main application button  -->
+            <!--  back to the main window  -->
             <Button
                 x:Name="BackToDashboardButton"
                 Width="32"
@@ -45,8 +45,7 @@
         </Grid>
 
 
-        <!--  the whole content with all LiveChart graphs  -->
-        <!--  (all panels stretch to fill the available height together)  -->
+        <!--  the graphs, stretched to fill the height together  -->
         <Grid Grid.Row="1" Padding="4,0,4,5">
             <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
                 <ItemsControl.ItemsPanel>

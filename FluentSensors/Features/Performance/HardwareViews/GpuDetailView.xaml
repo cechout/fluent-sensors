@@ -91,8 +91,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!--  gpu view 1:  -->
-                    <!--  overview (Load, Temperature, Power), same 3-slot switchable layout as CPU  -->
+                    <!--  gpu view 1: overview (Load, Temperature, Power), the switchable 3-slot CPU layout  -->
                     <Grid
                         x:Name="OverviewBlockGrid"
                         Grid.Row="0"
@@ -284,7 +283,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  core; Power/Voltage sits at the top since it does not have a group of its own anymore  -->
+                        <!--  core; (Power and Voltage at the top, they have no group of their own)  -->
                         <StackPanel Grid.Row="0" Spacing="8">
                             <TextBlock
                                 Margin="4,0,0,0"
@@ -358,7 +357,7 @@
                                 Text="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanText, Mode=OneWay}" />
                         </StackPanel>
 
-                        <!--  memory; Memory Free folded into the MemoryUsed switch instead of its own cell  -->
+                        <!--  memory; (Memory Free is part of the MemoryUsed switch)  -->
                         <StackPanel Grid.Row="1" Spacing="8">
                             <TextBlock
                                 Margin="4,0,0,0"

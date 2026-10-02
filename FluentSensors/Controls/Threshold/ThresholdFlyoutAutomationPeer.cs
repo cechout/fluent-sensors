@@ -4,7 +4,8 @@ using Microsoft.UI.Xaml.Automation.Provider;
 
 namespace FluentSensors.Controls.Threshold
 {
-    // presents the threshold badge to screen readers as a button that opens the threshold editor
+    // the threshold badge peer:
+    // the badge as a button that opens the threshold editor
     public partial class ThresholdFlyoutAutomationPeer : FrameworkElementAutomationPeer, IInvokeProvider
     {
         // === constructor ===

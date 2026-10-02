@@ -11,9 +11,9 @@ using FluentSensors.Common.Sensors;
 
 namespace FluentSensors.Controls.Threshold
 {
-    // owns one sensors threshold configuration (enabled, value, direction, color) and keeps it in sync with
-    // SensorStateService, shared between SensorRowControl (SensorsPage) and SensorGraphControl (WidgetWindow) so editing
-    // the threshold in either place immediately reflects in the other
+    // the threshold editor:
+    // one sensor threshold (enabled, value, direction, color), synced through SensorStateService, so an edit in the
+    // sensor row or a graph panel shows everywhere
     public class ThresholdEditorViewModel : INotifyPropertyChanged
     {
         // === fields ===
@@ -32,21 +32,19 @@ namespace FluentSensors.Controls.Threshold
             SensorId = sensorId;
             SensorType = sensorType;
 
-            // per-sensor-type step size, a clock sensor needs a much bigger step than a load percentage
+            // step per sensor type; (a clock needs a far bigger step than a load)
             var profile = SensorTypeProfiles.GetProfile(sensorType);
             _thresholdStep = profile.ThresholdStep;
             _thresholdDefault = profile.ThresholdDefault;
 
-            // restore this sensors threshold if it was already configured before; a null Value means the user never
-            // touched it yet, so we fall back to this sensor types default instead of a generic one
+            // the saved threshold; a null Value was never touched and takes the default of the sensor type
             var existingThreshold = SensorStateService.Instance.GetState(sensorId).Threshold;
             _isEnabled = existingThreshold.IsEnabled;
             _value = existingThreshold.Value ?? ResolveDefaultValue();
             _direction = existingThreshold.Direction;
             _color = existingThreshold.Color;
 
-            // captures the UI thread this editor was created on, so external threshold updates (from the other window)
-            // can be marshalled back here safely
+            // the UI thread of this editor, for updates from another window
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
             SensorStateService.Instance.StateChanged += OnStateChanged;
         }
@@ -85,7 +83,7 @@ namespace FluentSensors.Controls.Threshold
             }
         }
 
-        // null when disabled, drives the Graphs section visibility 
+        // the threshold the graphs draw; null when disabled
         public double? EffectiveValue => IsEnabled ? _value : (double?)null;
 
         private ThresholdDirection _direction = ThresholdDirection.Above;
@@ -109,15 +107,13 @@ namespace FluentSensors.Controls.Threshold
             {
                 if (!value)
                 {
-                    // force the toggle back to checked; direction is radio-like, not a real off-state
+                    // back to checked; the direction is a radio choice, there is no off
                     OnPropertyChanged(nameof(IsAboveDirection));
                     return;
                 }
 
-                // guard: TwoWay x:Bind re-syncs IsChecked (and therefore calls this setter again) any time
-                // this controls bindings get re-evaluated, e.g. after an Unloaded/Loaded cycle
-                // Not just on a real user click; without this check, a resync that merely re-confirms the current
-                // direction would still unconditionally re-enable the threshold below
+                // a TwoWay x:Bind resync (after an Unloaded/Loaded cycle) calls this too; re-confirming the direction
+                // must not re-enable the threshold
                 if (Direction == ThresholdDirection.Above) return;
 
                 IsEnabled = true;
@@ -160,12 +156,12 @@ namespace FluentSensors.Controls.Threshold
         {
             get
             {
-                const byte swatchAlpha = 200; // 255 = fully opaque
+                const byte swatchAlpha = 200;
                 return new SolidColorBrush(Windows.UI.Color.FromArgb(swatchAlpha, Color.R, Color.G, Color.B));
             }
         }
 
-        // kept for parity with the pre-split ViewModel; not currently bound anywhere
+        // unused; not bound anywhere
         public Brush AboveDirectionBrush => GetDirectionBrush(ThresholdDirection.Above);
         public Brush BelowDirectionBrush => GetDirectionBrush(ThresholdDirection.Below);
         private Brush GetDirectionBrush(ThresholdDirection buttonDirection)
@@ -178,10 +174,10 @@ namespace FluentSensors.Controls.Threshold
 
         // === public methods ===
 
-        // increase/decrease buttons
+        // the increase and decrease buttons
         public void Increase()
         {
-            IsEnabled = true; // auto-enable when the user adjusts the value
+            IsEnabled = true; // an adjustment enables it
             Value += SensorUnitFormatter.ToRawValue(_thresholdStep, SensorType);
         }
 
@@ -189,7 +185,7 @@ namespace FluentSensors.Controls.Threshold
         {
             IsEnabled = true;
 
-            // preventing the threshold from falling to 0 or into the negative range
+            // never down to 0 or below
             double step = SensorUnitFormatter.ToRawValue(_thresholdStep, SensorType);
             if (Value > step)
             {
@@ -197,7 +193,7 @@ namespace FluentSensors.Controls.Threshold
             }
         }
 
-        // shared breach check, used by both SensorRowViewModel (text color) and SensorGraphViewModel (current value color)
+        // for SensorRowViewModel and SensorGraphViewModel
         public bool IsBreached(double value)
         {
             if (!IsEnabled) return false;
@@ -207,8 +203,7 @@ namespace FluentSensors.Controls.Threshold
                 : value < Value;
         }
 
-        // unsubscribes from SensorStateService; must be called by the owning ViewModels own Cleanup, or this editor
-        // keeps reacting to state changes after its row/graph has been disposed
+        // called from the Cleanup of the owner, or this keeps reacting after its row or graph is gone
         public void Cleanup()
         {
             SensorStateService.Instance.StateChanged -= OnStateChanged;
@@ -217,7 +212,7 @@ namespace FluentSensors.Controls.Threshold
 
         // === private helpers ===
 
-        // this sensor types default, in whichever data unit is active right now
+        // the default of the sensor type, in the active data unit
         private double ResolveDefaultValue()
         {
             return SensorUnitFormatter.ToRawValue(_thresholdDefault, SensorType);
@@ -236,12 +231,9 @@ namespace FluentSensors.Controls.Threshold
             SensorStateService.Instance.SetState(SensorId, state);
         }
 
-        // reacts to threshold changes made anywhere else (the other window editing the same sensor); applies the
-        // incoming values directly to the backing fields instead of the property setters, so this does not re-trigger
-        // PushStateToService and echo the change back out
-        //
-        // a null value is the per-type default, the same as in the constructor; that is how a data unit switch
-        // (SensorStateService.ResetUnitDependentValues) brings the value back to a round number in the new unit
+        // a change made elsewhere, into the backing fields, so PushStateToService does not echo it
+        // a null value is the per-type default, which is how a data unit switch
+        // (SensorStateService.ResetUnitDependentValues) lands on a round number
         private void OnStateChanged(string sensorId, SensorState state)
         {
             if (sensorId != SensorId) return;

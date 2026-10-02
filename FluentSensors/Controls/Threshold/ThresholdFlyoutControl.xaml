@@ -26,11 +26,10 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <!--  compact badge: shows "-" or the configured value  -->
-    <!--  (background takes the threshold color once configured; tapping opens the editor flyout below)  -->
     <!--
-        IMPORTANT: this Border is the UserControls Content (its only implicit child), so VisualStateGroups must live
-        directly on it; GoToState only ever looks at the Content root, never at the UserControl instance itself
+        badge: "-" or the configured value on the threshold color, a tap opens the editor flyout
+        the Border is the Content of the UserControl, so the VisualStateGroups live on it; GoToState
+        looks only at the Content root
     -->
     <Border
         x:Name="IndicatorBorder"
@@ -224,14 +223,14 @@
             <VisualStateGroup x:Name="ThresholdIndicatorStates">
                 <VisualState x:Name="IndicatorNormal" />
 
-                <!--  (only when no threshold is configured yet)  -->
+                <!--  (unconfigured only)  -->
                 <VisualState x:Name="IndicatorHover">
                     <VisualState.Setters>
                         <Setter Target="IndicatorBorder.Background" Value="{ThemeResource ThresholdIndicatorHoverBrush}" />
                     </VisualState.Setters>
                 </VisualState>
 
-                <!--  (only when no threshold is configured yet)  -->
+                <!--  (unconfigured only)  -->
                 <VisualState x:Name="IndicatorPressedUnconfigured">
                     <VisualState.Setters>
                         <Setter Target="IndicatorBorder.Background" Value="{ThemeResource ThresholdIndicatorPressedBrush}" />
@@ -239,7 +238,7 @@
                     </VisualState.Setters>
                 </VisualState>
 
-                <!--  pressed while a threshold color is already set  -->
+                <!--  pressed on a set threshold color  -->
                 <VisualState x:Name="IndicatorPressedConfigured">
                     <VisualState.Setters>
                         <Setter Target="IndicatorBorder.Opacity" Value="0.6" />

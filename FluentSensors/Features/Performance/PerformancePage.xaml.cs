@@ -30,42 +30,33 @@ namespace FluentSensors.Features.Performance
 
         public PerformanceViewModel ViewModel => PerformanceViewModel.Instance;
 
-        // the narrowest the hardware view itself may get between the two panels; below it, the nav sidebar and the
-        // info panel become mutually exclusive
-        // measured as if both were open at their current widths, whichever of them is shown right now, so toggling
-        // one of them never flips the result
+        // the narrowest hardware view between the two panels; below it sidebar and info panel are exclusive
+        // (measured as if both were open, so a toggle never flips the result)
         private const double NarrowContentThreshold = 315;
         private bool _isNarrow;
 
-        // resizable side panels: the hardware list on the left and the info panel on the right of every detail view
-        // both open at their minimum and can be dragged wider up to a share of the pages width
+        // resizable side panels, the hardware list left and the info panel right; they open at the minimum and drag up
+        // to a share of the page width
         private const double NavSidebarMinWidth = 185;
         private const double InfoPanelMinWidth = 185;
-        private const double SidePanelMaxWidthShare = 0.50; // share of the pages width either panel can grow to
+        private const double SidePanelMaxWidthShare = 0.50;
 
-        // how far one arrow press scrolls the hardware view from the sidebar or a bottom bar, about one mouse wheel
-        // notch
+        // one arrow press from the sidebar or a bottom bar; (about one mouse wheel notch)
         private const double ArrowScrollStep = 100;
 
-        // one permanent view per hardware instance, keyed by its Target object (e.g. one specific
-        // LhmGpuInstanceViewModel); created eagerly for every instance that exists (or later appears)
-        // Never removed/destroyed afterward; see EnsureDetailView() for further information
+        // one permanent view per hardware instance, keyed by its Target; never removed, see UpdateDetailView
         private readonly Dictionary<object, UIElement> _detailViewCache = new();
         private UIElement _currentDetailView;
 
-        // permanent start page view; built lazily on first visit, since CPU (not the start page) is the default
-        // selected view
+        // permanent start page view; built on the first visit (CPU is the default selection)
         private PerformanceStartView _startView;
 
-        // whether this page is currently the Frames content (OnNavigatedTo/OnNavigatedFrom) and whether the app
-        // window itself is actually shown on screen right now (set externally by MainWindow, minimized or hidden
-        // e.g. minimize-to-tray both count); combined in UpdatePageRenderingState, both default true since the
-        // window is visible and this page is the active content whenever it first gets constructed through normal
-        // navigation
+        // whether this page is the Frame content and whether the window is on screen (set by MainWindow); combined in
+        // UpdatePageRenderingState, both true on construction
         private bool _isNavigatedToPage = true;
         private bool _isWindowVisible = true;
 
-        // last applied result of _isNavigatedToPage && _isWindowVisible, only used to skip redundant gate calls
+        // the last applied combination, to skip redundant gate calls
         private bool _isPageRenderingActive = true;
 
 
@@ -75,18 +66,16 @@ namespace FluentSensors.Features.Performance
         {
             InitializeComponent();
 
-            // before any detail view is built, since every info panel column binds its width and limits from here;
-            // the maximum follows the page width once it is known, see UpdateSidePanelLayout
+            // before any detail view, every info panel column binds its width and limits from here; (the maximum
+            // follows the page width, see UpdateSidePanelLayout)
             SidebarColumn.Width = new GridLength(NavSidebarMinWidth);
             ViewModel.InfoPanelWidth = InfoPanelMinWidth;
             ViewModel.SetSidePanelLimits(NavSidebarMinWidth, double.PositiveInfinity, InfoPanelMinWidth, double.PositiveInfinity);
 
-            // keeps PerformanceViewModel.IsDarkTheme in sync with the pages actually applied theme, and rebuilds
-            // the sidebar icon brushes, which are plain brushes rather than theme resources
+            // IsDarkTheme follows the applied theme; the sidebar icon brushes are plain brushes and are rebuilt
             Loaded += (s, e) => ApplyActualTheme();
             ActualThemeChanged += (s, e) => ApplyActualTheme();
 
-            // viewmodel
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
 
             void ApplyActualTheme()
@@ -96,13 +85,8 @@ namespace FluentSensors.Features.Performance
                 ViewModel.RefreshNavItemIconBrushes();
             }
 
-            // only the initially selected hardwares detail view (normally CPU) is built synchronously here, so the
-            // page has real, correctly-scaled content the instant it appears; every other hardware instance gets its
-            // detail view built one at a time via BuildRemainingDetailViewsAsync below, instead of all of them in one
-            // synchronous burst
-            // building even a single one of these is not free (each one hosts several SensorGraphControls, and each of
-            // those spins up its own native LiveChartsCore/SkiaSharp render surface), so 5 in a row up front was what
-            // made first entry into this page noticeably slow
+            // only the selected detail view (normally CPU) is built right away, so the page appears with real content;
+            // the rest follow one at a time (each view spins up several native SkiaSharp surfaces)
             object initialTarget = ViewModel.SelectedItem?.Target;
             if (initialTarget != null)
             {
@@ -122,11 +106,8 @@ namespace FluentSensors.Features.Performance
 
         // === event handlers ===
 
-        // on the sidebar and on a views bottom bar, up and down scroll the hardware view instead of moving focus; its
-        // graphs, tiles and info panel are left out of keyboard navigation (FocusSkip), so there is no other way to
-        // reach the lower part of a view from the keyboard
-        // the sidebar still needs a way between its entries, left and right take over that move there; everywhere
-        // else the arrows keep their usual meaning
+        // on the sidebar and a bottom bar, up and down scroll the hardware view (its graphs and tiles are FocusSkip, so
+        // the keyboard has no other way down); on the sidebar left and right move between entries
         private void RootGrid_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
         {
             if (e.Key != VirtualKey.Up && e.Key != VirtualKey.Down && e.Key != VirtualKey.Left && e.Key != VirtualKey.Right) return;
@@ -148,13 +129,9 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // sidebar selection: every nav item button shares this one handler, the clicked items own DataContext (set by
-        // the ItemTemplate) tells us which PerformanceNavItemViewModel was chosen
-        //
-        // IsChecked is only bound OneWay from IsSelected, but a ToggleButton always flips its own IsChecked on click
-        // regardless of bindings; clicking the already-selected item therefore visually unchecks it, since
-        // SelectedItem does not change and so IsSelected never raises PropertyChanged to push it back forcing IsChecked
-        // back to true here makes the sidebar behave like a radio selection instead
+        // sidebar selection, one handler for every item; the DataContext names the item
+        // a ToggleButton flips its own IsChecked on click, so the already selected item would uncheck; forcing it back
+        // makes the sidebar a radio selection
         private void NavItem_Click(object sender, RoutedEventArgs e)
         {
             if (sender is ToggleButton toggle && toggle.DataContext is PerformanceNavItemViewModel item)
@@ -164,7 +141,7 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // jumps to the Performance start page; mirrors NavItem_Click, just with no specific hardware to select
+        // the start page; (no hardware selected)
         private void StartPageButton_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.SelectedItem = null;
@@ -176,7 +153,7 @@ namespace FluentSensors.Features.Performance
             {
                 UpdateDetailView();
 
-                // leaving the start page brings both panels back, and with them the drag limit between them
+                // leaving the start page brings both panels and their drag limit back
                 UpdateSidePanelLayout();
             }
 
@@ -201,7 +178,7 @@ namespace FluentSensors.Features.Performance
                 RecalculateCurrentDetailViewHeight();
             }
 
-            // a finished info panel drag; the detail area itself did not change width, so nothing else settles the view
+            // a finished info panel drag; (the detail area width did not change, nothing else settles the view)
             else if (e.PropertyName == nameof(PerformanceViewModel.InfoPanelWidth))
             {
                 UpdateSidePanelLayout();
@@ -214,9 +191,8 @@ namespace FluentSensors.Features.Performance
             UpdateSidePanelLayout();
         }
 
-        // the splitter rewrites both column widths while it drags; once it lets go, the sidebar goes back to a fixed
-        // width next to a detail area that fills the rest, so a later window resize only moves the detail area
-        // the views follow the drag live through their own SizeChanged, this is one last pass at the final width
+        // after a drag the sidebar gets a fixed width again and the detail area the star, so a later resize only moves
+        // the detail area; one last pass at the final width
         private void SidebarSplitter_ManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
         {
             double width = SidebarColumn.ActualWidth;
@@ -227,9 +203,7 @@ namespace FluentSensors.Features.Performance
             RecalculateCurrentDetailViewHeight();
         }
 
-        // hardware discovered after this page was already constructed (e.g. a second GPU, or any category that
-        // finishes its async LHM discovery late) needs its detail view built immediately too, for the same
-        // reason as the eager construction above
+        // hardware discovered after construction (a late LHM category) gets its detail view right away too
         private void OnNavItemsChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.Action != NotifyCollectionChangedAction.Add) return;
@@ -240,8 +214,7 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // page entering/leaving the Frame (Sensors/Settings <-> Performance navigation); NavigationCacheMode keeps
-        // this same instance around, so these fire on every visit, not just the first
+        // entering and leaving the Frame; NavigationCacheMode keeps this instance, so these fire on every visit
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -256,9 +229,7 @@ namespace FluentSensors.Features.Performance
             UpdatePageRenderingState();
         }
 
-        // called by MainWindow whenever the app window itself stops or starts actually being shown on screen
-        // (minimized, or hidden entirely e.g. minimize-to-tray); independent of whether this page is currently
-        // navigated to, both conditions gate the same underlying rendering state, see UpdatePageRenderingState
+        // MainWindow, when the window is minimized, hidden or back; see UpdatePageRenderingState
         public void SetWindowVisibilityActive(bool isVisible)
         {
             _isWindowVisible = isVisible;
@@ -268,7 +239,7 @@ namespace FluentSensors.Features.Performance
 
         // === private helpers ===
 
-        // the bottom bar is the command bar inside the shown view (CPU and GPU have one), not the one in the page header
+        // the command bar inside the shown view (CPU and GPU have one), not the one in the page header
         private bool IsOnBottomBar(DependencyObject focused)
         {
             return _currentDetailView != null
@@ -284,26 +255,18 @@ namespace FluentSensors.Features.Performance
         }
 
         // --- memory leak: hardware detail views never released after switching ---
-        // problem: each view hosts SensorGraphControl, which wraps LiveChartsCores native SkiaSharp rendering
-        // surface and subscribes to several of its own events; WinUI/.NETs GC cannot see through the resulting
-        // native reference cycle, so destroying and rebuilding these views on every hardware switch leaked a few
-        // MB per switch, unbounded
-        // same root cause category as the WinUI secondary-window leak elsewhere in this app (native WinRT/interop
-        // objects do not get released back to the GC), just triggered by chart controls moving between views
-        // instead of by a Window
-        // see https://microsoft.github.io/Win2D/WinUI3/html/RefCycles.htm for the general mechanism (Win2D, but the
-        // same applies to any native rendering wrapper incl. LiveChartsCore.SkiaSharpView)
-        // fix: never destroy a hardware instances detail view once created; cache one permanent instance per
-        // hardware instance (keyed by its Target object) and toggle Visibility on switch instead
+        // problem: each SensorGraphControl wraps a native LiveChartsCore SkiaSharp surface and its events, a
+        // reference cycle the GC cannot see through; rebuilding the views on every switch leaked a few MB each time
+        // (the general mechanism, for Win2D):
+        // https://microsoft.github.io/Win2D/WinUI3/html/RefCycles.htm
+        // fix: one permanent view per hardware instance, cached by its Target and never destroyed
         //
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
-        // problem: confirmed via diagnostic logging (Loaded event + ActualWidth/Height): a SensorGraphControl
-        // that is Visibility.Collapsed when its parent page gets unloaded and reloaded (e.g. leaving and
-        // returning to PerformancePage) measures at 0x0 on reload; LiveChartsCores native SkiaSharp rendering
-        // surface never recovers from this, even once the element later becomes Visible again with a real size
-        // fix: never set Visibility.Collapsed on a detail view once created; keep it permanently
-        // Visibility.Visible with a real, non-zero layout size, and hide/show via Opacity + IsHitTestVisible
-        // instead, so the native surface never sees a 0x0 measure pass to begin with
+        // problem: a SensorGraphControl that is Collapsed while its page unloads and reloads measures 0x0 on
+        // reload, and the SkiaSharp surface never recovers, even once visible again (confirmed by logging
+        // Loaded and ActualWidth/Height)
+        // fix: a detail view is never Collapsed; it stays Visible with a real size and hides through
+        // Opacity and IsHitTestVisible
         private void UpdateDetailView()
         {
             object target = ViewModel.SelectedItem?.Target;
@@ -314,19 +277,17 @@ namespace FluentSensors.Features.Performance
                 _currentDetailView.IsHitTestVisible = false;
                 SetKeyboardReachable(_currentDetailView, false);
 
-                // the view is now hidden; stop all of its graphs from doing any per-tick rendering work
+                // hidden; its graphs stop rendering
                 SensorGraphRenderingGate.SetActive(_currentDetailView, false);
             }
 
-            // no SelectedItem means the start page is shown instead of a hardware instances detail view
+            // no SelectedItem: the start page
             UIElement view = target != null ? EnsureDetailView(target) : EnsureStartView();
             if (view == null) return;
 
             _currentDetailView = view;
 
-            // only actually resume rendering if the page itself is currently on screen right now; if it is not
-            // (navigated away, window minimized/hidden) the newly selected view stays gated off until
-            // UpdatePageRenderingState reactivates it on return, exactly like every other graph on the page
+            // only while the page is on screen; otherwise UpdatePageRenderingState wakes it on return
             if (_isPageRenderingActive) ActivateCurrentDetailViewRendering();
 
             view.Opacity = 1;
@@ -334,17 +295,15 @@ namespace FluentSensors.Features.Performance
             SetKeyboardReachable(view, true);
         }
 
-        // a hidden view stays in the tree at Opacity 0 (see above), where every button in it would still be a tab stop,
-        // so tab wandered through all of them unseen; disabling the view takes it out of keyboard navigation until it
-        // is shown again, the mouse cannot reach it anyway with hit testing off
+        // a hidden view at Opacity 0 would keep its tab stops; disabled, it leaves keyboard
+        // navigation until shown again
         private static void SetKeyboardReachable(UIElement view, bool reachable)
         {
             if (view is Control control) control.IsEnabled = reachable;
         }
 
-        // combines page-navigation and window-visibility into this pages one rendering-active state; same
-        // philosophy SensorGraphRenderingGate itself already uses one level up: only the live redraw ever pauses,
-        // SensorData keeps filling in the background regardless, so returning shows continuous history
+        // navigation and window visibility into one rendering state; only the redraw pauses, SensorData keeps filling,
+        // so a return shows the continuous history
         private void UpdatePageRenderingState()
         {
             bool active = _isNavigatedToPage && _isWindowVisible;
@@ -358,27 +317,21 @@ namespace FluentSensors.Features.Performance
             }
             else
             {
-                // blanket off across the whole page; safe even though it also re-touches the cached views and
-                // sub-sections that are already off, turning something already off, off again is a no-op
+                // off across the whole page; (switching an already off graph off is a no-op)
                 SensorGraphRenderingGate.SetActive(RootGrid, false);
             }
         }
 
-        // re-enables live rendering for whichever view is currently selected, including resyncing its own visible
-        // sub-section/layout (Overview vs AllThreads/Extended, Wide vs Narrow); shared by UpdateDetailView
-        // (hardware switch) and UpdatePageRenderingState (page/window visibility returning) - both need exactly
-        // this and nothing more, reactivating the whole DetailHostGrid indiscriminately would also wake up every
-        // other cached hardware views graphs
+        // re-enables rendering for the selected view only, down to its visible section or layout (Overview vs
+        // AllThreads or Extended, Wide vs Narrow); the whole DetailHostGrid would wake every cached view
         private void ActivateCurrentDetailViewRendering()
         {
             if (_currentDetailView == null) return;
 
-            // resume rendering before the view becomes visible, so its first shown frame already shows current data
+            // before the view shows, so its first frame is current
             SensorGraphRenderingGate.SetActive(_currentDetailView, true);
 
-            // the walk above just turned every graph in this view back on, including whichever of
-            // Overview/Extended (or Overview/AllThreads) and whichever of Wide/Narrow is not actually shown right
-            // now; hand it back to the view itself to correct that down to just the visible section/layout
+            // the walk above woke the hidden section or layout too; the view narrows it down itself
             switch (_currentDetailView)
             {
                 case CpuDetailView cpu: cpu.SyncSectionRenderingGate(); break;
@@ -388,10 +341,8 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // creates (once) and caches the permanent detail view for one hardware instance; safe to call repeatedly
-        // for the same target, always returns the same cached instance; newly created views stay
-        // Visibility.Visible with Opacity 0 (see workaround comment on UpdateDetailView for why), UpdateDetailView()
-        // is responsible for opacity-swapping the selected one to 1
+        // creates once and caches the permanent detail view of one hardware instance; new views start at
+        // Opacity 0 (see UpdateDetailView)
         private UIElement EnsureDetailView(object target)
         {
             if (target == null) return null;
@@ -416,11 +367,8 @@ namespace FluentSensors.Features.Performance
                 _detailViewCache[target] = view;
                 DetailHostGrid.Children.Add(view);
 
-                // a newly built view starts with all its graphs rendering (the control default); unless it is (or is
-                // about to become) the selected one, shut that rendering off once it has actually been laid out, so
-                // only the visible views graphs ever draw
-                // deferred to Low priority so the graphs exist in the visual tree by the time the walk runs, and
-                // skipped if this view has meanwhile become the selected one (UpdateDetailView activates that one)
+                // a new view renders by default; unless it became the selected one, it is switched off once laid out
+                // (at Low priority, so the graphs exist by then)
                 UIElement created = view;
                 DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
                 {
@@ -433,8 +381,7 @@ namespace FluentSensors.Features.Performance
             return view;
         }
 
-        // creates (once) and caches the permanent start page view; same retained-instance rule as EnsureDetailView,
-        // just not keyed by a hardware Target, since this view shows every NavItem at once instead of one instance
+        // the start page counterpart of EnsureDetailView, not keyed by a Target
         private UIElement EnsureStartView()
         {
             if (_startView == null)
@@ -451,12 +398,8 @@ namespace FluentSensors.Features.Performance
             return _startView;
         }
 
-        // builds every remaining hardware instances detail view one at a time, each on its own separate dispatcher
-        // pass instead of all in one synchronous loop
-        // This is what actually lets the UI thread render/respond between each one, so the page stays interactive
-        // immediately and the not-yet-selected sidebar entries simply pop in their correct Y-axis scale over the next
-        // moment instead of blocking first entry into the page
-        // Low priority: this can freely lose out to anything the user is actually doing on the page right now
+        // the remaining detail views, one per dispatcher pass at Low priority, so the page stays
+        // interactive while they come in
         private async Task BuildRemainingDetailViewsAsync(List<object> targets)
         {
             foreach (var target in targets)
@@ -471,28 +414,22 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // resolves the sidebar mini-graphs card background:
-        // in dark mode, reuses the same fill color the outer ToggleButtons own Checked VisualState
-        // (SidebarNavToggleButtonStyle) already uses when this item is selected
-        // light mode intentionally left alone: the tile background already got its own light-mode fix, this graph
-        // override is not part of that and stays on its normal default there
+        // the sidebar mini graph card background: in dark mode the Checked fill of SidebarNavToggleButtonStyle when
+        // selected, in light mode the default
         private static Windows.UI.Color? ResolveSelectedGraphBackground(bool isSelected, bool isDarkTheme) =>
             isSelected && isDarkTheme ? (Windows.UI.Color)Application.Current.Resources["ControlFillColorDisabled"] : (Windows.UI.Color?)null;
 
-        // re-derives everything that hangs on the page width and the two panel widths: whether both panels still fit
-        // next to each other, and how far each one may be dragged
-        // runs on a window resize, on every panel toggle and once a drag has finished; during a drag the limits set
-        // here are what stops the splitter
+        // everything that hangs on the page and panel widths: whether both panels fit, and how far each may be dragged
+        // (the limits stop the splitter mid drag)
         private void UpdateSidePanelLayout()
         {
-            // not laid out yet; ContentGrid_SizeChanged runs this again once it is
+            // not laid out yet; ContentGrid_SizeChanged comes back
             double pageWidth = ContentGrid.ActualWidth;
             if (pageWidth <= 0) return;
 
             double maxWidth = pageWidth * SidePanelMaxWidthShare;
 
-            // the width each panel has, or comes back at while hidden; a column narrowed by a smaller window only
-            // shows as much as its maximum allows
+            // each panel width, or the one it comes back at; capped at the maximum
             double sidebarWidth = Math.Min(SidebarColumn.Width.Value, maxWidth);
             double infoPanelWidth = Math.Min(ViewModel.InfoPanelWidth, maxWidth);
 
@@ -500,13 +437,12 @@ namespace FluentSensors.Features.Performance
 
             if (_isNarrow && ViewModel.IsNavSidebarVisible && ViewModel.IsInfoPanelVisible)
             {
-                // hardcoded priority: info panel always loses when space runs out from a resize, not a toggle click
-                // the toggle handler runs this method again with the panel closed, which sets the limits
+                // on a resize the info panel always loses; the toggle handler runs this again, which sets the limits
                 ViewModel.IsInfoPanelVisible = false;
                 return;
             }
 
-            // while both are open, a drag stops where the hardware view between them would drop below the threshold
+            // with both open, a drag stops at the threshold of the hardware view between them
             bool bothShown = ViewModel.IsNavSidebarShown && ViewModel.IsInfoPanelVisible;
             double sidebarMaxWidth = bothShown ? Math.Min(maxWidth, pageWidth - infoPanelWidth - NarrowContentThreshold) : maxWidth;
             double infoPanelMaxWidth = bothShown ? Math.Min(maxWidth, pageWidth - sidebarWidth - NarrowContentThreshold) : maxWidth;
@@ -514,8 +450,7 @@ namespace FluentSensors.Features.Performance
             ViewModel.SetSidePanelLimits(NavSidebarMinWidth, sidebarMaxWidth, InfoPanelMinWidth, infoPanelMaxWidth);
         }
 
-        // re-measures the current detail views vertical layout after a nav sidebar/info panel visibility or width change;
-        // Dispatched rather than called synchronously
+        // re-measures the current detail view after a panel toggle or width change, dispatched
         private void RecalculateCurrentDetailViewHeight()
         {
             DispatcherQueue.TryEnqueue(() =>

@@ -4,13 +4,12 @@ using Microsoft.UI.Xaml.Media;
 
 namespace FluentSensors.Controls.SensorGraph
 {
-    // switches the live rendering of every SensorGraphControl under a given subtree on or off
-    // lives here rather than in any one feature; both the Performance page and the Widget window gate whole subtrees
-    // of graphs the exact same way, neither owns the mechanism
+    // the rendering gate:
+    // the live rendering of every SensorGraphControl in a subtree on or off; shared by the performance page, the
+    // widget, the taskbar widget and its flyout
     public static class SensorGraphRenderingGate
     {
-        // walks every SensorGraphControl under root and switches its live rendering; a gated-off graph stops doing
-        // per-tick work entirely without being destroyed (see SensorGraphControl.SetRenderingActive)
+        // a gated graph stops all per-tick work without being destroyed (see SensorGraphControl.SetRenderingActive)
         public static void SetActive(DependencyObject root, bool active)
         {
             int childCount = VisualTreeHelper.GetChildrenCount(root);

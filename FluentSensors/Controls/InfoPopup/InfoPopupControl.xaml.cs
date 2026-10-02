@@ -13,53 +13,44 @@ using Windows.Foundation;
 
 namespace FluentSensors.Controls.InfoPopup
 {
-    // optional title, an info button, and a popup explaining a group of related values or a single value in more
-    // detail; used both for the Performance page info panel headers and for any other place
-    //
-    // the popup itself (its border, background, source/description layout) is deliberately not configurable, only
-    // its placement and the title/button around it are; keeps every popup in the app visually identical
+    // the info popup:
+    // an optional title, an info button and a popup explaining one value or a group of them
+    // only placement, title and button are configurable, never the popup itself, so every popup looks the same
     public sealed partial class InfoPopupControl : UserControl
     {
-        // === Fields ===
+        // === fields ===
 
-        // pixel gap between the popup and its anchor (the title for TitleAnchored, the button otherwise)
-        // horizontal: space to the side the popup opens towards
-        // vertical: space above/below the anchor, direction depends on PlacementMode
+        // gap to the anchor (the title for TitleAnchored, the button otherwise):
+        // horizontal - towards the side the popup opens to
+        // vertical - above or below the anchor, per PlacementMode
         private const double PopupHorizontalGap = 10;
         private const double PopupVerticalGap = 8;
 
-        // manual correction for PlacementMode.TitleAnchored only, adjusts vertical popup position to match the
-        // title TextBlock; not used by the button-anchored placements
+        // TitleAnchored only; lines the popup up with the title TextBlock
         private const double PopupVerticalManualAdjustment = 18;
 
-        // pixel gap between the end of the title text and the info button; adjust this to change that spacing
+        // between the title text and the info button
         private const double TitleButtonGap = 4;
 
-        // smallest gap the popup keeps to every window edge, on both axes
+        // minimum to every window edge
         private const double PopupWindowEdgeMargin = 8;
 
-        // whether InfoPopup currently sits at the window root instead of inside this control, see
-        // RelocatePopupToWindowRoot
-        // without it every click after the first would try to add the popup to a host it is already a child of, and
-        // the unload that hands it back would run for instances that never moved it in the first place
-        // that unload/reload cycle is real: DetailViews are cached and reattached to the live tree on repeat
-        // navigation instead of recreated
+        // whether InfoPopup sits at the window root, see RelocatePopupToWindowRoot; (guards the next click and the
+        // unload that hands it back, which really happens for cached detail views)
         private bool _popupRelocated;
 
-        // the panel InfoPopup currently hangs in, which is what its offsets are measured against
-        // starts out as the authored ButtonHost and becomes the window root once the relocation below succeeds
+        // the panel InfoPopup hangs in, which its offsets count from; ButtonHost, then the window root
         private Panel _popupHost;
 
-        // set when the popup is opened, cleared once it has been placed for that open, see UpdatePopupPlacement
+        // from open until placed, see UpdatePopupPlacement
         private bool _needsPopupPlacement;
 
-        // backing store for SourceLinks below; a plain read-only IList property (not a DependencyProperty) so XAML
-        // can populate it via nested <InfoPopupControl.SourceLinks> elements, the same pattern NavigationView uses
-        // for MenuItems
+        // backs SourceLinks, a plain read-only IList so XAML can fill it with nested elements
+        // (like NavigationView.MenuItems)
         private readonly ObservableCollection<SourceLink> _sourceLinks = new();
 
 
-        // === Constructor ===
+        // === constructor ===
 
         public InfoPopupControl()
         {
@@ -69,9 +60,9 @@ namespace FluentSensors.Controls.InfoPopup
         }
 
 
-        // === DependencyProperties ===
+        // === dependency properties ===
 
-        // left out entirely, including its layout space, when empty
+        // collapsed with its layout space when empty
         public string Title
         {
             get => (string)GetValue(TitleProperty);
@@ -84,14 +75,10 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(string.Empty));
 
-        // arbitrary content in the title slot, for a label the plain Title string cannot express: several values
-        // with their own bindings and spacing, tabular figures, anything else a consumer wants to lay out itself
-        //
-        // its whole point is the accent state: content in here follows the popup open/closed colour exactly like
-        // Title does, which a TextBlock sitting next to this control as a sibling never could
-        // the content inherits its colour from the presenter, so it must not set a Foreground of its own; the rest
-        // colour comes from TitleForeground as usual
-        // Title and TitleContent are alternatives, a consumer fills one of them
+        // any content in the title slot, for a label a string cannot express (several bound values, tabular
+        // figures); the alternative to Title
+        // it follows the open/closed accent like Title, which a sibling TextBlock never could; so it must not set its
+        // own Foreground, the rest colour is TitleForeground
         public object TitleContent
         {
             get => GetValue(TitleContentProperty);
@@ -104,7 +91,7 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(null));
 
-        // whether the title wraps onto multiple lines or overflows on one; no effect when Title is empty
+        // wrap or overflow
         public TextWrapping TitleTextWrapping
         {
             get => (TextWrapping)GetValue(TitleTextWrappingProperty);
@@ -117,7 +104,7 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(TextWrapping.NoWrap));
 
-        // how the title truncates when it does not fit and TitleTextWrapping is NoWrap
+        // with NoWrap
         public TextTrimming TitleTextTrimming
         {
             get => (TextTrimming)GetValue(TitleTextTrimmingProperty);
@@ -130,7 +117,7 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(TextTrimming.None));
 
-        // applied to the title TextBlock unchanged; leave unset for a plain default look
+        // applied to the title TextBlock as is
         public Style TitleStyle
         {
             get => (Style)GetValue(TitleStyleProperty);
@@ -143,10 +130,8 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(null));
 
-        // falls back to the ThemeResource default set directly on TitleTextBlock in XAML
-        // Only overridden here when a consumer actually supplies a value, so the default case stays fully
-        // theme-reactive without ever touching Application.Current.Resources from C, which does not reliably
-        // track live theme changes
+        // only set when a consumer supplies one, so the ThemeResource default on TitleTextBlock stays theme-reactive
+        // (Application.Current.Resources from code does not track a live theme change)
         public Brush TitleForeground
         {
             get => (Brush)GetValue(TitleForegroundProperty);
@@ -167,7 +152,7 @@ namespace FluentSensors.Controls.InfoPopup
             if (control.TitleContentPresenter != null) control.TitleContentPresenter.Foreground = brush;
         }
 
-        // whether the info button, and therefore the whole popup, is shown at all
+        // the info button, and with it the popup
         public bool ShowInfoButton
         {
             get => (bool)GetValue(ShowInfoButtonProperty);
@@ -180,7 +165,7 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(true));
 
-        // width and height of the (always square) info button
+        // the square info button
         public double ButtonSize
         {
             get => (double)GetValue(ButtonSizeProperty);
@@ -217,7 +202,7 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(new SolidColorBrush(Colors.Transparent)));
 
-        // Segoe Fluent Icons glyph shown inside the button, see fluenticons.xyz
+        // Segoe Fluent Icons glyph, see fluenticons.xyz
         public string ButtonGlyph
         {
             get => (string)GetValue(ButtonGlyphProperty);
@@ -242,7 +227,7 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(12.0));
 
-        // same pattern as TitleForeground above, default lives on ButtonGlyphIcon in XAML
+        // like TitleForeground; the default lives on ButtonGlyphIcon in XAML
         public Brush ButtonGlyphForeground
         {
             get => (Brush)GetValue(ButtonGlyphForegroundProperty);
@@ -263,10 +248,8 @@ namespace FluentSensors.Controls.InfoPopup
             }
         }
 
-        // short label for where this content comes from, e.g. "Windows Management Instrumentation (WMI)"; shown
-        // as its own plain text line above Description
-        // only rendered when SourceLinks below is empty, a populated SourceLinks list replaces this line with
-        // clickable buttons instead; the whole line collapses when empty either way
+        // where the content comes from ("Windows Management Instrumentation (WMI)"), a plain line above Description;
+        // SourceLinks replaces it when filled
         public string Source
         {
             get => (string)GetValue(SourceProperty);
@@ -279,16 +262,13 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(string.Empty));
 
-        // clickable alternative to the plain Source line above, one HyperlinkButton per entry, opens in the system
-        // default browser; populated via nested XAML content:
+        // the clickable alternative to Source, one HyperlinkButton per entry, filled in XAML:
         // <fhInfoPopup:InfoPopupControl.SourceLinks>
         //     <fhInfoPopup:SourceLink Label="..." Url="..." />
         // </fhInfoPopup:InfoPopupControl.SourceLinks>
-        // empty by default, so every caller still on the plain Source string keeps working unchanged
         public IList<SourceLink> SourceLinks => _sourceLinks;
 
-        // optional short text shown above SourceLinks, introduces what the links below are
-        // (Title top, then SourceIntro, then SourceLinks/Source, then Description, see PopupContentBorder)
+        // a short intro above the links; (order: title, SourceIntro, SourceLinks or Source, Description)
         public string SourceIntro
         {
             get => (string)GetValue(SourceIntroProperty);
@@ -301,9 +281,7 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(string.Empty));
 
-        // the explanation itself: one or more paragraphs, each separated by a single \n (authored in XAML as
-        // &#10;); split into individual TextBlocks by SplitParagraphs below instead of relying on a single
-        // TextBlock to render embedded line breaks
+        // the explanation; paragraphs split on \n (&#10; in XAML), one TextBlock each, see SplitParagraphs
         public string Description
         {
             get => (string)GetValue(DescriptionProperty);
@@ -316,7 +294,7 @@ namespace FluentSensors.Controls.InfoPopup
                 typeof(InfoPopupControl),
                 new PropertyMetadata(string.Empty));
 
-        // which element the popup anchors to and which direction it opens in, see PopupPlacementMode
+        // anchor and direction, see PopupPlacementMode
         public PopupPlacementMode PlacementMode
         {
             get => (PopupPlacementMode)GetValue(PlacementModeProperty);
@@ -330,11 +308,9 @@ namespace FluentSensors.Controls.InfoPopup
                 new PropertyMetadata(PopupPlacementMode.Below));
 
 
-        // === Event Handlers ===
+        // === event handlers ===
 
-        // the popup lives outside this control once it has been opened, so a control that leaves the tree has to
-        // take it back with it; without this every discarded instance would strand its popup in the window root
-        // for good
+        // a control that leaves the tree takes its relocated popup back, or it would strand in the window root
         private void InfoPopupControl_Unloaded(object sender, RoutedEventArgs e)
         {
             if (!_popupRelocated) return;
@@ -348,10 +324,8 @@ namespace FluentSensors.Controls.InfoPopup
             _popupRelocated = false;
         }
 
-        // PopupContentBorder is x:Load="False"; FindName forces it into the tree on first click and is a cheap no-op
-        // every click after that, avoids building the popup content at all for buttons that never get clicked
-        // it has to run before the relocation below, since it resolves against this controls own tree and would come
-        // up empty once the popup has been moved out of it, leaving a popup with no content at all
+        // PopupContentBorder is x:Load="False", FindName builds it on the first click; before the relocation, which
+        // would move it out of reach of FindName
         private void InfoButton_Click(object sender, RoutedEventArgs e)
         {
             FindName(nameof(PopupContentBorder));
@@ -360,9 +334,7 @@ namespace FluentSensors.Controls.InfoPopup
 
             bool isOpening = !InfoPopup.IsOpen;
 
-            // placing before opening rather than after, so the popup never shows up at the spot it was left at last
-            // time and then jumps
-            // the popup no longer follows its button around, so every open has to place it again
+            // placed before opening, so it never shows at its last spot and jumps; every open places it again
             if (isOpening)
             {
                 _needsPopupPlacement = true;
@@ -372,11 +344,8 @@ namespace FluentSensors.Controls.InfoPopup
             InfoPopup.IsOpen = isOpening;
         }
 
-        // an open popup pulls its title text and its button glyph over to the Windows accent color, so the whole
-        // control reads as the active one while several popups sit next to each other
-        //
-        // driven off the popups own Opened/Closed rather than InfoButton_Click, because a light dismiss closes it
-        // without ever going through the click handler
+        // an open popup turns its title and glyph to the accent color; from Opened and Closed, since a light
+        // dismiss skips the click handler
         private void InfoPopup_Opened(object sender, object e)
         {
             VisualStateManager.GoToState(this, "PopupOpen", false);
@@ -387,12 +356,8 @@ namespace FluentSensors.Controls.InfoPopup
             VisualStateManager.GoToState(this, "PopupClosed", false);
         }
 
-        // title and button overlap in the same cell instead of separate grid columns; the title reserves room for
-        // the button via a plain right Margin (a real measure-time constraint, so TextTrimming/TextWrapping still
-        // work correctly), and the button is positioned directly off the titles own ActualWidth here, no
-        // cross-element width subtraction involved
-        //
-        // both title slots report here; the empty one measures zero, so the wider of the two is the one in use
+        // title and button share a cell; the title reserves the button room with a right Margin, the button sits at the
+        // title ActualWidth (both title slots report here, the empty one measures zero)
         private void TitleSlot_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             double titleWidth = Math.Max(TitleTextBlock.ActualWidth, TitleContentPresenter.ActualWidth);
@@ -400,34 +365,23 @@ namespace FluentSensors.Controls.InfoPopup
             ButtonHost.Margin = new Thickness(titleWidth + TitleButtonGap, 0, 0, 0);
         }
 
-        // the click above does the placing, but on the very first open the content has not been measured yet and
-        // reads 0x0, which the placement cannot work with; this is the callback right after that first real layout
-        // pass, and it finishes the placement the click could not
-        // it does nothing once the popup has been placed for the current open
+        // finishes the first placement once the content has a real size (it reads 0x0 at the first click)
         private void PopupContent_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             UpdatePopupPlacement();
         }
 
 
-        // the only interactive part of this control, the title slot beside it is inert
-        //
-        // matters in the title bar: SetTitleBar turns the whole bar non-client, and a passthrough rect is what
-        // gives an element its presses back; handing over the whole control would take the title slot with it and
-        // make that stretch of the bar undraggable, see TitleBarPassthrough
+        // the only interactive part; in the title bar it gets the passthrough rect, the title slot stays
+        // draggable (see TitleBarPassthrough)
         public FrameworkElement InteractiveRegion => ButtonHost;
 
 
-        // === Private Helpers ===
+        // === private helpers ===
 
-        // hands InfoPopup over to the window root, which is the whole point of this file:
-        // a Popup measures its offsets against whatever panel it hangs in, so left inside ButtonHost it slides along
-        // with every layout pass that moves this control, and in the title bar that happens several times a second as
-        // the live readouts next to it change width
-        // at the window root nothing moves it, so a placement holds until the popup is opened again
-        //
-        // a root that cannot take children leaves the popup where it was authored; the placement works in window
-        // coordinates either way, it just goes back to riding along with the control
+        // hands InfoPopup over to the window root: a Popup counts its offsets from its panel, so inside ButtonHost it
+        // slides with every layout pass (several a second in the title bar), at the root a placement holds
+        // a root that takes no children leaves it where authored; it then rides along with the control
         private void RelocatePopupToWindowRoot()
         {
             if (_popupRelocated || XamlRoot?.Content is not Panel rootPanel) return;
@@ -439,24 +393,15 @@ namespace FluentSensors.Controls.InfoPopup
             _popupRelocated = true;
         }
 
-        // places the popup once per open, in window coordinates
-        //
-        // the anchor position and the wanted popup position are both worked out against the window, and only the last
-        // step converts them into offsets against the panel the popup hangs in; with the popup sitting at the window
-        // root that conversion subtracts nothing, which is exactly what makes the placement outlive later layout
-        // passes
+        // places the popup once per open, in window coordinates; only the last step turns them into offsets against its
+        // panel (nothing at the window root)
         private void UpdatePopupPlacement()
         {
             if (!_needsPopupPlacement || _popupHost == null) return;
             if (PopupContentBorder == null || XamlRoot?.Content == null) return;
 
-            // ActualWidth/ActualHeight only hold a real size once the popup has been open and laid out at least
-            // once; before that the content is not live, its bindings have not run, and a Measure here reports a
-            // text block that is still empty, so the size comes out too small
-            //
-            // the first open is therefore placed from that provisional size and stays flagged, so the SizeChanged
-            // right after the real layout pass corrects it; every later open has a real size to work with straight
-            // away and is final immediately
+            // a real size only exists after the first open; before that a Measure sees unbound, empty text and comes
+            // out too small, so the first open stays flagged and SizeChanged corrects it
             bool hasRealSize = PopupContentBorder.ActualWidth > 0 && PopupContentBorder.ActualHeight > 0;
             Size contentSize;
 
@@ -486,29 +431,20 @@ namespace FluentSensors.Controls.InfoPopup
             _needsPopupPlacement = !hasRealSize;
         }
 
-        // pulls a placement back inside the window, on both axes, keeping PopupWindowEdgeMargin to every edge
-        //
-        // the placements above each work out their ideal spot from their own anchor and direction without looking at
-        // the window bounds, so any of them can overhang; a Popup cannot render outside its XamlRoot, so an overhang
-        // is not drawn beyond the edge, it is cut off there
-        // clamping keeps the popup whole and slides it back in instead, which is why every mode goes through here
-        // rather than each one growing its own edge handling
+        // pulls a placement back inside the window with PopupWindowEdgeMargin; every mode goes through here (a Popup
+        // cannot render outside its XamlRoot, an overhang is cut off)
         private Point ClampToWindow(Point target, Size content)
         {
             double maxX = XamlRoot.Size.Width - content.Width - PopupWindowEdgeMargin;
             double maxY = XamlRoot.Size.Height - content.Height - PopupWindowEdgeMargin;
 
-            // Min first, then Max: for a popup taller or wider than the window the lower bound wins, so it keeps its
-            // top left corner visible instead of centering the overflow and losing both edges
+            // Min, then Max: an oversized popup keeps its top left corner visible
             return new Point(
                 Math.Max(Math.Min(target.X, maxX), PopupWindowEdgeMargin),
                 Math.Max(Math.Min(target.Y, maxY), PopupWindowEdgeMargin));
         }
 
-        // positions the popup relative to the title text (TitleHost), not the button: to its left, with the top a
-        // little above the title
-        // like the button-anchored modes below it only works out that ideal spot and leaves the window edges to
-        // ClampToWindow, so PopupWindowEdgeMargin is the one gap to the bottom edge as well
+        // left of the title text (TitleHost), the top a little above it; the edges are left to ClampToWindow
         private Point GetTitleAnchoredPosition(Size content)
         {
             Point origin = TitleHost.TransformToVisual(XamlRoot.Content).TransformPoint(new Point(0, 0));
@@ -518,8 +454,7 @@ namespace FluentSensors.Controls.InfoPopup
                 origin.Y + PopupVerticalGap - PopupVerticalManualAdjustment);
         }
 
-        // simple fixed-direction placement for the four button-anchored modes; the direction is taken as given and
-        // never flipped, ClampToWindow above is what keeps the result inside the window
+        // the four button-anchored modes, never flipped; ClampToWindow keeps them inside
         private Point GetButtonAnchoredPosition(Size content)
         {
             Point origin = ButtonHost.TransformToVisual(XamlRoot.Content).TransformPoint(new Point(0, 0));
@@ -538,7 +473,7 @@ namespace FluentSensors.Controls.InfoPopup
                     origin.X + ButtonSize + PopupHorizontalGap,
                     origin.Y + (ButtonSize - content.Height) / 2),
 
-                // Below, which is also the default the DependencyProperty falls back to
+                // Below, the default
                 _ => new Point(
                     origin.X + (ButtonSize - content.Width) / 2,
                     origin.Y + ButtonSize + PopupVerticalGap),
@@ -550,27 +485,24 @@ namespace FluentSensors.Controls.InfoPopup
         private Visibility GetTitleVisibility(string title, object titleContent) =>
             string.IsNullOrEmpty(title) && titleContent == null ? Visibility.Collapsed : Visibility.Visible;
 
-        // reserves room for the button on the right of the title text, but only when the button is actually shown;
-        // a real Margin, so it is a genuine measure-time constraint and TextTrimming/TextWrapping correctly leave
-        // this much space alone
+        // room for a shown button right of the title; a Margin, so trimming and wrapping respect it
         private Thickness GetTitleMargin(double buttonSize, bool showInfoButton) =>
             showInfoButton ? new Thickness(0, 0, buttonSize + TitleButtonGap, 0) : new Thickness(0);
 
-        // plain Source line: only shown when there is no SourceLinks entry to show instead
+        // only without SourceLinks
         private Visibility GetSourceVisibility(string source, IList<SourceLink> sourceLinks) =>
             !string.IsNullOrEmpty(source) && sourceLinks.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
         private Visibility GetSourceLinksVisibility(IList<SourceLink> sourceLinks) =>
             sourceLinks.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
-        // same empty check as GetTitleVisibility above, own name since it is used for SourceIntro specifically
         private Visibility GetSourceIntroVisibility(string sourceIntro) =>
             string.IsNullOrEmpty(sourceIntro) ? Visibility.Collapsed : Visibility.Visible;
 
         private string FormatSource(string source) => $"Source: {source}";
 
-        // screen reader name of the info button; carries the title along when there is one, so a page full of these
-        // buttons does not read as the same label over and over
+        // screen reader name, with the title, so a page full of these buttons does not read
+        // the same label over and over
         private string GetInfoButtonName(string title) =>
             string.IsNullOrEmpty(title) ? "More Information" : $"More Information about {title}";
 

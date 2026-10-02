@@ -58,7 +58,7 @@
 
 
         <!--  upper region: the recording action plus the status line  -->
-        <!--  (margins live on the two regions instead of the whole content, so the divider below can run edge to edge)  -->
+        <!--  (the margins sit on the two regions, so the divider runs edge to edge)  -->
         <StackPanel
             x:Name="UpperRegion"
             Grid.Row="1"
@@ -167,12 +167,8 @@
             Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
 
 
-        <!--  lower region  -->
-        <!--  the live readout and the save location, collapsed together by the chevron above  -->
-        <!--
-            (the layer brush sits on the row itself instead of on the padded stack inside it, so it fills
-            everything below the divider edge to edge)
-        -->
+        <!--  lower region: the live readout and the save location, collapsed by the chevron  -->
+        <!--  (the layer brush sits on the row, not the padded stack, so it fills edge to edge)  -->
         <Grid
             x:Name="LowerRegion"
             Grid.Row="3"
@@ -180,7 +176,7 @@
 
             <StackPanel Margin="4,4,4,5" Spacing="8">
 
-                <!--  (same label above value shape the hardware view info panels use)  -->
+                <!--  (label above value, like the hardware view info panels)  -->
                 <controls:WrapPanel
                     Padding="10,4,10,4"
                     HorizontalSpacing="14"
@@ -239,10 +235,7 @@
                     </StackPanel>
 
                     <!--  wall clock since start, pauses included  -->
-                    <!--
-                        (the main bar shows the recorded stretch instead; this is the one that matches the
-                        elapsed column in the file)
-                    -->
+                    <!--  (the main bar shows the recorded stretch; this matches the elapsed column)  -->
                     <StackPanel Width="Auto" Spacing="2">
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -271,10 +264,7 @@
 
                 <!--  save location  -->
                 <!--  (picked up front so start never has to ask)  -->
-                <!--
-                    (MinHeight is the height a default Button ends up at in the main bar, spelled out here so
-                    both bars stay the same even though this one carries smaller text)
-                -->
+                <!--  (MinHeight is a default Button in the main bar, so both bars match despite the smaller text)  -->
                 <Grid fhUi:FocusGroup.IsEnabled="True" ColumnSpacing="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -307,7 +297,7 @@
                         </Grid>
                     </Button>
 
-                    <!--  opens the same folder in the shell, silently doing nothing while it does not exist yet  -->
+                    <!--  opens the folder in the shell; (nothing while it does not exist yet)  -->
                     <Button
                         Grid.Column="1"
                         Width="36"

@@ -6,7 +6,7 @@ using Windows.Foundation;
 
 namespace FluentSensors.Controls
 {
-    // arranges children in a single row, dividing the available width equally between them
+    // one row, the width split equally
     public class HorizontalStretchPanel : Panel
     {
         public double Spacing

@@ -95,7 +95,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  utilization (big, switchable) + upload/download stacked; narrow: all 3 stacked equally  -->
+                        <!--  utilization (big, switchable) beside upload and download; narrow: all three stacked  -->
                         <Grid
                             x:Name="GraphsAreaGrid"
                             Grid.Row="0"

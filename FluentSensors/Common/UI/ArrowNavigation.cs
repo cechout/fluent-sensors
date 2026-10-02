@@ -10,19 +10,16 @@ using Windows.UI.Core;
 
 namespace FluentSensors.Common.UI
 {
-    // walks a settings style list with the arrow keys: up and down always move to the row above or below, left and
-    // right between the controls of one row, and the search never leaves the list, so an arrow at its first or last
-    // row simply stays put
-    //
-    // taken in PreviewKeyDown, before the focused control sees the key; a slider would otherwise keep all four arrows
-    // and a combo box up and down, and focus could never move past either of them; left and right still reach a
-    // slider, and a key with a modifier (alt+down opens a combo box) is left alone
-    //
-    // a control placed on a SettingsExpander header sits inside the header button, so no directional move can ever
-    // reach it; right steps from the header into it, left back out
+    // the arrow navigation:
+    // up and down move between rows of a settings list, left and right within one; it never leaves the list,
+    // an arrow at the end stays put
+    // taken in PreviewKeyDown, or a slider keeps all four arrows and a combo box up and down; left and right still
+    // reach a slider, a modified key (alt+down) passes
+    // a control on a SettingsExpander header sits inside the header button where no directional move reaches;
+    // right steps in, left back out
     public static class ArrowNavigation
     {
-        // name of the header toggle part in the WinUI Expander template that SettingsExpander builds on
+        // the header toggle part of the WinUI Expander template under SettingsExpander
         private const string ExpanderHeaderPartName = "ExpanderHeader";
 
 
@@ -64,7 +61,7 @@ namespace FluentSensors.Common.UI
             };
             if (direction == FocusNavigationDirection.None || IsModifierDown()) return;
 
-            // an open dropdown or flyout holds focus in a popup outside the list and keeps its keys
+            // an open dropdown or flyout keeps its keys in a popup outside the list
             if (FocusManager.GetFocusedElement(list.XamlRoot) is not DependencyObject focused) return;
             if (!FocusGroup.IsInside(focused, list)) return;
 
@@ -89,7 +86,7 @@ namespace FluentSensors.Common.UI
                 return;
             }
 
-            // handled even when nothing lies in that direction, so the key never falls through to the control
+            // handled even without a target, so the key never reaches the control
             FocusManager.TryMoveFocus(direction, new FindNextElementOptions { SearchRoot = list });
             e.Handled = true;
         }

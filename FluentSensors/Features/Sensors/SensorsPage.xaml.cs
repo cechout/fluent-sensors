@@ -24,31 +24,26 @@ namespace FluentSensors.Features.Sensors
     {
         // === fields ===
 
-        // general fields
         public SensorsViewModel ViewModel { get; }
         private int _infoBarTicket = 0;
 
-        // flag to prevent event handlers from firing during initialization
-        //
-        // (same pattern as SettingsPage SelectionProfileComboBox SelectedIndex="0" in xaml fires SelectionChanged
-        // during InitializeComponent, before ViewModel below is even assigned)
+        // SelectionChanged fires during InitializeComponent, before ViewModel is assigned (same guard as SettingsPage)
         private bool _isLoading = true;
 
-        // command bar overflow handling fields
+        // command bar overflow
         private ICommandBarElement[] _commandBarPriorityOrder;
         private readonly Dictionary<ICommandBarElement, double> _commandBarButtonWidths = new();
         private HashSet<ICommandBarElement> _forcedOverflowElements;
         private bool _commandBarWidthsCached = false;
         private const double OverflowButtonReservedWidth = 48;
-        private const double LeftSectionMinWidth = 260; // minimum width measured from SensorListTitleText
+        private const double LeftSectionMinWidth = 260; // from SensorListTitleText
         private int _commandBarOverflowStartIndex = -1;
 
         // info bar
         private bool _infoBarClipHandlersAttached = false;
 
-        // stats elapsed readout
-        // polled four times a second like the start pages uptime readout, so the shown second never skips or lags
-        // behind the clock; the view model only raises when the text moves
+        // stats elapsed readout; polled four times a second like the start page uptime, so the shown second never skips
+        // (the view model only raises on a text change)
         private static readonly TimeSpan StatsElapsedTimerInterval = TimeSpan.FromMilliseconds(250);
         private DispatcherQueueTimer? _statsElapsedTimer;
 
@@ -60,21 +55,18 @@ namespace FluentSensors.Features.Sensors
             this.InitializeComponent();
             ViewModel = SensorsViewModel.Instance;
 
-            // come back on the profile the page was last switched to;
-            // Deliberately still under the loading guard: the SelectionChanged handler would rebuild the command bar
-            // from here, before SensorListCommandBar_Loaded has set up its overflow state; that Loaded handler builds
-            // the bar from ViewModel.ActiveProfile a moment later anyway, so the profile only has to be in place
+            // back on the last profile; still under the loading guard, SensorListCommandBar_Loaded builds the bar from
+            // ActiveProfile a moment later
             var lastProfile = SettingsService.Instance.LastSensorProfile;
             ViewModel.ActiveProfile = lastProfile;
             SelectProfile(lastProfile);
 
-            // the group header icons are plain brushes rather than theme resources, so they have to be rebuilt
-            // whenever the applied theme moves; ActualTheme rather than the AppTheme setting, which also fires
-            // before the new theme is in place and would rebuild them against the old one
+            // the group header icons are plain brushes, rebuilt on ActualTheme (the AppTheme setting fires
+            // before the new theme is in place)
             Loaded += (s, e) => ApplyActualTheme();
             ActualThemeChanged += (s, e) => ApplyActualTheme();
 
-            // the elapsed readout only ticks while the page is loaded, and catches up the moment it comes back
+            // the elapsed readout ticks only while loaded and catches up on return
             Loaded += (s, e) =>
             {
                 ViewModel.RefreshStatsElapsed();
@@ -105,40 +97,34 @@ namespace FluentSensors.Features.Sensors
 
         private async void PinToWidget_Click(object sender, RoutedEventArgs e)
         {
-            // this is the real action: open or reconfigure the widget window with whatever is currently checked
-            // persistence already happened live as each checkbox was toggled, this button has nothing left to commit
+            // opens or reconfigures the widget with the checked sensors; (persisted on every toggle already)
             var selectedSensors = ViewModel.HardwareGroups
                 .SelectMany(group => group.Sensors)
                 .Where(sensor => sensor.IsSelected)
                 .ToList();
 
-            // show flyout when no sensor was selected
+            // nothing selected: the info bar
             if (selectedSensors.Count == 0)
             {
                 _infoBarTicket++;
                 int currentTicket = _infoBarTicket;
 
-                // show inforbar
                 AnimateInfoBar(-40, true);
 
                 await Task.Delay(2000);
 
                 if (currentTicket == _infoBarTicket)
                 {
-                    // hide infobar
                     AnimateInfoBar(100, false);
                 }
                 return;
             }
 
-            // reuses the existing widget window if one is open or was previously hidden, only creates a fresh native window if
-            // none exists yet at all (see WidgetWindow._retainedInstance)
+            // reuses an open or hidden widget window (see WidgetWindow._retainedInstance)
             WidgetWindow.ShowWithSensors(selectedSensors);
         }
 
-        // opens or reconfigures the csv logger window with whatever is currently checked
-        // persistence already happened live as each checkbox was toggled, this button hands the selection to the
-        // logger and brings its window up
+        // opens or reconfigures the csv logger with the checked sensors
         private async void StartCsvMonitoring_Click(object sender, RoutedEventArgs e)
         {
             var selectedSensors = ViewModel.HardwareGroups
@@ -146,66 +132,59 @@ namespace FluentSensors.Features.Sensors
                 .Where(sensor => sensor.IsSelected)
                 .ToList();
 
-            // an empty selection is only an error while nothing is being recorded; a running recording carries its
-            // own fixed sensor set, so the button just brings the logger back up in that case
+            // an empty selection only counts while nothing records; a running recording keeps its sensors, the
+            // button just brings the logger up
             if (selectedSensors.Count == 0 && !CsvLoggingService.Instance.IsRunning)
             {
                 _infoBarTicket++;
                 int currentTicket = _infoBarTicket;
 
-                // show inforbar
                 AnimateInfoBar(-40, true);
 
                 await Task.Delay(2000);
 
                 if (currentTicket == _infoBarTicket)
                 {
-                    // hide infobar
                     AnimateInfoBar(100, false);
                 }
                 return;
             }
 
-            // reuses the existing logger window if one is open or was previously hidden, only creates a fresh native
-            // window if none exists yet at all (see CsvLoggerWindow._retainedInstance)
+            // reuses an open or hidden logger window (see CsvLoggerWindow._retainedInstance)
             CsvLoggerWindow.ShowWithSensors(selectedSensors);
         }
 
         private async void PinToTaskbar_Click(object sender, RoutedEventArgs e)
         {
-            // opens or reconfigures the taskbar widget window with whatever is currently checked
-            // persistence already happened live as each checkbox was toggled, this button triggers the visual update
+            // opens or reconfigures the taskbar widget with the checked sensors
             var selectedSensors = ViewModel.HardwareGroups
                 .SelectMany(group => group.Sensors)
                 .Where(sensor => sensor.IsSelected)
                 .ToList();
 
-            // show flyout when no sensor was selected
+            // nothing selected: the info bar
             if (selectedSensors.Count == 0)
             {
                 _infoBarTicket++;
                 int currentTicket = _infoBarTicket;
 
-                // show inforbar
                 AnimateInfoBar(-40, true);
 
                 await Task.Delay(2000);
 
                 if (currentTicket == _infoBarTicket)
                 {
-                    // hide infobar
                     AnimateInfoBar(100, false);
                 }
                 return;
             }
 
-            // reuses the existing taskbar widget window if one is embedded or was previously hidden, only creates a fresh
-            // native window if none exists yet at all
+            // reuses an embedded or hidden taskbar widget
             TaskbarWidgetWindow.ShowWithSensors(selectedSensors);
         }
 
-        // switches which profile the checkboxes reflect and persist to, and swaps the action button in the command
-        // bar to match (Pin to Widget / Start CSV Logging / Pin to Taskbar)
+        // the profile the checkboxes reflect and persist to, with the matching action button (Pin to Widget, Start
+        // CSV Logging, Pin to Taskbar)
         private void SelectionProfileComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -218,9 +197,8 @@ namespace FluentSensors.Features.Sensors
             RebuildCommandBarOverflow();
         }
 
-        // entry point for callers outside the page (currently the taskbar flyout) that want the list to open on a
-        // specific profile; drives the ComboBox rather than ViewModel.ActiveProfile so the handler above stays the
-        // single place that pairs the profile switch with the command bar rebuild
+        // opens the list on a profile from outside (the taskbar flyout); through the ComboBox, so the handler above
+        // stays the one place pairing profile and command bar
         public void SelectProfile(SensorSelectionProfile profile)
         {
             foreach (var item in SelectionProfileComboBox.Items.OfType<ComboBoxItem>())
@@ -229,18 +207,15 @@ namespace FluentSensors.Features.Sensors
                     && Enum.TryParse(tag, out SensorSelectionProfile itemProfile)
                     && itemProfile == profile)
                 {
-                    // no-op if it is already the selected one, SelectionChanged simply does not fire
+                    // already selected: SelectionChanged does not fire
                     SelectionProfileComboBox.SelectedItem = item;
                     return;
                 }
             }
         }
 
-        // the group-level counterpart to SelectProfile above, for the start pages sensor count button
-        //
-        // matches on LhmHardwareName rather than HardwareName: the latter is a display name and for storage and
-        // network deliberately shows the WMI model instead of what LHM called the hardware
-        // collapsing everything else is what stands in for scrolling, the app has no scroll-into-view anywhere
+        // the group counterpart of SelectProfile, for the start page sensor count button; matches LhmHardwareName
+        // (HardwareName shows the WMI model for storage and network) and collapses every other group
         public void ExpandHardwareGroup(IReadOnlyList<string> lhmHardwareNames)
         {
             if (lhmHardwareNames == null || lhmHardwareNames.Count == 0) return;
@@ -252,19 +227,18 @@ namespace FluentSensors.Features.Sensors
                 bool wanted = lhmHardwareNames.Contains(group.LhmHardwareName, StringComparer.OrdinalIgnoreCase);
                 group.IsExpanded = wanted;
 
-                // the first match is the one scrolled to; a category like memory matches several groups
+                // scrolls to the first match; (memory matches several groups)
                 if (wanted && target == null) target = group;
             }
 
             if (target == null) return;
 
-            // the expanders above have to lay out at their new height first, otherwise the scroll would aim at
-            // where the group used to be; same low-priority hand-off MainWindow uses for its title bar
+            // at Low priority, after the expanders laid out at their new height
             DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => ScrollToGroup(target));
         }
 
-        // HardwareItemsControl is a plain ItemsControl, whose ContainerFromItem is protected, so the container is
-        // found by walking the tree for the presenter carrying this group as its DataContext
+        // a plain ItemsControl has no public ContainerFromItem, so the tree is walked for the
+        // presenter carrying the group
         private void ScrollToGroup(HardwareGroupViewModel group)
         {
             var container = FindContainer(HardwareItemsControl, group);
@@ -298,7 +272,6 @@ namespace FluentSensors.Features.Sensors
 
         private void ResetMinMax_Click(object sender, RoutedEventArgs e)
         {
-            // we iterate through all nested groups and all sensors
             foreach (var group in ViewModel.HardwareGroups)
             {
                 foreach (var sensor in group.Sensors)
@@ -312,12 +285,11 @@ namespace FluentSensors.Features.Sensors
 
         private async void HideSensors_Click(object sender, RoutedEventArgs e)
         {
-            // check across all groups whether anything is selected at all
             bool anySelected = ViewModel.HardwareGroups
                 .SelectMany(group => group.Sensors)
                 .Any(sensor => sensor.IsSelected);
 
-            // show the same "nothing selected" flyout as PinToWidget_Click
+            // the same info bar as PinToWidget_Click
             if (!anySelected)
             {
                 _infoBarTicket++;
@@ -359,7 +331,6 @@ namespace FluentSensors.Features.Sensors
             ViewModel.DeselectAllSensors();
         }
 
-        // InfoBar animation
         private void AnimateInfoBar(double targetY, bool isHitTestVisible)
         {
             NoSensorsInfoBar.IsHitTestVisible = isHitTestVisible;
@@ -382,28 +353,24 @@ namespace FluentSensors.Features.Sensors
 
         // === layout and rendering workarounds ===
 
-        // helper method to fix the rendering of the items
+        // see SettingsExpanderRepaintFix
         private void SettingsExpander_Loaded(object sender, RoutedEventArgs e)
         {
             SettingsExpanderRepaintFix.Attach((SettingsExpander)sender);
         }
         private void RootScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            // a ScrollViewer measures its content with infinite width while horizontal scrolling is on, and * columns
-            // collapse to their minimum with infinite width
-            // feeding the grid the real viewport width lets the * columns stretch again
+            // with horizontal scrolling on, a ScrollViewer measures with infinite width and the star columns collapse;
+            // the real viewport width lets them stretch
             RootGrid.Width = e.NewSize.Width;
         }
 
-        // inforbar clipping
+        // info bar clipping
         private void InfoBarHost_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateInfoBarClip();
 
-            // with NavigationCacheMode="Required" this Page instance is reused across navigations, and Loaded fires again
-            // every time the Frame reattaches it
-            // without this guard, each reattachment would pile on another SizeChanged subscription, running UpdateInfoBarClip
-            // once more per resize with every navigation cycle
+            // NavigationCacheMode keeps this page, Loaded fires on every reattach; subscribed once
             if (_infoBarClipHandlersAttached) return;
             _infoBarClipHandlersAttached = true;
 
@@ -411,9 +378,7 @@ namespace FluentSensors.Features.Sensors
             BottomBar.SizeChanged += (_, _) => UpdateInfoBarClip();
         }
 
-        // Clips the InfoBar host to the area above the bottom bar,
-        // so the InfoBar can never render into the bottom bar's row —
-        // regardless of the bottom bar's own transparency.
+        // clips the info bar host above the bottom bar, whatever the bar transparency
         private void UpdateInfoBarClip()
         {
             double visibleHeight = InfoBarHost.ActualHeight - BottomBar.ActualHeight;
@@ -429,8 +394,7 @@ namespace FluentSensors.Features.Sensors
 
         // === command bar overflow handling ===
 
-        // runs once when the command bar is first ready
-        // sets the priority order and takes the initial width measurement
+        // once the command bar is ready; the forced overflow set and the first build
         private void SensorListCommandBar_Loaded(object sender, RoutedEventArgs e)
         {
             _forcedOverflowElements = new HashSet<ICommandBarElement>
@@ -441,12 +405,8 @@ namespace FluentSensors.Features.Sensors
             RebuildCommandBarOverflow();
         }
 
-        // an AppBarButton that isnt currently a live PrimaryCommand or SecondaryCommand of this CommandBar does not
-        // report the same ActualWidth it gets once actually placed and arranged inside it, DefaultLabelPosition and
-        // compact rendering only apply to the bars current children
-        // fix: two phases, first every element goes in as a PrimaryCommand unconditionally so each one gets a real,
-        // correctly labeled layout pass; the actual primary/secondary split only happens once that has settled
-        // (next dispatcher tick), once ActualWidth is trustworthy
+        // an AppBarButton outside the bar reports another ActualWidth (DefaultLabelPosition only applies to its
+        // children), so every element goes in as primary first and the split follows one tick later
         private void RebuildCommandBarOverflow()
         {
             _commandBarPriorityOrder = BuildCommandBarPriorityOrder();
@@ -466,7 +426,7 @@ namespace FluentSensors.Features.Sensors
             });
         }
 
-        // picks whichever commit button matches the active selection profile
+        // with the commit button of the active profile
         private ICommandBarElement[] BuildCommandBarPriorityOrder()
         {
             ICommandBarElement commitButton = ViewModel.ActiveProfile switch
@@ -487,7 +447,7 @@ namespace FluentSensors.Features.Sensors
             };
         }
 
-        // recalculates the overflow split whenever the header changes size
+        // the overflow split follows the header size
         private void SensorListHeaderGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (_commandBarWidthsCached)
@@ -496,8 +456,7 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // measures every button once while its still fully visible with its label
-        // (so we know later how much space each one actually needs)
+        // every button once, while still visible with its label
         private void CacheCommandBarButtonWidths()
         {
             foreach (var element in _commandBarPriorityOrder)
@@ -511,10 +470,8 @@ namespace FluentSensors.Features.Sensors
             _commandBarWidthsCached = true;
         }
 
-        // fills the command bar strictly in priority order; the first unit that does not fit anymore, and everything
-        // after it, goes into the overflow menu
-        // only touches PrimaryCommands/SecondaryCommands when the split actually changes, otherwise every resize tick
-        // would rebuild the buttons and cause label flicker
+        // fills the bar in priority order, the first unit that does not fit and everything after it overflows; only a
+        // changed split rebuilds (or every resize tick would flicker the labels)
         private void UpdateCommandBarOverflow()
         {
             double leftSectionWidth = Math.Max(LeftSectionMinWidth, SensorListTitleText.ActualWidth + SelectionProfileComboBox.ActualWidth + 16);
@@ -522,15 +479,13 @@ namespace FluentSensors.Features.Sensors
 
             if (availableWidth <= 0) return;
 
-            // (only elements not permanently pinned to overflow take part in the width fit, grouped into units so a
-            // separator can never end up dangling alone)
+            // only elements not pinned to overflow, in units, so a separator never dangles alone
             var fittableUnits = GroupIntoOverflowUnits(
                 _commandBarPriorityOrder.Where(element => !_forcedOverflowElements.Contains(element)));
 
             double totalWidth = fittableUnits.Sum(unit => unit.Sum(element => _commandBarButtonWidths.GetValueOrDefault(element, 40)));
 
-            // overflow button is needed if the fittable elements alone overflow,
-            // or if theres at least one forced element that needs it regardless
+            // the overflow button, for an overflow or a forced element
             bool needsOverflowButton = totalWidth > availableWidth || _forcedOverflowElements.Count > 0;
             double budget = needsOverflowButton
                 ? availableWidth - OverflowButtonReservedWidth
@@ -552,8 +507,7 @@ namespace FluentSensors.Features.Sensors
                 runningWidth += unitWidth;
             }
 
-            // nothing changed since the last check: skip rebuilding
-            // (stops flickering when resizing)
+            // unchanged split
             if (fittableOverflowStartUnitIndex == _commandBarOverflowStartIndex)
             {
                 return;
@@ -576,7 +530,7 @@ namespace FluentSensors.Features.Sensors
                 }
             }
 
-            // forced elements always land in the overflow menu, appended at the end
+            // forced elements always at the end of the overflow menu
             foreach (var element in _commandBarPriorityOrder)
             {
                 if (_forcedOverflowElements.Contains(element))
@@ -586,9 +540,7 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // AppBarSeparators are visually bonded to whichever element comes right before them in the priority order,
-        // grouping them into that elements unit means the fit check can never cut between a button and the
-        // separator immediately following it, so neither one ends up dangling alone on the wrong side of the split
+        // a separator joins the unit of the element before it, so the fit never cuts between them
         private static List<ICommandBarElement[]> GroupIntoOverflowUnits(IEnumerable<ICommandBarElement> elements)
         {
             var units = new List<ICommandBarElement[]>();

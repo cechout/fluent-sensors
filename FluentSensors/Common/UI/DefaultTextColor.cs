@@ -6,42 +6,37 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Common.UI
 {
-    // resolves the apps default text color for the currently selected app theme
+    // the default text color of the app theme
     //
     // --- workaround: theme brush lookup from code-behind ---
-    // problem: resolving theme resources via Application.Current.Resources[...] from C# always returns the light-theme
-    // value and ignores a windows RequestedTheme override entirely; it resolves against the
-    // OS theme instead, and does not react to theme changes at runtime
-    // confirmed upstream: https://github.com/microsoft/microsoft-ui-xaml/issues/7663
-    // same root cause also broke two other attempts:
-    // walking Application.Current.Resources.ThemeDictionaries directly (throws KeyNotFoundException even after checking
-    // every MergedDictionary), and routing through XAMLs own Style-Setter ThemeResource fallback via
-    // DependencyProperty.UnsetValue (still didn't react to theme switches for text inside this DataTemplate)
-    // fix: do not look up the resource at all; hardcode the two literal Fluent 2 design token values for TextFillColorPrimary
-    // and pick between them based on the apps own theme setting; nothing here can
-    // be affected by OS theme, RequestedTheme propagation timing, or how deep an element sits inside a DataTemplate
+    // problem: Application.Current.Resources[...] from C# returns the light theme value, ignores a window
+    // RequestedTheme (it resolves against the OS theme) and never follows a runtime switch:
+    // https://github.com/microsoft/microsoft-ui-xaml/issues/7663
+    // the same cause broke walking ThemeDictionaries (KeyNotFoundException through every MergedDictionary) and the
+    // Style Setter fallback via DependencyProperty.UnsetValue (no switch inside a DataTemplate)
+    // fix: no lookup; the two Fluent 2 token values of TextFillColorPrimary, picked by the theme, untouched by OS
+    // theme, propagation timing or template depth
     public static class DefaultTextColor
     {
         private static readonly Windows.UI.Color LightColor = Windows.UI.Color.FromArgb(0xE4, 0x00, 0x00, 0x00);
         private static readonly Windows.UI.Color DarkColor = Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF);
 
-        // for callers with no element to ask, which resolves against the app theme setting
+        // for callers without an element, by the app theme setting
         public static Brush Resolve()
         {
             bool isDark = SettingsService.Instance.AppTheme switch
             {
                 "Light" => false,
                 "Dark" => true,
-                // "Default" follows the OS theme, mirrors ApplyTheme()'s ElementTheme.Default behavior
+                // "Default" follows the OS theme, like ElementTheme.Default in ApplyTheme
                 _ => Application.Current.RequestedTheme == ApplicationTheme.Dark
             };
 
             return ForTheme(isDark);
         }
 
-        // for callers that render in a known theme, which anything with an ActualTheme to read does
-        // more reliable than Resolve() wherever a control can end up in a window that does not follow the app theme
-        // setting, see SensorPanelControl
+        // for callers with an ActualTheme; safer than Resolve in a window that does not follow the
+        // setting (see SensorPanelControl)
         public static Brush ForTheme(bool isDark)
         {
             return new SolidColorBrush(isDark ? DarkColor : LightColor);

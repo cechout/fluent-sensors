@@ -9,18 +9,16 @@ using FluentSensors.Common.Sensors;
 namespace FluentSensors.Controls.SensorGraph
 {
     // === pointer hover interaction ===
-    // shows a circle + value label on the chart at the pointer position
+    // a circle and value label at the pointer position
     public sealed partial class SensorGraphControl
     {
-        // updates hover circle + label position and value whenever the pointer moves over the chart
         private void OnChartPointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
             _lastPointerPosition = e.GetCurrentPoint(Chart).Position;
             UpdateHoverAtPointer();
         }
 
-        // re-usable: called on pointer move, and also on every new data point while the
-        // pointer is still sitting still over the chart, so the hover value keeps tracking
+        // on pointer move and on every new point under a resting pointer, so the value keeps tracking
         private void UpdateHoverAtPointer()
         {
             if (Values is null || Values.Count == 0)
@@ -59,22 +57,19 @@ namespace FluentSensors.Controls.SensorGraph
 
             var valuePixels = Chart.ScaleDataToPixels(new LvcPointD(dataPoint.X, value.Value));
 
-            // circle sits exactly on the step at the cursors x-position
+            // on the step at the cursor x
             Canvas.SetLeft(HoverCircle, position.X - HoverCircle.Width / 2);
             Canvas.SetTop(HoverCircle, valuePixels.Y - HoverCircle.Height / 2);
 
-            // pick which Y coordinate the label follows, based on LabelFollowsPointer
             double labelY = LabelFollowsPointer ? position.Y : valuePixels.Y;
             var (scaledValue, _) = SensorUnitFormatter.Scale(value.Value, SensorType);
             CurrentValueLabelText.Text = scaledValue.ToString("0.0");
 
-            // force a synchronous re-measure so DesiredSize reflects the new text width
-            // immediately - without this, ActualWidth would still hold last frame's
-            // value and the flip calculation below would be one tick behind
+            // a synchronous measure, so the flip below sees the new text width and not the last frame
             CurrentValueLabelBorder.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             double labelWidth = CurrentValueLabelBorder.DesiredSize.Width;
 
-            const double hoverLabelGap = 6; // horizontal gap between pointer and label
+            const double hoverLabelGap = 6; // pointer to label
 
             bool flipLeft = position.X + hoverLabelGap + labelWidth > Chart.ActualWidth;
             double labelX = flipLeft
@@ -85,7 +80,7 @@ namespace FluentSensors.Controls.SensorGraph
             Canvas.SetTop(CurrentValueLabelBorder, labelY - 14);
         }
 
-        // hides the hover circle and label when the pointer leaves the chart area or lands on invalid data
+        // also on invalid data
         private void OnChartPointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
             HideHoverElements();
@@ -104,8 +99,7 @@ namespace FluentSensors.Controls.SensorGraph
             CurrentValueLabelBorder.Visibility = Visibility.Visible;
         }
 
-        // colors the hover circle + label: threshold color if the hovered value sits inside
-        // an alarm zone, accent color otherwise
+        // the threshold color inside an alarm zone, the accent otherwise
         private void ApplyHoverColor(bool isAlarm)
         {
             var color = isAlarm ? ThresholdColor : AccentColor;

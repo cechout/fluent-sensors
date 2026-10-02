@@ -37,12 +37,10 @@ namespace FluentSensors
         // === win32 api imports ===
 
         // --- workaround: hiding a window in WinUI 3 ---
-        // problem: this.Hide() alone does not remove the window from Alt+Tab or the taskbar switcher reliably; the official
-        // AppWindow.IsShownInSwitchers API was tried first and failed the same way; no public issue
-        // found that documents this exact behavior
-        // fix: manually apply WS_EX_TOOLWINDOW (removes it from Alt+Tab) and WS_EX_NOACTIVATE (prevents Windows from auto-
-        // focusing it) via SetWindowLongW, then SetWindowPos with SWP_FRAMECHANGED to apply the new styles
-        // own solution found through trial and error, see usage in AppWindow_Closing/OpenDashboard
+        // problem: Hide() alone does not reliably drop the window from Alt+Tab and the taskbar switcher, and
+        // AppWindow.IsShownInSwitchers fails the same way; no public issue found
+        // fix: add WS_EX_TOOLWINDOW (off Alt+Tab) and WS_EX_NOACTIVATE (no auto focus), then SetWindowPos with
+        // SWP_FRAMECHANGED; see ApplyHideShield and OpenDashboard
 
         [LibraryImport("user32.dll", EntryPoint = "GetWindowLongW")]
         private static partial int GetWindowLong(IntPtr hWnd, int nIndex);
@@ -62,19 +60,15 @@ namespace FluentSensors
         private const uint SWP_FRAMECHANGED = 0x0020;
 
         // --- workaround: OpenDashboard does not reliably come to the front ---
-        // problem: WinUI 3 Window.Activate() fails to bring a window to the foreground if it is already restored but sitting
-        // in the background of other windows;
-        // Only works correctly starting from a minimized state confirmed, still-open platform bug:
+        // problem: Window.Activate() brings a minimized window to the foreground, but not a restored one behind others
+        // (confirmed, still open); hits after the widget took the foreground moments earlier (tray double click):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/7595
-        // hits us specifically when the widget window grabbed foreground moments earlier (tray double click), since Restore()
-        // puts the main window into exactly that broken background-but-not-minimized state right before Activate() runs
-        // fix: call the raw Win32 SetForegroundWindow directly instead of relying on Activate() for the actual foreground grab
+        // fix: the raw SetForegroundWindow does the foreground grab
         [LibraryImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static partial bool SetForegroundWindow(IntPtr hWnd);
 
-        // reads which window currently owns the foreground; the one precondition the startup focus handback checks,
-        // see ReclaimForeground
+        // the precondition of the startup focus handback, see ReclaimForeground
         [LibraryImport("user32.dll")]
         private static partial IntPtr GetForegroundWindow();
 
@@ -82,45 +76,41 @@ namespace FluentSensors
         // === fields ===
 
         public static MainWindow CurrentInstance { get; private set; }
-        private const string WindowKey = "Main"; // key under which this windows state is saved
+        private const string WindowKey = "Main";
         private const string ProjectPageUrl = "https://github.com/cechout/fluent-sensors"; // readme, also linked from the settings page
         private bool _isForceClosing = false;
         private bool _isHardwareServiceLoaded = false;
         private bool _isDashboardClosed = false;
 
-        // set for the one navigation that follows the splash, so that page animates in rather than appearing
-        // finished, see MainNavigationView_SelectionChanged
+        // the one navigation after the splash, which gets the entrance transition
         private bool _isStartupNavigation = false;
 
         // profile a caller asked for while the splash was still running; applied once the sensor page exists
         private SensorSelectionProfile? _pendingSensorProfile = null;
 
-        // same idea as _pendingSensorProfile, for a group request that arrives before the page exists
+        // the same for a hardware group request
         private IReadOnlyList<string> _pendingSensorHardware = null;
 
         // system tray icon commands
-        public XamlUICommand RestoreAppCommand { get; } = new XamlUICommand(); // restore
-        public XamlUICommand ShowMainWindowCommand { get; } = new XamlUICommand(); // restore + navigate to SensorPage
-        public XamlUICommand OpenPerformanceCommand { get; } = new XamlUICommand(); // restore + navigate to PerformancePage
-        public XamlUICommand OpenSettingsCommand { get; } = new XamlUICommand(); // restore + navigate to SettingsPage
-        public XamlUICommand ShowWidgetWindowCommand { get; } = new XamlUICommand(); // tray menu, restores the widget only
-        public XamlUICommand ShowCsvWindowCommand { get; } = new XamlUICommand(); // tray menu, restores the csv logger only
-        public XamlUICommand OpenDocumentationCommand { get; } = new XamlUICommand(); // tray menu, opens the project page in the browser
+        public XamlUICommand RestoreAppCommand { get; } = new XamlUICommand();
+        public XamlUICommand ShowMainWindowCommand { get; } = new XamlUICommand(); // restore; sensors page
+        public XamlUICommand OpenPerformanceCommand { get; } = new XamlUICommand(); // restore; performance page
+        public XamlUICommand OpenSettingsCommand { get; } = new XamlUICommand(); // restore; settings page
+        public XamlUICommand ShowWidgetWindowCommand { get; } = new XamlUICommand(); // the widget only
+        public XamlUICommand ShowCsvWindowCommand { get; } = new XamlUICommand(); // the csv logger only
+        public XamlUICommand OpenDocumentationCommand { get; } = new XamlUICommand(); // the project page in the browser
         public XamlUICommand ExitAppCommand { get; } = new XamlUICommand();
-        public XamlUICommand TrayLeftClickCommand { get; } = new XamlUICommand(); // tray single click, restores every open readout window
-        public XamlUICommand TrayDoubleClickCommand { get; } = new XamlUICommand(); // tray double click, restores main window only
+        public XamlUICommand TrayLeftClickCommand { get; } = new XamlUICommand(); // single click; open readouts
+        public XamlUICommand TrayDoubleClickCommand { get; } = new XamlUICommand(); // double click; main window
 
-        // backs the title bar status readout (sensors found/rendering, CPU/RAM/handles); AppStatusService itself
-        // is started further down, once hardware discovery has actually run
+        // the title bar status readout; (AppStatusService starts once hardware discovery has run)
         public AppStatusViewModel AppStatus { get; } = new AppStatusViewModel();
 
-        // set in the constructor when this launch is going straight to the tray; holds the rect the window belongs
-        // at, because it spends the whole startup parked off screen instead
+        // the real window rect while a launch straight to the tray parks it off screen
         private Windows.Graphics.RectInt32? _hiddenStartupBounds;
 
-        // title bar columns the two status groups sit in, swapped whenever the configured order changes
-        // the leading group keeps the smaller gap to the toggle button, the trailing one gets the wider gap that
-        // separates the two groups from each other
+        // title bar columns of the two status groups, swapped with the configured order; (the leading group keeps
+        // the smaller gap to the toggle button)
         private const int LeadingStatusGroupColumn = 5;
         private const int TrailingStatusGroupColumn = 6;
         private static readonly Thickness LeadingStatusGroupMargin = new Thickness(8, 0, 0, 0);
@@ -131,7 +121,6 @@ namespace FluentSensors
 
         public MainWindow()
         {
-            // initialization
             this.InitializeComponent();
             this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
             CurrentInstance = this;
@@ -139,8 +128,7 @@ namespace FluentSensors
             // a click on empty space hides the keyboard focus rectangle again
             PointerFocusReset.Attach(Content);
 
-            // AppWindow configuration
-            // titlebar 
+            // title bar
             AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
             if (AppWindow.TitleBar.ExtendsContentIntoTitleBar)
             {
@@ -150,9 +138,8 @@ namespace FluentSensors
 
             }
 
-            // AppTitleBar is a plain Grid now, not the native TitleBar control, so it needs to be registered as the
-            // drag region explicitly; interactive controls inside it (the toggle button, info popup buttons) stay
-            // clickable on their own, only the empty space around them is actually draggable
+            // AppTitleBar is a plain Grid registered as the drag region; its interactive controls get passthrough
+            // rects, see RefreshTitleBarLayout
             this.SetTitleBar(AppTitleBar);
 
             var manager = WinUIEx.WindowManager.Get(this);
@@ -177,15 +164,9 @@ namespace FluentSensors
                 this.CenterOnScreen();
             }
 
-            // going straight to the tray has to be set up before anything is on screen
-            //
-            // Activate() is what makes WinUI load the content at all, so the window cannot simply stay unshown; it is
-            // parked far off screen behind the same Win32 shield the tray path uses instead, which keeps it out of the
-            // taskbar and out of Alt+Tab while it starts
-            // hiding it only once Loaded fires left it visible for about half a second, which reads like something
-            // the user did not ask for
-            // deliberately off screen rather than minimized: a minimized window is the one shape that has broken
-            // SkiaSharp graph surfaces here before, and this way the layout runs exactly as it does normally
+            // a launch straight to the tray is set up before anything is on screen: Activate() is what loads the
+            // content, so the window is parked far off screen behind the hide shield instead (not minimized, which has
+            // broken the SkiaSharp graph surfaces before; off screen the layout runs as normal)
             if (StartsHiddenInTray())
             {
                 _hiddenStartupBounds = new Windows.Graphics.RectInt32(
@@ -216,7 +197,7 @@ namespace FluentSensors
             this.AppWindow.Changed += AppWindow_Changed;
             this.AppWindow.Closing += AppWindow_Closing;
 
-            // system tray commands 
+            // system tray commands
             RestoreAppCommand.ExecuteRequested += (s, e) => RestoreApp();
             ShowMainWindowCommand.ExecuteRequested += (s, e) =>
             {
@@ -237,8 +218,7 @@ namespace FluentSensors
             ShowCsvWindowCommand.ExecuteRequested += (s, e) => CsvLoggerWindow.RestoreIfOpen();
             OpenDocumentationCommand.ExecuteRequested += (s, e) => OpenProjectPage();
 
-            // both restores are no-ops while their window is closed, so one click brings back whatever happens to
-            // be open: the widget, the logger, both of them, or nothing at all
+            // both restores are no-ops for a closed window, so one click brings back whatever is open
             TrayLeftClickCommand.ExecuteRequested += (s, e) =>
             {
                 WidgetWindow.RestoreIfOpen();
@@ -248,11 +228,10 @@ namespace FluentSensors
             ExitAppCommand.ExecuteRequested += (s, e) => QuitAppNow(); // tray menu "Exit"
 
 
-            // TEMP: uncomment to dump everything WinStaticInfoService collected to the Debug output window
+            // TEMP: uncomment to dump WinStaticInfoService to the Debug output window
             // _ = Task.Run(FluentSensors.Diagnostics.WinStaticInfoDebugDump.Dump);
 
-            // TEMP: uncomment to dump the taskbar detection backend (WinTaskbarService/WinTaskbarUiaProbe/
-            // WinShellStateWatcher) to the Debug output window
+            // TEMP: uncomment to dump the taskbar detection to the Debug output window
             // _ = Task.Run(FluentSensors.Diagnostics.WinTaskbarDebugDump.Dump);
         }
 
@@ -264,8 +243,7 @@ namespace FluentSensors
             if (_isHardwareServiceLoaded) return;
             _isHardwareServiceLoaded = true;
 
-            // the off screen parking from the constructor ends here: the window is really hidden now, and only then
-            // does it get moved back to where it belongs, so it opens in the right place from the tray later
+            // ends the off screen parking: hidden for real first, then moved back so it opens in place from the tray
             if (_hiddenStartupBounds is Windows.Graphics.RectInt32 bounds)
             {
                 HideToTray();
@@ -273,20 +251,15 @@ namespace FluentSensors
                 _hiddenStartupBounds = null;
             }
 
-            await StartHardwareServiceAsync(); // load the HardwareMonitorService singleton instance asynchronously
+            await StartHardwareServiceAsync();
         }
 
         private async Task StartHardwareServiceAsync()
         {
             var monitor = HardwareMonitorService.Instance;
 
-            // kicks off static hardware info collection (WMI queries) on a background thread; fully independent and
-            // parallel to the lhm sensor init below
-            // captured instead of fire-and-forget: without waiting on this, a page that accesses
-            // WinStaticInfoService.Instance before this finishes blocks its own thread for the remainder of the WMI
-            // scan (Lazy<T> just makes every other accessor wait for the same in-progress construction); awaited
-            // together with the sensor data wait further down, so a slow WMI scan still shows up as splash progress
-            // instead of surfacing later as an unexplained freeze on whichever page asks for it first
+            // static hardware info (WMI) in parallel to the sensor init; awaited with the first data below, so a slow
+            // scan shows as splash time rather than as a freeze on whichever page touches it first (Lazy<T> blocks)
             var staticInfoPrewarmTask = Task.Run(() => WinStaticInfoService.Instance);
 
             // scan motherboard
@@ -309,33 +282,29 @@ namespace FluentSensors
             LoadingProgressBar.Value = 60;
             await monitor.InitMemoryAndStorageAsync();
 
-            // scan dedicated fan/aio controllers (e.g. Aquacomputer, Corsair Commander, NZXT Kraken)
+            // scan fan and aio controllers (Aquacomputer, Corsair Commander, NZXT Kraken)
             LoadingStatusText.Text = "Scanning controllers...";
             LoadingProgressBar.Value = 75;
             await monitor.InitControllerAsync();
 
-            // scan network adapters (Wi-Fi, Ethernet, and any virtual adapters Windows reports)
+            // scan network adapters (virtual ones included)
             LoadingStatusText.Text = "Scanning network adapters...";
             LoadingProgressBar.Value = 100;
             await monitor.InitNetworkAsync();
 
-            // no we start the HardwareMonitorService loop manually
+            // the polling loop
             monitor.StartMonitoring();
 
-            // sensor discovery just finished above, LhmHardwareTreeService starts filling in from here on
+            // discovery is done, the hardware tree fills in from here
             AppStatusService.Instance.Start();
 
-            // we explicitly wait until the ViewModel has received and processed the very first data payload, and until
-            // the static info prewarm above has finished; both have been running in parallel with everything since
-            // their own starting point, so this only waits as long as whichever of the two is still slower
+            // the first data payload and the static info prewarm, whichever is slower
             LoadingStatusText.Text = "Waiting for data...";
             await Task.WhenAll(
                 SensorsViewModel.Instance.WaitForInitialLoadAsync(),
                 staticInfoPrewarmTask);
 
-            // now we are finished loading
             LoadingStatusText.Text = "Ready";
-            //await Task.Delay(100);
 
             // manually close navigation pane
             this.DispatcherQueue.TryEnqueue(() =>
@@ -350,12 +319,11 @@ namespace FluentSensors
             AppStatus.IsAppReady = true;
             AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;
             AppStatus.IsPawnIoMissing = !WinStaticInfoService.Instance.IsPawnIoInstalled;
-            // a profile request that came in during the splash outranks the configured startup page: that click
-            // was explicitly about the sensor list, and the block below needs the page it asks for
+            // a profile request from the splash outranks the startup page; (the block below needs the sensor page)
             _isStartupNavigation = true;
             MainNavigationView.SelectedItem = _pendingSensorProfile != null ? SensorsNavItem : StartupNavItem();
 
-            // a profile request that arrived before the page existed; the selection above is what finally creates it
+            // requests from the splash; the selection above created the page
             if (_pendingSensorProfile is SensorSelectionProfile pendingProfile
                 && contentFrame.Content is SensorsPage pendingPage)
             {
@@ -369,14 +337,10 @@ namespace FluentSensors
                 _pendingSensorHardware = null;
             }
 
-            // the two restores below each end in Activate() and take the focus with them; whether the main window is
-            // the one losing it has to be read before they run, see ReclaimForeground
+            // read before the two restores below take the focus, see ReclaimForeground
             bool hadForeground = GetForegroundWindow() == WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-            // re-open the widget window with its previously pinned sensors, if it was still open when the app last closed
             TryRestoreWidgetWindow();
-
-            // re-open the taskbar widget with its pinned sensors if any are configured
             TryRestoreTaskbarWidgetWindow();
 
             if (hadForeground)
@@ -384,9 +348,8 @@ namespace FluentSensors
                 ReclaimForeground();
             }
 
-            // a moved or reinstalled copy leaves the scheduled task pointing at the old exe, which would silently
-            // stop autostarting; the check costs two schtasks processes, so it stays off the UI thread and only runs
-            // when autostart is actually on
+            // a moved or reinstalled copy leaves the scheduled task on the old exe; (off the UI thread, the check
+            // costs two schtasks processes)
             if (SettingsService.Instance.RunOnStartup)
             {
                 _ = Task.Run(() => WinAutostartService.RepairIfStale(SettingsService.Instance.DelayStartup));
@@ -397,8 +360,7 @@ namespace FluentSensors
             UpdateService.Instance.Start(WinRT.Interop.WindowNative.GetWindowHandle(this));
         }
 
-        // re-creates the widget window with whichever previously pinned sensors still exist on
-        // this system, but only if it was actually open when the app last closed
+        // reopens the widget with the pinned sensors that still exist, if it was open when the app last closed
         private void TryRestoreWidgetWindow()
         {
             var widgetState = WindowStateService.Instance.GetState("Widget");
@@ -408,13 +370,12 @@ namespace FluentSensors
             if (pinnedSensorIds.Count == 0) return;
 
             var pinnedSensors = FindSensorRowsByIds(pinnedSensorIds);
-            if (pinnedSensors.Count == 0) return; // none of them exist on this system anymore
+            if (pinnedSensors.Count == 0) return; // none exist on this system any more
 
             WidgetWindow.ShowWithSensors(pinnedSensors);
         }
 
-        // re-creates the taskbar widget with whichever sensors are currently pinned under the taskbar profile,
-        // but only if it was actually open when the app last closed
+        // the same for the taskbar widget and the taskbar profile
         private void TryRestoreTaskbarWidgetWindow()
         {
             var taskbarState = WindowStateService.Instance.GetState("TaskbarWidget");
@@ -429,24 +390,18 @@ namespace FluentSensors
             FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow.ShowWithSensors(pinnedSensors);
         }
 
-        // hands the foreground back to the main window after the readout windows above have been restored
-        //
-        // both of them end their restore in Activate(), which takes the focus for themselves; the main window then
-        // still sits in front but is drawn as an inactive one, and with Windows transparency on its Mica surface
-        // drops to the flat fallback color, which reads as a backdrop that failed rather than as lost focus
-        // called only while the main window still held the foreground right before those restores, which also keeps
-        // a launch that went straight to the tray out of this
+        // hands the foreground back after the readout windows took it with their Activate(); otherwise the main
+        // window stays in front but inactive, and its Mica drops to the flat fallback color
+        // (only called when it held the foreground before, which keeps a launch to the tray out of this)
         private void ReclaimForeground()
         {
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
             this.Activate();
-            SetForegroundWindow(hwnd); // see workaround comment on the P/Invoke declaration above
+            SetForegroundWindow(hwnd); // see the workaround on the P/Invoke
         }
 
-        // looks up live SensorRowViewModel instances (visible or hidden) by their saved IDs, in hardware discovery
-        // order so a restored widget shows the same order a live pin of the same sensors would
-        // the saved list is membership in toggle order; mapping over it instead reproduced that toggle order, which
-        // is what made restored graphs come back in a different order than they were pinned in
+        // live rows (visible or hidden) for the saved ids, in discovery order like a live pin; (the saved list is in
+        // toggle order, not in pinned order)
         private List<SensorRowViewModel> FindSensorRowsByIds(IReadOnlyList<string> ids)
         {
             var wantedIds = new HashSet<string>(ids);
@@ -462,9 +417,7 @@ namespace FluentSensors
 
         private void AppTitleBar_Loaded(object sender, RoutedEventArgs e)
         {
-            // the pill and the hints appear through a binding rather than through a resize of the bar, so the bars
-            // own SizeChanged never fires for them and the readout would keep the room it measured while they were
-            // still collapsed; this is what made the group behind the update pill get cut off
+            // the pill and the hints appear by binding, not by resizing the bar, so the bar SizeChanged misses them
             UpdateButton.SizeChanged += OnTitleBarExtraSizeChanged;
             DotNetRuntimePopup.SizeChanged += OnTitleBarExtraSizeChanged;
             PawnIoPopup.SizeChanged += OnTitleBarExtraSizeChanged;
@@ -474,42 +427,34 @@ namespace FluentSensors
 
         private void OnTitleBarExtraSizeChanged(object sender, SizeChangedEventArgs e) => RefreshTitleBarLayout();
 
-        // feeds AppStatus.HasEnoughWidthForFull, which decides whether the trailing group still fits next to the
-        // leading one; fires on every window resize, see AppStatusViewModel.UpdateVisibility for the combined logic
+        // feeds HasEnoughWidthForFull, whether the trailing group still fits; see AppStatusViewModel.UpdateVisibility
         private void AppTitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             AppStatus.UpdateAvailableWidth(e.NewSize.Width, MeasureTitleBarExtrasWidth());
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);
         }
 
-        // both halves of this react to the same thing: elements in the bar appearing, disappearing or moving
-        // the five interactive elements need their drag-region rects recomputed rather than registered once, and the
-        // readout needs to know how much room is left over once the pill is in front of it
-        //
-        // always called at Low priority so it runs after the layout pass; a pill that just became visible still
-        // measures zero before that
+        // for anything in the bar appearing, disappearing or moving: the passthrough rects of the six interactive
+        // elements and the room left for the readout
+        // (always at Low priority, after layout; a pill that just became visible measures zero before that)
         private void RefreshTitleBarLayout()
         {
             AppStatus.UpdateAvailableWidth(AppTitleBar.ActualWidth, MeasureTitleBarExtrasWidth());
 
-            // the info popups hand over their button rather than themselves: the readouts now sit inside them, and a
-            // passthrough rect over those would make that stretch of the bar undraggable
+            // info popups hand over their button only; (a rect over the readout inside them would block dragging)
             TitleBarPassthrough.Apply(this, AppTitleBar,
                 UpdateButton, DotNetRuntimePopup.InteractiveRegion, PawnIoPopup.InteractiveRegion, StatusToggleButton,
                 LhmInfoPopup.InteractiveRegion, WindowsInfoPopup.InteractiveRegion);
         }
 
-        // measured rather than assumed, because the pill is only as wide as the version string it carries and
-        // 1.10.0 is noticeably wider than 1.3.0; user text scaling moves it too
-        // everything sitting in front of the status readout that eats into its room: the update pill and whichever
-        // prerequisite hints are showing
+        // everything in front of the status readout: the update pill and the visible prerequisite hints; (measured,
+        // the pill width follows its version string and text scaling)
         private double MeasureTitleBarExtrasWidth()
         {
             return MeasuredWidth(UpdateButton) + MeasuredWidth(DotNetRuntimePopup) + MeasuredWidth(PawnIoPopup);
         }
 
-        // ActualWidth answers zero until the element has been arranged, which is exactly the state it is in on the
-        // pass that reveals it, so callers have to come back once it has a size of its own
+        // zero until arranged, which is the state on the pass that reveals it; callers come back once it has a size
         private static double MeasuredWidth(FrameworkElement element)
         {
             if (element.Visibility != Visibility.Visible) return 0;
@@ -517,15 +462,14 @@ namespace FluentSensors
             return element.ActualWidth + element.Margin.Left + element.Margin.Right;
         }
 
-        // plain Button standing in for a real ToggleButton, see the XAML comment on it for why
+        // a plain Button rather than a ToggleButton; flips the collapsed state itself
         private void StatusToggleButton_Click(object sender, RoutedEventArgs e)
         {
             AppStatus.IsStatusCollapsed = !AppStatus.IsStatusCollapsed;
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);
         }
 
-        // the pill appears and disappears mid-session, so the drag region has to be recomputed the same way the
-        // status toggle does it
+        // the pill can appear mid-session, so the passthrough rects are recomputed
         private void OnUpdateStateChanged()
         {
             var service = UpdateService.Instance;
@@ -553,9 +497,8 @@ namespace FluentSensors
             ApplyStatusGroupOrder();
         }
 
-        // places both status groups in the columns their configured order asks for, and recomputes the passthrough
-        // rects right after: reordering moves the two info popups, and the toggle button itself disappears once both
-        // groups are switched off
+        // places both status groups in their configured order; (the passthrough rects follow, the popups move and the
+        // toggle hides once both groups are off)
         private void ApplyStatusGroupOrder()
         {
             bool lhmFirst = AppStatus.IsLhmGroupFirst;
@@ -595,9 +538,8 @@ namespace FluentSensors
             };
         }
 
-        // RequestedTheme only ever reaches XAML, and the tray context menu is not XAML: H.NotifyIcon runs in its
-        // default PopupMenu mode, where the flyout is rebuilt as a native win32 menu from Text, IsEnabled and
-        // Command alone; 2.4.1 exposes no theme option for that menu either, so nothing here can recolor it
+        // reaches XAML only; the tray context menu is a native win32 menu rebuilt by H.NotifyIcon (PopupMenu mode),
+        // and 2.4.1 has no theme option for it
         private void ApplyTrayIconTheme(string themeTag)
         {
             var targetTheme = themeTag switch
@@ -636,17 +578,14 @@ namespace FluentSensors
 
         private void MainNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
-            // checks if native settings item got clicked
+            // the native settings item
             if (args.IsSettingsSelected)
             {
-                //contentFrame.Navigate(typeof(SettingsPage));
                 return;
             }
 
-            // the page that comes up as the splash goes gets the entrance transition, so the reveal reads as one
-            // motion instead of a finished page sitting in a finished window; which page that is follows the
-            // launch setting
-            // null everywhere else leaves the navigation to the frames own transition, as before
+            // the page that replaces the splash gets the entrance transition, so the reveal reads as one motion; null
+            // leaves every other navigation to the frame default
             NavigationTransitionInfo transition = _isStartupNavigation ? new EntranceNavigationTransitionInfo() : null;
 
             _isStartupNavigation = false;
@@ -680,9 +619,7 @@ namespace FluentSensors
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
-            // during a forced shutdown (settings reset/import -> restart), any write here would use in-memory state that
-            // is stale relative to whatever was just written to disk, and would silently overwrite it; the app is about to
-            // die anyway, nothing here needs to be saved
+            // a forced shutdown (settings reset or import, then restart) must not overwrite what was just saved
             if (_isForceClosing) return;
 
             if (args.DidPresenterChange)
@@ -694,20 +631,15 @@ namespace FluentSensors
                 SaveWindowState();
             }
 
-            // minimize/restore only shows up as DidSizeChange (see the same workaround already in
-            // WidgetWindow.AppWindow_Changed), actual hide/show (e.g. minimize-to-tray via CheckAndHideToTray
-            // above) shows up as DidVisibilityChange instead; checked after CheckAndHideToTray so a Hide() it just
-            // triggered is already reflected in AppWindow.IsVisible below
+            // minimize and restore only show up as DidSizeChange, hide and show as DidVisibilityChange; (after
+            // CheckAndHideToTray, so a Hide() it just did is already in IsVisible)
             if (args.DidSizeChange || args.DidVisibilityChange)
             {
                 UpdatePerformancePageRenderingState();
             }
         }
 
-        // pauses/resumes the Performance pages own rendering gate whenever this window itself stops or starts
-        // actually being shown on screen (minimized, or hidden entirely e.g. minimize-to-tray); a no-op whenever
-        // Performance page is not the current contentFrame content, PerformancePage tracks its own default state
-        // for whenever it is next navigated to
+        // pauses the performance page graphs while this window is minimized or hidden; (a no-op on any other page)
         private void UpdatePerformancePageRenderingState()
         {
             if (contentFrame.Content is not PerformancePage performancePage) return;
@@ -720,14 +652,13 @@ namespace FluentSensors
 
         public void CheckAndHideToTray()
         {
-            // check if user toggled the system tray functionality
             if (!SettingsService.Instance.MinimizeToTray) return;
 
-            // main window is ready for tray if its explicitly closed, already hidden, or currently minimized
+            // main window: closed, hidden or minimized
             bool isMainReady = _isDashboardClosed || !this.AppWindow.IsVisible ||
                                (this.AppWindow.Presenter is OverlappedPresenter opMain && opMain.State == OverlappedPresenterState.Minimized);
 
-            // widget window is ready if it does not exist, is hidden, or is minimized
+            // widget window: absent, hidden or minimized
             bool isWidgetReady = true;
             if (WidgetWindow.CurrentInstance != null)
             {
@@ -735,10 +666,10 @@ namespace FluentSensors
                 isWidgetReady = !WidgetWindow.CurrentInstance.AppWindow.IsVisible || (opWidget != null && opWidget.State == OverlappedPresenterState.Minimized);
             }
 
-            // if both windows are out of the way, hide the app completely from the taskbar
+            // both out of the way: hide the app from the taskbar
             if (isMainReady && isWidgetReady)
             {
-                // only call hide if it's not already locked down by the Win32 closing shield
+                // unless the hide shield already has it
                 if (!_isDashboardClosed)
                 {
                     this.Hide();
@@ -753,12 +684,11 @@ namespace FluentSensors
 
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
-            // if user clicks "exit app" in the tray menu, actually kill the process
+            // QuitAppNow or ForceExit is ending the process
             if (_isForceClosing) return;
 
             if (SettingsService.Instance.MinimizeToTray)
             {
-                // cancel the actual shutdown
                 args.Cancel = true;
 
                 HideToTray();
@@ -766,20 +696,14 @@ namespace FluentSensors
             }
             else
             {
-                // MinimizeToTray is off: closing the main window always fully exits the app right away, no matter what
-                // other windows are still open
-                // WidgetWindow.AppWindow_Closing always cancels its own close, then hides and retains itself (the
-                // retained-instance memory leak workaround), so without a hard kill here the process never actually
-                // terminates while a widget is pinned
-                // StopMonitoring alone used to leave everything stuck with a frozen, dataless widget and no way back
+                // MinimizeToTray off: closing the main window exits the app, whatever else is open; (a retained widget
+                // window cancels its own close, so only a hard kill ends the process)
                 QuitAppNow();
             }
         }
 
-        // the two ways the window ends up in the tray share this: closing it with MinimizeToTray on, and starting
-        // with StartMinimizedToTray on
-        // _isDashboardClosed is what the tray restore path checks before bringing the window back, so it has to be
-        // set here and not only on the closing path
+        // closing with MinimizeToTray on and starting with StartMinimizedToTray on; (sets _isDashboardClosed, which
+        // the tray restore path checks)
         private void HideToTray()
         {
             _isDashboardClosed = true;
@@ -790,24 +714,23 @@ namespace FluentSensors
 
         private void ApplyHideShield()
         {
-            // applies the Win32 shield, see workaround comment on the P/Invoke declarations above
+            // see the workaround on the P/Invoke declarations
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
             int exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
             SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
             SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
         }
 
-        // start-minimized is about what Windows does at sign-in, not about every launch; opening the app yourself
-        // always shows the window, which is why the scheduled task marks its own launches with an argument
+        // only a launch by the autostart task starts hidden (it marks its launches with an argument); opening the app
+        // yourself always shows the window
         private static bool StartsHiddenInTray() =>
             SettingsService.Instance.StartMinimizedToTray && WinAutostartService.StartedByTask;
 
         public void OpenDashboard()
         {
-            // release the lock
             _isDashboardClosed = false;
 
-            // remove the Win32 shields to make it a normal app window again
+            // lift the hide shield
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
             int exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
             SetWindowLong(hwnd, GWL_EXSTYLE, exStyle & ~WS_EX_TOOLWINDOW & ~WS_EX_NOACTIVATE);
@@ -818,21 +741,16 @@ namespace FluentSensors
                 opMain.Restore();
             }
             this.Activate();
-            SetForegroundWindow(hwnd); // see workaround comment on the P/Invoke declaration above
+            SetForegroundWindow(hwnd); // see the workaround on the P/Invoke
         }
 
-        // restores the window and lands on the sensor list with a specific profile preselected
-        // used by the taskbar flyout, whose bottom bar action is about the taskbar selection specifically
-        //
-        // deliberately not routed through ShowMainWindowCommand: that one goes via RestoreApp, which is gated on
-        // _isDashboardClosed (so it stays silent after the user closed the window with X) and also drags the
-        // widget window back up, which is not wanted from the taskbar flyout
+        // the sensor list with a profile preselected, for the taskbar flyout bar action; not via RestoreApp, which
+        // stays silent after a close with X and brings the widget window back too
         public void OpenSensorsForProfile(SensorSelectionProfile profile)
         {
             OpenDashboard();
 
-            // NavigationView raises SelectionChanged only on an actual change, so re-selecting the already active
-            // sensor item would never navigate; the profile below is applied either way
+            // SelectionChanged fires only on a real change; the profile below applies either way
             var sensorsItem = SensorsNavItem;
             if (!ReferenceEquals(MainNavigationView.SelectedItem, sensorsItem))
             {
@@ -850,8 +768,7 @@ namespace FluentSensors
             }
         }
 
-        // lands on the sensor list with one hardware group opened and the rest closed
-        // used by the start pages snapshot tiles, whose sensor count is a button onto exactly that group
+        // the sensor list with one hardware group open and the rest closed, for the start page snapshot tiles
         public void OpenSensorsForHardware(IReadOnlyList<string> lhmHardwareNames)
         {
             if (lhmHardwareNames == null || lhmHardwareNames.Count == 0) return;
@@ -875,14 +792,13 @@ namespace FluentSensors
 
         private void RestoreApp()
         {
-            // triggered by system tray double click
-            // only wake up the main window if the user didn't explicitly close it via "X"
+            // the tray menu entries; the main window only if it was not closed with X
             if (!_isDashboardClosed)
             {
                 OpenDashboard();
             }
 
-            // always wake up the widget window if it exists
+            // the widget window whenever it exists
             if (WidgetWindow.CurrentInstance != null)
             {
                 WidgetWindow.CurrentInstance.Show();
@@ -894,8 +810,7 @@ namespace FluentSensors
             }
         }
 
-        // opens the github project page in the default browser; the tray menu reaches it without the main window
-        // being open, which is the whole reason it does not just navigate to the settings page link
+        // opens the project page in the browser; (the tray menu reaches it without the main window open)
         private static void OpenProjectPage()
         {
             try
@@ -905,10 +820,8 @@ namespace FluentSensors
             catch { /* no browser reachable, and a tray menu has nowhere to report that to */ }
         }
 
-        // hard-kills the process right now instead of going through the normal WinUI Closing/Exit path
-        // used both by the tray Exit command and by closing the main window while MinimizeToTray is off
-        //
-        // Application.Current.Exit() was tried first for both cases but is unreliable with multiple windows open
+        // hard kill instead of the WinUI Closing/Exit path, for tray Exit and a close with MinimizeToTray off;
+        // (Application.Current.Exit() is unreliable with several windows open)
         private void QuitAppNow()
         {
             _isForceClosing = true;
@@ -917,40 +830,28 @@ namespace FluentSensors
             Process.GetCurrentProcess().Kill();
         }
 
-        // controlled tear-down for scenarios that bypass the normal closing paths (e.g. settings reset -> app restart)
+        // controlled tear-down for paths that bypass the normal closing (a settings reset or import restart)
 
         // --- workaround: second instance survives an automatic restart ---
-        // problem: Application.Current.Exit() does not reliably terminate the process in every scenario; documented upstream
-        // for the case where Exit() is called while no window is open/activated
-        // (https://github.com/microsoft/microsoft-ui-xaml/issues/5931)
-        // our repro is not identical to that thread, but the settings-import restart hits this in the same state, no active
-        // window left, and produced the same result: two full instances running
-        // fix: hard-kill the process instead of Exit(); only needed for this one restart path
+        // problem: Application.Current.Exit() does not reliably end the process while no window is active; the
+        // settings import restart hits that state and left two full instances running:
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/5931
+        // fix: hard kill instead of Exit(), on this restart path only
         public void ForceExit()
         {
             _isForceClosing = true;
 
             // --- workaround: Kill() never reached ---
-            // problem: HardwareMonitorService.Cleanup() -> Computer.Close() can hang indefinitely; it unloads the WinRing0
-            // kernel driver via the SCM while the restarted process races for the same driver handle
-            // no public issue found for this exact case, likely specific to LibreHardwareMonitorLib + elevated process
-            // fix: skip Cleanup() entirely on this path; found by moving Kill() to the first line of ForceExit and
-            // confirming the hang disappeared; the OS releases the driver handle once the process is gone
-            //
-            // flush must happen before Kill(): a hard kill skips finalizers and any Closing/Exit handlers, so this
-            // is the last point in-memory state can reach disk
-            // running elevated (required for the hardware driver) is what forces this whole detour - a non-elevated app could
-            // just rely on Exit() and normal teardown
-            //
-            // deliberately no SaveWindowState() here: a fresh window-state reset should not get immediately overwritten by
-            // a final position save on the way out
+            // problem: HardwareMonitorService.Cleanup() -> Computer.Close() can hang indefinitely while the restarted
+            // process races for the same kernel driver handle; no public issue found
+            // fix: skip Cleanup() on this path, the OS releases the driver handle once the process is gone
+            // FlushAll before Kill() is the last point state can reach disk; no SaveWindowState(), so a window state
+            // reset is not overwritten on the way out
             PersistenceService.Instance.FlushAll();
             Process.GetCurrentProcess().Kill();
         }
 
-        // captures the current position/size and writes it (debounced) to the window state store
-        // skipped while minimized or hidden in the tray, since those transient rects would overwrite a perfectly good
-        // saved state with garbage
+        // writes position and size (debounced); skipped while minimized or hidden, those rects are transient
         private void SaveWindowState()
         {
             var presenter = this.AppWindow.Presenter as OverlappedPresenter;
@@ -959,8 +860,7 @@ namespace FluentSensors
 
             bool isMaximized = presenter != null && presenter.State == OverlappedPresenterState.Maximized;
 
-            // while maximized, keep the last known "restored" rect instead of overwriting it with
-            // the maximized bounds, so un-maximizing later returns to the right size
+            // while maximized the restored rect is kept, so un-maximizing returns to it
             var existing = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
             var newState = new Persistence.Models.WindowState
             {

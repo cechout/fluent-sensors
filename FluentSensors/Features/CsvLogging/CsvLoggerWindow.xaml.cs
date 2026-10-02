@@ -21,16 +21,15 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.CsvLogging
 {
-    // small always-on-top readout for a csv recording: start, stop, and how long it has been running, how many
-    // sensors it covers and how many rows it has written so far
-    //
-    // chrome, backdrop and the retained-instance lifecycle are the same recipe WidgetWindow uses; there is no shared
-    // window base in this project, every window carries its own copy
+    // the csv logger:
+    // a small always-on-top readout for a recording; start, stop, running time, sensor count and rows written
+    // chrome, backdrop and retained-instance lifecycle follow WidgetWindow (there is no shared window base, every
+    // window carries its own copy)
     public sealed partial class CsvLoggerWindow : Window
     {
         // === win32 api imports ===
 
-        // import the Windows-API to calculate the screen scaling (100%, 125%, 150% etc.)
+        // screen scaling
         [DllImport("user32.dll")]
         private static extern uint GetDpiForWindow(IntPtr hwnd);
 
@@ -40,25 +39,19 @@ namespace FluentSensors.Features.CsvLogging
         private AppWindow _appWindow;
         private const string WindowKey = "CsvLogger";
 
-        // the narrowest the logger can be dragged, and the width its height is estimated at before the first layout
-        // pass; it opens at AppSettingsData.CsvLoggerWindowDefaultWidthDip when nothing was saved yet, and from there
-        // the width belongs to the user, only the height stays calculated
-        // the height is read back off the arranged rows, so collapsing the
-        // lower region, hiding the status line, or a wrap panel that breaks into another row all resize correctly
-        // without a second hand-tuned number
-        // the fallback only ever covers a measure that comes back empty, before the content exists at all
+        // the drag floor, also the width the height is estimated at before the first layout pass; the width
+        // belongs to the user, the height is read off the arranged rows (the fallback covers an empty
+        // measure before the content exists)
         private const double MinWindowWidthDip = 225;
         private const double FallbackWindowHeightDip = 232;
 
         // status line under main bar
         private const bool ShowStatusLine = false;
 
-        // whether the lower region (readout and save location) is currently shown; pure view state, the recording
-        // itself does not care
+        // the lower region (readout and save location); view state only
         private bool _isExpanded = true;
 
-        // guards ApplyWindowSize against re-entering itself: it resizes the window, that re-lays out both regions,
-        // and that is exactly what raises the SizeChanged which calls it
+        // ApplyWindowSize re-entry guard; (its resize raises the SizeChanged that calls it)
         private bool _isApplyingSize;
 
         public CsvLoggerViewModel ViewModel { get; }
@@ -68,7 +61,7 @@ namespace FluentSensors.Features.CsvLogging
         private bool _isClosed = false;
         private static bool _isRecreating = false;
 
-        // system backdrop controllers and configuration
+        // system backdrop
         private DesktopAcrylicController _acrylicController;
         private MicaController _micaController;
         private SystemBackdropConfiguration _configurationSource;
@@ -79,7 +72,6 @@ namespace FluentSensors.Features.CsvLogging
 
         public CsvLoggerWindow()
         {
-            // initialization
             ViewModel = new CsvLoggerViewModel();
             this.InitializeComponent();
             this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
@@ -93,32 +85,28 @@ namespace FluentSensors.Features.CsvLogging
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(CustomTitleBar);
 
-            // the back button sits inside the drag region, so it needs its own passthrough rect to ever see a press
+            // the back button sits in the drag region and needs its own passthrough rect
             CustomTitleBar.Loaded += (s, e) => UpdateTitleBarPassthroughRegions();
             CustomTitleBar.SizeChanged += (s, e) => UpdateTitleBarPassthroughRegions();
 
             var presenter = OverlappedPresenter.Create();
-            presenter.IsAlwaysOnTop = true; // same as the widget, a running recording has to stay readable over other apps
+            presenter.IsAlwaysOnTop = true; // like the widget, readable over other apps
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = true;
-            presenter.IsResizable = true; // width only, the height is pinned to the content in ApplyWindowSize
+            presenter.IsResizable = true; // width only, see ApplyWindowSize
             _appWindow.SetPresenter(presenter);
 
-            // content state has to be applied before the first measure, both the status line and the expand state
-            // change how tall the window ends up
+            // content state before the first measure; (status line and expand state change the height)
             StatusTextBlock.Visibility = ShowStatusLine ? Visibility.Visible : Visibility.Collapsed;
 
-            // a StackPanel reserves its Spacing for a collapsed child as well, so dropping the status line has to
-            // drop the gap with it, otherwise a dead strip stays behind above the divider
+            // a StackPanel keeps the Spacing for a collapsed child too, so the gap goes with the status line
             UpperRegion.Spacing = ShowStatusLine ? UpperRegion.Spacing : 0;
 
             ApplyExpandState();
             ApplyInitialWidth();
 
-            // window size and position:
-            // the width is fixed and the height comes from the content, only the position is restored, and only
-            // when it still lands on a connected monitor; without a usable saved position Windows places the
-            // window itself
+            // the height follows the content (the width was restored above); the position only when it lands on a
+            // connected monitor, otherwise Windows places the window
             ApplyWindowSize();
             RestoreWindowPosition();
             SaveWindowState();
@@ -142,9 +130,8 @@ namespace FluentSensors.Features.CsvLogging
             }
             catch { }
 
-            // both regions sit in Auto rows, so their height is driven by their content and never by how tall the
-            // window is; re-applying the size whenever one of them changes is what keeps the window exactly as tall
-            // as what is in it, a status line that wraps onto a second row included
+            // both regions sit in Auto rows, so re-applying the size on their change keeps the
+            // window as tall as its content
             UpperRegion.SizeChanged += OnRegionSizeChanged;
             LowerRegion.SizeChanged += OnRegionSizeChanged;
 
@@ -158,11 +145,9 @@ namespace FluentSensors.Features.CsvLogging
 
         // === public methods ===
 
-        // opens the logger with the given sensors, reusing the previously hidden window instance if one exists
-        // instead of creating a new one every time (see _retainedInstance), same pattern as WidgetWindow
-        //
-        // a running recording keeps the sensor set it started with; its columns are already written into the open
-        // files header, so the push is dropped and the window only says why
+        // opens the logger with the given sensors, reusing the hidden _retainedInstance if there is one
+        // (same pattern as WidgetWindow)
+        // a running recording keeps its sensor set, its columns are already in the file header; the window says why
         public static void ShowWithSensors(List<SensorRowViewModel> selectedSensors)
         {
             bool isSelectionLocked = CsvLoggingService.Instance.IsRunning;
@@ -171,7 +156,7 @@ namespace FluentSensors.Features.CsvLogging
                 CsvLoggingService.Instance.SetSensors(selectedSensors);
             }
 
-            // logger is already open: nothing to build, just bring it back up
+            // already open
             if (CurrentInstance != null)
             {
                 if (isSelectionLocked)
@@ -183,8 +168,7 @@ namespace FluentSensors.Features.CsvLogging
                 return;
             }
 
-            // logger was previously hidden (closed via the X button): reuse that native window instead of creating
-            // a new one
+            // hidden by its X: reuse that window
             if (_retainedInstance != null)
             {
                 var window = _retainedInstance;
@@ -201,7 +185,7 @@ namespace FluentSensors.Features.CsvLogging
                 return;
             }
 
-            // no logger has been created this session yet: build a fresh native window
+            // none yet this session
             var newWindow = new CsvLoggerWindow();
             if (isSelectionLocked)
             {
@@ -210,11 +194,8 @@ namespace FluentSensors.Features.CsvLogging
             newWindow.Activate();
         }
 
-        // brings the logger back without touching the running recording or the sensor set it was started with;
-        // used by the tray icon single click and the tray menu entry, where the current selection has not changed
-        //
-        // CurrentInstance goes null the moment the X is pressed (see AppWindow_Closing), so a logger that was
-        // closed or never opened this session is left alone rather than resurrected out of _retainedInstance
+        // brings the logger back without touching the recording or its sensors, for the tray single click and menu
+        // entry; a logger closed with X has no CurrentInstance and stays closed
         public static void RestoreIfOpen()
         {
             CurrentInstance?.RestoreAndActivate();
@@ -245,9 +226,8 @@ namespace FluentSensors.Features.CsvLogging
             }
             catch { }
 
-            // AppWindow_Closing cancels the close and re-registers this instance as _retainedInstance; detaching it
-            // here is what lets the Close below go through instead of resurrecting a window that is already torn down
-            // CsvLoggerWindow_Closed stays attached, it carries the real teardown once the close completes
+            // detached first, or AppWindow_Closing cancels the Close below and brings this window back as
+            // _retainedInstance; CsvLoggerWindow_Closed stays, it does the real teardown
             try
             {
                 _appWindow.Closing -= AppWindow_Closing;
@@ -268,10 +248,8 @@ namespace FluentSensors.Features.CsvLogging
             catch { }
         }
 
-        // fully destroys and recreates the logger window when Windows global transparency or theme is toggled
-        //
-        // safe to do mid-recording: CsvLoggingService owns the open file and the counters, the rebuilt window just
-        // reads them again
+        // destroys and rebuilds the logger on an OS theme or transparency change; safe mid-recording, CsvLoggingService
+        // owns the file and the counters
         public static void RecreateWindow()
         {
             if (_isRecreating) return;
@@ -296,9 +274,8 @@ namespace FluentSensors.Features.CsvLogging
 
             if (wasVisible)
             {
-                // the queue needs a fallback: closing the main window to the tray leaves MainWindow.CurrentInstance
-                // null, and a null-conditional TryEnqueue there would skip the finally below and latch _isRecreating
-                // for the rest of the session, so the logger would never rebuild again
+                // a fallback queue for a null MainWindow.CurrentInstance; (skipping the finally would latch
+                // _isRecreating and the logger would never rebuild again)
                 var queue = MainWindow.CurrentInstance?.DispatcherQueue ?? DispatcherQueue.GetForCurrentThread();
                 bool queued = queue != null && queue.TryEnqueue(() =>
                 {
@@ -331,7 +308,7 @@ namespace FluentSensors.Features.CsvLogging
         {
             SaveWindowState();
 
-            // we detach the event handlers from the settings service
+            // settings events
             SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
             SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
             SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
@@ -355,26 +332,22 @@ namespace FluentSensors.Features.CsvLogging
         {
             if (_configurationSource != null)
             {
-                // always render the active blur, otherwise clicking outside the logger drops it to the inactive
-                // material while it is still sitting on top of everything
+                // always active, or a click outside drops the blur to the inactive material
+                // while the logger stays on top
                 _configurationSource.IsInputActive = true;
             }
         }
 
         // --- memory leak: CsvLoggerWindow never released after close ---
-        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
-        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
-        // fix: hide instead of actually closing, and keep this instance around (_retainedInstance) for reuse the next
-        // time the logger is opened
-        // same approach as WidgetWindow and HiddenSensorsWindow
-        //
-        // a running recording is deliberately left alone here; it lives in CsvLoggingService, so closing the readout
-        // only stops the readout, never the logging
+        // fix: hide instead of closing and keep the instance as _retainedInstance (same as
+        // WidgetWindow and HiddenSensorsWindow)
+        // a running recording lives in CsvLoggingService, so closing only stops the readout
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
-            // SafeDestroy is tearing this instance down: let the close proceed instead of handing a window with
-            // _isClosed set back to _retainedInstance, where every later SetBackdrop and ApplyTheme returns early
+            // SafeDestroy is closing for real; a closed window in _retainedInstance would ignore every
+            // later SetBackdrop and ApplyTheme
             if (_isClosed) return;
 
             args.Cancel = true;
@@ -386,9 +359,8 @@ namespace FluentSensors.Features.CsvLogging
             _appWindow.Hide();
             ViewModel.SetReadoutActive(false);
 
-            // the window survives its own close, so the elapsed clock, the pause count and the row counter of the
-            // last recording would still be up the next time it is opened
-            // (returns early on its own while a recording is running, see above)
+            // the window survives its close, so the last recordings counters are cleared here (a
+            // no-op while one is running)
             CsvLoggingService.Instance.ResetCompletedRecording();
         }
 
@@ -401,15 +373,14 @@ namespace FluentSensors.Features.CsvLogging
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
-            // minimize/restore never sets DidPresenterChange, that one only fires when the Presenter itself is
-            // swapped; a state change within the same OverlappedPresenter shows up as DidSizeChange instead
+            // minimize and restore show up as DidSizeChange, not DidPresenterChange
             if (args.DidSizeChange)
             {
                 bool isMinimized = sender.Presenter is OverlappedPresenter presenter &&
                                    presenter.State == OverlappedPresenterState.Minimized;
                 ViewModel.SetReadoutActive(!isMinimized);
 
-                // a width the user dragged has to survive the next launch, same as the position below
+                // a dragged width survives the next launch, like the position
                 if (!isMinimized && this.AppWindow.IsVisible)
                 {
                     SaveWindowState();
@@ -440,8 +411,7 @@ namespace FluentSensors.Features.CsvLogging
             ViewModel.TogglePause();
         }
 
-        // collapses the window down to the divider, so a running recording can sit on screen as a thin bar with just
-        // the stop button on it
+        // collapses to the divider, so a recording can sit on screen as a thin bar with the stop button
         private void ToggleDetails_Click(object sender, RoutedEventArgs e)
         {
             _isExpanded = !_isExpanded;
@@ -451,9 +421,7 @@ namespace FluentSensors.Features.CsvLogging
             SaveWindowState();
         }
 
-        // hands the folder to the shell
-        // a folder that does not exist yet is not created here; the first start does that when it actually writes,
-        // so this does nothing rather than leaving empty folders behind
+        // opens the folder in the shell; a missing one is not created here, the first start does that
         private void OpenLogFolder_Click(object sender, RoutedEventArgs e)
         {
             string folder = ViewModel.LogFolderText;
@@ -472,7 +440,7 @@ namespace FluentSensors.Features.CsvLogging
 
         private void PickLogFolder_Click(object sender, RoutedEventArgs e)
         {
-            // the dialog is owned by this window so it cannot end up behind an always-on-top logger
+            // owned by this window, so it cannot end up behind the always-on-top logger
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
             string picked = Win32FileDialogHelper.PickFolder(hwnd, "CSV Logging Folder", ViewModel.LogFolderText);
             if (picked == null) return; // user cancelled
@@ -480,7 +448,7 @@ namespace FluentSensors.Features.CsvLogging
             ViewModel.SetLogFolder(picked);
         }
 
-        // low priority so the rect is read after the bar has actually been laid out, same as MainWindow does it
+        // at Low priority, after the bar is laid out (like MainWindow)
         private void UpdateTitleBarPassthroughRegions()
         {
             this.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
@@ -489,15 +457,13 @@ namespace FluentSensors.Features.CsvLogging
 
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)
         {
-            // check if the main window instance exists in memory
             if (MainWindow.CurrentInstance != null)
             {
                 MainWindow.CurrentInstance.OpenDashboard();
             }
             else
             {
-                // if the instance was completely destroyed, create a new one
-                // the app process is safely kept alive by the open logger window
+                // no main window left; the open logger keeps the process alive
                 var newMainWindow = new MainWindow();
                 newMainWindow.Activate();
             }
@@ -539,11 +505,8 @@ namespace FluentSensors.Features.CsvLogging
             });
         }
 
-        // a named handler rather than a lambda, so SafeDestroy can detach it again; every rebuilt window subscribes
-        // anew and without the detach the UISettings handler list grows by one per rebuild
-        //
-        // routes to RouteSystemVisualsChange rather than a rebuild directly, so a pure accent change resolves into
-        // an in-place refresh instead
+        // named so SafeDestroy can detach it (every rebuilt window subscribes anew); goes through the router, so a pure
+        // accent change refreshes in place
         private void OnSystemVisualSettingsChanged(Windows.UI.ViewManagement.UISettings sender, object args)
         {
             TaskbarFlyoutWindow.RouteSystemVisualsChange(sender);
@@ -552,8 +515,6 @@ namespace FluentSensors.Features.CsvLogging
 
         // === window sizing and positioning ===
 
-        // converts the screen DPI to a scale factor
-        // (100% = 1.0, 125% = 1.25, etc.)
         private double GetScaleFactor()
         {
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -561,22 +522,19 @@ namespace FluentSensors.Features.CsvLogging
             return dpi / 96.0;
         }
 
-        // shows or hides the lower region and points the chevron at what the next click will do
+        // shows or hides the lower region; the chevron points at what the next click does
         private void ApplyExpandState()
         {
             LowerRegion.Visibility = _isExpanded ? Visibility.Visible : Visibility.Collapsed;
 
-            // segoe fluent icons ChevronUp and ChevronDown, escaped rather than pasted so this file stays
-            // plain ascii like the rest of the sources
+            // ChevronUp and ChevronDown, escaped to keep the source ascii
             ToggleDetailsIcon.Glyph = _isExpanded ? "\uE70E" : "\uE70D";
             string toggleLabel = _isExpanded ? "Hide details" : "Show details";
             ToolTipService.SetToolTip(ToggleDetailsButton, toggleLabel);
             AutomationProperties.SetName(ToggleDetailsButton, toggleLabel);
         }
 
-        // the exact height of one row, taken from the element itself rather than from a number kept in here, so it
-        // is always whatever the xaml currently says
-        // ActualHeight leaves the margin out while the row in RootGrid reserves it, so it has to be added back
+        // one row as arranged, margin included (ActualHeight leaves it out, the RootGrid row reserves it)
         private static double RowHeightDip(FrameworkElement row)
         {
             if (row.Visibility != Visibility.Visible) return 0;
@@ -584,25 +542,19 @@ namespace FluentSensors.Features.CsvLogging
             return row.ActualHeight + row.Margin.Top + row.Margin.Bottom;
         }
 
-        // the height the content really needs
-        //
-        // summed from the four arranged rows rather than taken from a standalone RootGrid.Measure: a measure run
-        // outside a layout pass reports what the content would like at an unconstrained height, and for the wrapping
-        // readout and the wrapping status line that comes out taller than what ends up being arranged
+        // the height the content needs, summed from the four arranged rows; (a standalone Measure reports the
+        // unconstrained height, too tall for the wrapping rows)
         private double ContentHeightDip()
         {
             // --- workaround: CommunityToolkit WrapPanel throws when measured at zero width ---
-            // problem: WrapPanel.MeasureOverride subtracts its Padding from the available size without clamping, so
-            // a measure at width 0 builds a Windows.Foundation.Size with a negative width and throws
-            // ArgumentOutOfRangeException, taking the app down with it
-            // that width is exactly what the xaml island reports while the window has not been shown yet, which is
-            // where the constructor calls this from
-            // fix: force the layout pass only once the content actually has a width, and estimate from a plain
-            // measure at the target width until then
+            // problem: WrapPanel.MeasureOverride subtracts its Padding without clamping, so a measure at width 0 builds
+            // a negative Size and throws ArgumentOutOfRangeException; 0 is what the window reports before it is first
+            // shown, where the constructor calls this
+            // fix: force the layout pass only once the content has a width, until then estimate from a
+            // measure at the target width
             if (RootGrid.ActualWidth > 0)
             {
-                // synchronous, so the rows below report the state after a collapse or a status line change rather
-                // than the one before it
+                // synchronous, so the rows report the state after a collapse or a status line change
                 RootGrid.UpdateLayout();
 
                 double arranged = RowHeightDip(CustomTitleBar) + RowHeightDip(UpperRegion) +
@@ -610,8 +562,7 @@ namespace FluentSensors.Features.CsvLogging
                 if (arranged > 0) return arranged;
             }
 
-            // pre-layout estimate; a little generous for content that wraps, but it only ever sizes the window for
-            // the moment before it is shown, and the first real layout pass corrects it through SizeChanged
+            // pre-layout estimate, a little generous; the first real layout pass corrects it through SizeChanged
             RootGrid.InvalidateMeasure();
             RootGrid.Measure(new Windows.Foundation.Size(MinWindowWidthDip, double.PositiveInfinity));
 
@@ -619,8 +570,7 @@ namespace FluentSensors.Features.CsvLogging
             return measured > 0 ? measured : FallbackWindowHeightDip;
         }
 
-        // opens at the saved width, or at the default width when there is nothing usable saved
-        // runs once from the constructor; every later width comes from the user dragging an edge
+        // the saved width or the default; (once, from the constructor, every later width comes from a drag)
         private void ApplyInitialWidth()
         {
             double scaleFactor = GetScaleFactor();
@@ -629,8 +579,7 @@ namespace FluentSensors.Features.CsvLogging
             int defaultWidthPx = (int)Math.Round(AppSettingsData.CsvLoggerWindowDefaultWidthDip * scaleFactor)
                 + frameWidthPx;
 
-            // below the minimum the readout under the divider starts dropping items onto extra rows and the status
-            // line turns into a paragraph
+            // below it the readout wraps onto extra rows
             WinUIEx.WindowManager.Get(this).MinWidth = minWidthPx / scaleFactor;
 
             // a default set below the minimum is lifted to it, the drag floor would refuse it anyway
@@ -652,15 +601,12 @@ namespace FluentSensors.Features.CsvLogging
             {
                 double scaleFactor = GetScaleFactor();
 
-                // how much bigger the window is than its client area, read off the window rather than assumed:
-                // ExtendsContentIntoTitleBar pulls the caption into the client area, so the caption height must not
-                // be added on top of the content the way a plain frame calculation would
+                // frame size read off the window; (ExtendsContentIntoTitleBar puts the caption in the client
+                // area, so it is not added on top)
                 int frameHeightPx = Math.Max(0, _appWindow.Size.Height - _appWindow.ClientSize.Height);
                 int heightPx = (int)Math.Round(ContentHeightDip() * scaleFactor) + frameHeightPx;
 
-                // holds the height through an interactive resize: these end up in WM_GETMINMAXINFO, and the track
-                // sizes there are what the system clamps a drag against, so dragging an edge can only change the
-                // width while this keeps following the content
+                // min and max height end up in WM_GETMINMAXINFO, so a drag can only change the width
                 var manager = WinUIEx.WindowManager.Get(this);
                 manager.MinHeight = heightPx / scaleFactor;
                 manager.MaxHeight = heightPx / scaleFactor;
@@ -693,14 +639,12 @@ namespace FluentSensors.Features.CsvLogging
             this.Activate();
         }
 
-        // checks whether the given rect would actually be visible on any currently connected monitor; a saved position
-        // can become stale if the monitor it was on gets disconnected, or the display arrangement changes
+        // whether the rect is on a connected monitor; (a saved position goes stale when its monitor is gone)
         private bool IsPositionOnScreen(int x, int y, int width, int height)
         {
             var rect = new Windows.Graphics.RectInt32(x, y, width, height);
 
-            // indexed loop instead of foreach: iterating DisplayArea.FindAll() with foreach throws an
-            // InvalidCastException due to a WinRT interop bug in its enumerator; indexer access avoids it
+            // indexed loop; foreach over DisplayArea.FindAll() throws an InvalidCastException (WinRT enumerator bug)
             var displayAreas = DisplayArea.FindAll();
             for (int i = 0; i < displayAreas.Count; i++)
             {
@@ -718,15 +662,12 @@ namespace FluentSensors.Features.CsvLogging
                    a.Y < b.Y + b.Height && a.Y + a.Height > b.Y;
         }
 
-        // writes the current rect (debounced) to the window state store
-        // WasOpen is deliberately left untouched: unlike the widget, the logger never reopens itself on the next
-        // launch, a recording is always started by hand
+        // writes the rect (debounced); WasOpen stays untouched, the logger never reopens itself on launch
         private void SaveWindowState()
         {
             var state = WindowStateService.Instance.GetState(WindowKey) ?? new WindowState();
 
-            // while minimized, Windows reports the windows position as the (-32000, -32000) sentinel value; keep the
-            // last known real rect instead of overwriting it with that garbage
+            // a minimized window reports (-32000, -32000); the last real rect is kept
             bool isMinimized = this.AppWindow.Presenter is OverlappedPresenter presenter &&
                                presenter.State == OverlappedPresenterState.Minimized;
             if (!isMinimized)
@@ -794,7 +735,7 @@ namespace FluentSensors.Features.CsvLogging
         {
             if (_isClosed) return;
 
-            // we intervene only, if "solid" is selected
+            // only for the solid material ("None")
             if (SettingsService.Instance.BackdropType == "None")
             {
                 Windows.UI.Color targetColor = SettingsService.Instance.UseAccentColor
@@ -805,16 +746,14 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        // re-reads the live SystemAccentColor into the acrylic tint and the solid background, for a pure OS accent
-        // change; both already resolve the accent fresh on every call, so no window rebuild is needed
+        // for a pure OS accent change; both calls resolve the accent fresh, no rebuild needed
         public void RefreshAccentSurfaces()
         {
             UpdateAcrylicProperties();
             UpdateSolidBackground();
         }
 
-        // dynamically applies the chosen backdrop material based on the users selection in the settings page
-        // setup follows the official Microsoft guide for system backdrops in XAML apps:
+        // applies the backdrop material from the settings, per the Microsoft guide:
         // https://learn.microsoft.com/en-us/windows/apps/develop/ui/system-backdrops
         public void SetBackdrop(string backdropType)
         {
@@ -832,7 +771,7 @@ namespace FluentSensors.Features.CsvLogging
                 SetConfigurationSourceTheme();
             }
 
-            // clean up any existing active controllers before applying a new one
+            // drop the current controller
             _acrylicController?.Dispose();
             _acrylicController = null;
             _micaController?.Dispose();
@@ -881,10 +820,9 @@ namespace FluentSensors.Features.CsvLogging
         }
 
         // --- workaround: DWM backdrop swapchain kick ---
-        // problem: when Windows transparency/theme changes, WinUI 3 DesktopAcrylicController needs a backdrop re-bind
-        // to attach its blur shader to the newly created DWM swapchain
-        // fix: after window recreation, briefly kick the backdrop pipeline (None -> Mica/Acrylic) to force a DWM
-        // compositor refresh
+        // problem: after a Windows transparency or theme change, DesktopAcrylicController needs a rebind to attach its
+        // blur to the new DWM swapchain
+        // fix: after a rebuild, kick the backdrop once (None, then the current one), with parameters only
         private void KickBackdropRefresh()
         {
             if (_isClosed) return;

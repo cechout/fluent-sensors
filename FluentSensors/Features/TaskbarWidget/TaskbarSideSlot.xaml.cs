@@ -9,11 +9,10 @@ using FluentSensors.Core.Taskbar;
 
 namespace FluentSensors.Features.TaskbarWidget
 {
-    // one pinned sensor on a taskbar docked to the left or right screen edge: the name on top, value and unit at the
-    // bottom left, the graph behind both; the graph runs in the direction picked in the settings, the text never turns
-    //
-    // TaskbarWidgetWindow knows the taskbar edge and pushes the layout through ApplyLayout, when a slot loads and on
-    // every change after that
+    // the side taskbar slot:
+    // one pinned sensor on a left or right taskbar, the name on top, value and unit bottom left, the graph behind in
+    // the picked direction; the text never turns
+    // TaskbarWidgetWindow pushes the layout through ApplyLayout on load and on every change
     public sealed partial class TaskbarSideSlot : UserControl
     {
         public SensorGraphViewModel? ViewModel
@@ -29,7 +28,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 typeof(TaskbarSideSlot),
                 new PropertyMetadata(null));
 
-        // width of the slot, kept as a dependency property so FitValueText runs again when it changes
+        // a dependency property, so FitValueText reruns on a change
         private double SlotWidth
         {
             get => (double)GetValue(SlotWidthProperty);
@@ -98,9 +97,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === value text ===
 
-        // value and unit when both fit the slot width, the bare value when they do not; a cut or wrapped unit reads
-        // worse than none, and the unit never changes between readings of the same sensor
-        // the unit is everything after the space SensorUnitFormatter puts between number and unit
+        // value and unit when both fit, else the bare value; a cut unit reads worse than none, and
+        // it never changes per sensor
+        // the unit is everything after the space SensorUnitFormatter puts before it
         private string FitValueText(string? text, double slotWidth)
         {
             if (string.IsNullOrEmpty(text)) return string.Empty;

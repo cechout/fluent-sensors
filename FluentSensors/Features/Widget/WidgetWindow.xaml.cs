@@ -26,7 +26,7 @@ namespace FluentSensors.Features.Widget
     {
         // === win32 api imports ===
 
-        // import the Windows-API to calculate the screen scaling (100%, 125%, 150% etc.)
+        // screen scaling
         [DllImport("user32.dll")]
         private static extern uint GetDpiForWindow(IntPtr hwnd);
 
@@ -36,8 +36,7 @@ namespace FluentSensors.Features.Widget
         private AppWindow _appWindow;
         private const string WindowKey = "Widget";
 
-        // resize floor in XAML DIP, so the window can never be dragged smaller than this and squeeze the panels
-        // unusable; MinPanelHeight is per pinned sensor, MinWidgetWidth is the whole window
+        // resize floor in DIP; MinPanelHeight per pinned sensor, MinWidgetWidth for the window
         private const int MinPanelHeight = 90;
         private const int MinWidgetWidth = 220;
 
@@ -46,7 +45,7 @@ namespace FluentSensors.Features.Widget
         public static event Action WidgetStateChanged;
         private static WidgetWindow _retainedInstance;
 
-        // system backdrop controllers and configuration
+        // system backdrop
         private DesktopAcrylicController _acrylicController;
         private MicaController _micaController;
         private SystemBackdropConfiguration _configurationSource;
@@ -55,11 +54,9 @@ namespace FluentSensors.Features.Widget
 
         // === constructor ===
 
-        // accepts the list of selected sensors from SensorsPage.xaml.cs
         public WidgetWindow(List<SensorRowViewModel> selectedSensors)
         {
-            // initialization
-            ViewModel = new WidgetViewModel(selectedSensors); // pass the selected sensors down to the ViewModel layer
+            ViewModel = new WidgetViewModel(selectedSensors);
             this.InitializeComponent();
             this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
             CurrentInstance = this;
@@ -73,28 +70,22 @@ namespace FluentSensors.Features.Widget
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(CustomTitleBar);
 
-            // the back button sits inside the drag region, so it needs its own passthrough rect to ever see a press
+            // the back button sits in the drag region and needs its own passthrough rect
             CustomTitleBar.Loaded += (s, e) => UpdateTitleBarPassthroughRegions();
             CustomTitleBar.SizeChanged += (s, e) => UpdateTitleBarPassthroughRegions();
 
             var presenter = OverlappedPresenter.Create();
-            presenter.IsAlwaysOnTop = true; // replaces the CompactOverlay behavior
+            presenter.IsAlwaysOnTop = true; // readable over other apps
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = true;
             presenter.IsResizable = true;
             _appWindow.SetPresenter(presenter);
 
-            // resize floor for the currently pinned sensor count; recalculated in ReconfigureFor whenever that
-            // count changes
+            // resize floor for the pinned sensor count; (ReconfigureFor recalculates it)
             ApplyMinimumWindowSize(selectedSensors.Count);
 
-            // window size and position:
-            // restore the last saved X/Y/Width if one exists; this covers both the auto-reopen-on-launch case and manually
-            // re-pinning sensors while the app is running
-            // Height is always recalculated from the current sensor count, since it depends on how many sensors are pinned
-            // right now, not on what was pinned when the position was last saved
-            // PositionWidgetTopRight is only the fallback for the very first time the widget is ever created, when there is
-            // no saved state yet; it will later also be reused as the target for explicit "pin to corner" buttons
+            // restores X, Y and width when they land on a connected monitor, otherwise only sizes the window and
+            // Windows places it; the height always follows the current sensor count
             double scaleFactor = GetScaleFactor();
             var savedState = WindowStateService.Instance.GetState(WindowKey);
             if (savedState != null && IsPositionOnScreen(savedState.X, savedState.Y, savedState.Width, savedState.Height))
@@ -108,8 +99,7 @@ namespace FluentSensors.Features.Widget
                 ResizeWidgetToFitSensors(selectedSensors.Count);
             }
 
-            // remember this window as open, so it can auto-reopen on next launch; which sensors to reopen it with comes
-            // from SensorSelectionService, not from here
+            // marked open, so it reopens on the next launch (with the sensors from SensorSelectionService)
             SaveWindowState();
 
             // theming
@@ -141,11 +131,10 @@ namespace FluentSensors.Features.Widget
 
         // === public methods ===
 
-        // shows the widget with the given sensors, reusing the previously hidden window instance if one exists instead of
-        // creating a new one every time (see _retainedInstance)
+        // shows the widget, reusing the hidden _retainedInstance if there is one
         public static void ShowWithSensors(List<SensorRowViewModel> selectedSensors)
         {
-            // widget is already open and visible: swap its content and resize in place, no need to touch visibility at all
+            // already open: swap the content and resize in place
             if (CurrentInstance != null)
             {
                 CurrentInstance.ReconfigureFor(selectedSensors);
@@ -153,7 +142,7 @@ namespace FluentSensors.Features.Widget
                 return;
             }
 
-            // widget was previously hidden (closed via the X button): reuse that native window instead of creating a new one
+            // hidden by its X: reuse that window
             if (_retainedInstance != null)
             {
                 var window = _retainedInstance;
@@ -163,8 +152,7 @@ namespace FluentSensors.Features.Widget
                 CurrentInstance = window;
                 WidgetStateChanged?.Invoke();
 
-                // level 2 reverse: refill each graph to a flat baseline, resubscribe to live data, then resume
-                // rendering, so the reopened widget starts fresh from zero instead of the pre-close history
+                // level 2 reverse: flat baseline, live data, then rendering; the reopened widget starts fresh
                 window.ViewModel.SetLiveDataActive(true);
                 window.SetGraphsRenderingActive(true);
 
@@ -173,14 +161,12 @@ namespace FluentSensors.Features.Widget
                 return;
             }
 
-            // no widget has been created this session yet: build a fresh native window
+            // none yet this session
             var newWindow = new WidgetWindow(selectedSensors);
             newWindow.Activate();
         }
 
-        // brings the widget back without touching its content or pinned sensors;
-        // Used by the tray icon single click restore, where the current selection has not changed
-        // Does nothing if no widget was ever pinned this session
+        // brings the widget back without touching its content, for the tray single click; a no-op unless it is open
         public static void RestoreIfOpen()
         {
             if (CurrentInstance == null) return;
@@ -220,9 +206,8 @@ namespace FluentSensors.Features.Widget
             }
             catch { }
 
-            // AppWindow_Closing cancels the close and re-registers this instance as _retainedInstance; detaching it
-            // here is what lets the Close below go through instead of resurrecting a window that is already torn down
-            // WidgetWindow_Closed stays attached, it carries the real teardown once the close completes
+            // detached first, or AppWindow_Closing cancels the Close below and brings this window back as
+            // _retainedInstance; WidgetWindow_Closed stays, it does the real teardown
             try
             {
                 _appWindow.Closing -= AppWindow_Closing;
@@ -243,7 +228,7 @@ namespace FluentSensors.Features.Widget
 
         private static bool _isRecreating = false;
 
-        // fully destroys and recreates the widget window when Windows global transparency or theme is toggled
+        // destroys and rebuilds the widget on an OS theme or transparency change
         public static void RecreateWindow()
         {
             if (_isRecreating) return;
@@ -270,9 +255,8 @@ namespace FluentSensors.Features.Widget
 
             if (sensors.Count > 0 && wasVisible)
             {
-                // the queue has to be resolved with a fallback: closing the main window to the tray leaves
-                // MainWindow.CurrentInstance null, and a null-conditional TryEnqueue there would skip the finally
-                // below and latch _isRecreating for the rest of the session, so the widget would never rebuild again
+                // a fallback queue for a null MainWindow.CurrentInstance; (skipping the finally would latch
+                // _isRecreating and the widget would never rebuild again)
                 var queue = MainWindow.CurrentInstance?.DispatcherQueue ?? DispatcherQueue.GetForCurrentThread();
                 bool queued = queue != null && queue.TryEnqueue(() =>
                 {
@@ -304,9 +288,7 @@ namespace FluentSensors.Features.Widget
                 return new List<SensorRowViewModel>();
             }
 
-            // walks the groups rather than the id list so the row order matches what PinToWidget_Click and
-            // PinToTaskbar_Click produce; the persisted list is membership in toggle order, not display order,
-            // and mapping over it put restored graphs in a different order than a live pin of the same sensors
+            // walks the groups, not the id list, so the order matches a live pin; (the saved list is in toggle order)
             var wantedIds = new HashSet<string>(sensorIds);
 
             return SensorsViewModel.Instance.HardwareGroups
@@ -320,21 +302,20 @@ namespace FluentSensors.Features.Widget
 
         private void WidgetWindow_Closed(object sender, WindowEventArgs args)
         {
-            // mark the widget as closed so it wont auto-reopen on the next launch; the pinned selection itself is
-            // untouched, its owned by SensorSelectionService, not by window state
+            // marked closed, so it does not reopen on the next launch; the pinned selection stays
+            // with SensorSelectionService
             SaveWindowState(wasOpen: false);
 
-            // we detach the event handlers from the settings service
+            // settings events
             SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
             SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
             SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
 
-            // detach the event handlers from the static HardwareMonitorService
+            // the HardwareMonitorService subscription
             ViewModel.Cleanup();
 
-            // dispose system backdrop controllers
-            // *also from the official Microsoft documentation
+            // backdrop controllers, per the Microsoft docs
             _acrylicController?.Dispose();
             _acrylicController = null;
             _micaController?.Dispose();
@@ -350,32 +331,21 @@ namespace FluentSensors.Features.Widget
         {
             if (_configurationSource != null)
             {
-                // usually, you would set IsInputActive based on whether the window is currently active or not, like this:
-                // _configurationSource.IsInputActive = args.WindowActivationState != WindowActivationState.Deactivated;
-
-                // but that has a big flaw: as soon as the user clicks outside of the widget, it becomes deactivated and the blur
-                // disappears, so instead:
-                // we force the engine to just aleays render the active blur
+                // always active, or a click outside drops the blur while the widget stays on screen
                 _configurationSource.IsInputActive = true;
             }
         }
 
         // --- memory leak: WidgetWindow never released after close ---
-        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
-        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
-        // fix: hide instead of actually closing, and keep this instance around (_retainedInstance) for reuse the next time
-        // a sensor set gets pinned
-        // same approach as HiddenSensorsWindow; deliberately does NOT dispose backdrop controllers, unsubscribe SettingsService
-        // events, or call ViewModel.Cleanup() here; the window stays alive, just hidden, so those stay valid for reuse
-        //
-        // always hides and retains, regardless of MinimizeToTray
-        // quitting the app is decided entirely elsewhere (MainWindow closing with MinimizeToTray off, or the tray Exit
-        // command); this window never decides to quit on its own
+        // fix: hide instead of closing and keep the instance as _retainedInstance (same as HiddenSensorsWindow);
+        // controllers, settings events and the ViewModel stay alive for the reuse
+        // always, whatever MinimizeToTray says; quitting is decided by MainWindow and the tray Exit, never here
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
-            // SafeDestroy is tearing this instance down: let the close proceed instead of handing a window with
-            // _isClosed set back to _retainedInstance, where every later SetBackdrop and ApplyTheme returns early
+            // SafeDestroy is closing for real; a closed window in _retainedInstance would ignore every
+            // later SetBackdrop and ApplyTheme
             if (_isClosed) return;
 
             args.Cancel = true;
@@ -387,9 +357,8 @@ namespace FluentSensors.Features.Widget
 
             _appWindow.Hide();
 
-            // level 2: a closed widget decouples completely; stop rendering first, then stop all incoming data and wipe
-            // the history, so a hidden widget does nothing in the background at all
-            // gating rendering off first means the history wipe below fires no repaints; reopening restores it all
+            // level 2: a closed widget does nothing in the background; rendering stops first, so the
+            // history wipe fires no repaints
             SetGraphsRenderingActive(false);
             ViewModel.SetLiveDataActive(false);
         }
@@ -397,7 +366,7 @@ namespace FluentSensors.Features.Widget
 
         // === user interaction ===
 
-        // low priority so the rect is read after the bar has actually been laid out, same as MainWindow does it
+        // at Low priority, after the bar is laid out (like MainWindow)
         private void UpdateTitleBarPassthroughRegions()
         {
             this.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
@@ -406,20 +375,16 @@ namespace FluentSensors.Features.Widget
 
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)
         {
-            // check if the main window instance exists in memory
             if (MainWindow.CurrentInstance != null)
             {
                 MainWindow.CurrentInstance.OpenDashboard();
             }
             else
             {
-                // if the instance was completely destroyed, create a new one
-                // the app process is safely kept alive by the open widget window
+                // no main window left; the open widget keeps the process alive
                 var newMainWindow = new MainWindow();
                 newMainWindow.Activate();
             }
-
-            // this.Close(); // optional: close the widget when returning to dashboard
         }
 
 
@@ -458,11 +423,8 @@ namespace FluentSensors.Features.Widget
             });
         }
 
-        // a named handler rather than a lambda, so SafeDestroy can detach it again; every rebuilt window subscribes
-        // anew and without the detach the UISettings handler list grows by one per rebuild
-        //
-        // routes to RouteSystemVisualsChange rather than ScheduleRecreation directly, see TaskbarFlyoutWindows own
-        // handler for why: a pure accent change resolves into an in-place refresh instead of a rebuild
+        // named so SafeDestroy can detach it (every rebuilt window subscribes anew); goes through the router, so a pure
+        // accent change refreshes in place
         private void OnSystemVisualSettingsChanged(Windows.UI.ViewManagement.UISettings sender, object args)
         {
             TaskbarFlyoutWindow.RouteSystemVisualsChange(sender);
@@ -471,36 +433,33 @@ namespace FluentSensors.Features.Widget
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
             // --- workaround: minimize/restore never gated, DidPresenterChange does not cover it ---
-            // problem: DidPresenterChange only fires when the Presenter itself is swapped for a different one (e.g.
-            // Overlapped -> CompactOverlay); minimize/maximize/restore are just a state change within the same
-            // OverlappedPresenter and never set it, so a check gated on DidPresenterChange silently never runs
+            // problem: DidPresenterChange only fires when the Presenter is swapped; minimize, maximize and restore are
+            // a state change within the same OverlappedPresenter and never set it:
             // https://learn.microsoft.com/en-us/windows/apps/develop/ui/manage-app-windows
-            // fix: minimize/maximize/restore show up as DidSizeChange instead (confirmed via Microsofts own
-            // OverlappedPresenterState sample), read presenter.State there instead
+            // fix: they show up as DidSizeChange (as in the OverlappedPresenterState sample), which
+            // reads presenter.State below
             if (args.DidPresenterChange && MainWindow.CurrentInstance != null)
             {
-                // notify the main window to re-evaluate the system tray state
+                // the main window re-evaluates the tray state
                 MainWindow.CurrentInstance.CheckAndHideToTray();
             }
 
             if (args.DidSizeChange)
             {
-                // level 1: while minimized, stop the graphs from drawing but keep their data lists filling in the
-                // background, so restoring shows the continuous history (a close resets instead, see AppWindow_Closing)
+                // level 1: minimized graphs stop drawing but keep filling, so a restore shows the continuous
+                // history (a close resets instead)
                 bool isMinimized = sender.Presenter is OverlappedPresenter presenter &&
                                    presenter.State == OverlappedPresenterState.Minimized;
                 SetGraphsRenderingActive(!isMinimized);
             }
 
-            // capture position/size for persistence whenever the window moves or resizes
             if ((args.DidPositionChange || args.DidSizeChange) && this.AppWindow.IsVisible)
             {
                 SaveWindowState();
             }
         }
 
-        // level 1 gate: switches only the live rendering of every widget graph on or off; the data lists keep filling
-        // in the background either way
+        // level 1 gate: rendering only, the data lists keep filling either way
         private void SetGraphsRenderingActive(bool active)
         {
             if (this.Content is DependencyObject root)
@@ -512,28 +471,25 @@ namespace FluentSensors.Features.Widget
 
         // === window sizing and positioning ===
 
-        // converts the screen DPI to a scale factor
-        // (100% = 1.0, 125% = 1.25, etc.)
         private double GetScaleFactor()
         {
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
             uint dpi = GetDpiForWindow(hwnd);
-            return dpi / 96.0; // 96 is the Windows standard for 100% I guess
+            return dpi / 96.0; // 96 DPI = 100%
         }
 
-        // calculates the widgets physical pixel height based on how many sensors are pinned
+        // physical height for the pinned sensor count
         private int CalculateWidgetHeight(int sensorCount, double scaleFactor)
         {
-            // titleBar-height + x*(sensor-height + spacing)
+            // title bar + n * (panel + spacing)
             double desiredXamlHeight = 31 + (sensorCount * (AppSettingsData.WidgetWindowDefaultPanelHeightDip + 8));
             int physicalHeight = (int)(desiredXamlHeight * scaleFactor);
 
             int screenHeight = DisplayArea.Primary.WorkArea.Height;
-            return Math.Min(physicalHeight, screenHeight - 40); // height should not be taller than the screen
+            return Math.Min(physicalHeight, screenHeight - 40); // capped at the screen
         }
 
-        // enforces MinWidgetWidth/MinPanelHeight as an actual resize floor via WindowManager, so dragging the
-        // window smaller stops there instead of squeezing the panels past legibility
+        // the resize floor from MinWidgetWidth and MinPanelHeight
         private void ApplyMinimumWindowSize(int sensorCount)
         {
             var manager = WindowManager.Get(this);
@@ -541,24 +497,21 @@ namespace FluentSensors.Features.Widget
             manager.MinHeight = CalculateWidgetMinHeight(sensorCount, GetScaleFactor());
         }
 
-        // same idea as CalculateWidgetHeight, but for the minimum instead of the default height, and using
-        // MinPanelHeight instead of the default per-sensor height
+        // CalculateWidgetHeight for the floor, with MinPanelHeight
         private double CalculateWidgetMinHeight(int sensorCount, double scaleFactor)
         {
-            double minXamlHeight = 31 + (sensorCount * (MinPanelHeight + 8)); // titleBar-height + x*(sensor-min-height + spacing)
+            double minXamlHeight = 31 + (sensorCount * (MinPanelHeight + 8)); // title bar + n * (min panel + spacing)
 
             double screenHeightDip = DisplayArea.Primary.WorkArea.Height / scaleFactor;
-            return Math.Min(minXamlHeight, screenHeightDip - 40); // height should not be taller than the screen
+            return Math.Min(minXamlHeight, screenHeightDip - 40); // capped at the screen
         }
 
-        // checks whether the given rect would actually be visible on any currently connected monitor; a saved position can
-        // become stale if the monitor it was on gets disconnected, or the display arrangement changes
+        // whether the rect is on a connected monitor; (a saved position goes stale when its monitor is gone)
         private bool IsPositionOnScreen(int x, int y, int width, int height)
         {
             var rect = new Windows.Graphics.RectInt32(x, y, width, height);
 
-            // indexed loop instead of foreach: iterating DisplayArea.FindAll() with foreach throws an InvalidCastException
-            // due to a WinRT interop bug in its enumerator; indexer access avoids it
+            // indexed loop; foreach over DisplayArea.FindAll() throws an InvalidCastException (WinRT enumerator bug)
             var displayAreas = DisplayArea.FindAll();
             for (int i = 0; i < displayAreas.Count; i++)
             {
@@ -576,8 +529,8 @@ namespace FluentSensors.Features.Widget
                    a.Y < b.Y + b.Height && a.Y + a.Height > b.Y;
         }
 
-        // resizes the window to fit the pinned sensor count, without forcing a specific screen position;
-        // used as the fallback when there is no valid saved position (first launch, or the saved monitor is gone)
+        // sizes for the pinned sensor count without a position; the fallback without a valid saved one
+        // (first launch, monitor gone)
         private void ResizeWidgetToFitSensors(int sensorCount)
         {
             double scaleFactor = GetScaleFactor();
@@ -589,29 +542,28 @@ namespace FluentSensors.Features.Widget
             _appWindow.Resize(new Windows.Graphics.SizeInt32(physicalWidth, physicalHeight));
         }
 
+        // unused; kept for a pin-to-corner action
         private void PositionWidgetTopRight(int sensorCount)
         {
             double scaleFactor = GetScaleFactor();
 
-            // get display size (already in physical pixels)
+            // work area, physical px
             var displayArea = DisplayArea.Primary;
             int screenWidth = displayArea.WorkArea.Width;
 
-            // our XAML desired width (DIPs), converted to physical pixels for the GPU
+            // default width, to physical px
             double desiredXamlWidth = AppSettingsData.WidgetWindowDefaultWidthDip;
             int physicalWidth = (int)(desiredXamlWidth * scaleFactor);
             int physicalHeight = CalculateWidgetHeight(sensorCount, scaleFactor);
 
-            // move and resize the window
             _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(
-                screenWidth - physicalWidth - 10, // 10px margin from the right edge
-                10, // 10px margin from the top edge
+                screenWidth - physicalWidth - 10, // 10px from the right edge
+                10, // 10px from the top edge
                 physicalWidth,
                 physicalHeight));
         }
 
-        // rebuilds the widgets content and resizes the window for a newly selected sensor set, reusing the existing native
-        // window instead of tearing it down and creating a new one
+        // a new sensor set in the existing window: content, floor and size
         private void ReconfigureFor(List<SensorRowViewModel> selectedSensors)
         {
             ViewModel.Reconfigure(selectedSensors);
@@ -633,14 +585,12 @@ namespace FluentSensors.Features.Widget
             SaveWindowState();
         }
 
-        // writes the current rect and open state (debounced) to the window state store
-        // no longer touches which sensors are pinned, SensorSelectionService owns that independently of window state
+        // writes rect and open state (debounced); the pinned sensors belong to SensorSelectionService
         private void SaveWindowState(bool wasOpen = true)
         {
             var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
 
-            // while minimized, Windows reports the windows position as the (-32000, -32000) sentinel value; keep the last
-            // known real rect instead of overwriting it with that garbage
+            // a minimized window reports (-32000, -32000); the last real rect is kept
             bool isMinimized = this.AppWindow.Presenter is OverlappedPresenter presenter &&
                                 presenter.State == OverlappedPresenterState.Minimized;
             if (!isMinimized)
@@ -689,11 +639,10 @@ namespace FluentSensors.Features.Widget
 
             if (_acrylicController != null)
             {
-                // determine the correct color
                 Windows.UI.Color targetColor;
                 if (SettingsService.Instance.UseAccentColor)
                 {
-                    // extract the live Windows 11 Accent color from the application resources
+                    // the live accent color
                     targetColor = (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"];
                 }
                 else
@@ -701,7 +650,6 @@ namespace FluentSensors.Features.Widget
                     targetColor = SettingsService.Instance.CustomTintColor;
                 }
 
-                // apply all properties in one batch
                 _acrylicController.TintColor = targetColor;
                 _acrylicController.TintOpacity = SettingsService.Instance.TintOpacity;
                 _acrylicController.LuminosityOpacity = SettingsService.Instance.LuminosityOpacity;
@@ -712,11 +660,10 @@ namespace FluentSensors.Features.Widget
         {
             if (_isClosed) return;
 
-            // we intervene only, if "solid" is selected
+            // only for the solid material ("None")
             if (SettingsService.Instance.BackdropType == "None")
             {
-                // mirrors UpdateAcrylicProperties' color resolution; without this, the solid background always used
-                // CustomTintColor regardless of the Accent/Custom source setting
+                // the same color resolution as UpdateAcrylicProperties
                 Windows.UI.Color targetColor = SettingsService.Instance.UseAccentColor
                     ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
                     : SettingsService.Instance.CustomTintColor;
@@ -725,26 +672,21 @@ namespace FluentSensors.Features.Widget
             }
         }
 
-        // re-reads the live SystemAccentColor into the acrylic tint and the solid background, for a pure OS
-        // accent change; both already resolve the accent fresh on every call, so no window rebuild is needed
+        // for a pure OS accent change; both calls resolve the accent fresh, no rebuild needed
         public void RefreshAccentSurfaces()
         {
             UpdateAcrylicProperties();
             UpdateSolidBackground();
         }
 
-        // dynamically applies the chosen backdrop material to the WidgetWindow based on the users selection in the settings
-        // page
-        // setup follows the official Microsoft guide for system backdrops in XAML apps:
+        // applies the backdrop material from the settings, per the Microsoft guide:
         // https://learn.microsoft.com/en-us/windows/apps/develop/ui/system-backdrops
         public void SetBackdrop(string backdropType)
         {
             if (_isClosed) return;
 
-            // ensure the system dispatcher queue is ready
             DispatcherQueue.EnsureSystemDispatcherQueue();
 
-            // initialize configuration if it doesnt exist yet
             if (_configurationSource == null)
             {
                 _configurationSource = new SystemBackdropConfiguration();
@@ -755,13 +697,12 @@ namespace FluentSensors.Features.Widget
                 SetConfigurationSourceTheme();
             }
 
-            // clean up any existing active controllers before applying a new one
+            // drop the current controller
             _acrylicController?.Dispose();
             _acrylicController = null;
             _micaController?.Dispose();
             _micaController = null;
 
-            // apply the requested backdrop
             if (backdropType == "Acrylic" && DesktopAcrylicController.IsSupported())
             {
                 _acrylicController = new DesktopAcrylicController();
@@ -770,7 +711,7 @@ namespace FluentSensors.Features.Widget
 
                 UpdateAcrylicProperties();
 
-                // make the grid transparent, when "acrylic" is selected
+                // transparent, so the material shows
                 RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
             else if (backdropType == "Mica" && MicaController.IsSupported())
@@ -779,12 +720,12 @@ namespace FluentSensors.Features.Widget
                 _micaController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
                 _micaController.SetSystemBackdropConfiguration(_configurationSource);
 
-                // make the grid transparent, when "acrylic" is selected
+                // transparent, so the material shows
                 RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
             else
             {
-                // color the grid with the solid color, when "none" is selected
+                // solid
                 UpdateSolidBackground();
             }
         }
@@ -808,9 +749,9 @@ namespace FluentSensors.Features.Widget
         }
 
         // --- workaround: DWM backdrop swapchain kick ---
-        // problem: when Windows transparency/theme changes, WinUI 3 DesktopAcrylicController needs a backdrop re-bind
-        // to attach its blur shader to the newly created DWM swapchain.
-        // fix: after window recreation, briefly kick the backdrop pipeline (None -> Mica/Acrylic) to force DWM compositor refresh.
+        // problem: after a Windows transparency or theme change, DesktopAcrylicController needs a rebind to attach its
+        // blur to the new DWM swapchain
+        // fix: after a rebuild, kick the backdrop once (None, then the current one), with parameters only
         private void KickBackdropRefresh()
         {
             if (_isClosed) return;

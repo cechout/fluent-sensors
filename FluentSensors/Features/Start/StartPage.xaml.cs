@@ -17,34 +17,32 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.Start
 {
-    // the apps entry point: update state, a snapshot of the machine it runs on, this apps own live status, and
-    // the about/licence block that used to sit at the bottom of the settings page
-    //
-    // which page a launch actually lands on is a setting, see StartupPage and MainWindows splash reveal
+    // the start page:
+    // update state, a snapshot of the machine, the live status of this app, and the about and licence block; (the
+    // landing page is a setting, see StartupPage)
     public sealed partial class StartPage : Page
     {
         // === fields ===
 
-        // the start header ships as one export per theme, picked in ApplyHeroImage
+        // one header export per theme, see ApplyHeroImage
         private const string HeroImageLight = "ms-appx:///Assets/Pictures/start-header-light.png";
         private const string HeroImageDark = "ms-appx:///Assets/Pictures/start-header-dark.png";
 
-        // uptime readout
-        // polled four times a second rather than once, so the shown second never skips or lags behind the clock
-        // the way a one second timer drifting against it would; the view model only raises when the text moves
+        // uptime readout; polled four times a second, so the shown second never skips like a drifting one second timer
+        // would (the view model only raises on a text change)
         private static readonly TimeSpan UptimeTimerInterval = TimeSpan.FromMilliseconds(250);
         private DispatcherQueueTimer? _uptimeTimer;
 
         // copy version button
         private const string CopyGlyph = "\uE8C8";
         private const string CopiedGlyph = "\uE73E";
-        private static readonly TimeSpan CopiedGlyphDuration = TimeSpan.FromSeconds(1.5); // how long the checkmark stays
+        private static readonly TimeSpan CopiedGlyphDuration = TimeSpan.FromSeconds(1.5); // the checkmark
         private DispatcherQueueTimer? _copiedGlyphTimer;
 
-        // assigned before InitializeComponent runs, which is what the x:Bind expressions below need
+        // assigned before InitializeComponent, for the x:Bind expressions
         public StartViewModel ViewModel { get; } = new StartViewModel();
 
-        // the store review link only makes sense in the build the store installed
+        // the store review link, store build only
         public bool IsStoreBuild => AppDistribution.IsPackaged;
 
 
@@ -61,8 +59,7 @@ namespace FluentSensors.Features.Start
 
         // === lifecycle ===
 
-        // the page is cached (NavigationCacheMode), so it survives navigating away and these two have to pair up
-        // exactly or a second visit would subscribe twice
+        // the page is cached, so these two pair up exactly or a second visit subscribes twice
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateService.Instance.UpdateStateChanged += OnUpdateStateChanged;
@@ -71,10 +68,10 @@ namespace FluentSensors.Features.Start
             AppStatusService.Instance.StatusUpdated += OnStatusUpdated;
             this.ActualThemeChanged += OnActualThemeChanged;
 
-            // whatever happened while the page was not listening
+            // what happened while not listening
             ViewModel.RefreshUpdateState();
-            // (a theme switch on the settings page happens while this page is unloaded, and the settings page does not
-            // move HardwareColorMode.IsDarkTheme along with it, so the tile icons would come back in the old theme)
+            // (a theme switch on the settings page happens while this page is unloaded and does not move
+            // HardwareColorMode.IsDarkTheme)
             HardwareColorMode.IsDarkTheme = ActualTheme == ElementTheme.Dark;
             ViewModel.RefreshIconBrushes();
             ApplyHeroImage();
@@ -95,7 +92,7 @@ namespace FluentSensors.Features.Start
             _uptimeTimer?.Stop();
         }
 
-        // only runs while the page is loaded; Page_Loaded catches the readout up the moment it comes back
+        // runs while loaded only; Page_Loaded catches up on return
         private DispatcherQueueTimer CreateUptimeTimer()
         {
             var timer = DispatcherQueue.CreateTimer();
@@ -104,19 +101,17 @@ namespace FluentSensors.Features.Start
             return timer;
         }
 
-        // UpdateService already raises this from the UI thread, so there is nothing to dispatch here
+        // already on the UI thread
         private void OnUpdateStateChanged() => ViewModel.RefreshUpdateState();
 
-        // the badge colour is a plain brush rather than a theme resource, so it has to be rebuilt by hand when
-        // the theme moves
+        // the badge colour is a plain brush, rebuilt on a theme change
         private void OnThemeChanged(string theme) => ViewModel.RefreshUpdateState();
 
-        // the tile icons are the only thing on this page the hardware icon colour setting reaches
+        // the tile icons, the only thing here the icon colour setting reaches
         private void OnHardwareIconColorsChanged() => ViewModel.RefreshIconBrushes();
 
-        // ActualTheme rather than the ThemeChanged setting above, because it also moves when the app follows the
-        // system and Windows switches underneath it, and because it only fires once the new theme is really applied
-        // the snapshot tile icons are plain brushes, so they have to be rebuilt from here by hand
+        // ActualTheme, not the setting: it also moves when Windows switches under a following app, and only once the
+        // theme is applied; the tile icons are plain brushes
         private void OnActualThemeChanged(FrameworkElement sender, object args)
         {
             HardwareColorMode.IsDarkTheme = ActualTheme == ElementTheme.Dark;
@@ -124,25 +119,23 @@ namespace FluentSensors.Features.Start
             ApplyHeroImage();
         }
 
-        // AppStatusService fires from the UI thread as well, see its own Tick
+        // on the UI thread as well, see AppStatusService.Tick
         private void OnStatusUpdated(AppStatusData data) => ViewModel.ApplyStatus(data);
 
-        // the header ships as two exports instead of one image that has to work on both backgrounds
+        // two exports, not one image for both backgrounds
         private void ApplyHeroImage()
         {
             string source = this.ActualTheme == ElementTheme.Dark ? HeroImageDark : HeroImageLight;
 
-            // the export is 2560 wide against a 150 wide tile, and the compositor only bilinear filters, which at
-            // that ratio reads far too few source pixels per drawn one and leaves hard aliased edges; decoding to
-            // the tile size hands the reduction to the imaging stack instead, which reads all of them
+            // decoded to the tile size; the compositor filters bilinear only, at 2560 to 150 that aliases hard
             var bitmap = new BitmapImage
             {
-                // Logical keeps this a DIP, so a scaled display still decodes to whole pixels
+                // Logical keeps it a DIP, so a scaled display decodes to whole pixels
                 DecodePixelType = DecodePixelType.Logical,
                 DecodePixelWidth = (int)HeroBorder.Width
             };
 
-            // the decode starts as soon as a source is assigned, so the two above have to be set before this
+            // the decode starts with the source, so the two above come first
             bitmap.UriSource = new Uri(source);
 
             HeroBrush.ImageSource = bitmap;
@@ -151,8 +144,7 @@ namespace FluentSensors.Features.Start
 
         // === user interaction ===
 
-        // the whole release history, not just the newest one; a dialog rather than a flyout because it carries a
-        // navigation pane and a page of its own
+        // the whole release history; a dialog, it carries a navigation pane and a page
         private async void ReleaseNotesButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new ReleaseNotesDialog
@@ -163,7 +155,7 @@ namespace FluentSensors.Features.Start
             await dialog.ShowAsync();
         }
 
-        // one button, three jobs, decided by whatever state the service is in
+        // one button, three jobs, by service state
         private async void UpdateStatusButton_Click(object sender, RoutedEventArgs e)
         {
             var service = UpdateService.Instance;
@@ -175,8 +167,7 @@ namespace FluentSensors.Features.Start
                     break;
 
                 case UpdateUiState.Skipped:
-                    // the way back out of a skip; without this the persisted version would stay unreachable until
-                    // the release after it
+                    // the way back out of a skip
                     service.ClearSkippedVersion();
                     await ShowUpdateDialogAsync(service.Latest);
                     break;
@@ -197,8 +188,8 @@ namespace FluentSensors.Features.Start
             await UpdateDialog.ShowAsync(this.XamlRoot, info);
         }
 
-        // copies the version in the exact shape the bug report form asks for, e.g. v1.6.0, and confirms it with a
-        // checkmark in place of the copy glyph; a second click while it shows restarts the countdown
+        // copies the version the way the bug report form asks for it (v1.6.0), confirmed by a
+        // checkmark; a second click restarts it
         private void CopyVersionButton_Click(object sender, RoutedEventArgs e)
         {
             var package = new DataPackage();
@@ -210,8 +201,7 @@ namespace FluentSensors.Features.Start
             }
             catch
             {
-                // another app can hold the clipboard open for a moment; no checkmark then, the click can simply be
-                // repeated
+                // another app can hold the clipboard for a moment; no checkmark, the click can be repeated
                 return;
             }
 
@@ -228,10 +218,7 @@ namespace FluentSensors.Features.Start
             _copiedGlyphTimer.Start();
         }
 
-        // the settings json files live somewhere else in a portable build, so the path is asked for rather than
-        // assumed
-        // the sensor count under each snapshot tile; opens the sensor list with exactly that hardware group
-        // expanded and every other one closed
+        // the sensor count under a snapshot tile; the sensor list with that group open and every other one closed
         private void SensorCount_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not FrameworkElement element || element.DataContext is not SystemSnapshotEntry entry) return;

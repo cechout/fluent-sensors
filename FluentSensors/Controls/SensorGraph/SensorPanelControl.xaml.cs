@@ -11,21 +11,16 @@ using FluentSensors.Common.UI;
 
 namespace FluentSensors.Controls.SensorGraph
 {
-    // composable chrome around a SensorGraphControl:
-    // every optional piece (title row, status row, y-axis/threshold controls, graph-tap-to-toggle, ...) is its own
-    // independent property instead of a fixed set of presets, so any combination a consumer needs can be set directly
-    // in XAML without touching this class
-    //
-    // GraphTapAction/ButtonTapAction each independently control what a tap on the graph itself, or on the toggle
-    // button in the status row, should trigger; whenever either one is set to TapAction.ShowFlyout, the button-based
-    // control panel (ShowYAxisControls/ShowThresholdControls) is replaced by the compact threshold flyout badge; there
-    // is no separate switch for that, it is purely derived from these two
+    // the sensor panel:
+    // composable chrome around a SensorGraphControl; every optional piece (title row, status row, y-axis and threshold
+    // controls, tap actions) is its own property, set in XAML in any combination
+    // GraphTapAction and ButtonTapAction pick what a tap on the graph or the status row button does; once either is
+    // ShowFlyout, the threshold flyout badge replaces the button control panel
     public sealed partial class SensorPanelControl : UserControl
     {
         // === fields ===
 
-        // manual toggle: true also shows the switch UI for a slot with exactly one candidate, false falls back to
-        // plain text in that case
+        // true shows the switch UI for a slot with one candidate too, false shows plain text there
         private const bool ShowSwitchUiForSingleCandidate = true;
 
         // graph-color card background alpha (UseGraphColorCardBackground)
@@ -39,8 +34,8 @@ namespace FluentSensors.Controls.SensorGraph
         {
             InitializeComponent();
 
-            // the graph-color card background alpha depends on the theme (see GetEffectiveCardBackground), and the
-            // CardBackgroundOverride x:Bind does not otherwise re-run on a theme switch
+            // the card background alpha depends on the theme, and the CardBackgroundOverride
+            // x:Bind does not re-run on its own
             ActualThemeChanged += (s, e) => Bindings.Update();
         }
 
@@ -76,13 +71,13 @@ namespace FluentSensors.Controls.SensorGraph
         {
             if (d is not SensorPanelControl panel) return;
 
-            // candidates can bind after ViewModel depending on XAML attribute order; re-apply so a candidates own
-            // Y-axis max is honored even if it was not yet reachable the first time overrides ran
+            // candidates can bind after ViewModel (XAML attribute order), so the overrides are re-applied for
+            // a candidates own Y-axis max
             panel.ApplyOverridesToViewModel();
             panel.SyncSwitchSelection();
         }
 
-        // separate title row above everything else, showing just the sensor name
+        // a title row above everything, the sensor name only
         public bool ShowTitleRow
         {
             get => (bool)GetValue(ShowTitleRowProperty);
@@ -95,7 +90,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
-        // status row shows name + unit combined instead of just the name (no effect if ShowStatusRow is false)
+        // name and unit in the status row instead of the name only
         public bool ShowUnitInStatusRow
         {
             get => (bool)GetValue(ShowUnitInStatusRowProperty);
@@ -108,8 +103,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
-        // inline status row
-        // (toggle button, Y-max value, sensor name, current value) with its own dedicated toggle button
+        // inline status row; toggle button, Y-max, sensor name, current value
         public bool ShowStatusRow
         {
             get => (bool)GetValue(ShowStatusRowProperty);
@@ -122,9 +116,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
-        // swaps the status row for a toggle-button-free variant (Y-max, sensor name, current value only, no panel
-        // toggle, no switch UI); only takes effect while ShowStatusRow is also true
-        // for consumers with nothing for the panel toggle to actually toggle, e.g. a read-only tile in a grid
+        // the status row without toggle button and switch UI, for a read-only tile; needs ShowStatusRow too
         public bool ShowCompactStatusRow
         {
             get => (bool)GetValue(ShowCompactStatusRowProperty);
@@ -137,8 +129,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
-        // what tapping the graph itself triggers;
-        // None = no reaction (default for most consumers)
+        // what a tap on the graph does; (None by default)
         public TapAction GraphTapAction
         {
             get => (TapAction)GetValue(GraphTapActionProperty);
@@ -151,8 +142,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(TapAction.None));
 
-        // what tapping the toggle button in the status row triggers;
-        // TogglePanel = default behavior
+        // what a tap on the status row button does; (TogglePanel by default)
         public TapAction ButtonTapAction
         {
             get => (TapAction)GetValue(ButtonTapActionProperty);
@@ -165,8 +155,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(TapAction.TogglePanel));
 
-        // fallback sensor name shown in the not-found placeholder when ViewModel is null; has no effect when
-        // ViewModel is set (the real SensorGraphViewModels own name is used instead)
+        // sensor name for the not-found placeholder while ViewModel is null
         public string PlaceholderSensorName
         {
             get => (string)GetValue(PlaceholderSensorNameProperty);
@@ -179,7 +168,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(string.Empty));
 
-        // fallback unit shown alongside PlaceholderSensorName
+        // unit next to PlaceholderSensorName
         public string PlaceholderUnit
         {
             get => (string)GetValue(PlaceholderUnitProperty);
@@ -192,10 +181,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(string.Empty));
 
-        // whether the small colored threshold badge is visually rendered when flyout mode is active; set to false
-        // to keep GraphTapAction/ButtonTapAction opening the flyout without showing the badge itself
-        // e.g. when a consumer only wants the tap-to-flyout behavior, not the separate indicator UI the badge represents
-        // elsewhere
+        // whether the threshold badge shows in flyout mode; false keeps the tap-to-flyout without the badge
         public bool ShowThresholdFlyoutIndicator
         {
             get => (bool)GetValue(ShowThresholdFlyoutIndicatorProperty);
@@ -208,7 +194,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(true));
 
-        // Y-axis scaling buttons (increase/decrease/auto) inside the control panel
+        // Y-axis buttons in the control panel; increase, decrease, auto
         public bool ShowYAxisControls
         {
             get => (bool)GetValue(ShowYAxisControlsProperty);
@@ -221,7 +207,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
-        // threshold buttons (increase/decrease/enable/direction/color) inside the control panel
+        // threshold buttons in the control panel; increase, decrease, enable, direction, color
         public bool ShowThresholdControls
         {
             get => (bool)GetValue(ShowThresholdControlsProperty);
@@ -234,8 +220,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
-        // shows a small "sensor name (unit)" label directly inside the graph itself, top-left, in gray
-        // (independent of ShowTitleRow/ShowStatusRow, e.g. for compact layouts with neither)
+        // a small gray "name (unit)" label inside the graph, top left; (independent of the title and status rows)
         public bool ShowGraphLabel
         {
             get => (bool)GetValue(ShowGraphLabelProperty);
@@ -248,7 +233,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
-        // toggles visibility of sensor name inside graph header overlay
+        // the sensor name in the graph header overlay
         public bool ShowGraphName
         {
             get => (bool)GetValue(ShowGraphNameProperty);
@@ -261,7 +246,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(true));
 
-        // toggles visibility of current value inside graph header overlay
+        // the current value in the graph header overlay
         public bool ShowGraphCurrentValue
         {
             get => (bool)GetValue(ShowGraphCurrentValueProperty);
@@ -274,9 +259,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(true));
 
-        // overrides the graphs line/section color for this specific instance, regardless of the global accent/custom
-        // color setting;
-        // Colors.Transparent (Alpha 0) = no override, since a real accent color is never fully transparent
+        // the graph color for this instance, whatever the global color setting; alpha 0 = no override
         public Windows.UI.Color GraphColorOverride
         {
             get => (Windows.UI.Color)GetValue(GraphColorOverrideProperty);
@@ -289,9 +272,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(Windows.UI.Color.FromArgb(0, 0, 0, 0)));
 
-        // how much history this graph shows, independent of the global Settings value; point count is derived from
-        // this plus the current polling interval
-        // NaN = no override, same sentinel pattern as ManualYMaxOverride below
+        // history shown by this graph, independent of the setting; NaN = no override
         public double GraphTimeSpanOverrideSeconds
         {
             get => (double)GetValue(GraphTimeSpanOverrideSecondsProperty);
@@ -304,8 +285,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(double.NaN, OnOverrideChanged));
 
-        // Inherit = no override
-        // (this sensors persisted/global IsAutoScaled state is used as-is)
+        // Inherit = no override; (the persisted IsAutoScaled state applies)
         public BoolOverride IsAutoScaledOverride
         {
             get => (BoolOverride)GetValue(IsAutoScaledOverrideProperty);
@@ -331,9 +311,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(double.NaN, OnOverrideChanged));
 
-        // pure visual pass-through to SensorGraphControl.ThresholdLabelAlwaysVisible
-        // no ViewModel coupling, so this needs no override/decoupling logic; it never persists anywhere to begin
-        // with
+        // pass-through to SensorGraphControl.ThresholdLabelAlwaysVisible; visual only, never persisted
         public bool ThresholdLabelAlwaysVisible
         {
             get => (bool)GetValue(ThresholdLabelAlwaysVisibleProperty);
@@ -346,9 +324,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(true));
 
-        // pure visual pass-through to SensorGraphControl.ShowCardBackground
-        // no ViewModel coupling, e.g. for graphs embedded in a consumer that already draws its own card background
-        // around this whole panel
+        // pass-through to SensorGraphControl.ShowCardBackground; off for a consumer that draws its own card
         public bool ShowGraphCardBackground
         {
             get => (bool)GetValue(ShowGraphCardBackgroundProperty);
@@ -361,14 +337,14 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(true, OnCardBackgroundVisibilityChanged));
 
-        // the CardBackgroundOverride x:Bind takes this as an argument, and nothing re-runs it when the property
-        // changes after load; same reason as the ActualThemeChanged refresh in the constructor
+        // the CardBackgroundOverride x:Bind does not re-run when this changes after load (like
+        // the theme in the constructor)
         private static void OnCardBackgroundVisibilityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is SensorPanelControl panel) panel.Bindings.Update();
         }
 
-        // pure visual pass-through to SensorGraphControl.CardBorderOverride (true = standard theme border, false = transparent)
+        // pass-through to SensorGraphControl.CardBorderOverride; false = transparent
         public bool ShowGraphCardBorder
         {
             get => (bool)GetValue(ShowGraphCardBorderProperty);
@@ -381,7 +357,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(true));
 
-        // when true, calculates a 10% alpha tint of the graphs own color as the card background
+        // the card background as an alpha tint of the graph color, see GraphColorCardBackgroundAlphaDark
         public bool UseGraphColorCardBackground
         {
             get => (bool)GetValue(UseGraphColorCardBackgroundProperty);
@@ -394,8 +370,8 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
-        // pure visual pass-through to SensorGraphControl.IsHoverEnabled; default true keeps every existing consumer
-        // unchanged, set to false for a purely decorative graph (no hover circle, no value label on pointer move)
+        // pass-through to SensorGraphControl.IsHoverEnabled; false for a decorative graph (no
+        // hover circle, no value label)
         public bool IsGraphHoverEnabled
         {
             get => (bool)GetValue(IsGraphHoverEnabledProperty);
@@ -408,20 +384,16 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(true));
 
-        // fires whenever ViewModel itself changes, or any of the three override properties change; re-applies all of them
-        // together so the final state is always correct regardless of the order XAML happens to set these attributes in
+        // ViewModel or one of the three overrides changed; re-applies all of them, so XAML
+        // attribute order does not matter
         private static void OnOverrideChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is not SensorPanelControl panel) return;
 
             panel.ApplyOverridesToViewModel();
 
-            // x:Binds nested path down to SensorGraphControl.Values (ViewModel.SensorData) does not get
-            // re-evaluated once ViewModel itself becomes null
-            // it simply stops and leaves whatever was bound before untouched, which silently keeps showing another
-            // sensors live data
-            // Clear the chart explicitly here instead, since this callback is confirmed to fire correctly with
-            // ViewModel==null
+            // the x:Bind path to SensorGraphControl.Values (ViewModel.SensorData) is not re-evaluated once ViewModel is
+            // null and would keep showing the previous sensor, so the chart is cleared here
             if (e.Property == ViewModelProperty && e.NewValue == null)
             {
                 panel.GraphControl.Values = new ObservableCollection<double?>();
@@ -429,15 +401,12 @@ namespace FluentSensors.Controls.SensorGraph
 
             if (e.Property == ViewModelProperty) panel.SyncSwitchSelection();
 
-            // --- workaround: x:Bind function bindings only track the arguments own path, not what the function body reads ---
-            // problem: GetYMaxOrPlaceholder/GetCurrentValueOrPlaceholder/GetCurrentValueColorOrDefault/
-            // GetStatusRowTitleOrPlaceholder all take ViewModel itself rather than a dotted path into it, so they
-            // correctly handle ViewModel being null; but that also means x:Bind only reruns them when ViewModel
-            // itself gets swapped for a different instance, never when CurrentValueText/CurrentValueColor/
-            // ActualYMaxText change on the very same instance, which is what actually happens on every sensor tick
-            // fix: subscribe to the new ViewModels own PropertyChanged directly and force every x:Bind expression
-            // in this control to refresh whenever it fires; unsubscribe from the old one first so a sensor
-            // switched away from does not keep this control alive
+            // --- workaround: x:Bind function bindings only track the arguments own path, not what
+            // the function body reads ---
+            // problem: the GetXOrPlaceholder functions take ViewModel itself (to survive a null one), so x:Bind reruns
+            // them only when ViewModel is swapped, never when its values change on every tick
+            // fix: Bindings.Update() on the ViewModels PropertyChanged; the old one is unsubscribed, so a switched-away
+            // sensor does not keep this control alive
             if (e.Property == ViewModelProperty)
             {
                 if (e.OldValue is SensorGraphViewModel oldViewModel) oldViewModel.PropertyChanged -= panel.OnViewModelPropertyChanged;
@@ -458,9 +427,8 @@ namespace FluentSensors.Controls.SensorGraph
 
             double? panelYMax = double.IsNaN(ManualYMaxOverride) ? (double?)null : ManualYMaxOverride;
 
-            // a switch candidate can carry its own Y-axis max (e.g. Free Space scaling to the drives Total Space);
-            // when the active sensor is such a candidate, that wins and also forces manual scaling, otherwise the
-            // panel-level override applies exactly as before
+            // a switch candidate can carry its own Y-axis max (Free Space scaling to the drive Total Space); for the
+            // active sensor that wins and forces manual scaling
             double? candidateYMax = GetActiveCandidateYMax();
             double? manualYMax = candidateYMax ?? panelYMax;
             if (candidateYMax.HasValue) isAutoScaled = false;
@@ -468,8 +436,7 @@ namespace FluentSensors.Controls.SensorGraph
             ViewModel?.ApplyViewOverrides(graphTimeSpanSeconds, isAutoScaled, manualYMax);
         }
 
-        // Y-axis max of whichever candidate matches the active ViewModel, or null if the active sensor is not a
-        // switch candidate or that candidate has no override of its own
+        // the Y-axis max of the candidate matching the active ViewModel, if it has one
         private double? GetActiveCandidateYMax()
         {
             if (ViewModel == null || SwitchCandidates == null) return null;
@@ -480,22 +447,19 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === bindable helper surfaces ===
 
-        // whether the graph chrome (chart row + its control buttons) should render; false when ViewModel is null, e.g.
-        // this hardware instance does not report the requested sensor at all
-        // the label row above it is a separate concern now, see GetTitleRowVisibility: the status row keeps showing
-        // (with placeholder values) even while this is Collapsed
+        // the chart row and its buttons; collapsed while ViewModel is null (the hardware does not report the sensor),
+        // the status row stays with placeholders
         private Visibility GetContentVisibility(SensorGraphViewModel viewModel) =>
             viewModel == null ? Visibility.Collapsed : Visibility.Visible;
 
-        // title row only makes sense once a real sensor exists; unlike the status row it has no placeholder variant
+        // only with a real sensor; (no placeholder variant, unlike the status row)
         private Visibility GetTitleRowVisibility(bool showTitleRow, SensorGraphViewModel viewModel) =>
             showTitleRow && viewModel != null ? Visibility.Visible : Visibility.Collapsed;
 
         private Visibility GetNotFoundVisibility(SensorGraphViewModel viewModel) =>
             viewModel == null ? Visibility.Visible : Visibility.Collapsed;
 
-        // PlaceholderSensorName/PlaceholderUnit are set by the consumer alongside ViewModel, since a null
-        // ViewModel carries no name/unit of its own to fall back on
+        // name and unit come from the consumer, a null ViewModel has none
         private string FormatNotFoundMessage(string sensorName, string unit)
         {
             return string.IsNullOrEmpty(unit) ? $"{sensorName} sensor not found" : $"{sensorName} ({unit}) sensor not found";
@@ -503,26 +467,22 @@ namespace FluentSensors.Controls.SensorGraph
 
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
 
-        // status row placeholder for when ViewModel is null; keeps the row at its usual layout position instead of
-        // collapsing it, e.g. a start page tile for a sensor this hardware does not currently report
+        // status row placeholder while ViewModel is null; the row keeps its place (a start
+        // page tile for a missing sensor)
         private string GetTextOrPlaceholder(string value) => string.IsNullOrEmpty(value) ? "--" : value;
 
         // --- workaround: x:Bind skips function calls whose argument path runs through null ---
-        // problem: when a function bindings argument is a multi-segment path like ViewModel.ActualYMaxText and
-        // ViewModel is null, x:Bind does not call the function at all and leaves the target at its default; the
-        // placeholder text below never showed up, the TextBlock just stayed empty
-        // confirmed platform bug: https://github.com/microsoft/microsoft-ui-xaml/issues/2166
-        // fix: pass ViewModel itself (a single, always-readable property, not a path through it) and do the
-        // null-safe navigation inside the method body instead; GetContentVisibility/GetNotFoundVisibility right
-        // above already used this exact pattern and always worked correctly
+        // problem: with a function argument path like ViewModel.ActualYMaxText and a null ViewModel, x:Bind never calls
+        // the function and leaves the target at its default (confirmed platform bug):
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/2166
+        // fix: pass ViewModel itself and navigate null-safe inside the method
         private string GetYMaxOrPlaceholder(SensorGraphViewModel viewModel) => GetTextOrPlaceholder(viewModel?.ActualYMaxText);
 
         private string GetCurrentValueOrPlaceholder(SensorGraphViewModel viewModel) => GetTextOrPlaceholder(viewModel?.CurrentValueText);
 
-        // the plain value color comes from this controls own ActualTheme rather than from the view model, because the
-        // taskbar widget and the taskbar flyout render the very same view model instances at the same time and can sit
-        // on different themes: the widget follows Windows, the flyout follows the app theme setting
-        // only a threshold override still comes from the view model, since that color is theme independent
+        // the plain value color follows this controls ActualTheme, since the taskbar widget (Windows theme)
+        // and the flyout (app theme) render the same view models; a threshold color is theme independent
+        // and comes from the view model
         private Brush GetCurrentValueColorOrDefault(SensorGraphViewModel viewModel)
         {
             if (viewModel != null && viewModel.IsThresholdColorActive) return viewModel.CurrentValueColor;
@@ -530,9 +490,7 @@ namespace FluentSensors.Controls.SensorGraph
             return DefaultTextColor.ForTheme(ActualTheme == ElementTheme.Dark);
         }
 
-        // a missing sensor still has a known name, the consumer declared it in PlaceholderSensorName for the
-        // not-found message; so the row keeps naming the sensor instead of blanking out to "--" like the value and
-        // the y-axis next to it, which genuinely have nothing to show
+        // a missing sensor keeps its name from PlaceholderSensorName; only value and y-axis fall back to "--"
         private string GetStatusRowTitleOrPlaceholder(bool showUnit, SensorGraphViewModel viewModel, string placeholderName, string placeholderUnit)
         {
             if (viewModel != null) return GetTextOrPlaceholder(GetStatusRowTitle(showUnit, viewModel.SensorName, viewModel.DisplayNameWithUnit));
@@ -545,21 +503,19 @@ namespace FluentSensors.Controls.SensorGraph
 
         private Brush GetBrushOrDefault(Brush value) => value ?? DefaultTextColor.Resolve();
 
-        // the two status row variants are mutually exclusive; compact wins whenever both ShowStatusRow and
-        // ShowCompactStatusRow are set
+        // the two status row variants are exclusive; compact wins
         private Visibility GetStandardStatusRowVisibility(bool showStatusRow, bool showCompactStatusRow) =>
             showStatusRow && !showCompactStatusRow ? Visibility.Visible : Visibility.Collapsed;
 
         private Visibility GetCompactStatusRowVisibility(bool showStatusRow, bool showCompactStatusRow) =>
             showStatusRow && showCompactStatusRow ? Visibility.Visible : Visibility.Collapsed;
 
-        // status row shows either the plain sensor name, or name+unit combined, depending on ShowUnitInStatusRow
         private string GetStatusRowTitle(bool showUnit, string name, string nameWithUnit)
         {
             return showUnit ? nameWithUnit : name;
         }
 
-        // switch button and its plain-text fallback share the same cell, exactly one of the two is ever visible
+        // switch button and its plain text fallback share one cell
         private Visibility GetSwitchButtonVisibility(ObservableCollection<SensorSwitchCandidate> candidates)
         {
             return IsSwitchUiActive(candidates) ? Visibility.Visible : Visibility.Collapsed;
@@ -570,24 +526,21 @@ namespace FluentSensors.Controls.SensorGraph
             return IsSwitchUiActive(candidates) ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        // null (never wired up) never shows the switch UI; with exactly one candidate, ShowSwitchUiForSingleCandidate decides
+        // null never shows the switch UI; with one candidate ShowSwitchUiForSingleCandidate decides
         private bool IsSwitchUiActive(ObservableCollection<SensorSwitchCandidate> candidates)
         {
             if (candidates == null) return false;
             return candidates.Count > 1 || ShowSwitchUiForSingleCandidate;
         }
 
-        // true whenever either tap gesture opens the flyout badge;
-        // the compact badge and the full button-based control panel are mutually exclusive, so this single check
-        // governs both
+        // either tap opens the flyout badge; (badge and button control panel are exclusive, this governs both)
         private bool IsFlyoutModeActive(TapAction graphTapAction, TapAction buttonTapAction)
         {
             return graphTapAction == TapAction.ShowFlyout || buttonTapAction == TapAction.ShowFlyout;
         }
 
-        // Y-axis and threshold controls both live inside the same toggleable control panel;
-        // flyout mode replaces both entirely when active, so it forces this to Collapsed regardless of the individual
-        // Show*Controls properties
+        // Y-axis and threshold controls share the control panel; flyout mode collapses both,
+        // whatever Show*Controls says
         private Visibility GetYAxisControlsVisibility(bool showYAxisControls, TapAction graphTapAction, TapAction buttonTapAction, Visibility controlPanelVisibility)
         {
             return showYAxisControls && !IsFlyoutModeActive(graphTapAction, buttonTapAction) ? controlPanelVisibility : Visibility.Collapsed;
@@ -598,28 +551,25 @@ namespace FluentSensors.Controls.SensorGraph
             return showThresholdControls && !IsFlyoutModeActive(graphTapAction, buttonTapAction) ? controlPanelVisibility : Visibility.Collapsed;
         }
 
-        // the compact flyout badge only shows up when at least one tap gesture is actually configured to open it
+        // the badge only when a tap opens it
         private Visibility GetThresholdFlyoutVisibility(TapAction graphTapAction, TapAction buttonTapAction)
         {
             return IsFlyoutModeActive(graphTapAction, buttonTapAction) ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        // combines the automatic per-sensor color (resolved via global accent/custom settings) with this instances
-        // optional override
-        // Alpha 0 on the override means "not set", since a real accent color is never fully transparent
+        // the automatic color or this instances override; (alpha 0 = not set, a real accent is never transparent)
         private Windows.UI.Color GetEffectiveGraphColor(Windows.UI.Color overrideColor, Windows.UI.Color autoColor)
         {
             return overrideColor.A == 0 ? autoColor : overrideColor;
         }
 
-        // bool -> Opacity for the badge; Visibility stays governed by flyout-mode-active (so the control keeps its
-        // layout position and ShowFlyout() keeps working), only the visual rendering is toggled here
+        // badge opacity; visibility stays with flyout mode, so the badge keeps its place and ShowFlyout() keeps working
         private double BoolToOpacity(bool value) => value ? 1.0 : 0.0;
 
-        // translates the panels ShowGraphCardBackground and UseGraphColorCardBackground into SensorGraphControl.CardBackgroundOverride:
-        // showBackground = false -> explicit transparent override
-        // useGraphColor = true   -> theme-dependent alpha tint of effective graph color
-        // default                -> null (standard themed card background)
+        // ShowGraphCardBackground and UseGraphColorCardBackground into SensorGraphControl.CardBackgroundOverride:
+        // showBackground = false -> transparent
+        // useGraphColor = true   -> theme-dependent alpha tint of the graph color
+        // default                -> null (the themed card background)
         private Windows.UI.Color? GetEffectiveCardBackground(bool showBackground, bool useGraphColor, Windows.UI.Color overrideColor, Windows.UI.Color autoColor)
         {
             if (!showBackground)
@@ -637,10 +587,8 @@ namespace FluentSensors.Controls.SensorGraph
             return null;
         }
 
-        // ActualTheme is whatever this instance actually renders in, so it already accounts for the window it sits
-        // in overriding the theme; reading the app theme setting instead got this wrong in the taskbar widget, which
-        // deliberately follows Windows rather than the setting
-        // the ActualThemeChanged handler in the constructor re-runs the bindings that depend on this
+        // ActualTheme, not the app setting, so a window with its own theme (the taskbar widget follows Windows) is
+        // right; the constructor re-runs the bindings on a change
         private bool IsDarkTheme()
         {
             return ActualTheme == ElementTheme.Dark;
@@ -652,8 +600,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === event handlers ===
 
-        // see OnOverrideChanged: forces every x:Bind expression in this control to re-evaluate, since the
-        // GetXOrPlaceholder functions take ViewModel itself and x:Bind does not track what they read off of it
+        // see the workaround in OnOverrideChanged
         private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             Bindings.Update();
@@ -669,7 +616,7 @@ namespace FluentSensors.Controls.SensorGraph
             ExecuteTapAction(ButtonTapAction);
         }
 
-        // keeps the closed comboboxs displayed text in sync with the active sensor
+        // keeps the closed combobox text on the active sensor
         private void SwitchCandidateComboBox_DropDownOpened(object sender, object e)
         {
             SyncSwitchSelection();
@@ -680,9 +627,8 @@ namespace FluentSensors.Controls.SensorGraph
             SwitchCandidateComboBox.IsDropDownOpen = true;
         }
 
-        // the closing combobox takes focus back to itself, which would leave keyboard focus on something invisible that
-        // the arrow keys still act on; queued so it runs after that, and hands focus to the button that opened the
-        // dropdown, but only while the combobox still holds it
+        // the closing combobox takes the focus, invisible but still under the arrow keys; queued after that, the focus
+        // goes back to the switch button
         private void SwitchCandidateComboBox_DropDownClosed(object sender, object e)
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -691,7 +637,7 @@ namespace FluentSensors.Controls.SensorGraph
             });
         }
 
-        // resolves the pick (builds its graph on first pick, cached after) and hands it to ViewModel
+        // resolves the pick (its graph is built once, then cached) into ViewModel
         private void SwitchCandidateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (SwitchCandidateComboBox.SelectedItem is not SensorSwitchCandidate candidate) return;
@@ -703,7 +649,6 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === private helpers ===
 
-        // runs whichever action a tap gesture is currently configured for
         private void ExecuteTapAction(TapAction action)
         {
             switch (action)

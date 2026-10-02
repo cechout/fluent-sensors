@@ -15,9 +15,8 @@
         <ResourceDictionary>
 
             <!--
-                plain-Button version of PerformancePages SidebarNavToggleButtonStyle, minus the Checked states,
-                since a tile is a one-shot navigation action and not a persisted selection
-                pressed additionally dims the content itself, on top of the background change, as a clearer cue
+                (SidebarNavToggleButtonStyle as a plain Button without Checked states, a tile navigates and
+                selects nothing; pressed also dims the content)
             -->
             <Style x:Key="StartTileButtonStyle" TargetType="Button">
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -70,7 +69,7 @@
             fhUi:FocusGroup.IsEnabled="True"
             ItemsSource="{x:Bind ViewModel.NavItems, Mode=OneWay}">
 
-            <!--  (same SquareGridPanel layout idea as GPU Extended view)  -->
+            <!--  (a SquareGridPanel, like the GPU Extended view)  -->
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <fhControls:SquareGridPanel MinCellWidth="260" Spacing="2" />
@@ -97,9 +96,8 @@
                                 </Grid.ColumnDefinitions>
 
                                 <!--
-                                    a Grid instead of a horizontal StackPanel: a StackPanel measures its children
-                                    at infinite width along its own orientation axis and never compresses them back
-                                    on arrange, so TextTrimming had no width to trim against; the Star column does
+                                    (a Grid, a horizontal StackPanel measures at infinite width and leaves
+                                    TextTrimming nothing to trim against; the Star column gives it one)
                                 -->
                                 <Grid Grid.Column="0" ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
@@ -152,8 +150,7 @@
 
 
                             <!--  graph  -->
-                            <!--  (the same PrimaryGraph the sidebar shows, but rendered as a full SensorPanelControl)  -->
-                            <!--  (no hover, no side controls, not even hit-testable)  -->
+                            <!--  (the sidebar PrimaryGraph as a full panel; no hover, controls or hit test)  -->
                             <fhGraph:SensorPanelControl
                                 Grid.Row="1"
                                 Height="130"

@@ -20,12 +20,11 @@
         </Grid.RowDefinitions>
 
 
-        <!--  label row  -->
-        <!--  (title row and status row overlap here, both independently toggleable via ShowTitleRow/ShowStatusRow)  -->
+        <!--  label row; the title and status rows overlap, toggled by ShowTitleRow and ShowStatusRow  -->
         <Grid Grid.Row="0">
 
 
-            <!--  separate title row: just the sensor name  -->
+            <!--  title row, the sensor name  -->
             <TextBlock
                 Margin="4,0,0,0"
                 VerticalAlignment="Center"
@@ -36,8 +35,7 @@
                 Visibility="{x:Bind GetTitleRowVisibility(ShowTitleRow, ViewModel), Mode=OneWay}" />
 
 
-            <!--  standard status row  -->
-            <!--  toggle button, current Y-max, sensor name (+ unit), current value  -->
+            <!--  status row: toggle button, y-max, name (and unit), value  -->
             <Grid
                 Height="18"
                 Padding="0,0,0,0"
@@ -52,8 +50,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!--  toggle button  -->
-                <!--  (what it does depends on ButtonTapAction)  -->
+                <!--  toggle button, per ButtonTapAction  -->
                 <Button
                     Grid.Column="0"
                     Width="32"
@@ -73,7 +70,7 @@
                         Glyph="&#xE90C;" />
                 </Button>
 
-                <!--  current max y-axis value  -->
+                <!--  y-max  -->
                 <TextBlock
                     Grid.Column="1"
                     Margin="1,0,6,0"
@@ -84,8 +81,10 @@
                     Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
                     Typography.NumeralAlignment="Tabular" />
 
-                <!--  sensor name, or name + unit if ShowUnitInStatusRow  -->
-                <!--  switchable: subtle button with a manual chevron, opens the hidden combobox below in one click  -->
+                <!--
+                    name (and unit with ShowUnitInStatusRow); when switchable a subtle button with a chevron that
+                    opens the hidden combobox in one click
+                -->
                 <Button
                     x:Name="SwitchButton"
                     Grid.Column="2"
@@ -102,7 +101,7 @@
                     </StackPanel>
                 </Button>
 
-                <!--  drives the actual selection; kept invisible, the button above just opens its dropdown  -->
+                <!--  the real selection, invisible; the button opens its dropdown  -->
                 <ComboBox
                     x:Name="SwitchCandidateComboBox"
                     Grid.Column="2"
@@ -116,7 +115,7 @@
                     SelectionChanged="SwitchCandidateComboBox_SelectionChanged"
                     Visibility="{x:Bind GetSwitchButtonVisibility(SwitchCandidates), Mode=OneWay}" />
 
-                <!--  plain fallback for the single-candidate case  -->
+                <!--  a single candidate  -->
                 <TextBlock
                     Grid.Column="2"
                     Margin="4,0,0,0"
@@ -139,8 +138,7 @@
             </Grid>
 
 
-            <!--  compact status row  -->
-            <!--  no panel toggle button and no switch UI; ShowCompactStatusRow picks this over the row above  -->
+            <!--  compact status row, no toggle and no switch; ShowCompactStatusRow picks it  -->
             <Grid
                 Height="18"
                 Padding="0,0,0,0"
@@ -155,7 +153,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!--  current max y-axis value  -->
+                <!--  y-max  -->
                 <TextBlock
                     Grid.Column="0"
                     Margin="4,0,0,0"
@@ -165,7 +163,7 @@
                     Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
                     Typography.NumeralAlignment="Tabular" />
 
-                <!--  sensor name, or name + unit if ShowUnitInStatusRow  -->
+                <!--  name (and unit with ShowUnitInStatusRow)  -->
                 <TextBlock
                     Grid.Column="1"
                     HorizontalAlignment="Left"
@@ -188,8 +186,7 @@
         </Grid>
 
 
-        <!--  graph  -->
-        <!--  (left + right: control buttons, middle: LiveChart graph)  -->
+        <!--  graph, control buttons on both sides  -->
         <Grid
             Grid.Row="1"
             ColumnSpacing="0"
@@ -372,7 +369,7 @@
                 </ToggleButton>
             </Grid>
 
-            <!--  graph, plus optional threshold-flyout badge overlay top-right when either tap action opens it  -->
+            <!--  graph, with the threshold flyout badge top right when a tap action opens it  -->
             <Grid Grid.Column="1">
                 <fhGraph:SensorGraphControl
                     x:Name="GraphControl"
@@ -410,8 +407,7 @@
             </Grid>
         </Grid>
 
-        <!--  not found placeholder  -->
-        <!--  (covers only the graph row when viewmodel is null)  -->
+        <!--  not found placeholder over the graph row, without a view model  -->
         <Border
             Grid.Row="1"
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"

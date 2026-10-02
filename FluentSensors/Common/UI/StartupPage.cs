@@ -1,10 +1,10 @@
 namespace FluentSensors.Common.UI
 {
-    // which page the app lands on once the splash screen is gone
-    // a pending sensor profile from the taskbar flyout outranks this, see MainWindows splash reveal
+    // the page after the splash; a pending sensor profile from the taskbar flyout wins (see
+    // the MainWindow splash reveal)
     public enum StartupPage
     {
-        Start, // the overview page: update state, system snapshot, about
+        Start, // update state, system snapshot, about
         Sensors,
         Performance
     }

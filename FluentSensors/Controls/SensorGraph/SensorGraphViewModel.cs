@@ -26,7 +26,7 @@ namespace FluentSensors.Controls.SensorGraph
         private readonly double _yMaxStep;
         private readonly double _yMaxDefault;
 
-        // set once a view override owns ManualYMax (see ApplyViewOverrides); a data unit switch leaves it alone then
+        // a view override owns ManualYMax (see ApplyViewOverrides); a data unit switch leaves it alone
         private bool _hasManualYMaxOverride;
 
 
@@ -46,15 +46,14 @@ namespace FluentSensors.Controls.SensorGraph
             Scope = scope;
             HardwareKind = hardwareKind;
             Unit = SensorUnitFormatter.GetUnit(sensorType);
-            CurrentValueText = "-"; // placeholder text until we have the first value
+            CurrentValueText = "-"; // until the first value
             CurrentValueColor = DefaultTextColor.Resolve();
 
-            // when set, this instance owns a fixed time span independent of the scope GraphTimeSpanSeconds setting
+            // a fixed time span, independent of the scope setting
             _timeSpanOverrideSeconds = graphTimeSpanSecondsOverride;
             int initialPointCount = CalculatePointCount(ResolveTimeSpanSeconds(), HardwareMonitorService.Instance.UpdateIntervalMs);
 
-            // this raw data list will be plotted by LiveCharts
-            // we use LINQ Enumerable.Repeat to fill the entire list with "0.0" values at startup
+            // the plotted points, a flat zero baseline at start
             SensorData = new ObservableCollection<double?>(Enumerable.Repeat<double?>(0.0, initialPointCount));
 
             if (Scope == SensorGraphScope.Taskbar)
@@ -72,7 +71,7 @@ namespace FluentSensors.Controls.SensorGraph
                 SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
             }
 
-            // line style and fill fade are global; resolved and subscribed the same way for every scope
+            // line style and fill fade are global, the same for every scope
             GraphLineStyle = SettingsService.Instance.GraphLineStyle;
             GraphFillFade = SettingsService.Instance.GraphFillFade;
 
@@ -82,16 +81,16 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.GraphFillFadeChanged += OnGraphFillFadeChanged;
             SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
 
-            // owns this sensors threshold config; shared logic/state lives there, this VM only reacts to it for coloring
+            // the threshold config of this sensor; this view model only colors by it
             Threshold = new ThresholdEditorViewModel(sensorId, sensorType);
             Threshold.PropertyChanged += OnThresholdPropertyChanged;
 
-            // per-sensor-type starting values for the y-axis; a clock sensor needs a much higher scale than a load percentage
+            // y-axis start values per sensor type; (a clock needs a far higher scale than a load)
             var profile = SensorTypeProfiles.GetProfile(sensorType);
             _yMaxStep = profile.YMaxStep;
             _yMaxDefault = profile.YMaxDefault;
 
-            // restore this sensors Y-axis state for the current presentation scope
+            // the saved Y-axis state of this scope
             var existingState = SensorStateService.Instance.GetState(SensorId);
             var yAxisState = existingState.GetYAxis(Scope);
             _isAutoScaled = yAxisState.IsAutoScaled;
@@ -105,15 +104,12 @@ namespace FluentSensors.Controls.SensorGraph
 
         public SensorGraphScope Scope { get; }
 
-        // which hardware this sensor belongs to; only used to resolve the graph colour, see ResolveGraphColor
-        // Other for anything that was created without one, which resolves exactly like hardware colours being off
+        // only for the graph colour (see ResolveGraphColor); Other resolves like hardware colours off
         public HardwareGroupKind HardwareKind { get; }
 
-        // whether CurrentValueColor currently carries a threshold override rather than the plain default text color
-        // consumers that resolve the default against their own theme instead need to tell the two apart, see
-        // SensorPanelControl.GetCurrentValueColorOrDefault
-        // deliberately no change notification of its own; it is only ever set together with CurrentValueColor below,
-        // whose notification already carries the refresh
+        // CurrentValueColor carries a threshold color, not the default; for consumers resolving the default against
+        // their own theme (see SensorPanelControl.GetCurrentValueColorOrDefault)
+        // no notification of its own, the CurrentValueColor one carries it
         public bool IsThresholdColorActive { get; private set; }
 
         // general
@@ -155,8 +151,7 @@ namespace FluentSensors.Controls.SensorGraph
             private set { _graphColor = value; OnPropertyChanged(); }
         }
 
-        // stepline vs smooth; mirrors the global SettingsService switch, same event -> property -> x:Bind path
-        // as GraphColor above
+        // stepline or smooth; mirrors the global switch like GraphColor
         private GraphLineStyle _graphLineStyle;
         public GraphLineStyle GraphLineStyle
         {
@@ -164,7 +159,7 @@ namespace FluentSensors.Controls.SensorGraph
             private set { _graphLineStyle = value; OnPropertyChanged(); }
         }
 
-        // flat area fill vs one that fades out towards the bottom; global, same path as GraphLineStyle above
+        // flat fill or a fade towards the bottom; global, like GraphLineStyle
         private bool _graphFillFade;
         public bool GraphFillFade
         {
@@ -172,9 +167,8 @@ namespace FluentSensors.Controls.SensorGraph
             private set { _graphFillFade = value; OnPropertyChanged(); }
         }
 
-        // taskbar widget graphs can drop their calculated card tint and go fully transparent
-        // only the widget template binds this; the flyout renders these same instances with its own defaults,
-        // so it keeps its themed card background either way
+        // taskbar widget graphs can go fully transparent; only the widget template binds
+        // this, the flyout keeps its card
         private bool _isCardBackgroundVisible = true;
         public bool IsCardBackgroundVisible
         {
@@ -187,7 +181,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        // threshold: owned by the shared editor, exposed so views can bind e.g. Threshold.Value, Threshold.IsEnabled
+        // threshold; the shared editor, for bindings like Threshold.Value
         public ThresholdEditorViewModel Threshold { get; }
 
         // y-axis
@@ -242,7 +236,7 @@ namespace FluentSensors.Controls.SensorGraph
             set { _currentValueColor = value; OnPropertyChanged(); }
         }
 
-        // pushes only the Y-axis part of the state snapshot; Threshold manages and persists its own slice independently
+        // the Y-axis part of the state only; Threshold persists its own
         private void PushYAxisStateToService()
         {
             var state = SensorStateService.Instance.GetState(SensorId);
@@ -252,7 +246,7 @@ namespace FluentSensors.Controls.SensorGraph
             SensorStateService.Instance.SetState(SensorId, state);
         }
 
-        // single visibility state for all control panels; toggled together, shown together
+        // one state for all control panels
         private Visibility _controlPanelVisibility = Visibility.Collapsed;
         public Visibility ControlPanelVisibility
         {
@@ -275,7 +269,7 @@ namespace FluentSensors.Controls.SensorGraph
             RecalculateColor();
         }
 
-        // the current values color depends on the threshold, so any relevant change there needs a recolor
+        // the value color follows the threshold
         private void OnThresholdPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(ThresholdEditorViewModel.IsEnabled) ||
@@ -302,17 +296,13 @@ namespace FluentSensors.Controls.SensorGraph
             GraphFillFade = fillFade;
         }
 
-        // only the unit in the title has to follow right away; the value text and the y-axis maximum are rebuilt
-        // with the next data point anyway
-        //
-        // ManualYMax goes back to its per-type default, so it stays a round number in the new unit; the persisted
-        // copy is reset by the sensors row (SensorRowViewModel.OnDataUnitBasisChanged), which reaches every scope
-        // a view override is left alone, it is a real sensor value like the total memory, not a number the user
-        // picked
+        // only the title unit follows right away, the next data point rebuilds the rest
+        // ManualYMax goes back to its round default in the new unit (the sensors row resets the persisted copy for
+        // every scope); a view override is a real value like the total memory and stays
         private void OnDataUnitBasisChanged()
         {
             string unit = SensorUnitFormatter.GetUnit(SensorType);
-            if (unit == Unit) return; // the switch was for the other data unit setting
+            if (unit == Unit) return; // the other data unit setting
 
             Unit = unit;
 
@@ -331,13 +321,12 @@ namespace FluentSensors.Controls.SensorGraph
 
         private void OnGraphTimeSpanChanged(double newTimeSpanSeconds)
         {
-            // instances with a fixed override never resize with the global setting
+            // a fixed override never follows the setting
             if (_timeSpanOverrideSeconds.HasValue) return;
             RecalculatePointCount();
         }
 
-        // polling interval affects the point count regardless of whether this instance uses the global time span
-        // or a fixed override
+        // the interval changes the point count, override or not
         private void OnUpdateIntervalChanged(int newIntervalMs)
         {
             RecalculatePointCount();
@@ -346,9 +335,8 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === public methods ===
 
-        // re-resolves the graph color against the current settings and the live SystemAccentColor
-        // the constructor resolves it once, and SettingsService only reports the users own accent/custom switch;
-        // a Windows accent change reaches this instance through nothing else
+        // re-resolves the graph color against the live SystemAccentColor; the only way a Windows accent
+        // change reaches this instance
         public void RefreshGraphColor()
         {
             GraphColor = Scope == SensorGraphScope.Taskbar
@@ -356,8 +344,7 @@ namespace FluentSensors.Controls.SensorGraph
                 : ResolveGraphColor(SettingsService.Instance.GraphColorSource, SettingsService.Instance.GraphCustomColor);
         }
 
-        // unsubscribes from SettingsService events and the threshold editor; without this, disposed sensor rows would
-        // still react to graph color / data point / threshold changes after being removed
+        // unsubscribes everything, or a removed row keeps reacting
         public void Cleanup()
         {
             if (Scope == SensorGraphScope.Taskbar)
@@ -381,15 +368,13 @@ namespace FluentSensors.Controls.SensorGraph
             Threshold.Cleanup();
         }
 
-        // data processing
         public void AddDataPoint(double newValue, string formattedValueText)
         {
             _currentRaw = newValue;
 
-            // update the current value text
             CurrentValueText = formattedValueText;
 
-            // shift the graph by one tick
+            // shifts the graph one tick
             SensorData.RemoveAt(0);
             SensorData.Add(newValue);
 
@@ -397,17 +382,15 @@ namespace FluentSensors.Controls.SensorGraph
             RecalculateColor();
         }
 
-        // wipes this graphs history back to empty; used when the Widget window is closed, so a hidden widget holds no
-        // data at all (see WidgetViewModel.SetLiveDataActive)
+        // empties the history when the widget closes, a hidden widget holds no data (see
+        // WidgetViewModel.SetLiveDataActive)
         public void ClearHistory()
         {
             SensorData.Clear();
-            CurrentValueText = "-"; // back to the placeholder until the next value
+            CurrentValueText = "-";
         }
 
-        // refills this graph to a flat zero baseline at the current point count; used when a closed Widget window is
-        // reopened, so it starts fresh instead of resuming the pre-close history
-        // deliberately not called on minimize; a minimized widget keeps feeding data and preserves its history
+        // a flat zero baseline when a closed widget reopens; (not on minimize, a minimized widget keeps its history)
         public void ResetToBaseline()
         {
             double effectiveSeconds = _timeSpanOverrideSeconds ?? SettingsService.Instance.GraphTimeSpanSeconds;
@@ -419,17 +402,15 @@ namespace FluentSensors.Controls.SensorGraph
                 SensorData.Add(0.0);
             }
 
-            CurrentValueText = "-"; // back to the placeholder until the first value after reopen
+            CurrentValueText = "-";
         }
 
-        // applies view-specific configuration that intentionally does NOT persist to SensorStateService:
-        // used by consumers like the Performance page that need this graphs time span / Y-axis behavior fixed and
-        // decoupled from whatever is (or isnt) configured for this sensor elsewhere
+        // view-specific time span and Y-axis, never persisted (the performance page fixes them per view)
         public void ApplyViewOverrides(double? graphTimeSpanSecondsOverride, bool? isAutoScaled, double? manualYMax)
         {
             if (graphTimeSpanSecondsOverride.HasValue && graphTimeSpanSecondsOverride.Value != _timeSpanOverrideSeconds)
             {
-                _timeSpanOverrideSeconds = graphTimeSpanSecondsOverride; // also stops OnGraphTimeSpanChanged from resizing this instance later
+                _timeSpanOverrideSeconds = graphTimeSpanSecondsOverride; // the setting no longer resizes it
                 RecalculatePointCount();
             }
 
@@ -451,7 +432,6 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         // user interaction
-        // pane toggle button
         public void ToggleControlPanel()
         {
             ControlPanelVisibility = ControlPanelVisibility == Visibility.Visible
@@ -459,18 +439,17 @@ namespace FluentSensors.Controls.SensorGraph
                 : Visibility.Visible;
         }
 
-        // control buttons
         public void IncreaseYMax()
         {
-            IsAutoScaled = false; // automatically turns off the auto button in the ui
+            IsAutoScaled = false; // turns the auto button off
             ManualYMax += SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
         }
 
         public void DecreaseYMax()
         {
-            IsAutoScaled = false; // automatically turns off the auto button in the ui
+            IsAutoScaled = false; // turns the auto button off
 
-            // preventing the y-axis from falling to 0 or into the negative range
+            // never down to 0 or below
             double step = SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
             if (ManualYMax > step)
             {
@@ -481,18 +460,15 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === private helpers ===
 
-        // recomputes the point count from whichever time span currently applies (override or global setting) plus
-        // the current polling interval, and resizes to it
+        // resizes to the point count of the current time span and interval
         private void RecalculatePointCount()
         {
             int newCount = CalculatePointCount(ResolveTimeSpanSeconds(), HardwareMonitorService.Instance.UpdateIntervalMs);
             ResizeSensorData(newCount);
         }
 
-        // the time span this instance currently plots: its own fixed override if it has one, otherwise the setting
-        // belonging to its scope
-        // shared by the constructor and every later resize on purpose; resolving it separately in the two places is
-        // what let taskbar graphs get rebuilt against the widget windows range instead of their own
+        // the override, otherwise the setting of this scope; (one resolver for the constructor and every resize, so a
+        // taskbar graph never takes the widget range)
         private double ResolveTimeSpanSeconds()
         {
             if (_timeSpanOverrideSeconds.HasValue) return _timeSpanOverrideSeconds.Value;
@@ -502,21 +478,19 @@ namespace FluentSensors.Controls.SensorGraph
                 : SettingsService.Instance.GraphTimeSpanSeconds;
         }
 
-        // how many points a graph needs to cover timeSpanSeconds at the given polling interval
-        // e.g. 30s at a 500ms interval -> 60 points
+        // points to cover timeSpanSeconds at the interval; 30s at 500ms = 60
         private static int CalculatePointCount(double timeSpanSeconds, int intervalMs)
         {
             return Math.Max(1, (int)Math.Round(timeSpanSeconds * 1000.0 / intervalMs));
         }
 
-        // shared point-count resize logic
         private void ResizeSensorData(int newCount)
         {
             int currentCount = SensorData.Count;
 
             if (newCount > currentCount)
             {
-                // the list got bigger -> add blank points (0.0) to the left (beginning of the list)
+                // bigger: zero points on the left
                 int pointsToAdd = newCount - currentCount;
                 for (int i = 0; i < pointsToAdd; i++)
                 {
@@ -525,7 +499,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
             else if (newCount < currentCount)
             {
-                // the list got smaller -> remove the oldest points on the left
+                // smaller: the oldest points go
                 int pointsToRemove = currentCount - newCount;
                 for (int i = 0; i < pointsToRemove; i++)
                 {
@@ -534,7 +508,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        // re-evaluates the current values color against this sensors own threshold config
+        // the value color against the threshold
         private void RecalculateColor()
         {
             IsThresholdColorActive = Threshold.IsBreached(_currentRaw);
@@ -544,19 +518,19 @@ namespace FluentSensors.Controls.SensorGraph
                 : DefaultTextColor.Resolve();
         }
 
-        // calculates, what has to be displayed in the UI as the current max value
+        // the shown y-axis maximum
         private void UpdateYMaxDisplay()
         {
             if (IsAutoScaled)
             {
-                // finds the highest point in the graph; the ?? 0 handles the case where the list is still empty
+                // the highest point, 0 while empty
                 double currentHighestPoint = SensorData.Max() ?? 0;
                 var (scaledValue, _) = SensorUnitFormatter.Scale(currentHighestPoint, SensorType);
                 ActualYMaxText = $"{scaledValue:0.0}";
             }
             else
             {
-                // manual value, one decimal once Clock/SmallData crossed into GHz/GB, whole number otherwise exactly as before
+                // manual; one decimal once Clock or SmallData scaled to GHz or GB, whole otherwise
                 var (scaledValue, unit) = SensorUnitFormatter.Scale(ManualYMax, SensorType);
                 ActualYMaxText = unit == SensorUnitFormatter.GetUnit(SensorType)
                     ? scaledValue.ToString("0")
@@ -564,11 +538,8 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        // resolves the current accent-color setting to a concrete Color value
-        // the source is picked per surface in the settings, so the widget and the taskbar can disagree
-        //
-        // Hardware falls through to the accent for a sensor whose category never resolved, see GraphColorSource
-        // the performance page never lands here, it hands SensorPanelControl an explicit GraphColorOverride
+        // the color source of this surface (widget and taskbar can differ) to a color; Hardware falls back to the
+        // accent without a category (the performance page passes a GraphColorOverride instead)
         private Windows.UI.Color ResolveGraphColor(GraphColorSource source, Windows.UI.Color customColor)
         {
             if (source == GraphColorSource.Hardware && HardwareKind != HardwareGroupKind.Other)

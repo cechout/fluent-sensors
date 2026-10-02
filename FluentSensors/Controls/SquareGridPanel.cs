@@ -6,17 +6,14 @@ using Windows.Foundation;
 
 namespace FluentSensors.Controls
 {
-    // arranges its children into a single row by default; only once the available width can no longer
-    // fit them all at MinCellWidth does it give up columns one at a time (gaining rows instead)
-    //
-    // row height is not uniform: each row takes on the natural height of its tallest child instead of a shared
-    // forced height, so children with more content (e.g. more stacked graphs) end up in a taller row than
-    // children with less, instead of every row being stretched to match
+    // the square grid panel:
+    // one row, dropping a column at a time once the width cannot fit all at MinCellWidth
+    // each row takes the natural height of its tallest child, so more stacked graphs make a taller row
     public class SquareGridPanel : Panel
     {
         // === bindable properties ===
 
-        // below this width per cell, one more column gets dropped
+        // below this per cell a column drops
         public double MinCellWidth
         {
             get => (double)GetValue(MinCellWidthProperty);
@@ -29,8 +26,7 @@ namespace FluentSensors.Controls
                 typeof(SquareGridPanel),
                 new PropertyMetadata(130.0, OnLayoutAffectingPropertyChanged));
 
-        // floor for any single rows height; a row whose tallest child is still shorter than this gets padded up
-        // to it instead of collapsing to near-zero
+        // the row height floor
         public double MinCellHeight
         {
             get => (double)GetValue(MinCellHeightProperty);
@@ -43,8 +39,7 @@ namespace FluentSensors.Controls
                 typeof(SquareGridPanel),
                 new PropertyMetadata(0.0, OnLayoutAffectingPropertyChanged));
 
-        // gap between cells, applied both horizontally and vertically; set centrally here instead of via Margin
-        // on individual items
+        // between cells in both directions, instead of item margins
         public double Spacing
         {
             get => (double)GetValue(SpacingProperty);
@@ -57,7 +52,7 @@ namespace FluentSensors.Controls
                 typeof(SquareGridPanel),
                 new PropertyMetadata(0.0, OnLayoutAffectingPropertyChanged));
 
-        // shared change handler for both properties above; triggers a fresh layout pass whenever either one changes
+        // a new layout pass on any of them
         private static void OnLayoutAffectingPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is SquareGridPanel panel) panel.InvalidateMeasure();
@@ -66,9 +61,7 @@ namespace FluentSensors.Controls
 
         // === layout overrides ===
 
-        // works out the row/column count for the current width, measures every child at that column width with
-        // unconstrained height so it reports its own natural size, then sums each rows tallest child into the
-        // total desired height
+        // every child at the column width and unconstrained height; the desired height sums the tallest child per row
         protected override Size MeasureOverride(Size availableSize)
         {
             int count = Children.Count;
@@ -96,8 +89,7 @@ namespace FluentSensors.Controls
             return new Size(measureWidth, totalHeight);
         }
 
-        // places every child into its row/column slot, reusing each childs DesiredSize from the Measure pass
-        // above rather than remeasuring
+        // every child into its slot, from its DesiredSize without remeasuring
         protected override Size ArrangeOverride(Size finalSize)
         {
             int count = Children.Count;
@@ -130,8 +122,7 @@ namespace FluentSensors.Controls
 
         // === private helpers ===
 
-        // determines how many columns fit at minCellWidth for the given width, then derives the row count from
-        // that; starts from a single row and only drops columns as far as the width forces it
+        // the columns that fit at minCellWidth, from a single row down, and the rows from that
         private static (int rows, int columns) GetGridSize(int count, double availableWidth, double minCellWidth)
         {
             int maxColumnsForWidth = availableWidth > 0
@@ -145,7 +136,7 @@ namespace FluentSensors.Controls
             return (rows, columns);
         }
 
-        // tallest childs measured height among the cells in this row, floored at MinCellHeight
+        // the tallest child in the row, at least MinCellHeight
         private double GetRowHeight(int row, int columns, int count)
         {
             double tallest = 0;

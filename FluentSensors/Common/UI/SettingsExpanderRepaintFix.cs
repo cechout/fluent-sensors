@@ -9,30 +9,26 @@ using System;
 namespace FluentSensors.Common.UI
 {
     // --- workaround: SettingsExpander content goes blank after collapse/expand ---
-    // problem: a SettingsExpanders internal ItemsRepeater stops rendering after repeated collapse/expand (or show/hide)
-    // cycles and stays blank until something else forces a layout pass
-    // confirmed upstream: https://github.com/microsoft/microsoft-ui-xaml/issues/9337
-    // fix: force that layout pass manually right when its needed, instead of waiting for the user to accidentally trigger
-    // one by scrolling or resizing the window
+    // problem: the inner ItemsRepeater stops rendering after repeated collapse and expand (or hide
+    // and show) until a layout pass:
+    // https://github.com/microsoft/microsoft-ui-xaml/issues/9337
+    // fix: force that pass right away instead of waiting for a scroll or resize
     public static class SettingsExpanderRepaintFix
     {
-        // call this once from the SettingsExpander's own Loaded event
+        // once, from the Loaded of the expander
         public static void Attach(SettingsExpander expander)
         {
-            // named handler instead of an inline lambda so it can actually be removed again in Unloaded below
+            // named, so Unloaded can remove it
             EventHandler expandedHandler = (s, e) => Refresh(expander);
             expander.Expanded += expandedHandler;
 
-            // Visibility has no built-in changed event in WinUI, RegisterPropertyChangedCallback is the standard
-            // workaround; the returned token is required to unregister it again
+            // Visibility has no changed event; the token unregisters it
             long visibilityToken = expander.RegisterPropertyChangedCallback(UIElement.VisibilityProperty, (s, dp) =>
             {
                 if (expander.Visibility == Visibility.Visible) Refresh(expander);
             });
 
-            // both registrations above are stored on the expander itself and capture the expander back - without
-            // removing them here, every Loaded cycle (i.e. every reopen that recreates this control) adds another
-            // permanent, unremovable subscription that keeps the control and its whole visual tree alive
+            // both live on the expander and capture it; kept, every Loaded adds one that holds the whole tree alive
             expander.Unloaded += (s, e) =>
             {
                 expander.Expanded -= expandedHandler;

@@ -12,7 +12,8 @@ using FluentSensors.Features.Performance.Lhm;
 
 namespace FluentSensors.Features.Performance.HardwareViews
 {
-    // self-contained RAM detail view: single Used graph, Y-max driven by Memory.RoundedTotalMemory
+    // the RAM detail view:
+    // one Used graph, its y-axis maximum from Memory.RoundedTotalMemory
     public sealed partial class MemoryDetailView : UserControl
     {
         // === constructor ===
@@ -28,15 +29,14 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === bindable properties ===
 
-        // graph color for every SensorPanelControl in this view; single source of truth in HardwareGroupInfo
+        // the graph colour of this view, from HardwareGroupInfo
         public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).Color;
 
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).Label;
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).IconGlyph;
 
-        // header icon colour, follows the hardware icon colour setting; HardwareIconColorBinding in the
-        // constructor is what re-reads it, the graph colour above is deliberately not part of that
+        // header icon colour, re-read by HardwareIconColorBinding (the graph colour stays)
         public SolidColorBrush GroupIconBrush => HardwareGroupInfo.GetIconBrush(HardwareGroupKind.Ram);
 
 
@@ -63,9 +63,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === event handlers ===
 
-        // the splitter rewrites both column widths while it drags; once it lets go, the content column goes back to
-        // filling the rest, and the info panel width goes to the view model, which every hardware view sizes its own
-        // info panel column from
+        // after a drag the content column fills the rest again, and the width goes to the view model, which every
+        // hardware view sizes its info panel from
         private void InfoPanelSplitter_ManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
         {
             double width = InfoPanelColumn.ActualWidth;
@@ -79,14 +78,11 @@ namespace FluentSensors.Features.Performance.HardwareViews
             RecalculateOverviewHeight();
         }
 
-        // recomputes OverviewBlockGrid.Height from the scroll viewers current size
-        //
-        // Called both by ContentScrollViewer_SizeChanged above and externally by PerformancePage after a nav
-        // sidebar/info panel toggle, since that changes DetailHostGrids available size without necessarily firing
-        // SizeChanged on this control quickly enough
+        // OverviewBlockGrid.Height from the scroll viewer size; also from PerformancePage after a panel toggle, whose
+        // size change can reach this control late
         public void RecalculateOverviewHeight()
         {
-            // everything around the block is read off the live tree, see OverviewBlockSizing
+            // read off the live tree, see OverviewBlockSizing
             double contentWidth = OverviewBlockSizing.ContentWidth(ContentScrollViewer, ContentStackPanel, OverviewBlockGrid);
             TilesGrid.Measure(new Size(contentWidth, double.PositiveInfinity));
             double tilesHeight = TilesGrid.DesiredSize.Height;

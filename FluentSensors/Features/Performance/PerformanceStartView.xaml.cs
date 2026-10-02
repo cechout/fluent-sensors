@@ -4,12 +4,10 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace FluentSensors.Features.Performance
 {
-    // start page for the Performance section; shows every hardware instances PrimaryGraph (the exact same sensor the
-    // sidebar shows) as tiles in a SquareGridPanel, each rendered as a full SensorPanelControl instead of the sidebars
-    // bare mini graph
-    // reachable via the Home button in PerformancePages command bar; a tile jumps into that hardwares detail view,
-    // same as picking it in the sidebar; the panel itself is read-only here (no hover, no side controls), the whole
-    // tile is one navigation target
+    // the performance start view:
+    // the PrimaryGraph of every hardware instance as a full SensorPanelControl tile in a SquareGridPanel, behind
+    // the Hardware Overview button
+    // a tile is one navigation target into its detail view, like the sidebar; the panel itself is read-only
     public sealed partial class PerformanceStartView : UserControl
     {
         // === constructor ===
@@ -27,7 +25,7 @@ namespace FluentSensors.Features.Performance
 
         // === event handlers ===
 
-        // mirrors NavItem_Click on PerformancePage; jumps into the clicked tiles hardware detail view
+        // like NavItem_Click on PerformancePage
         private void Tile_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.DataContext is PerformanceNavItemViewModel item)

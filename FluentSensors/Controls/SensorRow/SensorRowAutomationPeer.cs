@@ -5,8 +5,9 @@ using Microsoft.UI.Xaml.Automation.Provider;
 
 namespace FluentSensors.Controls.SensorRow
 {
-    // presents a whole sensor row to screen readers as one checkbox named after the sensor, because the row is what
-    // toggles the selection; the checkbox drawn inside it is visual only and hidden from automation
+    // the sensor row peer:
+    // the row as one checkbox named after the sensor, since the row toggles; the drawn
+    // checkbox is hidden from automation
     public partial class SensorRowAutomationPeer : FrameworkElementAutomationPeer, IToggleProvider
     {
         // === constructor ===
@@ -26,7 +27,6 @@ namespace FluentSensors.Controls.SensorRow
 
         protected override string GetNameCore() => Row.ViewModel?.Name ?? base.GetNameCore();
 
-        // disabled rows stay visible but cannot be selected, so they are reported as disabled
         protected override bool IsEnabledCore() => Row.ViewModel?.IsDisabled != true;
 
         protected override object GetPatternCore(PatternInterface patternInterface)
@@ -42,7 +42,7 @@ namespace FluentSensors.Controls.SensorRow
 
         public void Toggle() => Row.ToggleSelection();
 
-        // lets a running screen reader announce the new check state right away, whatever flipped it
+        // a screen reader announces the new state right away, whatever flipped it
         public void RaiseToggleStateChanged(bool isSelected)
         {
             RaisePropertyChangedEvent(
