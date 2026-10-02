@@ -19,15 +19,14 @@ namespace FluentSensors.Features.Sensors
     {
         // === fields ===
 
-        // import the Windows-API to calculate the screen scaling 
+        // screen scaling
         [DllImport("user32.dll")]
         private static extern uint GetDpiForWindow(nint hwnd);
 
-        // window fields
         private AppWindow _appWindow;
         private const string WindowKey = "HiddenSensors";
 
-        // system backdrop controller and configuration (Mica only)
+        // system backdrop, Mica only
         private MicaController _micaController;
         private SystemBackdropConfiguration _configurationSource;
 
@@ -40,7 +39,6 @@ namespace FluentSensors.Features.Sensors
 
         // === constructor ===
 
-        // accepts the hardware group whose hidden sensors this window displays
         public HiddenSensorsWindow()
         {
             this.InitializeComponent();
@@ -66,8 +64,7 @@ namespace FluentSensors.Features.Sensors
 
             _appWindow.SetPresenter(presenter);
 
-            // restore the last saved position + size if one exists and is still on screen, otherwise fall back to the
-            // fixed default size with Windows own default placement
+            // the saved rect when it is on a connected monitor, otherwise the default size and Windows placement
             var savedState = WindowStateService.Instance.GetState(WindowKey);
             if (savedState != null && IsPositionOnScreen(savedState.X, savedState.Y, savedState.Width, savedState.Height))
             {
@@ -91,7 +88,7 @@ namespace FluentSensors.Features.Sensors
         }
 
 
-        // re-shows a previously hidden instance instead of creating a new one
+        // shows the hidden instance again
         public void ShowAndActivate()
         {
             _appWindow.Show();
@@ -102,12 +99,9 @@ namespace FluentSensors.Features.Sensors
         // === lifecycle event handlers ===
 
         // --- memory leak: HiddenSensorsWindow never released after close ---
-        // problem: WinUI 3 never releases secondary Window objects back to the GC/OS after a real close
-        // confirmed, still-open platform bug, reproducible even with empty window content:
+        // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
-        // fix: never actually close this window during normal app runtime; hide it and keep the single instance  alive for
-        // the apps lifetime instead, reused on the next open
-        // this caps the leak at one instance total instead of it growing unbounded with every open/close cycle
+        // fix: hide instead of closing and reuse the one instance for the session, so the leak stays at one
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
             args.Cancel = true;
@@ -119,12 +113,12 @@ namespace FluentSensors.Features.Sensors
         {
             SaveWindowState();
 
-            // explicitly unbind from SensorsViewModel.Instance.HardwareGroups
+            // unbinds from SensorsViewModel.Instance.HardwareGroups
             HardwareGroupsItemsControl.ItemsSource = null;
 
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             _appWindow.Changed -= AppWindow_Changed;
-            ((FrameworkElement)this.Content).ActualThemeChanged -= Window_ThemeChanged; // self-cycle within the window itself
+            ((FrameworkElement)this.Content).ActualThemeChanged -= Window_ThemeChanged;
 
             _micaController?.Dispose();
             _micaController = null;
@@ -138,32 +132,26 @@ namespace FluentSensors.Features.Sensors
         {
             if (_configurationSource != null)
             {
-                // force the engine to always render the active blur, same reasoning as in WidgetWindow
+                // always active, like WidgetWindow
                 _configurationSource.IsInputActive = true;
             }
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
-            // capture position/size for persistence whenever the window moves or resizes
             if ((args.DidPositionChange || args.DidSizeChange) && this.AppWindow.IsVisible)
             {
                 SaveWindowState();
             }
         }
 
-        // expands the first group that actually has hidden sensors 
+        // expands the first group with hidden sensors
         private void RootGrid_Loaded(object sender, RoutedEventArgs e)
         {
-            RootGrid.Loaded -= RootGrid_Loaded; // only ever needed once per window instance
+            RootGrid.Loaded -= RootGrid_Loaded; // once per instance
 
-            // safety net, not a confirmed active bug:
-            // setting IsExpanded synchronously here, while the ItemsControl above is still building the SettingsExpander/
-            // ItemsRepeater tree for the very first time, can re-enter XAMLs layout pass while its already running; XAML
-            // sometimes treats that as fatal (reentrancy fail-fast) instead of a normal exception
-            // deferring to the next dispatcher cycle lets the current layout pass finish first; unclear whether this is still
-            // reachable now that the ItemsSource crash above is worked around separately; kept anyway, costs nothing and
-            // the crash mode was severe when it happened
+            // deferred one dispatcher cycle: IsExpanded while the ItemsControl builds its first tree can re-enter the
+            // running layout pass, which XAML may treat as a fail-fast (a safety net, not a confirmed active bug)
             this.DispatcherQueue.TryEnqueue(() =>
             {
                 var firstGroupWithHidden = ViewModel.HardwareGroups.FirstOrDefault(g => g.HasHiddenSensors);
@@ -195,7 +183,7 @@ namespace FluentSensors.Features.Sensors
         }
 
 
-        // === core logic for theme and material application ===
+        // === theme and material ===
 
         private void ApplyTheme(string themeTag)
         {
@@ -220,8 +208,7 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // applies Mica if the OS supports it; Windows itself disables the blur when the user turns off
-        // transparency effects in the system settings, so no extra check for that is needed here
+        // Mica where supported; (Windows turns it off with transparency effects itself)
         private void SetBackdrop()
         {
             DispatcherQueue.EnsureSystemDispatcherQueue();
@@ -238,18 +225,18 @@ namespace FluentSensors.Features.Sensors
                 _micaController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
                 _micaController.SetSystemBackdropConfiguration(_configurationSource);
 
-                // make the grid transparent so the Mica material shows through
+                // transparent, so the material shows
                 RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
-            // if Mica isnt supported, RootGrid keeps its themed fallback background set in XAML
+            // without Mica the XAML fallback background stays
         }
 
         private void Window_ThemeChanged(FrameworkElement sender, object args)
         {
             SetConfigurationSourceTheme();
 
-            // the group header icons are plain brushes rather than theme resources; this window shares its groups
-            // with the sensors page, so refreshing here covers both even while that page is not loaded
+            // the group icons are plain brushes; the groups are shared with the sensors page, so
+            // this covers it while unloaded
             HardwareColorMode.IsDarkTheme = sender.ActualTheme == ElementTheme.Dark;
             SensorsViewModel.Instance.RefreshGroupIconBrushes();
         }
@@ -268,9 +255,9 @@ namespace FluentSensors.Features.Sensors
         }
 
 
-        // === private helper methods ===
+        // === private helpers ===
 
-        // sets a fixed default size for the window; position is left to Windows own default placement
+        // the default size; Windows places the window
         private void SetWindowSize()
         {
             double scaleFactor = GetScaleFactor();
@@ -284,7 +271,6 @@ namespace FluentSensors.Features.Sensors
             _appWindow.Resize(new Windows.Graphics.SizeInt32(physicalWidth, physicalHeight));
         }
 
-        // converts the screen DPI to a scale factor (100% = 1.0, 125% = 1.25, etc.), same helper as in WidgetWindow
         private double GetScaleFactor()
         {
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -292,14 +278,12 @@ namespace FluentSensors.Features.Sensors
             return dpi / 96.0;
         }
 
-        // checks whether the given rect would actually be visible on any currently connected monitor; a saved position can
-        // become stale if the monitor it was on gets disconnected, or the display arrangement changes
+        // whether the rect is on a connected monitor; (a saved position goes stale when its monitor is gone)
         private bool IsPositionOnScreen(int x, int y, int width, int height)
         {
             var rect = new Windows.Graphics.RectInt32(x, y, width, height);
 
-            // indexed loop instead of foreach: iterating DisplayArea.FindAll() with foreach throws an InvalidCastException
-            // due to a WinRT interop bug in its enumerator; indexer access avoids it
+            // indexed loop; foreach over DisplayArea.FindAll() throws an InvalidCastException (WinRT enumerator bug)
             var displayAreas = DisplayArea.FindAll();
             for (int i = 0; i < displayAreas.Count; i++)
             {
@@ -317,7 +301,6 @@ namespace FluentSensors.Features.Sensors
                    a.Y < b.Y + b.Height && a.Y + a.Height > b.Y;
         }
 
-        // writes the current rect to the window state store
         private void SaveWindowState()
         {
             var state = WindowStateService.Instance.GetState(WindowKey) ?? new WindowState();
@@ -330,7 +313,7 @@ namespace FluentSensors.Features.Sensors
             WindowStateService.Instance.SetState(WindowKey, state);
         }
 
-        // helper method to fix rendering of items
+        // see SettingsExpanderRepaintFix
         private void SettingsExpander_Loaded(object sender, RoutedEventArgs e)
         {
             SettingsExpanderRepaintFix.Attach((SettingsExpander)sender);

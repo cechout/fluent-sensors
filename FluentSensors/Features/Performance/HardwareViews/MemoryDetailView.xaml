@@ -96,7 +96,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  physical memory (top) + virtual memory (bottom), stacked  -->
+                        <!--  physical memory above virtual memory  -->
                         <Grid
                             x:Name="GraphsAreaGrid"
                             Grid.Row="0"

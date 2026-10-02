@@ -11,19 +11,19 @@ using FluentSensors.Core.Update;
 
 namespace FluentSensors.Features.Start
 {
-    // one release inside the notes dialog; a real Page rather than a templated item, so the dialogs
-    // NavigationView can drive it through a Frame and get the platforms own page transition
+    // one release in the notes dialog; a Page, so the NavigationView drives it through a Frame
+    // with the platform transition
     public sealed partial class ReleaseNotesPage : Page
     {
         // === fields ===
 
-        // every release ships its own banner under Assets/Releases, named after the version with dots as dashes
+        // one banner per release under Assets/Releases, the version with dashes for dots
         private const string HeroFolder = "ms-appx:///Assets/Releases/";
 
-        // width over height of the banner currently shown, so the border can derive its own height from it
+        // width over height of the shown banner, for the border height
         private double _heroAspect;
 
-        // the release on show, held because the banner is only loaded once this page has a width, see Page_Loaded
+        // kept for the banner, which loads once the page has a width (see Page_Loaded)
         private string _version = "";
 
 
@@ -56,12 +56,11 @@ namespace FluentSensors.Features.Start
                 GitHubLink.Visibility = Visibility.Collapsed;
             }
 
-            // the leading image is dropped from the body so it does not also show up mid-text; the copy in the
-            // notes is never rendered, ShowHero takes the shipped asset instead
+            // the leading image leaves the body; ShowHero takes the shipped asset instead
             string body = MarkdownRenderer.ExtractLeadingImage(release.Notes, out _);
             body = MarkdownRenderer.DropSections(body);
 
-            // the closing changelog line leaves the body as well, it has a row of its own under the notes
+            // the changelog line too, it has its own row
             body = MarkdownRenderer.ExtractChangelogLink(body, out string changelogUrl);
 
             if (string.IsNullOrWhiteSpace(body))
@@ -79,28 +78,22 @@ namespace FluentSensors.Features.Start
             _version = release.Version;
         }
 
-        // the banner waits for this rather than loading in OnNavigatedTo, because it decodes to the width this
-        // page ends up with and that width only exists once the page has been laid out
+        // the banner decodes to the page width, which exists only after layout
         private void Page_Loaded(object sender, RoutedEventArgs e) => ShowHero();
 
 
         // === private helpers ===
 
-        // the banner ships with the app rather than being pulled from the release body, which keeps it off the
-        // network entirely and lets the release page on GitHub carry a rounded export while the app keeps a
-        // square one
-        //
-        // HeroBorder starts collapsed and is only revealed once the image really decoded, so a release without
-        // an asset, or one whose file is missing, simply has no header image
+        // the banner ships with the app, off the network (GitHub carries a rounded export, the app a square one);
+        // HeroBorder shows only once the image decoded, a missing file means no header
         private void ShowHero()
         {
             if (string.IsNullOrWhiteSpace(_version)) return;
 
-            // the banner ships far wider than the page ever draws it, and the compositor only bilinear filters,
-            // which at that ratio reads too few source pixels per drawn one and leaves hard aliased edges
+            // decoded to the page width; the compositor filters bilinear only and would alias the wide export
             var bitmap = new BitmapImage
             {
-                // Logical keeps this a DIP, and a width of zero simply decodes at natural size
+                // Logical keeps it a DIP; a width of zero decodes at natural size
                 DecodePixelType = DecodePixelType.Logical,
                 DecodePixelWidth = (int)this.ActualWidth
             };
@@ -115,13 +108,13 @@ namespace FluentSensors.Features.Start
                 HeroBorder.Visibility = Visibility.Visible;
             };
 
-            // last, the decode starts as soon as a source is assigned and the width above has to be set by then
+            // last, the decode starts with the source
             bitmap.UriSource = new Uri($"{HeroFolder}{UpdateService.VersionLabel(_version).Replace('.', '-')}.png");
 
             HeroBorder.Background = new ImageBrush { ImageSource = bitmap, Stretch = Stretch.UniformToFill };
         }
 
-        // the label is plain XAML so it follows the theme; only the address and its button text come from here
+        // the label is XAML and follows the theme; the address and button text come from here
         private void ShowChangelog(string url)
         {
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return;
@@ -132,8 +125,7 @@ namespace FluentSensors.Features.Start
             ChangelogRow.Visibility = Visibility.Visible;
         }
 
-        // ".../compare/v1.2.0...v1.3.0" reads as the range itself; anything that is not a compare url falls back
-        // to naming the host, so the button never ends up blank
+        // ".../compare/v1.2.0...v1.3.0" reads as the range; anything else names the host, never blank
         private static string CompareLabel(Uri uri)
         {
             string last = uri.Segments.Length > 0 ? uri.Segments[^1].Trim('/') : "";
@@ -143,8 +135,7 @@ namespace FluentSensors.Features.Start
 
         private void HeroBorder_SizeChanged(object sender, SizeChangedEventArgs e) => SetHeroHeight();
 
-        // a border with no child has no height of its own, so the banners aspect supplies one; the half pixel
-        // guard is what keeps setting the height from feeding its own SizeChanged back in
+        // a childless border has no height, the banner aspect gives one; the half pixel guard stops a SizeChanged loop
         private void SetHeroHeight()
         {
             if (_heroAspect <= 0 || HeroBorder.ActualWidth <= 0) return;

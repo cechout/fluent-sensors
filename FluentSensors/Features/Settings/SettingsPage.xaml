@@ -445,7 +445,7 @@
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Taskbar Widget &amp; Flyout Appearance" />
 
-            <!--  taskbar position the per position settings below belong to  -->
+            <!--  the taskbar edge the settings below belong to  -->
             <!--
                 (the position is filled in at runtime from the edge the taskbar sits on; MinHeight and Padding
                 override the 68 and 16 the toolkit style sets, so this read only row stays lower than the others)
@@ -536,7 +536,7 @@
                             ValueChanged="TaskbarGraphWidthSlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <!--  side taskbar slot, only shown while the taskbar sits on the left or right  -->
+                    <!--  side taskbar slot; (only with the taskbar on the left or right)  -->
                     <controls:SettingsCard x:Name="TaskbarSideGraphDirectionCard" Header="Side Taskbar Graph Direction">
                         <ComboBox
                             x:Name="TaskbarSideGraphDirectionComboBox"
@@ -650,9 +650,8 @@
 
             <!--  everything that shapes a recorded row  -->
             <!--
-                the format itself sits in the header slot, the way both background material expanders carry their
-                backdrop combo: it is the one choice that decides whether the file opens correctly at all, the three
-                inside are refinements
+                (the format sits in the header slot like the backdrop combos; it decides whether the file opens
+                correctly at all, the three inside refine it)
             -->
             <controls:SettingsExpander
                 fhUi:FocusGroup.IsEnabled="True"
@@ -669,10 +668,6 @@
                     <ComboBoxItem Content="Invariant" Tag="Invariant" />
                 </ComboBox>
 
-                <!--
-                    the one element here that is not a setting, so it sits in the one slot that is not a
-                    settings row
-                -->
                 <!--
                     (same top bar the sensors page puts above its sensor rows; text is built from code, through
                     the same formatter that writes the file)

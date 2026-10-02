@@ -17,22 +17,20 @@ namespace FluentSensors.Features.Widget
 
         private readonly DispatcherQueue _dispatcherQueue;
 
-        // whether this widget is currently fed by the live hardware data stream
-        // starts true since the constructor subscribes right away; toggled by SetLiveDataActive for the closed widget
+        // fed by the live data stream; true from the constructor, SetLiveDataActive toggles it for a closed widget
         private bool _isLiveDataActive = true;
 
 
         // === constructor ===
 
-        public WidgetViewModel(List<SensorRowViewModel> selectedSensors) // accept the injected list from the View layer
+        public WidgetViewModel(List<SensorRowViewModel> selectedSensors)
         {
             PinnedSensors = new ObservableCollection<SensorGraphViewModel>();
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
-            // subscribe to the HardwareDataUpdated event of the HardwareMonitorService
             HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
 
-            // Dynamically instantiate chart components based on the precise hardware IDs
+            // one graph per selected sensor
             foreach (var sensor in selectedSensors)
             {
                 PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, hardwareKind: sensor.HardwareKind));
@@ -42,19 +40,18 @@ namespace FluentSensors.Features.Widget
 
         // === bindable properties ===
 
-        // this list contains all the sensors that the user has pinned
+        // the pinned sensors
         public ObservableCollection<SensorGraphViewModel> PinnedSensors { get; set; }
 
 
         // === public methods ===
 
-        // clears out sensors that are no longer selected, adds newly selected ones, and reorders the result to exactly match
-        // selectedSensors order
+        // drops deselected sensors, adds new ones and reorders to match selectedSensors
         public void Reconfigure(List<SensorRowViewModel> selectedSensors)
         {
             var newIds = new HashSet<string>(selectedSensors.Select(s => s.Id));
 
-            // remove sensors that are no longer part of the selection
+            // deselected ones
             for (int i = PinnedSensors.Count - 1; i >= 0; i--)
             {
                 if (!newIds.Contains(PinnedSensors[i].SensorId))
@@ -64,7 +61,7 @@ namespace FluentSensors.Features.Widget
                 }
             }
 
-            // add newly selected sensors that are not pinned yet; already-pinned sensors are deliberately left alone
+            // new ones; pinned ones stay as they are
             var existingIds = new HashSet<string>(PinnedSensors.Select(s => s.SensorId));
             foreach (var sensor in selectedSensors)
             {
@@ -74,7 +71,7 @@ namespace FluentSensors.Features.Widget
                 }
             }
 
-            // reorder to match selectedSensors exactly, moving existing items into place instead of recreating them
+            // the order of selectedSensors, by moving, not recreating
             for (int targetIndex = 0; targetIndex < selectedSensors.Count; targetIndex++)
             {
                 string id = selectedSensors[targetIndex].Id;
@@ -97,7 +94,7 @@ namespace FluentSensors.Features.Widget
         }
 
 
-        // re-resolves every pinned graphs color against the current settings and the live SystemAccentColor
+        // every pinned graph color against the settings and the live accent
         public void RefreshGraphColors()
         {
             foreach (var sensor in PinnedSensors)
@@ -107,11 +104,9 @@ namespace FluentSensors.Features.Widget
         }
 
 
-        // fully couples or decouples the widget from the live hardware data stream; used for the closed (hidden) widget,
-        // where nothing should run in the background at all
-        // off: stops all incoming data (unsubscribes from HardwareMonitorService) and wipes every pinned graphs history
-        // on: refills each graph to a flat baseline and resubscribes, so a reopened widget starts fresh from zero
-        // this is the deliberate difference from minimize, which keeps the subscription alive and preserves the history
+        // decouples a closed widget from the live data, so nothing runs in the background (minimize keeps it):
+        // off - unsubscribed, every history wiped
+        // on - a flat baseline, subscribed again; the reopened widget starts fresh
         public void SetLiveDataActive(bool active)
         {
             if (_isLiveDataActive == active) return;
@@ -138,29 +133,24 @@ namespace FluentSensors.Features.Widget
 
         // === event handlers ===
 
-        // event handler invoked by the HardwareMonitorService at the configured polling interval
         private void OnHardwareDataUpdated(List<SensorData> payload)
         {
-            // The HardwareMonitorService executes on a background thread UI updates must be marshaled back to the main UI
-            // thread via DispatcherQueue to prevent System.UnauthorizedAccessException
+            // raised on the polling thread
             _dispatcherQueue.TryEnqueue(() =>
             {
-                // we go through all pinned sensors and try to find their real counterparts in the HardwareMonitorService's sensor list
                 foreach (var pinnedSensor in PinnedSensors)
                 {
-                    // query the incoming payload list for the matching sensor ID
                     var realSensor = payload.FirstOrDefault(s => s.Id == pinnedSensor.SensorId);
 
                     if (realSensor != null)
                     {
-                        // push the updated value and the formatted string to the individual sensor view model
                         pinnedSensor.AddDataPoint(realSensor.Value, SensorUnitFormatter.Format(realSensor.Value, realSensor.SensorType));
                     }
                 }
             });
         }
 
-        // helper method to append the correct physical unit to the UI text block
+        // unused
         private string GetUnitString(string sensorType)
         {
             return sensorType switch
@@ -179,9 +169,9 @@ namespace FluentSensors.Features.Widget
         }
 
 
-        // === public methods ===
+        // === cleanup ===
 
-        // unsubscribe from the global event when the view is closed
+        // when the view closes
         public void Cleanup()
         {
             HardwareMonitorService.Instance.HardwareDataUpdated -= OnHardwareDataUpdated;

@@ -94,11 +94,11 @@
                     </Grid.RowDefinitions>
 
                     <Grid.Resources>
-                        <!--  fixed height for every individual sensor graph inside a core cell  -->
+                        <!--  every graph in a core cell  -->
                         <x:Double x:Key="CpuCoreGraphHeight">45</x:Double>
 
                         <!--  one border per physical core  -->
-                        <!--  (stacks whichever threads, temperature and clocks that core actually has)  -->
+                        <!--  (stacks the threads, temperature and clock the core has)  -->
                         <DataTemplate x:Key="CpuCoreCellTemplate" x:DataType="fhLhm:LhmCpuCoreViewModel">
                             <Border
                                 Padding="0"
@@ -109,7 +109,7 @@
                                     <Grid.RowDefinitions>
                                         <!--  core title, from the Temperature sensors raw name (e.g. "P-Core #3")  -->
                                         <RowDefinition Height="Auto" />
-                                        <!--  threads: one row per thread, each the same fixed height as Temperature/Clock below  -->
+                                        <!--  threads, one row each at the height of temperature and clock  -->
                                         <RowDefinition Height="Auto" />
                                         <!--  temperature  -->
                                         <RowDefinition Height="Auto" />
@@ -368,14 +368,12 @@
 
 
                     <!--  cpu view 2: all cpu cores  -->
-                    <!--  (cores with threads on top and cores without threads below, each followed by its own group averages)  -->
+                    <!--  (cores with threads above those without, each group with its averages)  -->
                     <!--
                         workaround: RowSpacing still applied to a Collapsed row
-                        problem: Grid.RowSpacing (like StackPanel.Spacing) keeps reserving its gap even when the sibling
-                        row is Collapsed;
-                        Confirmed platform bug: https://github.com/microsoft/microsoft-ui-xaml/issues/916
-                        fix: no RowSpacing on this Grid at all, the gap between the two groups instead lives on the second
-                        StackPanels own Margin, which (unlike RowSpacing) correctly collapses away together with the panel
+                        problem: Grid.RowSpacing keeps its gap next to a collapsed row (confirmed platform bug):
+                        https://github.com/microsoft/microsoft-ui-xaml/issues/916
+                        fix: no RowSpacing here, the gap is the Margin of the second panel, which collapses with it
                     -->
                     <Grid
                         x:Name="AllThreadsGrid"
@@ -391,7 +389,7 @@
                         </Grid.RowDefinitions>
 
                         <!--  cores with threads  -->
-                        <!--  (the whole group collapses if this CPU never populates it)  -->
+                        <!--  (collapses when this CPU has none)  -->
                         <StackPanel
                             Grid.Row="0"
                             Spacing="8"
@@ -443,8 +441,7 @@
                         </StackPanel>
 
                         <!--  cores without threads  -->
-                        <!--  (the whole group collapses if this CPU never populates it)  -->
-                        <!--  (Margin top is the gap to the group above, 0 when that group is not shown)  -->
+                        <!--  (collapses when this CPU has none; the top Margin is the gap above, 0 alone)  -->
                         <StackPanel
                             Grid.Row="1"
                             Margin="{x:Bind GroupSpacingMargin(Cpu.ShowCoreGroupTitles), Mode=OneWay}"
@@ -756,8 +753,8 @@
 
         <!--  info panel splitter  -->
         <!--
-            (a 9px band centered on the divider line; it resizes the content column before it)
-            (last in the grid, so the bottom bar does not cover the half that reaches into the content column)
+            (a 9px band on the divider, resizing the column before it; last in the grid, so the bottom bar
+            does not cover the half reaching into the content)
         -->
         <fhControls:ClampedGridSplitter
             Grid.Row="0"

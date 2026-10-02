@@ -9,8 +9,8 @@ using Windows.Graphics;
 
 namespace FluentSensors.Core.Taskbar
 {
-    // finds every taskbar currently on screen (primary Shell_TrayWnd plus Shell_SecondaryTrayWnd per extra monitor)
-    // and polls their geometry
+    // the taskbar service:
+    // finds every taskbar (Shell_TrayWnd, one Shell_SecondaryTrayWnd per extra monitor) and polls their geometry
     public class WinTaskbarService
     {
         // === fields ===
@@ -36,13 +36,12 @@ namespace FluentSensors.Core.Taskbar
 
         // === public api ===
 
-        // latest snapshot from polling loop or from most recent DiscoverNow call
+        // from the last poll or DiscoverNow
         public IReadOnlyList<WinTaskbarInfo> CurrentTaskbars
         {
             get { lock (_lock) return _taskbars; }
         }
 
-        // starts the background polling loop to track taskbar geometry changes
         public void StartMonitoring()
         {
             if (_cts != null) return;
@@ -51,7 +50,6 @@ namespace FluentSensors.Core.Taskbar
             _loopTask = Task.Run(() => LoopAsync(_cts.Token));
         }
 
-        // stops the background polling loop
         public void StopMonitoring()
         {
             if (_cts == null) return;
@@ -63,7 +61,7 @@ namespace FluentSensors.Core.Taskbar
             _loopTask = null;
         }
 
-        // one-shot discovery outside polling loop
+        // one-shot, outside the polling loop
         public List<WinTaskbarInfo> DiscoverNow()
         {
             var found = FindAllTaskbars();
@@ -77,7 +75,7 @@ namespace FluentSensors.Core.Taskbar
 
         // === events ===
 
-        // fires only when discovered taskbar set or geometry actually changed since the previous tick
+        // only on a real change of the set or its geometry
         public event Action<IReadOnlyList<WinTaskbarInfo>>? TaskbarsChanged;
 
 
@@ -114,7 +112,6 @@ namespace FluentSensors.Core.Taskbar
             }
         }
 
-        // queries primary (Shell_TrayWnd) plus every secondary taskbar (Shell_SecondaryTrayWnd)
         private static List<WinTaskbarInfo> FindAllTaskbars()
         {
             var result = new List<WinTaskbarInfo>();
@@ -158,7 +155,7 @@ namespace FluentSensors.Core.Taskbar
             };
             NativeMethods.SHAppBarMessage(NativeMethods.ABM_GETTASKBARPOS, ref positionData);
 
-            // ABM_GETSTATE reports primary taskbar autohide state process-wide
+            // ABM_GETSTATE reports the autohide of the primary taskbar, for all of them
             var stateData = new NativeMethods.APPBARDATA
             {
                 cbSize = (uint)Marshal.SizeOf<NativeMethods.APPBARDATA>()

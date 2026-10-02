@@ -15,19 +15,15 @@ using System.Runtime.CompilerServices;
 
 namespace FluentSensors.Features.Performance
 {
-    // top-level data context for the single PerformancePage; orchestrates whichever engine-specific child view
-    // models are active
-    // LHM is the only engine for now, HWiNFO will sit alongside it later as its own set of child view models under a
-    // separate namespace/folder, without touching the LHM properties here
+    // the performance view model:
+    // the data context of PerformancePage over the engine view models; LHM is the only engine (a HWiNFO set would sit
+    // beside it in its own folder)
     public class PerformanceViewModel : INotifyPropertyChanged
     {
         // === singleton instance ===
 
-        // lazy on purpose (unlike SensorsViewModel.Instance):
-        // only created the first time PerformancePage actually asks for it, so nobody pays the cost of these background
-        // graphs running unless they visit the page
-        // NavigationCacheMode="Enabled" on PerformancePage then keeps this instance alive and bound for the rest of the
-        // apps lifetime once created
+        // lazy on purpose (unlike SensorsViewModel.Instance), so the background graphs only run once the page is
+        // visited; it then lives for the session
         private static PerformanceViewModel _instance;
         public static PerformanceViewModel Instance => _instance ??= new PerformanceViewModel();
 
@@ -44,23 +40,19 @@ namespace FluentSensors.Features.Performance
 
             NavItems = new ObservableCollection<PerformanceNavItemViewModel>();
 
-            // a nav item has nothing to rebuild when the hardware icon colour setting flips, the whole list is
-            // simply told to re-read its brush
-            // never detached: this view model is created once and stays alive for the rest of the apps lifetime
+            // the nav items only re-read their brush on an icon colour change; never
+            // detached, this lives for the session
             SettingsService.Instance.HardwareIconColorsChanged += RefreshNavItemIconBrushes;
 
-            // the event carries no value and fires for either time range, so both captions re-read theirs
+            // no value, either range; both captions re-read
             SettingsService.Instance.PerformanceGraphTimeSpanChanged += () =>
             {
                 OnPropertyChanged(nameof(StandardGraphTimeSpanText));
                 OnPropertyChanged(nameof(ExtendedGraphTimeSpanText));
             };
 
-            // every category follows the exact same discovery pattern:
-            // process instances that already exist (likely true for all of them, since LhmHardwareTreeService runs from
-            // app start), then keep listening for future ones
-            // getPrimaryGraph picks each Kinds "at a glance" utilization sensor, shown in the sidebar and the
-            // start page; it hands over a whole chain rather than one sensor, see FirstAvailable
+            // every category the same way: the existing instances, then later ones; getPrimaryGraph picks the
+            // at-a-glance sensor of the sidebar and the start view, as a chain (see FirstAvailable)
             AttachExistingAndFuture(Cpu.Cpus, HardwareGroupKind.Cpu,
                 item => ((LhmCpuInstanceViewModel)item).HardwareName,
                 item =>
@@ -77,8 +69,7 @@ namespace FluentSensors.Features.Performance
                     return FirstAvailable(memory.Used, memory.Available, memory.VirtualMemoryUsed);
                 });
 
-            // the longest chain by far: an Intel iGPU can report a single Power sensor and nothing else, no core
-            // load, no temperature, not even a D3D engine counter
+            // the longest chain: an Intel iGPU can report a single Power sensor and nothing else
             AttachExistingAndFuture(Gpu.Gpus, HardwareGroupKind.Gpu,
                 item => ((LhmGpuInstanceViewModel)item).HardwareName,
                 item =>
@@ -115,7 +106,7 @@ namespace FluentSensors.Features.Performance
         public LhmStoragePerformanceViewModel Storage { get; }
         public LhmNetworkPerformanceViewModel Network { get; }
 
-        // one entry per selectable hardware instance, shown in the sidebar
+        // one per hardware instance, in the sidebar
         public ObservableCollection<PerformanceNavItemViewModel> NavItems { get; }
 
         private PerformanceNavItemViewModel _selectedItem;
@@ -132,8 +123,7 @@ namespace FluentSensors.Features.Performance
 
                 OnPropertyChanged();
 
-                // start-page <-> hardware-view transitions flip IsHardwareViewActive, which gates whether the sidebar
-                // and info panel are allowed to show at all
+                // start page and hardware view flip IsHardwareViewActive, which gates sidebar and info panel
                 OnPropertyChanged(nameof(IsNavSidebarShown));
                 OnPropertyChanged(nameof(NavSidebarVisibility));
                 OnPropertyChanged(nameof(NavSidebarColumnMinWidth));
@@ -144,11 +134,8 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // current effective theme
-        // Resolved from the actually applied ActualTheme, not the raw AppTheme setting
-        // Kept in sync by PerformancePage hooking its own ActualThemeChanged
-        // Single source of truth for anything on this page that needs a different resource depending on the real
-        // light/dark state
+        // the applied theme, from ActualTheme rather than the setting (PerformancePage keeps it in sync);
+        // the one source for this page
         private bool _isDarkTheme;
         public bool IsDarkTheme
         {
@@ -179,15 +166,12 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // pre-computed Visibility for the per-hardware info panel; avoids a function binding inside each detail
-        // views XAML
-        // forced Collapsed on the start page: the info panel describes one specific hardware, so it only shows next
-        // to a hardware view, even while its command-bar toggle stays checked (see IsHardwareViewActive)
+        // pre-computed, no function binding in each detail view; collapsed on the start page whatever the toggle
+        // says (see IsHardwareViewActive)
         public Visibility InfoPanelVisibility => IsInfoPanelVisible && IsHardwareViewActive ? Visibility.Visible : Visibility.Collapsed;
 
-        // nav sidebar (hardware selection list), toggled independently from the info panel; both can be open at once
-        // above the width threshold, exclusive below it
-        // Threshold handling lives in PerformancePage itself, this is just the raw on/off state
+        // the nav sidebar, toggled apart from the info panel; both open above the width threshold, exclusive below
+        // (PerformancePage handles that, this is the raw state)
         private bool _isNavSidebarVisible = true;
         public bool IsNavSidebarVisible
         {
@@ -204,34 +188,28 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // the zero-width column hides the sidebar but leaves its buttons in the tab order, unseen; the sidebar list
-        // binds its IsEnabled to this, so tab passes over it while it is not shown
+        // the zero-width column hides the sidebar but not its tab stops; its IsEnabled binds this
         public bool IsNavSidebarShown => IsNavSidebarVisible && IsHardwareViewActive;
 
         private bool IsInfoPanelShown => IsInfoPanelVisible && IsHardwareViewActive;
 
-        // the splitters sit outside the column they resize, so each one is hidden on its own; the info panel splitter
-        // uses InfoPanelVisibility above
+        // the splitters sit outside their column and hide on their own (the info panel one uses InfoPanelVisibility)
         public Visibility NavSidebarVisibility => IsNavSidebarShown ? Visibility.Visible : Visibility.Collapsed;
 
-        // pre-computed width limits for the two toggleable columns (nav sidebar on PerformancePage, info panel on each
-        // detail view); their widths belong to the GridSplitter the user drags
-        // a hidden panel gets zero for both, which collapses its column to a real zero size so it stops reserving
-        // layout space, while the dragged width stays on the column for when the panel comes back
-        // both are additionally gated on IsHardwareViewActive: on the start page neither column is shown, no matter
-        // what the toggles say
+        // width limits of the two toggleable columns, whose widths belong to the splitter; a hidden panel gets zero for
+        // both and keeps its dragged width for its return (never on the start page)
         public double NavSidebarColumnMinWidth => IsNavSidebarShown ? _navSidebarMinWidth : 0;
         public double NavSidebarColumnMaxWidth => IsNavSidebarShown ? _navSidebarMaxWidth : 0;
         public double InfoPanelColumnMinWidth => IsInfoPanelShown ? _infoPanelMinWidth : 0;
         public double InfoPanelColumnMaxWidth => IsInfoPanelShown ? _infoPanelMaxWidth : 0;
 
-        // the limits themselves, handed in by PerformancePage, which holds the values
+        // handed in by PerformancePage
         private double _navSidebarMinWidth;
         private double _navSidebarMaxWidth = double.PositiveInfinity;
         private double _infoPanelMinWidth;
         private double _infoPanelMaxWidth = double.PositiveInfinity;
 
-        // a maximum below its minimum, on a page too narrow for it, falls back to the minimum
+        // a maximum below the minimum (a narrow page) falls back to the minimum
         public void SetSidePanelLimits(double navSidebarMinWidth, double navSidebarMaxWidth, double infoPanelMinWidth, double infoPanelMaxWidth)
         {
             _navSidebarMinWidth = navSidebarMinWidth;
@@ -245,8 +223,7 @@ namespace FluentSensors.Features.Performance
             OnPropertyChanged(nameof(InfoPanelColumnMaxWidth));
         }
 
-        // info panel width, shared by every detail view so switching hardware keeps it; the splitter of whichever
-        // view was dragged hands it over once the drag ends
+        // shared by every detail view, so a switch keeps it; the dragged splitter hands it over at the end
         private double _infoPanelWidth;
         public double InfoPanelWidth
         {
@@ -262,23 +239,18 @@ namespace FluentSensors.Features.Performance
 
         public GridLength InfoPanelColumnWidth => new GridLength(InfoPanelWidth);
 
-        // graph time range captions under the graphs of every hardware view, written like the settings page lists
-        // the ranges
+        // the time range captions under the graphs, worded like the settings page
         public string StandardGraphTimeSpanText => $"Last {PerformanceGraphDefaults.StandardTimeSpanSeconds:0}s";
         public string ExtendedGraphTimeSpanText => $"Last {PerformanceGraphDefaults.ExtendedTimeSpanSeconds:0}s";
 
-        // true while a specific hardwares detail view is shown, false on the start page (SelectedItem null)
-        // the nav sidebar and info panel only make sense next to a hardware view, so both stay collapsed on the start
-        // page even while their command-bar toggles remain checked
+        // a detail view is shown (false on the start page); sidebar and info panel need one, whatever the toggles say
         private bool IsHardwareViewActive => SelectedItem != null;
 
 
         // === private helpers ===
 
-        // first sensor of the chain this hardware actually reports; the natural first pick can be missing entirely
-        // on hardware LHM only partially supports (an Intel iGPU that reports GPU Power and nothing else), which
-        // left the sidebar row and the start page tile showing an empty graph frame
-        // re-evaluated on every change of the instance, so the preferred sensor takes over as soon as it shows up
+        // the first sensor of the chain the hardware reports (partly supported hardware can lack the natural pick);
+        // re-evaluated on every change, so the preferred one takes over once it shows up
         private static SensorGraphViewModel FirstAvailable(params SensorGraphViewModel[] graphs)
         {
             foreach (var graph in graphs)
@@ -288,7 +260,7 @@ namespace FluentSensors.Features.Performance
             return null;
         }
 
-        // public because the theme side is driven by the page, which is what owns the applied ActualTheme
+        // public; the page owns the applied theme
         public void RefreshNavItemIconBrushes()
         {
             foreach (var item in NavItems)
@@ -297,8 +269,7 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // processes hardware instances discovered before this ViewModel existed, then keeps listening for future
-        // ones; every category (Cpu/Ram/Gpu/Storage/Network) goes through this exact same path
+        // the instances found before this view model existed, then the later ones; every category takes this path
         private void AttachExistingAndFuture(IEnumerable collection, HardwareGroupKind kind,
             Func<object, string> getHardwareName, Func<object, SensorGraphViewModel> getPrimaryGraph)
         {

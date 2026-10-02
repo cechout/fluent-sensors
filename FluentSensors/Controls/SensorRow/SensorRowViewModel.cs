@@ -16,7 +16,7 @@ namespace FluentSensors.Controls.SensorRow
     {
         // === fields ===
 
-        // mathematical fields for internal calculations
+        // the statistics
         private double _min = double.MaxValue;
         private double _max = double.MinValue;
         private double _sum = 0;
@@ -42,17 +42,15 @@ namespace FluentSensors.Controls.SensorRow
                 RecalculateColors();
         }
 
-        // the unit column is resolved from the sensor type once, so only a data unit switch in the settings moves it;
-        // the four values pick the new unit up on their own with the next tick
-        //
-        // also the one place that resets this sensors threshold and y-axis values to their defaults: every live
-        // sensor has exactly one row, hidden ones included, so this reaches graphs in windows that are not open too
+        // the unit column moves only with a data unit switch, the four values follow on the next tick
+        // also the one place that resets the threshold and y-axis values: every live sensor has exactly one row, hidden
+        // or not, so this reaches closed windows too
         private void OnDataUnitBasisChanged()
         {
             if (_entry == null) return;
 
             string unit = SensorUnitFormatter.GetUnit(_entry.SensorType);
-            if (unit == Unit) return; // the switch was for the other data unit setting
+            if (unit == Unit) return; // the other data unit setting
 
             Unit = unit;
             SensorStateService.Instance.ResetUnitDependentValues(_entry.Id);
@@ -61,33 +59,31 @@ namespace FluentSensors.Controls.SensorRow
 
         // === bindable properties ===
 
-        // which hardware this sensors group belongs to, set from HardwareGroupViewModel.Kind when the row is built
-        // LhmSensorEntry itself carries no hardware reference, so without this a pinned sensor has no way back to
-        // its category once it sits in the widget or on the taskbar
+        // the hardware kind of the group (HardwareGroupViewModel.Kind); LhmSensorEntry has none, and a
+        // pinned sensor needs its category
         public HardwareGroupKind HardwareKind { get; set; } = HardwareGroupKind.Other;
 
-        // backing sensor:
-        // source for Id/Name/SensorType and live Value; set once via object initializer must be set AFTER IsHidden, so
-        // the initial sync below correctly skips hidden rows
+        // the backing sensor; Id, Name, SensorType and the live Value; set once in the initializer, after IsHidden, so
+        // the first sync skips hidden rows
         private LhmSensorEntry _entry;
         public LhmSensorEntry Entry
         {
             get => _entry;
             set
             {
-                if (_entry == value) return; // set once; guards against double-subscribing
+                if (_entry == value) return; // no double subscription
                 _entry = value;
 
                 Unit = SensorUnitFormatter.GetUnit(value.SensorType);
                 OnPropertyChanged(nameof(Id));
 
-                // captures the UI thread this row was created on, so live/theme updates can be marshalled back here safely
+                // the UI thread of this row, for the theme recolor
                 _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
                 InitializeThreshold();
                 _entry.PropertyChanged += OnEntryPropertyChanged;
 
-                // hidden and disabled sensors never show live values anywhere, so skip the initial sync entirely
+                // hidden and disabled sensors show no live values
                 if (!IsHidden)
                 {
                     UpdateValue(_entry.Value);
@@ -98,7 +94,7 @@ namespace FluentSensors.Controls.SensorRow
         public string Id => _entry?.Id;
         public string Name => _entry?.Name ?? "Unknown Sensor";
         public string SensorType => _entry?.SensorType ?? "";
-        public int SortOrder { get; set; } // original creation order
+        public int SortOrder { get; set; } // creation order
         private string _unit = "";
         public string Unit
         {
@@ -113,7 +109,7 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // threshold, owned by the shared editor; created once Entry is set (see InitializeThreshold), null before that
+        // threshold, the shared editor; null until Entry is set (see InitializeThreshold)
         public ThresholdEditorViewModel Threshold { get; private set; }
 
         // item state
@@ -157,7 +153,7 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // formatted string properties for the ui
+        // formatted values
         private string _currentValue = "-";
         public string CurrentValue
         {
@@ -199,7 +195,7 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // text color properties
+        // text colors
         private Brush _currentValueColor = DefaultTextColor.Resolve();
         public Brush CurrentValueColor
         {
@@ -228,7 +224,6 @@ namespace FluentSensors.Controls.SensorRow
 
         // === public methods ===
 
-        // reset stats method
         public void ResetMinMax()
         {
             _min = double.MaxValue;
@@ -245,9 +240,7 @@ namespace FluentSensors.Controls.SensorRow
             AverageValueColor = DefaultTextColor.Resolve();
         }
 
-        // unsubscribes from SettingsService, the backing entry, and the threshold editor; must be called once this
-        // row is permanently removed (not just moved to the hidden list), or it keeps reacting to value/theme/threshold
-        // changes after disposal
+        // unsubscribes everything once the row is removed for good (not moved to the hidden list), or it keeps reacting
         public void Cleanup()
         {
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
@@ -260,7 +253,6 @@ namespace FluentSensors.Controls.SensorRow
 
         // === private helpers ===
 
-        // creates this rows threshold editor once Entry is known
         private void InitializeThreshold()
         {
             if (_entry == null || Threshold != null) return;
@@ -270,15 +262,15 @@ namespace FluentSensors.Controls.SensorRow
             RecalculateColors();
         }
 
-        // reacts to live value ticks pushed by LhmHardwareTreeService via the backing entry
+        // live value ticks from LhmHardwareTreeService
         private void OnEntryPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName != nameof(LhmSensorEntry.Value)) return;
 
-            // hidden and disabled sensors never show live values anywhere, so skip updating them entirely
+            // hidden and disabled sensors show no live values
             if (IsHidden) return;
 
-            // no dispatch needed: LhmHardwareTreeService already raises this on the UI thread
+            // already on the UI thread
             UpdateValue(_entry.Value);
         }
 
@@ -293,7 +285,7 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // applies one new value tick: updates min/max/avg and the formatted display strings
+        // one tick: min, max, avg and the formatted strings
         private void UpdateValue(double newValue)
         {
             if (newValue < _min) _min = newValue;
@@ -304,7 +296,7 @@ namespace FluentSensors.Controls.SensorRow
             _currentRaw = newValue;
             _avg = _sum / _count;
 
-            // each value picks its own scale independently, so Min can still read MHz while Max already switched to GHz
+            // each value scales on its own, Min can read MHz while Max reads GHz
             CurrentValue = SensorUnitFormatter.Format(newValue, SensorType);
             MinimumValue = SensorUnitFormatter.Format(_min, SensorType);
             MaximumValue = SensorUnitFormatter.Format(_max, SensorType);
@@ -313,10 +305,9 @@ namespace FluentSensors.Controls.SensorRow
             RecalculateColors();
         }
 
-        // color evaluation
         private void RecalculateColors()
         {
-            if (_count == 0) return; // no values received yet, nothing to color
+            if (_count == 0) return; // no values yet
 
             CurrentValueColor = EvaluateColor(_currentRaw);
             MinimumValueColor = EvaluateColor(_min);

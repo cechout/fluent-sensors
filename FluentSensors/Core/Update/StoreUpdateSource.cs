@@ -11,31 +11,29 @@ namespace FluentSensors.Core.Update
 {
     public enum StoreInstallPhase
     {
-        Waiting, // queued in the store, nothing moving yet
+        Waiting, // queued, nothing moving yet
         Downloading,
-        Installing // the store is replacing the package, which ends this process
+        Installing // replacing the package ends this process
     }
 
     public record StoreInstallProgress(StoreInstallPhase Phase, double Fraction);
 
     public enum StoreInstallResult
     {
-        Installed, // rarely seen, the install normally ends this process before the answer arrives
+        Installed, // rare, the install usually ends the process first
         Canceled,
-        Failed // store error, low battery, metered connection or background installs turned off in the store
+        Failed // store error, low battery, metered connection, background installs off
     }
 
 
-    // the update path of the packaged build: asks the Microsoft Store whether it holds a newer package of this app,
-    // and installs it in place
-    //
-    // the store only answers whether an update exists, never which version it is; naming the version and showing
-    // its notes is left to UpdateService, which reads them from the matching GitHub release
+    // the store update source:
+    // asks the Microsoft Store for a newer package and installs it; the store never names the version,
+    // UpdateService takes that from GitHub
     public static partial class StoreUpdateSource
     {
         // === fields ===
 
-        // restart only after an update, never after a crash, a hang or a reboot
+        // a restart after an update only, not after a crash, a hang or a reboot
         private const uint RestartNoCrash = 0x1;
         private const uint RestartNoHang = 0x2;
         private const uint RestartNoReboot = 0x8;
@@ -46,8 +44,7 @@ namespace FluentSensors.Core.Update
 
         // === public api ===
 
-        // throws when the store cannot be reached, which UpdateService turns into a failed check
-        // ownerWindow is what the store context is tied to, see GetContext
+        // throws on an unreachable store (a failed check); ownerWindow carries the store context, see GetContext
         public static async Task<bool> HasUpdateAsync(nint ownerWindow)
         {
             var context = GetContext(ownerWindow);
@@ -57,15 +54,12 @@ namespace FluentSensors.Core.Update
         }
 
         // --- workaround: store consent dialog closes in an elevated app ---
-        // problem: the consent dialog of RequestDownloadAndInstallStorePackageUpdatesAsync closes the moment it
-        // opens when the app runs elevated, and the call reports Canceled before the user saw anything; the same
-        // fault is reported for the store purchase dialog, still open with no workaround:
+        // problem: the consent dialog of RequestDownloadAndInstallStorePackageUpdatesAsync closes at once in an
+        // elevated app and the call reports Canceled; the store purchase dialog has the same open fault:
         // https://github.com/microsoft/microsoft-ui-xaml/issues/10538
-        // fix: install silently instead; the consent is our own update dialog, the one the GitHub builds show too
-        //
-        // the store ends this process to replace the package, so the app registers for a restart first and is
-        // started again once the new version is in place
-        // installs what the last HasUpdateAsync found, on the context that call set up
+        // fix: a silent install; our own update dialog is the consent, as in the GitHub builds
+        // the store ends the process to replace the package, so the app registers for a restart first; installs what
+        // the last HasUpdateAsync found, on its context
         public static async Task<StoreInstallResult> InstallAsync(IProgress<StoreInstallProgress> progress, CancellationToken ct)
         {
             var context = _context;
@@ -113,8 +107,7 @@ namespace FluentSensors.Core.Update
 
         // === private helpers ===
 
-        // a desktop app has no CoreWindow of its own, so the store context is tied to the main window; the spike that
-        // verified this whole path from the elevated packaged build ran with it
+        // without a CoreWindow the store context is tied to the main window (verified from the elevated packaged build)
         private static StoreContext GetContext(nint ownerWindow)
         {
             if (_context != null) return _context;
@@ -126,7 +119,7 @@ namespace FluentSensors.Core.Update
             return context;
         }
 
-        // the error states are left out, the overall result of the install reports those
+        // no error states, the install result reports those
         private static StoreInstallPhase? ToPhase(StorePackageUpdateState state) => state switch
         {
             StorePackageUpdateState.Pending => StoreInstallPhase.Waiting,

@@ -3,11 +3,10 @@
 
 namespace FluentSensors.Diagnostics
 {
-    // developer diagnostic tool (not part of any feature):
-    // dumps everything WinStaticInfoService collected to the Debug output window, to verify the WMI/native queries
-    // actually returned plausible data
-    // Call this manually from anywhere (e.g. MainWindow constructor, wrapped in Task.Run since first access to
-    // WinStaticInfoService.Instance blocks on WMI) whenever the static-info backend needs re-checking
+    // the static info dump:
+    // a developer tool that writes everything WinStaticInfoService collected to the Debug output, to
+    // check the WMI and native queries
+    // call it by hand (in Task.Run, the first WinStaticInfoService.Instance access blocks on WMI)
     public static class WinStaticInfoDebugDump
     {
         public static void Dump()

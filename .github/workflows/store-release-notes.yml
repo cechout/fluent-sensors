@@ -1,8 +1,7 @@
-# copies the intro and changelog of a finished github release into the microsoft store draft that release.yml
-# uploaded on the tag push; submitting the draft stays a click in partner center
-#
-# runs by itself when the github release is published; run it by hand (actions, run workflow) while the release is
-# still a draft to get the store submission into certification before the github release goes public
+# copies the intro and changelog of a finished github release into the store draft of release.yml; submitting
+# stays a click in partner center
+# runs on publish; by hand (actions, run workflow) on a draft release it gets the submission into certification
+# before the release goes public
 name: store release notes
 
 on:
@@ -19,14 +18,14 @@ jobs:
     if: vars.STORE_SUBMISSION == 'draft'
     runs-on: windows-latest
     timeout-minutes: 15
-    # write although it only reads: a draft release is only visible with push access, and the run by hand reads one
+    # write, since a draft release is visible only with push access
     permissions:
       contents: write
     steps:
       - name: checkout
         uses: actions/checkout@v7
 
-      # pinned to the same version as the upload in release.yml
+      # the version of the upload in release.yml
       - name: setup msstore cli
         uses: microsoft/microsoft-store-apppublisher@v1
         with:

@@ -17,24 +17,19 @@
 
                 <!--  base taskbar background: #202020 (32)  -->
                 <ResourceDictionary x:Key="Default">
-                    <!--  1. taskbar button normal hover & pressed backgrounds (alpha white on #202020)  -->
-                    <!--  hover -> target #2D2D2D (45): alpha 15 (0x0F) -> #0FFFFFFF  -->
+                    <!--  1. taskbar button hover and pressed (alpha white on #202020)  -->
+                    <!--  (hover, target #2D2D2D)  -->
                     <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="#0FFFFFFF" />
-                    <!--  pressed -> target #2A2A2A (42): alpha 11 (0x0B) -> #0BFFFFFF  -->
+                    <!--  (pressed, target #2A2A2A)  -->
                     <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#0BFFFFFF" />
 
                     <!--  2. taskbar button borders (dark mode)  -->
                     <!--
-                        the border is never transparent: it carries the #1DFFFFFF top highlight and the same fill
-                        brush on the sides & bottom, so it always paints its 1px (no size shift between states) but
-                        reads as invisible where it should; #0FFFFFFF over #202020 == the hover fill
-                        top stop is #1D (not #16): the stroke composites over the bare bar now that the fill is
-                        inset, so it needs the higher alpha to land ~#404040 and match the native taskbar highlight
-                        the three gradients run over a fixed 43.5 DIP, the button height on the standard bottom
-                        taskbar (48 less the 2.5 and 2.0 margins), so the top highlight keeps that height on a small
-                        taskbar and on the tall widget of a side taskbar; below it the last stop simply continues
+                        never transparent: the #1D top highlight lands ~#404040 like the native one, the sides take
+                        the fill brush and vanish; the gradients run over a fixed 43.5 DIP, the standard bottom
+                        button height, so the highlight keeps its height on every taskbar size and edge
                     -->
-                    <!--  border layers stay upright, the highlight belongs at the top  -->
+                    <!--  (the layers stay upright, the highlight belongs at the top)  -->
                     <x:Double x:Key="TaskbarButtonBorderScaleY">1</x:Double>
                     <LinearGradientBrush
                         x:Key="TaskbarButtonBorderBrush"
@@ -46,8 +41,8 @@
                         <GradientStop Offset="1.0" Color="#0FFFFFFF" />
                     </LinearGradientBrush>
                     <!--
-                        normal pressed border: sole source of the pressed border (StrokeBorder is off in this state),
-                        so the top stop is self-sufficient at #1FFFFFFF -> #3B3B3B; sides & bottom #10FFFFFF -> #2E2E2E
+                        normal pressed border, the only one in that state (StrokeBorder is off); top #3B3B3B,
+                        sides and bottom #2E2E2E
                     -->
                     <LinearGradientBrush
                         x:Key="TaskbarButtonPressedBorderBrush"
@@ -59,13 +54,10 @@
                         <GradientStop Offset="1.0" Color="#10FFFFFF" />
                     </LinearGradientBrush>
 
-                    <!--  3. active flyout state (when flyout is currently open)  -->
-                    <!--  active hover -> target #323232 (50): alpha 21 (0x15) -> #15FFFFFF  -->
+                    <!--  3. active flyout state (flyout open)  -->
+                    <!--  (active hover, target #323232)  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#15FFFFFF" />
-                    <!--
-                        active hover border: same #1DFFFFFF top highlight as normal hover (~#404040, native match),
-                        active-hover fill brush on sides & bottom so the 1px there reads as invisible
-                    -->
+                    <!--  active hover border; the normal hover highlight, the active hover fill on the sides  -->
                     <LinearGradientBrush
                         x:Key="TaskbarButtonActiveHoverBorderBrush"
                         MappingMode="Absolute"
@@ -75,43 +67,33 @@
                         <GradientStop Offset="0.10" Color="#15FFFFFF" />
                         <GradientStop Offset="1.0" Color="#15FFFFFF" />
                     </LinearGradientBrush>
-                    <!--  active pressed -> target #2A2A2A (42): alpha 11 (0x0B) -> #0BFFFFFF  -->
+                    <!--  (active pressed, target #2A2A2A)  -->
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#0BFFFFFF" />
-                    <!--  no visible border in this state, so it takes the fill brush (never Transparent) and paints its 1px  -->
+                    <!--  (no visible border here, so the fill brush, never Transparent)  -->
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#0BFFFFFF" />
 
                     <!--  4. flyout window styling (dark mode)  -->
                     <!--
-                        the dark literals sit a few levels below the tone they actually show; they were dialed in
-                        by comparing screenshots with the native Windows surfaces, where dark values read back
-                        lighter than they were written
-                        that offset belongs to the display it was tuned on; another monitor measures its own
-                        numbers, so the second value on each line is what was seen here and not a spec
+                        the dark literals sit a few levels below the tone they show (dark values render lighter);
+                        the second value on a line is what this display showed, not a spec
                     -->
-                    <!--  content area -> literal #242424, reads as #292929 here, opaque  -->
-                    <!--  (the bottom bar paints its own color, see 6)  -->
+                    <!--  content area; reads as #292929, opaque (the bottom bar paints its own, see 6)  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#242424" />
-                    <!--  window border -> literal #464646, reads as #484848 here  -->
+                    <!--  window border; reads as #484848  -->
                     <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#464646" />
 
                     <!--  5. flyout graphs overlay (dark mode)  -->
-                    <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
-                    <!--  (the opaque mode takes its content color from FlyoutWindowBackground and uses no overlay)  -->
+                    <!--  (blur modes only, lifts the graphs area off the glass; the opaque mode has no overlay)  -->
                     <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#0AFFFFFF" />
 
                     <!--  6. flyout bottom bar (dark mode)  -->
-                    <!--  bottom bar -> literal #1C1C1C, reads as #222222 here  -->
-                    <!--  opaque and independent of the content area  -->
+                    <!--  (reads as #222222, opaque, independent of the content area)  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#1C1C1C" />
 
                     <!--  7. flyout bottom bar separator (dark mode)  -->
-                    <!--  1px stroke between content area and bottom bar  -->
-                    <!--  literal #181818, reads as #1E1E1E here  -->
+                    <!--  (the 1px line above the bar; reads as #1E1E1E)  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#181818" />
-                    <!--
-                        the same stroke in the blur modes, where the native line is translucent and darkens the
-                        material instead of covering it, so it keeps letting the backdrop through
-                    -->
+                    <!--  (in the blur modes translucent like the native line, it darkens the material)  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#1F000000" />
                 </ResourceDictionary>
 
@@ -120,19 +102,17 @@
 
                 <!--  base taskbar background: #EDEDED (237)  -->
                 <ResourceDictionary x:Key="Light">
-                    <!--  1. taskbar button normal hover & pressed backgrounds (alpha white on #EDEDED)  -->
-                    <!--  hover -> target #F7F7F7 (247): alpha 142 (0x8E) -> #8EFFFFFF  -->
+                    <!--  1. taskbar button hover and pressed (alpha white on #EDEDED)  -->
+                    <!--  (hover, target #F7F7F7)  -->
                     <SolidColorBrush x:Key="TaskbarButtonHoverBackground" Color="#8EFFFFFF" />
-                    <!--  pressed -> target #F3F3F3 (243): alpha 85 (0x55) -> #55FFFFFF  -->
+                    <!--  (pressed, target #F3F3F3)  -->
                     <SolidColorBrush x:Key="TaskbarButtonPressedBackground" Color="#55FFFFFF" />
 
-                    <!--  2. taskbar button border (normal hover & pressed)  -->
+                    <!--  2. taskbar button border (normal hover and pressed)  -->
                     <!--
-                        alpha black so it tracks the bar; calibrated against the transparency-on light taskbar (~#F0F0F0)
-                        to land top & sides #E7E7E7, bottom #DDDDDD there; over the #EDEDED solid bar it reads ~2 levels darker
-                        the border layers are flipped upside down in this theme (TaskbarButtonBorderScaleY), so the three
-                        gradients start at the bottom edge and run over the same fixed 43.5 DIP as the dark ones; the
-                        darker bottom band keeps the height of the dark top highlight on every taskbar size and edge
+                        alpha black, calibrated on the transparency-on bar (~#F0F0F0): top and sides #E7E7E7, bottom
+                        #DDDDDD; the layers are flipped here (TaskbarButtonBorderScaleY), so the gradients start at the
+                        bottom and the darker band keeps the height of the dark highlight
                     -->
                     <x:Double x:Key="TaskbarButtonBorderScaleY">-1</x:Double>
                     <LinearGradientBrush
@@ -144,10 +124,7 @@
                         <GradientStop Offset="0.10" Color="#0A000000" />
                         <GradientStop Offset="1.0" Color="#0A000000" />
                     </LinearGradientBrush>
-                    <!--
-                        normal pressed border: sole source of the pressed border now (StrokeBorder is off in this state),
-                        same alpha-black values as TaskbarButtonBorderBrush -> top & sides #E7E7E7, bottom #DDDDDD
-                    -->
+                    <!--  normal pressed border, the only one in that state; the values of TaskbarButtonBorderBrush  -->
                     <LinearGradientBrush
                         x:Key="TaskbarButtonPressedBorderBrush"
                         MappingMode="Absolute"
@@ -158,13 +135,10 @@
                         <GradientStop Offset="1.0" Color="#0A000000" />
                     </LinearGradientBrush>
 
-                    <!--  3. active flyout state (when flyout is currently open)  -->
-                    <!--  active hover -> target #FAFAFA (250): alpha 184 (0xB8) -> #B8FFFFFF  -->
+                    <!--  3. active flyout state (flyout open)  -->
+                    <!--  (active hover, target #FAFAFA)  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#B8FFFFFF" />
-                    <!--
-                        active hover border: alpha black, calibrated against the transparency-on light taskbar (~#F0F0F0)
-                        to land top & sides #E5E5E5, bottom #D4D4D4 there
-                    -->
+                    <!--  active hover border; on the transparency-on bar top and sides #E5E5E5, bottom #D4D4D4  -->
                     <LinearGradientBrush
                         x:Key="TaskbarButtonActiveHoverBorderBrush"
                         MappingMode="Absolute"
@@ -175,41 +149,30 @@
                         <GradientStop Offset="1.0" Color="#0C000000" />
                     </LinearGradientBrush>
 
-                    <!--  active pressed -> target #F3F3F3 (243): alpha 85 (0x55) -> #55FFFFFF  -->
+                    <!--  (active pressed, target #F3F3F3)  -->
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBackground" Color="#55FFFFFF" />
-                    <!--
-                        active pressed border: alpha black over the bare bar (the fill layer is inset like the others now),
-                        calibrated against the transparency-on light taskbar (~#F0F0F0) to land #E7E7E7 on all 4 sides
-                    -->
+                    <!--  active pressed border; alpha black over the bare bar, #E7E7E7 on all four sides  -->
                     <SolidColorBrush x:Key="TaskbarButtonActivePressedBorderBrush" Color="#0A000000" />
 
                     <!--  4. flyout window styling (light mode)  -->
-                    <!--
-                        light barely needs the correction described in the dark section, the offset stays under
-                        one level above roughly 230
-                    -->
-                    <!--  content area -> #F2F2F2, opaque; the bottom bar paints its own color, see 6  -->
+                    <!--  (light needs barely any correction, under one level above roughly 230)  -->
+                    <!--  content area; opaque (the bottom bar paints its own, see 6)  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
-                    <!--  window border -> literal #C0C0C0, reads as #BFBFBF here  -->
+                    <!--  window border; reads as #BFBFBF  -->
                     <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#C0C0C0" />
 
                     <!--  5. flyout graphs overlay (light mode)  -->
-                    <!--  only used in the blur modes, where it lifts the graphs area off the glass  -->
-                    <!--  (the opaque mode takes its content color from FlyoutWindowBackground and uses no overlay)  -->
+                    <!--  (blur modes only, lifts the graphs area off the glass; the opaque mode has no overlay)  -->
                     <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#38FFFFFF" />
 
                     <!--  6. flyout bottom bar (light mode)  -->
-                    <!--  bottom bar -> target #EDEDED (237), opaque and independent of the content area  -->
+                    <!--  (opaque, independent of the content area)  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#EDEDED" />
 
                     <!--  7. flyout bottom bar separator (light mode)  -->
-                    <!--  1px stroke between content area and bottom bar  -->
-                    <!--  literal #DEDEDE, reads as #DDDDDD here  -->
+                    <!--  (the 1px line above the bar; reads as #DDDDDD)  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#DEDEDE" />
-                    <!--
-                        the same stroke in the blur modes, where the native line is translucent and darkens the
-                        material instead of covering it, so it keeps letting the backdrop through
-                    -->
+                    <!--  (in the blur modes translucent like the native line, it darkens the material)  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#13000000" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
@@ -217,11 +180,9 @@
 
             <!--  === custom subtle button ===  -->
             <!--
-                the platform SubtleButtonStyle fades its fill in over 83 ms but swaps the border brush in the
-                frame the state changes, and both resolve to the same brush; a hover therefore starts as a 1px
-                outline in the final color around a still empty button
-                every state brush below is the one the platform style uses, the border just stays transparent in
-                all of them, and the fill is sized to the outer border edge so it still covers the full box
+                (the platform SubtleButtonStyle fades the fill over 83 ms but swaps the border at once, so a hover
+                starts as an outline round an empty button; here the border stays transparent in every state and
+                the fill covers the outer border edge)
             -->
             <Style x:Key="SubtleBarButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="{ThemeResource SubtleButtonBackground}" />
@@ -256,8 +217,10 @@
                                 ContentTransitions="{TemplateBinding ContentTransitions}"
                                 CornerRadius="{TemplateBinding CornerRadius}"
                                 Foreground="{TemplateBinding Foreground}">
-                                <!--  the value of ControlFasterAnimationDuration  -->
-                                <!--  (spelled out because BrushTransition.Duration is a TimeSpan and the platform keys are strings; the platform button hardcodes it the same way)  -->
+                                <!--
+                                    ControlFasterAnimationDuration, spelled out (Duration is a TimeSpan, the
+                                    platform key a string; the platform button hardcodes it too)
+                                -->
                                 <ContentPresenter.BackgroundTransition>
                                     <BrushTransition Duration="0:0:0.083" />
                                 </ContentPresenter.BackgroundTransition>
@@ -309,13 +272,11 @@
 
             <!--  === subtle tile button ===  -->
             <!--
-                the same look as the subtle bar button above, plus the whole content fading while the button is
-                held: a tile carrying an image or a colored badge has nothing that follows Foreground, so the
-                platform press state reaches its text and leaves everything beside it at full strength
-                a Style cannot add a VisualState through BasedOn, which is why this carries its own template
+                (the subtle bar button look, plus the whole content fading while held, since an image or a badge
+                does not follow Foreground; its own template, BasedOn cannot add a VisualState)
             -->
 
-            <!--  how far the whole content fades in each state, Foreground is left alone so everything fades alike  -->
+            <!--  content opacity per state; (Foreground stays, so everything fades alike)  -->
             <x:Double x:Key="TileButtonContentOpacityHover">0.95</x:Double>
             <x:Double x:Key="TileButtonContentOpacityPressed">0.80</x:Double>
             <x:Double x:Key="TileButtonContentOpacityDisabled">0.45</x:Double>
@@ -353,7 +314,7 @@
                                 ContentTransitions="{TemplateBinding ContentTransitions}"
                                 CornerRadius="{TemplateBinding CornerRadius}"
                                 Foreground="{TemplateBinding Foreground}">
-                                <!--  the same 83 ms fill fade the bar button above spells out  -->
+                                <!--  the 83 ms fill fade of the bar button  -->
                                 <ContentPresenter.BackgroundTransition>
                                     <BrushTransition Duration="0:0:0.083" />
                                 </ContentPresenter.BackgroundTransition>
@@ -376,7 +337,7 @@
                                             </VisualState.Setters>
                                         </VisualState>
 
-                                        <!--  (the same fade as the two above, only further down)  -->
+                                        <!--  (the same fade, further down)  -->
                                         <VisualState x:Name="Disabled">
                                             <VisualState.Setters>
                                                 <Setter Target="ContentPresenter.Background" Value="{ThemeResource SubtleButtonBackgroundDisabled}" />
@@ -394,12 +355,11 @@
 
             <!--  === colour swatch button ===  -->
             <!--
-                a button whose whole face is the colour it opens a picker for, handed in as Background; a solid
-                face leaves the platform states nothing to change, so a veil over it lightens the colour on hover
-                and darkens it while pressed
+                (the face is the colour its picker edits, handed in as Background; a veil lightens it on hover
+                and darkens it while pressed)
             -->
 
-            <!--  the veil per state, white lightens and black darkens; the alpha is the strength  -->
+            <!--  the veil per state; (the alpha is the strength)  -->
             <SolidColorBrush x:Key="ColorSwatchVeilPointerOver" Color="#26FFFFFF" />
             <SolidColorBrush x:Key="ColorSwatchVeilPressed" Color="#26000000" />
 
@@ -425,7 +385,7 @@
                                     x:Name="Veil"
                                     Background="Transparent"
                                     CornerRadius="3">
-                                    <!--  the same 83 ms fade the subtle buttons above spell out  -->
+                                    <!--  the 83 ms fade of the subtle buttons  -->
                                     <Border.BackgroundTransition>
                                         <BrushTransition Duration="0:0:0.083" />
                                     </Border.BackgroundTransition>
@@ -456,10 +416,7 @@
 
 
             <!--  === source link button ===  -->
-            <!--
-                the link look of the info popup, shared so the release dialog can carry the same one
-                the negative left margin is what lets the padded hit area sit flush with the text above it
-            -->
+            <!--  (the info popup link, shared with the release dialog; the negative margin aligns the text)  -->
             <Style x:Key="SourceLinkButtonStyle" TargetType="HyperlinkButton">
                 <Setter Property="Padding" Value="6,2,6,2" />
                 <Setter Property="Margin" Value="-6,0,0,0" />
@@ -471,9 +428,8 @@
 
             <!--  === page link button ===  -->
             <!--
-                the same link look one size up, for links that sit on a page rather than inside a popup
-                the negative margin of the style above is dropped on purpose: in a row it pulls every link
-                towards its neighbour, not just the first one against the left edge
+                (the same link one size up, for a page; without the negative margin, which in a row pulls every
+                link towards its neighbour)
             -->
             <Style
                 x:Key="PageLinkButtonStyle"
@@ -485,8 +441,8 @@
 
             <!--  === item lists ===  -->
             <!--
-                ItemsControl has no style of its own in WinUI and keeps the IsTabStop=True every Control starts
-                with, so each list was an invisible tab stop without a focus rectangle; only its items take focus
+                (WinUI gives ItemsControl no style, so it keeps IsTabStop=True and every list would be an invisible
+                tab stop; only the items take focus)
             -->
             <Style TargetType="ItemsControl">
                 <Setter Property="IsTabStop" Value="False" />

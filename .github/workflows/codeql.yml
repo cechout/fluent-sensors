@@ -1,11 +1,9 @@
-# security scanning via CodeQL, advanced setup with manual build mode
-#
-# autobuild is not used here, WinUI3 needs the same explicit build pass release.yml documents
-# (MarkupCompilePass2 needs a full Build pass to resolve x:Bind LocalAssembly types)
+# CodeQL security scanning, advanced setup with a manual build
+# no autobuild; WinUI 3 needs the full build pass of release.yml (MarkupCompilePass2 resolves
+# x:Bind against the LocalAssembly)
 name: codeql
 
-# codeql is not a required status check, so path filtering is safe here; skipping it on a doc-only change
-# leaves nothing pending, unlike the build and format checks in pr-build.yml
+# not a required check, so a path filter leaves nothing pending (unlike pr-build.yml)
 on:
   push:
     branches: [main]
@@ -47,10 +45,10 @@ jobs:
         uses: microsoft/setup-msbuild@v3
 
       # --- workaround: dotnet build cannot resolve COMReference ---
-      # problem: ResolveComReference is not implemented in the .NET Core version of MSBuild, only
-      # the full .NET Framework MSBuild (msbuild.exe) supports it, dotnet build fails with MSB4803
+      # problem: ResolveComReference exists only in the .NET Framework MSBuild (msbuild.exe),
+      # dotnet build fails with MSB4803:
       # https://aka.ms/msbuild/MSB4803
-      # fix: restore via dotnet CLI as usual, then build through msbuild.exe from microsoft/setup-msbuild
+      # fix: restore with the dotnet CLI, build with msbuild.exe from microsoft/setup-msbuild
       - name: restore
         run: dotnet restore FluentSensors/FluentSensors.csproj -p:Platform=x64 -r win-x64 -p:SelfContained=true
 

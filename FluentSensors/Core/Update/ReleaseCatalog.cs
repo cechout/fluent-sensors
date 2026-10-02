@@ -11,10 +11,9 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Core.Update
 {
-    // one published release as the notes reader needs it; deliberately not UpdateInfo, which carries the asset a
-    // build would install and says nothing about releases other than the latest
+    // one published release for the notes reader; (UpdateInfo carries the asset and knows the latest only)
     public record ReleaseEntry(
-        string Version, // three part, no leading v, e.g. "1.3.0"
+        string Version, // three part, no v, e.g. "1.3.0"
         string TagName,
         string Name,
         DateTimeOffset PublishedAt,
@@ -23,15 +22,10 @@ namespace FluentSensors.Core.Update
     );
 
 
-    // every published minor and major release from 1.0.0 onwards, for the release notes dialog
-    //
-    // kept apart from UpdateService on purpose: that one answers "is there something newer to install" once per
-    // start, this one answers "what changed, ever" and is only ever touched when the dialog is opened
-    //
-    // it is not gated on the startup check setting: that switch governs what the app does without being asked,
-    // and opening the dialog is asking
-    //
-    // the answer is cached on disk, so the dialog still has the full history with no connection
+    // the release catalog:
+    // every published minor and major release from 1.0.0, for the release notes dialog; apart from UpdateService, which
+    // asks "anything newer" per start, this asks "what changed, ever" when the dialog opens
+    // not gated on the startup check (opening the dialog is asking); cached on disk for offline use
     public class ReleaseCatalog
     {
         // === fields ===
@@ -39,11 +33,10 @@ namespace FluentSensors.Core.Update
         private const string ReleasesUrl = "https://api.github.com/repos/cechout/fluent-sensors/releases?per_page=100";
         private const string CacheFileName = "releases.json";
 
-        // everything the network can rebuild sits in here, apart from the state files, so the whole folder can be
-        // deleted without anyone losing a setting
+        // what the network can rebuild, apart from the state files; deleting it loses no setting
         private const string CacheFolderName = "cache";
 
-        // anything older is a pre-1.0 release nobody is offered any more
+        // older is pre-1.0, offered to nobody
         private static readonly Version MinimumVersion = new Version(1, 0, 0);
 
         private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
@@ -62,19 +55,12 @@ namespace FluentSensors.Core.Update
 
         // === public api ===
 
-        // whatever was fetched or read from disk during this session, newest first
+        // fetched or read this session, newest first
         public IReadOnlyList<ReleaseEntry> Releases => _releases ?? Array.Empty<ReleaseEntry>();
 
-        // what the dialog asks for instead of RefreshAsync
-        //
-        // the on-disk copy stays good until a release exists that it does not carry, so opening the dialog is not
-        // by itself a reason to spend one of the 60 unauthenticated api requests GitHub grants per hour and ip
-        // returns null when nothing was fetched, which is the signal to keep showing what is already there
-        //
-        // deliberately not gated on CheckUpdatesOnStartup: that switch is about what the app does on its own, and
-        // the update button on the start page already reaches GitHub while it is off, for the same reason
-        // at most one fetch per run, so a version the catalog can never carry, which is what a local build
-        // numbered above every release is, cannot turn every dialog open into a request
+        // what the dialog calls; the disk copy holds until a release is missing, so an open costs none of the 60 hourly
+        // GitHub requests; null = nothing fetched, keep what is shown
+        // one fetch per run at most, so a local build numbered above every release does not request on every open
         public async Task<IReadOnlyList<ReleaseEntry>> EnsureCurrentAsync()
         {
             var cached = LoadCached();
@@ -87,8 +73,7 @@ namespace FluentSensors.Core.Update
             return await RefreshAsync();
         }
 
-        // the on-disk copy, so the dialog has something to render before the network answers and keeps having it
-        // when there is no network at all
+        // the disk copy, for before the network answers and without one
         public IReadOnlyList<ReleaseEntry> LoadCached()
         {
             if (_releases != null) return _releases;
@@ -103,14 +88,14 @@ namespace FluentSensors.Core.Update
             }
             catch (Exception ex)
             {
-                // a truncated or hand-edited cache is not worth failing over, the refresh below replaces it anyway
+                // a broken cache is not worth failing over, a refresh replaces it
                 Debug.WriteLine($"[ReleaseCatalog] cache read failed: {ex.Message}");
             }
 
             return Releases;
         }
 
-        // returns null when GitHub could not be reached, which is the signal to keep showing the cache
+        // null when GitHub is unreachable; the cache stays
         public async Task<IReadOnlyList<ReleaseEntry>> RefreshAsync()
         {
             try
@@ -135,16 +120,9 @@ namespace FluentSensors.Core.Update
 
         // === private helpers ===
 
-        // whether the catalog is missing a release it ought to carry
-        //
-        // two sources answer that and either one is enough: the update check knows the newest published release
-        // but only once it has run, which it never does while the startup check is off, and the running version
-        // is always known
-        // a published release is in the catalog by definition, so a catalog that does not list the version this
-        // app is cannot be current; that is the source that keeps the dialog working with the check switched off
-        //
-        // the catalog only lists x.y.0, so a patch release is matched against the minor it belongs to; without
-        // that a published 1.3.1 would look missing forever
+        // a release the catalog ought to carry is missing: the newest one the update check found (once it ran), or the
+        // running version (always known, so this works with the check off)
+        // the catalog lists x.y.0 only, so a patch matches its minor; (or 1.3.1 would look missing forever)
         private bool IsMissingLatest()
         {
             return IsMissing(UpdateService.Instance.LatestRelease?.Version)
@@ -159,9 +137,7 @@ namespace FluentSensors.Core.Update
             return !Releases.Any(entry => entry.Version == $"{parsed.Major}.{parsed.Minor}.0");
         }
 
-        // drafts and prereleases are skipped the same way the updater skips them, anything below 1.0.0 is
-        // history nobody is offered any more, and a patch is folded away because its notes never say anything
-        // the minor release it belongs to does not already say
+        // skips drafts and prereleases like the updater, anything below 1.0.0, and patches (their minor says it all)
         private static List<ReleaseEntry> Parse(string json)
         {
             var entries = new List<ReleaseEntry>();
@@ -196,7 +172,7 @@ namespace FluentSensors.Core.Update
                     Text(element, "html_url")));
             }
 
-            // the api already answers newest first, but the dialog depends on that order rather than hoping for it
+            // the api answers newest first; the dialog depends on it, so it is sorted anyway
             return entries.OrderByDescending(e => e.PublishedAt).ToList();
         }
 
@@ -215,12 +191,12 @@ namespace FluentSensors.Core.Update
             }
             catch (Exception ex)
             {
-                // a read-only or full disk costs the offline copy, nothing more
+                // a read-only or full disk costs the offline copy only
                 Debug.WriteLine($"[ReleaseCatalog] cache write failed: {ex.Message}");
             }
         }
 
-        // under the settings folder, so a portable copy carries its release history on the same drive
+        // under the settings folder, so a portable copy keeps it on its drive
         private static string CacheFolder() =>
             Path.Combine(PersistenceService.Instance.RootFolder, CacheFolderName);
 

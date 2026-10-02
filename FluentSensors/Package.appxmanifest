@@ -6,13 +6,9 @@
   IgnorableNamespaces="uap rescap">
 
 	<!--
-	  all three identity values are dictated by partner center and have to match it character for character, or
-	  the upload is rejected; they are listed there under app management, product identity
-	  Publisher is the package publisher id, which is a different guid from the partner center account id
-	  it doubles as the subject of the sideload signing certificate, which is why the sideload script reads it
-	  out of this file instead of carrying its own copy
-	  Version stays at the placeholder, the build writes the csproj Version into the generated manifest so the
-	  csproj remains the only place a version is bumped by hand
+	  the identity matches partner center (app management, product identity) to the character, or the upload fails
+	  Publisher is the publisher id, not the account id, and the sideload certificate subject the sideload script reads
+	  Version stays a placeholder, the build writes the csproj Version in
 	-->
 	<Identity
 	  Name="cechout.FluentSensors"
@@ -26,14 +22,9 @@
 	</Properties>
 
 	<!--
-	  windows 11 only, unlike the github build which still targets 10.0.19041: an elevated msix process cannot
-	  resolve a windows app sdk framework package on windows 10, support for that needed os side changes and
-	  only landed in build 22000
-	  this app is WindowsAppSDKSelfContained, so it may well work below that; raise or lower this only against a
-	  real sideload test on a windows 10 machine, never on the assumption
-	  the packaging tooling overwrites this element from TargetPlatformMinVersion, so the numbers that actually
-	  ship are the ones SetAppxTargetDeviceFamily in the csproj writes back; both sides are kept the same so
-	  reading either one is not misleading
+	  windows 11 only (the github build targets 10.0.19041): an elevated msix process resolves the app sdk framework
+	  package from build 22000 on; self-contained may work lower, change it only after a windows 10 sideload test
+	  the tooling overwrites this from TargetPlatformMinVersion (SetAppxTargetDeviceFamily), both kept the same
 	-->
 	<Dependencies>
 		<TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.22000.0" MaxVersionTested="10.0.26100.0" />
@@ -58,13 +49,9 @@
 	</Applications>
 
 	<!--
-	  allowElevation is what lets the package launch elevated at all; it does nothing on its own and only takes
-	  effect because app.manifest asks for requireAdministrator, which LibreHardwareMonitorLib needs for the
-	  kernel driver
-	  internetClient stays even though the store build never self updates: the release notes reader still reads
-	  the github releases api
-	  appDiagnostics is deliberately absent, the uia taskbar probe works without it in other store apps doing
-	  the same thing; add it only if a sideload test shows WinTaskbarUiaProbe finding nothing
+	  allowElevation lets the package start elevated, with the requireAdministrator of app.manifest (the driver)
+	  internetClient for the release notes from the github api; no appDiagnostics, other store apps probe the
+	  taskbar without it (add it only if a sideload test shows WinTaskbarUiaProbe finding nothing)
 	-->
 	<Capabilities>
 		<Capability Name="internetClient" />

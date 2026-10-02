@@ -10,14 +10,10 @@ using FluentSensors.Core.Update;
 
 namespace FluentSensors.Features.Start
 {
-    // the release history, every published version from 1.0.0 onwards
-    //
-    // built in XAML rather than in code, unlike every other dialog in this app (see ShowInfoDialog and
-    // ConfirmAction on the settings page): this one hosts a NavigationView driving a Frame, and assembling that
-    // by hand would be far harder to read than the markup it replaces
-    //
-    // the cached history is shown the moment the dialog opens and the network refresh replaces it afterwards, so
-    // opening this without a connection still shows everything that was ever fetched
+    // the release notes dialog:
+    // every published version from 1.0.0; XAML unlike the other dialogs, since a NavigationView driving a
+    // Frame reads far better as markup
+    // the cached history shows at once and the refresh replaces it, so it works offline too
     public sealed partial class ReleaseNotesDialog : ContentDialog
     {
         // === fields ===
@@ -25,10 +21,9 @@ namespace FluentSensors.Features.Start
         private List<ReleaseEntry> _releases = new List<ReleaseEntry>();
 
         // --- dialog geometry ---
-        // the width is fixed at 85% of the main windows own minimum (WindowManager.MinWidth = 600), so the dialog
-        // fits no matter how narrow the window has been dragged
+        // a fixed width below the 600 minimum of the main window, so it always fits
         private const double DialogWidth = 550;
-        private const double HeightFraction = 0.85; // how much of the window height the dialog may take
+        private const double HeightFraction = 0.85; // of the window height
         private const double MaxDialogHeight = 740;
         private const double MinDialogHeight = 460;
 
@@ -39,7 +34,7 @@ namespace FluentSensors.Features.Start
         {
             this.InitializeComponent();
 
-            // the dialog sits in its own popup layer, so the reset on the window never sees a click in here
+            // its own popup layer, which the window reset never sees
             PointerFocusReset.Attach(this);
         }
 
@@ -50,7 +45,7 @@ namespace FluentSensors.Features.Start
         {
             ResizeToWindow();
 
-            // a ContentDialog cannot be dragged or resized by hand, so following the window is the next best thing
+            // a ContentDialog cannot be resized by hand, so it follows the window
             if (this.XamlRoot != null) this.XamlRoot.Changed += OnXamlRootChanged;
             this.Closed += (_, _) =>
             {
@@ -63,15 +58,14 @@ namespace FluentSensors.Features.Start
             if (cached.Count > 0) Populate(cached);
             else SetBusy(true);
 
-            // only reaches GitHub when a release exists that the cache does not carry, see EnsureCurrentAsync
+            // GitHub only when the cache misses a release, see EnsureCurrentAsync
             var fresh = await catalog.EnsureCurrentAsync();
 
             SetBusy(false);
 
             if (fresh != null && fresh.Count > 0)
             {
-                // only rebuild when the server actually changed something, otherwise the selection would reset
-                // under the user for nothing
+                // only on a real change, or the selection resets for nothing
                 if (fresh.Count != _releases.Count) Populate(fresh);
             }
             else if (_releases.Count == 0)
@@ -83,7 +77,7 @@ namespace FluentSensors.Features.Start
 
         private void OnXamlRootChanged(XamlRoot sender, XamlRootChangedEventArgs args) => ResizeToWindow();
 
-        // fixed width, height follows the window so the dialog never overflows a short display
+        // fixed width, the height follows the window
         private void ResizeToWindow()
         {
             var size = this.XamlRoot?.Size ?? default;
@@ -122,9 +116,8 @@ namespace FluentSensors.Features.Start
         {
             if (args.SelectedItem is not NavigationViewItem item || item.Tag is not ReleaseEntry release) return;
 
-            // the NavigationView hands out the transition its own display mode calls for, so a release change
-            // reads exactly like a page change anywhere else in the app rather than like a hand rolled slide
-            // for a left pane that recommendation is always the entrance transition, the vertical one
+            // the recommended transition (the vertical entrance for a left pane), so a release
+            // change reads like any page change
             ReleaseFrame.Navigate(typeof(ReleaseNotesPage), release, args.RecommendedNavigationTransitionInfo);
         }
 
@@ -142,8 +135,7 @@ namespace FluentSensors.Features.Start
             LoadingRing.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        // the only way to get here now is a fetch that did not come back; the startup check setting no longer
-        // keeps the dialog offline, so there is no second case left to tell apart
+        // only a fetch that did not come back gets here
         private static string EmptyStatus() =>
             "The release history could not be loaded, and nothing has been saved yet";
 

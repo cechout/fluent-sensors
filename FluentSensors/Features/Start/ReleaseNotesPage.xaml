@@ -9,23 +9,20 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <!--  the one knob for how far the release body sits from the dialog edges  -->
+        <!--  the release body inset  -->
         <Thickness x:Key="ReleaseContentPadding">24,16,24,28</Thickness>
 
-        <!--  the one knob for the full changelog label; the link button beside it is sized by its own style  -->
+        <!--  the full changelog label; the link button has its own style  -->
         <x:Double x:Key="ChangelogLabelFontSize">12</x:Double>
     </Page.Resources>
 
-    <!--  (no padding on a scroller, it clips what it is meant to scroll; the body below carries the inset)  -->
+    <!--  (no padding here, a scroller clips it; the body carries the inset)  -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel>
 
-            <!--  header image  -->
             <!--
-                (edge to edge, which is why the inset sits on the body rather than on this panel
-                the banner is the borders background rather than a child Image: a brush covers the rect exactly,
-                while a scaled child is resampled at a fractional factor and leaves a seam along its edges
-                the height comes from the banners own aspect, see SetHeroHeight)
+                header image, edge to edge; the border background rather than a child Image, which resamples at a
+                fractional scale and leaves a seam; the height from the banner aspect (see SetHeroHeight)
             -->
             <Border
                 x:Name="HeroBorder"
@@ -34,13 +31,11 @@
                 SizeChanged="HeroBorder_SizeChanged"
                 Visibility="Collapsed" />
 
-            <!--  release body: date + github link, notes  -->
-            <!--  (a Grid around the panel, only so there is something with a Padding to hang the knob on)  -->
+            <!--  release body: date, notes (the Grid only carries the padding)  -->
             <Grid Padding="{StaticResource ReleaseContentPadding}">
                 <StackPanel Spacing="16">
 
-                    <!--  release meta  -->
-                    <!--  (no release name, the header image carries it in every release)  -->
+                    <!--  release meta, no name (the header image carries it)  -->
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <TextBlock
                             x:Name="DateText"
@@ -54,8 +49,7 @@
                         <!--<HyperlinkButton x:Name="GitHubLink" Content="View on GitHub" />-->
                     </StackPanel>
 
-                    <!--  release notes  -->
-                    <!--  (a panel rather than a RichTextBlock, so callouts can be real Borders)  -->
+                    <!--  release notes, a panel so callouts can be Borders  -->
                     <StackPanel x:Name="NotesHost" />
 
                     <!--  empty state  -->
@@ -67,11 +61,9 @@
                         TextWrapping="Wrap"
                         Visibility="Collapsed" />
 
-                    <!--  full changelog: label and compare link  -->
                     <!--
-                        (the line every release body closes on, lifted out of the notes by ExtractChangelogLink
-                        the flush label is what gives the indented bullets above it a visible end, and the button
-                        names the compare range, which is what tells it apart from View on GitHub at the top)
+                        full changelog, the closing line lifted out by ExtractChangelogLink; the flush label ends the
+                        indented bullets, the button names the compare range
                     -->
                     <StackPanel
                         x:Name="ChangelogRow"

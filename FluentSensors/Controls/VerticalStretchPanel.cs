@@ -6,7 +6,7 @@ using Windows.Foundation;
 
 namespace FluentSensors.Controls
 {
-    // arranges children in a single column, dividing the available height equally between them 
+    // one column, the height split equally
     public class VerticalStretchPanel : Panel
     {
         public double Spacing
@@ -30,9 +30,8 @@ namespace FluentSensors.Controls
             }
         }
 
-        // fixed height per child in DIP; 0 keeps the equal split
-        // a ScrollViewer measures its content with infinite height, where an equal split has nothing to divide, so a
-        // scrolling host hands the panel the row height to stack at instead
+        // per child in DIP, 0 keeps the equal split; a ScrollViewer measures with infinite height,
+        // so a scrolling host sets one
         public double FixedItemHeight
         {
             get => (double)GetValue(FixedItemHeightProperty);
@@ -59,9 +58,8 @@ namespace FluentSensors.Controls
             int count = Children.Count;
             if (count == 0) return new Size(0, 0);
 
-            // same reasoning as SquareGridPanel: a parent that measures with infinite height (e.g. a ScrollViewer) cannot
-            // be handed an infinite DesiredSize back, so this is clamped to 0 here; the real, finite size arrives in
-            // ArrangeOverride once the parent has resolved its actual size
+            // an infinite DesiredSize is invalid, so infinity (a ScrollViewer) measures as 0; the real
+            // size comes in ArrangeOverride
             double measureWidth = double.IsInfinity(availableSize.Width) ? 0 : availableSize.Width;
             double measureHeight = double.IsInfinity(availableSize.Height) ? 0 : availableSize.Height;
 
@@ -75,8 +73,7 @@ namespace FluentSensors.Controls
                 child.Measure(new Size(measureWidth, cellHeight));
             }
 
-            // a fixed row height is the one case with a real content height to report, and reporting it is what lets
-            // a scrolling host know there is something to scroll
+            // only a fixed row height has a content height, which tells a scrolling host there is something to scroll
             return FixedItemHeight > 0
                 ? new Size(measureWidth, (count * cellHeight) + totalSpacing)
                 : new Size(measureWidth, measureHeight);

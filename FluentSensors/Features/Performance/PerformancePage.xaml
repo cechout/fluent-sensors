@@ -141,8 +141,8 @@
                                         </VisualState>
 
                                         <!--
-                                            active states: filled, matches a checked native ToggleButton; same fill
-                                            brushes as the SidebarNavToggleButtonStyle Checked states, for consistency
+                                            active states: filled like a checked native ToggleButton, with the Checked
+                                            brushes of SidebarNavToggleButtonStyle
                                         -->
                                         <VisualState x:Name="Checked">
                                             <VisualState.Setters>
@@ -247,7 +247,7 @@
             x:Name="ContentGrid"
             Grid.Row="1"
             SizeChanged="ContentGrid_SizeChanged">
-            <!--  (the sidebar width belongs to the splitter below, its limits and starting width to PerformancePage.xaml.cs)  -->
+            <!--  (the width belongs to the splitter, limits and start width to PerformancePage.xaml.cs)  -->
             <Grid.ColumnDefinitions>
                 <ColumnDefinition
                     x:Name="SidebarColumn"
@@ -325,15 +325,11 @@
             </Border>
 
 
-            <!--
-                hardware detail view: each view now brings its own header (type + name) directly above its own
-                content, so its info panel can start flush with that header instead of only next to the content
-                below it; see e.g. CpuDetailView.xaml root Grid
-            -->
+            <!--  hardware detail view; (each view brings its own header, so its info panel starts flush with it)  -->
             <Grid x:Name="DetailHostGrid" Grid.Column="1" />
 
             <!--  sidebar splitter  -->
-            <!--  (a 9px band centered on the divider line, which is the last pixel of the sidebar; it resizes the sidebar column before it)  -->
+            <!--  (a 9px band on the divider, the last sidebar pixel; it resizes the sidebar column)  -->
             <fhControls:ClampedGridSplitter
                 Grid.Column="1"
                 Width="9"

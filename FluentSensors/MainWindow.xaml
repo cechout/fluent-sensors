@@ -28,12 +28,8 @@
 
         <!--  custom title bar  -->
         <!--
-            plain Grid instead of the native TitleBar control:
-            Content/RightHeader turned out to force their own internal alignment and could even collapse the
-            title text under space pressure, with no exposed way to override it;
-            SetTitleBar with an ordinary Grid gives full manual control instead; interactive controls inside it
-            (buttons etc) stay clickable normally, they consume the click before it reaches the windows drag
-            handling
+            (a plain Grid, not the native TitleBar, whose Content and RightHeader force their own alignment and
+            can collapse the title; the interactive controls get passthrough rects, see TitleBarPassthrough)
         -->
         <Grid
             x:Name="AppTitleBar"
@@ -76,9 +72,8 @@
 
             <!--  update pill  -->
             <!--
-                only shown once the startup check found a newer GitHub release; a store build never checks at all,
-                so this stays collapsed there
-                foreground is set on both children because an accent button does not pass its own down to them
+                (shown once UpdateService reports an update; the foreground is set on both children, an accent
+                button does not pass its own down)
             -->
             <Button
                 x:Name="UpdateButton"
@@ -105,7 +100,7 @@
             </Button>
 
             <!--  missing prerequisite hints  -->
-            <!--  (both share one column, so neither the status group columns nor the order logic behind them move)  -->
+            <!--  (one shared column, so the status group columns and their order logic stay put)  -->
             <StackPanel
                 Grid.Column="3"
                 VerticalAlignment="Center"
@@ -113,9 +108,8 @@
 
                 <!--  dotnet runtime hint  -->
                 <!--
-                    only shown when WinStaticInfoServices one-time registry check found no NET Desktop Runtime
-                    Major >= 10 installed system-wide; several LHM sensors depend on it regardless of this apps own
-                    self-contained runtime
+                    (only without a system-wide .NET Desktop Runtime 10 or newer, see WinStaticInfoService; several LHM
+                    sensors need it whatever the bundled runtime)
                 -->
                 <fhInfoPopup:InfoPopupControl
                     x:Name="DotNetRuntimePopup"
@@ -132,10 +126,7 @@
                 </fhInfoPopup:InfoPopupControl>
 
                 <!--  pawnio driver hint  -->
-                <!--
-                    the driver is installed separately and this app never ships or installs one, so without this
-                    hint nothing tells a user why the readings that need ring 0 are empty
-                -->
+                <!--  (the driver is installed separately, nothing else says why the ring 0 readings are empty)  -->
                 <fhInfoPopup:InfoPopupControl
                     x:Name="PawnIoPopup"
                     Margin="8,1,0,0"
@@ -173,7 +164,7 @@
             </Button>
 
             <!--  lhm group  -->
-            <!--  (column and margin are set from code, the settings page decides which group leads)  -->
+            <!--  (column and margin set from code, the settings page decides the order)  -->
             <StackPanel
                 x:Name="LhmStatusGroup"
                 Grid.Column="5"
@@ -189,7 +180,7 @@
                     SourceIntro="This App is powered by the open source LibreHardwareMonitor project:"
                     TitleForeground="{ThemeResource TextFillColorSecondaryBrush}">
                     <!--  readouts, carried by the popup so they follow its accent state  -->
-                    <!--  (no Foreground of their own, the presenter behind them supplies it)  -->
+                    <!--  (no Foreground of their own, the presenter supplies it)  -->
                     <fhInfoPopup:InfoPopupControl.TitleContent>
                         <StackPanel
                             VerticalAlignment="Center"
@@ -215,7 +206,7 @@
             </StackPanel>
 
             <!--  windows group  -->
-            <!--  (this apps own resource usage; whichever group ends up second is the one that hides on a narrow window)  -->
+            <!--  (the usage of this app; the second group hides on a narrow window)  -->
             <StackPanel
                 x:Name="WindowsStatusGroup"
                 Grid.Column="6"
@@ -252,7 +243,7 @@
                     TitleForeground="{ThemeResource TextFillColorSecondaryBrush}">
 
                     <!--  readouts, carried by the popup so they follow its accent state  -->
-                    <!--  (no Foreground of their own, the presenter behind them supplies it)  -->
+                    <!--  (no Foreground of their own, the presenter supplies it)  -->
                     <fhInfoPopup:InfoPopupControl.TitleContent>
                         <StackPanel
                             VerticalAlignment="Center"
@@ -277,16 +268,14 @@
                 </fhInfoPopup:InfoPopupControl>
             </StackPanel>
 
-            <!--  column 7 is a deliberately empty * spacer, stays draggable all the way to the caption buttons  -->
+            <!--  (column 7 is an empty star spacer, draggable up to the caption buttons)  -->
         </Grid>
 
 
         <!--  navigation view  -->
         <!--
-            invisible until loading finishes; the splash below is transparent now and would otherwise show the
-            pane through it
-            Opacity rather than Visibility on purpose: the reveal sequence closes the pane and waits for that to
-            settle, which needs the layout pass a collapsed element does not get
+            (invisible until loaded, the transparent splash would show the pane; Opacity, since the reveal
+            closes the pane and waits on a layout pass a collapsed element does not get)
         -->
         <NavigationView
             x:Name="MainNavigationView"
@@ -299,7 +288,7 @@
             PaneDisplayMode="Left"
             SelectionChanged="MainNavigationView_SelectionChanged">
 
-            <!--  (every item carries an x:Name, the code behind addresses them by name rather than by index)  -->
+            <!--  (every item has an x:Name, the code behind finds them by name, not by index)  -->
             <NavigationView.MenuItems>
 
                 <!--  start page  -->
@@ -348,8 +337,8 @@
 
             <!--  page host  -->
             <!--
-                (the theme transition is what actually runs the NavigationTransitionInfo a Navigate call carries
-                without it the info is accepted and ignored, see MainNavigationView_SelectionChanged)
+                (the theme transition runs the NavigationTransitionInfo of a Navigate call, without it the info is
+                ignored; see MainNavigationView_SelectionChanged)
             -->
             <Frame x:Name="contentFrame">
                 <Frame.ContentTransitions>
@@ -413,9 +402,8 @@
                 <MenuFlyout>
                     <!--  show windows  -->
                     <!--
-                        The tab inside Text is what puts the click hint into its own right aligned column
-                        (H.NotifyIcon rebuilds this flyout as a native win32 menu and carries only Text, IsEnabled
-                        and Command across, so KeyboardAcceleratorTextOverride never reaches the screen)
+                        (the tab in Text right-aligns the click hint; H.NotifyIcon rebuilds this as a native win32 menu
+                        from Text, IsEnabled and Command, so KeyboardAcceleratorTextOverride never shows)
                     -->
                     <MenuFlyoutItem Command="{x:Bind ShowWidgetWindowCommand}" Text="Widget Window&#x9;Single Click" />
                     <MenuFlyoutItem Command="{x:Bind ShowCsvWindowCommand}" Text="CSV Window&#x9;Single Click" />

@@ -7,12 +7,13 @@ using FluentSensors.Core.Taskbar;
 
 namespace FluentSensors.Diagnostics
 {
-    // developer diagnostics for taskbar detection backend
+    // the taskbar dump:
+    // a developer tool for the taskbar detection
     public static class WinTaskbarDebugDump
     {
         // === public api ===
 
-        // outputs discovered taskbars, UIA element insets, and fullscreen state to debug console
+        // the taskbars, their UIA element insets and the fullscreen state to the Debug output
         public static void Dump()
         {
             System.Diagnostics.Debug.WriteLine("========== WinTaskbarService Dump ==========");

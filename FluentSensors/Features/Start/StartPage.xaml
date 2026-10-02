@@ -17,7 +17,7 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <!--  (the header exports are 2560x1317, so 150 wide lands on 77 high; the update button matches that height)  -->
+        <!--  (the 2560x1317 header exports at 150 wide are 77 high; the update button matches)  -->
         <x:Double x:Key="StartHeroWidth">150</x:Double>
         <x:Double x:Key="StartHeroHeight">77</x:Double>
     </Page.Resources>
@@ -29,7 +29,7 @@
         </Grid.RowDefinitions>
 
         <!--  header: app title and release-button + check-for-updates-button  -->
-        <!--  (the inset is padding inside the border, so the divider line reaches both window edges)  -->
+        <!--  (the inset is padding inside the border, so the divider reaches both window edges)  -->
         <Border
             Grid.Row="0"
             Padding="20,20,20,12"
@@ -38,10 +38,7 @@
             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
             BorderThickness="0,0,0,1">
 
-            <!--
-                (left aligned the same way the scrolled content is, which is what keeps the update button
-                beside its neighbour instead of out at the window edge)
-            -->
+            <!--  (left aligned like the scrolled content, so the update button stays beside its neighbour)  -->
             <StackPanel HorizontalAlignment="Left" Spacing="4">
 
                 <!--  app title, version and copy-version-button  -->
@@ -64,7 +61,7 @@
                             Style="{ThemeResource BodyTextBlockStyle}" />
 
                         <!--  copy version button  -->
-                        <!--  (the glyph turns into a checkmark for a moment once copied, see CopyVersionButton_Click)  -->
+                        <!--  (a checkmark for a moment once copied, see CopyVersionButton_Click)  -->
                         <Button
                             Width="24"
                             Height="24"
@@ -86,10 +83,9 @@
 
                 <!--  release-button and check-for-updates-button  -->
                 <!--
-                    the left button only reads out what changed, the right one is the only thing that offers to
-                    install anything; both carry the same MinHeight so they read as a pair
-                    (MaxWidth is the two column widths plus the spacing, the star weights hold that ratio while the
-                    window narrows, and both buttons trim their text instead of wrapping)
+                    (the left one reads out what changed, only the right one offers to install; one MinHeight, so
+                    they pair; MaxWidth is both columns plus the spacing, the star weights keep the ratio and the
+                    text trims)
                 -->
                 <Grid
                     MaxWidth="628"
@@ -102,7 +98,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!--  whats new button  -->
-                    <!--  (no left padding, the image sits flush against the button edge the way the hover fill does)  -->
+                    <!--  (no left padding, the image sits flush with the button edge like the hover fill)  -->
                     <Button
                         Grid.Column="0"
                         Padding="0,0,18,0"
@@ -116,9 +112,8 @@
 
                             <!--  hero image  -->
                             <!--
-                                (an ImageBrush rather than a child Image: a background is clipped by the corner
-                                radius for certain, and the fixed pair keeps the export at its own 2560x1317 ratio
-                                the source is assigned in code, one file per theme, see ApplyHeroImage)
+                                (an ImageBrush, a background is clipped by the corner radius; the fixed pair keeps
+                                the 2560x1317 ratio; the source is set in code per theme, see ApplyHeroImage)
                             -->
                             <Border
                                 x:Name="HeroBorder"
@@ -151,7 +146,7 @@
                     </Button>
 
                     <!--  update state button  -->
-                    <!--  (what a click does depends on the state, see UpdateStatusButton_Click)  -->
+                    <!--  (a click depends on the state, see UpdateStatusButton_Click)  -->
                     <Button
                         Grid.Column="1"
                         MinHeight="{StaticResource StartHeroHeight}"
@@ -167,9 +162,8 @@
 
                             <!--  state badge and progress ring  -->
                             <!--
-                                these two never show at the same time, and they sit directly in the column rather than
-                                in a fixed-size wrapper: a 24px badge centred in a 36px box reads as 6px of padding the
-                                neighbouring button does not have
+                                (never shown together; directly in the column, a fixed box would read as padding the
+                                neighbouring button does not have)
                             -->
                             <Border
                                 Grid.Column="0"
@@ -250,8 +244,8 @@
                                 CornerRadius="{ThemeResource ControlCornerRadius}">
 
                                 <!--
-                                    (SquareGridPanel gives every tile in a row the height of the tallest one,
-                                    so the Star row is what pushes the button down onto the card edge)
+                                    (a row of tiles takes the tallest height, the Star row pushes
+                                    the button onto the card edge)
                                 -->
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -262,21 +256,21 @@
                                     <StackPanel Grid.Row="0">
 
                                         <!--  tile header  -->
-                                        <!--  (category over device name, the fact idiom SensorTileControl uses)  -->
+                                        <!--  (category over device name, like SensorTileControl)  -->
                                         <Grid Margin="16,14,16,0" ColumnSpacing="12">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
 
-                                            <!--  (no alignment set, so it centres across both lines like the hardware start view)  -->
+                                            <!--  (centred across both lines, like the hardware start view)  -->
                                             <FontIcon
                                                 Grid.Column="0"
                                                 FontSize="20"
                                                 Foreground="{x:Bind IconBrush, Mode=OneWay}"
                                                 Glyph="{x:Bind IconGlyph}" />
 
-                                            <!--  (the Star column is what gives the trimming below a width to trim against)  -->
+                                            <!--  (the Star column gives the trimming a width)  -->
                                             <StackPanel Grid.Column="1" Spacing="0">
                                                 <TextBlock
                                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -317,7 +311,7 @@
                                         <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
 
                                         <!--  sensor count button  -->
-                                        <!--  (opens this hardware group on the sensors page, disabled when there is none)  -->
+                                        <!--  (opens the hardware group on the sensors page; disabled without one)  -->
                                         <Button
                                             Padding="16,10"
                                             HorizontalAlignment="Stretch"
@@ -362,19 +356,15 @@
 
                 <!--  content: app status  -->
                 <!--
-                    fed by AppStatusService, the same snapshot the title bar readout runs on, so the two always agree
-                    carded with the same recipe as the system snapshot above, so the page reads as one board
-                    instead of a board with a loose paragraph under it
+                    (AppStatusService, the snapshot of the title bar readout, so both agree; carded like the system
+                    snapshot, so the page reads as one board)
                 -->
                 <TextBlock
                     Margin="4,20,0,6"
                     Style="{StaticResource BodyStrongTextBlockStyle}"
                     Text="App Status" />
 
-                <!--
-                    (MaxWidth is the two 300 wide cards plus the 8 spacing; without it the star columns would push
-                    them apart on a wide window, and Auto columns would clip instead of shrink on a narrow one)
-                -->
+                <!--  (MaxWidth is both 300 wide cards plus the spacing, so the star columns never push them apart)  -->
                 <Grid
                     MaxWidth="608"
                     HorizontalAlignment="Left"
@@ -433,7 +423,7 @@
                     </Border>
 
                     <!--  this app group  -->
-                    <!--  (this apps own usage rather than the machines, which is what the flyout spells out)  -->
+                    <!--  (the usage of this app, not of the machine, as the flyout spells out)  -->
                     <Border
                         Grid.Column="1"
                         MaxWidth="300"
@@ -476,7 +466,7 @@
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
 
-                                <!--  (ticks on its own one second timer rather than with the status snapshot, see StartPage)  -->
+                                <!--  (ticks on its own timer, not with the status snapshot, see StartPage)  -->
                                 <StackPanel Spacing="2">
                                     <TextBlock
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -501,9 +491,8 @@
 
                 <!--  revisit: flat about section  -->
                 <!--
-                    the expanders here are toggled by hand while the flat link row is being tried out
-                    the third-party list has no home in that row yet; the app data folder button moved to the
-                    settings page, under backup and reset
+                    the expanders are toggled by hand while the flat link row is tried out; the third-party list
+                    has no place in that row yet
                 -->
 
                 <!--  app info  -->
@@ -604,8 +593,8 @@
 
                 <!--  quick links  -->
                 <!--
-                    (the same destinations the collapsed expanders above carry, ordered from using the app to
-                    supporting it; the store review only shows in the store build)
+                    (the destinations of the collapsed expanders, from using the app to supporting it; the store
+                    review only in the store build)
                 -->
                 <controls:WrapPanel
                     Margin="0,4,0,8"

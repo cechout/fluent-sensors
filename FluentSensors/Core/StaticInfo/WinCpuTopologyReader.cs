@@ -5,25 +5,16 @@ using System.Runtime.InteropServices;
 
 namespace FluentSensors.Core.StaticInfo
 {
-    // reads CPU core topology
-    // (physical core boundaries, SMT, and the Windows-native "EfficiencyClass" hint that distinguishes performance
-    // vs. efficiency cores on Intel hybrid CPUs) via the native GetLogicalProcessorInformationEx Win32 API; the same
-    // mechanism Windows own scheduler and tools like Task Manager/HWiNFO use
-    // Unlike a name-based heuristic, it works regardless of whether SMT/Hyper-Threading exists on the chip at all
-    // (relevant since Arrow Lake and newer Intel CPUs have no threads on any core)
-    // AMD hybrid CPUs are not confirmed to populate EfficiencyClass reliably; untested here
-    //
-    // problem: the buffer this API returns is a sequence of variable-length records (a C union with a
-    // trailing variable-size array), which C# automatic struct marshaling handles poorly and unsafely for
-    // this shape
-    // fix: the buffer is read manually as raw bytes at fixed offsets documented by the Win32 API, instead of
-    // marshaling it onto a C# struct
-    //
-    // official struct docs the manual offsets below are derived from:
+    // the cpu topology:
+    // physical cores, SMT and the EfficiencyClass of Intel hybrid CPUs from
+    // GetLogicalProcessorInformationEx, the source of the Windows scheduler and Task Manager; works without
+    // SMT too (Arrow Lake has none); AMD hybrid is untested
+    // the buffer is a run of variable-length records (a union with a trailing array), which struct marshaling handles
+    // poorly, so it is read as raw bytes at the documented offsets:
     // https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-system_logical_processor_information_ex
     // https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-processor_relationship
     // https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformationex
-    // worked example of the same "call with null buffer first, then enumerate variable-length records" pattern:
+    // the null-buffer-first pattern, worked through:
     // https://devblogs.microsoft.com/oldnewthing/using-getlogicalprocessorinformationex-to-see-the-relationship-between-logical-and-physical-processors
     public static partial class WinCpuTopologyReader
     {
@@ -36,14 +27,12 @@ namespace FluentSensors.Core.StaticInfo
             IntPtr buffer,
             ref uint returnedLength);
 
-        // returns one entry per physical core; empty list (not an exception) if the call fails for any reason (non-
-        // hybrid CPU, unsupported OS version, ...)
-        // callers should treat an empty list as "topology unknown", not as an error
+        // one entry per physical core; an empty list when the call fails, read as "topology unknown"
         public static IReadOnlyList<WinCpuCoreTopologyEntry> ReadCoreTopology()
         {
             uint length = 0;
 
-            // first call deliberately fails (buffer too small) just to learn the required size
+            // the first call fails on purpose, for the size
             GetLogicalProcessorInformationEx(RelationProcessorCore, IntPtr.Zero, ref length);
             if (length == 0) return Array.Empty<WinCpuCoreTopologyEntry>();
 
@@ -61,13 +50,12 @@ namespace FluentSensors.Core.StaticInfo
             }
         }
 
-        // manual offsets, documented by the SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX / PROCESSOR_RELATIONSHIP /
-        // GROUP_AFFINITY Win32 structs (sizes below are for x64, this app's only build target):
+        // the documented offsets, 64-bit layout (the shipped builds are x64):
         //
         // SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX header:
         //   +0: DWORD Relationship (4 bytes)
         //   +4: DWORD Size         (4 bytes) - total size of this record, used to step to the next one
-        //   +8: PROCESSOR_RELATIONSHIP starts here (guaranteed, since we only request RelationProcessorCore)
+        //   +8: PROCESSOR_RELATIONSHIP (only RelationProcessorCore is requested)
         //
         // PROCESSOR_RELATIONSHIP (relative to +8):
         //   +0:  BYTE Flags           (bit 0 = LTP_PC_SMT, i.e. this core has more than one logical processor)
@@ -86,7 +74,7 @@ namespace FluentSensors.Core.StaticInfo
             while (offset < totalLength)
             {
                 int recordSize = Marshal.ReadInt32(buffer, offset + 4);
-                if (recordSize <= 0) break; // guard against a malformed/unexpected buffer
+                if (recordSize <= 0) break; // a malformed buffer
 
                 IntPtr processorRelationship = IntPtr.Add(buffer, offset + 8);
 
@@ -104,8 +92,7 @@ namespace FluentSensors.Core.StaticInfo
                     {
                         if ((mask & (1L << bit)) != 0)
                         {
-                            // group-relative bit index; fine for practically every consumer CPU (single group),
-                            // would need the Group field too on 64+ logical processor systems
+                            // group-relative; (one group on consumer CPUs, 64+ logical processors would need Group too)
                             logicalProcessorIndices.Add(bit);
                         }
                     }

@@ -4,9 +4,8 @@ using System.Runtime.CompilerServices;
 
 namespace FluentSensors.Core.Lhm
 {
-    // minimal live data node for one LHM sensor:
-    // static identity (Id/Name/SensorType) plus a bindable Value no threshold
-    // no min/max/avg, no hide/show state; those stay page-specific concerns on top of this
+    // one LHM sensor:
+    // Id, Name, SensorType and a bindable Value; thresholds, statistics and hiding belong to the pages
     public class LhmSensorEntry : INotifyPropertyChanged
     {
         public string Id { get; }
@@ -26,8 +25,7 @@ namespace FluentSensors.Core.Lhm
             get => _value;
             set
             {
-                // no equality guard: every payload tick must raise PropertyChanged, even with an unchanged value,
-                // since consumers (e.g. SensorRowViewModel) count every tick for their own Min/Max/Avg stats
+                // no equality guard; SensorRowViewModel counts every tick for its statistics, unchanged ones too
                 _value = value;
                 OnPropertyChanged();
             }

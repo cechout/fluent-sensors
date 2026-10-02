@@ -4,8 +4,9 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace FluentSensors.Controls.SensorRow
 {
-    // the column labels above a list of SensorRowControls, with the same columns and the same compact switch as the
-    // row itself, so the sensors page and the hidden sensors window do not each carry a copy of the column layout
+    // the sensor row header:
+    // the column labels above SensorRowControls, with their columns and compact switch, so the sensors page and the
+    // hidden sensors window share one layout
     public sealed partial class SensorRowHeaderControl : UserControl
     {
         // === constructor ===
@@ -18,7 +19,7 @@ namespace FluentSensors.Controls.SensorRow
 
         // === dependency properties ===
 
-        // true above the rows in the hidden sensors window, where SensorRowControl.IsCompact is set as well
+        // in the hidden sensors window, like SensorRowControl.IsCompact
         public static readonly DependencyProperty IsCompactProperty =
             DependencyProperty.Register(
                 nameof(IsCompact),
@@ -40,7 +41,7 @@ namespace FluentSensors.Controls.SensorRow
 
         // === private helpers ===
 
-        // the same name-only collapse SensorRowControl.UpdateDisplayState does, label for column
+        // the name-only collapse of SensorRowControl.UpdateDisplayState, label for column
         private void UpdateColumns()
         {
             if (!IsCompact) return;

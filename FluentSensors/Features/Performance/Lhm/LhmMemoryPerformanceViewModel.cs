@@ -11,17 +11,15 @@ using FluentSensors.Core.Lhm;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // discovers the physical memory instance AND the separate "Virtual Memory" instance from
-    // LhmHardwareTreeService, but merges both into the one LhmMemoryInstanceViewModel; there is no separate nav
-    // entry for virtual memory
-    // Parses each raw LHM sensor into the right property, and derives two Y-max helpers (RoundedTotalMemory,
-    // VirtualMemoryTotal) since LHM has no single "total" sensor for either
+    // memory discovery:
+    // the physical and the "Virtual Memory" instance merged into one LhmMemoryInstanceViewModel,
+    // without a nav entry of its own
+    // derives the y-max helpers RoundedTotalMemory and VirtualMemoryTotal, LHM has no total sensor
     public class LhmMemoryPerformanceViewModel
     {
         // === fields ===
 
-        // the single combined RAM view-model every consumer binds against; created lazily on whichever of the
-        // two hardware groups (physical or virtual) is discovered first
+        // created by whichever of the two groups comes first
         private LhmMemoryInstanceViewModel _memory;
 
 
@@ -66,10 +64,8 @@ namespace FluentSensors.Features.Performance.Lhm
         private static bool IsPhysicalMemory(LhmHardwareInstance instance) =>
             instance.Kind == HardwareGroupKind.Ram && instance.HardwareName == "Total Memory";
 
-        // LHM reports commit charge as its own separate Ram-kind hardware instance, named "Virtual Memory";
-        // same two sensor names ("Memory Used"/"Memory Available") as the physical instance,
-        // just under this different hardware group
-        // Roughly matches Windows Task Manager's "Committed"/"Cached" figures
+        // LHM reports the commit charge as a Ram instance "Virtual Memory" with the same "Memory Used" and "Memory
+        // Available"; roughly the Task Manager "Committed"
         private static bool IsVirtualMemory(LhmHardwareInstance instance) =>
             instance.Kind == HardwareGroupKind.Ram && instance.HardwareName == "Virtual Memory";
 
@@ -160,7 +156,7 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // recomputes Used + Available, rounded up to the next 4 GB step, whenever either physical sensor updates
+        // Used + Available up to the next 4 GB, on every physical update
         private void RecalculateRoundedTotal(LhmMemoryInstanceViewModel memory, LhmHardwareInstance instance, PropertyChangedEventArgs e)
         {
             if (e != null && e.PropertyName != nameof(LhmSensorEntry.Value)) return;
@@ -172,7 +168,7 @@ namespace FluentSensors.Features.Performance.Lhm
             memory.RoundedTotalMemory = Math.Ceiling((used.Value + available.Value) / 4.0) * 4.0;
         }
 
-        // same idea, but for the virtual memory sensors and deliberately not rounded
+        // the same for virtual memory, unrounded
         private void RecalculateVirtualTotal(LhmMemoryInstanceViewModel memory, LhmHardwareInstance instance, PropertyChangedEventArgs e)
         {
             if (e != null && e.PropertyName != nameof(LhmSensorEntry.Value)) return;

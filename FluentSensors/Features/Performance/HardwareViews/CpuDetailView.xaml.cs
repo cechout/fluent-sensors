@@ -14,20 +14,18 @@ using FluentSensors.Features.Performance.Lhm;
 
 namespace FluentSensors.Features.Performance.HardwareViews
 {
-    // self-contained CPU detail view: everything shown once a CPU nav item is selected, including its own
-    // Overall/All-Threads toggle bar
+    // the CPU detail view:
+    // everything shown for a selected CPU, its Overall/All Threads toggle bar included
     public sealed partial class CpuDetailView : UserControl
     {
         // === fields ===
 
-        // below this width, the wide 3-graph layout (big Load graph + 2 stacked) switches to the narrow layout
-        // (all 3 stacked equally)
+        // below it the wide layout (a big graph beside two stacked) turns narrow (all three stacked)
         private const double NarrowGraphsLayoutThreshold = 700;
         private bool _isNarrowLayoutActive;
         private bool _allThreadsTimeSpanHookAttached;
 
-        // vertical gap between the "Cores With Threads" and "Cores Without Threads" groups
-        // (only applied when both are shown)
+        // between the two core groups, when both show
         private const double CoreGroupSpacing = 24;
 
 
@@ -44,19 +42,14 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === bindable properties ===
 
-        // cpu graphs color (TotalLoad, MaxTemperature, PackagePower); single source of truth in
-        // HardwareGroupInfo
+        // the graph colour of this view, from HardwareGroupInfo
         public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Color;
-
-        // same color as HardwareColor, wrapped as a Brush (for hardware icon?)
-        //public SolidColorBrush HardwareColorBrush => new(HardwareGroupInfo.GetGraphColor(HardwareGroupKind.Cpu));
 
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).Label;
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Cpu).IconGlyph;
 
-        // header icon colour, follows the hardware icon colour setting; HardwareIconColorBinding in the
-        // constructor is what re-reads it, the graph colour above is deliberately not part of that
+        // header icon colour, re-read by HardwareIconColorBinding (the graph colour stays)
         public SolidColorBrush GroupIconBrush => HardwareGroupInfo.GetIconBrush(HardwareGroupKind.Cpu);
 
 
@@ -97,9 +90,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
             SyncSectionRenderingGate();
         }
 
-        // the splitter rewrites both column widths while it drags; once it lets go, the content column goes back to
-        // filling the rest, and the info panel width goes to the view model, which every hardware view sizes its own
-        // info panel column from
+        // after a drag the content column fills the rest again, and the width goes to the view model, which every
+        // hardware view sizes its info panel from
         private void InfoPanelSplitter_ManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
         {
             double width = InfoPanelColumn.ActualWidth;
@@ -123,11 +115,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === private helpers ===
 
-        // recomputes whichever section (Overview or All Threads) is currently shown
-        //
-        // Called both by the handlers above and externally by PerformancePage after a nav sidebar/info panel toggle,
-        // since that changes DetailHostGrids available size without necessarily firing SizeChanged on this control
-        // quickly enough
+        // sizes the shown section, Overview or All Threads; also from PerformancePage after a panel toggle, whose size
+        // change can reach this control late
         public void RecalculateOverviewHeight()
         {
             if (Cpu == null) return;
@@ -136,8 +125,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             {
                 OverviewBlockGrid.Height = 0;
 
-                // AllThreadsGrid is x:Load="False"; FindName forces it into the tree the first time All Threads is
-                // actually selected, and is a cheap no-op on every call after that
+                // x:Load="False", FindName builds it on the first visit
                 FindName(nameof(AllThreadsGrid));
                 AllThreadsGrid.Height = double.NaN;
 
@@ -151,43 +139,37 @@ namespace FluentSensors.Features.Performance.HardwareViews
             {
                 UpdateOverviewHeight();
 
-                // still null if All Threads was never selected this session; nothing to size in that case
+                // null until All Threads was shown once
                 if (AllThreadsGrid != null) AllThreadsGrid.Height = 0;
             }
         }
 
-        // keeps only the currently shown section (Overview or All Threads) actually rendering; the other ones
-        // graphs get gated off exactly like a whole hidden detail view does
-        // separate from RecalculateOverviewHeight because this also needs to run when the whole view regains
-        // visibility (PerformancePage.ActivateCurrentDetailViewRendering reactivates this views entire subtree
-        // indiscriminately, this corrects it back down to just the shown section), not only on every resize
+        // only the shown section renders; also after PerformancePage.ActivateCurrentDetailViewRendering woke the
+        // whole view, not only on a resize
         public void SyncSectionRenderingGate()
         {
             if (Cpu == null) return;
 
             SensorGraphRenderingGate.SetActive(OverviewBlockGrid, !Cpu.IsShowingAllThreads);
 
-            // still null if All Threads was never selected this session; nothing to gate in that case
+            // null until All Threads was shown once
             if (AllThreadsGrid != null)
             {
                 SensorGraphRenderingGate.SetActive(AllThreadsGrid, Cpu.IsShowingAllThreads);
             }
 
-            // the walk above just turned every graph in Overview back on, including whichever of Wide/Narrow is
-            // not the one actually shown right now; correct that back down to just the active layout, same
-            // follow-up correction the section split itself needed one level up
+            // the walk woke the hidden layout of Wide and Narrow too; back down to the shown one
             if (!Cpu.IsShowingAllThreads)
             {
                 SensorGraphRenderingGate.SetActive(_isNarrowLayoutActive ? WideGraphsGrid : NarrowGraphsPanel, false);
             }
         }
 
-        // keeps the overview block at least as tall as the visible viewport (so its graphs can stretch to fill it),
-        // but lets it grow past that, and let the ScrollViewer take over once its natural minimum height
-        // (graph MinHeight + tiles/static info) no longer fits
+        // the overview block at least as tall as the viewport, so its graphs stretch; past its minimum (graphs plus
+        // tiles and static info) the ScrollViewer takes over
         private void UpdateOverviewHeight()
         {
-            // everything around the block is read off the live tree, see OverviewBlockSizing
+            // read off the live tree, see OverviewBlockSizing
             double contentWidth = OverviewBlockSizing.ContentWidth(ContentScrollViewer, ContentStackPanel, OverviewBlockGrid);
             TilesAndStaticInfoGrid.Measure(new Size(contentWidth, double.PositiveInfinity));
             double tilesAndStaticInfoHeight = TilesAndStaticInfoGrid.DesiredSize.Height;
@@ -201,8 +183,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
         }
 
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
-        // problem/fix: see GpuDetailView.xaml.cs SetLayoutActive for the full explanation, including why the
-        // render gate below is conditional on IsHitTestVisible and the current section
+        // problem and fix: see GpuDetailView.SetLayoutActive, also for the conditions on the render gate
         private void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
         {
             wideLayout.Opacity = useNarrow ? 0 : 1;
@@ -219,8 +200,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
 
-        // gap above the second core group, collapses to 0 together with the group above it instead of leaving a stray
-        // RowSpacing-style gap, see the workaround note on AllThreadsGrid in the XAML
+        // above the second core group, 0 without the first one; see the workaround on AllThreadsGrid in the XAML
         private Thickness GroupSpacingMargin(bool showSplit) => showSplit ? new Thickness(0, CoreGroupSpacing, 0, 0) : new Thickness(0);
     }
 }

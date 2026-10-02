@@ -8,16 +8,11 @@ using FluentSensors.Common.Sensors;
 
 namespace FluentSensors.Features.Start
 {
-    // one tile of the system snapshot: which hardware category it belongs to, the device that was found, a
-    // handful of static facts about it, and how many sensors LibreHardwareMonitor currently reports for it
-    //
-    // a list of these rather than one computed property per fact (the idiom the hardware detail views use),
-    // because several categories produce more than one tile on a real machine: two GPUs, three drives, four
-    // adapters
-    //
-    // no longer a record: the sensor count moves because LhmHardwareTreeService keeps discovering hardware after
-    // the splash is gone, and the icon colour moves because the hardware colour setting can be flipped while the
-    // page is open; everything else is fixed for the lifetime of the page
+    // one snapshot tile:
+    // category, device, a few static facts and the LHM sensor count; a list, since a category can
+    // hold two GPUs or three drives
+    // a class, since the sensor count (LHM keeps discovering after the splash) and the icon colour (the setting)
+    // move while the page is open
     public class SystemSnapshotEntry : INotifyPropertyChanged
     {
         // === fields ===
@@ -52,11 +47,11 @@ namespace FluentSensors.Features.Start
         // === static facts ===
 
         public string IconGlyph { get; }
-        public string Category { get; } // the shared HardwareGroupInfo label, e.g. "CPU"
-        public string Title { get; } // the device name itself
+        public string Category { get; } // the HardwareGroupInfo label, "CPU"
+        public string Title { get; } // the device name
         public IReadOnlyList<string> Details { get; }
 
-        // the glyph stays, only its colour follows the hardware colour setting, see StartViewModel.IconBrushFor
+        // follows the colour setting, see StartViewModel.IconBrushFor
         public SolidColorBrush IconBrush
         {
             get => _iconBrush;
@@ -66,8 +61,7 @@ namespace FluentSensors.Features.Start
 
         // === sensor pairing ===
 
-        // what this tile has to be matched against on the LHM side; kept rather than a resolved instance because
-        // LHM can still report hardware for the first time long after this tile was built
+        // the LHM match, not a resolved instance; LHM can report hardware long after the tile was built
         public HardwareGroupKind MatchKind { get; }
         public string MatchName { get; }
 
@@ -77,14 +71,14 @@ namespace FluentSensors.Features.Start
             set { if (_sensorCountText == value) return; _sensorCountText = value; OnPropertyChanged(); }
         }
 
-        // false disables the count button; a tile LHM reports nothing for has no group to open
+        // false disables the count button, there is no group to open
         public bool HasSensors
         {
             get => _hasSensors;
             set { if (_hasSensors == value) return; _hasSensors = value; OnPropertyChanged(); }
         }
 
-        // the raw LhmHardwareInstance names this tile counted, which is what the sensors page matches against
+        // the raw names counted, which the sensors page matches against
         public IReadOnlyList<string> MatchedHardwareNames
         {
             get => _matchedHardwareNames;

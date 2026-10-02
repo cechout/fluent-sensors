@@ -1,15 +1,14 @@
 ﻿namespace FluentSensors.Controls.SensorGraph
 {
-    // what a tap gesture (on the graph itself, or on the toggle button in the status row) should trigger
+    // what a tap on the graph or on the status row toggle button does
     public enum TapAction
     {
-        // tap does nothing
         None,
 
-        // opens/closes the button-based control panel (Y-axis + threshold arrow buttons)
+        // the button panel (y-axis and threshold arrows)
         TogglePanel,
 
-        // opens the compact threshold editor flyout instead of the button-based control panel
+        // the threshold editor flyout instead
         ShowFlyout
     }
 }

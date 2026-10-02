@@ -18,14 +18,14 @@ using FluentSensors.Diagnostics;
 
 namespace FluentSensors.Controls.SensorGraph
 {
-    // self-contained graph control that owns all LiveCharts internals
-    // consumers only bind Values, AccentColor, ManualYMax, IsAutoScaled, ThresholdValue, ThresholdDirection,
-    // ThresholdColor, ThresholdLabelAlwaysVisible, LabelFollowsPointer
-
-    // split across 3 files:
-    // SensorGraphControl.xaml.cs (this file): fields, constructor, bindings, all DependencyProperties
-    // SensorGraphControl.Rendering.cs: color / section calculation (ApplyStroke, RebuildSections, ...)
-    // SensorGraphControl.Hover.cs: pointer hover interaction
+    // the sensor graph:
+    // a self-contained graph that owns every LiveCharts internal; consumers bind values, colors, scaling,
+    // threshold and label properties
+    //
+    // split across three files:
+    // SensorGraphControl.xaml.cs - fields, constructor, bindings, every DependencyProperty
+    // SensorGraphControl.Rendering.cs - colors and sections (ApplyStroke, RebuildSections)
+    // SensorGraphControl.Hover.cs - pointer hover
     public sealed partial class SensorGraphControl : UserControl
     {
         // === fields ===
@@ -34,41 +34,33 @@ namespace FluentSensors.Controls.SensorGraph
         private readonly Axis _xAxis;
         private readonly SolidColorPaint _crosshairPaint;
 
-        // the staircase look is not drawn by hand, it is entirely the StepLineSeries type; a smooth line is a
-        // different type (LineSeries with LineSmoothness > 0), so switching style swaps the series object
-        // both are built once, only one is bound to the chart at a time (see ApplyLineStyle)
+        // stepline and smooth are two series types (StepLineSeries, LineSeries), so a style switch swaps the series;
+        // both built once, one bound at a time (see ApplyLineStyle)
         private readonly StepLineSeries<double?> _stepSeries;
         private readonly LineSeries<double?> _smoothSeries;
-        private ISeries _lineSeries; // whichever of the two is active right now
+        private ISeries _lineSeries; // the active one
         private bool _isPointerOverChart = false;
         private Windows.Foundation.Point _lastPointerPosition;
         private readonly DispatcherTimer _thresholdLabelTimer;
         private bool _isLoaded;
 
         // live rendering gate:
-        // an off-screen graph (e.g. a Performance page detail view that is not the selected one) is detached from
-        // its data so LiveCharts does no per-tick redraw work for it at all; the underlying values keep updating,
-        // the graph just catches up in one repaint when it is shown again (see SetRenderingActive)
-        // active by default, so any graph nobody ever gates (e.g. the always-visible sidebar mini-graphs) keeps
-        // rendering exactly as before
+        // an off-screen graph is detached from its data, so LiveCharts does no per-tick work; the values keep updating
+        // and one repaint catches up when shown again (see SetRenderingActive)
+        // active by default, so an ungated graph (the sidebar mini graphs) just renders
         private bool _isRenderingActive = true;
         private ObservableCollection<double?> _boundValues;
         private bool _isValuesSubscribed;
 
-        // whether this control is currently attached to a live, rooted visual tree right now; distinct from
-        // _isRenderingActive, only exists to tell a permanent removal apart from a transient Unloaded/Loaded cycle
-        // in OnControlUnloaded below
+        // in a live visual tree; only tells a permanent removal from a transient Unloaded/Loaded
+        // cycle, see OnControlUnloaded
         private bool _isInLiveTree;
 
-        // what _lineSeries points at while detached; a never-changing empty list, so LiveCharts stays subscribed to
-        // something inert instead of the live values and never redraws off-screen
+        // what _lineSeries points at while detached; an inert empty list, so nothing redraws off-screen
         private readonly ObservableCollection<double?> _detachedValues = new();
 
-        // live count of every SensorGraphControl instance currently rendering (_isRenderingActive true), across
-        // every window; used by AppStatusService for the title bar status readout
-        // only ever written from the UI thread (construction and SetRenderingActive both happen there), read back
-        // later from a background timer thread; a plain int is fine for that, a stale read for one tick has no
-        // real consequence
+        // rendering graphs across every window, for the title bar status readout; (written on the UI thread, read from
+        // a timer thread, a stale read for one tick is harmless)
         private static int _activeRenderingCount;
         public static int ActiveRenderingCount => _activeRenderingCount;
 
@@ -79,10 +71,10 @@ namespace FluentSensors.Controls.SensorGraph
         {
             InitializeComponent();
 
-            // starts rendering-active by default (see _isRenderingActive above), counted immediately
+            // rendering by default, so counted right away
             _activeRenderingCount++;
 
-            // the two LiveCharts series; stepline is the default, smooth is swapped in on demand (see ApplyLineStyle)
+            // the two series; stepline by default (see ApplyLineStyle)
             _stepSeries = new StepLineSeries<double?>
             {
                 Values = new ObservableCollection<double?>(),
@@ -94,12 +86,12 @@ namespace FluentSensors.Controls.SensorGraph
                 Values = new ObservableCollection<double?>(),
                 GeometrySize = 0,
                 DataPadding = new LvcPoint(0, 0),
-                LineSmoothness = 1.00 // livecharts default; 0 is straight segments, 1 is the most curved
+                LineSmoothness = 1.00 // 0 = straight segments, 1 = most curved
             };
             _lineSeries = _stepSeries;
             Series = new ISeries[] { _lineSeries };
 
-            // the LiveCharts y-axis definition
+            // y-axis
             _yAxis = new Axis
             {
                 IsVisible = false,
@@ -108,7 +100,7 @@ namespace FluentSensors.Controls.SensorGraph
             };
             YAxes = new ICartesianAxis[] { _yAxis };
 
-            // custom x-axis line following the pointer
+            // x-axis, with the crosshair line following the pointer
             _crosshairPaint = new SolidColorPaint(SKColors.Gray.WithAlpha(180))
             {
                 StrokeThickness = 1,
@@ -146,7 +138,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === livecharts binding surfaces ===
 
-        // (consumed directly by <lvc:CartesianChart> in SensorGraphControl.xaml)
+        // bound by the CartesianChart in SensorGraphControl.xaml
         public ISeries[] Series { get; }
         public ICartesianAxis[] XAxes { get; }
         public ICartesianAxis[] YAxes { get; }
@@ -156,7 +148,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === dependency properties ===
 
-        // DependencyProperty: Values 
+        // DependencyProperty: Values
         public ObservableCollection<double?> Values
         {
             get => (ObservableCollection<double?>)GetValue(ValuesProperty);
@@ -174,19 +166,14 @@ namespace FluentSensors.Controls.SensorGraph
         {
             if (d is not SensorGraphControl g) return;
 
-            // drop whatever was bound before, including our own CollectionChanged handler on it
+            // the previous collection, with our CollectionChanged handler
             g.DetachFromBoundValues();
 
-            // when the new value is null (e.g. this sensor does not exist on the currently bound hardware
-            // instance), fall back to an empty collection instead of silently keeping whatever was there
-            // before
-            // without this, a null Values would leave the chart permanently pointed at the *previous* ViewModels
-            // live data, since a plain "is ObservableCollection<double?>" pattern match on null simply fails and
-            // skips the update entirely
+            // null (the sensor does not exist on this hardware) becomes an empty collection, or the chart would keep
+            // showing the previous ViewModels data
             g._boundValues = e.NewValue as ObservableCollection<double?> ?? new ObservableCollection<double?>();
 
-            // only rejoin the live render path if this graph is currently on-screen; an off-screen graph just
-            // remembers the collection and stays detached until it is shown again (see SetRenderingActive)
+            // an off-screen graph only remembers the collection until it is shown (see SetRenderingActive)
             if (g._isRenderingActive)
             {
                 g.AttachToBoundValues();
@@ -194,7 +181,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        // runs every time a data point is added or removed (i.e. every AddDataPoint call)
+        // every added or removed point (every AddDataPoint)
         private void OnValuesCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             ApplyStroke();
@@ -214,12 +201,9 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === live rendering gate ===
 
-        // switches this graphs live rendering on or off without ever destroying it; used by the Performance page to
-        // keep only the currently visible detail views graphs drawing
-        //
-        // off (active false): detaches from the live values so neither LiveCharts nor our own repaint runs on new
-        // data ticks
-        // on (active true): rejoins the live values and does one catch-up repaint for everything missed while off
+        // switches live rendering without destroying the graph:
+        // off - detached from the live values, no LiveCharts work and no repaint per tick
+        // on - rejoined, with one catch-up repaint
         public void SetRenderingActive(bool active)
         {
             if (_isRenderingActive == active) return;
@@ -229,7 +213,7 @@ namespace FluentSensors.Controls.SensorGraph
             if (active)
             {
                 AttachToBoundValues();
-                ForceRepaint(); // single repaint that catches up on every tick missed while detached
+                ForceRepaint(); // catches up on every missed tick
             }
             else
             {
@@ -237,7 +221,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        // points _lineSeries back at the live values and (re)subscribes our own repaint handler; idempotent
+        // the live values and our repaint handler back on _lineSeries; idempotent
         private void AttachToBoundValues()
         {
             _boundValues ??= new ObservableCollection<double?>();
@@ -250,8 +234,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        // points _lineSeries at the inert detached list and removes our own repaint handler from the live values,
-        // so LiveCharts stops tracking them; the live values keep updating, nobody just listens
+        // the inert list on _lineSeries and our handler off the live values; they keep updating, nobody listens
         private void DetachFromBoundValues()
         {
             if (_isValuesSubscribed && _boundValues != null)
@@ -262,9 +245,8 @@ namespace FluentSensors.Controls.SensorGraph
             _lineSeries.Values = _detachedValues;
         }
 
-        // swaps the active series between stepline and smooth, keeping it pointed at the same data and forcing one
-        // repaint; the ApplyStroke paint guard would otherwise see an unchanged signature and leave the freshly
-        // swapped-in series with no stroke or fill
+        // swaps stepline and smooth on the same data and forces a repaint (the ApplyStroke guard would see an unchanged
+        // signature and leave the new series unpainted)
         private void ApplyLineStyle()
         {
             ISeries target = LineStyle == GraphLineStyle.Smooth ? _smoothSeries : _stepSeries;
@@ -273,8 +255,7 @@ namespace FluentSensors.Controls.SensorGraph
             _lineSeries = target;
             _lineSeries.Values = _isValuesSubscribed && _boundValues != null ? _boundValues : _detachedValues;
 
-            // Chart.Series is set once from the {Binding Series} in xaml; from here on it is driven imperatively,
-            // same as Chart.Sections in RebuildSections
+            // set once by the xaml binding, driven from code after that (like Chart.Sections in RebuildSections)
             Chart.Series = new ISeries[] { _lineSeries };
             ForceRepaint();
         }
@@ -303,8 +284,7 @@ namespace FluentSensors.Controls.SensorGraph
 
 
         // DependencyProperty: LineStyle
-        // stepline (staircase) or smooth (curved); global setting, flows in from SensorPanelControl via
-        // SensorGraphViewModel.GraphLineStyle
+        // stepline or smooth; the global setting, via SensorGraphViewModel.GraphLineStyle
         public GraphLineStyle LineStyle
         {
             get => (GraphLineStyle)GetValue(LineStyleProperty);
@@ -325,8 +305,7 @@ namespace FluentSensors.Controls.SensorGraph
 
 
         // DependencyProperty: FillFade
-        // flat area fill or one that fades out towards the bottom; global setting, flows in from
-        // SensorPanelControl via SensorGraphViewModel.GraphFillFade
+        // a flat fill or one that fades towards the bottom; the global setting, via SensorGraphViewModel.GraphFillFade
         public bool FillFade
         {
             get => (bool)GetValue(FillFadeProperty);
@@ -342,7 +321,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         private static void OnFillFadeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            // both surfaces follow the setting: the area under the line and the alarm zone boxes
+            // the area under the line and the alarm zones both follow it
             if (d is SensorGraphControl g) g.ForceRepaint();
         }
 
@@ -376,14 +355,13 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorGraphControl),
                 new PropertyMetadata(100.0, OnScaleChanged));
 
-        // IsAutoScaled and ManualYMax both control the same thing: the y-axis maximum
-        // so either one changing needs to update the axis and recolor the graph
+        // IsAutoScaled and ManualYMax both set the y-axis maximum
         private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is SensorGraphControl g)
             {
                 g._yAxis.MaxLimit = g.IsAutoScaled ? (double?)null : g.ManualYMax;
-                g.ApplyStroke(); // y-range change moves the thresholds relative position
+                g.ApplyStroke(); // the threshold moves relative to the range
                 g.RebuildSections();
                 g.ShowThresholdLabelBriefly();
             }
@@ -391,8 +369,7 @@ namespace FluentSensors.Controls.SensorGraph
 
 
         // DependencyProperty: SensorType
-        // raw LibreHardwareMonitor SensorType string (e.g. "Clock"), used only to scale the threshold and hover value
-        // labels to a bigger unit
+        // the raw LHM SensorType ("Clock"); only scales the threshold and hover labels to a bigger unit
         public string SensorType
         {
             get => (string)GetValue(SensorTypeProperty);
@@ -406,15 +383,14 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorGraphControl),
                 new PropertyMetadata(string.Empty, OnSensorTypeChanged));
 
-        // refreshes the already-positioned threshold label if this control gets rebound to a different sensor while
-        // still visible (view-cache reuse in PerformancePage), same as OnThresholdChanged
+        // refreshes the threshold label when a visible control is rebound to another sensor (a sensor switch)
         private static void OnSensorTypeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is SensorGraphControl g) g.ShowThresholdLabelBriefly();
         }
 
 
-        // DependencyProperty: ThresholdValue 
+        // DependencyProperty: ThresholdValue
         public double? ThresholdValue
         {
             get => (double?)GetValue(ThresholdValueProperty);
@@ -459,8 +435,7 @@ namespace FluentSensors.Controls.SensorGraph
             get => (Windows.UI.Color)GetValue(ThresholdColorProperty);
             set
             {
-                // ignore duplicate Set calls; without this, the ColorPickers TwoWay binding
-                // can round-trip back into this setter and cause a StackOverflow
+                // duplicate sets are ignored; (the ColorPicker TwoWay binding can round-trip into a StackOverflow)
                 var current = (Windows.UI.Color)GetValue(ThresholdColorProperty);
                 if (current == value) return;
                 SetValue(ThresholdColorProperty, value);
@@ -474,10 +449,10 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorGraphControl),
                 new PropertyMetadata(Windows.UI.Color.FromArgb(255, 220, 50, 50), OnThresholdVisualsChanged));
 
-        // shared callback for ThresholdDirection and ThresholdColor: both need a full repaint
+        // ThresholdDirection and ThresholdColor; both need a full repaint
         private static void OnThresholdVisualsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (Equals(e.OldValue, e.NewValue)) return; // skip if nothing actually changed 
+            if (Equals(e.OldValue, e.NewValue)) return;
 
             if (d is SensorGraphControl g)
             {
@@ -612,7 +587,7 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorGraphControl),
                 new PropertyMetadata(true, OnLabelChanged));
 
-        // shared callback for LabelText, CurrentValueText, IsLabelVisible, IsNameVisible, IsCurrentValueVisible
+        // LabelText, CurrentValueText, IsLabelVisible, IsNameVisible, IsCurrentValueVisible
         private static void OnLabelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is not SensorGraphControl g) return;
@@ -650,12 +625,9 @@ namespace FluentSensors.Controls.SensorGraph
 
 
         // DependencyProperty: CardBackgroundOverride
-        // null = no override, uses the normal themed VisualState (CardBackgroundVisible, which stays theme-reactive
-        // since its Setters use ThemeResource brushes)
-        // any explicit Color, including a fully transparent one, is applied directly as a plain SolidColorBrush instead,
-        // bypassing the VisualState entirely - covers both a hard override color (e.g. highlighting the selected item
-        // in the Performance page's hardware sidebar) and full transparency (the previous ShowCardBackground=false
-        // behavior, now expressed as an override of Colors.Transparent - see SensorPanelControl.ShowGraphCardBackground)
+        // null = the themed VisualState (CardBackgroundVisible, theme-reactive through ThemeResource brushes)
+        // any color, transparent included, goes on as a plain brush past the VisualState; (the selected sidebar item,
+        // or no card at all, see SensorPanelControl.ShowGraphCardBackground)
         public Windows.UI.Color? CardBackgroundOverride
         {
             get => (Windows.UI.Color?)GetValue(CardBackgroundOverrideProperty);
@@ -674,8 +646,7 @@ namespace FluentSensors.Controls.SensorGraph
             if (d is SensorGraphControl g) g.ApplyCardBackground();
         }
 
-        // applies CardBackgroundOverride's current value; factored out so both the constructor (initial state) and the
-        // property-changed callback share the same logic
+        // for the constructor and the property callback
         private void ApplyCardBackground()
         {
             if (CardBackgroundOverride is Windows.UI.Color color)
@@ -690,8 +661,7 @@ namespace FluentSensors.Controls.SensorGraph
 
 
         // DependencyProperty: CardBorderOverride
-        // null = no override, uses the normal themed VisualState (ControlStrokeColorSecondaryBrush)
-        // explicit Color (e.g. Colors.Transparent) is applied directly as a SolidColorBrush
+        // null = the themed VisualState (ControlStrokeColorSecondaryBrush), a color goes on as a plain brush
         public Windows.UI.Color? CardBorderOverride
         {
             get => (Windows.UI.Color?)GetValue(CardBorderOverrideProperty);
@@ -724,8 +694,7 @@ namespace FluentSensors.Controls.SensorGraph
 
 
         // DependencyProperty: IsHoverEnabled
-        // fully disables pointer hover interaction when false: circle + value label (OnChartPointerMoved /
-        // OnChartPointerExited) are unsubscribed entirely instead of just early-returning inside them
+        // false unsubscribes the hover handlers (circle and value label) entirely
         public bool IsHoverEnabled
         {
             get => (bool)GetValue(IsHoverEnabledProperty);
@@ -754,57 +723,48 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 g.Chart.PointerMoved -= g.OnChartPointerMoved;
                 g.Chart.PointerExited -= g.OnChartPointerExited;
-                g.HideHoverElements(); // clears any hover state left over from before being disabled
+                g.HideHoverElements(); // leftover hover state
             }
 
-            // detach LiveCharts own crosshair paint too, so it stops tracking the pointer internally as well
+            // the LiveCharts crosshair stops tracking too
             g._xAxis.CrosshairPaint = enabled ? g._crosshairPaint : null;
 
-            // with hover off, the chart no longer needs any pointer input of its own
-            // Taking it fully out of hit-testing lets clicks pass straight through
+            // without hover the chart takes no pointer input, clicks pass through
             g.Chart.IsHitTestVisible = enabled;
         }
 
 
         // === event handlers ===
 
-        // fires once, the first time LiveCharts has actually built its internal render context and drawn a real frame;
-        // maybe used by MainWindow to prewarm the native SkiaSharp/LiveChartsCore pipeline during the splash screen?
+        // idea: fired once LiveCharts has drawn its first real frame, so MainWindow could prewarm
+        // SkiaSharp during the splash
         //public event EventHandler ChartReady;
 
-        // forces a full repaint every time this control enters the live visual tree
-        // keeps the native chart surface from drifting out of sync with the guard above
+        // a full repaint on every entry into the live tree, so the native surface stays in
+        // sync with the ApplyStroke guard
         private void OnControlLoaded(object sender, RoutedEventArgs e)
         {
             _isInLiveTree = true;
             ForceRepaint();
         }
 
-        // mirrors OnControlLoaded above; fires for two very different reasons that look identical from here:
-        // a permanent removal, or a transient Unloaded/Loaded cycle that PerformancePage already works around
-        // elsewhere (leaving and returning to a NavigationCacheMode page detaches and reattaches its whole
-        // subtree, so both events fire again there too even though nothing was actually destroyed
-        //
-        // everywhere in the app retains and hides its graphs instead of destroying them, so a permanent removal
-        // never happens there, but the widgets pinned sensor list is a real ObservableCollection bound to a plain
-        // ItemsControl, unpinning a sensor really does remove and destroy its container; without this,
-        // ActiveRenderingCount permanently overcounts by one for every sensor ever unpinned, since nothing else
-        // ever gets the chance to run SetRenderingActives own accounting for a control that just disappears
-        // deferred by one dispatcher tick to tell the two cases apart: a transient cycle already re-fired Loaded
-        // by the time this runs, a real removal never does
+        // a permanent removal (unpinning a widget sensor destroys its container) or a transient cycle
+        // (a NavigationCacheMode page leaving and coming back); deferred one tick, a transient cycle
+        // has re-fired Loaded by then
+        // a removal has to leave the gate, or ActiveRenderingCount overcounts for good
         private void OnControlUnloaded(object sender, RoutedEventArgs e)
         {
             _isInLiveTree = false;
 
             DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
             {
-                if (_isInLiveTree) return; // Loaded already fired again in the meantime, this was a transient cycle
+                if (_isInLiveTree) return; // transient
                 SetRenderingActive(false);
             });
         }
 
-        // LiveCharts only builds its internal scale/draw context on the first real measure pass;
-        // UpdateStarted fires once that has happened (Loaded fires too early, before the chart is actually ready)
+        // LiveCharts builds its draw context on the first real measure pass; UpdateStarted
+        // marks that (Loaded is too early)
         private void Chart_UpdateStarted(LiveChartsCore.Kernel.Sketches.IChartView chart)
         {
             Chart.UpdateStarted -= Chart_UpdateStarted;

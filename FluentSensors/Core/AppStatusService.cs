@@ -10,9 +10,8 @@ using FluentSensors.Core.Lhm;
 
 namespace FluentSensors.Core
 {
-    // one snapshot of the apps self status: how many sensors LHM found and how many of them are currently
-    // rendering, this processes own CPU/RAM/handle/GC footprint, plus the actual vs aimed-for polling cadence and
-    // what a full sensor read costs
+    // one self status snapshot: sensors found and rendering, the CPU, RAM, handle and GC footprint of this process, the
+    // actual and aimed cadence and the read cost
     public record AppStatusData(
         int SensorsFound,
         int SensorsRendered,
@@ -21,14 +20,14 @@ namespace FluentSensors.Core
         int HandleCount,
         long GcMemoryBytes,
         double ActualUpdateIntervalMs, // measured, see HardwareMonitorService.ActualUpdateIntervalMs
-        int AimedUpdateIntervalMs, // the configured HardwareMonitorService.UpdateIntervalMs, alongside it for display
-        double ReadDurationMs // how long one full sensor read takes, see HardwareMonitorService.LastReadDurationMs
+        int AimedUpdateIntervalMs, // the configured HardwareMonitorService.UpdateIntervalMs
+        double ReadDurationMs // see HardwareMonitorService.LastReadDurationMs
     );
 
 
-    // self monitoring: polls this processes own resource usage plus the LHM sensor counts on the same interval as
-    // HardwareMonitorServices sensor polling, so both readouts stay in step
-    // feeds the title bar status readout for now, the future App Status page reuses the same data
+    // self monitoring:
+    // polls the resource usage of this process and the LHM sensor counts at the sensor polling interval, for the title
+    // bar readout and the start page
     public class AppStatusService
     {
         // === fields ===
@@ -38,8 +37,7 @@ namespace FluentSensors.Core
         private TimeSpan _lastCpuTime;
         private DateTime _lastSampleTime;
 
-        // LhmHardwareTreeService.HardwareGroups is only ever mutated on the UI thread; reading it from Tick()s
-        // background timer thread directly would race with that, see Tick() below
+        // HardwareGroups changes on the UI thread only, so Tick reads it there
         private DispatcherQueue _dispatcherQueue;
 
 
@@ -53,12 +51,10 @@ namespace FluentSensors.Core
 
         // === public api ===
 
-        // fires once per tick with a fresh snapshot, from the UI thread (see Tick(), needed for the safe
-        // LhmHardwareTreeService read); consumers can still marshal defensively if they want, its a no-op cost
-        // from an already-UI thread
+        // once per tick on the UI thread (see Tick)
         public event Action<AppStatusData> StatusUpdated;
 
-        // starts the polling timer; safe to call more than once, later calls are a no-op
+        // idempotent
         public void Start()
         {
             if (_timer != null) return;
@@ -67,8 +63,7 @@ namespace FluentSensors.Core
             _lastCpuTime = _process.TotalProcessorTime;
             _lastSampleTime = DateTime.UtcNow;
 
-            // takes the interval straight from HardwareMonitorService instead of its own value, this is the same
-            // number the settings service persists as UpdateIntervalMs
+            // the interval of HardwareMonitorService, the persisted UpdateIntervalMs
             int intervalMs = HardwareMonitorService.Instance.UpdateIntervalMs;
             _timer = new Timer(_ => Tick(), null, intervalMs, intervalMs);
 
@@ -85,7 +80,7 @@ namespace FluentSensors.Core
 
         // === private helpers ===
 
-        // keeps the timer in step whenever the user changes the polling rate on the settings page while running
+        // follows a polling rate change
         private void OnUpdateIntervalChanged(int newIntervalMs)
         {
             _timer?.Change(newIntervalMs, newIntervalMs);
@@ -93,8 +88,7 @@ namespace FluentSensors.Core
 
         private void Tick()
         {
-            // Process caches its own snapshot until Refresh is called, without this CpuTime/WorkingSet64/
-            // HandleCount below would all keep returning the values from process start
+            // Process caches its values until Refresh
             _process.Refresh();
 
             var now = DateTime.UtcNow;
@@ -103,7 +97,7 @@ namespace FluentSensors.Core
             double elapsedMs = (now - _lastSampleTime).TotalMilliseconds;
             double cpuUsedMs = (cpuTime - _lastCpuTime).TotalMilliseconds;
 
-            // percent relative to the whole machine (all cores), matches how the modern Task Manager shows it
+            // percent of the whole machine, like Task Manager
             double cpuPercent = elapsedMs > 0
                 ? cpuUsedMs / (elapsedMs * Environment.ProcessorCount) * 100.0
                 : 0;
@@ -111,15 +105,9 @@ namespace FluentSensors.Core
             _lastCpuTime = cpuTime;
             _lastSampleTime = now;
 
-            // LhmHardwareTreeService.HardwareGroups only ever contains sensors that actually made it through
-            // HardwareMonitorServices own filtering (active network adapters only, valid values only), the exact
-            // same set the Sensors page itself is built from;
-            // counting _activeSensors on HardwareMonitorService instead used to count LHMs raw pre-filter discovery,
-            // including every never-shown sensor belonging to the many virtual/inactive network pseudo-adapters Windows
-            // creates
-            //
-            // read on the UI thread since the collection is only ever mutated there, a background-thread read could
-            // race an in-progress Add and throw
+            // HardwareGroups holds the filtered sensors the sensors page shows (no network pseudo adapters, no invalid
+            // values), unlike the raw HardwareMonitorService list
+            // read on the UI thread, which is the only one mutating it
             _dispatcherQueue.TryEnqueue(() =>
             {
                 int sensorsFound = LhmHardwareTreeService.Instance.HardwareGroups.Sum(g => g.Sensors.Count);

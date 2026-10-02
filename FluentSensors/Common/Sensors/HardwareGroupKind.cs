@@ -1,8 +1,6 @@
 ﻿namespace FluentSensors.Common.Sensors
 {
-    // identifies which broad hardware category a group of sensors belongs to, regardless of which page displays
-    // them (SensorsPage or the Performance page)
-    // drives group labels and icons via HardwareGroupInfo
+    // the hardware category of a sensor group on every page; labels and icons through HardwareGroupInfo
     public enum HardwareGroupKind
     {
         Cpu,
@@ -11,8 +9,7 @@
         Storage,
         Network,
 
-        // anything LHM reports outside the above (e.g. Motherboard, fan/AIO controller chips like Aquacomputer
-        // or Corsair Commander); rare in practice, but keeps GetKind total instead of needing a nullable return
+        // the rest (motherboard, fan and AIO controllers like Aquacomputer or Corsair Commander); keeps GetKind total
         Other
     }
 }

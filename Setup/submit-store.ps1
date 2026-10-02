@@ -1,19 +1,14 @@
-# hands a release to the microsoft store as a draft submission, in two steps; submitting the draft for
-# certification always stays a click in partner center
-#
-# -Upload, on the tag push: puts the store upload package from the release workflow into a new draft and clears the
-# release notes, so the text of the previous version cannot go out with the new one
-# -ReleaseNotes, once the github release text is final: copies its intro and changelog into that draft
-# neither: only prints the release notes the github release would give, to preview them locally
+# hands a release to the microsoft store as a draft submission in two steps; submitting stays a click in partner center
+# -Upload, on the tag push: the upload package into a new draft with the notes cleared, so the old text cannot go out
+# -ReleaseNotes, once the github text is final: its intro and changelog into that draft
+# neither: prints the notes the github release would give, a local preview
 #   .\Setup\submit-store.ps1 -Tag v1.7.0
-#
-# expects the msstore cli on the path and already signed in (msstore reconfigure), and gh signed in to read the
-# github release; the workflows do both
+# expects the msstore cli signed in (msstore reconfigure) and gh signed in; the workflows do both
 # https://learn.microsoft.com/en-us/windows/apps/publish/msstore-dev-cli/commands
 
 [CmdletBinding(DefaultParameterSetName = 'Preview')]
 param(
-    # the version tag of the release, as the github release and the package version know it
+    # the version tag of the github release and the package
     [Parameter(Mandatory)]
     [string]$Tag,
 
@@ -29,17 +24,18 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $packageDir = Join-Path $repoRoot 'Setup\MsixOutput'
 
-# the id the store knows this app by, same as AppDistribution.StoreProductId
+# the same as AppDistribution.StoreProductId
 $productId = '9PK7F87MWXKF'
 
-# partner center caps the release notes field of a listing at this many characters
+# the partner center cap of the release notes field
 $releaseNotesLimit = 1500
 
 
 # === release notes ===
 
-# the github release reads: banner image, an empty "###", the intro, "### 📝 Changelog" with its bullets, then
-# installation steps and the full changelog link; the store gets the intro and the changelog, as plain text
+# the github release: banner, an empty "###", the intro, "### 📝 Changelog" with bullets, installation
+# steps, the full changelog link
+# the store gets the intro and the changelog as plain text
 function Get-ReleaseNotes {
     param([Parameter(Mandatory)][string]$Tag)
 
@@ -52,13 +48,13 @@ function Get-ReleaseNotes {
 
     foreach ($line in $body -split '\r?\n') {
         if (-not $heading) {
-            # the intro is whatever text stands above the changelog heading, minus the banner and the empty heading
+            # the intro is the text above the changelog heading, without banner and empty heading
             if ($line -match '^#+\s.*Changelog') { $heading = $line -replace '^#+\s*', ''; continue }
             if ($line.Trim() -and $line -notmatch '^\s*<' -and $line -notmatch '^#+\s*$') { $intro.Add($line) }
             continue
         }
 
-        # the changelog runs up to the next heading or the full changelog link
+        # up to the next heading or the full changelog link
         if ($line -match '^#+\s' -or $line -match '^\*\*Full Changelog\*\*') { break }
         if ($line.Trim()) { $changelog.Add($line) }
     }
@@ -68,7 +64,7 @@ function Get-ReleaseNotes {
     $lines = @($intro) + @('', $heading, '') + @($changelog)
     $notes = (($lines | ForEach-Object { ConvertTo-PlainText $_ }) -join "`n").Trim()
 
-    # handwritten text is not cut short behind the authors back; partner center is where it gets shortened by hand
+    # handwritten text is not cut silently; it gets shortened by hand in partner center
     if ($notes.Length -gt $releaseNotesLimit) {
         throw "the release notes of $Tag are $($notes.Length) characters, partner center takes $releaseNotesLimit; shorten them in the draft by hand"
     }
@@ -76,8 +72,7 @@ function Get-ReleaseNotes {
     return $notes
 }
 
-# the store renders the field as plain text, so links keep their text, emphasis and code marks go, and the pull
-# request references mean nothing there
+# plain text in the store: links keep their text, emphasis and code marks go, pull request references mean nothing
 function ConvertTo-PlainText {
     param([string]$Line)
 
@@ -92,17 +87,15 @@ function ConvertTo-PlainText {
 
 # === partner center ===
 
-# the submission json carries the whole listing, description included, and goes out through stdout and back in,
-# so it must not pass through a legacy console code page on the way
+# the submission json carries the whole listing through stdout and back, so no legacy console code page on the way
 function Get-Submission {
     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
     $json = (msstore submission get $productId) -join "`n"
     if ($LASTEXITCODE -ne 0) { throw 'reading the submission from partner center failed' }
 
-    # a node tree rather than ConvertFrom-Json, which would turn date strings into DateTime values; this way
-    # everything not edited here goes back unchanged
-    # the object is enumerable, so it has to leave the function without being unrolled into its properties
+    # a node tree, since ConvertFrom-Json turns date strings into DateTime; everything unedited goes back unchanged
+    # enumerable, so it leaves the function without being unrolled
     $nodeOptions = [System.Text.Json.Nodes.JsonNodeOptions]@{ PropertyNameCaseInsensitive = $true }
     Write-Output -NoEnumerate ([System.Text.Json.Nodes.JsonNode]::Parse($json, $nodeOptions))
 }
@@ -139,8 +132,8 @@ if ($Upload) {
     $packages = @(Get-ChildItem -LiteralPath $packageDir -Filter '*.msixupload')
     if ($packages.Count -ne 1) { throw "expected exactly one .msixupload in $packageDir, found $($packages.Count)" }
 
-    # a new submission starts as a copy of the last published one and publish replaces any draft still pending,
-    # which is why the package goes up first and the listing is edited afterwards
+    # a new submission copies the last published one and publish replaces a pending draft, so the package
+    # goes first, the listing after
     msstore publish $packages[0].FullName --appId $productId --noCommit
     if ($LASTEXITCODE -ne 0) { throw 'uploading the package failed' }
 
@@ -148,7 +141,7 @@ if ($Upload) {
     Set-ReleaseNotes $submission ''
     $submission['TargetPublishMode'] = [System.Text.Json.Nodes.JsonValue]::Create('Manual')
 
-    # the copied submission would inherit a gradual rollout if an earlier one used it
+    # the copy would inherit an earlier gradual rollout
     $rollout = $submission['PackageDeliveryOptions']?['PackageRollout']
     if ($rollout) { $rollout['IsPackageRollout'] = [System.Text.Json.Nodes.JsonValue]::Create($false) }
 
@@ -171,8 +164,8 @@ if (-not $ReleaseNotes) {
     return
 }
 
-# the draft has to be the one for this tag; once it is submitted the release notes are no longer editable here,
-# which is the normal case when they were copied in by hand before the github release went public
+# the draft of this tag; once submitted the notes are no longer editable, the normal case after a run by hand
+# before the release went public
 $submission = Get-Submission
 $version = $Tag.TrimStart('v')
 $status = [string]$submission['Status']

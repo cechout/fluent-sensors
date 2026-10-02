@@ -11,23 +11,15 @@ using System.Net.Sockets;
 
 namespace FluentSensors.Core.StaticInfo
 {
-    // one-time collector for static hardware facts sourced from Windows itself (WMI + native Win32 APIs), as
-    // opposed to LhmHardwareTreeService live, continuously-polled sensor data
-    // facts here are queried exactly once, on first access; CPU core count or RAM slot count do not change while
-    // the app runs (ideally)
-    // lazy singleton, same pattern as PerformanceViewModel/LhmHardwareTreeService
-    //
-    // the constructor runs several WMI queries synchronously and blocks whichever thread first touches .Instance
-    // for the duration (the first WMI query in particular can take a noticeable moment to spin up); prewarmed on
-    // a background thread right at app startup (see MainWindow.StartHardwareServiceAsync), so by the time a
-    // page/ViewModel actually needs this data it is normally already sitting ready
+    // static hardware info:
+    // facts from Windows itself (WMI and Win32), queried once on first access, unlike the live
+    // LHM sensors; a lazy singleton
+    // the constructor blocks the first thread that touches Instance through several WMI queries, so it is prewarmed at
+    // startup (see MainWindow.StartHardwareServiceAsync)
     public class WinStaticInfoService
     {
-        // instance may now be created by a background prewarm thread (see MainWindow.StartHardwareServiceAsync)
-        // while the UI thread could still request it independently, e.g. if a page opens before the prewarm
-        // finishes
-        // Lazy<T> with ExecutionAndPublication ensures only one thread runs the constructor and everyone else
-        // waits for that same result, instead of two threads racing into duplicate WMI queries
+        // the prewarm thread and a page on the UI thread can both ask; ExecutionAndPublication runs the constructor
+        // once and lets the other wait
         private static readonly Lazy<WinStaticInfoService> _instance =
             new(() => new WinStaticInfoService(), LazyThreadSafetyMode.ExecutionAndPublication);
         public static WinStaticInfoService Instance => _instance.Value;
@@ -45,8 +37,8 @@ namespace FluentSensors.Core.StaticInfo
         }
 
 
-        // === Public Binding Surface ===
-        // (not INotifyPropertyChanged; none of this changes after construction)
+        // === public binding surface ===
+        // (no INotifyPropertyChanged, nothing changes after construction)
 
         public WinCpuInfo Cpu { get; }
         public IReadOnlyList<WinGpuInfo> Gpus { get; }
@@ -62,7 +54,7 @@ namespace FluentSensors.Core.StaticInfo
         public bool IsPawnIoInstalled { get; }
 
 
-        // === Private Helpers ===
+        // === private helpers ===
 
         // cpu
         private static WinCpuInfo QueryCpu()
@@ -72,10 +64,10 @@ namespace FluentSensors.Core.StaticInfo
             using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
             foreach (ManagementObject item in searcher.Get())
             {
-                // raw per-cache-instance facts; Level is the raw WMI value, see WinCpuCacheEntry for the
-                // confirmed L1/L2/L3 mapping
-                // GetRelated() is the same built-in association traversal already used for MSFT_StorageReliabilityCounter;
-                // equivalent to an "ASSOCIATORS OF" query without needing to know/construct the association class by hand
+                // one entry per cache instance; Level is the raw WMI value, see
+                // WinCpuCacheEntry for the L1/L2/L3 mapping
+                // GetRelated() walks the association like an "ASSOCIATORS OF" query, without
+                // naming the association class
                 var cacheEntries = new List<WinCpuCacheEntry>();
                 try
                 {
@@ -90,7 +82,7 @@ namespace FluentSensors.Core.StaticInfo
                 }
                 catch
                 {
-                    // Win32_CacheMemory not populated/associated on this system; cacheEntries stays empty
+                    // no Win32_CacheMemory association here; cacheEntries stays empty
                 }
 
                 return new WinCpuInfo(
@@ -108,7 +100,7 @@ namespace FluentSensors.Core.StaticInfo
                 );
             }
 
-            // no Win32_Processor row found (should not normally happen); still return the topology if we have it
+            // no Win32_Processor row; the topology still goes back
             return new WinCpuInfo(0, 0, 0, "", false, false, topology, new List<WinCpuCacheEntry>());
         }
 
@@ -124,10 +116,8 @@ namespace FluentSensors.Core.StaticInfo
             {
                 string name = item["Name"]?.ToString() ?? "";
 
-                // best-effort match against the DXGI-enumerated adapters; DXGIs own Description string is
-                // usually near-identical to WMIs Name but not guaranteed byte-identical, so this goes through
-                // the same name-matching approach already used elsewhere for multi-device categories
-                // (HardwareNameMatcher) instead of an exact string comparison
+                // best-effort match against DXGI; its Description is near-identical to the WMI Name but not
+                // byte-identical, so HardwareNameMatcher
                 var dxgiMatch = HardwareNameMatcher.FindBestMatch(name, dxgiAdapters, a => a.Description);
 
                 result.Add(new WinGpuInfo(
@@ -145,8 +135,7 @@ namespace FluentSensors.Core.StaticInfo
             return result;
         }
 
-        // small local carrier for DXGI-only facts, matched against the WMI-discovered GPUs above by name; not
-        // part of the public WinGpuInfo model, purely an intermediate step
+        // DXGI-only facts, matched to the WMI GPUs by name; an intermediate step only
         private record DxgiAdapterInfo(
             string Description,
             uint VendorId,
@@ -155,11 +144,8 @@ namespace FluentSensors.Core.StaticInfo
             ulong DedicatedSystemMemory,
             ulong SharedSystemMemory);
 
-        // DXGI is the source of truth for dedicated/shared video memory:
-        // Win32_VideoController.AdapterRAM is a 32-bit WMI field, well documented to report wrong (wrapped-around)
-        // values on any GPU with more than 4GB VRAM;
-        // DXGI has no such cap and works identically across NVIDIA/AMD/Intel since it's a DirectX-level abstraction,
-        // not a vendor-specific driver API
+        // DXGI is the source of truth for video memory: Win32_VideoController.AdapterRAM is 32-bit and wraps above
+        // 4 GB, DXGI has no cap and works the same on every vendor
         private static List<DxgiAdapterInfo> QueryDxgiAdapters()
         {
             var result = new List<DxgiAdapterInfo>();
@@ -171,7 +157,7 @@ namespace FluentSensors.Core.StaticInfo
                 for (uint i = 0; ; i++)
                 {
                     var hr = factory.EnumAdapters1(i, out IDXGIAdapter1 adapter);
-                    if (hr.Failure) break; // no more adapters at this index
+                    if (hr.Failure) break; // no more adapters
 
                     using (adapter)
                     {
@@ -189,8 +175,7 @@ namespace FluentSensors.Core.StaticInfo
             }
             catch
             {
-                // DXGI unavailable for some reason (very old system, odd remote-session config, etc.); GPU
-                // Name/DriverVersion/PnpDeviceId from WMI above still work fine without this
+                // no DXGI (very old system, odd remote session); the WMI fields still work
             }
 
             return result;
@@ -238,10 +223,8 @@ namespace FluentSensors.Core.StaticInfo
             return new WinMemoryInfo(totalSlots, modules);
         }
 
-        // small local carrier for everything gathered from MSFT_PhysicalDisk + its related
-        // MSFT_StorageReliabilityCounter, keyed by serial number and matched against Win32_DiskDrive below; not
-        // part of the public WinStorageDriveInfo model, purely an intermediate step (same pattern as
-        // DxgiAdapterInfo for GPUs)
+        // MSFT_PhysicalDisk and its MSFT_StorageReliabilityCounter, keyed by serial and matched to Win32_DiskDrive
+        // below; an intermediate step like DxgiAdapterInfo
         private record PhysicalDiskExtraInfo(
             string FriendlyName,
             string BusType,
@@ -271,19 +254,14 @@ namespace FluentSensors.Core.StaticInfo
             var result = new List<WinStorageDriveInfo>();
 
             // --- workaround: Win32_DiskDrive unreliable for NVMe bus type/naming ---
-            // problem: Win32_DiskDrive.InterfaceType reports "SCSI" for NVMe drives across the board, because
-            // NVMe is served through the storport-based driver model, which InterfaceType still classifies
-            // through its legacy SCSI-descended scheme (background:
-            // https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/storport-driver-overview)
-            // Microsoft support directly confirms this and recommends switching to
-            // MSFT_Disk/MSFT_PhysicalDisk.BusType instead:
+            // problem: Win32_DiskDrive.InterfaceType reports "SCSI" for every NVMe drive (storport classifies through
+            // its SCSI-descended scheme), and Model is sometimes blank or garbled; Microsoft support confirms and
+            // points to MSFT_PhysicalDisk.BusType:
+            // https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/storport-driver-overview
             // https://social.msdn.microsoft.com/Forums/en-US/3cb7d1ab-e9f0-4ddb-87d4-cfee3d3915c5/the-interfacetype-of-win32diskdrive-reports-scsi-instead-of-nvme
-            // Win32_DiskDrive.Model also occasionally gave a blank/garbled name for NVMe drives
-            // fix: prefer the modern Storage namespace, MSFT_PhysicalDisk (FriendlyName + BusType, correctly
-            // reports "NVMe"):
+            // fix: MSFT_PhysicalDisk from the Storage namespace (FriendlyName, BusType "NVMe"), Win32_DiskDrive only
+            // where it has nothing for a serial:
             // https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-physicaldisk
-            // falls back to the legacy Win32_DiskDrive fields only when MSFT_PhysicalDisk has nothing for that
-            // serial number
             var physicalDiskInfo = new Dictionary<string, PhysicalDiskExtraInfo>();
             try
             {
@@ -297,13 +275,10 @@ namespace FluentSensors.Core.StaticInfo
                     string friendly = item["FriendlyName"]?.ToString()?.Trim() ?? "";
                     string busType = MapBusType(item["BusType"]);
 
-                    // reliability/SMART-style counters: Windows/Storports own abstraction over the drives raw
-                    // health data
-                    // GetRelated() is ManagementObjects built-in association traversal, equivalent to an
-                    // "ASSOCIATORS OF" WQL query but without needing to know/construct the association class
-                    // (MSFT_PhysicalDiskToStorageReliabilityCounter) or the objects WMI path string by hand
-                    // fields stay null (not 0) when the controller/driver simply never reports them
-                    // Confirmed field-by-field via a real Get-StorageReliabilityCounter dump 
+                    // SMART-style reliability counters, the Storport view of the drive health data; GetRelated() walks
+                    // MSFT_PhysicalDiskToStorageReliabilityCounter without naming it
+                    // a field the driver never reports stays null, not 0 (checked field by field against
+                    // Get-StorageReliabilityCounter)
                     uint? temperature = null, temperatureMax = null, wear = null, powerOnHours = null;
                     ulong? readErrorsTotal = null, readErrorsCorrected = null, readErrorsUncorrected = null;
                     ulong? writeErrorsTotal = null, writeErrorsCorrected = null, writeErrorsUncorrected = null;
@@ -334,13 +309,12 @@ namespace FluentSensors.Core.StaticInfo
                             readLatencyMax = ToNullableULong(reliability["ReadLatencyMax"]);
                             writeLatencyMax = ToNullableULong(reliability["WriteLatencyMax"]);
                             flushLatencyMax = ToNullableULong(reliability["FlushLatencyMax"]);
-                            break; // exactly one reliability counter object expected per physical disk
+                            break; // one per physical disk
                         }
                     }
                     catch
                     {
-                        // no reliability counter available for this disk at all (some controllers/drivers do not
-                        // expose one); everything above simply stays null, same as an individually-unreported field
+                        // no reliability counter for this disk (some drivers expose none); everything stays null
                     }
 
                     physicalDiskInfo[serial] = new PhysicalDiskExtraInfo(
@@ -354,8 +328,7 @@ namespace FluentSensors.Core.StaticInfo
             }
             catch
             {
-                // Storage namespace/MSFT_PhysicalDisk not available on this system: fall back to Win32_DiskDrive
-                // names/bus type only, no hard failure
+                // no Storage namespace; Win32_DiskDrive names and bus type only
             }
 
             using var driveSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_DiskDrive");
@@ -398,8 +371,7 @@ namespace FluentSensors.Core.StaticInfo
             return result;
         }
 
-        // MSFT_PhysicalDisk.BusType is a numeric enum (STORAGE_BUS_TYPE from the Windows Driver Kit) rather than
-        // a string; translated to a readable label here, with only the common consumer-hardware values mapped
+        // STORAGE_BUS_TYPE (Windows Driver Kit) to a label; the common consumer values only
         private static string MapBusType(object rawValue)
         {
             if (rawValue == null) return "";
@@ -426,10 +398,8 @@ namespace FluentSensors.Core.StaticInfo
             {
                 if (nic.OperationalStatus != OperationalStatus.Up) continue;
 
-                // loopback/tunnel pseudo-interfaces pass the Up+HasIP check below (::1/127.0.0.1 count as valid
-                // unicast addresses) but are not real hardware
-                // excluded explicitly here, since LHMs own hardware discovery apparently never surfaces these
-                // as hardware objects in the first place
+                // loopback and tunnel pass the up and address check (::1 and 127.0.0.1 count) but are no hardware;
+                // (LHM never lists them either)
                 if (nic.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
                     nic.NetworkInterfaceType == NetworkInterfaceType.Tunnel)
                 {
@@ -440,10 +410,8 @@ namespace FluentSensors.Core.StaticInfo
                 var unicastAddresses = ipProps.UnicastAddresses.Select(a => a.Address).ToList();
                 if (unicastAddresses.Count == 0) continue;
 
-                // split by address family instead of showing one mixed list;
-                // IPv4 and IPv6 addresses serve different purposes to whoever is reading this panel (e.g. an
-                // IPv4 for LAN troubleshooting vs. an IPv6 for external reachability), and a single merged list
-                // forces the reader to eyeball which is which
+                // split by address family; (IPv4 for the LAN, IPv6 for external reachability, a merged list
+                // makes the reader sort them)
                 var ipv4Addresses = unicastAddresses
                     .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
                     .Select(a => a.ToString())
@@ -480,7 +448,7 @@ namespace FluentSensors.Core.StaticInfo
                     manufacturer = item["Manufacturer"]?.ToString()?.Trim() ?? "";
                     product = item["Product"]?.ToString()?.Trim() ?? "";
                     version = item["Version"]?.ToString()?.Trim() ?? "";
-                    break; // exactly one baseboard expected
+                    break; // one baseboard
                 }
             }
 
@@ -498,21 +466,10 @@ namespace FluentSensors.Core.StaticInfo
             return new WinMotherboardInfo(manufacturer, product, version, biosVersion, biosDate);
         }
 
-        // many LHM sensors (notably several CPU/GPU ones) only populate correctly when a NET Desktop Runtime
-        // Major >= 10 is present system-wide, independent of this apps own self-contained runtime
-        //
-        // spawns the dotnet CLI itself instead of reading the Setup/InstalledVersions registry tree; that
-        // registry tree only gets populated by the standalone SDK/Runtime installer, Microsofts own uninstall
-        // tool documents that it cannot see anything installed through the Visual Studio Installer since VS2019
-        // 16.3, which is exactly how a dev machine (this one included) normally gets NET, dotnet --list-runtimes
-        // instead resolves against the real shared framework folders on disk and works the same regardless of
-        // how NET actually got installed
-        // every reading that needs ring 0 goes through PawnIO: cpu temperature and power, the motherboard and
-        // SuperIO sensors, and the memory timings; without the driver those are simply absent while gpu, storage,
-        // network and memory keep working
-        // asks LibreHardwareMonitorLib rather than probing the registry or the device ourselves, since it is the
-        // library that has to be able to use it and it already answers the question; the property is static and
-        // needs neither Computer.Open nor elevation
+        // every reading that needs ring 0 goes through PawnIO (cpu temperature and power, motherboard and SuperIO
+        // sensors, memory timings); without the driver those are absent, the rest keeps working
+        // asks LibreHardwareMonitorLib, the library that has to use it; the property is static and needs neither
+        // Computer.Open nor elevation
         private static bool QueryPawnIoInstalled()
         {
             try
@@ -521,12 +478,15 @@ namespace FluentSensors.Core.StaticInfo
             }
             catch
             {
-                // a future library version could move or drop the property; treating that as installed keeps the
-                // hint from appearing on a machine where the sensors are in fact fine
+                // a library version without the property counts as installed, so the hint never shows on a fine machine
                 return true;
             }
         }
 
+        // many LHM sensors (several CPU and GPU ones) only populate with a .NET Desktop Runtime 10 or newer installed
+        // system-wide, whatever the bundled runtime
+        // asks dotnet --list-runtimes, which reads the shared framework folders; the Setup/InstalledVersions registry
+        // tree misses anything the Visual Studio Installer put there since VS2019 16.3
         private static bool QueryDotNetRuntimeInstalled()
         {
             try
@@ -542,7 +502,7 @@ namespace FluentSensors.Core.StaticInfo
 
                 using var process = Process.Start(startInfo);
                 string output = process.StandardOutput.ReadToEnd();
-                process.WaitForExit(2000); // startup check, never worth blocking app launch on a hung subprocess
+                process.WaitForExit(2000); // never block the launch on a hung process
 
                 return output
                     .Split('\n', StringSplitOptions.RemoveEmptyEntries)
@@ -550,12 +510,11 @@ namespace FluentSensors.Core.StaticInfo
             }
             catch
             {
-                return false; // dotnet not on PATH, or the process failed to start at all
+                return false; // no dotnet on PATH, or it failed to start
             }
         }
 
-        // a line looks like "Microsoft.WindowsDesktop.App 10.0.0 [C:\Program Files\dotnet\shared\...]", version
-        // is the second whitespace-separated token
+        // "Microsoft.WindowsDesktop.App 10.0.0 [C:\Program Files\dotnet\shared\...]"; the version is the second token
         private static bool HasMajorVersion10OrNewer(string listRuntimesLine)
         {
             var parts = listRuntimesLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -563,9 +522,7 @@ namespace FluentSensors.Core.StaticInfo
         }
 
 
-        // WMI conversion
-        // WMI returns loosely-typed values (often null, or a numeric type that does not exactly match what we
-        // expect); these guard against both instead of throwing on a missing/oddly-typed property
+        // WMI conversion; values come loosely typed (often null, or another numeric type), these do not throw on either
         private static int ToInt(object value) => value == null ? 0 : Convert.ToInt32(value);
         private static ulong ToULong(object value) => value == null ? 0 : Convert.ToUInt64(value);
         private static bool ToBool(object value) => value != null && Convert.ToBoolean(value);

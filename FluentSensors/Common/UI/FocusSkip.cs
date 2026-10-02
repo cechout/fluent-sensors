@@ -4,10 +4,9 @@ using Microsoft.UI.Xaml.Input;
 
 namespace FluentSensors.Common.UI
 {
-    // leaves a region out of keyboard navigation while the mouse keeps working inside it: tab and shift+tab pass over
-    // it to the next stop beyond, and the arrow keys stop at its edge instead of stepping in
-    //
-    // for content that is configured with the mouse and would only make the tab order endless, like the graph panels
+    // the focus skip:
+    // a region out of keyboard navigation, the mouse still works; tab passes over it, the arrow keys stop at its edge
+    // for mouse-configured content that would make the tab order endless, like the graph panels
     // and tiles of the hardware view
     public static class FocusSkip
     {
@@ -35,8 +34,8 @@ namespace FluentSensors.Common.UI
 
         // === focus redirect ===
 
-        // a click inside the region keeps focusing whatever it hits (Direction None); only keyboard moves are redirected,
-        // and a tab from something that was clicked inside leaves the region as well
+        // a click keeps its target (Direction None); only keyboard moves redirect, a tab from
+        // a clicked element leaves too
         private static void Region_GettingFocus(UIElement sender, GettingFocusEventArgs args)
         {
             switch (args.Direction)

@@ -15,33 +15,28 @@ using FluentSensors.Persistence.Models;
 
 namespace FluentSensors.Persistence.Services
 {
-    // handles all disk I/O for persisted app state, split into five files (settings, window positions, per-sensor
-    // state, sensor-switch choices, sensor selection profiles)
-    // pure I/O layer; knows nothing about SettingsService, windows, or ViewModels; callers hand it plain data and get plain
-    // data back
+    // the persistence service:
+    // all disk I/O of the app state in five files (settings, window positions, sensor state, sensor switches, selection
+    // profiles); pure I/O, plain data in and out
     public class PersistenceService
     {
         // === fields ===
 
-        // portable mode: a marker file next to the exe moves persistence from %LocalAppData% into the app folder,
-        // so a portable copy carries its state on the drive it runs from and leaves nothing behind on the host
-        // the marker ships only in the portable zip, installer builds never contain it
-        // the marker check itself lives in AppDistribution, because the updater needs the same answer
+        // portable mode: the marker file of the portable zip moves the state from %LocalAppData% into the app folder,
+        // so nothing stays on the host (the check is in AppDistribution, the updater asks it too)
         private const string PortableFolderName = "Persistence";
 
-        // the folder under %LocalAppData% an installed build writes to
+        // under %LocalAppData%, for an installed build
         private const string LocalFolderName = "FluentSensors";
 
-        // what that folder was called while the app was still named FluentHwInfo; moved once, see MigrateLegacyFolder
+        // its name from the FluentHwInfo days; moved once, see MigrateLegacyFolder
         private const string LegacyLocalFolderName = "FluentHwInfo";
 
-        // a file that failed to parse is kept under here rather than beside the ones the app reads, so the root
-        // folder holds nothing but live state
+        // files that failed to parse, kept apart, so the root folder holds live state only
         private const string QuarantineFolderName = "quarantine";
         private const string CorruptSuffix = ".corrupt-";
 
-        // how long a quarantined file is kept: long enough to still be there when a problem is reported a few days
-        // later, short enough that the folder cannot collect files for years
+        // still there when a problem is reported days later, gone before the folder fills up over years
         private static readonly TimeSpan QuarantineRetention = TimeSpan.FromDays(30);
 
         private readonly string _rootFolder = ResolveRootFolder();
@@ -56,7 +51,7 @@ namespace FluentSensors.Persistence.Services
             Converters = { new ColorJsonConverter(), new JsonStringEnumConverter() }
         };
 
-        // one debounce timer per file, so rapid changes (e.g. dragging a window) dont spam disk writes
+        // one debounce timer per file, so a window drag does not hammer the disk
         private const int DebounceMs = 1000;
         private Timer _settingsTimer;
         private Timer _windowStateTimer;
@@ -64,7 +59,7 @@ namespace FluentSensors.Persistence.Services
         private Timer _sensorSwitchStateTimer;
         private Timer _sensorSelectionsTimer;
 
-        // most recent pending data per file, written when its timer fires (or on FlushAll)
+        // the latest pending data per file, written by its timer or FlushAll
         private AppSettingsData _pendingSettings;
         private Dictionary<string, WindowState> _pendingWindowStates;
         private Dictionary<string, SensorState> _pendingSensorStates;
@@ -85,10 +80,9 @@ namespace FluentSensors.Persistence.Services
         }
 
 
-        // === public API ===
+        // === public api ===
 
-        // where the five json files actually ended up, which the start page opens in Explorer; the answer differs
-        // between an installed and a portable build, see ResolveRootFolder
+        // where the files live, which the settings page shows and opens; differs per channel, see ResolveRootFolder
         public string RootFolder => _rootFolder;
 
         // load
@@ -129,9 +123,7 @@ namespace FluentSensors.Persistence.Services
             ResetTimer(ref _sensorSelectionsTimer, () => SaveFile(SensorSelectionsPath, _pendingSensorSelections));
         }
 
-        // immediate save:
-        // called on app exit, so the last pending change isnt lost to a debounce timer that never gets to fire because
-        // the process is already gone
+        // immediate save, on exit, so a pending change does not die with its timer
         public void FlushAll()
         {
             _settingsTimer?.Dispose();
@@ -147,10 +139,7 @@ namespace FluentSensors.Persistence.Services
             if (_pendingSensorSelections != null) SaveFile(SensorSelectionsPath, _pendingSensorSelections);
         }
 
-        // reset:
-        // wipes a state file from disk and clears any pending debounced save for it, so nothing gets re-written after the
-        // reset; caller is expected to restart the app right after, so the in-memory state gets rebuilt from defaults on
-        // the next startup load
+        // reset: deletes a file and its pending save; the caller restarts right after, so the defaults load
         public void ResetSettings()
         {
             _settingsTimer?.Dispose();
@@ -200,9 +189,7 @@ namespace FluentSensors.Persistence.Services
             ResetSensorSelections();
         }
 
-        // backup:
-        // bundles the five raw json files into one zip; flushes any pending debounced writes first so the export always
-        // reflects the latest in-memory state, not a stale version still waiting on its debounce timer
+        // backup: the five files in one zip, after a flush, so the export is the live state
         public void ExportBackup(string destinationZipPath)
         {
             FlushAll();
@@ -217,9 +204,8 @@ namespace FluentSensors.Persistence.Services
             AddFileIfExists(zip, SensorSelectionsPath, "sensor-selections.json");
         }
 
-        // all-or-nothing: every entry in the zip must be one of the five known files and must deserialize into its
-        // expected type before anything on disk gets touched; returns false without changing any state if validation fails
-        // at any point
+        // all or nothing: every entry has to be one of the five files and deserialize before the disk is
+        // touched; false changes nothing
         public bool ImportBackup(string sourceZipPath)
         {
             try
@@ -239,12 +225,12 @@ namespace FluentSensors.Persistence.Services
                         "sensors.json" => TryDeserialize<Dictionary<string, SensorState>>(json),
                         "sensor-switches.json" => TryDeserialize<Dictionary<string, SensorSwitchState>>(json),
                         "sensor-selections.json" => TryDeserialize<SensorSelectionState>(json),
-                        _ => false // unknown entry: not a valid backup file
+                        _ => false // an unknown entry
                     };
                     if (!isValid) return false;
                 }
 
-                // validation passed: stop pending debounced saves so nothing overwrites what we are about to extract
+                // valid; no pending save may overwrite the extracted files
                 _settingsTimer?.Dispose(); _settingsTimer = null; _pendingSettings = null;
                 _windowStateTimer?.Dispose(); _windowStateTimer = null; _pendingWindowStates = null;
                 _sensorStateTimer?.Dispose(); _sensorStateTimer = null; _pendingSensorStates = null;
@@ -276,7 +262,7 @@ namespace FluentSensors.Persistence.Services
             }
             catch
             {
-                // corrupt zip, unreadable entry, or anything else unexpected: treat the whole import as failed
+                // corrupt zip or unreadable entry; the import failed
                 return false;
             }
         }
@@ -284,16 +270,13 @@ namespace FluentSensors.Persistence.Services
 
         // === private helpers ===
 
-        // decides once at startup where the five json files live; portable builds are detected by the marker file
-        // rather than by a user setting, because such a setting would itself need a location to be stored in
+        // where the files live, decided once; portable by marker file, a setting would itself need a place to live
         private static string ResolveRootFolder()
         {
-            // a packaged build asks the app model instead of assembling the path itself: msix redirects a write to
-            // %LocalAppData% into the packages private LocalCache, so the literal path below would still be written
-            // through, but the start pages "open folder" button hands that path to an explorer running outside the
-            // container and would land in an empty directory
-            // LocalState is the one location both sides agree on, and uninstalling the package takes it with it
-            // no legacy folder migration here on purpose, the rename predates the store channel entirely
+            // a packaged build asks the app model: msix redirects %LocalAppData% into its private LocalCache, so
+            // Explorer outside the container would open an empty folder; LocalState is the place both agree on, and
+            // an uninstall takes it along
+            // (no legacy migration, the rename predates the store channel)
             if (AppDistribution.IsPackaged)
             {
                 try
@@ -302,8 +285,7 @@ namespace FluentSensors.Persistence.Services
                 }
                 catch (Exception ex)
                 {
-                    // no app data for this identity, which should not happen inside a package; fall through to the
-                    // per-user location rather than losing state
+                    // no app data for this identity (should not happen in a package); the per-user location then
                     Debug.WriteLine($"[PersistenceService] packaged local folder unavailable: {ex.Message}");
                 }
             }
@@ -317,24 +299,21 @@ namespace FluentSensors.Persistence.Services
                 if (string.IsNullOrEmpty(appFolder)) return UseLocalAppData(localAppData);
                 if (!AppDistribution.IsPortableBuild) return UseLocalAppData(localAppData);
 
-                // creating the folder here doubles as an early check that the app directory is writable at all;
-                // an unpacked zip sitting in a read-only location would otherwise silently drop every save
+                // also checks the app folder is writable; a zip unpacked somewhere read-only would drop every save
                 string portableFolder = Path.Combine(appFolder, PortableFolderName);
                 Directory.CreateDirectory(portableFolder);
                 return portableFolder;
             }
             catch
             {
-                // unreadable app folder, or one that cannot be created: fall back to the per-user location instead
-                // of losing state
+                // an unusable app folder; the per-user location then
                 return UseLocalAppData(localAppData);
             }
         }
 
         private string QuarantineFolder => Path.Combine(_rootFolder, QuarantineFolderName);
 
-        // one pass over the quarantine at startup: builds before this one dropped the broken file straight into the
-        // root folder and nothing ever removed it again, so both of those are cleaned up here
+        // one pass at startup: strays in the root folder move to quarantine, expired files go
         private void TidyQuarantine()
         {
             try
@@ -356,13 +335,12 @@ namespace FluentSensors.Persistence.Services
             }
             catch (Exception ex)
             {
-                // housekeeping, never worth failing a launch over
+                // housekeeping; never fails a launch
                 Debug.WriteLine($"[PersistenceService] quarantine tidy failed: {ex.Message}");
             }
         }
 
-        // every path that settles on the per-user location goes through here, so the one-time move below cannot be
-        // skipped by whichever of them a given start happens to take
+        // every path to the per-user location goes through here, so no start skips the one-time move
         private static string UseLocalAppData(string localAppData)
         {
             MigrateLegacyFolder(localAppData);
@@ -370,11 +348,8 @@ namespace FluentSensors.Persistence.Services
             return localAppData;
         }
 
-        // the settings folder was named after the app, and the app was renamed; moving it once is what keeps an
-        // installed copy from looking freshly installed after the update that carries the new name
-        //
-        // it only ever runs while the new folder does not exist, so a folder that is already in use is never
-        // touched and the move cannot happen twice
+        // the folder carries the old app name; moved once, so the renamed app does not start fresh, and only while
+        // the new folder does not exist
         private static void MigrateLegacyFolder(string localAppData)
         {
             try
@@ -391,8 +366,7 @@ namespace FluentSensors.Persistence.Services
             }
             catch (Exception ex)
             {
-                // a locked or unreadable old folder costs the user their settings, not the launch; the app starts
-                // on defaults and writes them to the new location
+                // a locked old folder costs the settings, not the launch; defaults then
                 Debug.WriteLine($"[PersistenceService] folder migration failed: {ex.Message}");
             }
         }
@@ -413,7 +387,7 @@ namespace FluentSensors.Persistence.Services
             }
             catch (Exception)
             {
-                // corrupt file: move it out of the way and fall back to defaults instead of crashing
+                // corrupt: quarantined, the defaults load
                 try
                 {
                     Directory.CreateDirectory(QuarantineFolder);
@@ -436,7 +410,7 @@ namespace FluentSensors.Persistence.Services
             }
             catch (Exception)
             {
-                // best-effort persistence; a failed save should never crash the app
+                // best-effort; a failed save never crashes the app
             }
         }
 
@@ -448,7 +422,7 @@ namespace FluentSensors.Persistence.Services
             }
             catch
             {
-                // best-effort; the app is about to restart anyway, so a stale file just means the next reset attempt handles it
+                // best-effort; the app restarts anyway, a stale file waits for the next reset
             }
         }
 

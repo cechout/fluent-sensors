@@ -1,6 +1,6 @@
 namespace FluentSensors.Common.Sensors
 {
-    // whether data sizes and speeds are shown in bytes or in bits
+    // data sizes and speeds in bytes or bits
     public enum DataUnitBasis
     {
         Byte, // MB, GB, MB/s, GB/s

@@ -26,15 +26,10 @@
             </Grid.RowDefinitions>
 
 
-            <!--  acrylic grain  -->
             <!--
-                the material composites a noise layer as its last step, the system backdrop controller does not,
-                so this paints the missing one; it stays below every surface fill, so it grains the material and
-                never the text or the graphs on top of it
-            -->
-            <!--
-                the canvas keeps the layer out of the layout: the rectangle is sized in physical pixels and
-                scaled back down from code, which would otherwise stretch the rows
+                acrylic grain: the material paints noise last, the backdrop controller does not; below every fill, so
+                it grains the material and not the text or graphs; a canvas, since the rectangle is sized in physical
+                pixels and scaled down from code, which would stretch the rows
             -->
             <Canvas
                 x:Name="FlyoutNoiseHost"
@@ -53,8 +48,7 @@
                 Background="{ThemeResource FlyoutGraphsBackground}"
                 CornerRadius="7,7,0,0">
 
-                <!--  the graphs scroll only once the pinned sensor count pushes the window past its height cap  -->
-                <!--  (both modes are switched from code, see ApplyGraphsScrollMode)  -->
+                <!--  scrolls only once the pinned sensors pass the height cap (switched in ApplyGraphsScrollMode)  -->
                 <ScrollViewer
                     x:Name="GraphsScrollViewer"
                     HorizontalScrollBarVisibility="Disabled"
@@ -106,7 +100,7 @@
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource SubtleBarButtonStyle}" />
 
-                    <!--  close taskbar widget  -->
+                    <!--  close the taskbar widget  -->
                     <Button
                         x:Name="CloseWidgetButton"
                         Width="38"

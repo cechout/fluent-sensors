@@ -1,6 +1,6 @@
 root = true
 
-# charset intentionally not set here, existing files mix BOM and no-BOM, not touching that for now
+# no charset, the files mix BOM and no BOM
 
 [*]
 end_of_line = lf

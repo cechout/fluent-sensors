@@ -9,44 +9,35 @@ using FluentSensors.Common;
 
 namespace FluentSensors.Core.Startup
 {
-    // registers and removes the scheduled task that starts the app when the user signs in
-    //
-    // a scheduled task rather than the usual HKCU\...\Run entry, because the app manifest asks for
-    // requireAdministrator: a Run entry starts it with the non-elevated logon token, and CreateProcess then fails
+    // autostart:
+    // the scheduled task that starts the app at sign-in; not an HKCU Run entry, which under requireAdministrator fails
     // with ERROR_ELEVATION_REQUIRED (740) instead of prompting
-    // a task with RunLevel HighestAvailable and LogonType InteractiveToken starts elevated with no prompt, stores no
-    // password, and only runs while that user is actually signed in, which is what a window needs
+    // HighestAvailable with InteractiveToken starts elevated without a prompt or a stored password, only
+    // while the user is signed in
     public static class WinAutostartService
     {
         // === fields ===
 
         private const string TaskName = "FluentSensors";
 
-        // the trigger delay for the delayed start option; long enough to let the sign-in settle before the sensor
-        // discovery and the kernel driver load start competing with it
+        // the delayed start; the sign-in settles before discovery and the driver load compete with it
         private const string StartupDelay = "PT30S";
 
-        // the task passes this so the app can tell a sign-in launch apart from someone opening it from the start
-        // menu; nothing else about the process differs, and start-minimized must only apply to the former
+        // marks a sign-in launch, the only one start minimized applies to
         private const string AutostartArgument = "--autostart";
 
 
         // === public api ===
 
-        // a task is a real system entry that outlives the app folder, so a portable copy deliberately does not offer
-        // this; deleting the folder would leave a task pointing at nothing that nobody connects to this app anymore
-        //
-        // a packaged build keeps the task rather than using the StartupTask manifest extension: that extension
-        // activates the app with the users normal token, which requireAdministrator then refuses, while a task with
-        // RunLevel HighestAvailable starts elevated without a prompt
-        // RapidDev.Radiograph ships exactly this shape from the store, a LogonTrigger task with InteractiveToken and
-        // HighestAvailable pointing at its own exe under WindowsApps, and declares no manifest extension at all
+        // not for a portable copy, the task would outlive a deleted folder
+        // a packaged build keeps the task too: the StartupTask extension activates with the normal token, which
+        // requireAdministrator refuses; (RapidDev.Radiograph ships this shape from the store)
         public static bool IsSupported => !AppDistribution.IsPortableBuild;
 
-        // true only when windows started this process from the scheduled task, never when the user launched it
+        // started by the task, not by the user
         public static bool StartedByTask { get; } = HasAutostartArgument();
 
-        // reads the task rather than a setting, so a task removed by hand in the task scheduler shows up as off
+        // reads the task, so one removed by hand shows as off
         public static bool IsEnabled()
         {
             if (!IsSupported) return false;
@@ -54,9 +45,8 @@ namespace FluentSensors.Core.Startup
             return ReadTaskXml() != null;
         }
 
-        // true when a registered task no longer matches what this build would write: a different exe, which a moved
-        // or reinstalled copy leaves behind, or a missing autostart argument, which is what every task written before
-        // that argument existed looks like
+        // the task differs from what this build writes: another exe (a moved or reinstalled copy), or no
+        // autostart argument (an older task)
         public static bool IsStale()
         {
             string? xml = ReadTaskXml();
@@ -70,9 +60,7 @@ namespace FluentSensors.Core.Startup
             return !ReadElement(xml, "Arguments").Contains(AutostartArgument, StringComparison.OrdinalIgnoreCase);
         }
 
-        // rewrites the task when it points somewhere else than the running exe, and does nothing when there is no
-        // task or it already matches
-        // spawns two schtasks processes, so callers run this off the UI thread
+        // rewrites a stale task, nothing otherwise; (two schtasks processes, so off the UI thread)
         public static void RepairIfStale(bool delayed)
         {
             if (!IsSupported) return;
@@ -81,8 +69,7 @@ namespace FluentSensors.Core.Startup
             CreateTask(delayed);
         }
 
-        // creates, rewrites or removes the task; returns false when the task scheduler refused, so the caller can put
-        // its toggle back rather than showing a state that does not exist
+        // creates, rewrites or removes the task; false when the task scheduler refused, so the toggle goes back
         public static bool Apply(bool enabled, bool delayed)
         {
             if (!IsSupported) return false;
@@ -93,11 +80,9 @@ namespace FluentSensors.Core.Startup
 
         // === private helpers ===
 
-        // schtasks /Create with /SC ONLOGON cannot express the three settings below, which is why the task is handed
-        // over as a full definition instead:
-        // DisallowStartIfOnBatteries and StopIfGoingOnBatteries both default to true, so on a laptop the app would
-        // not start on battery and would be killed the moment the charger is pulled
-        // ExecutionTimeLimit defaults to three days, which eventually terminates something meant to run all the time
+        // a full definition, since /SC ONLOGON cannot express these: DisallowStartIfOnBatteries and
+        // StopIfGoingOnBatteries default to true (no start on battery, killed on unplugging),
+        // ExecutionTimeLimit to three days
         private static bool CreateTask(bool delayed)
         {
             string? exePath = Environment.ProcessPath;
@@ -108,7 +93,7 @@ namespace FluentSensors.Core.Startup
 
             try
             {
-                // UTF-16 on purpose; schtasks /XML rejects a UTF-8 file
+                // UTF-16; schtasks /XML rejects UTF-8
                 File.WriteAllText(xmlPath, BuildTaskXml(exePath, workingDirectory, delayed), Encoding.Unicode);
 
                 return RunSchTasks("/Create", "/TN", TaskName, "/XML", xmlPath, "/F") == 0;
@@ -124,25 +109,23 @@ namespace FluentSensors.Core.Startup
                 {
                     if (File.Exists(xmlPath)) File.Delete(xmlPath);
                 }
-                catch { /* a leftover definition in the temp folder is harmless, windows clears it eventually */ }
+                catch { /* a leftover in the temp folder is harmless */ }
             }
         }
 
         private static bool DeleteTask()
         {
-            // nothing to remove counts as success, the end state is what the caller asked for
+            // nothing to remove is success
             if (ReadTaskXml() == null) return true;
 
             return RunSchTasks("/Delete", "/TN", TaskName, "/F") == 0;
         }
 
-        // the current user, which is who the task runs as and whose sign-in triggers it
+        // the user the task runs as and whose sign-in triggers it
         //
         // KNOWN UNRELIABLE:
-        // this reads whoever the process runs as, which is the elevated identity; when a standard user answers the
-        // UAC prompt with someone elses administrator credentials, that administrator is what lands here and the task
-        // ends up tied to their sign-in instead
-        // correct for the ordinary case where the user elevates their own account
+        // this is the elevated identity; a standard user who elevates with another administrator account ties the task
+        // to that sign-in instead (right for the usual own-account case)
         private static string CurrentUserId() => $"{Environment.UserDomainName}\\{Environment.UserName}";
 
         private static string BuildTaskXml(string exePath, string workingDirectory, bool delayed)
@@ -202,8 +185,7 @@ namespace FluentSensors.Core.Startup
                    "</Task>\n";
         }
 
-        // pulls one element out of the task definition, or empty when it is not there; the definitions this writes
-        // are flat enough that a full xml parse would buy nothing
+        // one element of the definition, or empty; flat enough to need no xml parser
         private static string ReadElement(string xml, string element)
         {
             string open = $"<{element}>";
@@ -229,7 +211,7 @@ namespace FluentSensors.Core.Startup
             return false;
         }
 
-        // returns null when the task does not exist; schtasks answers a missing task with a non-zero exit code
+        // null without a task (schtasks exits non-zero)
         private static string? ReadTaskXml()
         {
             if (!IsSupported) return null;
@@ -242,7 +224,7 @@ namespace FluentSensors.Core.Startup
 
         private static int RunSchTasks(params string[] arguments) => RunSchTasks(null, arguments);
 
-        // the app is already elevated, so creating and deleting tasks needs no further consent
+        // already elevated, so no further consent
         private static int RunSchTasks(Action<string>? collectOutput, params string[] arguments)
         {
             try
@@ -264,11 +246,8 @@ namespace FluentSensors.Core.Startup
                 using var process = Process.Start(psi);
                 if (process == null) return -1;
 
-                // deliberately no StandardOutputEncoding: schtasks declares UTF-16 inside the xml it prints but
-                // writes it to stdout in the console codepage, and forcing Unicode here turns the whole thing into
-                // mojibake (measured)
-                // the cost is that a path with non-ascii characters can come back mangled, which at worst makes the
-                // staleness check rewrite a task that was already fine
+                // no StandardOutputEncoding: schtasks declares UTF-16 but writes the console codepage, forcing Unicode
+                // gives mojibake (measured); a non-ascii path may come back mangled, at worst a fine task is rewritten
                 string output = process.StandardOutput.ReadToEnd();
                 process.StandardError.ReadToEnd();
                 if (!process.WaitForExit(10000)) return -1;

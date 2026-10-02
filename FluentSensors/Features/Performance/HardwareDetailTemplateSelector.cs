@@ -6,14 +6,11 @@ using FluentSensors.Features.Performance.Lhm;
 
 namespace FluentSensors.Features.Performance
 {
-    // picks which hardware-specific detail view (CpuDetailView, future GpuDetailView, ...)
-    // the single ContentControl in PerformancePage.xaml shows, purely by the runtime type of SelectedItem.Target
-    //
-    // WinUI has no automatic implicit-DataTemplate-by-type resolution the way WPF does; every DataTemplate needs
-    // an x:Key; so this selector is the standard WinUI substitute: one property per hardware kind, wired to its
-    // keyed DataTemplate as a StaticResource in PerformancePage.xaml
-    // Adding a new hardware kind later means one new property here, one new switch arm, and one new keyed DataTemplate
-    // in the page; PerformancePage itself does not otherwise change
+    // the detail view selector:
+    // picks the detail view (CpuDetailView, GpuDetailView) of the PerformancePage ContentControl by the runtime
+    // type of SelectedItem.Target
+    // WinUI has no implicit DataTemplate by type like WPF, so one property per kind, each a keyed StaticResource; a new
+    // kind is a property, a switch arm and a template
     public class HardwareDetailTemplateSelector : DataTemplateSelector
     {
         public DataTemplate CpuTemplate { get; set; }

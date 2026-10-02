@@ -1,20 +1,15 @@
-# builds the msix, either as a signed sideload package for testing or as the store upload package
-# the store re-signs what it accepts, so only the sideload path needs a certificate of its own
-#
-# csproj Version stays the single source of truth; the StampAppxManifestVersion target in the csproj writes it
-# into the manifest at build time, so nothing here has to know a version number
-#
-# msbuild.exe rather than dotnet build, because ResolveComReference is not implemented in the .NET Core msbuild
-# and the UIAutomation COM references fail with MSB4803
+# builds the msix, a signed sideload package for testing or the store upload package
+# the store re-signs what it accepts, so only sideload needs a certificate
+# the version comes from the csproj through StampAppxManifestVersion
+# msbuild.exe: the .NET Core msbuild lacks ResolveComReference, the UIAutomation references fail with MSB4803:
 # https://aka.ms/msbuild/MSB4803
 
 [CmdletBinding()]
 param(
-    # produces the store upload package instead of a signed sideload package
+    # the store upload package instead of a signed sideload one
     [switch]$Store,
 
-    # imports the sideload certificate into the machine trust store, which is what makes Add-AppxPackage accept
-    # the package; needs an elevated shell and only has to run once per machine
+    # imports the sideload certificate into the machine trust store for Add-AppxPackage; elevated, once per machine
     [switch]$Trust
 )
 
@@ -28,15 +23,12 @@ $outputDir = Join-Path $repoRoot 'Setup\MsixOutput'
 
 # === certificate ===
 
-# the certificate subject has to match Identity/@Publisher character for character, so it is read out of the
-# manifest rather than repeated here; a second copy would drift the moment partner center hands over the real
-# publisher id
+# the subject matches Identity/@Publisher to the character, so it is read from the manifest; a copy would drift
 function Get-PublisherSubject {
     return ([xml](Get-Content -LiteralPath $manifestPath)).Package.Identity.Publisher
 }
 
-# reuses the certificate once it exists, so every rebuild keeps the same signature and an installed test package
-# can be updated in place instead of having to be removed first
+# reused once it exists, so an installed test package updates in place
 function Get-SideloadCertificate {
     param([Parameter(Mandatory)][string]$Subject)
 
@@ -47,8 +39,7 @@ function Get-SideloadCertificate {
 
     Write-Host "creating a self signed code signing certificate for $Subject"
 
-    # the two text extensions are what makes this a code signing certificate rather than a generic one:
-    # 1.3.6.1.5.5.7.3.3 is the code signing eku, the empty 2.5.29.19 marks it as an end entity
+    # code signing by the two extensions: 1.3.6.1.5.5.7.3.3 is the eku, the empty 2.5.29.19 marks an end entity
     return New-SelfSignedCertificate `
         -Type Custom `
         -Subject $Subject `
@@ -93,9 +84,9 @@ if (-not $msbuild) { throw 'msbuild.exe not found in the visual studio installat
 dotnet restore $project -p:Platform=x64 -r win-x64 -p:SelfContained=true
 if ($LASTEXITCODE -ne 0) { throw 'restore failed' }
 
-# WindowsPackageType is set on the command line on purpose: a global property overrides the None the csproj
-# assigns, so the unpackaged github build stays exactly as it is and no second project or configuration is needed
-# the trailing double backslash survives the native command line parser, a single one would escape the quote
+# WindowsPackageType on the command line overrides the None of the csproj, so the github build stays as
+# it is without a second project
+# the trailing double backslash survives the native parser, a single one escapes the quote
 $arguments = @(
     $project
     '-t:Publish'
@@ -114,7 +105,7 @@ if ($Store) {
 else {
     $certificate = Get-SideloadCertificate -Subject (Get-PublisherSubject)
 
-    # a single architecture package needs no bundle, and a plain msix is what Add-AppxPackage wants
+    # one architecture needs no bundle, and Add-AppxPackage wants a plain msix
     $arguments += '-p:UapAppxPackageBuildMode=SideloadOnly'
     $arguments += '-p:AppxBundle=Never'
     $arguments += '-p:AppxPackageSigningEnabled=true'

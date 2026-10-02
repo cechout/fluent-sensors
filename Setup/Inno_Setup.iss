@@ -3,8 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "Fluent Sensors"
-; overridable so CI can pass the version from FluentSensors.csproj via /DMyAppVersion
-; local manual compiles keep using this fallback untouched
+; CI passes the csproj version through /DMyAppVersion, a local compile uses this fallback
 #ifndef MyAppVersion
   #define MyAppVersion "0.3.1"
 #endif
@@ -34,8 +33,7 @@ ArchitecturesAllowed=x64compatible
 ; meaning it should use the native 64-bit Program Files directory and
 ; the 64-bit view of the registry.
 ArchitecturesInstallIn64BitMode=x64compatible
-; same floor as TargetPlatformMinVersion in the csproj; below it the app would install and then fail on start,
-; this stops setup with a clear message before anything is copied
+; the TargetPlatformMinVersion floor of the csproj; below it setup stops with a message instead of a failing start
 MinVersion=10.0.19041
 DisableProgramGroupPage=yes
 LicenseFile=..\LICENSE.txt
@@ -55,8 +53,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "..\FluentSensors\bin\x64\Release\net10.0-windows10.0.19041.0\publish\win-x64\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-; Excludes keeps a locally created portable marker and its Persistence folder out of the installer, so an
-; installed build can never end up writing its settings into Program Files
+; Excludes keeps a local portable marker and its Persistence folder out, so no installed build writes
+; into Program Files
 Source: "..\FluentSensors\bin\x64\Release\net10.0-windows10.0.19041.0\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "\portable.txt,\Persistence"
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
@@ -65,10 +63,9 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-; shellexec is what makes the "launch now" checkbox work at all: a postinstall entry defaults to
-; runasoriginaluser, so it starts the app with the non-elevated token of whoever launched Setup, and the apps
-; requireAdministrator manifest then fails that CreateProcess with ERROR_ELEVATION_REQUIRED (740)
-; ShellExecuteEx honours the manifest instead and raises the normal UAC consent prompt
+; shellexec makes "launch now" work: postinstall defaults to runasoriginaluser, the unelevated token of
+; whoever started Setup, which requireAdministrator fails with ERROR_ELEVATION_REQUIRED (740);
+; ShellExecuteEx raises the UAC prompt instead
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent shellexec
 
 [Code]

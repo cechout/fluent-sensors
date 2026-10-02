@@ -13,8 +13,8 @@
     <Grid HorizontalAlignment="Stretch">
 
         <!--
-            (the same columns as the CardContent grid in SensorRowControl, which has to change together with this one;
-            the value columns carry its MaxWidth as well, workaround: star columns fill greedily)
+            (the columns of the CardContent grid in SensorRowControl, changed together, the MaxWidth of
+            workaround: star columns fill greedily included)
         -->
         <Grid.ColumnDefinitions>
             <ColumnDefinition
@@ -51,7 +51,7 @@
                 MinWidth="0" />
         </Grid.ColumnDefinitions>
 
-        <!--  (the left margin lines the label up with the sensor name, past the checkbox of the row)  -->
+        <!--  (the left margin aligns the label with the sensor name, past the checkbox)  -->
         <TextBlock
             Grid.Column="0"
             Margin="38,0,0,0"

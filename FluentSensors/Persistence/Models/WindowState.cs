@@ -3,8 +3,7 @@ using System.Collections.Generic;
 
 namespace FluentSensors.Persistence.Models
 {
-    // persisted position and size for one window
-    // the dictionary key in window-state.json identifies which window this belongs to (e.g. "Main", "Widget")
+    // position and size of one window, keyed in window-state.json ("Main", "Widget")
     public class WindowState
     {
         public int X { get; set; }
@@ -13,13 +12,11 @@ namespace FluentSensors.Persistence.Models
         public int Height { get; set; }
         public bool IsMaximized { get; set; }
 
-        // WidgetWindow only: whether it was open when the app last closed, so it can be automatically restored on
-        // next launch; which sensors to restore it with comes from SensorSelectionService, not from here
+        // WidgetWindow only, reopened on the next launch; its sensors come from SensorSelectionService
         public bool WasOpen { get; set; }
 
-        // legacy: kept only so SensorSelectionService.MigrateFromLegacyWidgetPins can still read a pre-update
-        // window-state.json on someone elses first launch after updating
-        // current code never writes this anymore, SensorSelectionService owns the pinned selection now
+        // legacy, read only by SensorSelectionService.MigrateFromLegacyWidgetPins on the first launch
+        // after an update; never written
         public List<string> PinnedSensorIds { get; set; } = new();
     }
 }

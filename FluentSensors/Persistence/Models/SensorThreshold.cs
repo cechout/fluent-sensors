@@ -3,14 +3,12 @@
 
 namespace FluentSensors.Persistence.Models
 {
-    // snapshot of one sensors threshold configuration
-    // shared between MainWindow and WidgetWindow
+    // the threshold of one sensor, the same in every view
     public class SensorThreshold
     {
         public bool IsEnabled { get; set; } = false;
 
-        // null means "never customized by the user"
-        // gets resolved against a per-sensor-type default (see SensorTypeProfiles) the first time its actually needed
+        // null until customized; the SensorTypeProfiles default stands in on first use
         public double? Value { get; set; } = null;
         public ThresholdDirection Direction { get; set; } = ThresholdDirection.Above;
         public Windows.UI.Color Color { get; set; } = Windows.UI.Color.FromArgb(255, 231, 72, 86);

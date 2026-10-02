@@ -6,8 +6,8 @@ using FluentSensors.Persistence.Models;
 
 namespace FluentSensors.Persistence.Services
 {
-    // central in-memory store for everything a user can configure per sensor: visibility,
-    // threshold, and widget graph Y-axis scaling
+    // the sensor states:
+    // everything configurable per sensor, in memory: visibility, threshold and the y-axis scaling per graph scope
     public class SensorStateService
     {
         // === fields ===
@@ -27,7 +27,7 @@ namespace FluentSensors.Persistence.Services
 
         // === public api ===
 
-        // returns a fresh default state if none has been configured yet; never null
+        // a fresh default when none is configured, never null
         public SensorState GetState(string sensorId)
         {
             return _states.TryGetValue(sensorId, out var state) ? state : new SensorState();
@@ -37,11 +37,11 @@ namespace FluentSensors.Persistence.Services
         {
             _states[sensorId] = state;
             StateChanged?.Invoke(sensorId, state);
+            // the live dictionary; PersistenceService reads it only when the debounce fires, so no copy
             PersistenceService.Instance.SaveSensorStatesDebounced(_states);
         }
 
-        // convenience helper for the hide/restore flow: flips just the hidden flag without touching that sensors
-        // threshold or Y-axis config
+        // for hide and restore, the hidden flag only
         public void SetHidden(string sensorId, bool isHidden)
         {
             var state = GetState(sensorId);
@@ -49,13 +49,11 @@ namespace FluentSensors.Persistence.Services
             SetState(sensorId, state);
         }
 
-        // puts this sensors threshold value and its manual y-axis maximum in every scope back to their per-type
-        // defaults; used when a data unit switch moves its unit, where a kept value would turn into an odd number
-        // (50 Mbit/s reads as 6 MB/s)
-        // the switches stay as they are: threshold on/off, direction, color, auto scaling and visibility
-        //
-        // always raises StateChanged, even for a sensor that was never configured, so every open editor re-resolves
-        // its default in the new unit; only a configured sensor is actually written
+        // the threshold value and the manual y-max of every scope back to the type defaults, on a data unit switch
+        // where a kept value turns odd (50 Mbit/s reads as 6 MB/s)
+        // the switches stay: threshold on or off, direction, color, auto scaling, visibility
+        // raises StateChanged for an unconfigured sensor too, so open editors re-resolve the default; only
+        // a configured one is written
         public void ResetUnitDependentValues(string sensorId)
         {
             if (!_states.TryGetValue(sensorId, out var state))
@@ -72,8 +70,6 @@ namespace FluentSensors.Persistence.Services
         }
 
         // persistence
-        // returns the live dictionary directly; PersistenceService only reads it when its debounce timer fires, so no
-        // snapshot copy is needed here
         public void LoadFromDisk(Dictionary<string, SensorState> loaded)
         {
             _states.Clear();
@@ -86,8 +82,7 @@ namespace FluentSensors.Persistence.Services
 
         // === events ===
 
-        // fires whenever any part of a sensors state changes, so every open view for that sensor can refresh; can fire
-        // from any thread, subscribers must marshal to their own UI thread
+        // any change, for every open view of the sensor; from any thread, subscribers marshal themselves
         public event Action<string, SensorState> StateChanged;
     }
 }

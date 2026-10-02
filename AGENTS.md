@@ -41,6 +41,9 @@ requirements: bring your own style if you prefer one, and expect these to shift 
   trailing comments on the individual lines.
 - A comment that only restates the line below it, or that defends an option nobody took, is usually
   better left out.
+- Comments are kept short: one or two lines for what the code does and the one thing that is not
+  obvious, the unit once on a group line, a trailing comment in a few words, and no history of how the
+  code got to where it is.
 
 Four tags mark code that is not ordinary. Use each only for what it names:
 

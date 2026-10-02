@@ -8,25 +8,23 @@ using Windows.System;
 
 namespace FluentSensors.Common
 {
-    // tells the rest of the app which of the three shipping channels it is currently running as, so behaviour that
-    // genuinely differs per channel has one place to ask
-    //
-    // installer build and portable build are the two GitHub downloads and only differ in where state is written;
-    // a packaged build comes from the Microsoft Store and must never offer its own updater: the store forbids a
-    // packaged app from updating itself outside the store, the install directory is read only and signature
-    // protected, and running the inno installer from inside it would leave a second unpackaged copy behind
+    // the distribution channel:
+    // installer, portable or store, the one place to ask; installer and portable are the GitHub downloads and
+    // differ only in where state lives
+    // a packaged store build never runs its own updater: the store forbids it, the install folder is read only and
+    // signed, and the inno installer would leave a second copy
     public static class AppDistribution
     {
         // === fields ===
 
-        // portable mode: this marker file next to the exe moves persistence from %LocalAppData% into the app folder
-        // the marker ships only in the portable zip, installer builds never contain it
+        // portable mode: this marker next to the exe moves the state from %LocalAppData% into the app
+        // folder; (only in the portable zip)
         public const string PortableMarkerFileName = "portable.txt";
 
-        // the id the Microsoft Store knows this app by, which every store deep link addresses it with
+        // the store id every deep link uses
         public const string StoreProductId = "9PK7F87MWXKF";
 
-        // no package identity at all; the documented return of GetCurrentPackageFullName for an unpackaged process
+        // what GetCurrentPackageFullName returns without a package identity
         private const int AppmodelErrorNoPackage = 15700;
 
         private static readonly Lazy<bool> _isPackaged = new Lazy<bool>(DetectPackaged);
@@ -39,25 +37,21 @@ namespace FluentSensors.Common
 
         public static bool IsPortableBuild => _isPortableBuild.Value;
 
-        // the store ships its own update path, so every part of the in-app updater keys off this
-        // (the store build still updates from inside the app, but through the store, see StoreUpdateSource)
+        // the in-app updater keys off this; (the store build updates through the store, see StoreUpdateSource)
         public static bool SupportsSelfUpdate => !IsPackaged;
 
-        // opens the review form of this app in the Microsoft Store
         public static Task OpenStoreReviewAsync() =>
             LaunchStoreAsync(new Uri($"ms-windows-store://review/?ProductId={StoreProductId}"));
 
-        // opens the product page of this app in the Microsoft Store, where an update can always be installed by hand
+        // the product page, where an update can always be installed by hand
         public static Task OpenStorePageAsync() =>
             LaunchStoreAsync(new Uri($"ms-windows-store://pdp/?ProductId={StoreProductId}"));
 
 
         // === private helpers ===
 
-        // Launcher first and the shell as the fallback
-        //
-        // from the elevated store build Launcher does reach the store, but in the update spike its answer never came
-        // back, so nothing may wait on this for anything that matters
+        // Launcher first, the shell as the fallback; (from the elevated store build Launcher reaches the store, but its
+        // answer may never come back, so nothing waits on it)
         private static async Task LaunchStoreAsync(Uri uri)
         {
             try
@@ -73,9 +67,8 @@ namespace FluentSensors.Common
             catch { /* nothing left to try, the click simply does nothing */ }
         }
 
-        // asking for the name with a zero length buffer is the cheap identity probe: a packaged process answers
-        // ERROR_INSUFFICIENT_BUFFER, an unpackaged one answers APPMODEL_ERROR_NO_PACKAGE
-        // deliberately not Package.Current in a try/catch, since that throws on every unpackaged start
+        // a zero length buffer probes the identity: ERROR_INSUFFICIENT_BUFFER when packaged, APPMODEL_ERROR_NO_PACKAGE
+        // otherwise; (Package.Current would throw on every unpackaged start)
         private static bool DetectPackaged()
         {
             try
@@ -85,7 +78,7 @@ namespace FluentSensors.Common
             }
             catch
             {
-                // an api that cannot be reached at all means no package identity either
+                // an unreachable api means no identity either
                 return false;
             }
         }
@@ -101,7 +94,7 @@ namespace FluentSensors.Common
             }
             catch
             {
-                // an unreadable app folder is treated as the installed layout, which writes to %LocalAppData%
+                // an unreadable app folder counts as installed (%LocalAppData%)
                 return false;
             }
         }
@@ -109,8 +102,7 @@ namespace FluentSensors.Common
 
         // === win32 api imports ===
 
-        // DllImport instead of LibraryImport, deliberate exception:
-        // the source generator has no marshalling for the optional null output buffer this probe relies on
+        // DllImport, not LibraryImport; the generator cannot marshal the optional null buffer the probe needs
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
         private static extern int GetCurrentPackageFullName(ref int packageFullNameLength, char[]? packageFullName);
     }

@@ -6,14 +6,12 @@ using Windows.Foundation;
 
 namespace FluentSensors.Controls
 {
-    // turns its single child by quarter turns and lays it out in the turned space, so a child turned by 90 degrees is
-    // measured with width and height swapped and still fills the panel exactly
-    //
-    // WinUI has no LayoutTransform; a RenderTransform alone turns the pixels but leaves the layout slot unturned, so
-    // the child would be sized for the wrong shape and then stick out of the panel
+    // the rotated content panel:
+    // turns its child by quarter turns and lays it out turned, width and height swapped at 90 degrees
+    // WinUI has no LayoutTransform; a RenderTransform turns the pixels but not the slot, so the child sticks out
     public class RotatedContentPanel : Panel
     {
-        // clockwise quarter turns: 0 none, 1 = 90 degrees clockwise, 2 = 180 degrees, 3 = 90 degrees counterclockwise
+        // clockwise: 0 none, 1 = 90 degrees, 2 = 180 degrees, 3 = 90 degrees counterclockwise
         public int QuarterTurns
         {
             get => (int)GetValue(QuarterTurnsProperty);
@@ -27,7 +25,7 @@ namespace FluentSensors.Controls
                 typeof(RotatedContentPanel),
                 new PropertyMetadata(0, OnTransformChanged));
 
-        // mirrors the turned child left to right
+        // left to right, after the turn
         public bool IsMirrored
         {
             get => (bool)GetValue(IsMirroredProperty);
@@ -84,7 +82,7 @@ namespace FluentSensors.Controls
             return finalSize;
         }
 
-        // maps the child, laid out at childWidth x childHeight from the origin, onto the panel:
+        // the child, laid out at childWidth x childHeight from the origin, onto the panel:
         // x' = x * M11 + y * M21 + OffsetX
         // y' = x * M12 + y * M22 + OffsetY
         private Matrix BuildMatrix(double panelWidth, double childWidth, double childHeight)

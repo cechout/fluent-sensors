@@ -48,8 +48,7 @@
             </DataTemplate>
         </Grid.Resources>
 
-        <!--  the entire taskbar widget is one unified button containing all sensor graphs  -->
-        <!--  (padding depends on the taskbar edge and is set from code)  -->
+        <!--  the whole widget is one button around all graphs (padding per taskbar edge, from code)  -->
         <Button
             x:Name="TaskbarButton"
             HorizontalAlignment="Stretch"
@@ -68,10 +67,9 @@
             <Button.Template>
                 <ControlTemplate TargetType="Button">
                     <Grid>
-                        <!--  normal hover fill layer (animated via DirectComposition)  -->
                         <!--
-                            1px transparent inset, like PressedBorder, so the stroke layer above composites over
-                            the taskbar and not over this fill (otherwise the hover border reads far too light)
+                            normal hover fill, composition animated; a 1px transparent inset like PressedBorder keeps
+                            the stroke layer over the taskbar, over this fill it reads far too light
                         -->
                         <Border
                             x:Name="BackgroundBorder"
@@ -81,11 +79,10 @@
                             CornerRadius="4"
                             Opacity="0" />
 
-                        <!--  normal pressed fill overlay layer  -->
                         <!--
-                            fill only; the border moved to PressedStrokeBorder so the fill can crossfade in sync
-                            with the hover fill while the border still snaps (a gated fill on top of a fading fill
-                            double-paints and flashes bright for a few frames)
+                            normal pressed fill only; the border is PressedStrokeBorder, so the fill crossfades
+                            with the hover fill while the border snaps (a gated fill over a fading one double
+                            paints and flashes for a few frames)
                         -->
                         <Border
                             x:Name="PressedBorder"
@@ -95,8 +92,7 @@
                             CornerRadius="4"
                             Opacity="0" />
 
-                        <!--  active flyout hover fill layer (#323232 on-screen, DWM compensated)  -->
-                        <!--  same 1px transparent inset as BackgroundBorder, keeps the stroke off this fill  -->
+                        <!--  active flyout hover fill (#323232 on screen, DWM compensated), the same 1px inset  -->
                         <Border
                             x:Name="ActiveHoverBorder"
                             Background="{ThemeResource TaskbarButtonActiveHoverBackground}"
@@ -105,8 +101,7 @@
                             CornerRadius="4"
                             Opacity="0" />
 
-                        <!--  active flyout pressed fill layer (#2a2a2a on-screen, DWM compensated)  -->
-                        <!--  same 1px transparent inset as the other fill layers, keeps the stroke off this fill  -->
+                        <!--  active flyout pressed fill (#2a2a2a on screen, DWM compensated), the same 1px inset  -->
                         <Border
                             x:Name="ActivePressedBorder"
                             Background="{ThemeResource TaskbarButtonActivePressedBackground}"
@@ -115,7 +110,7 @@
                             CornerRadius="4"
                             Opacity="0" />
 
-                        <!--  border stroke layer for normal hover (animated via DirectComposition)  -->
+                        <!--  normal hover stroke, composition animated  -->
                         <Border
                             x:Name="StrokeBorder"
                             BorderBrush="{ThemeResource TaskbarButtonBorderBrush}"
@@ -123,13 +118,13 @@
                             CornerRadius="4"
                             Opacity="0"
                             RenderTransformOrigin="0.5,0.5">
-                            <!--  flipped in the light theme (TaskbarButtonBorderScaleY), same on the next two layers  -->
+                            <!--  flipped in the light theme (TaskbarButtonBorderScaleY), like the next two  -->
                             <Border.RenderTransform>
                                 <ScaleTransform ScaleY="{ThemeResource TaskbarButtonBorderScaleY}" />
                             </Border.RenderTransform>
                         </Border>
 
-                        <!--  border stroke layer for normal pressed (gated separately from the PressedBorder fill)  -->
+                        <!--  normal pressed stroke, gated apart from the PressedBorder fill  -->
                         <Border
                             x:Name="PressedStrokeBorder"
                             BorderBrush="{ThemeResource TaskbarButtonPressedBorderBrush}"
@@ -142,7 +137,7 @@
                             </Border.RenderTransform>
                         </Border>
 
-                        <!--  border stroke layer for active hover  -->
+                        <!--  active hover stroke  -->
                         <Border
                             x:Name="ActiveHoverStrokeBorder"
                             BorderBrush="{ThemeResource TaskbarButtonActiveHoverBorderBrush}"
@@ -155,7 +150,7 @@
                             </Border.RenderTransform>
                         </Border>
 
-                        <!--  border stroke layer for active pressed  -->
+                        <!--  active pressed stroke  -->
                         <Border
                             x:Name="ActivePressedStrokeBorder"
                             BorderBrush="{ThemeResource TaskbarButtonActivePressedBorderBrush}"
@@ -163,7 +158,7 @@
                             CornerRadius="4"
                             Opacity="0" />
 
-                        <!--  content layer: always visible (Opacity=1.0), never hidden  -->
+                        <!--  content, always visible  -->
                         <ContentPresenter
                             x:Name="ContentPresenter"
                             Padding="{TemplateBinding Padding}"
@@ -174,8 +169,8 @@
                 </ControlTemplate>
             </Button.Template>
 
-            <!--  list of compact sensor graphs along the taskbar  -->
-            <!--  (stretching equally across the widget length, panel and template from RootGrid.Resources)  -->
+            <!--  the graphs along the taskbar  -->
+            <!--  (stretched equally; panel and template from RootGrid.Resources)  -->
             <ItemsControl
                 x:Name="SlotsItemsControl"
                 ItemTemplate="{StaticResource HorizontalSlotTemplate}"

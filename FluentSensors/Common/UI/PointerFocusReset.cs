@@ -5,21 +5,19 @@ using Microsoft.UI.Xaml.Input;
 
 namespace FluentSensors.Common.UI
 {
-    // hides the keyboard focus rectangle again as soon as the mouse is used, the way Windows itself does it
-    //
-    // a click on something focusable moves focus there anyway, but a click on empty space leaves focus where it was,
-    // still in keyboard state, so the rectangle would stay up; this drops that element to pointer focus instead, which
-    // hides the rectangle but keeps the spot, so the next tab or arrow key carries on from the same element
+    // the pointer focus reset:
+    // hides the focus rectangle on mouse use like Windows; a click on empty space leaves keyboard focus, so this turns
+    // it into pointer focus, the next key carries on from there
     public static class PointerFocusReset
     {
-        // call once per window or dialog, on the root of its content
+        // once per window or dialog, on its content root
         public static void Attach(UIElement root)
         {
-            // handledEventsToo, a press that a control on the way has already handled still counts as a click
+            // handledEventsToo; a press a control already handled still counts
             root.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(Root_PointerPressed), true);
         }
 
-        // runs last on the way up, so a control that takes focus on press has already done so and reads Pointer here
+        // last on the way up, after a control took focus on press
         private static void Root_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             if (sender is not UIElement root || root.XamlRoot == null) return;

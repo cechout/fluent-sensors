@@ -13,17 +13,13 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // discovers every GPU instance (dGPU + iGPU both count separately) from LhmHardwareTreeService and creates
-    // one LhmGpuInstanceViewModel per instance; parses each raw LHM sensor into the right property on the right
-    // instance
-    // the instance itself stays a dumb data holder
+    // gpu discovery:
+    // one LhmGpuInstanceViewModel per GPU in LhmHardwareTreeService (dGPU and iGPU apart), every raw LHM sensor parsed
+    // into its property; the instance stays a data holder
     public class LhmGpuPerformanceViewModel
     {
-        // preferred sensor for the two vendor-dependent categories, best first; this only decides which candidate
-        // starts out active, it never filters the list: every sensor of the categorys type is offered
-        // vendors disagree on the package power name in particular (NVIDIA and AMD "GPU Package", Intel iGPU
-        // "GPU Power", AMD board power "GPU PPT"), so matching on a fixed name list left whole vendors with an
-        // empty power tile
+        // the preferred start sensor of the two vendor-dependent categories, best first; never a filter, every sensor
+        // of the type is offered (vendors name package power "GPU Package", "GPU Power", "GPU PPT")
         private static readonly string[] TemperaturePreference = { "GPU Core", "GPU Hot Spot" };
         private static readonly string[] PowerPreference = { "GPU Package", "GPU Power", "GPU PPT", "GPU Total", "GPU Core" };
 
@@ -78,11 +74,8 @@ namespace FluentSensors.Features.Performance.Lhm
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(gpu, e);
         }
 
-        // runs once after the initial sensor batch, per category: if nothing was ever persisted, the best pick wins
-        // over whichever candidate happened to be discovered first; Temperature/Power rank by name preference,
-        // MemoryUsed still by its IsDefault flag because its two candidates are a fixed, vendor-independent pair
-        // if nothing is active at all yet (e.g. a persisted choice never showed up, or this vendor names every
-        // sensor of the category differently), falls back to the first candidate present
+        // once after the first sensor batch, per category: without a saved choice the best pick beats discovery order
+        // (Temperature and Power by name, MemoryUsed by IsDefault); with nothing active, the first candidate
         private static void ApplyCategoryFallbacks(LhmGpuInstanceViewModel gpu)
         {
             ActivateDefault(gpu.HardwareName, "Temperature", gpu.TemperatureOptions, () => gpu.Temperature, gpu.SetTemperatureWithoutPersisting, TemperaturePreference);
@@ -118,8 +111,7 @@ namespace FluentSensors.Features.Performance.Lhm
             if (getActive() == null) setActiveWithoutPersisting(options[0].Resolve());
         }
 
-        // walks the preference list, not the candidate list, so a lower ranked name that happened to be discovered
-        // first never beats a better ranked one discovered later
+        // walks the preference list, so an earlier discovered lower rank never wins
         private static SensorSwitchCandidate FindPreferred(ObservableCollection<SensorSwitchCandidate> options, string[] preferredNames)
         {
             foreach (string name in preferredNames)
@@ -130,9 +122,7 @@ namespace FluentSensors.Features.Performance.Lhm
             return null;
         }
 
-        // fills the fixed D3D engine slots once, after the initial sensor batch: persisted choice if present,
-        // otherwise the next not-yet-claimed candidate in discovery order; a slot stays empty if fewer D3D sensors
-        // exist than slots
+        // fills the D3D engine slots once: the saved choice, else the next unclaimed candidate; a slot can stay empty
         private static void ApplyD3dEngineDefaults(LhmGpuInstanceViewModel gpu)
         {
             var claimed = new HashSet<string>();
@@ -160,8 +150,7 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // matches on (Name, SensorType) rather than Name alone: "GPU Core" is reported as Load, Clock, Temperature
-        // and Voltage with the exact same name, so Name-only matching would let one silently overwrite another
+        // matches on (Name, SensorType); "GPU Core" comes as Load, Clock, Temperature and Voltage
         private void OnSensorDiscovered(LhmGpuInstanceViewModel gpu, LhmSensorEntry entry)
         {
             switch (entry.Name, entry.SensorType)
@@ -182,9 +171,8 @@ namespace FluentSensors.Features.Performance.Lhm
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.CoreClock, entry, e);
                     break;
 
-                // both readings stay permanently visible in the Extended views Core group; each is additionally
-                // offered to the overviews single Temperature slot, which builds a graph of its own for it, see
-                // ExtendedCoreLoad
+                // both stay in the Extended Core group and are offered to the overview Temperature slot too, with a
+                // graph of their own (see ExtendedCoreLoad)
                 case ("GPU Core", "Temperature"):
                     gpu.CoreTemperature = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.CoreTemperature, entry);
@@ -201,14 +189,13 @@ namespace FluentSensors.Features.Performance.Lhm
                         g => g.Temperature, (g, v) => g.SetTemperatureWithoutPersisting(v), gpu.TemperatureOptions);
                     break;
 
-                // wattage and core voltage share the one Power slot, so switching between them is a plain unit
-                // change; the switch flyout still shows both by their own sensor names
+                // wattage and core voltage share the Power slot; switching is a unit change, the flyout names both
                 case ("GPU Core Voltage", "Voltage"):
                     RegisterPowerCandidate(gpu, entry);
                     break;
 
-                // native driver reading and Windows own D3D-reported figure for the same thing (VRAM in use);
-                // treated as alternatives for the one MemoryUsed slot, same idea as CPU Package/Platform power
+                // the driver and the D3D figure for VRAM in use, alternatives in the MemoryUsed slot (like CPU
+                // Package and Platform power)
                 case ("GPU Memory Used", "SmallData"):
                     RegisterCategoryCandidate(gpu, "MemoryUsed", entry,
                         g => g.MemoryUsed, (g, v) => g.SetMemoryUsedWithoutPersisting(v), gpu.MemoryUsedOptions, isDefault: true);
@@ -219,15 +206,14 @@ namespace FluentSensors.Features.Performance.Lhm
                         g => g.MemoryUsed, (g, v) => g.SetMemoryUsedWithoutPersisting(v), gpu.MemoryUsedOptions);
                     break;
 
-                // system RAM borrowed by the GPU, not VRAM; a different figure from the MemoryUsed candidates above,
-                // not an alternative for the same slot
+                // system RAM borrowed by the GPU, not VRAM; no MemoryUsed alternative
                 case ("D3D Shared Memory Used", "SmallData"):
                     gpu.D3dSharedMemoryUsed = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.D3dSharedMemoryUsed, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.D3dSharedMemoryUsed, entry, e);
                     break;
 
-                // the inverse of GPU Memory Used, added to the same switchable slot rather than shown separately
+                // the inverse of GPU Memory Used, in the same slot
                 case ("GPU Memory Free", "SmallData"):
                     RegisterCategoryCandidate(gpu, "MemoryUsed", entry,
                         g => g.MemoryUsed, (g, v) => g.SetMemoryUsedWithoutPersisting(v), gpu.MemoryUsedOptions, isDefault: true);
@@ -274,15 +260,13 @@ namespace FluentSensors.Features.Performance.Lhm
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.VideoEngineLoad, entry, e);
                     break;
 
-                // Windows GPU Engine performance counters; unlike every case above, the exact set and names are not
-                // fixed, Windows creates a counter instance per engine type only once something actually uses it
+                // Windows GPU Engine counters; no fixed set, an instance appears once something uses the engine
                 case (var name, "Load") when name.StartsWith("D3D"):
                     RegisterD3dCandidate(gpu, entry);
                     break;
 
-                // every remaining temperature and power reading of this GPU, whatever the vendor calls it, joins the
-                // switch list of the matching overview slot; the named Temperature cases above still match first,
-                // they additionally keep their permanent home in the Extended view
+                // every other temperature and power reading joins its overview switch list, whatever the vendor calls
+                // it (the named cases above match first)
                 case (_, "Temperature"):
                     RegisterCategoryCandidate(gpu, "Temperature", entry,
                         g => g.Temperature, (g, v) => g.SetTemperatureWithoutPersisting(v), gpu.TemperatureOptions);
@@ -294,9 +278,8 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // adds entry as a candidate, and activates it if nothing is active yet and it matches the persisted choice
-        // (or nothing was ever persisted, first-found-wins for now; ApplyCategoryFallbacks corrects to the flagged
-        // default afterward if one exists and discovery order picked something else)
+        // adds a candidate, active if nothing is yet and it is the saved choice (or nothing is saved, first found;
+        // ApplyCategoryFallbacks corrects that)
         private void RegisterCategoryCandidate(
             LhmGpuInstanceViewModel gpu,
             string category,
@@ -319,7 +302,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
             options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve, isDefault, yMaxOverride));
 
-            if (getActive(gpu) != null) return; // already resolved, this is just an additional alternative
+            if (getActive(gpu) != null) return; // an additional alternative
 
             string persistedId = SensorSwitchStateService.Instance.GetSelectedSensorId(gpu.HardwareName, category);
             if (persistedId == entry.Id || persistedId == null)
@@ -328,8 +311,7 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // every power reading joins both Power slots, the overviews and the Extended views; each registration
-        // builds its own graph, so the two slots never share one, see ExtendedCoreLoad
+        // every power reading joins both Power slots, each with its own graph (see ExtendedCoreLoad)
         private void RegisterPowerCandidate(LhmGpuInstanceViewModel gpu, LhmSensorEntry entry)
         {
             RegisterCategoryCandidate(gpu, "Power", entry,
@@ -338,8 +320,7 @@ namespace FluentSensors.Features.Performance.Lhm
                 g => g.ExtendedPackagePower, (g, v) => g.SetExtendedPackagePowerWithoutPersisting(v), gpu.ExtendedPackagePowerOptions);
         }
 
-        // only ever adds to the shared pool; which slot (if any) ends up showing this candidate by default is
-        // decided once for all of them together, by ApplyD3dEngineDefaults after the initial sensor batch
+        // adds to the shared pool only; ApplyD3dEngineDefaults places them
         private void RegisterD3dCandidate(LhmGpuInstanceViewModel gpu, LhmSensorEntry entry)
         {
             SensorGraphViewModel cached = null;

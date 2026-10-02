@@ -13,14 +13,13 @@ using FluentSensors.Features.Performance.Lhm;
 
 namespace FluentSensors.Features.Performance.HardwareViews
 {
-    // self-contained GPU detail view: everything shown once a GPU nav item is selected, including its own
-    // Overall/Extended toggle bar
+    // the GPU detail view:
+    // everything shown for a selected GPU, its Overall/Extended toggle bar included
     public sealed partial class GpuDetailView : UserControl
     {
         // === fields ===
 
-        // below this width, the wide 3-graph layout (big Load graph + 2 stacked) switches to the narrow layout
-        // (all 3 stacked equally)
+        // below it the wide layout (a big graph beside two stacked) turns narrow (all three stacked)
         private const double NarrowGraphsLayoutThreshold = 700;
         private bool _isNarrowLayoutActive;
         private bool _extendedTimeSpanHookAttached;
@@ -39,15 +38,14 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === bindable properties ===
 
-        // graph color for every SensorPanelControl in this view; single source of truth in HardwareGroupInfo
+        // the graph colour of this view, from HardwareGroupInfo
         public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).Color;
 
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).Label;
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).IconGlyph;
 
-        // header icon colour, follows the hardware icon colour setting; HardwareIconColorBinding in the
-        // constructor is what re-reads it, the graph colour above is deliberately not part of that
+        // header icon colour, re-read by HardwareIconColorBinding (the graph colour stays)
         public SolidColorBrush GroupIconBrush => HardwareGroupInfo.GetIconBrush(HardwareGroupKind.Gpu);
 
 
@@ -88,9 +86,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
             SyncSectionRenderingGate();
         }
 
-        // the splitter rewrites both column widths while it drags; once it lets go, the content column goes back to
-        // filling the rest, and the info panel width goes to the view model, which every hardware view sizes its own
-        // info panel column from
+        // after a drag the content column fills the rest again, and the width goes to the view model, which every
+        // hardware view sizes its info panel from
         private void InfoPanelSplitter_ManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
         {
             double width = InfoPanelColumn.ActualWidth;
@@ -114,11 +111,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === private helpers ===
 
-        // recomputes whichever section (Overview or Extended) is currently shown
-        //
-        // Called both by the handlers above and externally by PerformancePage after a nav sidebar/info panel toggle,
-        // since that changes DetailHostGrids available size without necessarily firing SizeChanged on this control
-        // quickly enough
+        // sizes the shown section, Overview or Extended; also from PerformancePage after a panel toggle, whose size
+        // change can reach this control late
         public void RecalculateOverviewHeight()
         {
             if (Gpu == null) return;
@@ -127,8 +121,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             {
                 OverviewBlockGrid.Height = 0;
 
-                // ExtendedGrid is x:Load="False"; FindName forces it into the tree the first time Extended is
-                // actually selected, and is a cheap no-op on every call after that
+                // x:Load="False", FindName builds it on the first visit
                 FindName(nameof(ExtendedGrid));
                 ExtendedGrid.Height = double.NaN;
 
@@ -142,7 +135,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             {
                 UpdateOverviewHeight();
 
-                // still null if Extended was never selected this session; nothing to size in that case
+                // null until Extended was shown once
                 if (ExtendedGrid != null) ExtendedGrid.Height = 0;
             }
         }
@@ -154,27 +147,24 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
             SensorGraphRenderingGate.SetActive(OverviewBlockGrid, !Gpu.IsShowingExtended);
 
-            // still null if Extended was never selected this session; nothing to gate in that case
+            // null until Extended was shown once
             if (ExtendedGrid != null)
             {
                 SensorGraphRenderingGate.SetActive(ExtendedGrid, Gpu.IsShowingExtended);
             }
 
-            // the walk above just turned every graph in Overview back on, including whichever of Wide/Narrow is
-            // not the one actually shown right now; correct that back down to just the active layout, same
-            // follow-up correction the section split itself needed one level up
+            // the walk woke the hidden layout of Wide and Narrow too; back down to the shown one
             if (!Gpu.IsShowingExtended)
             {
                 SensorGraphRenderingGate.SetActive(_isNarrowLayoutActive ? WideGraphsGrid : NarrowGraphsPanel, false);
             }
         }
 
-        // keeps the overview block at least as tall as the visible viewport (so its graphs can stretch to fill it),
-        // but lets it grow past that, and let the ScrollViewer take over once its natural minimum height
-        // (graph MinHeight + tiles) no longer fits
+        // the overview block at least as tall as the viewport, so its graphs stretch; past its minimum (graphs plus
+        // tiles) the ScrollViewer takes over
         private void UpdateOverviewHeight()
         {
-            // everything around the block is read off the live tree, see OverviewBlockSizing
+            // read off the live tree, see OverviewBlockSizing
             double contentWidth = OverviewBlockSizing.ContentWidth(ContentScrollViewer, ContentStackPanel, OverviewBlockGrid);
             TilesGrid.Measure(new Size(contentWidth, double.PositiveInfinity));
             double tilesHeight = TilesGrid.DesiredSize.Height;
@@ -188,19 +178,11 @@ namespace FluentSensors.Features.Performance.HardwareViews
         }
 
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
-        // problem: same root cause as PerformancePage.xaml.cs UpdateDetailView (see that comment for the full
-        // explanation)
-        // fix: never Collapse either layout, toggle Opacity + IsHitTestVisible instead
-        //
-        // also gates live rendering (Wide or Narrow, whichever loses, would otherwise keep drawing forever in the
-        // background instead of just briefly during the switch, since Opacity 0 alone does not stop a
-        // SensorGraphControl from rendering)
-        // DetailHostGrid stacks every hardware views detail view on top of each other for the exact same reason
-        // (never Collapsed), so a width change fires this for every one of them at once, not just the one
-        // actually shown right now, and Overview itself might currently be gated off in favor of Extended anyway
-        // only touch the render gate while this view is both the one actually selected and Overview is the shown
-        // section right now, otherwise leave it exactly as is; SyncSectionRenderingGate resyncs Wide/Narrow
-        // correctly whenever either one turns true again
+        // problem: the root cause of PerformancePage.UpdateDetailView
+        // fix: neither layout is ever Collapsed, they toggle Opacity and IsHitTestVisible
+        // the render gate goes along (Opacity 0 does not stop rendering), but only while this view is selected and
+        // shows Overview: DetailHostGrid stacks every view, so a width change reaches all of them;
+        // SyncSectionRenderingGate catches up later
         private void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)
         {
             wideLayout.Opacity = useNarrow ? 0 : 1;

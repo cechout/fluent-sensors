@@ -32,8 +32,8 @@
                 XAxes="{Binding XAxes, ElementName=Root}"
                 YAxes="{Binding YAxes, ElementName=Root}" />
 
-            <!--  static title + current value overlay  -->
-            <!--  (top row, only shown when IsLabelVisible is true; see LabelText/CurrentValueText/IsLabelVisible)  -->
+            <!--  title and value overlay in the top row  -->
+            <!--  (with IsLabelVisible)  -->
             <Grid
                 Margin="4,1,4,0"
                 VerticalAlignment="Top"
@@ -43,7 +43,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!--  left: sensor name + unit  -->
+                <!--  left: name and unit  -->
                 <TextBlock
                     x:Name="GraphLabelText"
                     Grid.Column="0"

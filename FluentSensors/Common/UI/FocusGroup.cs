@@ -7,16 +7,12 @@ using Microsoft.UI.Xaml.Media;
 
 namespace FluentSensors.Common.UI
 {
-    // turns a container into one stop in the tab order, with the arrow keys moving between everything inside it; the
-    // same split File Explorer and Task Manager use, so tab jumps between whole regions (the menu, a command bar, one
-    // section of a list) and never walks a long list item by item
-    //
-    // tab and shift+tab both enter a group at its first element, and a tab pressed inside a group always leaves it;
-    // TabFocusNavigation=Once alone promises the same, but inside the SettingsExpander groups a tab still walked row by
-    // row, so the group enforces both itself
-    //
-    // only for regions whose controls leave the arrow keys alone; a slider or a combo box inside a group would swallow
-    // the arrows, see ArrowNavigation for the settings page, which has both
+    // the focus group:
+    // a container as one tab stop with the arrow keys inside, like File Explorer and Task Manager; tab jumps between
+    // regions, never item by item
+    // tab and shift+tab enter at the first element and a tab inside always leaves; enforced here, since
+    // TabFocusNavigation=Once still walked SettingsExpander rows
+    // only where the controls leave the arrows alone (a slider or combo box swallows them, see ArrowNavigation)
     public static class FocusGroup
     {
         // === attached properties ===
@@ -44,8 +40,7 @@ namespace FluentSensors.Common.UI
                 group.XYFocusKeyboardNavigation = XYFocusKeyboardNavigationMode.Enabled;
                 group.GettingFocus += Group_GettingFocus;
 
-                // a group is only ever a container, never a stop of its own; an ItemsControl would otherwise take the
-                // entry itself and show no focus rectangle anywhere
+                // never a stop itself; an ItemsControl would take the entry and show no focus rectangle
                 if (group is Control control) control.IsTabStop = false;
             }
             else
@@ -58,8 +53,7 @@ namespace FluentSensors.Common.UI
 
         // === tab handling ===
 
-        // GettingFocus bubbles, so this sees every focus change that lands inside the group; only tab and shift+tab
-        // are touched, arrow keys, clicks and code keep their target
+        // GettingFocus bubbles, so this sees every move into the group; only tab and shift+tab are redirected
         private static void Group_GettingFocus(UIElement sender, GettingFocusEventArgs args)
         {
             bool forward = args.Direction == FocusNavigationDirection.Next;
@@ -81,15 +75,13 @@ namespace FluentSensors.Common.UI
 
         // === tab order ===
 
-        // the next (or previous) stop outside region, in the order tab walks: the visual tree order, since nothing in
-        // this app sets a TabIndex; wraps around the end of the window the way tab does
-        // the stop found is adjusted to the rules above: a skipped region is passed over, a group is entered at its
-        // first element
+        // the next (or previous) stop outside region in visual tree order (no TabIndex anywhere), wrapping like tab
+        // a skipped region is passed over, a group entered at its first element
         internal static DependencyObject? FindStopBeyond(DependencyObject region, bool forward)
         {
             DependencyObject from = region;
 
-            // bounded, a window full of nothing but skipped regions must not loop forever
+            // bounded, a window of only skipped regions must not loop forever
             for (int hop = 0; hop < 32; hop++)
             {
                 var stop = FindNextInTree(from, forward);
@@ -132,8 +124,7 @@ namespace FluentSensors.Common.UI
             return root != null ? FindStopWithin(root, forward) : null;
         }
 
-        // a focusable control comes before its own children in tab order, so it is checked first going forward and
-        // last going back
+        // a control precedes its children in tab order, first going forward and last going back
         private static DependencyObject? FindStopWithin(DependencyObject scope, bool forward)
         {
             if (scope is UIElement { Visibility: Visibility.Collapsed }) return null;

@@ -95,7 +95,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  total activity + read/write rate  -->
+                        <!--  total activity, read and write rate  -->
                         <Grid
                             x:Name="GraphsAreaGrid"
                             Grid.Row="0"

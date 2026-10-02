@@ -1,7 +1,6 @@
 namespace FluentSensors.Common.Sensors
 {
-    // identifies the presentation scope/ecosystem of a sensor graph
-    // each scope maintains its own independent Y-axis scaling and settings
+    // where a graph is shown; each scope has its own y-axis and settings
     public enum SensorGraphScope
     {
         Performance,

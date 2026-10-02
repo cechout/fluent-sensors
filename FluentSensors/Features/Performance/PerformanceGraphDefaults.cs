@@ -7,12 +7,9 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.Performance
 {
-    // which graphs on the Performance page plot which time span
-    //
-    // the two kinds exist because the page has two densities: the overview blocks get the longer window, the
-    // grids that show many small graphs at once (cpu all-threads, gpu extended) usually want a shorter one
-    // both are user configurable, so a graph has to follow the setting for as long as it is on screen, not just
-    // pick it up once when its view is built
+    // the performance graph time spans:
+    // the overview blocks take the longer span, the dense grids (cpu all threads, gpu extended) a shorter one; both are
+    // settings a graph follows while on screen
     public enum PerformanceGraphKind
     {
         Standard,
@@ -24,11 +21,9 @@ namespace FluentSensors.Features.Performance
         public static double StandardTimeSpanSeconds => SettingsService.Instance.PerformanceGraphTimeSpanSeconds;
         public static double ExtendedTimeSpanSeconds => SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds;
 
-        // keeps every SensorPanelControl under root on the current setting for as long as root is loaded
-        //
-        // applies once right away for roots whose children are literal xaml and already exist, once more on Loaded
-        // for the x:Load="False" grids that are only realized when the user actually opens them, and again on every
-        // settings change; re-applying an unchanged value is a no-op all the way down
+        // every SensorPanelControl under root on the setting while root is loaded
+        // right away for literal children, on Loaded for the x:Load="False" grids, on every change;
+        // an unchanged value is a no-op
         public static void BindTimeSpan(FrameworkElement root, PerformanceGraphKind kind)
         {
             bool isSubscribed = false;
@@ -41,7 +36,7 @@ namespace FluentSensors.Features.Performance
             {
                 Apply();
 
-                if (isSubscribed) return; // a second Loaded without an Unloaded in between must not stack handlers
+                if (isSubscribed) return; // a second Loaded must not stack handlers
                 isSubscribed = true;
                 SettingsService.Instance.PerformanceGraphTimeSpanChanged += Apply;
             };
@@ -54,7 +49,6 @@ namespace FluentSensors.Features.Performance
             };
         }
 
-        // walks every SensorPanelControl under root and applies timeSpanSeconds to it
         public static void ApplyTimeSpan(DependencyObject root, double timeSpanSeconds)
         {
             int childCount = VisualTreeHelper.GetChildrenCount(root);

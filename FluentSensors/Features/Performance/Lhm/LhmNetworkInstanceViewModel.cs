@@ -10,15 +10,13 @@ using FluentSensors.Persistence.Services;
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // one entry per currently active network adapter (inactive adapters never reach this VM at all, since
-    // HardwareMonitorService already excludes them from the payload)
-    // A plain data holder; all sensor discovery/parsing lives in LhmNetworkPerformanceViewModel instead
+    // one network adapter:
+    // an active one (HardwareMonitorService drops inactive ones); a data holder, LhmNetworkPerformanceViewModel parses
     public class LhmNetworkInstanceViewModel : INotifyPropertyChanged
     {
         // === fields ===
 
-        // best-effort match against WMI-reported adapters; see HardwareNameMatcher for the matching approach
-        // and its limitations; null if no candidate matched at all
+        // best-effort match against the WMI adapters (see HardwareNameMatcher); null without a match
         private readonly WinNetworkAdapterInfo _staticInfo;
 
 
@@ -55,7 +53,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _downloadSpeed = value; OnPropertyChanged(); }
         }
 
-        // switches between live utilization % and the two cumulative Data Uploaded/Downloaded GB counters
+        // utilization in percent or the cumulative Data Uploaded and Downloaded in GB
         private SensorGraphViewModel _networkUtilization;
         public SensorGraphViewModel NetworkUtilization
         {
@@ -79,10 +77,8 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === static info text properties ===
 
-        // read-only, purely computed from the matched WinNetworkAdapterInfo
-        // NetworkNameText intentionally surfaces the hardware description (e.g. "Intel(R) Wi-Fi 6E AX211 160MHz"),
-        // not the OS connection name (e.g. "WLAN") - the connection name is only meaningful internally for the
-        // LHM/WMI name-matching in the constructor above, not as something to show the user
+        // static info from the matched WinNetworkAdapterInfo; the hardware description ("Intel(R) Wi-Fi 6E AX211
+        // 160MHz"), the connection name ("WLAN") only serves the matching
         public string NetworkNameText => _staticInfo?.Description ?? "-";
         public string NetworkMacAddressText => _staticInfo != null ? HardwareInfoFormatter.FormatMacAddress(_staticInfo.MacAddress) : "-";
         public string NetworkSpeedText => _staticInfo != null ? HardwareInfoFormatter.FormatBitsPerSecond(_staticInfo.SpeedBitsPerSecond) : "-";
@@ -91,10 +87,8 @@ namespace FluentSensors.Features.Performance.Lhm
         public string NetworkIPv6AddressesText => _staticInfo != null ? HardwareInfoFormatter.FormatIpAddresses(_staticInfo.IPv6Addresses) : "-";
         public string NetworkDhcpEnabledText => _staticInfo != null ? HardwareInfoFormatter.FormatYesNo(_staticInfo.DhcpEnabled) : "-";
 
-        // display-only name for the Performance page nav item/header/tiles; the matched adapters own hardware
-        // description (same one NetworkNameText already shows) reads far better there than LHMs raw HardwareName
-        // (an OS connection name like "WLAN" or "Ethernet")
-        // display-only: does not replace HardwareName itself, which stays LHMs raw name everywhere else 
+        // the performance page name, the description over the raw connection name ("WLAN", "Ethernet");
+        // HardwareName stays raw everywhere else
         public string PerformanceDisplayName => _staticInfo?.Description ?? HardwareName;
 
         // the header and tile glyph; wi-fi for a wireless adapter, see HardwareGroupInfo.GetNetworkIconGlyph

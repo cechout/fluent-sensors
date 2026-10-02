@@ -43,7 +43,7 @@
         PointerPressed="RootGrid_PointerPressed"
         PointerReleased="RootGrid_PointerReleased"
         Tapped="RootGrid_Tapped">
-        <!--  border to control color and height of spacing between each item  -->
+        <!--  the card, its color and the spacing between rows  -->
         <Border
             x:Name="CardBackground"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -58,12 +58,12 @@
 
             <!--
                 workaround: star columns fill greedily
-                problem: the WinUI Grid hands out star space one column at a time and lifts each to its MinWidth, so on a
-                narrow page the name column takes its full share first and the value columns after it push the row wider
-                than its slot; an overflowing grid sizes its columns from its own content, and no two rows line up anymore;
-                see DistributeStarSpace in https://github.com/microsoft/microsoft-ui-xaml/blob/main/dxaml/xcp/core/core/elements/Grid.cpp
-                fix: a MaxWidth that never binds moves the value columns to the front of that order, so they settle on
-                their MinWidth first and the name column gets the rest; SensorRowHeaderControl carries the same columns
+                problem: the WinUI Grid lifts star columns to their MinWidth one at a time, so on a narrow page the name
+                column takes its share first, the value columns push the row past its slot and the rows stop lining up
+                (an overflowing grid sizes from its content); see DistributeStarSpace in
+                https://github.com/microsoft/microsoft-ui-xaml/blob/main/dxaml/xcp/core/core/elements/Grid.cpp
+                fix: a MaxWidth that never binds moves the value columns first, so they settle on their MinWidth and the
+                name column gets the rest; SensorRowHeaderControl carries the same columns
             -->
             <Grid.ColumnDefinitions>
                 <ColumnDefinition
@@ -101,8 +101,10 @@
             </Grid.ColumnDefinitions>
 
             <!--  checkbox with sensor name  -->
-            <!--  (the checkbox is visual only; the whole row takes focus and reports itself as the checkbox)  -->
-            <!--  (a grid, so the name gets a finite width and trims with an ellipsis once the column runs out)  -->
+            <!--
+                the checkbox is visual only, the row takes focus and reports itself as one
+                (a grid, so the name gets a finite width and trims with an ellipsis)
+            -->
             <Grid
                 Grid.Column="0"
                 VerticalAlignment="Center"
@@ -128,7 +130,7 @@
                     TextWrapping="NoWrap" />
             </Grid>
 
-            <!--  threshold indicator/flyout, globalized control shared with SensorPanelControl  -->
+            <!--  threshold indicator and flyout, shared with SensorPanelControl  -->
             <fhThreshold:ThresholdFlyoutControl
                 x:Name="ThresholdIndicator"
                 Grid.Column="1"
@@ -185,8 +187,8 @@
                 Text="{x:Bind ViewModel.AverageValue, Mode=OneWay}"
                 Typography.NumeralAlignment="Tabular" />
 
-            <!--  unit, only visible in compact mode  -->
-            <!--  (to disambiguate sensors that share the exact same name)  -->
+            <!--  unit  -->
+            <!--  (compact mode only; tells apart sensors with the same name)  -->
             <TextBlock
                 x:Name="UnitText"
                 Grid.Column="6"
@@ -245,12 +247,11 @@
             </VisualStateGroup>
 
 
-            <!--  display states  -->
-            <!--  controls whether the card is fully live, frozen/disabled, or name-only (hidden window)  -->
+            <!--  display states: live or disabled  -->
             <VisualStateGroup x:Name="DisplayStates">
                 <VisualState x:Name="FullDetails" />
 
-                <!--  sensor is disabled but not fully hidden, values are frozen, card ignores clicks/hover  -->
+                <!--  disabled, not hidden: dimmed with frozen values (the code ignores clicks and hover)  -->
                 <VisualState x:Name="Disabled">
                     <VisualState.Setters>
                         <Setter Target="CardContent.Opacity" Value="0.5" />

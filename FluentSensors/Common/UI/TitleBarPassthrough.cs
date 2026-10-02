@@ -11,15 +11,13 @@ using Windows.Graphics;
 
 namespace FluentSensors.Common.UI
 {
-    // registers interactive titlebar elements as client passthrough regions so pointer events (pressed visual state)
-    // are consumed by the controls themselves rather than initiating a window drag
-    //
-    // SetTitleBar turns the whole bar non-client, so any window with an interactive element in there needs this;
-    // without a rect of its own that element never sees a press, the pointer only moves the window
+    // the title bar passthrough:
+    // SetTitleBar makes the whole bar non-client, so an interactive element there needs a passthrough rect or a
+    // press only drags the window
     public static class TitleBarPassthrough
     {
-        // rects are absolute window coordinates, so this has to run again whenever the bar is laid out or one of the
-        // elements moves, appears or disappears
+        // absolute window coordinates, so again on every layout of the bar and every element
+        // that moves, appears or goes
         public static void Apply(Window window, FrameworkElement titleBar, params FrameworkElement[] elements)
         {
             if (window == null || titleBar == null || !titleBar.IsLoaded) return;
@@ -65,7 +63,7 @@ namespace FluentSensors.Common.UI
             }
             catch
             {
-                // an element caught mid-teardown simply contributes no rect
+                // an element mid-teardown gives no rect
             }
         }
     }

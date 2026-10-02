@@ -34,7 +34,7 @@
                 Text="Hidden Sensors" />
         </Grid>
 
-        <!--  header: items header labels  -->
+        <!--  header labels  -->
         <Border Grid.Row="1" Background="Transparent">
             <Grid HorizontalAlignment="Stretch">
 
@@ -50,15 +50,14 @@
         </Border>
 
 
-        <!--  content: scrollviewer with all the cards of different hardware groups with the hidden sensors  -->
-        <!--  (same layout as the main sensor list on SensorsPage)  -->
+        <!--  content: the hidden sensors per hardware group, laid out like SensorsPage  -->
         <ScrollViewer
             Grid.Row="2"
             Padding="16,0,16,0"
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto">
 
-            <!--  (tab jumps from one hardware group to the next, the arrow keys move through the rows across all of them)  -->
+            <!--  (tab jumps between hardware groups, the arrow keys move through all rows)  -->
             <ItemsControl
                 x:Name="HardwareGroupsItemsControl"
                 Margin="0,0,0,16"
@@ -67,7 +66,7 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="fhSensors:HardwareGroupViewModel">
 
-                        <!--  settings expander (containing all the sensors for one hardware group)  -->
+                        <!--  one hardware group  -->
                         <controls:SettingsExpander
                             Margin="0,16,0,0"
                             fhUi:FocusGroup.IsEnabled="True"
@@ -83,8 +82,7 @@
                                 <FontIcon Foreground="{x:Bind IconBrush, Mode=OneWay}" Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
                             </controls:SettingsExpander.HeaderIcon>
 
-                            <!--  header: category and device name  -->
-                            <!--  (TextBlocks and an own accessible name for the same reason as on SensorsPage)  -->
+                            <!--  header: category and device, TextBlocks and accessible name as on SensorsPage  -->
                             <controls:SettingsExpander.Header>
                                 <TextBlock
                                     Text="{x:Bind GroupLabel, Mode=OneWay}"
@@ -108,16 +106,11 @@
                                     <!--  items  -->
                                     <!--
                                         workaround: SettingsExpander items crash via ItemsSource
-                                        problem: SettingsExpander.Items/ItemsSource is intentionally left unset here
-                                        Community Toolkits SettingsExpander applies an internal style with
-                                        TargetType="SettingsCard" to every item it materializes that way; a non-SettingsCard item
-                                        throws a native exception that WinUI escalates to a fatal crash of the entire process
-                                        (invisible even with a debugger attached)
-                                        own finding, no public issue found describing this exact combination
-                                        fix: a plain ItemsControl nested inside ItemsHeader instead, which never goes through
-                                        SettingsExpanders own item-styling logic
-                                        see SensorsPage.xaml for the alternative fix used there: wrapping each item in an actual
-                                        SettingsCard instead of avoiding ItemsSource entirely
+                                        problem: the toolkit SettingsExpander styles every ItemsSource item as
+                                        TargetType SettingsCard; any other item throws a native exception that
+                                        kills the process, invisible even to a debugger (our finding, no public issue)
+                                        fix: a plain ItemsControl inside ItemsHeader skips the item styling
+                                        (SensorsPage wraps each item in a SettingsCard instead)
                                     -->
                                     <ItemsControl ItemsSource="{x:Bind HiddenSensors, Mode=OneWay}">
                                         <ItemsControl.ItemTemplate>
@@ -138,7 +131,7 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <!--  bottom bar with the restore action  -->
+        <!--  bottom bar, the restore action  -->
         <Border
             Grid.Row="3"
             Padding="16,12,16,12"

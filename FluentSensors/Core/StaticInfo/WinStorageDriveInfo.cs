@@ -1,25 +1,22 @@
 ﻿namespace FluentSensors.Core.StaticInfo
 {
     public record WinStorageDriveInfo(
-        string FriendlyName, // from MSFT_PhysicalDisk if available, falls back to Win32_DiskDrive.Model
+        string FriendlyName, // MSFT_PhysicalDisk, else Win32_DiskDrive.Model
         string SerialNumber,
         string FirmwareRevision,
-        string BusType, // e.g. "NVMe", "SATA", "USB"
+        string BusType, // "NVMe", "SATA", "USB"
         ulong SizeBytes,
         string PnpDeviceId,
 
-        // everything below comes from MSFT_StorageReliabilityCounter (via ManagementObject.GetRelated on the
-        // matching MSFT_PhysicalDisk)
-        // Windows/Storports own abstraction over the drives raw SMART/health data, sourced correctly regardless
-        // of vendor/controller quirks; deliberately not sourced from LibreHardwareMonitor, which is documented to
-        // misread some of these exact values on certain Samsung NVMe drives (GitHub issue #455), worse again behind
-        // an Intel VMD controller HasReliabilityData is false when no counter object exists for this disk at all
-        // (some controllers/drivers dont expose one)
-        // Every field below is only meaningful when its true, and stays 0/"" otherwise
+        // from MSFT_StorageReliabilityCounter (GetRelated on the matching MSFT_PhysicalDisk), the Storport view
+        // of SMART across vendor quirks
+        // not from LHM, which misreads some of these on certain Samsung NVMe drives (issue
+        // #455), worse behind Intel VMD
+        // null when the disk has no counter object (some controllers and drivers expose none)
         uint? TemperatureCelsius,
         uint? TemperatureMaxCelsius,
 
-        // percentage, 100 = the drives estimated wear limit has been reached; per Microsofts own docs
+        // percent, 100 = the estimated wear limit reached (per the Microsoft docs)
         uint? WearPercent,
 
         uint? PowerOnHours,
@@ -33,7 +30,7 @@
         uint? StartStopCycleCountMax,
         uint? LoadUnloadCycleCount,
         uint? LoadUnloadCycleCountMax,
-        string ManufactureDate, // stays a plain string; "" already means "not reported" for a string field
+        string ManufactureDate, // "" when not reported
         ulong? ReadLatencyMaxMs,
         ulong? WriteLatencyMaxMs,
         ulong? FlushLatencyMaxMs

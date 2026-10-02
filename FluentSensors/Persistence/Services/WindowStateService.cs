@@ -5,8 +5,9 @@ using FluentSensors.Persistence.Models;
 
 namespace FluentSensors.Persistence.Services
 {
-    // central in-memory store for window position and size, keyed by a fixed window identifier ("Main", "Widget")
-    // same dumb-store pattern as SensorStateService
+    // the window states:
+    // position and size in memory, keyed by a fixed window name ("Main", "Widget"); a plain
+    // store like SensorStateService
     public class WindowStateService
     {
         // === fields ===
@@ -26,7 +27,7 @@ namespace FluentSensors.Persistence.Services
 
         // === public api ===
 
-        // returns null if this window has never been positioned/saved before
+        // null for a window never saved
         public WindowState GetState(string windowKey)
         {
             return _states.TryGetValue(windowKey, out var state) ? state : null;

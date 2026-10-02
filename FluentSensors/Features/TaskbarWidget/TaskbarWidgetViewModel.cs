@@ -11,8 +11,8 @@ using FluentSensors.Core;
 
 namespace FluentSensors.Features.TaskbarWidget
 {
-    // ViewModel managing pinned sensor graphs displayed in the taskbar widget and companion flyout
-    // handles live sensor subscriptions, background pause/resume, and in-place collection reconciliation
+    // the taskbar widget view model:
+    // the pinned graphs of the widget and its flyout, with the live subscription, pause and in-place reconciliation
     public class TaskbarWidgetViewModel
     {
         // === fields ===
@@ -44,13 +44,11 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === public methods ===
 
-        // clears out sensors that are no longer selected, adds newly selected ones, and reorders to match selectedSensors exactly
-        // existing unchanged sensors keep their history and are not recreated
+        // removes, adds and reorders to match selectedSensors; a kept sensor keeps its history
         public void Reconfigure(List<SensorRowViewModel> selectedSensors)
         {
             var newIds = new HashSet<string>(selectedSensors.Select(s => s.Id));
 
-            // remove sensors that are no longer part of the selection
             for (int i = PinnedSensors.Count - 1; i >= 0; i--)
             {
                 if (!newIds.Contains(PinnedSensors[i].SensorId))
@@ -60,7 +58,6 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
             }
 
-            // add newly selected sensors that are not pinned yet; already-pinned sensors are left alone
             var existingIds = new HashSet<string>(PinnedSensors.Select(s => s.SensorId));
             foreach (var sensor in selectedSensors)
             {
@@ -70,7 +67,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
             }
 
-            // reorder to match selectedSensors exactly, moving existing items into place instead of recreating them
+            // moved into place, not recreated
             for (int targetIndex = 0; targetIndex < selectedSensors.Count; targetIndex++)
             {
                 string id = selectedSensors[targetIndex].Id;
@@ -92,8 +89,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // re-resolves every pinned graphs color against the current settings and the live SystemAccentColor;
-        // the taskbar widget and the flyout share this ViewModel, so one call refreshes both
+        // against the settings and the live SystemAccentColor; one call serves the widget and the flyout
         public void RefreshGraphColors()
         {
             foreach (var sensor in PinnedSensors)
@@ -102,7 +98,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // pauses or resumes live data subscription and resets baseline
+        // resumes from a reset baseline, pauses with a cleared history
         public void SetLiveDataActive(bool active)
         {
             if (_isLiveDataActive == active) return;
