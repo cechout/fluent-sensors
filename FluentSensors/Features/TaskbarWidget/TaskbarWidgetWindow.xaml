@@ -121,7 +121,13 @@
                             BorderBrush="{ThemeResource TaskbarButtonBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
-                            Opacity="0" />
+                            Opacity="0"
+                            RenderTransformOrigin="0.5,0.5">
+                            <!--  flipped in the light theme (TaskbarButtonBorderScaleY), same on the next two layers  -->
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleY="{ThemeResource TaskbarButtonBorderScaleY}" />
+                            </Border.RenderTransform>
+                        </Border>
 
                         <!--  border stroke layer for normal pressed (gated separately from the PressedBorder fill)  -->
                         <Border
@@ -129,7 +135,12 @@
                             BorderBrush="{ThemeResource TaskbarButtonPressedBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
-                            Opacity="0" />
+                            Opacity="0"
+                            RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleY="{ThemeResource TaskbarButtonBorderScaleY}" />
+                            </Border.RenderTransform>
+                        </Border>
 
                         <!--  border stroke layer for active hover  -->
                         <Border
@@ -137,7 +148,12 @@
                             BorderBrush="{ThemeResource TaskbarButtonActiveHoverBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
-                            Opacity="0" />
+                            Opacity="0"
+                            RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleY="{ThemeResource TaskbarButtonBorderScaleY}" />
+                            </Border.RenderTransform>
+                        </Border>
 
                         <!--  border stroke layer for active pressed  -->
                         <Border
