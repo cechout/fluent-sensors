@@ -604,12 +604,6 @@ namespace FluentSensors.Features.TaskbarWidget
             int innerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactInnerMarginDip : InnerMarginDip) * scale);
             int outerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactOuterMarginDip : OuterMarginDip) * scale);
 
-            // a side taskbar centers the widget across it, with the smaller of the two gaps on both sides
-            if (taskbar.IsVertical)
-            {
-                innerMarginPx = outerMarginPx = Math.Min(innerMarginPx, outerMarginPx);
-            }
-
             return TaskbarWidgetPlacement.Calculate(
                 taskbar,
                 Anchor,
@@ -663,14 +657,14 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // the padding follows the graph, not the edge, unlike the margins in CalculateScreenRect:
         // bottom and top - the graph stands upright on both, so both get the bottom calibration unmirrored
-        // left and right - the graphs are centered across the taskbar, with the smaller of the two paddings on both
+        // left and right - the graphs are centered across the taskbar, with the larger of the two paddings on both
         //   sides, in every graph direction
         private void ApplyButtonPadding(WinTaskbarInfo taskbar)
         {
             double graphTop = taskbar.IsCompact ? CompactButtonPaddingGraphTopDip : ButtonPaddingGraphTopDip;
             double graphBottom = taskbar.IsCompact ? CompactButtonPaddingGraphBottomDip : ButtonPaddingGraphBottomDip;
 
-            double across = Math.Min(graphTop, graphBottom);
+            double across = Math.Max(graphTop, graphBottom);
             TaskbarButton.Padding = taskbar.IsVertical
                 ? new Thickness(across, ButtonPaddingEndsDip, across, ButtonPaddingEndsDip)
                 : new Thickness(ButtonPaddingEndsDip, graphTop, ButtonPaddingEndsDip, graphBottom);
