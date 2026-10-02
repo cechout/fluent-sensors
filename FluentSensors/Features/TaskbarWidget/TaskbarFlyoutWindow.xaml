@@ -56,10 +56,11 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!--  title row: title and snapshot button  -->
+                <!--  title row: title, shortcut hint and snapshot button  -->
                 <!--  (the height and padding of the bottom bar, set from code)  -->
                 <Grid x:Name="TitleRowGrid" Grid.Row="0">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -74,11 +75,24 @@
                         TextTrimming="CharacterEllipsis"
                         TextWrapping="NoWrap" />
 
+                    <!--  shortcut hint  -->
+                    <!--  (only while the flyout shortcut is registered, see ApplyShortcutHint)  -->
+                    <TextBlock
+                        x:Name="ShortcutHintText"
+                        Grid.Column="1"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap"
+                        Visibility="Collapsed" />
+
                     <!--  snapshot button  -->
                     <!--  (pauses and resumes the flyout graphs; name, tooltip and glyph set in ApplyPauseState)  -->
                     <Button
                         x:Name="PauseButton"
-                        Grid.Column="1"
+                        Grid.Column="2"
                         Width="38"
                         Padding="0"
                         HorizontalAlignment="Right"

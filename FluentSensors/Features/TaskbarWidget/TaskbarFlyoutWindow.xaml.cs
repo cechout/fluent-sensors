@@ -336,6 +336,9 @@ namespace FluentSensors.Features.TaskbarWidget
             // a rebuilt window takes over a running snapshot with the view model
             ApplyPauseState();
 
+            FlyoutShortcutRegistration.RegistrationChanged += OnShortcutRegistrationChanged;
+            ApplyShortcutHint();
+
             ((FrameworkElement)this.Content).ActualThemeChanged += (s, e) =>
             {
                 if (_isClosed) return;
@@ -594,6 +597,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 SettingsService.Instance.TaskbarFlyoutGraphHeightChanged -= OnFlyoutGraphHeightChanged;
                 SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnTaskbarGraphTimeSpanChanged;
                 SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnFlyoutGraphTimeSpanChanged;
+                FlyoutShortcutRegistration.RegistrationChanged -= OnShortcutRegistrationChanged;
             }
             catch { }
 
@@ -1280,6 +1284,22 @@ namespace FluentSensors.Features.TaskbarWidget
             PauseButtonIcon.Glyph = ViewModel.IsFlyoutPaused ? "\uE768" : "\uE769";
             ToolTipService.SetToolTip(PauseButton, label);
             AutomationProperties.SetName(PauseButton, label);
+        }
+
+        private void ApplyShortcutHint()
+        {
+            string? text = FlyoutShortcutRegistration.RegisteredText;
+            ShortcutHintText.Text = text ?? "";
+            ShortcutHintText.Visibility = text != null ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void OnShortcutRegistrationChanged()
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_isClosed) return;
+                ApplyShortcutHint();
+            });
         }
 
         private void OnTaskbarTimeRangePicked(DependencyObject sender, DependencyProperty dp)

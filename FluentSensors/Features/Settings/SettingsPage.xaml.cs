@@ -1,10 +1,15 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Input;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.System;
+using Windows.UI.Core;
 
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
@@ -14,6 +19,7 @@ using FluentSensors.Core.Taskbar;
 using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
+using FluentSensors.Features.TaskbarWidget;
 
 
 namespace FluentSensors.Features.Settings
@@ -25,6 +31,10 @@ namespace FluentSensors.Features.Settings
 
         // while this page writes a status readout setting itself, see OnStatusReadoutChanged
         private bool _isWritingStatusReadout;
+
+        // the flyout shortcut button records the next key combination; the key up after it is swallowed too
+        private bool _isCapturingShortcut;
+        private bool _isSwallowingShortcutKeyUp;
 
 
         // === constructor ===
@@ -66,6 +76,7 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarSideSlotSelection();
             RestoreTaskbarFlyoutAlignmentSelection();
             RestoreTaskbarFlyoutGraphSelection();
+            ApplyFlyoutShortcutButton();
             RestoreLockWidgetPositionSelection();
 
             ShowAppDataFolderPath();
@@ -125,6 +136,8 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.GraphTimeSpanChanged -= OnTimeRangeChanged;
             SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnTimeRangeChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnTimeRangeChanged;
+
+            if (_isCapturingShortcut) EndShortcutCapture(swallowKeyUp: false);
         }
 
         // the values of the active taskbar edge; the side cards only on the left and right edge
@@ -1014,6 +1027,124 @@ namespace FluentSensors.Features.Settings
             SelectTimeSpanItem(TaskbarFlyoutGraphTimeSpanComboBox, SettingsService.Instance.TaskbarFlyoutGraphTimeSpanSeconds);
             TaskbarFlyoutGraphHeightSlider.Value = SettingsService.Instance.TaskbarFlyoutGraphHeightDip;
         }
+
+        // flyout shortcut; a click arms the button, the next key combination with a modifier becomes the shortcut
+        // the registered one is suspended meanwhile, or it would swallow the keys
+        private void FlyoutShortcutButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isCapturingShortcut) return;
+
+            _isCapturingShortcut = true;
+            FlyoutShortcutRegistration.SetSuspended(true);
+            ShowShortcutStatus(null);
+            ApplyFlyoutShortcutButton();
+        }
+
+        private void FlyoutShortcutButton_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (!_isCapturingShortcut) return;
+
+            uint modifiers = ReadShortcutModifiers();
+
+            // a plain tab leaves like everywhere else, never a trap
+            if (e.Key == VirtualKey.Tab && modifiers == 0)
+            {
+                EndShortcutCapture(swallowKeyUp: false);
+                return;
+            }
+
+            e.Handled = true;
+            if (IsModifierKey(e.Key)) return; // waits for the key itself
+
+            if (modifiers == 0)
+            {
+                switch (e.Key)
+                {
+                    case VirtualKey.Escape:
+                        EndShortcutCapture(swallowKeyUp: true);
+                        break;
+                    case VirtualKey.Back:
+                    case VirtualKey.Delete:
+                        SettingsService.Instance.TaskbarFlyoutShortcut = null;
+                        EndShortcutCapture(swallowKeyUp: true);
+                        break;
+                    default:
+                        ShowShortcutStatus("Add Ctrl, Alt, Shift or Win");
+                        break;
+                }
+                return;
+            }
+
+            uint virtualKey = (uint)e.Key;
+            if (!WinHotkeyService.Instance.IsAvailable(modifiers, virtualKey))
+            {
+                ShowShortcutStatus("Already in use");
+                EndShortcutCapture(swallowKeyUp: true);
+                return;
+            }
+
+            SettingsService.Instance.TaskbarFlyoutShortcut = new KeyboardShortcut { Modifiers = modifiers, VirtualKey = virtualKey };
+            EndShortcutCapture(swallowKeyUp: true);
+        }
+
+        // the key up of the recorded key would click the button again (Space) or reach the page
+        private void FlyoutShortcutButton_PreviewKeyUp(object sender, KeyRoutedEventArgs e)
+        {
+            if (!_isCapturingShortcut && !_isSwallowingShortcutKeyUp) return;
+
+            e.Handled = true;
+            if (!IsModifierKey(e.Key)) _isSwallowingShortcutKeyUp = false;
+        }
+
+        private void FlyoutShortcutButton_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isCapturingShortcut) EndShortcutCapture(swallowKeyUp: false);
+        }
+
+        private void EndShortcutCapture(bool swallowKeyUp)
+        {
+            _isCapturingShortcut = false;
+            _isSwallowingShortcutKeyUp = swallowKeyUp;
+            FlyoutShortcutRegistration.SetSuspended(false);
+            ApplyFlyoutShortcutButton();
+        }
+
+        // the shortcut, "None" or the prompt while recording; the name says the same for a screen reader
+        private void ApplyFlyoutShortcutButton()
+        {
+            var shortcut = SettingsService.Instance.TaskbarFlyoutShortcut;
+            string text = _isCapturingShortcut ? "Press a Shortcut"
+                : shortcut != null ? WinHotkeyService.Format(shortcut.Modifiers, shortcut.VirtualKey)
+                : "None";
+
+            FlyoutShortcutButton.Content = text;
+            AutomationProperties.SetName(FlyoutShortcutButton, $"Flyout Shortcut, {text}");
+        }
+
+        private void ShowShortcutStatus(string? message)
+        {
+            FlyoutShortcutStatusText.Text = message ?? "";
+            FlyoutShortcutStatusText.Visibility = message != null ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private static uint ReadShortcutModifiers()
+        {
+            uint modifiers = 0;
+            if (IsKeyDown(VirtualKey.Control)) modifiers |= WinHotkeyService.ModControl;
+            if (IsKeyDown(VirtualKey.Menu)) modifiers |= WinHotkeyService.ModAlt;
+            if (IsKeyDown(VirtualKey.Shift)) modifiers |= WinHotkeyService.ModShift;
+            if (IsKeyDown(VirtualKey.LeftWindows) || IsKeyDown(VirtualKey.RightWindows)) modifiers |= WinHotkeyService.ModWin;
+            return modifiers;
+        }
+
+        private static bool IsModifierKey(VirtualKey key) => key is
+            VirtualKey.Control or VirtualKey.LeftControl or VirtualKey.RightControl or
+            VirtualKey.Menu or VirtualKey.LeftMenu or VirtualKey.RightMenu or
+            VirtualKey.Shift or VirtualKey.LeftShift or VirtualKey.RightShift or
+            VirtualKey.LeftWindows or VirtualKey.RightWindows;
+
+        private static bool IsKeyDown(VirtualKey key) =>
+            InputKeyboardSource.GetKeyStateForCurrentThread(key).HasFlag(CoreVirtualKeyStates.Down);
 
         // widget drag lock
         private void LockWidgetPositionToggle_Toggled(object sender, RoutedEventArgs e)

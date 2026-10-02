@@ -465,6 +465,22 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // the global shortcut that opens the flyout, null = none; (registered only while the taskbar widget is open)
+        private KeyboardShortcut? _taskbarFlyoutShortcut = Defaults.TaskbarFlyoutShortcut;
+        public KeyboardShortcut? TaskbarFlyoutShortcut
+        {
+            get => _taskbarFlyoutShortcut;
+            set
+            {
+                bool isSame = value == null ? _taskbarFlyoutShortcut == null : value.SameAs(_taskbarFlyoutShortcut);
+                if (isSame) return;
+
+                _taskbarFlyoutShortcut = value;
+                TaskbarFlyoutShortcutChanged?.Invoke();
+                SaveDebounced();
+            }
+        }
+
 
         // --- per taskbar position ---
 
@@ -963,6 +979,7 @@ namespace FluentSensors.Persistence.Services
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
             _taskbarFlyoutGraphTimeSpanSeconds = data.TaskbarFlyoutGraphTimeSpanSeconds;
             _taskbarFlyoutGraphHeightDip = data.TaskbarFlyoutGraphHeightDip;
+            _taskbarFlyoutShortcut = data.TaskbarFlyoutShortcut;
 
             _minimizeToTray = data.MinimizeToTray;
             _runOnStartup = data.RunOnStartup;
@@ -1022,6 +1039,7 @@ namespace FluentSensors.Persistence.Services
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
                 TaskbarFlyoutGraphTimeSpanSeconds = _taskbarFlyoutGraphTimeSpanSeconds,
                 TaskbarFlyoutGraphHeightDip = _taskbarFlyoutGraphHeightDip,
+                TaskbarFlyoutShortcut = _taskbarFlyoutShortcut,
 
                 MinimizeToTray = _minimizeToTray,
                 RunOnStartup = _runOnStartup,
@@ -1094,6 +1112,9 @@ namespace FluentSensors.Persistence.Services
         public event Action<bool> TaskbarWidgetPositionLockedChanged;
         public event Action<double> TaskbarFlyoutGraphTimeSpanChanged;
         public event Action<double> TaskbarFlyoutGraphHeightChanged;
+
+        // no value; consumers re-read the shortcut
+        public event Action TaskbarFlyoutShortcutChanged;
 
         public event Action<bool> MinimizeToTrayChanged;
         public event Action<bool> HideSensorsCompletelyChanged;

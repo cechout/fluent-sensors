@@ -99,6 +99,9 @@ namespace FluentSensors.Persistence.Models
         public double TaskbarFlyoutGraphTimeSpanSeconds { get; set; } = 60;
         public double TaskbarFlyoutGraphHeightDip { get; set; } = 100; // one graph slot
 
+        // the global shortcut that opens the flyout; none by default, so no key combination is taken from other apps
+        public KeyboardShortcut? TaskbarFlyoutShortcut { get; set; } = null;
+
         // flyout background material
         public string TaskbarBackdropType { get; set; } = "Mica";
         public float TaskbarTintOpacity { get; set; } = 0.4f;
