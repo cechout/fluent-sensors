@@ -127,6 +127,13 @@
                                 <Setter Property="VerticalAlignment" Value="Center" />
                                 <Setter Property="FontSize" Value="10" />
                             </Style>
+                            <!--  the plus between the keys; (centered, so a bottom margin lifts it by half)  -->
+                            <Style
+                                x:Key="ShortcutKeyPlusTextStyle"
+                                BasedOn="{StaticResource ShortcutKeyTextStyle}"
+                                TargetType="TextBlock">
+                                <Setter Property="Margin" Value="0,0,0,2" />
+                            </Style>
                         </StackPanel.Resources>
                     </StackPanel>
 

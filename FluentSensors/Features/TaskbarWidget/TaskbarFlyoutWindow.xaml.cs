@@ -1275,10 +1275,11 @@ namespace FluentSensors.Features.TaskbarWidget
 
             var borderStyle = (Style)ShortcutHintPanel.Resources["ShortcutKeyBorderStyle"];
             var textStyle = (Style)ShortcutHintPanel.Resources["ShortcutKeyTextStyle"];
+            var plusStyle = (Style)ShortcutHintPanel.Resources["ShortcutKeyPlusTextStyle"];
 
             for (int i = 0; i < keys.Count; i++)
             {
-                if (i > 0) ShortcutHintPanel.Children.Add(new TextBlock { Style = textStyle, Text = "+" });
+                if (i > 0) ShortcutHintPanel.Children.Add(new TextBlock { Style = plusStyle, Text = "+" });
 
                 ShortcutHintPanel.Children.Add(new Border
                 {
