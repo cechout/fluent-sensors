@@ -446,8 +446,16 @@
                 Text="Taskbar Widget &amp; Flyout Appearance" />
 
             <!--  taskbar position the per position settings below belong to  -->
-            <!--  (the position is filled in at runtime from the edge the taskbar sits on)  -->
-            <controls:SettingsCard fhUi:FocusGroup.IsEnabled="True" Header="Current Taskbar Position">
+            <!--
+                (the position is filled in at runtime from the edge the taskbar sits on; MinHeight and Padding
+                override the 68 and 16 the toolkit style sets, so this read only row stays lower than the others)
+            -->
+            <controls:SettingsCard
+                MinHeight="40"
+                Padding="16,12,16,12"
+                fhUi:FocusGroup.IsEnabled="True"
+                Background="{ThemeResource ControlFillColorTertiaryBrush}"
+                Header="Current Taskbar Position">
                 <TextBlock x:Name="TaskbarPositionText" VerticalAlignment="Center" />
             </controls:SettingsCard>
 
