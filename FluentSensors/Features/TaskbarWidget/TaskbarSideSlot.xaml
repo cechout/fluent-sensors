@@ -30,10 +30,14 @@
         </fhControls:RotatedContentPanel>
 
         <!--  sensor name  -->
-        <!--  (one or two lines, set in ApplyLayout; LineHeight is the knob for the gap between the two)  -->
+        <!--
+            (one or two lines, set in ApplyLayout; LineHeight is the knob for the gap between the two; the top margin
+            is 2 more than the bottom margin of the value, because the smaller LineHeight leaves less room above the
+            letters than the value has below its digits)
+        -->
         <TextBlock
             x:Name="NameText"
-            Margin="4,1,4,0"
+            Margin="4,3,4,0"
             VerticalAlignment="Top"
             FontSize="10"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"

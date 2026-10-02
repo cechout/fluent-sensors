@@ -30,8 +30,15 @@
                         reads as invisible where it should; #0FFFFFFF over #202020 == the hover fill
                         top stop is #1D (not #16): the stroke composites over the bare bar now that the fill is
                         inset, so it needs the higher alpha to land ~#404040 and match the native taskbar highlight
+                        the three gradients run over a fixed 43.5 DIP, the button height on the standard bottom
+                        taskbar (48 less the 2.5 and 2.0 margins), so the top highlight keeps that height on a small
+                        taskbar and on the tall widget of a side taskbar; below it the last stop simply continues
                     -->
-                    <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                    <LinearGradientBrush
+                        x:Key="TaskbarButtonBorderBrush"
+                        MappingMode="Absolute"
+                        StartPoint="0,0"
+                        EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#1DFFFFFF" />
                         <GradientStop Offset="0.10" Color="#0FFFFFFF" />
                         <GradientStop Offset="1.0" Color="#0FFFFFFF" />
@@ -40,7 +47,11 @@
                         normal pressed border: sole source of the pressed border (StrokeBorder is off in this state),
                         so the top stop is self-sufficient at #1FFFFFFF -> #3B3B3B; sides & bottom #10FFFFFF -> #2E2E2E
                     -->
-                    <LinearGradientBrush x:Key="TaskbarButtonPressedBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                    <LinearGradientBrush
+                        x:Key="TaskbarButtonPressedBorderBrush"
+                        MappingMode="Absolute"
+                        StartPoint="0,0"
+                        EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#1FFFFFFF" />
                         <GradientStop Offset="0.12" Color="#10FFFFFF" />
                         <GradientStop Offset="1.0" Color="#10FFFFFF" />
@@ -53,7 +64,11 @@
                         active hover border: same #1DFFFFFF top highlight as normal hover (~#404040, native match),
                         active-hover fill brush on sides & bottom so the 1px there reads as invisible
                     -->
-                    <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" StartPoint="0,0" EndPoint="0,1">
+                    <LinearGradientBrush
+                        x:Key="TaskbarButtonActiveHoverBorderBrush"
+                        MappingMode="Absolute"
+                        StartPoint="0,0"
+                        EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#1DFFFFFF" />
                         <GradientStop Offset="0.10" Color="#15FFFFFF" />
                         <GradientStop Offset="1.0" Color="#15FFFFFF" />
