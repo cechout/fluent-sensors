@@ -5,11 +5,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhCommon="using:FluentSensors.Common.Sensors"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhPerf="using:FluentSensors.Features.Performance"
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
+    xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
     xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -226,12 +228,11 @@
 
                             <!--  graph time range  -->
                             <!--  (inside this grid so RecalculateOverviewHeight measures it together with the tiles)  -->
-                            <TextBlock
+                            <fhTimeRange:TimeRangePickerControl
                                 Grid.Row="0"
-                                Margin="4,0,4,0"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanText, Mode=OneWay}" />
+                                Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
+                                TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
 
                             <controls:WrapPanel
                                 Grid.Row="1"

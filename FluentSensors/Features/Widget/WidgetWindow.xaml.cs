@@ -14,6 +14,7 @@ using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Controls.SensorGraph;
+using FluentSensors.Controls.TimeRange;
 using FluentSensors.Features.Sensors;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
@@ -70,7 +71,7 @@ namespace FluentSensors.Features.Widget
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(CustomTitleBar);
 
-            // the back button sits in the drag region and needs its own passthrough rect
+            // the back button and the time range picker sit in the drag region and need their own passthrough rects
             CustomTitleBar.Loaded += (s, e) => UpdateTitleBarPassthroughRegions();
             CustomTitleBar.SizeChanged += (s, e) => UpdateTitleBarPassthroughRegions();
 
@@ -111,6 +112,11 @@ namespace FluentSensors.Features.Widget
             SettingsService.Instance.BackdropTypeChanged += OnBackdropTypeChanged;
             SettingsService.Instance.OpacityChanged += OnOpacityChanged;
             SettingsService.Instance.TintColorChanged += OnTintColorChanged;
+
+            // the widget time range; the picker and the settings page write the same setting
+            TimeRangePicker.SelectedSeconds = SettingsService.Instance.GraphTimeSpanSeconds;
+            TimeRangePicker.RegisterPropertyChangedCallback(TimeRangePickerControl.SelectedSecondsProperty, OnTimeRangePicked);
+            SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
 
             try
             {
@@ -192,6 +198,7 @@ namespace FluentSensors.Features.Widget
                 SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
                 SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
                 SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
+                SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
             }
             catch { }
 
@@ -311,6 +318,7 @@ namespace FluentSensors.Features.Widget
             SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
             SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
+            SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
 
             // the HardwareMonitorService subscription
             ViewModel.Cleanup();
@@ -370,7 +378,18 @@ namespace FluentSensors.Features.Widget
         private void UpdateTitleBarPassthroughRegions()
         {
             this.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
-                () => TitleBarPassthrough.Apply(this, CustomTitleBar, BackToDashboardButton));
+                () => TitleBarPassthrough.Apply(this, CustomTitleBar, BackToDashboardButton, TimeRangePicker));
+        }
+
+        // the picker is as wide as its text, so a new time range moves the edge of its rect
+        private void TimeRangePicker_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateTitleBarPassthroughRegions();
+        }
+
+        private void OnTimeRangePicked(DependencyObject sender, DependencyProperty dp)
+        {
+            SettingsService.Instance.GraphTimeSpanSeconds = TimeRangePicker.SelectedSeconds;
         }
 
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)
@@ -420,6 +439,14 @@ namespace FluentSensors.Features.Widget
             {
                 UpdateAcrylicProperties();
                 UpdateSolidBackground();
+            });
+        }
+
+        private void OnGraphTimeSpanChanged(double newTimeSpanSeconds)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                TimeRangePicker.SelectedSeconds = newTimeSpanSeconds;
             });
         }
 
