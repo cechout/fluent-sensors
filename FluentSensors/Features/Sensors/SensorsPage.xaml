@@ -146,7 +146,8 @@
                                                     <StaticResource x:Key="ButtonBackground" ResourceKey="SubtleFillColorTransparentBrush" />
                                                     <StaticResource x:Key="ButtonBackgroundPointerOver" ResourceKey="SubtleFillColorSecondaryBrush" />
                                                     <StaticResource x:Key="ButtonBackgroundPressed" ResourceKey="SubtleFillColorTertiaryBrush" />
-                                                    <StaticResource x:Key="TaskbarWidgetButtonsHoverBrush" ResourceKey="SubtleFillColorSecondaryBrush" />
+                                                    <!--  (SubtleFillColorSecondary as literals; a StaticResource here resolves against the app theme, not this one)  -->
+                                                    <SolidColorBrush x:Key="TaskbarWidgetButtonsHoverBrush" Color="#09000000" />
                                                     <StaticResource x:Key="ButtonBorderBrush" ResourceKey="ControlFillColorTransparentBrush" />
                                                     <StaticResource x:Key="ButtonBorderBrushPointerOver" ResourceKey="ControlFillColorTransparentBrush" />
                                                     <StaticResource x:Key="ButtonBorderBrushPressed" ResourceKey="ControlFillColorTransparentBrush" />
@@ -156,7 +157,7 @@
                                                     <StaticResource x:Key="ButtonBackground" ResourceKey="SubtleFillColorTransparentBrush" />
                                                     <StaticResource x:Key="ButtonBackgroundPointerOver" ResourceKey="SubtleFillColorSecondaryBrush" />
                                                     <StaticResource x:Key="ButtonBackgroundPressed" ResourceKey="SubtleFillColorTertiaryBrush" />
-                                                    <StaticResource x:Key="TaskbarWidgetButtonsHoverBrush" ResourceKey="SubtleFillColorSecondaryBrush" />
+                                                    <SolidColorBrush x:Key="TaskbarWidgetButtonsHoverBrush" Color="#0FFFFFFF" />
                                                     <StaticResource x:Key="ButtonBorderBrush" ResourceKey="ControlFillColorTransparentBrush" />
                                                     <StaticResource x:Key="ButtonBorderBrushPointerOver" ResourceKey="ControlFillColorTransparentBrush" />
                                                     <StaticResource x:Key="ButtonBorderBrushPressed" ResourceKey="ControlFillColorTransparentBrush" />
@@ -173,7 +174,7 @@
                                     <Button
                                         x:Name="UpdateTaskbarButton"
                                         Grid.Column="0"
-                                        Padding="11,0,12,0"
+                                        Padding="11,0,8,0"
                                         VerticalAlignment="Stretch"
                                         Click="PinToTaskbar_Click"
                                         CornerRadius="4,0,0,4">
@@ -190,7 +191,7 @@
                                     <Button
                                         x:Name="CloseTaskbarWidgetButton"
                                         Grid.Column="1"
-                                        Width="36"
+                                        Width="32"
                                         Margin="-0.9,0,0,0"
                                         Padding="0"
                                         VerticalAlignment="Stretch"
