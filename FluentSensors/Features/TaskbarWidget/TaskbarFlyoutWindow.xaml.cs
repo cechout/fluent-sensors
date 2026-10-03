@@ -3,6 +3,7 @@ using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Hosting;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,7 @@ using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Controls.SensorRow;
+using FluentSensors.Controls.TimeRange;
 using FluentSensors.Core.Taskbar;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
@@ -185,19 +187,31 @@ namespace FluentSensors.Features.TaskbarWidget
         // fixed width
         public const double FlyoutDefaultWidthDip = AppSettingsData.TaskbarFlyoutWidthDip;
 
-        // height of one graph slot
-        public const double FlyoutDefaultGraphHeightDip = AppSettingsData.TaskbarFlyoutGraphHeightDip;
+        // height of one graph slot; (the setting)
+        private static double FlyoutGraphHeightDip => SettingsService.Instance.TaskbarFlyoutGraphHeightDip;
 
         // --- flyout layout ---
 
-        // the two interior insets; (the graphs inset is a margin on the list, not padding on the surface, so the
-        // scrollbar rides the window edge)
+        // the interior insets; (the graphs inset is a margin on the list, not padding on the surface, so the
+        // scrollbar rides the window edge; the title row takes FlyoutBottomBarPadding)
         public static readonly Thickness FlyoutGraphsMargin = new Thickness(4, 9, 4, 8);
+        public static readonly Thickness FlyoutTimeRangeRowPadding = new Thickness(4, 5, 4, 5);
         public static readonly Thickness FlyoutBottomBarPadding = new Thickness(6, 5, 6, 5);
+
+        // the two time range pickers; (set from code like the bar buttons)
+        public const double FlyoutTimeRangePickerHeightDip = 22;
+
+        // the title row and the time range row in the height math; (derived, the title row is the bottom bar without
+        // its separator)
+        private static double FlyoutTitleRowHeightDip =>
+            FlyoutBottomBarPadding.Top + FlyoutBottomBarButtonHeightDip + FlyoutBottomBarPadding.Bottom;
+        private static double FlyoutTimeRangeRowHeightDip =>
+            FlyoutTimeRangeRowPadding.Top + FlyoutTimeRangePickerHeightDip + FlyoutTimeRangeRowPadding.Bottom;
 
         public const double FlyoutGraphSpacingDip = 8;
 
-        // both bar buttons; (set from code, the height math runs before the bar is ever measured)
+        // both bar buttons and the snapshot button; (set from code, the height math runs before the bar is ever
+        // measured)
         public const double FlyoutBottomBarButtonHeightDip = 36;
 
         // the top border of FlyoutBottomBarBorder
@@ -309,6 +323,18 @@ namespace FluentSensors.Features.TaskbarWidget
             SettingsService.Instance.TaskbarOpacityChanged += OnOpacityChanged;
             SettingsService.Instance.TaskbarTintColorChanged += OnTintColorChanged;
             SettingsService.Instance.TaskbarFlyoutAlignmentChanged += OnFlyoutAlignmentChanged;
+            SettingsService.Instance.TaskbarFlyoutGraphHeightChanged += OnFlyoutGraphHeightChanged;
+
+            // the two time ranges; the pickers and the settings page write the same settings
+            TaskbarTimeRangePicker.SelectedSeconds = SettingsService.Instance.TaskbarGraphTimeSpanSeconds;
+            FlyoutTimeRangePicker.SelectedSeconds = SettingsService.Instance.TaskbarFlyoutGraphTimeSpanSeconds;
+            TaskbarTimeRangePicker.RegisterPropertyChangedCallback(TimeRangePickerControl.SelectedSecondsProperty, OnTaskbarTimeRangePicked);
+            FlyoutTimeRangePicker.RegisterPropertyChangedCallback(TimeRangePickerControl.SelectedSecondsProperty, OnFlyoutTimeRangePicked);
+            SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnTaskbarGraphTimeSpanChanged;
+            SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged += OnFlyoutGraphTimeSpanChanged;
+
+            // a rebuilt window takes over a running snapshot with the view model
+            ApplyPauseState();
 
             ((FrameworkElement)this.Content).ActualThemeChanged += (s, e) =>
             {
@@ -325,6 +351,11 @@ namespace FluentSensors.Features.TaskbarWidget
             // layout constants pushed onto the controls, so the height math and the rendered bar agree (button width
             // and padding stay in the xaml, they do not enter that math)
             GraphsItemsControl.Margin = FlyoutGraphsMargin;
+            TitleRowGrid.Padding = FlyoutBottomBarPadding;
+            TimeRangeRowGrid.Padding = FlyoutTimeRangeRowPadding;
+            PauseButton.Height = FlyoutBottomBarButtonHeightDip;
+            TaskbarTimeRangePicker.Height = FlyoutTimeRangePickerHeightDip;
+            FlyoutTimeRangePicker.Height = FlyoutTimeRangePickerHeightDip;
             BottomBarContentGrid.Padding = FlyoutBottomBarPadding;
             BackToDashboardButton.Height = FlyoutBottomBarButtonHeightDip;
             CloseWidgetButton.Height = FlyoutBottomBarButtonHeightDip;
@@ -560,6 +591,9 @@ namespace FluentSensors.Features.TaskbarWidget
                 SettingsService.Instance.TaskbarOpacityChanged -= OnOpacityChanged;
                 SettingsService.Instance.TaskbarTintColorChanged -= OnTintColorChanged;
                 SettingsService.Instance.TaskbarFlyoutAlignmentChanged -= OnFlyoutAlignmentChanged;
+                SettingsService.Instance.TaskbarFlyoutGraphHeightChanged -= OnFlyoutGraphHeightChanged;
+                SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnTaskbarGraphTimeSpanChanged;
+                SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnFlyoutGraphTimeSpanChanged;
             }
             catch { }
 
@@ -919,7 +953,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             int desiredWidthPx = (int)Math.Round(FlyoutDefaultWidthDip * scale);
 
-            int sensorCount = ViewModel.PinnedSensors.Count;
+            int sensorCount = ViewModel.FlyoutSensors.Count;
 
             // gaps and alignment offset
             int marginPx = (int)Math.Round(FlyoutMarginToTaskbarDip * scale);
@@ -1068,27 +1102,31 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private int CalculateFlyoutDefaultHeight(int sensorCount, double scaleFactor)
         {
-            return (int)(CalculateFlyoutContentHeight(sensorCount, FlyoutDefaultGraphHeightDip) * scaleFactor);
+            return (int)(CalculateFlyoutContentHeight(sensorCount, FlyoutGraphHeightDip) * scaleFactor);
         }
 
         // graph slots that fit under a capped window height
         private static int CountFittingGraphSlots(int maxHeightPx, double scaleFactor)
         {
-            double interiorDip = (maxHeightPx / scaleFactor) - FlyoutBottomBarHeightDip
+            double interiorDip = (maxHeightPx / scaleFactor) - FlyoutRowsHeightDip
                 - FlyoutGraphsMargin.Top - FlyoutGraphsMargin.Bottom;
 
             int slots = (int)Math.Floor(
-                (interiorDip + FlyoutGraphSpacingDip) / (FlyoutDefaultGraphHeightDip + FlyoutGraphSpacingDip));
+                (interiorDip + FlyoutGraphSpacingDip) / (FlyoutGraphHeightDip + FlyoutGraphSpacingDip));
 
             return Math.Max(1, slots);
         }
 
-        // window height for n graph slots: the bar strip, the graphs margin, n slots and the n-1 gaps between them
+        // the title row, the time range row and the bar strip, everything but the graphs
+        private static double FlyoutRowsHeightDip =>
+            FlyoutTitleRowHeightDip + FlyoutTimeRangeRowHeightDip + FlyoutBottomBarHeightDip;
+
+        // window height for n graph slots: the rows around them, the graphs margin, n slots and the n-1 gaps
         private static double CalculateFlyoutContentHeight(int sensorCount, double graphHeightDip)
         {
-            if (sensorCount <= 0) return FlyoutBottomBarHeightDip;
+            if (sensorCount <= 0) return FlyoutRowsHeightDip;
 
-            return FlyoutBottomBarHeightDip
+            return FlyoutRowsHeightDip
                 + FlyoutGraphsMargin.Top + FlyoutGraphsMargin.Bottom
                 + (sensorCount * graphHeightDip)
                 + ((sensorCount - 1) * FlyoutGraphSpacingDip);
@@ -1154,7 +1192,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             if (_graphsPanel != null)
             {
-                _graphsPanel.FixedItemHeight = isScrolling ? FlyoutDefaultGraphHeightDip : 0;
+                _graphsPanel.FixedItemHeight = isScrolling ? FlyoutGraphHeightDip : 0;
             }
         }
 
@@ -1228,6 +1266,32 @@ namespace FluentSensors.Features.TaskbarWidget
             TaskbarWidgetWindow.CurrentInstance?.CloseWidget();
         }
 
+        // the snapshot; the flyout graphs stand still, the taskbar graphs run on
+        private void PauseButton_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.SetFlyoutPaused(!ViewModel.IsFlyoutPaused);
+            ApplyPauseState();
+        }
+
+        // glyph, tooltip and name follow the state, like the csv logger pause button
+        private void ApplyPauseState()
+        {
+            string label = ViewModel.IsFlyoutPaused ? "Resume" : "Pause";
+            PauseButtonIcon.Glyph = ViewModel.IsFlyoutPaused ? "\uE768" : "\uE769";
+            ToolTipService.SetToolTip(PauseButton, label);
+            AutomationProperties.SetName(PauseButton, label);
+        }
+
+        private void OnTaskbarTimeRangePicked(DependencyObject sender, DependencyProperty dp)
+        {
+            SettingsService.Instance.TaskbarGraphTimeSpanSeconds = TaskbarTimeRangePicker.SelectedSeconds;
+        }
+
+        private void OnFlyoutTimeRangePicked(DependencyObject sender, DependencyProperty dp)
+        {
+            SettingsService.Instance.TaskbarFlyoutGraphTimeSpanSeconds = FlyoutTimeRangePicker.SelectedSeconds;
+        }
+
         // --- memory leak: TaskbarFlyoutWindow never released after close ---
         // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
@@ -1281,6 +1345,35 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 if (_isClosed || TaskbarWidgetWindow.CurrentInstance == null) return;
                 PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+            });
+        }
+
+        // a new slot height resizes an open flyout in place
+        private void OnFlyoutGraphHeightChanged(double newHeightDip)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_isClosed || TaskbarWidgetWindow.CurrentInstance == null) return;
+                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+            });
+        }
+
+        // also on a taskbar move, the active edge has its own range
+        private void OnTaskbarGraphTimeSpanChanged(double newTimeSpanSeconds)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_isClosed) return;
+                TaskbarTimeRangePicker.SelectedSeconds = newTimeSpanSeconds;
+            });
+        }
+
+        private void OnFlyoutGraphTimeSpanChanged(double newTimeSpanSeconds)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_isClosed) return;
+                FlyoutTimeRangePicker.SelectedSeconds = newTimeSpanSeconds;
             });
         }
 

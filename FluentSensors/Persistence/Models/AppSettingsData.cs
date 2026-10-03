@@ -95,6 +95,10 @@ namespace FluentSensors.Persistence.Models
         // null in an older file, SettingsService seeds every edge from the legacy values below
         public Dictionary<string, TaskbarEdgeSettings>? TaskbarEdges { get; set; } = null;
 
+        // flyout graphs; the same on every edge, the flyout keeps its shape there
+        public double TaskbarFlyoutGraphTimeSpanSeconds { get; set; } = 60;
+        public double TaskbarFlyoutGraphHeightDip { get; set; } = 100; // one graph slot
+
         // flyout background material
         public string TaskbarBackdropType { get; set; } = "Mica";
         public float TaskbarTintOpacity { get; set; } = 0.4f;
@@ -154,9 +158,9 @@ namespace FluentSensors.Persistence.Models
         // csv logger window; the width only, the height follows the content (minimum 225 wide)
         public const double CsvLoggerWindowDefaultWidthDip = 225;
 
-        // taskbar flyout; fixed width, one graph per pinned sensor plus the bottom bar (not resizable)
+        // taskbar flyout; fixed width, the height follows the pinned sensors and TaskbarFlyoutGraphHeightDip (not
+        // resizable)
         public const double TaskbarFlyoutWidthDip = 250;
-        public const double TaskbarFlyoutGraphHeightDip = 100;
 
 
         // --- legacy, read once on load and never written back ---

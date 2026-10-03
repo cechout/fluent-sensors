@@ -50,6 +50,7 @@ namespace FluentSensors.Features.Settings
             PerformanceExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
             GraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Widget;
             TaskbarGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
+            TaskbarFlyoutGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
 
             RestorePerformanceGraphTimeSpanSelection();
 
@@ -64,6 +65,7 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarGraphWidthSelection();
             RestoreTaskbarSideSlotSelection();
             RestoreTaskbarFlyoutAlignmentSelection();
+            RestoreTaskbarFlyoutGraphSelection();
             RestoreLockWidgetPositionSelection();
 
             ShowAppDataFolderPath();
@@ -107,9 +109,11 @@ namespace FluentSensors.Features.Settings
             }
             OnActiveTaskbarEdgeChanged(SettingsService.Instance.ActiveTaskbarEdge);
 
-            // the time range pickers under the graphs and in the widget write the same settings
+            // the time range pickers under the graphs, in the widget and in the flyout write the same settings
             SettingsService.Instance.PerformanceGraphTimeSpanChanged += OnTimeRangesChanged;
-            SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
+            SettingsService.Instance.GraphTimeSpanChanged += OnTimeRangeChanged;
+            SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnTimeRangeChanged;
+            SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged += OnTimeRangeChanged;
             OnTimeRangesChanged();
         }
 
@@ -118,7 +122,9 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.StatusReadoutChanged -= OnStatusReadoutChanged;
             SettingsService.Instance.ActiveTaskbarEdgeChanged -= OnActiveTaskbarEdgeChanged;
             SettingsService.Instance.PerformanceGraphTimeSpanChanged -= OnTimeRangesChanged;
-            SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+            SettingsService.Instance.GraphTimeSpanChanged -= OnTimeRangeChanged;
+            SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnTimeRangeChanged;
+            SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnTimeRangeChanged;
         }
 
         // the values of the active taskbar edge; the side cards only on the left and right edge
@@ -144,10 +150,12 @@ namespace FluentSensors.Features.Settings
             _isLoading = true;
             RestorePerformanceGraphTimeSpanSelection();
             RestoreGraphTimeSpanSelection();
+            RestoreTaskbarGraphTimeSpanSelection();
+            RestoreTaskbarFlyoutGraphSelection();
             _isLoading = false;
         }
 
-        private void OnGraphTimeSpanChanged(double newTimeSpanSeconds) => OnTimeRangesChanged();
+        private void OnTimeRangeChanged(double newTimeSpanSeconds) => OnTimeRangesChanged();
 
         // for writes from outside this page; a write from here echoes back and would reset the control mid handler
         private void OnStatusReadoutChanged()
@@ -982,6 +990,29 @@ namespace FluentSensors.Features.Settings
                     break;
                 }
             }
+        }
+
+        // flyout graphs; one time range and one slot height for every edge
+        private void TaskbarFlyoutGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
+            {
+                SettingsService.Instance.TaskbarFlyoutGraphTimeSpanSeconds = option.Seconds;
+            }
+        }
+
+        private void TaskbarFlyoutGraphHeightSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarFlyoutGraphHeightDip = e.NewValue;
+        }
+
+        private void RestoreTaskbarFlyoutGraphSelection()
+        {
+            SelectTimeSpanItem(TaskbarFlyoutGraphTimeSpanComboBox, SettingsService.Instance.TaskbarFlyoutGraphTimeSpanSeconds);
+            TaskbarFlyoutGraphHeightSlider.Value = SettingsService.Instance.TaskbarFlyoutGraphHeightDip;
         }
 
         // widget drag lock
