@@ -29,7 +29,7 @@
             Height="26"
             Background="Transparent">
             <TextBlock
-                Margin="12,4,0,0"
+                Margin="12,3,0,0"
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 Style="{StaticResource CaptionTextBlockStyle}"
@@ -39,7 +39,7 @@
 
         <!--  the graphs  -->
         <!--  (stretched to fill the height together)  -->
-        <Grid Grid.Row="1" Padding="4,0,4,5">
+        <Grid Grid.Row="1" Padding="4,8,4,8">
             <ItemsControl ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -86,6 +86,7 @@
                         <FontIcon
                             FontSize="14"
                             FontWeight="SemiLight"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Glyph="&#xE944;" />
                     </Button>
 
@@ -93,6 +94,7 @@
                     <fhTimeRange:TimeRangePickerControl
                         x:Name="TimeRangePicker"
                         Height="22"
+                        Padding="8,0,8,0"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Widget}"
                         TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
@@ -107,7 +109,11 @@
                     HorizontalAlignment="Right"
                     Click="PauseButton_Click"
                     Style="{StaticResource SubtleButtonStyle}">
-                    <FontIcon x:Name="PauseButtonIcon" FontSize="14" />
+                    <FontIcon
+                        x:Name="PauseButtonIcon"
+                        FontSize="14"
+                        FontWeight="SemiLight"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </Button>
             </Grid>
         </Border>

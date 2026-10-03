@@ -43,8 +43,8 @@ namespace FluentSensors.Features.Widget
         private const int MinPanelHeight = 90;
         private const int MinWidgetWidth = 220;
 
-        // in DIP; title bar 26, graph bottom padding 5, bottom bar 31 (divider, padding, 22 buttons)
-        private const int ChromeHeight = 62;
+        // in DIP; title bar 26, graph padding 8 above and below, bottom bar 31 (divider, padding, 22 buttons)
+        private const int ChromeHeight = 73;
 
         public WidgetViewModel ViewModel { get; }
         public static WidgetWindow CurrentInstance { get; private set; }
