@@ -185,9 +185,9 @@
                     </ItemsControl>
                 </ScrollViewer>
 
-                <!--  time range row: taskbar graphs left, flyout graphs right  -->
+                <!--  time range row: flyout graphs first, then the taskbar graphs  -->
                 <StackPanel
-                    x:Name="TimeRangeRowGrid"
+                    x:Name="TimeRangeRowPanel"
                     Grid.Row="2"
                     Padding="{StaticResource FlyoutTimeRangeRowPadding}"
                     fhUi:FocusGroup.IsEnabled="True"
@@ -197,7 +197,6 @@
                         x:Name="FlyoutTimeRangePicker"
                         Height="{StaticResource FlyoutTimeRangePickerHeight}"
                         Padding="8,0,8,0"
-                        HorizontalAlignment="Right"
                         AccessibleName="Flyout Time Range"
                         Label="Flyout"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
@@ -260,7 +259,7 @@
                         </Button>
 
                         <!--  close the taskbar widget  -->
-                        <!--<Button
+                        <Button
                             x:Name="CloseWidgetButton"
                             Width="38"
                             Height="{StaticResource FlyoutBarButtonHeight}"
@@ -271,7 +270,7 @@
                             Style="{StaticResource SubtleBarButtonStyle}"
                             ToolTipService.ToolTip="Close Taskbar Widget">
                             <FontIcon FontSize="14" Glyph="&#xE711;" />
-                        </Button>-->
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
