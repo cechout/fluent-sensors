@@ -220,10 +220,17 @@ namespace FluentSensors.Features.Sensors
             CloseTaskbarWidgetButton.ClearValue(Control.BackgroundProperty);
         }
 
+        // the commit button of each profile follows the open state of its window
         private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName != nameof(SensorsViewModel.IsTaskbarWidgetOpen)) return;
-            if (_forcedOverflowElements == null || !ViewModel.IsTaskbarProfileActive) return;
+            bool affectsActiveProfile = e.PropertyName switch
+            {
+                nameof(SensorsViewModel.IsWidgetOpen) => ViewModel.IsWidgetProfileActive,
+                nameof(SensorsViewModel.IsCsvLoggerOpen) => ViewModel.IsCsvProfileActive,
+                nameof(SensorsViewModel.IsTaskbarWidgetOpen) => ViewModel.IsTaskbarProfileActive,
+                _ => false
+            };
+            if (!affectsActiveProfile || _forcedOverflowElements == null) return;
 
             RebuildCommandBarOverflow();
         }
@@ -471,26 +478,39 @@ namespace FluentSensors.Features.Sensors
             });
         }
 
-        // with the commit button of the active profile; an open taskbar widget gets its update and close pair instead
+        // with the commit button of the active profile; an open window gets it as an update button, the taskbar widget
+        // as its update and close pair with a separator behind (it has no close of its own)
         private ICommandBarElement[] BuildCommandBarPriorityOrder()
         {
-            ICommandBarElement commitButton = ViewModel.ActiveProfile switch
-            {
-                SensorSelectionProfile.WidgetWindow => PinToWidgetButton,
-                SensorSelectionProfile.Csv => StartCsvMonitoringButton,
-                SensorSelectionProfile.Taskbar when ViewModel.IsTaskbarWidgetOpen => TaskbarWidgetButtonsContainer,
-                SensorSelectionProfile.Taskbar => PinToTaskbarButton,
-                _ => PinToWidgetButton
-            };
+            PinToWidgetButton.Label = ViewModel.IsWidgetOpen ? "Update Widget" : "Pin to Widget";
+            PinToWidgetIcon.Glyph = ViewModel.IsWidgetOpen ? "\uE895" : "\uE718";
+            StartCsvMonitoringButton.Label = ViewModel.IsCsvLoggerOpen ? "Update CSV Logging" : "Start CSV Logging";
+            StartCsvMonitoringIcon.Glyph = ViewModel.IsCsvLoggerOpen ? "\uE895" : "\uE8A7";
 
-            return new ICommandBarElement[]
+            var order = new List<ICommandBarElement>();
+            switch (ViewModel.ActiveProfile)
             {
-                commitButton,
-                HideSensorsButton,
-                ButtonSeparator,
-                ResetValuesButton,
-                ShowHiddenSensorsButton
-            };
+                case SensorSelectionProfile.Csv:
+                    order.Add(StartCsvMonitoringButton);
+                    break;
+                case SensorSelectionProfile.Taskbar when ViewModel.IsTaskbarWidgetOpen:
+                    order.Add(TaskbarWidgetButtonsContainer);
+                    order.Add(TaskbarWidgetButtonsSeparator);
+                    break;
+                case SensorSelectionProfile.Taskbar:
+                    order.Add(PinToTaskbarButton);
+                    break;
+                default:
+                    order.Add(PinToWidgetButton);
+                    break;
+            }
+
+            order.Add(HideSensorsButton);
+            order.Add(ButtonSeparator);
+            order.Add(ResetValuesButton);
+            order.Add(ShowHiddenSensorsButton);
+
+            return order.ToArray();
         }
 
         // the overflow split follows the header size

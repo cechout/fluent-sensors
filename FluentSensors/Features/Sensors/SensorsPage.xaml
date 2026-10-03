@@ -94,22 +94,24 @@
 
                         <CommandBar.PrimaryCommands>
                             <!--  pin to widget button (shown for the Widget profile)  -->
+                            <!--  (reads "Update Widget" with an update glyph while the widget is open, see BuildCommandBarPriorityOrder)  -->
                             <AppBarButton
                                 x:Name="PinToWidgetButton"
                                 Click="PinToWidget_Click"
                                 Label="Pin to Widget">
                                 <AppBarButton.Icon>
-                                    <FontIcon Glyph="&#xE718;" />
+                                    <FontIcon x:Name="PinToWidgetIcon" Glyph="&#xE718;" />
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
                             <!--  start csv logging button (shown for the Logging profile)  -->
+                            <!--  (reads "Update CSV Logging" with an update glyph while the logger is open, see BuildCommandBarPriorityOrder)  -->
                             <AppBarButton
                                 x:Name="StartCsvMonitoringButton"
                                 Click="StartCsvMonitoring_Click"
                                 Label="Start CSV Logging">
                                 <AppBarButton.Icon>
-                                    <FontIcon Glyph="&#xE8A7;" />
+                                    <FontIcon x:Name="StartCsvMonitoringIcon" Glyph="&#xE8A7;" />
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
@@ -203,6 +205,9 @@
                                     </Button>
                                 </Grid>
                             </AppBarElementContainer>
+
+                            <!--  separator behind the update and close pair, only while it is shown  -->
+                            <AppBarSeparator x:Name="TaskbarWidgetButtonsSeparator" />
 
                             <!--  hide sensors button  -->
                             <AppBarButton

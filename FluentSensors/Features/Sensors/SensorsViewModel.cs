@@ -15,6 +15,7 @@ using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Core.Lhm;
+using FluentSensors.Features.CsvLogging;
 using FluentSensors.Features.TaskbarWidget;
 
 
@@ -70,8 +71,10 @@ namespace FluentSensors.Features.Sensors
             // a widget may have reopened from its saved state before this view model existed
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
             IsTaskbarWidgetOpen = TaskbarWidgetWindow.CurrentInstance != null;
+            IsCsvLoggerOpen = CsvLoggerWindow.CurrentInstance != null;
             WidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
             TaskbarWidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
+            CsvLoggerWindow.LoggerStateChanged += OnWidgetStateChanged;
 
             // never detached; this view model lives for the whole session
             SettingsService.Instance.HardwareIconColorsChanged += RefreshGroupIconBrushes;
@@ -140,6 +143,21 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
+        // the logging commit button reads "Update CSV Logging" while the logger window is open
+        private bool _isCsvLoggerOpen;
+        public bool IsCsvLoggerOpen
+        {
+            get => _isCsvLoggerOpen;
+            private set
+            {
+                if (_isCsvLoggerOpen != value)
+                {
+                    _isCsvLoggerOpen = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         // how long the stats have been collecting; the bottom bar
         private string _statsElapsedText = "0:00:00";
         public string StatsElapsedText
@@ -189,11 +207,12 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // IsWidgetOpen, IsTaskbarWidgetOpen and IsPinnedAvailable follow the widget and the taskbar widget
+        // the open states and IsPinnedAvailable follow the widget, the taskbar widget and the csv logger
         private void OnWidgetStateChanged()
         {
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
             IsTaskbarWidgetOpen = TaskbarWidgetWindow.CurrentInstance != null;
+            IsCsvLoggerOpen = CsvLoggerWindow.CurrentInstance != null;
             OnPropertyChanged(nameof(IsPinnedAvailable));
         }
 
