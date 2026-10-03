@@ -113,7 +113,7 @@
                         Visibility="Collapsed">
                         <StackPanel.Resources>
                             <Style x:Key="ShortcutKeyBorderStyle" TargetType="Border">
-                                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+                                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorSecondaryBrush}" />
                                 <Setter Property="BorderThickness" Value="1" />
                                 <Setter Property="CornerRadius" Value="2" />
                                 <Setter Property="Height" Value="16" />

@@ -125,28 +125,37 @@
 
                             <!--  update and close the taskbar widget (shown for the Taskbar profile while the widget is open)  -->
                             <!--
-                                (two buttons joined into one split shape, 1 px apart; the rest fill is the hover fill of
-                                the other bar buttons, the margin is their inner border margin)
+                                (two flat buttons joined into one split shape with the colors of the other bar buttons;
+                                hovering either part lights both through the plates, see TaskbarWidgetButtons_PointerEntered)
                             -->
                             <AppBarElementContainer x:Name="TaskbarWidgetButtonsContainer" VerticalContentAlignment="Stretch">
-                                <Grid Margin="2,6,2,6" ColumnSpacing="1">
+                                <Grid
+                                    Margin="2,5,2,5"
+                                    Background="Transparent"
+                                    ColumnSpacing="0"
+                                    PointerCanceled="TaskbarWidgetButtons_PointerExited"
+                                    PointerCaptureLost="TaskbarWidgetButtons_PointerExited"
+                                    PointerEntered="TaskbarWidgetButtons_PointerEntered"
+                                    PointerExited="TaskbarWidgetButtons_PointerExited"
+                                    Unloaded="TaskbarWidgetButtons_PointerExited">
                                     <Grid.Resources>
+                                        <!--  (the buttons stay transparent until pressed, the plates carry the hover)  -->
                                         <ResourceDictionary>
                                             <ResourceDictionary.ThemeDictionaries>
                                                 <!--  light  -->
                                                 <ResourceDictionary x:Key="Light">
-                                                    <SolidColorBrush x:Key="ButtonBackground" Color="#09000000" />
-                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#12000000" />
-                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#06000000" />
+                                                    <StaticResource x:Key="ButtonBackground" ResourceKey="SubtleFillColorTransparentBrush" />
+                                                    <StaticResource x:Key="ButtonBackgroundPointerOver" ResourceKey="SubtleFillColorTransparentBrush" />
+                                                    <StaticResource x:Key="ButtonBackgroundPressed" ResourceKey="SubtleFillColorTertiaryBrush" />
                                                     <StaticResource x:Key="ButtonBorderBrush" ResourceKey="ControlFillColorTransparentBrush" />
                                                     <StaticResource x:Key="ButtonBorderBrushPointerOver" ResourceKey="ControlFillColorTransparentBrush" />
                                                     <StaticResource x:Key="ButtonBorderBrushPressed" ResourceKey="ControlFillColorTransparentBrush" />
                                                 </ResourceDictionary>
                                                 <!--  dark  -->
                                                 <ResourceDictionary x:Key="Dark">
-                                                    <SolidColorBrush x:Key="ButtonBackground" Color="#0FFFFFFF" />
-                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#1AFFFFFF" />
-                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#0AFFFFFF" />
+                                                    <StaticResource x:Key="ButtonBackground" ResourceKey="SubtleFillColorTransparentBrush" />
+                                                    <StaticResource x:Key="ButtonBackgroundPointerOver" ResourceKey="SubtleFillColorTransparentBrush" />
+                                                    <StaticResource x:Key="ButtonBackgroundPressed" ResourceKey="SubtleFillColorTertiaryBrush" />
                                                     <StaticResource x:Key="ButtonBorderBrush" ResourceKey="ControlFillColorTransparentBrush" />
                                                     <StaticResource x:Key="ButtonBorderBrushPointerOver" ResourceKey="ControlFillColorTransparentBrush" />
                                                     <StaticResource x:Key="ButtonBorderBrushPressed" ResourceKey="ControlFillColorTransparentBrush" />
@@ -159,6 +168,21 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
+                                    <!--  hover plates, the hover fill of the other bar buttons  -->
+                                    <Border
+                                        x:Name="UpdateTaskbarHoverPlate"
+                                        Grid.Column="0"
+                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                        CornerRadius="4,0,0,4"
+                                        Opacity="0" />
+                                    <Border
+                                        x:Name="CloseTaskbarWidgetHoverPlate"
+                                        Grid.Column="1"
+                                        Margin="-0.9,0,0,0"
+                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                        CornerRadius="0,4,4,0"
+                                        Opacity="0" />
+
                                     <!--  update  -->
                                     <Button
                                         x:Name="UpdateTaskbarButton"
@@ -169,7 +193,10 @@
                                         CornerRadius="4,0,0,4">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <FontIcon FontSize="16" Glyph="&#xE895;" />
-                                            <TextBlock VerticalAlignment="Center" Text="Update Taskbar" />
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="12"
+                                                Text="Update Taskbar" />
                                         </StackPanel>
                                     </Button>
 
@@ -178,6 +205,7 @@
                                         x:Name="CloseTaskbarWidgetButton"
                                         Grid.Column="1"
                                         Width="36"
+                                        Margin="-0.9,0,0,0"
                                         Padding="0"
                                         VerticalAlignment="Stretch"
                                         AutomationProperties.Name="Close Taskbar Widget"
