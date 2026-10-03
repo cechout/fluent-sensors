@@ -652,7 +652,7 @@
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE765;}">
                 <Button
                     x:Name="FlyoutShortcutButton"
-                    Padding="8,4,12,4"
+                    Padding="4,4,8,4"
                     Click="FlyoutShortcutButton_Click">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <StackPanel
@@ -665,10 +665,11 @@
                                     x:Key="ShortcutKeyStyle"
                                     BasedOn="{StaticResource AccentButtonStyle}"
                                     TargetType="Button">
-                                    <Setter Property="Height" Value="24" />
-                                    <Setter Property="MinWidth" Value="24" />
+                                    <Setter Property="Height" Value="32" />
+                                    <Setter Property="MinWidth" Value="32" />
                                     <Setter Property="Padding" Value="8,0,8,0" />
-                                    <Setter Property="FontSize" Value="12" />
+                                    <Setter Property="FontSize" Value="15" />
+                                    <Setter Property="FontWeight" Value="Normal" />
                                     <Setter Property="IsHitTestVisible" Value="False" />
                                     <Setter Property="IsTabStop" Value="False" />
                                     <Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />

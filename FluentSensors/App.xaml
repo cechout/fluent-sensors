@@ -31,11 +31,7 @@
                     -->
                     <!--  (the layers stay upright, the highlight belongs at the top)  -->
                     <x:Double x:Key="TaskbarButtonBorderScaleY">1</x:Double>
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#1DFFFFFF" />
                         <GradientStop Offset="0.10" Color="#0FFFFFFF" />
                         <GradientStop Offset="1.0" Color="#0FFFFFFF" />
@@ -44,11 +40,7 @@
                         normal pressed border, the only one in that state (StrokeBorder is off); top #3B3B3B,
                         sides and bottom #2E2E2E
                     -->
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonPressedBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonPressedBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#1FFFFFFF" />
                         <GradientStop Offset="0.12" Color="#10FFFFFF" />
                         <GradientStop Offset="1.0" Color="#10FFFFFF" />
@@ -58,11 +50,7 @@
                     <!--  (active hover, target #323232)  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#15FFFFFF" />
                     <!--  active hover border; the normal hover highlight, the active hover fill on the sides  -->
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonActiveHoverBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#1DFFFFFF" />
                         <GradientStop Offset="0.10" Color="#15FFFFFF" />
                         <GradientStop Offset="1.0" Color="#15FFFFFF" />
@@ -115,21 +103,13 @@
                         bottom and the darker band keeps the height of the dark highlight
                     -->
                     <x:Double x:Key="TaskbarButtonBorderScaleY">-1</x:Double>
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#14000000" />
                         <GradientStop Offset="0.10" Color="#0A000000" />
                         <GradientStop Offset="1.0" Color="#0A000000" />
                     </LinearGradientBrush>
                     <!--  normal pressed border, the only one in that state; the values of TaskbarButtonBorderBrush  -->
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonPressedBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonPressedBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#14000000" />
                         <GradientStop Offset="0.12" Color="#0A000000" />
                         <GradientStop Offset="1.0" Color="#0A000000" />
@@ -139,11 +119,7 @@
                     <!--  (active hover, target #FAFAFA)  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#B8FFFFFF" />
                     <!--  active hover border; on the transparency-on bar top and sides #E5E5E5, bottom #D4D4D4  -->
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonActiveHoverBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#1E000000" />
                         <GradientStop Offset="0.10" Color="#0C000000" />
                         <GradientStop Offset="1.0" Color="#0C000000" />
@@ -378,7 +354,6 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="{TemplateBinding CornerRadius}">
-
                                 <!--  veil  -->
                                 <!--  (one less than the outer radius, it sits inside the 1px stroke)  -->
                                 <Border

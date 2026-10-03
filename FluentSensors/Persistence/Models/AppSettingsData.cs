@@ -163,7 +163,7 @@ namespace FluentSensors.Persistence.Models
 
         // taskbar flyout; fixed width, the height follows the pinned sensors and TaskbarFlyoutGraphHeightDip (not
         // resizable)
-        public const double TaskbarFlyoutWidthDip = 260;
+        public const double TaskbarFlyoutWidthDip = 280;
 
 
         // --- legacy, read once on load and never written back ---

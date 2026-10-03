@@ -37,7 +37,7 @@
             <Thickness x:Key="FlyoutBottomBarSeparatorThickness">0,1,0,0</Thickness>
 
             <!--  time range row  -->
-            <Thickness x:Key="FlyoutTimeRangeRowPadding">4,6,4,6</Thickness>
+            <Thickness x:Key="FlyoutTimeRangeRowPadding">4,7,4,7</Thickness>
             <x:Double x:Key="FlyoutTimeRangePickerHeight">22</x:Double>
         </Border.Resources>
 
@@ -91,7 +91,7 @@
                     <!--  title  -->
                     <!--  (the margin is the button padding of the bottom bar, so it lines up with its text)  -->
                     <TextBlock
-                        Margin="9,-2,0,0"
+                        Margin="9,-3,0,0"
                         VerticalAlignment="Center"
                         Style="{StaticResource BodyTextBlockStyle}"
                         Text="System Sensors"
@@ -106,7 +106,7 @@
                     <StackPanel
                         x:Name="ShortcutHintPanel"
                         Grid.Column="1"
-                        Margin="8,0,0,-1"
+                        Margin="8,0,0,1"
                         VerticalAlignment="Center"
                         Orientation="Horizontal"
                         Spacing="1"
