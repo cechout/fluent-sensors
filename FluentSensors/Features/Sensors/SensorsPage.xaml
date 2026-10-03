@@ -113,28 +113,81 @@
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
-                            <!--  pin to taskbar button (shown for the Taskbar profile)  -->
-                            <!--  (reads "Update Taskbar" with an update glyph while the widget is open, see BuildCommandBarPriorityOrder)  -->
+                            <!--  pin to taskbar button (shown for the Taskbar profile while the widget is closed)  -->
                             <AppBarButton
                                 x:Name="PinToTaskbarButton"
                                 Click="PinToTaskbar_Click"
                                 Label="Pin to Taskbar">
                                 <AppBarButton.Icon>
-                                    <FontIcon x:Name="PinToTaskbarIcon" Glyph="&#xE840;" />
+                                    <FontIcon Glyph="&#xE840;" />
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
-                            <!--  close taskbar widget button (shown for the Taskbar profile while the widget is open)  -->
-                            <AppBarButton
-                                x:Name="CloseTaskbarWidgetButton"
-                                AutomationProperties.Name="Close Taskbar Widget"
-                                Click="CloseTaskbarWidget_Click"
-                                Label="Close"
-                                ToolTipService.ToolTip="Close Taskbar Widget">
-                                <AppBarButton.Icon>
-                                    <FontIcon Glyph="&#xE711;" />
-                                </AppBarButton.Icon>
-                            </AppBarButton>
+                            <!--  update and close the taskbar widget (shown for the Taskbar profile while the widget is open)  -->
+                            <!--
+                                (two buttons joined into one split shape, 1 px apart; the rest fill is the hover fill of
+                                the other bar buttons, the margin is their inner border margin)
+                            -->
+                            <AppBarElementContainer x:Name="TaskbarWidgetButtonsContainer" VerticalContentAlignment="Stretch">
+                                <Grid Margin="2,6,2,6" ColumnSpacing="1">
+                                    <Grid.Resources>
+                                        <ResourceDictionary>
+                                            <ResourceDictionary.ThemeDictionaries>
+                                                <!--  light  -->
+                                                <ResourceDictionary x:Key="Light">
+                                                    <SolidColorBrush x:Key="ButtonBackground" Color="#09000000" />
+                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#12000000" />
+                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#06000000" />
+                                                    <StaticResource x:Key="ButtonBorderBrush" ResourceKey="ControlFillColorTransparentBrush" />
+                                                    <StaticResource x:Key="ButtonBorderBrushPointerOver" ResourceKey="ControlFillColorTransparentBrush" />
+                                                    <StaticResource x:Key="ButtonBorderBrushPressed" ResourceKey="ControlFillColorTransparentBrush" />
+                                                </ResourceDictionary>
+                                                <!--  dark  -->
+                                                <ResourceDictionary x:Key="Dark">
+                                                    <SolidColorBrush x:Key="ButtonBackground" Color="#0FFFFFFF" />
+                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#1AFFFFFF" />
+                                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#0AFFFFFF" />
+                                                    <StaticResource x:Key="ButtonBorderBrush" ResourceKey="ControlFillColorTransparentBrush" />
+                                                    <StaticResource x:Key="ButtonBorderBrushPointerOver" ResourceKey="ControlFillColorTransparentBrush" />
+                                                    <StaticResource x:Key="ButtonBorderBrushPressed" ResourceKey="ControlFillColorTransparentBrush" />
+                                                </ResourceDictionary>
+                                            </ResourceDictionary.ThemeDictionaries>
+                                        </ResourceDictionary>
+                                    </Grid.Resources>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!--  update  -->
+                                    <Button
+                                        x:Name="UpdateTaskbarButton"
+                                        Grid.Column="0"
+                                        Padding="11,0,12,0"
+                                        VerticalAlignment="Stretch"
+                                        Click="PinToTaskbar_Click"
+                                        CornerRadius="4,0,0,4">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon FontSize="16" Glyph="&#xE895;" />
+                                            <TextBlock VerticalAlignment="Center" Text="Update Taskbar" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!--  close  -->
+                                    <Button
+                                        x:Name="CloseTaskbarWidgetButton"
+                                        Grid.Column="1"
+                                        Width="36"
+                                        Padding="0"
+                                        VerticalAlignment="Stretch"
+                                        AutomationProperties.Name="Close Taskbar Widget"
+                                        Click="CloseTaskbarWidget_Click"
+                                        CornerRadius="0,4,4,0"
+                                        ToolTipService.ToolTip="Close Taskbar Widget">
+                                        <FontIcon FontSize="14" Glyph="&#xE711;" />
+                                    </Button>
+                                </Grid>
+                            </AppBarElementContainer>
 
                             <!--  hide sensors button  -->
                             <AppBarButton

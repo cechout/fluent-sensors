@@ -195,7 +195,7 @@ namespace FluentSensors.Features.Sensors
 
             TaskbarWidgetWindow.CurrentInstance?.CloseWidget();
 
-            // the button leaves the bar, so keyboard focus moves on to the pin button instead of getting lost
+            // the pair leaves the bar, so keyboard focus moves on to the pin button instead of getting lost
             if (hadKeyboardFocus)
             {
                 DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => PinToTaskbarButton.Focus(FocusState.Keyboard));
@@ -453,29 +453,26 @@ namespace FluentSensors.Features.Sensors
             });
         }
 
-        // with the commit button of the active profile, and the close button next to it while the taskbar widget is open
+        // with the commit button of the active profile; an open taskbar widget gets its update and close pair instead
         private ICommandBarElement[] BuildCommandBarPriorityOrder()
         {
             ICommandBarElement commitButton = ViewModel.ActiveProfile switch
             {
                 SensorSelectionProfile.WidgetWindow => PinToWidgetButton,
                 SensorSelectionProfile.Csv => StartCsvMonitoringButton,
+                SensorSelectionProfile.Taskbar when ViewModel.IsTaskbarWidgetOpen => TaskbarWidgetButtonsContainer,
                 SensorSelectionProfile.Taskbar => PinToTaskbarButton,
                 _ => PinToWidgetButton
             };
 
-            // an open taskbar widget gets its sensors updated, not pinned again
-            PinToTaskbarButton.Label = ViewModel.IsTaskbarWidgetOpen ? "Update Taskbar" : "Pin to Taskbar";
-            PinToTaskbarIcon.Glyph = ViewModel.IsTaskbarWidgetOpen ? "" : "";
-
-            var order = new List<ICommandBarElement> { commitButton };
-            if (ViewModel.IsTaskbarProfileActive && ViewModel.IsTaskbarWidgetOpen) order.Add(CloseTaskbarWidgetButton);
-            order.Add(HideSensorsButton);
-            order.Add(ButtonSeparator);
-            order.Add(ResetValuesButton);
-            order.Add(ShowHiddenSensorsButton);
-
-            return order.ToArray();
+            return new ICommandBarElement[]
+            {
+                commitButton,
+                HideSensorsButton,
+                ButtonSeparator,
+                ResetValuesButton,
+                ShowHiddenSensorsButton
+            };
         }
 
         // the overflow split follows the header size
