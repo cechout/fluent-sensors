@@ -546,8 +546,8 @@
                         <Slider
                             x:Name="TaskbarFlyoutGraphHeightSlider"
                             Width="200"
-                            Maximum="200"
-                            Minimum="80"
+                            Maximum="180"
+                            Minimum="90"
                             StepFrequency="5"
                             TickFrequency="20"
                             ValueChanged="TaskbarFlyoutGraphHeightSlider_ValueChanged" />
