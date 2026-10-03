@@ -115,7 +115,7 @@ namespace FluentSensors.Core.Taskbar
         internal static partial IntPtr SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
 
 
-        // === message-only window (for the TaskbarCreated broadcast) ===
+        // === message-only window (for the TaskbarCreated broadcast and the global hotkey) ===
 
         // the hWndParent of a message-only window: invisible and not enumerable, but it still gets messages sent to
         // it, which TaskbarCreated needs
@@ -168,6 +168,28 @@ namespace FluentSensors.Core.Taskbar
         [LibraryImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool GetMonitorInfoW(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+
+        // === global hotkey (the flyout shortcut) ===
+
+        internal const uint WM_HOTKEY = 0x0312;
+        internal const uint MOD_NOREPEAT = 0x4000;
+        internal const uint MAPVK_VK_TO_CHAR = 2;
+
+        // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerhotkey
+        [LibraryImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+
+        // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-unregisterhotkey
+        [LibraryImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool UnregisterHotKey(IntPtr hWnd, int id);
+
+        // the character a key prints on the current layout, for the shortcut text
+        // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-mapvirtualkeyw
+        [LibraryImport("user32.dll")]
+        internal static partial uint MapVirtualKeyW(uint uCode, uint uMapType);
 
 
         // === window styles (activation) ===

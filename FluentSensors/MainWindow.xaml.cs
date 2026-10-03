@@ -91,6 +91,9 @@ namespace FluentSensors
         // the same for a hardware group request
         private IReadOnlyList<string> _pendingSensorHardware = null;
 
+        // and for the taskbar settings, from the gear button of the taskbar flyout
+        private bool _isTaskbarSettingsPending = false;
+
         // system tray icon commands
         public XamlUICommand RestoreAppCommand { get; } = new XamlUICommand();
         public XamlUICommand ShowMainWindowCommand { get; } = new XamlUICommand(); // restore; sensors page
@@ -319,9 +322,12 @@ namespace FluentSensors
             AppStatus.IsAppReady = true;
             AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;
             AppStatus.IsPawnIoMissing = !WinStaticInfoService.Instance.IsPawnIoInstalled;
-            // a profile request from the splash outranks the startup page; (the block below needs the sensor page)
+            // a profile or taskbar settings request from the splash outranks the startup page; (the blocks below need
+            // the page)
             _isStartupNavigation = true;
-            MainNavigationView.SelectedItem = _pendingSensorProfile != null ? SensorsNavItem : StartupNavItem();
+            MainNavigationView.SelectedItem = _pendingSensorProfile != null ? SensorsNavItem
+                : _isTaskbarSettingsPending ? SettingsNavItem
+                : StartupNavItem();
 
             // requests from the splash; the selection above created the page
             if (_pendingSensorProfile is SensorSelectionProfile pendingProfile
@@ -335,6 +341,12 @@ namespace FluentSensors
             {
                 pendingGroupPage.ExpandHardwareGroup(_pendingSensorHardware);
                 _pendingSensorHardware = null;
+            }
+
+            if (_isTaskbarSettingsPending && contentFrame.Content is SettingsPage pendingSettingsPage)
+            {
+                pendingSettingsPage.ScrollToTaskbarSection();
+                _isTaskbarSettingsPending = false;
             }
 
             // read before the two restores below take the focus, see ReclaimForeground
@@ -787,6 +799,26 @@ namespace FluentSensors
             else
             {
                 _pendingSensorHardware = lhmHardwareNames;
+            }
+        }
+
+        // the settings page on its taskbar section, for the gear button of the taskbar flyout
+        public void OpenTaskbarSettings()
+        {
+            OpenDashboard();
+
+            if (!ReferenceEquals(MainNavigationView.SelectedItem, SettingsNavItem))
+            {
+                MainNavigationView.SelectedItem = SettingsNavItem;
+            }
+
+            if (contentFrame.Content is SettingsPage settingsPage)
+            {
+                settingsPage.ScrollToTaskbarSection();
+            }
+            else
+            {
+                _isTaskbarSettingsPending = true;
             }
         }
 

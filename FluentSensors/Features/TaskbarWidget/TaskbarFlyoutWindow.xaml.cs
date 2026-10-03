@@ -191,36 +191,24 @@ namespace FluentSensors.Features.TaskbarWidget
         private static double FlyoutGraphHeightDip => SettingsService.Instance.TaskbarFlyoutGraphHeightDip;
 
         // --- flyout layout ---
+        // insets and control heights of the rows, from the FlyoutRootBorder resources in the xaml; the height math
+        // reads them, since it runs before the rows are ever measured
+        private Thickness FlyoutGraphsMargin => LayoutResource<Thickness>("FlyoutGraphsMargin");
+        private double FlyoutGraphSpacingDip => LayoutResource<double>("FlyoutGraphSpacing");
+        private double FlyoutBarButtonHeightDip => LayoutResource<double>("FlyoutBarButtonHeight");
+        private Thickness FlyoutTitleRowPadding => LayoutResource<Thickness>("FlyoutTitleRowPadding");
+        private Thickness FlyoutBottomBarPadding => LayoutResource<Thickness>("FlyoutBottomBarPadding");
+        private double FlyoutBottomBarSeparatorDip => LayoutResource<Thickness>("FlyoutBottomBarSeparatorThickness").Top;
+        private Thickness FlyoutTimeRangeRowPadding => LayoutResource<Thickness>("FlyoutTimeRangeRowPadding");
+        private double FlyoutTimeRangePickerHeightDip => LayoutResource<double>("FlyoutTimeRangePickerHeight");
 
-        // the interior insets; (the graphs inset is a margin on the list, not padding on the surface, so the
-        // scrollbar rides the window edge; the title row takes FlyoutBottomBarPadding)
-        public static readonly Thickness FlyoutGraphsMargin = new Thickness(4, 9, 4, 8);
-        public static readonly Thickness FlyoutTimeRangeRowPadding = new Thickness(4, 5, 4, 5);
-        public static readonly Thickness FlyoutBottomBarPadding = new Thickness(6, 5, 6, 5);
-
-        // the two time range pickers; (set from code like the bar buttons)
-        public const double FlyoutTimeRangePickerHeightDip = 22;
-
-        // the title row and the time range row in the height math; (derived, the title row is the bottom bar without
-        // its separator)
-        private static double FlyoutTitleRowHeightDip =>
-            FlyoutBottomBarPadding.Top + FlyoutBottomBarButtonHeightDip + FlyoutBottomBarPadding.Bottom;
-        private static double FlyoutTimeRangeRowHeightDip =>
+        // the rows in the height math
+        private double FlyoutTitleRowHeightDip =>
+            FlyoutTitleRowPadding.Top + FlyoutBarButtonHeightDip + FlyoutTitleRowPadding.Bottom;
+        private double FlyoutTimeRangeRowHeightDip =>
             FlyoutTimeRangeRowPadding.Top + FlyoutTimeRangePickerHeightDip + FlyoutTimeRangeRowPadding.Bottom;
-
-        public const double FlyoutGraphSpacingDip = 8;
-
-        // both bar buttons and the snapshot button; (set from code, the height math runs before the bar is ever
-        // measured)
-        public const double FlyoutBottomBarButtonHeightDip = 36;
-
-        // the top border of FlyoutBottomBarBorder
-        private const double FlyoutBottomBarSeparatorDip = 1;
-
-        // the bottom bar strip in the height math; (derived, so it follows FlyoutBottomBarPadding)
-        private static double FlyoutBottomBarHeightDip =>
-            FlyoutBottomBarSeparatorDip + FlyoutBottomBarPadding.Top
-            + FlyoutBottomBarButtonHeightDip + FlyoutBottomBarPadding.Bottom;
+        private double FlyoutBottomBarHeightDip =>
+            FlyoutBottomBarSeparatorDip + FlyoutBottomBarPadding.Top + FlyoutBarButtonHeightDip + FlyoutBottomBarPadding.Bottom;
 
         private AppWindow _appWindow;
         private IntPtr _hwnd;
@@ -336,6 +324,9 @@ namespace FluentSensors.Features.TaskbarWidget
             // a rebuilt window takes over a running snapshot with the view model
             ApplyPauseState();
 
+            FlyoutShortcutRegistration.RegistrationChanged += OnShortcutRegistrationChanged;
+            ApplyShortcutHint();
+
             ((FrameworkElement)this.Content).ActualThemeChanged += (s, e) =>
             {
                 if (_isClosed) return;
@@ -348,17 +339,6 @@ namespace FluentSensors.Features.TaskbarWidget
                 });
             };
 
-            // layout constants pushed onto the controls, so the height math and the rendered bar agree (button width
-            // and padding stay in the xaml, they do not enter that math)
-            GraphsItemsControl.Margin = FlyoutGraphsMargin;
-            TitleRowGrid.Padding = FlyoutBottomBarPadding;
-            TimeRangeRowGrid.Padding = FlyoutTimeRangeRowPadding;
-            PauseButton.Height = FlyoutBottomBarButtonHeightDip;
-            TaskbarTimeRangePicker.Height = FlyoutTimeRangePickerHeightDip;
-            FlyoutTimeRangePicker.Height = FlyoutTimeRangePickerHeightDip;
-            BottomBarContentGrid.Padding = FlyoutBottomBarPadding;
-            BackToDashboardButton.Height = FlyoutBottomBarButtonHeightDip;
-            CloseWidgetButton.Height = FlyoutBottomBarButtonHeightDip;
             GraphsItemsControl.LayoutUpdated += OnGraphsItemsControlLayoutUpdated;
 
             _appWindow.Changed += AppWindow_Changed;
@@ -594,6 +574,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 SettingsService.Instance.TaskbarFlyoutGraphHeightChanged -= OnFlyoutGraphHeightChanged;
                 SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnTaskbarGraphTimeSpanChanged;
                 SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnFlyoutGraphTimeSpanChanged;
+                FlyoutShortcutRegistration.RegistrationChanged -= OnShortcutRegistrationChanged;
             }
             catch { }
 
@@ -1106,7 +1087,7 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // graph slots that fit under a capped window height
-        private static int CountFittingGraphSlots(int maxHeightPx, double scaleFactor)
+        private int CountFittingGraphSlots(int maxHeightPx, double scaleFactor)
         {
             double interiorDip = (maxHeightPx / scaleFactor) - FlyoutRowsHeightDip
                 - FlyoutGraphsMargin.Top - FlyoutGraphsMargin.Bottom;
@@ -1118,11 +1099,11 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // the title row, the time range row and the bar strip, everything but the graphs
-        private static double FlyoutRowsHeightDip =>
+        private double FlyoutRowsHeightDip =>
             FlyoutTitleRowHeightDip + FlyoutTimeRangeRowHeightDip + FlyoutBottomBarHeightDip;
 
         // window height for n graph slots: the rows around them, the graphs margin, n slots and the n-1 gaps
-        private static double CalculateFlyoutContentHeight(int sensorCount, double graphHeightDip)
+        private double CalculateFlyoutContentHeight(int sensorCount, double graphHeightDip)
         {
             if (sensorCount <= 0) return FlyoutRowsHeightDip;
 
@@ -1131,6 +1112,9 @@ namespace FluentSensors.Features.TaskbarWidget
                 + (sensorCount * graphHeightDip)
                 + ((sensorCount - 1) * FlyoutGraphSpacingDip);
         }
+
+        // a layout value from the FlyoutRootBorder resources
+        private T LayoutResource<T>(string key) => (T)FlyoutRootBorder.Resources[key];
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
@@ -1163,13 +1147,12 @@ namespace FluentSensors.Features.TaskbarWidget
             WindowStateService.Instance.SetState(WindowKey, state);
         }
 
-        // pushes spacing and scroll mode onto the unnamed items panel, once the first layout pass has created it
+        // pushes the scroll mode onto the unnamed items panel, once the first layout pass has created it
         private void OnGraphsItemsControlLayoutUpdated(object? sender, object e)
         {
             if (GraphsItemsControl.ItemsPanelRoot is FluentSensors.Controls.VerticalStretchPanel panel)
             {
                 _graphsPanel = panel;
-                panel.Spacing = FlyoutGraphSpacingDip;
                 ApplyGraphsScrollMode(_isGraphsScrolling);
                 GraphsItemsControl.LayoutUpdated -= OnGraphsItemsControlLayoutUpdated;
             }
@@ -1260,6 +1243,22 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        private void TaskbarSettings_Click(object sender, RoutedEventArgs e)
+        {
+            HideFlyout();
+
+            if (MainWindow.CurrentInstance != null)
+            {
+                MainWindow.CurrentInstance.OpenTaskbarSettings();
+            }
+            else
+            {
+                var newMainWindow = new MainWindow();
+                newMainWindow.Activate();
+                newMainWindow.OpenTaskbarSettings();
+            }
+        }
+
         private void CloseWidget_Click(object sender, RoutedEventArgs e)
         {
             HideFlyout();
@@ -1280,6 +1279,39 @@ namespace FluentSensors.Features.TaskbarWidget
             PauseButtonIcon.Glyph = ViewModel.IsFlyoutPaused ? "\uE768" : "\uE769";
             ToolTipService.SetToolTip(PauseButton, label);
             AutomationProperties.SetName(PauseButton, label);
+        }
+
+        // [Ctrl]+[Alt]+[S]: a bordered key per part, a plain plus between them
+        private void ApplyShortcutHint()
+        {
+            var keys = FlyoutShortcutRegistration.RegisteredKeys;
+            ShortcutHintPanel.Children.Clear();
+            ShortcutHintPanel.Visibility = keys != null ? Visibility.Visible : Visibility.Collapsed;
+            if (keys == null) return;
+
+            var borderStyle = (Style)ShortcutHintPanel.Resources["ShortcutKeyBorderStyle"];
+            var textStyle = (Style)ShortcutHintPanel.Resources["ShortcutKeyTextStyle"];
+            var plusStyle = (Style)ShortcutHintPanel.Resources["ShortcutKeyPlusTextStyle"];
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+                if (i > 0) ShortcutHintPanel.Children.Add(new TextBlock { Style = plusStyle, Text = "+" });
+
+                ShortcutHintPanel.Children.Add(new Border
+                {
+                    Style = borderStyle,
+                    Child = new TextBlock { Style = textStyle, Text = keys[i] }
+                });
+            }
+        }
+
+        private void OnShortcutRegistrationChanged()
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_isClosed) return;
+                ApplyShortcutHint();
+            });
         }
 
         private void OnTaskbarTimeRangePicked(DependencyObject sender, DependencyProperty dp)

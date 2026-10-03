@@ -242,6 +242,9 @@ namespace FluentSensors.Features.TaskbarWidget
                     }
                 });
 
+                // before the open state goes out, so the flyout shortcut registers with the first widget
+                FlyoutShortcutRegistration.EnsureInitialized();
+
                 CurrentInstance = this;
                 WidgetStateChanged?.Invoke();
 
