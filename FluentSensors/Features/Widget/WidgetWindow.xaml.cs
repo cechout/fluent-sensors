@@ -3,6 +3,8 @@ using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using WinRT;
@@ -41,6 +43,9 @@ namespace FluentSensors.Features.Widget
         private const int MinPanelHeight = 90;
         private const int MinWidgetWidth = 220;
 
+        // in DIP; title bar 26, graph bottom padding 5, bottom bar 31 (divider, padding, 22 buttons)
+        private const int ChromeHeight = 62;
+
         public WidgetViewModel ViewModel { get; }
         public static WidgetWindow CurrentInstance { get; private set; }
         public static event Action WidgetStateChanged;
@@ -70,10 +75,6 @@ namespace FluentSensors.Features.Widget
             _appWindow = this.AppWindow;
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(CustomTitleBar);
-
-            // the back button and the time range picker sit in the drag region and need their own passthrough rects
-            CustomTitleBar.Loaded += (s, e) => UpdateTitleBarPassthroughRegions();
-            CustomTitleBar.SizeChanged += (s, e) => UpdateTitleBarPassthroughRegions();
 
             var presenter = OverlappedPresenter.Create();
             presenter.IsAlwaysOnTop = true; // readable over other apps
@@ -118,6 +119,8 @@ namespace FluentSensors.Features.Widget
             TimeRangePicker.RegisterPropertyChangedCallback(TimeRangePickerControl.SelectedSecondsProperty, OnTimeRangePicked);
             SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
 
+            ApplyPauseState();
+
             try
             {
                 _uiSettings = new Windows.UI.ViewManagement.UISettings();
@@ -161,6 +164,7 @@ namespace FluentSensors.Features.Widget
                 // level 2 reverse: flat baseline, live data, then rendering; the reopened widget starts fresh
                 window.ViewModel.SetLiveDataActive(true);
                 window.SetGraphsRenderingActive(true);
+                window.ApplyPauseState(); // the close ended the snapshot
 
                 window._appWindow.Show();
                 window.Activate();
@@ -374,22 +378,25 @@ namespace FluentSensors.Features.Widget
 
         // === user interaction ===
 
-        // at Low priority, after the bar is laid out (like MainWindow)
-        private void UpdateTitleBarPassthroughRegions()
-        {
-            this.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
-                () => TitleBarPassthrough.Apply(this, CustomTitleBar, BackToDashboardButton, TimeRangePicker));
-        }
-
-        // the picker is as wide as its text, so a new time range moves the edge of its rect
-        private void TimeRangePicker_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            UpdateTitleBarPassthroughRegions();
-        }
-
         private void OnTimeRangePicked(DependencyObject sender, DependencyProperty dp)
         {
             SettingsService.Instance.GraphTimeSpanSeconds = TimeRangePicker.SelectedSeconds;
+        }
+
+        // the snapshot; every graph stands still, like the taskbar flyout
+        private void PauseButton_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.SetPaused(!ViewModel.IsPaused);
+            ApplyPauseState();
+        }
+
+        // glyph, tooltip and name follow the state, like the taskbar flyout pause button
+        private void ApplyPauseState()
+        {
+            string label = ViewModel.IsPaused ? "Resume" : "Pause";
+            PauseButtonIcon.Glyph = ViewModel.IsPaused ? "\uE768" : "\uE769";
+            ToolTipService.SetToolTip(PauseButton, label);
+            AutomationProperties.SetName(PauseButton, label);
         }
 
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)
@@ -508,8 +515,8 @@ namespace FluentSensors.Features.Widget
         // physical height for the pinned sensor count
         private int CalculateWidgetHeight(int sensorCount, double scaleFactor)
         {
-            // title bar + n * (panel + spacing)
-            double desiredXamlHeight = 31 + (sensorCount * (AppSettingsData.WidgetWindowDefaultPanelHeightDip + 8));
+            // title bar and bottom bar + n * (panel + spacing)
+            double desiredXamlHeight = ChromeHeight + (sensorCount * (AppSettingsData.WidgetWindowDefaultPanelHeightDip + 8));
             int physicalHeight = (int)(desiredXamlHeight * scaleFactor);
 
             int screenHeight = DisplayArea.Primary.WorkArea.Height;
@@ -527,7 +534,7 @@ namespace FluentSensors.Features.Widget
         // CalculateWidgetHeight for the floor, with MinPanelHeight
         private double CalculateWidgetMinHeight(int sensorCount, double scaleFactor)
         {
-            double minXamlHeight = 31 + (sensorCount * (MinPanelHeight + 8)); // title bar + n * (min panel + spacing)
+            double minXamlHeight = ChromeHeight + (sensorCount * (MinPanelHeight + 8)); // title and bottom bar + n * (min panel + spacing)
 
             double screenHeightDip = DisplayArea.Primary.WorkArea.Height / scaleFactor;
             return Math.Min(minXamlHeight, screenHeightDip - 40); // capped at the screen

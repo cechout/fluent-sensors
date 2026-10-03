@@ -43,6 +43,9 @@ namespace FluentSensors.Features.Widget
         // the pinned sensors
         public ObservableCollection<SensorGraphViewModel> PinnedSensors { get; set; }
 
+        // the snapshot; not persisted, a closed widget ends it
+        public bool IsPaused { get; private set; }
+
 
         // === public methods ===
 
@@ -67,7 +70,9 @@ namespace FluentSensors.Features.Widget
             {
                 if (!existingIds.Contains(sensor.Id))
                 {
-                    PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, hardwareKind: sensor.HardwareKind));
+                    var graph = new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, hardwareKind: sensor.HardwareKind);
+                    graph.SetFrozen(IsPaused); // joins a running snapshot frozen
+                    PinnedSensors.Add(graph);
                 }
             }
 
@@ -123,10 +128,23 @@ namespace FluentSensors.Features.Widget
             else
             {
                 HardwareMonitorService.Instance.HardwareDataUpdated -= OnHardwareDataUpdated;
+                SetPaused(false);
                 foreach (var sensor in PinnedSensors)
                 {
                     sensor.ClearHistory();
                 }
+            }
+        }
+
+
+        // freezes or thaws every pinned graph
+        public void SetPaused(bool paused)
+        {
+            IsPaused = paused;
+
+            foreach (var sensor in PinnedSensors)
+            {
+                sensor.SetFrozen(paused);
             }
         }
 

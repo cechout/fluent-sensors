@@ -21,44 +21,19 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!--  custom title bar  -->
+        <!--  custom title bar: title  -->
+        <!--  (as tall as before, when it held the back button and the time range picker)  -->
         <Grid
             x:Name="CustomTitleBar"
             Grid.Row="0"
-            Height="auto"
+            Height="26"
             Background="Transparent">
-
-            <StackPanel
-                Margin="4,4,0,0"
-                HorizontalAlignment="Left"
-                fhUi:FocusGroup.IsEnabled="True"
-                Orientation="Horizontal"
-                Spacing="4">
-
-                <!--  back to the main window  -->
-                <Button
-                    x:Name="BackToDashboardButton"
-                    Width="32"
-                    Height="22"
-                    Padding="0"
-                    AutomationProperties.Name="Back to Main Application"
-                    Click="BackToDashboard_Click"
-                    Style="{StaticResource SubtleButtonStyle}"
-                    ToolTipService.ToolTip="Back to Main Application">
-                    <FontIcon
-                        FontSize="14"
-                        FontWeight="SemiLight"
-                        Glyph="&#xE944;" />
-                </Button>
-
-                <!--  graph time range  -->
-                <fhTimeRange:TimeRangePickerControl
-                    x:Name="TimeRangePicker"
-                    Height="22"
-                    Options="{x:Bind fhCommon:GraphTimeRanges.Widget}"
-                    SizeChanged="TimeRangePicker_SizeChanged"
-                    TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </StackPanel>
+            <TextBlock
+                Margin="12,4,0,0"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="System Sensors" />
         </Grid>
 
 
@@ -83,5 +58,58 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </Grid>
+
+
+        <!--  bottom bar: back to the main window and time range + pause  -->
+        <!--  (flat buttons at the height the title bar had them, a plain divider above)  -->
+        <Border
+            Grid.Row="2"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <Grid Padding="4" fhUi:FocusGroup.IsEnabled="True">
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal"
+                    Spacing="4">
+
+                    <!--  back to the main window  -->
+                    <Button
+                        x:Name="BackToDashboardButton"
+                        Width="32"
+                        Height="22"
+                        Padding="0"
+                        AutomationProperties.Name="Back to Main Application"
+                        Click="BackToDashboard_Click"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="Back to Main Application">
+                        <FontIcon
+                            FontSize="14"
+                            FontWeight="SemiLight"
+                            Glyph="&#xE944;" />
+                    </Button>
+
+                    <!--  graph time range  -->
+                    <fhTimeRange:TimeRangePickerControl
+                        x:Name="TimeRangePicker"
+                        Height="22"
+                        Options="{x:Bind fhCommon:GraphTimeRanges.Widget}"
+                        TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+
+                <!--  pause  -->
+                <!--  (freezes and resumes every graph; name, tooltip and glyph set in ApplyPauseState)  -->
+                <Button
+                    x:Name="PauseButton"
+                    Width="32"
+                    Height="22"
+                    Padding="0"
+                    HorizontalAlignment="Right"
+                    Click="PauseButton_Click"
+                    Style="{StaticResource SubtleButtonStyle}">
+                    <FontIcon x:Name="PauseButtonIcon" FontSize="14" />
+                </Button>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
