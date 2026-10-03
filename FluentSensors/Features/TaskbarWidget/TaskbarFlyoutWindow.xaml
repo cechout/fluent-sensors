@@ -33,7 +33,7 @@
             <!--  title row and bottom bar; (one button height, a padding each)  -->
             <x:Double x:Key="FlyoutBarButtonHeight">36</x:Double>
             <Thickness x:Key="FlyoutTitleRowPadding">4,4,4,4</Thickness>
-            <Thickness x:Key="FlyoutBottomBarPadding">4,5,4,5</Thickness>
+            <Thickness x:Key="FlyoutBottomBarPadding">6,5,6,5</Thickness>
             <Thickness x:Key="FlyoutBottomBarSeparatorThickness">0,1,0,0</Thickness>
 
             <!--  time range row  -->
@@ -91,7 +91,7 @@
                     <!--  title  -->
                     <!--  (the margin is the button padding of the bottom bar, so it lines up with its text)  -->
                     <TextBlock
-                        Margin="9,-3,0,0"
+                        Margin="10,-3,0,0"
                         VerticalAlignment="Center"
                         Style="{StaticResource BodyTextBlockStyle}"
                         Text="System Sensors"
@@ -106,7 +106,7 @@
                     <StackPanel
                         x:Name="ShortcutHintPanel"
                         Grid.Column="1"
-                        Margin="8,0,0,1"
+                        Margin="6,0,0,2"
                         VerticalAlignment="Center"
                         Orientation="Horizontal"
                         Spacing="1"
@@ -196,7 +196,7 @@
                     <fhTimeRange:TimeRangePickerControl
                         x:Name="FlyoutTimeRangePicker"
                         Height="{StaticResource FlyoutTimeRangePickerHeight}"
-                        Padding="8,0,8,0"
+                        Padding="9,0,9,0"
                         AccessibleName="Flyout Time Range"
                         Label="Flyout"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
@@ -205,7 +205,7 @@
                     <fhTimeRange:TimeRangePickerControl
                         x:Name="TaskbarTimeRangePicker"
                         Height="{StaticResource FlyoutTimeRangePickerHeight}"
-                        Padding="8,0,8,0"
+                        Padding="9,0,9,0"
                         AccessibleName="Taskbar Time Range"
                         Label="Taskbar"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
@@ -233,7 +233,7 @@
                     <Button
                         x:Name="BackToDashboardButton"
                         Height="{StaticResource FlyoutBarButtonHeight}"
-                        Padding="8,0,8,0"
+                        Padding="7,0,7,0"
                         HorizontalAlignment="Left"
                         Click="BackToDashboard_Click"
                         Content="Manage Taskbar Sensors"
@@ -247,6 +247,7 @@
                         x:Name="TaskbarSettingsButton"
                         Width="38"
                         Height="{StaticResource FlyoutBarButtonHeight}"
+                        Margin="0,0,1,0"
                         Padding="8,0,8,0"
                         HorizontalAlignment="Right"
                         AutomationProperties.Name="Taskbar Widget Settings"
