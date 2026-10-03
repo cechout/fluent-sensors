@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -74,6 +75,10 @@ namespace FluentSensors.Features.Sensors
                 _statsElapsedTimer.Start();
             };
             Unloaded += (s, e) => _statsElapsedTimer?.Stop();
+
+            // the taskbar buttons follow the widget; only while loaded, the bar is rebuilt on every Loaded anyway
+            Loaded += (s, e) => ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+            Unloaded += (s, e) => ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
 
             _isLoading = false;
 
@@ -181,6 +186,28 @@ namespace FluentSensors.Features.Sensors
 
             // reuses an embedded or hidden taskbar widget
             TaskbarWidgetWindow.ShowWithSensors(selectedSensors);
+        }
+
+        // the only way to close the taskbar widget; (the flyout has no close button)
+        private void UnpinFromTaskbar_Click(object sender, RoutedEventArgs e)
+        {
+            bool hadKeyboardFocus = UnpinFromTaskbarButton.FocusState == FocusState.Keyboard;
+
+            TaskbarWidgetWindow.CurrentInstance?.CloseWidget();
+
+            // the button leaves the bar, so keyboard focus moves on to the pin button instead of getting lost
+            if (hadKeyboardFocus)
+            {
+                DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => PinToTaskbarButton.Focus(FocusState.Keyboard));
+            }
+        }
+
+        private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(SensorsViewModel.IsTaskbarWidgetOpen)) return;
+            if (_forcedOverflowElements == null || !ViewModel.IsTaskbarProfileActive) return;
+
+            RebuildCommandBarOverflow();
         }
 
         // the profile the checkboxes reflect and persist to, with the matching action button (Pin to Widget, Start
@@ -426,7 +453,7 @@ namespace FluentSensors.Features.Sensors
             });
         }
 
-        // with the commit button of the active profile
+        // with the commit button of the active profile, and the unpin button next to it while the taskbar widget is open
         private ICommandBarElement[] BuildCommandBarPriorityOrder()
         {
             ICommandBarElement commitButton = ViewModel.ActiveProfile switch
@@ -437,14 +464,17 @@ namespace FluentSensors.Features.Sensors
                 _ => PinToWidgetButton
             };
 
-            return new ICommandBarElement[]
-            {
-                commitButton,
-                HideSensorsButton,
-                ButtonSeparator,
-                ResetValuesButton,
-                ShowHiddenSensorsButton
-            };
+            // an open taskbar widget gets its sensors updated, not pinned again
+            PinToTaskbarButton.Label = ViewModel.IsTaskbarWidgetOpen ? "Update Taskbar" : "Pin to Taskbar";
+
+            var order = new List<ICommandBarElement> { commitButton };
+            if (ViewModel.IsTaskbarProfileActive && ViewModel.IsTaskbarWidgetOpen) order.Add(UnpinFromTaskbarButton);
+            order.Add(HideSensorsButton);
+            order.Add(ButtonSeparator);
+            order.Add(ResetValuesButton);
+            order.Add(ShowHiddenSensorsButton);
+
+            return order.ToArray();
         }
 
         // the overflow split follows the header size

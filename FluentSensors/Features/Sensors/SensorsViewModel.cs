@@ -69,6 +69,7 @@ namespace FluentSensors.Features.Sensors
 
             // a widget may have reopened from its saved state before this view model existed
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
+            IsTaskbarWidgetOpen = TaskbarWidgetWindow.CurrentInstance != null;
             WidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
             TaskbarWidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
 
@@ -124,6 +125,21 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
+        // the taskbar commit button reads "Update Taskbar" and the unpin button shows while it is open
+        private bool _isTaskbarWidgetOpen;
+        public bool IsTaskbarWidgetOpen
+        {
+            get => _isTaskbarWidgetOpen;
+            private set
+            {
+                if (_isTaskbarWidgetOpen != value)
+                {
+                    _isTaskbarWidgetOpen = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         // how long the stats have been collecting; the bottom bar
         private string _statsElapsedText = "0:00:00";
         public string StatsElapsedText
@@ -173,10 +189,11 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // IsWidgetOpen and IsPinnedAvailable follow the widget and the taskbar widget
+        // IsWidgetOpen, IsTaskbarWidgetOpen and IsPinnedAvailable follow the widget and the taskbar widget
         private void OnWidgetStateChanged()
         {
             IsWidgetOpen = WidgetWindow.CurrentInstance != null;
+            IsTaskbarWidgetOpen = TaskbarWidgetWindow.CurrentInstance != null;
             OnPropertyChanged(nameof(IsPinnedAvailable));
         }
 

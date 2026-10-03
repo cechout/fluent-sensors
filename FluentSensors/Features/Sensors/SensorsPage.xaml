@@ -114,12 +114,24 @@
                             </AppBarButton>
 
                             <!--  pin to taskbar button (shown for the Taskbar profile)  -->
+                            <!--  (reads "Update Taskbar" while the widget is open, see BuildCommandBarPriorityOrder)  -->
                             <AppBarButton
                                 x:Name="PinToTaskbarButton"
                                 Click="PinToTaskbar_Click"
                                 Label="Pin to Taskbar">
                                 <AppBarButton.Icon>
                                     <FontIcon Glyph="&#xE840;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
+
+                            <!--  unpin from taskbar button (shown for the Taskbar profile while the widget is open)  -->
+                            <AppBarButton
+                                x:Name="UnpinFromTaskbarButton"
+                                Click="UnpinFromTaskbar_Click"
+                                Label="Unpin from Taskbar"
+                                ToolTipService.ToolTip="Closes the taskbar widget">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xE77A;" />
                                 </AppBarButton.Icon>
                             </AppBarButton>
 

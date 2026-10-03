@@ -1259,12 +1259,6 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        private void CloseWidget_Click(object sender, RoutedEventArgs e)
-        {
-            HideFlyout();
-            TaskbarWidgetWindow.CurrentInstance?.CloseWidget();
-        }
-
         // the snapshot; the flyout graphs stand still, the taskbar graphs run on
         private void PauseButton_Click(object sender, RoutedEventArgs e)
         {
