@@ -89,7 +89,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!--  title  -->
-                    <!--  (the margin is the button padding of the bottom bar, so it lines up with its text)  -->
+                    <!--  (row padding plus margin, so it lines up with the button texts below, which sit behind padding and a 1 px border)  -->
                     <TextBlock
                         Margin="10,-3,0,0"
                         VerticalAlignment="Center"

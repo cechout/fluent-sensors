@@ -67,7 +67,7 @@
                     -->
                     <!--  content area; reads as #292929, opaque (the bottom bar paints its own, see 6)  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#242424" />
-                    <!--  window border; the native window stroke (SurfaceStrokeColorDefault), reads as ~#464646 here  -->
+                    <!--  window border; the native window stroke (SurfaceStrokeColorDefault), about #464646 over the content area  -->
                     <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#66757575" />
 
                     <!--  5. flyout graphs overlay (dark mode)  -->
@@ -134,7 +134,7 @@
                     <!--  (light needs barely any correction, under one level above roughly 230)  -->
                     <!--  content area; opaque (the bottom bar paints its own, see 6)  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
-                    <!--  window border; the native window stroke (SurfaceStrokeColorDefault), reads as #C0C0C0 here  -->
+                    <!--  window border; the native window stroke (SurfaceStrokeColorDefault), #C0C0C0 over the content area  -->
                     <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#66757575" />
 
                     <!--  5. flyout graphs overlay (light mode)  -->

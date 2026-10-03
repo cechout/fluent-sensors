@@ -22,7 +22,7 @@
         </Grid.RowDefinitions>
 
         <!--  custom title bar: title  -->
-        <!--  (as tall as before, when it held the back button and the time range picker)  -->
+        <!--  (26 tall; part of ChromeHeight in code)  -->
         <Grid
             x:Name="CustomTitleBar"
             Grid.Row="0"
@@ -61,7 +61,7 @@
 
 
         <!--  bottom bar: back to the main window and time range + pause  -->
-        <!--  (flat buttons at the height the title bar had them, a plain divider above)  -->
+        <!--  (flat 22 px buttons, a plain divider above; part of ChromeHeight in code)  -->
         <Border
             Grid.Row="2"
             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
