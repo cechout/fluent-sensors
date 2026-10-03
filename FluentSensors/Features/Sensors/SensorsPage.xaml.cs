@@ -189,9 +189,9 @@ namespace FluentSensors.Features.Sensors
         }
 
         // the only way to close the taskbar widget; (the flyout has no close button)
-        private void UnpinFromTaskbar_Click(object sender, RoutedEventArgs e)
+        private void CloseTaskbarWidget_Click(object sender, RoutedEventArgs e)
         {
-            bool hadKeyboardFocus = UnpinFromTaskbarButton.FocusState == FocusState.Keyboard;
+            bool hadKeyboardFocus = CloseTaskbarWidgetButton.FocusState == FocusState.Keyboard;
 
             TaskbarWidgetWindow.CurrentInstance?.CloseWidget();
 
@@ -453,7 +453,7 @@ namespace FluentSensors.Features.Sensors
             });
         }
 
-        // with the commit button of the active profile, and the unpin button next to it while the taskbar widget is open
+        // with the commit button of the active profile, and the close button next to it while the taskbar widget is open
         private ICommandBarElement[] BuildCommandBarPriorityOrder()
         {
             ICommandBarElement commitButton = ViewModel.ActiveProfile switch
@@ -466,9 +466,10 @@ namespace FluentSensors.Features.Sensors
 
             // an open taskbar widget gets its sensors updated, not pinned again
             PinToTaskbarButton.Label = ViewModel.IsTaskbarWidgetOpen ? "Update Taskbar" : "Pin to Taskbar";
+            PinToTaskbarIcon.Glyph = ViewModel.IsTaskbarWidgetOpen ? "" : "";
 
             var order = new List<ICommandBarElement> { commitButton };
-            if (ViewModel.IsTaskbarProfileActive && ViewModel.IsTaskbarWidgetOpen) order.Add(UnpinFromTaskbarButton);
+            if (ViewModel.IsTaskbarProfileActive && ViewModel.IsTaskbarWidgetOpen) order.Add(CloseTaskbarWidgetButton);
             order.Add(HideSensorsButton);
             order.Add(ButtonSeparator);
             order.Add(ResetValuesButton);

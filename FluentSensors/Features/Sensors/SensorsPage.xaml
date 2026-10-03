@@ -114,24 +114,25 @@
                             </AppBarButton>
 
                             <!--  pin to taskbar button (shown for the Taskbar profile)  -->
-                            <!--  (reads "Update Taskbar" while the widget is open, see BuildCommandBarPriorityOrder)  -->
+                            <!--  (reads "Update Taskbar" with an update glyph while the widget is open, see BuildCommandBarPriorityOrder)  -->
                             <AppBarButton
                                 x:Name="PinToTaskbarButton"
                                 Click="PinToTaskbar_Click"
                                 Label="Pin to Taskbar">
                                 <AppBarButton.Icon>
-                                    <FontIcon Glyph="&#xE840;" />
+                                    <FontIcon x:Name="PinToTaskbarIcon" Glyph="&#xE840;" />
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
-                            <!--  unpin from taskbar button (shown for the Taskbar profile while the widget is open)  -->
+                            <!--  close taskbar widget button (shown for the Taskbar profile while the widget is open)  -->
                             <AppBarButton
-                                x:Name="UnpinFromTaskbarButton"
-                                Click="UnpinFromTaskbar_Click"
-                                Label="Unpin from Taskbar"
-                                ToolTipService.ToolTip="Closes the taskbar widget">
+                                x:Name="CloseTaskbarWidgetButton"
+                                AutomationProperties.Name="Close Taskbar Widget"
+                                Click="CloseTaskbarWidget_Click"
+                                Label="Close"
+                                ToolTipService.ToolTip="Close Taskbar Widget">
                                 <AppBarButton.Icon>
-                                    <FontIcon Glyph="&#xE77A;" />
+                                    <FontIcon Glyph="&#xE711;" />
                                 </AppBarButton.Icon>
                             </AppBarButton>
 

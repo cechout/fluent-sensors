@@ -45,17 +45,13 @@ namespace FluentSensors.Features.Settings
 
         // === public helpers ===
 
-        // one accent key per part, [Ctrl][Alt][S]; the settings card button builds its keys here too
-        public static void FillKeys(Panel panel, IReadOnlyList<string> keys, Style borderStyle, Style textStyle)
+        // one accent button per key, [Ctrl][Alt][S]; the settings card button builds its keys here too
+        public static void FillKeys(Panel panel, IReadOnlyList<string> keys, Style keyStyle)
         {
             panel.Children.Clear();
             foreach (var key in keys)
             {
-                panel.Children.Add(new Border
-                {
-                    Style = borderStyle,
-                    Child = new TextBlock { Style = textStyle, Text = key }
-                });
+                panel.Children.Add(new Button { Style = keyStyle, Content = key });
             }
         }
 
@@ -86,7 +82,7 @@ namespace FluentSensors.Features.Settings
                     return;
                 }
 
-                ShowWarning("Start with Ctrl, Alt or Win.");
+                ShowWarning("Start with Ctrl, Alt or Win");
                 ShowRecorded();
                 return;
             }
@@ -96,7 +92,7 @@ namespace FluentSensors.Features.Settings
             {
                 _rejected = candidate;
                 IsPrimaryButtonEnabled = false;
-                ShowWarning("This shortcut is already in use by another app or by Windows.");
+                ShowWarning("Already in use");
                 ShowRecorded();
                 return;
             }
@@ -138,9 +134,7 @@ namespace FluentSensors.Features.Settings
         // the keys or the placeholder; the area announces the change to a screen reader
         private void ShowKeys(IReadOnlyList<string> keys)
         {
-            FillKeys(KeysPanel, keys,
-                (Style)Resources["LargeShortcutKeyBorderStyle"],
-                (Style)Resources["LargeShortcutKeyTextStyle"]);
+            FillKeys(KeysPanel, keys, (Style)Resources["LargeShortcutKeyStyle"]);
             NoShortcutText.Visibility = keys.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
             AutomationProperties.SetName(KeysArea, keys.Count > 0 ? $"Shortcut, {string.Join("+", keys)}" : "No shortcut");

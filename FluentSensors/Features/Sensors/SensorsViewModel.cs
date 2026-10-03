@@ -125,7 +125,7 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // the taskbar commit button reads "Update Taskbar" and the unpin button shows while it is open
+        // the taskbar commit button reads "Update Taskbar" and the close button shows while it is open
         private bool _isTaskbarWidgetOpen;
         public bool IsTaskbarWidgetOpen
         {

@@ -1082,9 +1082,7 @@ namespace FluentSensors.Features.Settings
             var shortcut = SettingsService.Instance.TaskbarFlyoutShortcut;
             var keys = shortcut != null ? WinHotkeyService.FormatKeys(shortcut.Modifiers, shortcut.VirtualKey) : new List<string>();
 
-            FlyoutShortcutDialog.FillKeys(FlyoutShortcutKeysPanel, keys,
-                (Style)FlyoutShortcutKeysPanel.Resources["ShortcutKeyBorderStyle"],
-                (Style)FlyoutShortcutKeysPanel.Resources["ShortcutKeyTextStyle"]);
+            FlyoutShortcutDialog.FillKeys(FlyoutShortcutKeysPanel, keys, (Style)FlyoutShortcutKeysPanel.Resources["ShortcutKeyStyle"]);
             FlyoutShortcutNoneText.Visibility = shortcut == null ? Visibility.Visible : Visibility.Collapsed;
 
             string text = shortcut != null ? string.Join("+", keys) : "None";
