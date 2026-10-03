@@ -81,12 +81,19 @@ namespace FluentSensors.Core.Taskbar
         // "Ctrl", "Alt", "S"; the modifiers in the order Windows writes them, the key last
         public static IReadOnlyList<string> FormatKeys(uint modifiers, uint virtualKey)
         {
+            var keys = FormatModifiers(modifiers);
+            keys.Add(FormatKey(virtualKey));
+            return keys;
+        }
+
+        // the modifiers alone, while they are held before the key
+        public static List<string> FormatModifiers(uint modifiers)
+        {
             var keys = new List<string>();
             if ((modifiers & ModControl) != 0) keys.Add("Ctrl");
             if ((modifiers & ModAlt) != 0) keys.Add("Alt");
             if ((modifiers & ModShift) != 0) keys.Add("Shift");
             if ((modifiers & ModWin) != 0) keys.Add("Win");
-            keys.Add(FormatKey(virtualKey));
             return keys;
         }
 
