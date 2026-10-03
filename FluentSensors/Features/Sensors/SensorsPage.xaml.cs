@@ -2,7 +2,6 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
@@ -44,9 +43,6 @@ namespace FluentSensors.Features.Sensors
         // info bar
         private bool _infoBarClipHandlersAttached = false;
 
-        // the update and close pair of the taskbar widget
-        private bool _isTaskbarWidgetButtonsHovered;
-
         // stats elapsed readout; polled four times a second like the start page uptime, so the shown second never skips
         // (the view model only raises on a text change)
         private static readonly TimeSpan StatsElapsedTimerInterval = TimeSpan.FromMilliseconds(250);
@@ -79,10 +75,6 @@ namespace FluentSensors.Features.Sensors
                 _statsElapsedTimer.Start();
             };
             Unloaded += (s, e) => _statsElapsedTimer?.Stop();
-
-            // a pressed part drops its hover plate for its own pressed fill
-            UpdateTaskbarButton.RegisterPropertyChangedCallback(ButtonBase.IsPressedProperty, (s, e) => ApplyTaskbarWidgetButtonsHover());
-            CloseTaskbarWidgetButton.RegisterPropertyChangedCallback(ButtonBase.IsPressedProperty, (s, e) => ApplyTaskbarWidgetButtonsHover());
 
             // the taskbar buttons follow the widget; only while loaded, the bar is rebuilt on every Loaded anyway
             Loaded += (s, e) => ViewModel.PropertyChanged += ViewModel_PropertyChanged;
@@ -210,23 +202,22 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // the update and close pair hovers as one: both plates light up, a pressed part shows its own pressed fill
+        // the update and close pair hovers as one: the half under the pointer takes its own hover and pressed fill,
+        // the other half gets the same hover brush as its resting background
         private void TaskbarWidgetButtons_PointerEntered(object sender, RoutedEventArgs e)
         {
-            _isTaskbarWidgetButtonsHovered = true;
-            ApplyTaskbarWidgetButtonsHover();
+            var themeKey = TaskbarWidgetButtonsGrid.ActualTheme == ElementTheme.Light ? "Light" : "Dark";
+            var themeDictionary = (ResourceDictionary)TaskbarWidgetButtonsGrid.Resources.ThemeDictionaries[themeKey];
+            var hoverBrush = (Brush)themeDictionary["TaskbarWidgetButtonsHoverBrush"];
+
+            UpdateTaskbarButton.Background = hoverBrush;
+            CloseTaskbarWidgetButton.Background = hoverBrush;
         }
 
         private void TaskbarWidgetButtons_PointerExited(object sender, RoutedEventArgs e)
         {
-            _isTaskbarWidgetButtonsHovered = false;
-            ApplyTaskbarWidgetButtonsHover();
-        }
-
-        private void ApplyTaskbarWidgetButtonsHover()
-        {
-            UpdateTaskbarHoverPlate.Opacity = _isTaskbarWidgetButtonsHovered && !UpdateTaskbarButton.IsPressed ? 1 : 0;
-            CloseTaskbarWidgetHoverPlate.Opacity = _isTaskbarWidgetButtonsHovered && !CloseTaskbarWidgetButton.IsPressed ? 1 : 0;
+            UpdateTaskbarButton.ClearValue(Control.BackgroundProperty);
+            CloseTaskbarWidgetButton.ClearValue(Control.BackgroundProperty);
         }
 
         private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
