@@ -67,8 +67,8 @@
                     -->
                     <!--  content area; reads as #292929, opaque (the bottom bar paints its own, see 6)  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#242424" />
-                    <!--  window border; reads as #484848  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#464646" />
+                    <!--  window border; the native window stroke (SurfaceStrokeColorDefault), reads as ~#464646 here  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#66757575" />
 
                     <!--  5. flyout graphs overlay (dark mode)  -->
                     <!--  (blur modes only, lifts the graphs area off the glass; the opaque mode has no overlay)  -->
@@ -79,8 +79,8 @@
                     <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#1C1C1C" />
 
                     <!--  7. flyout bottom bar separator (dark mode)  -->
-                    <!--  (the 1px line above the bar; reads as #1E1E1E)  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#181818" />
+                    <!--  (the 1px line above the bar; black at 1 - 0x18/0x24, so over the content area it reads as #1E1E1E)  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#55000000" />
                     <!--  (in the blur modes translucent like the native line, it darkens the material)  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#1F000000" />
                 </ResourceDictionary>
@@ -134,8 +134,8 @@
                     <!--  (light needs barely any correction, under one level above roughly 230)  -->
                     <!--  content area; opaque (the bottom bar paints its own, see 6)  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
-                    <!--  window border; reads as #BFBFBF  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#C0C0C0" />
+                    <!--  window border; the native window stroke (SurfaceStrokeColorDefault), reads as #C0C0C0 here  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#66757575" />
 
                     <!--  5. flyout graphs overlay (light mode)  -->
                     <!--  (blur modes only, lifts the graphs area off the glass; the opaque mode has no overlay)  -->
@@ -146,8 +146,8 @@
                     <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#EDEDED" />
 
                     <!--  7. flyout bottom bar separator (light mode)  -->
-                    <!--  (the 1px line above the bar; reads as #DDDDDD)  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#DEDEDE" />
+                    <!--  (the 1px line above the bar; black at 1 - 0xDE/0xF2, so over the content area it reads as #DEDEDE)  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#15000000" />
                     <!--  (in the blur modes translucent like the native line, it darkens the material)  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#13000000" />
                 </ResourceDictionary>
