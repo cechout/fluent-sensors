@@ -28,10 +28,10 @@
             Background="Transparent">
 
             <TextBlock
+                x:Uid="HiddenSensors_HiddenSensorsText"
                 Margin="16,0,0,0"
                 VerticalAlignment="Center"
-                Style="{ThemeResource CaptionTextBlockStyle}"
-                Text="Hidden Sensors" />
+                Style="{ThemeResource CaptionTextBlockStyle}" />
         </Grid>
 
         <!--  header labels  -->
@@ -140,10 +140,10 @@
             BorderThickness="0,1,0,0">
 
             <Button
+                x:Uid="HiddenSensors_RestoreSelectedButton"
                 HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Center"
-                Click="RestoreSelected_Click"
-                Content="Restore Selected" />
+                Click="RestoreSelected_Click" />
         </Border>
     </Grid>
 </Window>

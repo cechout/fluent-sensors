@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Core;
@@ -46,8 +47,8 @@ namespace FluentSensors.Features.Sensors
 
         // shown/total on the expander header; (by IsHidden, HideSensorsCompletely=false leaves
         // a hidden sensor in Sensors)
-        public string SensorCountText => $"{ShownSensorCount}/{TotalSensorCount} sensors";
-        public string SensorCountName => $"{ShownSensorCount} of {TotalSensorCount} sensors shown";
+        public string SensorCountText => AppStrings.Format("Sensors_GroupCount", ShownSensorCount, TotalSensorCount);
+        public string SensorCountName => AppStrings.Format("Sensors_GroupCountName", ShownSensorCount, TotalSensorCount);
         private int ShownSensorCount => Sensors.Count(s => !s.IsHidden);
         private int TotalSensorCount => Sensors.Count + HiddenSensors.Count;
 

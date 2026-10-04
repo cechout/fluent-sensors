@@ -1600,4 +1600,210 @@ DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo 
   <data name="Info_CycleCount" xml:space="preserve">
     <value>{0} / {1} max</value>
   </data>
+  <data name="Sensors_SensorListTitleText.Text" xml:space="preserve">
+    <value>Seznam senzorů</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Profil výběru</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_WidgetWindow.Content" xml:space="preserve">
+    <value>Widget</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_Csv.Content" xml:space="preserve">
+    <value>Záznam</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
+    <value>Hlavní panel</value>
+  </data>
+  <data name="Sensors_PinToWidgetButton.Label" xml:space="preserve">
+    <value>Připnout do widgetu</value>
+  </data>
+  <data name="Sensors_StartCsvMonitoringButton.Label" xml:space="preserve">
+    <value>Spustit záznam do CSV</value>
+  </data>
+  <data name="Sensors_PinToTaskbarButton.Label" xml:space="preserve">
+    <value>Připnout na hlavní panel</value>
+  </data>
+  <data name="Sensors_UpdateTaskbarText.Text" xml:space="preserve">
+    <value>Aktualizovat hlavní panel</value>
+  </data>
+  <data name="Sensors_CloseTaskbarWidgetButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zavřít widget na hlavním panelu</value>
+  </data>
+  <data name="Sensors_CloseTaskbarWidgetButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zavřít widget na hlavním panelu</value>
+  </data>
+  <data name="Sensors_HideSensorsButton.Label" xml:space="preserve">
+    <value>Skrýt</value>
+  </data>
+  <data name="Sensors_HideSensorsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Skryje vybrané senzory a ukončí jejich sledování</value>
+  </data>
+  <data name="Sensors_ResetValuesButton.Label" xml:space="preserve">
+    <value>Vynulovat statistiky</value>
+  </data>
+  <data name="Sensors_ShowHiddenSensorsButton.Label" xml:space="preserve">
+    <value>Skryté senzory</value>
+  </data>
+  <data name="Sensors_NoSensorsInfoBar.Title" xml:space="preserve">
+    <value>Nejsou vybrány žádné senzory</value>
+  </data>
+  <data name="Sensors_NoSensorsInfoBar.Message" xml:space="preserve">
+    <value>Vyberte prosím alespoň jeden senzor</value>
+  </data>
+  <data name="Sensors_RunningForText.Text" xml:space="preserve">
+    <value>Běží</value>
+  </data>
+  <data name="Sensors_SelectPinnedButton.Label" xml:space="preserve">
+    <value>Vybrat připnuté</value>
+  </data>
+  <data name="Sensors_DeselectAllButton.Label" xml:space="preserve">
+    <value>Zrušit výběr</value>
+  </data>
+  <data name="HiddenSensors_HiddenSensorsText.Text" xml:space="preserve">
+    <value>Skryté senzory</value>
+  </data>
+  <data name="HiddenSensors_RestoreSelectedButton.Content" xml:space="preserve">
+    <value>Obnovit vybrané</value>
+  </data>
+  <data name="CsvLogger_BackToDashboardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zpět do hlavní aplikace</value>
+  </data>
+  <data name="CsvLogger_BackToDashboardButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zpět do hlavní aplikace</value>
+  </data>
+  <data name="CsvLogger_StartText.Text" xml:space="preserve">
+    <value>Spustit</value>
+  </data>
+  <data name="CsvLogger_StopButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zastavit</value>
+  </data>
+  <data name="CsvLogger_PinnedSensorsText.Text" xml:space="preserve">
+    <value>Připnuté senzory</value>
+  </data>
+  <data name="CsvLogger_PollingRateText.Text" xml:space="preserve">
+    <value>Frekvence dotazů</value>
+  </data>
+  <data name="CsvLogger_TotalElapsedText.Text" xml:space="preserve">
+    <value>Celková doba</value>
+  </data>
+  <data name="CsvLogger_PausesText.Text" xml:space="preserve">
+    <value>Pauzy</value>
+  </data>
+  <data name="CsvLogger_OpenInFileExplorerButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Otevřít v Průzkumníkovi</value>
+  </data>
+  <data name="CsvLogger_OpenInFileExplorerButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Otevřít v Průzkumníkovi</value>
+  </data>
+  <data name="TaskbarFlyout_SystemSensorsText.Text" xml:space="preserve">
+    <value>Systémové senzory</value>
+  </data>
+  <data name="TaskbarFlyout_FlyoutTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Časový rozsah vysouvacího panelu</value>
+  </data>
+  <data name="TaskbarFlyout_FlyoutTimeRangePicker.Label" xml:space="preserve">
+    <value>Panel</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Časový rozsah hlavního panelu</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarTimeRangePicker.Label" xml:space="preserve">
+    <value>Hlavní panel</value>
+  </data>
+  <data name="TaskbarFlyout_BackToDashboardButton.Content" xml:space="preserve">
+    <value>Spravovat senzory na hlavním panelu</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarSettingsButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Nastavení widgetu na hlavním panelu</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarSettingsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Nastavení widgetu na hlavním panelu</value>
+  </data>
+  <data name="Widget_SystemSensorsText.Text" xml:space="preserve">
+    <value>Systémové senzory</value>
+  </data>
+  <data name="Widget_BackToDashboardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zpět do hlavní aplikace</value>
+  </data>
+  <data name="Widget_BackToDashboardButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zpět do hlavní aplikace</value>
+  </data>
+  <data name="SensorRowHeader_SensorText.Text" xml:space="preserve">
+    <value>Senzor</value>
+  </data>
+  <data name="SensorRowHeader_CurrentLabel.Text" xml:space="preserve">
+    <value>Aktuální</value>
+  </data>
+  <data name="SensorRowHeader_MinimumLabel.Text" xml:space="preserve">
+    <value>Min</value>
+  </data>
+  <data name="SensorRowHeader_MaximumLabel.Text" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="SensorRowHeader_AverageLabel.Text" xml:space="preserve">
+    <value>Prům.</value>
+  </data>
+  <data name="SensorRowHeader_UnitLabel.Text" xml:space="preserve">
+    <value>Jednotka</value>
+  </data>
+  <data name="Sensors_GroupCount" xml:space="preserve">
+    <value>{0}/{1} senzorů</value>
+  </data>
+  <data name="Sensors_GroupCountName" xml:space="preserve">
+    <value>Zobrazeno {0} z {1} senzorů</value>
+  </data>
+  <data name="Sensors_UpdateWidget" xml:space="preserve">
+    <value>Aktualizovat widget</value>
+  </data>
+  <data name="Sensors_PinToWidget" xml:space="preserve">
+    <value>Připnout do widgetu</value>
+  </data>
+  <data name="Sensors_UpdateCsvLogging" xml:space="preserve">
+    <value>Aktualizovat záznam do CSV</value>
+  </data>
+  <data name="Sensors_StartCsvLogging" xml:space="preserve">
+    <value>Spustit záznam do CSV</value>
+  </data>
+  <data name="Common_Resume" xml:space="preserve">
+    <value>Pokračovat</value>
+  </data>
+  <data name="Common_Pause" xml:space="preserve">
+    <value>Pozastavit</value>
+  </data>
+  <data name="CsvLogger_StatusSelectionLocked" xml:space="preserve">
+    <value>pro změnu výběru senzorů nejdřív zastavte záznam</value>
+  </data>
+  <data name="CsvLogger_StatusPaused" xml:space="preserve">
+    <value>pozastaveno na {0:N0} řádcích</value>
+  </data>
+  <data name="CsvLogger_StatusRecording" xml:space="preserve">
+    <value>záznam do {0}</value>
+  </data>
+  <data name="CsvLogger_StatusNoSensors" xml:space="preserve">
+    <value>zatím nejsou vybrány žádné senzory, vyberte je v seznamu senzorů</value>
+  </data>
+  <data name="CsvLogger_StatusSaved" xml:space="preserve">
+    <value>{0:N0} řádků uloženo do {1}</value>
+  </data>
+  <data name="CsvLogger_StatusReady" xml:space="preserve">
+    <value>připraveno k záznamu</value>
+  </data>
+  <data name="CsvLogger_StatusWriteFailed" xml:space="preserve">
+    <value>nelze zapisovat do {0}</value>
+  </data>
+  <data name="CsvLogger_FolderPickerTitle" xml:space="preserve">
+    <value>Složka pro záznam do CSV</value>
+  </data>
+  <data name="CsvLogger_HideDetails" xml:space="preserve">
+    <value>Skrýt podrobnosti</value>
+  </data>
+  <data name="CsvLogger_ShowDetails" xml:space="preserve">
+    <value>Zobrazit podrobnosti</value>
+  </data>
+  <data name="TaskbarWidget_EmbedFailed" xml:space="preserve">
+    <value>Vložení widgetu na hlavní panel selhalo po {0} pokusech:
+
+{1}</value>
+  </data>
 </root>

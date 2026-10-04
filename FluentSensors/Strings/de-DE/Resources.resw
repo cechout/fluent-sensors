@@ -1600,4 +1600,210 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   <data name="Info_CycleCount" xml:space="preserve">
     <value>{0} / {1} max</value>
   </data>
+  <data name="Sensors_SensorListTitleText.Text" xml:space="preserve">
+    <value>Sensorliste</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Auswahlprofil</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_WidgetWindow.Content" xml:space="preserve">
+    <value>Widget</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_Csv.Content" xml:space="preserve">
+    <value>Aufzeichnung</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
+    <value>Taskleiste</value>
+  </data>
+  <data name="Sensors_PinToWidgetButton.Label" xml:space="preserve">
+    <value>An Widget anheften</value>
+  </data>
+  <data name="Sensors_StartCsvMonitoringButton.Label" xml:space="preserve">
+    <value>CSV-Aufzeichnung starten</value>
+  </data>
+  <data name="Sensors_PinToTaskbarButton.Label" xml:space="preserve">
+    <value>An Taskleiste anheften</value>
+  </data>
+  <data name="Sensors_UpdateTaskbarText.Text" xml:space="preserve">
+    <value>Taskleiste aktualisieren</value>
+  </data>
+  <data name="Sensors_CloseTaskbarWidgetButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Taskleisten-Widget schließen</value>
+  </data>
+  <data name="Sensors_CloseTaskbarWidgetButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Taskleisten-Widget schließen</value>
+  </data>
+  <data name="Sensors_HideSensorsButton.Label" xml:space="preserve">
+    <value>Ausblenden</value>
+  </data>
+  <data name="Sensors_HideSensorsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Blendet die ausgewählten Sensoren aus und beendet ihre Überwachung</value>
+  </data>
+  <data name="Sensors_ResetValuesButton.Label" xml:space="preserve">
+    <value>Statistik zurücksetzen</value>
+  </data>
+  <data name="Sensors_ShowHiddenSensorsButton.Label" xml:space="preserve">
+    <value>Ausgeblendete Sensoren</value>
+  </data>
+  <data name="Sensors_NoSensorsInfoBar.Title" xml:space="preserve">
+    <value>Keine Sensoren ausgewählt</value>
+  </data>
+  <data name="Sensors_NoSensorsInfoBar.Message" xml:space="preserve">
+    <value>Bitte wähle mindestens einen Sensor aus</value>
+  </data>
+  <data name="Sensors_RunningForText.Text" xml:space="preserve">
+    <value>Läuft seit</value>
+  </data>
+  <data name="Sensors_SelectPinnedButton.Label" xml:space="preserve">
+    <value>Angeheftete auswählen</value>
+  </data>
+  <data name="Sensors_DeselectAllButton.Label" xml:space="preserve">
+    <value>Auswahl aufheben</value>
+  </data>
+  <data name="HiddenSensors_HiddenSensorsText.Text" xml:space="preserve">
+    <value>Ausgeblendete Sensoren</value>
+  </data>
+  <data name="HiddenSensors_RestoreSelectedButton.Content" xml:space="preserve">
+    <value>Auswahl wiederherstellen</value>
+  </data>
+  <data name="CsvLogger_BackToDashboardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zurück zur Hauptanwendung</value>
+  </data>
+  <data name="CsvLogger_BackToDashboardButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zurück zur Hauptanwendung</value>
+  </data>
+  <data name="CsvLogger_StartText.Text" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="CsvLogger_StopButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Stopp</value>
+  </data>
+  <data name="CsvLogger_PinnedSensorsText.Text" xml:space="preserve">
+    <value>Angeheftete Sensoren</value>
+  </data>
+  <data name="CsvLogger_PollingRateText.Text" xml:space="preserve">
+    <value>Abfragerate</value>
+  </data>
+  <data name="CsvLogger_TotalElapsedText.Text" xml:space="preserve">
+    <value>Gesamtdauer</value>
+  </data>
+  <data name="CsvLogger_PausesText.Text" xml:space="preserve">
+    <value>Pausen</value>
+  </data>
+  <data name="CsvLogger_OpenInFileExplorerButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Im Explorer öffnen</value>
+  </data>
+  <data name="CsvLogger_OpenInFileExplorerButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Im Explorer öffnen</value>
+  </data>
+  <data name="TaskbarFlyout_SystemSensorsText.Text" xml:space="preserve">
+    <value>Systemsensoren</value>
+  </data>
+  <data name="TaskbarFlyout_FlyoutTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Zeitraum des Flyouts</value>
+  </data>
+  <data name="TaskbarFlyout_FlyoutTimeRangePicker.Label" xml:space="preserve">
+    <value>Flyout</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Zeitraum der Taskleiste</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarTimeRangePicker.Label" xml:space="preserve">
+    <value>Taskleiste</value>
+  </data>
+  <data name="TaskbarFlyout_BackToDashboardButton.Content" xml:space="preserve">
+    <value>Taskleisten-Sensoren verwalten</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarSettingsButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Einstellungen des Taskleisten-Widgets</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarSettingsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Einstellungen des Taskleisten-Widgets</value>
+  </data>
+  <data name="Widget_SystemSensorsText.Text" xml:space="preserve">
+    <value>Systemsensoren</value>
+  </data>
+  <data name="Widget_BackToDashboardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zurück zur Hauptanwendung</value>
+  </data>
+  <data name="Widget_BackToDashboardButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zurück zur Hauptanwendung</value>
+  </data>
+  <data name="SensorRowHeader_SensorText.Text" xml:space="preserve">
+    <value>Sensor</value>
+  </data>
+  <data name="SensorRowHeader_CurrentLabel.Text" xml:space="preserve">
+    <value>Aktuell</value>
+  </data>
+  <data name="SensorRowHeader_MinimumLabel.Text" xml:space="preserve">
+    <value>Min</value>
+  </data>
+  <data name="SensorRowHeader_MaximumLabel.Text" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="SensorRowHeader_AverageLabel.Text" xml:space="preserve">
+    <value>Ø</value>
+  </data>
+  <data name="SensorRowHeader_UnitLabel.Text" xml:space="preserve">
+    <value>Einheit</value>
+  </data>
+  <data name="Sensors_GroupCount" xml:space="preserve">
+    <value>{0}/{1} Sensoren</value>
+  </data>
+  <data name="Sensors_GroupCountName" xml:space="preserve">
+    <value>{0} von {1} Sensoren angezeigt</value>
+  </data>
+  <data name="Sensors_UpdateWidget" xml:space="preserve">
+    <value>Widget aktualisieren</value>
+  </data>
+  <data name="Sensors_PinToWidget" xml:space="preserve">
+    <value>An Widget anheften</value>
+  </data>
+  <data name="Sensors_UpdateCsvLogging" xml:space="preserve">
+    <value>CSV-Aufzeichnung aktualisieren</value>
+  </data>
+  <data name="Sensors_StartCsvLogging" xml:space="preserve">
+    <value>CSV-Aufzeichnung starten</value>
+  </data>
+  <data name="Common_Resume" xml:space="preserve">
+    <value>Fortsetzen</value>
+  </data>
+  <data name="Common_Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="CsvLogger_StatusSelectionLocked" xml:space="preserve">
+    <value>erst die Aufzeichnung stoppen, um die Sensorauswahl zu ändern</value>
+  </data>
+  <data name="CsvLogger_StatusPaused" xml:space="preserve">
+    <value>pausiert bei {0:N0} Zeilen</value>
+  </data>
+  <data name="CsvLogger_StatusRecording" xml:space="preserve">
+    <value>Aufzeichnung in {0}</value>
+  </data>
+  <data name="CsvLogger_StatusNoSensors" xml:space="preserve">
+    <value>noch keine Sensoren gewählt, wähle welche in der Sensorliste aus</value>
+  </data>
+  <data name="CsvLogger_StatusSaved" xml:space="preserve">
+    <value>{0:N0} Zeilen in {1} gespeichert</value>
+  </data>
+  <data name="CsvLogger_StatusReady" xml:space="preserve">
+    <value>bereit zur Aufzeichnung</value>
+  </data>
+  <data name="CsvLogger_StatusWriteFailed" xml:space="preserve">
+    <value>konnte nicht in {0} schreiben</value>
+  </data>
+  <data name="CsvLogger_FolderPickerTitle" xml:space="preserve">
+    <value>Ordner für die CSV-Aufzeichnung</value>
+  </data>
+  <data name="CsvLogger_HideDetails" xml:space="preserve">
+    <value>Details ausblenden</value>
+  </data>
+  <data name="CsvLogger_ShowDetails" xml:space="preserve">
+    <value>Details anzeigen</value>
+  </data>
+  <data name="TaskbarWidget_EmbedFailed" xml:space="preserve">
+    <value>Das Einbetten des Taskleisten-Widgets ist nach {0} Versuchen fehlgeschlagen:
+
+{1}</value>
+  </data>
 </root>

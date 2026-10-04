@@ -52,22 +52,22 @@
                         Orientation="Horizontal">
                         <TextBlock
                             x:Name="SensorListTitleText"
+                            x:Uid="Sensors_SensorListTitleText"
                             Margin="4,0,0,0"
                             VerticalAlignment="Center"
-                            Style="{ThemeResource BodyStrongTextBlockStyle}"
-                            Text="Sensor List" />
+                            Style="{ThemeResource BodyStrongTextBlockStyle}" />
 
                         <!--  the profile the checkboxes reflect and commit to  -->
                         <ComboBox
                             x:Name="SelectionProfileComboBox"
+                            x:Uid="Sensors_SelectionProfileComboBox"
                             Margin="12,0,0,0"
                             VerticalAlignment="Center"
-                            AutomationProperties.Name="Selection Profile"
                             SelectedIndex="0"
                             SelectionChanged="SelectionProfileComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Widget" Tag="WidgetWindow" />
-                            <ComboBoxItem Content="Logging" Tag="Csv" />
-                            <ComboBoxItem Content="Taskbar" Tag="Taskbar" />
+                            <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_WidgetWindow" Tag="WidgetWindow" />
+                            <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_Csv" Tag="Csv" />
+                            <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_Taskbar" Tag="Taskbar" />
                         </ComboBox>
                     </StackPanel>
 
@@ -97,8 +97,8 @@
                             <!--  (reads "Update Widget" with an update glyph while the widget is open, see BuildCommandBarPriorityOrder)  -->
                             <AppBarButton
                                 x:Name="PinToWidgetButton"
-                                Click="PinToWidget_Click"
-                                Label="Pin to Widget">
+                                x:Uid="Sensors_PinToWidgetButton"
+                                Click="PinToWidget_Click">
                                 <AppBarButton.Icon>
                                     <FontIcon x:Name="PinToWidgetIcon" Glyph="&#xE718;" />
                                 </AppBarButton.Icon>
@@ -108,8 +108,8 @@
                             <!--  (reads "Update CSV Logging" with an update glyph while the logger is open, see BuildCommandBarPriorityOrder)  -->
                             <AppBarButton
                                 x:Name="StartCsvMonitoringButton"
-                                Click="StartCsvMonitoring_Click"
-                                Label="Start CSV Logging">
+                                x:Uid="Sensors_StartCsvMonitoringButton"
+                                Click="StartCsvMonitoring_Click">
                                 <AppBarButton.Icon>
                                     <FontIcon x:Name="StartCsvMonitoringIcon" Glyph="&#xE8A7;" />
                                 </AppBarButton.Icon>
@@ -118,8 +118,8 @@
                             <!--  pin to taskbar button (shown for the Taskbar profile while the widget is closed)  -->
                             <AppBarButton
                                 x:Name="PinToTaskbarButton"
-                                Click="PinToTaskbar_Click"
-                                Label="Pin to Taskbar">
+                                x:Uid="Sensors_PinToTaskbarButton"
+                                Click="PinToTaskbar_Click">
                                 <AppBarButton.Icon>
                                     <FontIcon Glyph="&#xE840;" />
                                 </AppBarButton.Icon>
@@ -183,24 +183,23 @@
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <FontIcon FontSize="16" Glyph="&#xE895;" />
                                             <TextBlock
+                                                x:Uid="Sensors_UpdateTaskbarText"
                                                 VerticalAlignment="Center"
-                                                FontSize="12"
-                                                Text="Update Taskbar" />
+                                                FontSize="12" />
                                         </StackPanel>
                                     </Button>
 
                                     <!--  close  -->
                                     <Button
                                         x:Name="CloseTaskbarWidgetButton"
+                                        x:Uid="Sensors_CloseTaskbarWidgetButton"
                                         Grid.Column="1"
                                         Width="32"
                                         Margin="-0.9,0,0,0"
                                         Padding="0"
                                         VerticalAlignment="Stretch"
-                                        AutomationProperties.Name="Close Taskbar Widget"
                                         Click="CloseTaskbarWidget_Click"
-                                        CornerRadius="0,4.5,4.5,0"
-                                        ToolTipService.ToolTip="Close Taskbar Widget">
+                                        CornerRadius="0,4.5,4.5,0">
                                         <FontIcon FontSize="14" Glyph="&#xE711;" />
                                     </Button>
                                 </Grid>
@@ -212,9 +211,8 @@
                             <!--  hide sensors button  -->
                             <AppBarButton
                                 x:Name="HideSensorsButton"
-                                Click="HideSensors_Click"
-                                Label="Hide"
-                                ToolTipService.ToolTip="Hides and stops monitoring the selected sensors">
+                                x:Uid="Sensors_HideSensorsButton"
+                                Click="HideSensors_Click">
                                 <AppBarButton.Icon>
                                     <FontIcon Glyph="&#xED1A;" />
                                 </AppBarButton.Icon>
@@ -225,8 +223,8 @@
                             <!--  reset min max button  -->
                             <AppBarButton
                                 x:Name="ResetValuesButton"
-                                Click="ResetMinMax_Click"
-                                Label="Reset Stats">
+                                x:Uid="Sensors_ResetValuesButton"
+                                Click="ResetMinMax_Click">
                                 <AppBarButton.Icon>
                                     <FontIcon Glyph="&#xE72C;" />
                                 </AppBarButton.Icon>
@@ -237,9 +235,9 @@
                             <!--  show hidden sensors button  -->
                             <AppBarButton
                                 x:Name="ShowHiddenSensorsButton"
+                                x:Uid="Sensors_ShowHiddenSensorsButton"
                                 Click="ShowHiddenSensors_Click"
-                                IsEnabled="{x:Bind ViewModel.HasHiddenSensors, Mode=OneWay}"
-                                Label="Hidden Sensors">
+                                IsEnabled="{x:Bind ViewModel.HasHiddenSensors, Mode=OneWay}">
                                 <AppBarButton.Icon>
                                     <FontIcon Glyph="&#xE8A7;" />
                                 </AppBarButton.Icon>
@@ -388,14 +386,13 @@
 
                 <InfoBar
                     x:Name="NoSensorsInfoBar"
-                    Title="No sensors selected"
+                    x:Uid="Sensors_NoSensorsInfoBar"
                     Margin="24"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Bottom"
                     IsClosable="False"
                     IsHitTestVisible="False"
                     IsOpen="True"
-                    Message="Please select at least one sensor"
                     Severity="Warning">
 
                     <InfoBar.RenderTransform>
@@ -428,9 +425,9 @@
                         Orientation="Horizontal"
                         Spacing="6">
                         <TextBlock
+                            x:Uid="Sensors_RunningForText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Running for" />
+                            Style="{ThemeResource CaptionTextBlockStyle}" />
                         <TextBlock
                             Style="{ThemeResource CaptionTextBlockStyle}"
                             Text="{x:Bind ViewModel.StatsElapsedText, Mode=OneWay}"
@@ -458,9 +455,9 @@
                         <!--  select pinned sensors button  -->
                         <AppBarButton
                             x:Name="SelectPinnedButton"
+                            x:Uid="Sensors_SelectPinnedButton"
                             Click="SelectPinned_Click"
-                            IsEnabled="{x:Bind ViewModel.IsPinnedAvailable, Mode=OneWay}"
-                            Label="Select Pinned">
+                            IsEnabled="{x:Bind ViewModel.IsPinnedAvailable, Mode=OneWay}">
                             <AppBarButton.Icon>
                                 <!--<FontIcon Glyph="&#xE73A;" />-->
                                 <FontIcon Glyph="&#xEA52;" />
@@ -470,8 +467,8 @@
                         <!--  unselect all sensors button  -->
                         <AppBarButton
                             x:Name="DeselectAllButton"
-                            Click="DeselectAll_Click"
-                            Label="Deselect All">
+                            x:Uid="Sensors_DeselectAllButton"
+                            Click="DeselectAll_Click">
                             <AppBarButton.Icon>
                                 <FontIcon Glyph="&#xE8E6;" />
                             </AppBarButton.Icon>

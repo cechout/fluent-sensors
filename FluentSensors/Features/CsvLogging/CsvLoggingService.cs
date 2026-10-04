@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 
 using FluentSensors.Common.Csv;
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
@@ -182,7 +183,7 @@ namespace FluentSensors.Features.CsvLogging
                 try { _writer?.Dispose(); } catch { }
                 _writer = null;
 
-                LastError = $"could not write to {folder}";
+                LastError = AppStrings.Format("CsvLogger_StatusWriteFailed", folder);
                 StateChanged?.Invoke();
                 return false;
             }

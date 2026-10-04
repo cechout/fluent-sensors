@@ -53,11 +53,11 @@
 
         <!--  (the left margin aligns the label with the sensor name, past the checkbox)  -->
         <TextBlock
+            x:Uid="SensorRowHeader_SensorText"
             Grid.Column="0"
             Margin="38,0,0,0"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Sensor"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap" />
         <TextBlock
@@ -77,47 +77,47 @@
             Glyph="&#xE7C1;" />-->
         <TextBlock
             x:Name="CurrentLabel"
+            x:Uid="SensorRowHeader_CurrentLabel"
             Grid.Column="2"
             HorizontalAlignment="Right"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Current"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap" />
         <TextBlock
             x:Name="MinimumLabel"
+            x:Uid="SensorRowHeader_MinimumLabel"
             Grid.Column="3"
             HorizontalAlignment="Right"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Min"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap" />
         <TextBlock
             x:Name="MaximumLabel"
+            x:Uid="SensorRowHeader_MaximumLabel"
             Grid.Column="4"
             HorizontalAlignment="Right"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Max"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap" />
         <TextBlock
             x:Name="AverageLabel"
+            x:Uid="SensorRowHeader_AverageLabel"
             Grid.Column="5"
             HorizontalAlignment="Right"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Avg"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap" />
         <TextBlock
             x:Name="UnitLabel"
+            x:Uid="SensorRowHeader_UnitLabel"
             Grid.Column="6"
             HorizontalAlignment="Right"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Unit"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap"
             Visibility="Collapsed" />

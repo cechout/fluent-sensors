@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Linq;
 using WinUIEx;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Controls.SensorRow;
@@ -393,7 +394,7 @@ namespace FluentSensors.Features.Widget
         // glyph, tooltip and name follow the state, like the taskbar flyout pause button
         private void ApplyPauseState()
         {
-            string label = ViewModel.IsPaused ? "Resume" : "Pause";
+            string label = AppStrings.Get(ViewModel.IsPaused ? "Common_Resume" : "Common_Pause");
             PauseButtonIcon.Glyph = ViewModel.IsPaused ? "\uE768" : "\uE769";
             ToolTipService.SetToolTip(PauseButton, label);
             AutomationProperties.SetName(PauseButton, label);
