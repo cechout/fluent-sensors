@@ -1811,4 +1811,19 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
 
 {0}</value>
   </data>
+  <data name="App_LanguageTag" xml:space="preserve">
+    <value>en-US</value>
+  </data>
+  <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
+    <value>Technical Terms in English</value>
+  </data>
+  <data name="Settings_TechnicalTermsCard.Description" xml:space="preserve">
+    <value>Keeps hardware terms like Cache or Rank in English (restarts the app)</value>
+  </data>
+  <data name="Settings_TechnicalTermsRestartTitle" xml:space="preserve">
+    <value>Change Technical Terms?</value>
+  </data>
+  <data name="Settings_TechnicalTermsRestartMessage" xml:space="preserve">
+    <value>The app restarts to show the technical terms in the new language.</value>
+  </data>
 </root>

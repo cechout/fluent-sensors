@@ -21,6 +21,8 @@ namespace FluentSensors.Persistence.Models
 
         // app language; a tag from AppLanguage.Supported, or Default for the Windows display language
         public string AppLanguage { get; set; } = "Default";
+        // the technical terms (AppTerms) in english whatever the app language
+        public bool TechnicalTermsInEnglish { get; set; } = false;
 
         // hardware icon colors; the category icons on the start, sensors and performance pages, read through
         // HardwareColorMode (graph colors are per surface, see GraphColorSource)

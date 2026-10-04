@@ -16,7 +16,9 @@ namespace FluentSensors
         {
             // before InitializeComponent, the first resource lookup fixes the language of the process; read
             // straight from the file, SettingsService loads in OnLaunched
-            AppLanguage.Apply(PersistenceService.Instance.LoadSettings().AppLanguage);
+            var settings = PersistenceService.Instance.LoadSettings();
+            AppLanguage.Apply(settings.AppLanguage);
+            AppTerms.Configure(settings.TechnicalTermsInEnglish);
 
             InitializeComponent();
 

@@ -64,6 +64,21 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // applies on the next start too, see AppTerms
+        private bool _technicalTermsInEnglish = Defaults.TechnicalTermsInEnglish;
+        public bool TechnicalTermsInEnglish
+        {
+            get => _technicalTermsInEnglish;
+            set
+            {
+                if (_technicalTermsInEnglish != value)
+                {
+                    _technicalTermsInEnglish = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // --- widget window appearance ---
 
         private string _backdropType = Defaults.BackdropType;
@@ -977,6 +992,7 @@ namespace FluentSensors.Persistence.Services
         {
             _appTheme = data.AppTheme;
             _appLanguage = data.AppLanguage;
+            _technicalTermsInEnglish = data.TechnicalTermsInEnglish;
             _backdropType = data.BackdropType;
             _tintOpacity = data.TintOpacity;
             _luminosityOpacity = data.LuminosityOpacity;
@@ -1046,6 +1062,7 @@ namespace FluentSensors.Persistence.Services
             {
                 AppTheme = _appTheme,
                 AppLanguage = _appLanguage,
+                TechnicalTermsInEnglish = _technicalTermsInEnglish,
                 BackdropType = _backdropType,
                 TintOpacity = _tintOpacity,
                 LuminosityOpacity = _luminosityOpacity,

@@ -43,6 +43,7 @@ namespace FluentSensors.Features.Settings
             // the saved selections
             RestoreThemeSelection();
             RestoreLanguageSelection();
+            RestoreTechnicalTermsSelection();
             RestoreIntervalSelection();
             RestoreMinimizeToTraySelection();
             RestoreStartupSelection();
@@ -264,6 +265,7 @@ namespace FluentSensors.Features.Settings
             {
                 _isLoading = true;
                 RestoreLanguageSelection();
+            RestoreTechnicalTermsSelection();
                 _isLoading = false;
                 return;
             }
@@ -286,6 +288,36 @@ namespace FluentSensors.Features.Settings
 
             string current = SettingsService.Instance.AppLanguage;
             SelectByTag(LanguageComboBox, AppLanguage.IsSupported(current) ? current : AppLanguage.SystemDefault);
+        }
+
+        // technical terms in english; like the language, kept only when the restart is confirmed
+        private async void TechnicalTermsToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            bool wanted = TechnicalTermsToggle.IsOn;
+            bool confirmed = await ConfirmAction(
+                AppStrings.Get("Settings_TechnicalTermsRestartTitle"),
+                AppStrings.Get("Settings_TechnicalTermsRestartMessage"),
+                AppStrings.Get("Settings_LanguageRestartConfirm"));
+            if (!confirmed)
+            {
+                _isLoading = true;
+                TechnicalTermsToggle.IsOn = !wanted;
+                _isLoading = false;
+                return;
+            }
+
+            SettingsService.Instance.TechnicalTermsInEnglish = wanted;
+            PersistenceService.Instance.FlushAll();
+            RestartApp();
+        }
+
+        // the resource language actually in use, not the setting; Default can resolve to english too
+        private void RestoreTechnicalTermsSelection()
+        {
+            TechnicalTermsToggle.IsOn = SettingsService.Instance.TechnicalTermsInEnglish;
+            TechnicalTermsCard.IsEnabled = AppStrings.Get("App_LanguageTag") != "en-US";
         }
 
         // update interval

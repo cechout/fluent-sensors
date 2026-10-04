@@ -1811,4 +1811,19 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
 
 {0}</value>
   </data>
+  <data name="App_LanguageTag" xml:space="preserve">
+    <value>de-DE</value>
+  </data>
+  <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
+    <value>Fachbegriffe auf Englisch</value>
+  </data>
+  <data name="Settings_TechnicalTermsCard.Description" xml:space="preserve">
+    <value>Hardwarebegriffe wie Cache oder Rank bleiben englisch (startet die App neu)</value>
+  </data>
+  <data name="Settings_TechnicalTermsRestartTitle" xml:space="preserve">
+    <value>Fachbegriffe ändern?</value>
+  </data>
+  <data name="Settings_TechnicalTermsRestartMessage" xml:space="preserve">
+    <value>Die App startet neu, um die Fachbegriffe in der neuen Sprache anzuzeigen.</value>
+  </data>
 </root>

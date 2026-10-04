@@ -61,6 +61,19 @@
                 </ComboBox>
             </controls:SettingsCard>
 
+            <!--  technical terms in english  -->
+            <!--  (disabled while the app runs in english, there is nothing to keep; a change asks to restart)  -->
+            <controls:SettingsCard
+                x:Name="TechnicalTermsCard"
+                x:Uid="Settings_TechnicalTermsCard"
+                fhUi:FocusGroup.IsEnabled="True"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE943;}">
+                <ToggleSwitch
+                    x:Name="TechnicalTermsToggle"
+                    x:Uid="Common_ToggleSwitch"
+                    Toggled="TechnicalTermsToggle_Toggled" />
+            </controls:SettingsCard>
+
             <!--  hardware icon colors  -->
             <!--
                 (reaches the start page tiles, the sensor list and hidden sensor group headers, and the hardware

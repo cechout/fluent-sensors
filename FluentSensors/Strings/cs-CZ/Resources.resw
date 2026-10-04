@@ -1811,4 +1811,19 @@ DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo 
 
 {0}</value>
   </data>
+  <data name="App_LanguageTag" xml:space="preserve">
+    <value>cs-CZ</value>
+  </data>
+  <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
+    <value>Technické pojmy v angličtině</value>
+  </data>
+  <data name="Settings_TechnicalTermsCard.Description" xml:space="preserve">
+    <value>Hardwarové pojmy jako Cache nebo Rank zůstanou anglicky (restartuje aplikaci)</value>
+  </data>
+  <data name="Settings_TechnicalTermsRestartTitle" xml:space="preserve">
+    <value>Změnit technické pojmy?</value>
+  </data>
+  <data name="Settings_TechnicalTermsRestartMessage" xml:space="preserve">
+    <value>Aplikace se restartuje, aby zobrazila technické pojmy v novém jazyce.</value>
+  </data>
 </root>
