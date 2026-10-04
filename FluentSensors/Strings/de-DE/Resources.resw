@@ -179,4 +179,595 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Status_Handles" xml:space="preserve">
     <value>Handles: {0}</value>
   </data>
+  <data name="Common_ToggleSwitch.OnContent" xml:space="preserve">
+    <value>Ein</value>
+  </data>
+  <data name="Common_ToggleSwitch.OffContent" xml:space="preserve">
+    <value>Aus</value>
+  </data>
+  <data name="Settings_SettingsText.Text" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="Settings_GeneralSettingsText.Text" xml:space="preserve">
+    <value>Allgemeine Einstellungen</value>
+  </data>
+  <data name="Settings_AppThemeCard.Description" xml:space="preserve">
+    <value>Hell, dunkel oder wie Windows</value>
+  </data>
+  <data name="Settings_AppThemeCard.Header" xml:space="preserve">
+    <value>App-Design</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Default.Content" xml:space="preserve">
+    <value>Systemstandard</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Light.Content" xml:space="preserve">
+    <value>Hell</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Dark.Content" xml:space="preserve">
+    <value>Dunkel</value>
+  </data>
+  <data name="Settings_HardwareIconColorsCard.Description" xml:space="preserve">
+    <value>Hardwaresymbole nach Kategorie einfärben</value>
+  </data>
+  <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
+    <value>Farben der Hardwaresymbole</value>
+  </data>
+  <data name="Settings_GraphExpander.Description" xml:space="preserve">
+    <value>Linienstil und Flächenfüllung aller Graphen</value>
+  </data>
+  <data name="Settings_GraphExpander.Header" xml:space="preserve">
+    <value>Graph</value>
+  </data>
+  <data name="Settings_LineStyleCard.Header" xml:space="preserve">
+    <value>Linienstil</value>
+  </data>
+  <data name="Settings_GraphLineStyleComboBox_Stepline.Content" xml:space="preserve">
+    <value>Stufen</value>
+  </data>
+  <data name="Settings_GraphLineStyleComboBox_Smooth.Content" xml:space="preserve">
+    <value>Glatt</value>
+  </data>
+  <data name="Settings_FillFadeCard.Header" xml:space="preserve">
+    <value>Verlaufsfüllung</value>
+  </data>
+  <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
+    <value>Bytes oder Bits für Datengrößen und Geschwindigkeiten</value>
+  </data>
+  <data name="Settings_DataUnitsExpander.Header" xml:space="preserve">
+    <value>Dateneinheiten</value>
+  </data>
+  <data name="Settings_DataSizeCard.Header" xml:space="preserve">
+    <value>Datengröße</value>
+  </data>
+  <data name="Settings_DataSpeedCard.Header" xml:space="preserve">
+    <value>Datengeschwindigkeit</value>
+  </data>
+  <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
+    <value>Welche Anzeigen die Titelleiste zeigt, und in welcher Reihenfolge</value>
+  </data>
+  <data name="Settings_TitleBarStatusExpander.Header" xml:space="preserve">
+    <value>Status in der Titelleiste</value>
+  </data>
+  <data name="Settings_StatusLhmGroupCard.Header" xml:space="preserve">
+    <value>Sensorstatus</value>
+  </data>
+  <data name="Settings_StatusWindowsGroupCard.Header" xml:space="preserve">
+    <value>App-Ressourcen</value>
+  </data>
+  <data name="Settings_StatusGroupOrderCard.Header" xml:space="preserve">
+    <value>Reihenfolge</value>
+  </data>
+  <data name="Settings_StatusGroupOrderComboBox_LhmFirst.Content" xml:space="preserve">
+    <value>Sensorstatus zuerst</value>
+  </data>
+  <data name="Settings_StatusGroupOrderComboBox_WindowsFirst.Content" xml:space="preserve">
+    <value>App-Ressourcen zuerst</value>
+  </data>
+  <data name="Settings_MinimizeToSystemTrayCard.Description" xml:space="preserve">
+    <value>App im Infobereich ausblenden, wenn alle Fenster minimiert sind</value>
+  </data>
+  <data name="Settings_MinimizeToSystemTrayCard.Header" xml:space="preserve">
+    <value>In den Infobereich minimieren</value>
+  </data>
+  <data name="Settings_StartupExpander.Description" xml:space="preserve">
+    <value>Was beim Start von Windows passiert, und was die App beim Start tut</value>
+  </data>
+  <data name="Settings_StartupExpander.Header" xml:space="preserve">
+    <value>Autostart</value>
+  </data>
+  <data name="Settings_RunOnStartupCard.Header" xml:space="preserve">
+    <value>Mit Windows starten</value>
+  </data>
+  <data name="Settings_DelayStartupCard.Header" xml:space="preserve">
+    <value>Verzögert starten</value>
+  </data>
+  <data name="Settings_StartMinimizedCard.Header" xml:space="preserve">
+    <value>Minimiert im Infobereich starten</value>
+  </data>
+  <data name="Settings_StartupPageCard.Header" xml:space="preserve">
+    <value>Seite beim Start</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Start.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Sensors.Content" xml:space="preserve">
+    <value>Sensoren</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Performance.Content" xml:space="preserve">
+    <value>Hardwareansicht</value>
+  </data>
+  <data name="Settings_CheckUpdatesCard.Header" xml:space="preserve">
+    <value>Beim Start nach Updates suchen</value>
+  </data>
+  <data name="Settings_UpdateIntervalCard.Description" xml:space="preserve">
+    <value>Wie oft die Sensoren abgefragt werden</value>
+  </data>
+  <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
+    <value>Aktualisierungsintervall</value>
+  </data>
+  <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
+    <value>Darstellung der Hardwareansicht</value>
+  </data>
+  <data name="Settings_PerformanceGraphExpander.Description" xml:space="preserve">
+    <value>Zeitraum der Übersichtsgraphen und der dichteren Raster</value>
+  </data>
+  <data name="Settings_PerformanceGraphExpander.Header" xml:space="preserve">
+    <value>Graph</value>
+  </data>
+  <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
+    <value>Zeitraum</value>
+  </data>
+  <data name="Settings_CPUExtendedTimeRangeCard.Header" xml:space="preserve">
+    <value>Zeitraum CPU erweitert</value>
+  </data>
+  <data name="Settings_GPUExtendedTimeRangeCard.Header" xml:space="preserve">
+    <value>Zeitraum GPU erweitert</value>
+  </data>
+  <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
+    <value>Darstellung des Widget-Fensters</value>
+  </data>
+  <data name="Settings_BackgroundMaterialExpander.Description" xml:space="preserve">
+    <value>Hintergrundeffekt und Farbe des Widget-Fensters</value>
+  </data>
+  <data name="Settings_BackgroundMaterialExpander.Header" xml:space="preserve">
+    <value>Hintergrundmaterial</value>
+  </data>
+  <data name="Settings_BackdropComboBox_Acrylic.Content" xml:space="preserve">
+    <value>Desktop-Acryl</value>
+  </data>
+  <data name="Settings_BackdropComboBox_Mica.Content" xml:space="preserve">
+    <value>System-Mica</value>
+  </data>
+  <data name="Settings_BackdropComboBox_None.Content" xml:space="preserve">
+    <value>Einfarbig</value>
+  </data>
+  <data name="Settings_TintOpacityCard.Description" xml:space="preserve">
+    <value>(nur Acryl)</value>
+  </data>
+  <data name="Settings_TintOpacityCard.Header" xml:space="preserve">
+    <value>Farbton-Deckkraft</value>
+  </data>
+  <data name="Settings_LuminosityOpacityCard.Description" xml:space="preserve">
+    <value>(nur Acryl)</value>
+  </data>
+  <data name="Settings_LuminosityOpacityCard.Header" xml:space="preserve">
+    <value>Leuchtkraft-Deckkraft</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceCard.Description" xml:space="preserve">
+    <value>(Acryl und einfarbig)</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceCard.Header" xml:space="preserve">
+    <value>Quelle der Hintergrundfarbe</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Quelle der Hintergrundfarbe</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Windows-Akzent</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Eigene Farbe</value>
+  </data>
+  <data name="Settings_WidgetBackgroundColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Hintergrundfarbe</value>
+  </data>
+  <data name="Settings_WidgetGraphExpander.Description" xml:space="preserve">
+    <value>Farbe und Zeitraum des Graphen</value>
+  </data>
+  <data name="Settings_WidgetGraphExpander.Header" xml:space="preserve">
+    <value>Graph</value>
+  </data>
+  <data name="Settings_GraphColorSourceCard.Header" xml:space="preserve">
+    <value>Quelle der Graphfarbe</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Quelle der Graphfarbe</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Windows-Akzent</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Eigene Farbe</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
+    <value>Hardwarefarbe</value>
+  </data>
+  <data name="Settings_GraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Graphfarbe</value>
+  </data>
+  <data name="Settings_TaskbarSectionHeader.Text" xml:space="preserve">
+    <value>Darstellung von Taskleisten-Widget und Flyout</value>
+  </data>
+  <data name="Settings_CurrentTaskbarPositionCard.Header" xml:space="preserve">
+    <value>Aktuelle Position der Taskleiste</value>
+  </data>
+  <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
+    <value>Graphfarbe, Hintergrund, Zeitraum, Breite und Layout an seitlicher Taskleiste</value>
+  </data>
+  <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
+    <value>Taskleisten-Graph</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceCard.Description" xml:space="preserve">
+    <value>(Taskleiste und Flyout)</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceCard.Header" xml:space="preserve">
+    <value>Quelle der Graphfarbe</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Quelle der Graphfarbe</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Windows-Akzent</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Eigene Farbe</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
+    <value>Hardwarefarbe</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Graphfarbe</value>
+  </data>
+  <data name="Settings_GraphBackgroundSourceCard.Header" xml:space="preserve">
+    <value>Quelle des Graphhintergrunds</value>
+  </data>
+  <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Calculated.Content" xml:space="preserve">
+    <value>Berechnet</value>
+  </data>
+  <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Transparent.Content" xml:space="preserve">
+    <value>Transparent</value>
+  </data>
+  <data name="Settings_GraphWidthCard.Header" xml:space="preserve">
+    <value>Graphbreite</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
+    <value>Graphrichtung an seitlicher Taskleiste</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
+    <value>Rechts nach links</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_TopToBottom.Content" xml:space="preserve">
+    <value>Oben nach unten</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_BottomToTop.Content" xml:space="preserve">
+    <value>Unten nach oben</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
+    <value>Namenszeilen an seitlicher Taskleiste</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
+    <value>Eine Zeile</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesComboBox_2.Content" xml:space="preserve">
+    <value>Zwei Zeilen</value>
+  </data>
+  <data name="Settings_FlyoutAlignmentCard.Description" xml:space="preserve">
+    <value>Wo das Flyout relativ zum Widget ausgerichtet wird</value>
+  </data>
+  <data name="Settings_FlyoutAlignmentCard.Header" xml:space="preserve">
+    <value>Flyout-Ausrichtung</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Center.Content" xml:space="preserve">
+    <value>Zentriert</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Left.Content" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Right.Content" xml:space="preserve">
+    <value>Rechts</value>
+  </data>
+  <data name="Settings_FlyoutGraphExpander.Description" xml:space="preserve">
+    <value>Zeitraum und Höhe des Graphen</value>
+  </data>
+  <data name="Settings_FlyoutGraphExpander.Header" xml:space="preserve">
+    <value>Flyout-Graph</value>
+  </data>
+  <data name="Settings_GraphHeightCard.Header" xml:space="preserve">
+    <value>Graphhöhe</value>
+  </data>
+  <data name="Settings_FlyoutBackgroundMaterialExpander.Description" xml:space="preserve">
+    <value>Hintergrundeffekt und Farbe des Taskleisten-Flyouts</value>
+  </data>
+  <data name="Settings_FlyoutBackgroundMaterialExpander.Header" xml:space="preserve">
+    <value>Hintergrundmaterial des Flyouts</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_Acrylic.Content" xml:space="preserve">
+    <value>Desktop-Acryl</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_Mica.Content" xml:space="preserve">
+    <value>System-Mica</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_None.Content" xml:space="preserve">
+    <value>Einfarbig</value>
+  </data>
+  <data name="Settings_TaskbarTintOpacityCard.Description" xml:space="preserve">
+    <value>(nur Acryl)</value>
+  </data>
+  <data name="Settings_TaskbarTintOpacityCard.Header" xml:space="preserve">
+    <value>Farbton-Deckkraft</value>
+  </data>
+  <data name="Settings_TaskbarLuminosityOpacityCard.Description" xml:space="preserve">
+    <value>(nur Acryl)</value>
+  </data>
+  <data name="Settings_TaskbarLuminosityOpacityCard.Header" xml:space="preserve">
+    <value>Leuchtkraft-Deckkraft</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceCard.Description" xml:space="preserve">
+    <value>(Acryl und einfarbig)</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceCard.Header" xml:space="preserve">
+    <value>Quelle der Hintergrundfarbe</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Quelle der Hintergrundfarbe</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Windows-Akzent</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Eigene Farbe</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Hintergrundfarbe</value>
+  </data>
+  <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
+    <value>Verhalten von Taskleisten-Widget und Flyout</value>
+  </data>
+  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
+    <value>Verhindert, dass das Taskleisten-Widget entlang der Taskleiste verschoben wird</value>
+  </data>
+  <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
+    <value>Position des Taskleisten-Widgets sperren</value>
+  </data>
+  <data name="Settings_FlyoutShortcutCard.Description" xml:space="preserve">
+    <value>Das Flyout per Tastatur öffnen, solange das Taskleisten-Widget geöffnet ist</value>
+  </data>
+  <data name="Settings_FlyoutShortcutCard.Header" xml:space="preserve">
+    <value>Flyout-Tastenkombination</value>
+  </data>
+  <data name="Settings_FlyoutShortcutNoneText.Text" xml:space="preserve">
+    <value>Keine</value>
+  </data>
+  <data name="Settings_CSVLoggingText.Text" xml:space="preserve">
+    <value>CSV-Aufzeichnung</value>
+  </data>
+  <data name="Settings_CSVFormatExpander.Description" xml:space="preserve">
+    <value>Wie Werte in eine Aufzeichnung geschrieben werden</value>
+  </data>
+  <data name="Settings_CSVFormatExpander.Header" xml:space="preserve">
+    <value>CSV-Format</value>
+  </data>
+  <data name="Settings_CsvNumberFormatComboBox_Local.Content" xml:space="preserve">
+    <value>Regional</value>
+  </data>
+  <data name="Settings_CsvNumberFormatComboBox_Invariant.Content" xml:space="preserve">
+    <value>Invariant</value>
+  </data>
+  <data name="Settings_ExampleRowText.Text" xml:space="preserve">
+    <value>Beispielzeile:</value>
+  </data>
+  <data name="Settings_DecimalPlacesCard.Header" xml:space="preserve">
+    <value>Nachkommastellen</value>
+  </data>
+  <data name="Settings_UnitsInValuesCard.Header" xml:space="preserve">
+    <value>Einheiten in Werten</value>
+  </data>
+  <data name="Settings_PauseBehaviorCard.Header" xml:space="preserve">
+    <value>Verhalten bei Pause</value>
+  </data>
+  <data name="Settings_CsvPauseSeamComboBox_Gap.Content" xml:space="preserve">
+    <value>Leere Zeile einfügen</value>
+  </data>
+  <data name="Settings_CsvPauseSeamComboBox_Seamless.Content" xml:space="preserve">
+    <value>Nahtlos fortsetzen</value>
+  </data>
+  <data name="Settings_BackupResetText.Text" xml:space="preserve">
+    <value>Sicherung &amp; Zurücksetzen</value>
+  </data>
+  <data name="Settings_AppDataFolderCard.Description" xml:space="preserve">
+    <value>Wo Einstellungen, Fenster- und Sensorzustände gespeichert werden</value>
+  </data>
+  <data name="Settings_AppDataFolderCard.Header" xml:space="preserve">
+    <value>App-Datenordner</value>
+  </data>
+  <data name="Settings_OpenAppDataButton.Content" xml:space="preserve">
+    <value>Öffnen</value>
+  </data>
+  <data name="Settings_ExportImportSettingsCard.Description" xml:space="preserve">
+    <value>Alle Einstellungen sichern oder wiederherstellen (Import startet die App neu)</value>
+  </data>
+  <data name="Settings_ExportImportSettingsCard.Header" xml:space="preserve">
+    <value>Einstellungen exportieren / importieren</value>
+  </data>
+  <data name="Settings_ExportButton.Content" xml:space="preserve">
+    <value>Exportieren</value>
+  </data>
+  <data name="Settings_ImportButton.Content" xml:space="preserve">
+    <value>Importieren</value>
+  </data>
+  <data name="Settings_ResetToDefaultsExpander.Description" xml:space="preserve">
+    <value>Einzelne Einstellungsdateien auf Standard zurücksetzen (startet die App neu)</value>
+  </data>
+  <data name="Settings_ResetToDefaultsExpander.Header" xml:space="preserve">
+    <value>Auf Standard zurücksetzen</value>
+  </data>
+  <data name="Settings_ResetAllButton.Content" xml:space="preserve">
+    <value>Alles zurücksetzen</value>
+  </data>
+  <data name="Settings_GeneralSettingsCard.Description" xml:space="preserve">
+    <value>Design, Hintergrund, Aktualisierungsintervall, Graphdarstellung, Infobereich</value>
+  </data>
+  <data name="Settings_GeneralSettingsCard.Header" xml:space="preserve">
+    <value>Allgemeine Einstellungen</value>
+  </data>
+  <data name="Settings_ResetButton.Content" xml:space="preserve">
+    <value>Zurücksetzen</value>
+  </data>
+  <data name="Settings_WindowAndPageStatesCard.Description" xml:space="preserve">
+    <value>Position und Größe aller Fenster, Statusanzeige der Titelleiste, Sensorauswahl der Hardwareansicht</value>
+  </data>
+  <data name="Settings_WindowAndPageStatesCard.Header" xml:space="preserve">
+    <value>Fenster- und Seitenzustände</value>
+  </data>
+  <data name="Settings_SensorStatesCard.Description" xml:space="preserve">
+    <value>Sichtbarkeit pro Sensor, Schwellenwerte, Graphskalierung, angeheftete Auswahl</value>
+  </data>
+  <data name="Settings_SensorStatesCard.Header" xml:space="preserve">
+    <value>Sensorzustände</value>
+  </data>
+  <data name="FlyoutShortcut_DialogTitle" xml:space="preserve">
+    <value>Tastenkombination</value>
+  </data>
+  <data name="FlyoutShortcut_DialogSave" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="FlyoutShortcut_AtLeastOneText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Ctrl, Alt oder Win: mindestens eine</value>
+  </data>
+  <data name="FlyoutShortcut_AtLeastOneText.Text" xml:space="preserve">
+    <value>mindestens eine</value>
+  </data>
+  <data name="FlyoutShortcut_OptionalText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>plus Shift: optional</value>
+  </data>
+  <data name="FlyoutShortcut_OptionalText.Text" xml:space="preserve">
+    <value>optional</value>
+  </data>
+  <data name="FlyoutShortcut_ExactlyOneText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>plus ein Buchstabe, eine Ziffer oder F-Taste: genau eine</value>
+  </data>
+  <data name="FlyoutShortcut_ExactlyOneText.Text" xml:space="preserve">
+    <value>genau eine</value>
+  </data>
+  <data name="FlyoutShortcut_NoShortcutText.Text" xml:space="preserve">
+    <value>Keine Tastenkombination</value>
+  </data>
+  <data name="FlyoutShortcut_ClearButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Tastenkombination entfernen</value>
+  </data>
+  <data name="FlyoutShortcut_ClearShortcutText.Text" xml:space="preserve">
+    <value>Tastenkombination entfernen</value>
+  </data>
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Settings_RunOnStartupPortable" xml:space="preserve">
+    <value>In der portablen Version nicht verfügbar, sie würde eine geplante Aufgabe zurücklassen</value>
+  </data>
+  <data name="Settings_StartupFailedTitle" xml:space="preserve">
+    <value>Autostart</value>
+  </data>
+  <data name="Settings_StartupFailedMessage" xml:space="preserve">
+    <value>Windows hat die Änderung an der geplanten Aufgabe nicht übernommen.</value>
+  </data>
+  <data name="Settings_TaskbarEdgeBottom" xml:space="preserve">
+    <value>Unten</value>
+  </data>
+  <data name="Settings_TaskbarEdgeTop" xml:space="preserve">
+    <value>Oben</value>
+  </data>
+  <data name="Settings_TaskbarEdgeLeft" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="Settings_TaskbarEdgeRight" xml:space="preserve">
+    <value>Rechts</value>
+  </data>
+  <data name="Settings_FlyoutShortcutNone" xml:space="preserve">
+    <value>Keine</value>
+  </data>
+  <data name="Settings_FlyoutShortcutName" xml:space="preserve">
+    <value>Flyout-Tastenkombination, {0}</value>
+  </data>
+  <data name="Settings_ExportPickerTitle" xml:space="preserve">
+    <value>Einstellungen exportieren</value>
+  </data>
+  <data name="Settings_ImportPickerTitle" xml:space="preserve">
+    <value>Einstellungen importieren</value>
+  </data>
+  <data name="Settings_BackupFileType" xml:space="preserve">
+    <value>Sicherungsdatei</value>
+  </data>
+  <data name="Settings_ExportSuccessTitle" xml:space="preserve">
+    <value>Export erfolgreich</value>
+  </data>
+  <data name="Settings_ExportSuccessMessage" xml:space="preserve">
+    <value>Deine Einstellungen wurden exportiert.</value>
+  </data>
+  <data name="Settings_ExportFailedTitle" xml:space="preserve">
+    <value>Export fehlgeschlagen</value>
+  </data>
+  <data name="Settings_ExportFailedMessage" xml:space="preserve">
+    <value>Die Einstellungen konnten nicht exportiert werden.</value>
+  </data>
+  <data name="Settings_ImportConfirmTitle" xml:space="preserve">
+    <value>Einstellungen importieren?</value>
+  </data>
+  <data name="Settings_ImportConfirmMessage" xml:space="preserve">
+    <value>Damit werden alle aktuellen Einstellungen, Fensterzustände, Sensorzustände und Sensorauswahlen überschrieben, danach startet die App neu.</value>
+  </data>
+  <data name="Settings_ImportConfirm" xml:space="preserve">
+    <value>Importieren</value>
+  </data>
+  <data name="Settings_ImportFailedTitle" xml:space="preserve">
+    <value>Import fehlgeschlagen</value>
+  </data>
+  <data name="Settings_ImportFailedMessage" xml:space="preserve">
+    <value>Die ausgewählte Datei ist keine gültige FluentSensors-Sicherung.</value>
+  </data>
+  <data name="Settings_ResetWhatAll" xml:space="preserve">
+    <value>Alle Einstellungen</value>
+  </data>
+  <data name="Settings_ResetWhatGeneral" xml:space="preserve">
+    <value>Allgemeine Einstellungen</value>
+  </data>
+  <data name="Settings_ResetWhatWindowStates" xml:space="preserve">
+    <value>Fenster- und Seitenzustände</value>
+  </data>
+  <data name="Settings_ResetWhatSensorStates" xml:space="preserve">
+    <value>Sensorzustände</value>
+  </data>
+  <data name="Settings_ResetConfirmTitle" xml:space="preserve">
+    <value>{0} zurücksetzen?</value>
+  </data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve">
+    <value>Damit werden die Standardwerte wiederhergestellt und die App neu gestartet. Das kann nicht rückgängig gemacht werden.</value>
+  </data>
+  <data name="Settings_ResetConfirm" xml:space="preserve">
+    <value>Zurücksetzen</value>
+  </data>
+  <data name="FlyoutShortcut_WarningModifier" xml:space="preserve">
+    <value>Mit Ctrl, Alt oder Win beginnen</value>
+  </data>
+  <data name="FlyoutShortcut_WarningInUse" xml:space="preserve">
+    <value>Bereits belegt</value>
+  </data>
+  <data name="FlyoutShortcut_KeysName" xml:space="preserve">
+    <value>Tastenkombination, {0}</value>
+  </data>
+  <data name="FlyoutShortcut_NoShortcut" xml:space="preserve">
+    <value>Keine Tastenkombination</value>
+  </data>
 </root>

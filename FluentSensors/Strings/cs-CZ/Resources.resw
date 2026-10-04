@@ -179,4 +179,595 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Status_Handles" xml:space="preserve">
     <value>Handly: {0}</value>
   </data>
+  <data name="Common_ToggleSwitch.OnContent" xml:space="preserve">
+    <value>Zapnuto</value>
+  </data>
+  <data name="Common_ToggleSwitch.OffContent" xml:space="preserve">
+    <value>Vypnuto</value>
+  </data>
+  <data name="Settings_SettingsText.Text" xml:space="preserve">
+    <value>Nastavení</value>
+  </data>
+  <data name="Settings_GeneralSettingsText.Text" xml:space="preserve">
+    <value>Obecná nastavení</value>
+  </data>
+  <data name="Settings_AppThemeCard.Description" xml:space="preserve">
+    <value>Světlý, tmavý nebo podle Windows</value>
+  </data>
+  <data name="Settings_AppThemeCard.Header" xml:space="preserve">
+    <value>Motiv aplikace</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Default.Content" xml:space="preserve">
+    <value>Výchozí systémový</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Light.Content" xml:space="preserve">
+    <value>Světlý</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Dark.Content" xml:space="preserve">
+    <value>Tmavý</value>
+  </data>
+  <data name="Settings_HardwareIconColorsCard.Description" xml:space="preserve">
+    <value>Obarvit ikony hardwaru podle kategorie</value>
+  </data>
+  <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
+    <value>Barvy ikon hardwaru</value>
+  </data>
+  <data name="Settings_GraphExpander.Description" xml:space="preserve">
+    <value>Styl čáry a výplň plochy všech grafů</value>
+  </data>
+  <data name="Settings_GraphExpander.Header" xml:space="preserve">
+    <value>Graf</value>
+  </data>
+  <data name="Settings_LineStyleCard.Header" xml:space="preserve">
+    <value>Styl čáry</value>
+  </data>
+  <data name="Settings_GraphLineStyleComboBox_Stepline.Content" xml:space="preserve">
+    <value>Schodový</value>
+  </data>
+  <data name="Settings_GraphLineStyleComboBox_Smooth.Content" xml:space="preserve">
+    <value>Hladký</value>
+  </data>
+  <data name="Settings_FillFadeCard.Header" xml:space="preserve">
+    <value>Přechodová výplň</value>
+  </data>
+  <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
+    <value>Bajty nebo bity pro velikosti a rychlosti dat</value>
+  </data>
+  <data name="Settings_DataUnitsExpander.Header" xml:space="preserve">
+    <value>Datové jednotky</value>
+  </data>
+  <data name="Settings_DataSizeCard.Header" xml:space="preserve">
+    <value>Velikost dat</value>
+  </data>
+  <data name="Settings_DataSpeedCard.Header" xml:space="preserve">
+    <value>Rychlost dat</value>
+  </data>
+  <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
+    <value>Které údaje zobrazuje záhlaví okna a v jakém pořadí</value>
+  </data>
+  <data name="Settings_TitleBarStatusExpander.Header" xml:space="preserve">
+    <value>Stav v záhlaví okna</value>
+  </data>
+  <data name="Settings_StatusLhmGroupCard.Header" xml:space="preserve">
+    <value>Stav senzorů</value>
+  </data>
+  <data name="Settings_StatusWindowsGroupCard.Header" xml:space="preserve">
+    <value>Prostředky aplikace</value>
+  </data>
+  <data name="Settings_StatusGroupOrderCard.Header" xml:space="preserve">
+    <value>Pořadí</value>
+  </data>
+  <data name="Settings_StatusGroupOrderComboBox_LhmFirst.Content" xml:space="preserve">
+    <value>Nejdřív stav senzorů</value>
+  </data>
+  <data name="Settings_StatusGroupOrderComboBox_WindowsFirst.Content" xml:space="preserve">
+    <value>Nejdřív prostředky aplikace</value>
+  </data>
+  <data name="Settings_MinimizeToSystemTrayCard.Description" xml:space="preserve">
+    <value>Skrýt aplikaci do oznamovací oblasti, když jsou všechna okna minimalizována</value>
+  </data>
+  <data name="Settings_MinimizeToSystemTrayCard.Header" xml:space="preserve">
+    <value>Minimalizovat do oznamovací oblasti</value>
+  </data>
+  <data name="Settings_StartupExpander.Description" xml:space="preserve">
+    <value>Co se stane při spuštění Windows a co aplikace udělá při spuštění</value>
+  </data>
+  <data name="Settings_StartupExpander.Header" xml:space="preserve">
+    <value>Spuštění</value>
+  </data>
+  <data name="Settings_RunOnStartupCard.Header" xml:space="preserve">
+    <value>Spouštět s Windows</value>
+  </data>
+  <data name="Settings_DelayStartupCard.Header" xml:space="preserve">
+    <value>Odložené spuštění</value>
+  </data>
+  <data name="Settings_StartMinimizedCard.Header" xml:space="preserve">
+    <value>Spouštět minimalizovaně v oznamovací oblasti</value>
+  </data>
+  <data name="Settings_StartupPageCard.Header" xml:space="preserve">
+    <value>Stránka po spuštění</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Start.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Sensors.Content" xml:space="preserve">
+    <value>Senzory</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Performance.Content" xml:space="preserve">
+    <value>Zobrazení hardwaru</value>
+  </data>
+  <data name="Settings_CheckUpdatesCard.Header" xml:space="preserve">
+    <value>Při spuštění kontrolovat aktualizace</value>
+  </data>
+  <data name="Settings_UpdateIntervalCard.Description" xml:space="preserve">
+    <value>Jak často se senzory dotazují</value>
+  </data>
+  <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
+    <value>Interval aktualizace</value>
+  </data>
+  <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
+    <value>Vzhled zobrazení hardwaru</value>
+  </data>
+  <data name="Settings_PerformanceGraphExpander.Description" xml:space="preserve">
+    <value>Časový rozsah přehledových grafů a hustších mřížek</value>
+  </data>
+  <data name="Settings_PerformanceGraphExpander.Header" xml:space="preserve">
+    <value>Graf</value>
+  </data>
+  <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
+    <value>Časový rozsah</value>
+  </data>
+  <data name="Settings_CPUExtendedTimeRangeCard.Header" xml:space="preserve">
+    <value>Časový rozsah CPU rozšířený</value>
+  </data>
+  <data name="Settings_GPUExtendedTimeRangeCard.Header" xml:space="preserve">
+    <value>Časový rozsah GPU rozšířený</value>
+  </data>
+  <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
+    <value>Vzhled okna widgetu</value>
+  </data>
+  <data name="Settings_BackgroundMaterialExpander.Description" xml:space="preserve">
+    <value>Efekt pozadí a barva okna widgetu</value>
+  </data>
+  <data name="Settings_BackgroundMaterialExpander.Header" xml:space="preserve">
+    <value>Materiál pozadí</value>
+  </data>
+  <data name="Settings_BackdropComboBox_Acrylic.Content" xml:space="preserve">
+    <value>Akryl</value>
+  </data>
+  <data name="Settings_BackdropComboBox_Mica.Content" xml:space="preserve">
+    <value>Mica</value>
+  </data>
+  <data name="Settings_BackdropComboBox_None.Content" xml:space="preserve">
+    <value>Plná barva</value>
+  </data>
+  <data name="Settings_TintOpacityCard.Description" xml:space="preserve">
+    <value>(pouze akryl)</value>
+  </data>
+  <data name="Settings_TintOpacityCard.Header" xml:space="preserve">
+    <value>Krytí tónu</value>
+  </data>
+  <data name="Settings_LuminosityOpacityCard.Description" xml:space="preserve">
+    <value>(pouze akryl)</value>
+  </data>
+  <data name="Settings_LuminosityOpacityCard.Header" xml:space="preserve">
+    <value>Krytí jasu</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceCard.Description" xml:space="preserve">
+    <value>(akryl a plná barva)</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceCard.Header" xml:space="preserve">
+    <value>Zdroj barvy pozadí</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zdroj barvy pozadí</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Zvýraznění Windows</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Vlastní barva</value>
+  </data>
+  <data name="Settings_WidgetBackgroundColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva pozadí</value>
+  </data>
+  <data name="Settings_WidgetGraphExpander.Description" xml:space="preserve">
+    <value>Barva a časový rozsah grafu</value>
+  </data>
+  <data name="Settings_WidgetGraphExpander.Header" xml:space="preserve">
+    <value>Graf</value>
+  </data>
+  <data name="Settings_GraphColorSourceCard.Header" xml:space="preserve">
+    <value>Zdroj barvy grafu</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zdroj barvy grafu</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Zvýraznění Windows</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Vlastní barva</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
+    <value>Barva hardwaru</value>
+  </data>
+  <data name="Settings_GraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva grafu</value>
+  </data>
+  <data name="Settings_TaskbarSectionHeader.Text" xml:space="preserve">
+    <value>Vzhled widgetu na hlavním panelu a vysouvacího panelu</value>
+  </data>
+  <data name="Settings_CurrentTaskbarPositionCard.Header" xml:space="preserve">
+    <value>Aktuální poloha hlavního panelu</value>
+  </data>
+  <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
+    <value>Barva grafu, pozadí, časový rozsah, šířka a rozložení na bočním hlavním panelu</value>
+  </data>
+  <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
+    <value>Graf na hlavním panelu</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceCard.Description" xml:space="preserve">
+    <value>(hlavní panel a vysouvací panel)</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceCard.Header" xml:space="preserve">
+    <value>Zdroj barvy grafu</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zdroj barvy grafu</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Zvýraznění Windows</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Vlastní barva</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
+    <value>Barva hardwaru</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva grafu</value>
+  </data>
+  <data name="Settings_GraphBackgroundSourceCard.Header" xml:space="preserve">
+    <value>Zdroj pozadí grafu</value>
+  </data>
+  <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Calculated.Content" xml:space="preserve">
+    <value>Vypočtené</value>
+  </data>
+  <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Transparent.Content" xml:space="preserve">
+    <value>Průhledné</value>
+  </data>
+  <data name="Settings_GraphWidthCard.Header" xml:space="preserve">
+    <value>Šířka grafu</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
+    <value>Směr grafu na bočním hlavním panelu</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
+    <value>Zprava doleva</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_TopToBottom.Content" xml:space="preserve">
+    <value>Shora dolů</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_BottomToTop.Content" xml:space="preserve">
+    <value>Zdola nahoru</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
+    <value>Řádky názvu na bočním hlavním panelu</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
+    <value>Jeden řádek</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesComboBox_2.Content" xml:space="preserve">
+    <value>Dva řádky</value>
+  </data>
+  <data name="Settings_FlyoutAlignmentCard.Description" xml:space="preserve">
+    <value>Kde se vysouvací panel zarovná vůči widgetu</value>
+  </data>
+  <data name="Settings_FlyoutAlignmentCard.Header" xml:space="preserve">
+    <value>Zarovnání vysouvacího panelu</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Center.Content" xml:space="preserve">
+    <value>Na střed</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Left.Content" xml:space="preserve">
+    <value>Vlevo</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Right.Content" xml:space="preserve">
+    <value>Vpravo</value>
+  </data>
+  <data name="Settings_FlyoutGraphExpander.Description" xml:space="preserve">
+    <value>Časový rozsah a výška grafu</value>
+  </data>
+  <data name="Settings_FlyoutGraphExpander.Header" xml:space="preserve">
+    <value>Graf vysouvacího panelu</value>
+  </data>
+  <data name="Settings_GraphHeightCard.Header" xml:space="preserve">
+    <value>Výška grafu</value>
+  </data>
+  <data name="Settings_FlyoutBackgroundMaterialExpander.Description" xml:space="preserve">
+    <value>Efekt pozadí a barva vysouvacího panelu</value>
+  </data>
+  <data name="Settings_FlyoutBackgroundMaterialExpander.Header" xml:space="preserve">
+    <value>Materiál pozadí vysouvacího panelu</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_Acrylic.Content" xml:space="preserve">
+    <value>Akryl</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_Mica.Content" xml:space="preserve">
+    <value>Mica</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_None.Content" xml:space="preserve">
+    <value>Plná barva</value>
+  </data>
+  <data name="Settings_TaskbarTintOpacityCard.Description" xml:space="preserve">
+    <value>(pouze akryl)</value>
+  </data>
+  <data name="Settings_TaskbarTintOpacityCard.Header" xml:space="preserve">
+    <value>Krytí tónu</value>
+  </data>
+  <data name="Settings_TaskbarLuminosityOpacityCard.Description" xml:space="preserve">
+    <value>(pouze akryl)</value>
+  </data>
+  <data name="Settings_TaskbarLuminosityOpacityCard.Header" xml:space="preserve">
+    <value>Krytí jasu</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceCard.Description" xml:space="preserve">
+    <value>(akryl a plná barva)</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceCard.Header" xml:space="preserve">
+    <value>Zdroj barvy pozadí</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zdroj barvy pozadí</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Zvýraznění Windows</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Vlastní barva</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva pozadí</value>
+  </data>
+  <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
+    <value>Chování widgetu na hlavním panelu a vysouvacího panelu</value>
+  </data>
+  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
+    <value>Zabrání přetahování widgetu po hlavním panelu</value>
+  </data>
+  <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
+    <value>Zamknout polohu widgetu na hlavním panelu</value>
+  </data>
+  <data name="Settings_FlyoutShortcutCard.Description" xml:space="preserve">
+    <value>Otevřít vysouvací panel z klávesnice, dokud je widget na hlavním panelu otevřený</value>
+  </data>
+  <data name="Settings_FlyoutShortcutCard.Header" xml:space="preserve">
+    <value>Klávesová zkratka vysouvacího panelu</value>
+  </data>
+  <data name="Settings_FlyoutShortcutNoneText.Text" xml:space="preserve">
+    <value>Žádná</value>
+  </data>
+  <data name="Settings_CSVLoggingText.Text" xml:space="preserve">
+    <value>Záznam do CSV</value>
+  </data>
+  <data name="Settings_CSVFormatExpander.Description" xml:space="preserve">
+    <value>Jak se hodnoty zapisují do záznamu</value>
+  </data>
+  <data name="Settings_CSVFormatExpander.Header" xml:space="preserve">
+    <value>Formát CSV</value>
+  </data>
+  <data name="Settings_CsvNumberFormatComboBox_Local.Content" xml:space="preserve">
+    <value>Regionální</value>
+  </data>
+  <data name="Settings_CsvNumberFormatComboBox_Invariant.Content" xml:space="preserve">
+    <value>Invariantní</value>
+  </data>
+  <data name="Settings_ExampleRowText.Text" xml:space="preserve">
+    <value>Ukázkový řádek:</value>
+  </data>
+  <data name="Settings_DecimalPlacesCard.Header" xml:space="preserve">
+    <value>Desetinná místa</value>
+  </data>
+  <data name="Settings_UnitsInValuesCard.Header" xml:space="preserve">
+    <value>Jednotky v hodnotách</value>
+  </data>
+  <data name="Settings_PauseBehaviorCard.Header" xml:space="preserve">
+    <value>Chování při pozastavení</value>
+  </data>
+  <data name="Settings_CsvPauseSeamComboBox_Gap.Content" xml:space="preserve">
+    <value>Vložit prázdný řádek</value>
+  </data>
+  <data name="Settings_CsvPauseSeamComboBox_Seamless.Content" xml:space="preserve">
+    <value>Plynule pokračovat</value>
+  </data>
+  <data name="Settings_BackupResetText.Text" xml:space="preserve">
+    <value>Záloha a obnovení</value>
+  </data>
+  <data name="Settings_AppDataFolderCard.Description" xml:space="preserve">
+    <value>Kde jsou uložena nastavení, stav oken a senzorů</value>
+  </data>
+  <data name="Settings_AppDataFolderCard.Header" xml:space="preserve">
+    <value>Složka dat aplikace</value>
+  </data>
+  <data name="Settings_OpenAppDataButton.Content" xml:space="preserve">
+    <value>Otevřít</value>
+  </data>
+  <data name="Settings_ExportImportSettingsCard.Description" xml:space="preserve">
+    <value>Zálohovat nebo obnovit všechna nastavení (import restartuje aplikaci)</value>
+  </data>
+  <data name="Settings_ExportImportSettingsCard.Header" xml:space="preserve">
+    <value>Export / import nastavení</value>
+  </data>
+  <data name="Settings_ExportButton.Content" xml:space="preserve">
+    <value>Exportovat</value>
+  </data>
+  <data name="Settings_ImportButton.Content" xml:space="preserve">
+    <value>Importovat</value>
+  </data>
+  <data name="Settings_ResetToDefaultsExpander.Description" xml:space="preserve">
+    <value>Obnovit jednotlivé soubory nastavení na výchozí hodnoty (restartuje aplikaci)</value>
+  </data>
+  <data name="Settings_ResetToDefaultsExpander.Header" xml:space="preserve">
+    <value>Obnovit výchozí</value>
+  </data>
+  <data name="Settings_ResetAllButton.Content" xml:space="preserve">
+    <value>Obnovit vše</value>
+  </data>
+  <data name="Settings_GeneralSettingsCard.Description" xml:space="preserve">
+    <value>Motiv, pozadí, interval aktualizace, vzhled grafů, oznamovací oblast</value>
+  </data>
+  <data name="Settings_GeneralSettingsCard.Header" xml:space="preserve">
+    <value>Obecná nastavení</value>
+  </data>
+  <data name="Settings_ResetButton.Content" xml:space="preserve">
+    <value>Obnovit</value>
+  </data>
+  <data name="Settings_WindowAndPageStatesCard.Description" xml:space="preserve">
+    <value>Poloha a velikost všech oken, stavový údaj v záhlaví, výběr senzorů v zobrazení hardwaru</value>
+  </data>
+  <data name="Settings_WindowAndPageStatesCard.Header" xml:space="preserve">
+    <value>Stav oken a stránek</value>
+  </data>
+  <data name="Settings_SensorStatesCard.Description" xml:space="preserve">
+    <value>Viditelnost jednotlivých senzorů, prahové hodnoty, měřítko grafu, připnutý výběr</value>
+  </data>
+  <data name="Settings_SensorStatesCard.Header" xml:space="preserve">
+    <value>Stav senzorů</value>
+  </data>
+  <data name="FlyoutShortcut_DialogTitle" xml:space="preserve">
+    <value>Klávesová zkratka</value>
+  </data>
+  <data name="FlyoutShortcut_DialogSave" xml:space="preserve">
+    <value>Uložit</value>
+  </data>
+  <data name="FlyoutShortcut_AtLeastOneText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Ctrl, Alt nebo Win: alespoň jedna</value>
+  </data>
+  <data name="FlyoutShortcut_AtLeastOneText.Text" xml:space="preserve">
+    <value>alespoň jedna</value>
+  </data>
+  <data name="FlyoutShortcut_OptionalText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>plus Shift: volitelně</value>
+  </data>
+  <data name="FlyoutShortcut_OptionalText.Text" xml:space="preserve">
+    <value>volitelně</value>
+  </data>
+  <data name="FlyoutShortcut_ExactlyOneText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>plus písmeno, číslice nebo klávesa F: právě jedna</value>
+  </data>
+  <data name="FlyoutShortcut_ExactlyOneText.Text" xml:space="preserve">
+    <value>právě jedna</value>
+  </data>
+  <data name="FlyoutShortcut_NoShortcutText.Text" xml:space="preserve">
+    <value>Žádná zkratka</value>
+  </data>
+  <data name="FlyoutShortcut_ClearButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Odebrat zkratku</value>
+  </data>
+  <data name="FlyoutShortcut_ClearShortcutText.Text" xml:space="preserve">
+    <value>Odebrat zkratku</value>
+  </data>
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Zrušit</value>
+  </data>
+  <data name="Settings_RunOnStartupPortable" xml:space="preserve">
+    <value>Není k dispozici v přenosné verzi, zanechala by po sobě naplánovanou úlohu</value>
+  </data>
+  <data name="Settings_StartupFailedTitle" xml:space="preserve">
+    <value>Spuštění</value>
+  </data>
+  <data name="Settings_StartupFailedMessage" xml:space="preserve">
+    <value>Windows nepřijal změnu naplánované úlohy.</value>
+  </data>
+  <data name="Settings_TaskbarEdgeBottom" xml:space="preserve">
+    <value>Dole</value>
+  </data>
+  <data name="Settings_TaskbarEdgeTop" xml:space="preserve">
+    <value>Nahoře</value>
+  </data>
+  <data name="Settings_TaskbarEdgeLeft" xml:space="preserve">
+    <value>Vlevo</value>
+  </data>
+  <data name="Settings_TaskbarEdgeRight" xml:space="preserve">
+    <value>Vpravo</value>
+  </data>
+  <data name="Settings_FlyoutShortcutNone" xml:space="preserve">
+    <value>Žádná</value>
+  </data>
+  <data name="Settings_FlyoutShortcutName" xml:space="preserve">
+    <value>Klávesová zkratka vysouvacího panelu, {0}</value>
+  </data>
+  <data name="Settings_ExportPickerTitle" xml:space="preserve">
+    <value>Exportovat nastavení</value>
+  </data>
+  <data name="Settings_ImportPickerTitle" xml:space="preserve">
+    <value>Importovat nastavení</value>
+  </data>
+  <data name="Settings_BackupFileType" xml:space="preserve">
+    <value>Soubor zálohy</value>
+  </data>
+  <data name="Settings_ExportSuccessTitle" xml:space="preserve">
+    <value>Export proběhl úspěšně</value>
+  </data>
+  <data name="Settings_ExportSuccessMessage" xml:space="preserve">
+    <value>Vaše nastavení byla exportována.</value>
+  </data>
+  <data name="Settings_ExportFailedTitle" xml:space="preserve">
+    <value>Export se nezdařil</value>
+  </data>
+  <data name="Settings_ExportFailedMessage" xml:space="preserve">
+    <value>Nastavení se nepodařilo exportovat.</value>
+  </data>
+  <data name="Settings_ImportConfirmTitle" xml:space="preserve">
+    <value>Importovat nastavení?</value>
+  </data>
+  <data name="Settings_ImportConfirmMessage" xml:space="preserve">
+    <value>Tím se přepíší všechna aktuální nastavení, stavy oken, stavy senzorů a výběry senzorů a aplikace se poté restartuje.</value>
+  </data>
+  <data name="Settings_ImportConfirm" xml:space="preserve">
+    <value>Importovat</value>
+  </data>
+  <data name="Settings_ImportFailedTitle" xml:space="preserve">
+    <value>Import se nezdařil</value>
+  </data>
+  <data name="Settings_ImportFailedMessage" xml:space="preserve">
+    <value>Vybraný soubor není platná záloha FluentSensors.</value>
+  </data>
+  <data name="Settings_ResetWhatAll" xml:space="preserve">
+    <value>Všechna nastavení</value>
+  </data>
+  <data name="Settings_ResetWhatGeneral" xml:space="preserve">
+    <value>Obecná nastavení</value>
+  </data>
+  <data name="Settings_ResetWhatWindowStates" xml:space="preserve">
+    <value>Stav oken a stránek</value>
+  </data>
+  <data name="Settings_ResetWhatSensorStates" xml:space="preserve">
+    <value>Stav senzorů</value>
+  </data>
+  <data name="Settings_ResetConfirmTitle" xml:space="preserve">
+    <value>Obnovit: {0}?</value>
+  </data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve">
+    <value>Tím se obnoví výchozí hodnoty a aplikace se restartuje. Tuto akci nelze vrátit zpět.</value>
+  </data>
+  <data name="Settings_ResetConfirm" xml:space="preserve">
+    <value>Obnovit</value>
+  </data>
+  <data name="FlyoutShortcut_WarningModifier" xml:space="preserve">
+    <value>Začněte klávesou Ctrl, Alt nebo Win</value>
+  </data>
+  <data name="FlyoutShortcut_WarningInUse" xml:space="preserve">
+    <value>Již se používá</value>
+  </data>
+  <data name="FlyoutShortcut_KeysName" xml:space="preserve">
+    <value>Zkratka, {0}</value>
+  </data>
+  <data name="FlyoutShortcut_NoShortcut" xml:space="preserve">
+    <value>Žádná zkratka</value>
+  </data>
 </root>

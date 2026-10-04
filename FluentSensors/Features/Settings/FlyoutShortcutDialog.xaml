@@ -5,12 +5,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="Activation Shortcut"
-    CloseButtonText="Cancel"
     DefaultButton="Primary"
     PreviewKeyDown="Dialog_PreviewKeyDown"
     PreviewKeyUp="Dialog_PreviewKeyUp"
-    PrimaryButtonText="Save"
     Style="{StaticResource DefaultContentDialogStyle}"
     mc:Ignorable="d">
 
@@ -88,12 +85,11 @@
                 <Button Content="Win" Style="{StaticResource SchemeKeyStyle}" />
             </StackPanel>
             <TextBlock
+                x:Uid="FlyoutShortcut_AtLeastOneText"
                 Grid.Row="0"
                 Grid.Column="2"
                 Margin="12,0,0,0"
-                AutomationProperties.Name="Ctrl, Alt or Win: at least one"
-                Style="{StaticResource SchemeNoteStyle}"
-                Text="at least one" />
+                Style="{StaticResource SchemeNoteStyle}" />
 
             <!--  shift  -->
             <TextBlock
@@ -109,12 +105,11 @@
                 Content="Shift"
                 Style="{StaticResource SchemeKeyStyle}" />
             <TextBlock
+                x:Uid="FlyoutShortcut_OptionalText"
                 Grid.Row="1"
                 Grid.Column="2"
                 Margin="12,0,0,0"
-                AutomationProperties.Name="plus Shift: optional"
-                Style="{StaticResource SchemeNoteStyle}"
-                Text="optional" />
+                Style="{StaticResource SchemeNoteStyle}" />
 
             <!--  key  -->
             <TextBlock
@@ -132,12 +127,11 @@
                 <Button Content="F1–F24" Style="{StaticResource SchemeKeyStyle}" />
             </StackPanel>
             <TextBlock
+                x:Uid="FlyoutShortcut_ExactlyOneText"
                 Grid.Row="2"
                 Grid.Column="2"
                 Margin="12,0,0,0"
-                AutomationProperties.Name="plus a letter, digit or F key: exactly one"
-                Style="{StaticResource SchemeNoteStyle}"
-                Text="exactly one" />
+                Style="{StaticResource SchemeNoteStyle}" />
         </Grid>
 
         <!--  the recorded keys, or the placeholder  -->
@@ -159,19 +153,19 @@
                     Spacing="8" />
                 <TextBlock
                     x:Name="NoShortcutText"
+                    x:Uid="FlyoutShortcut_NoShortcutText"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="No shortcut" />
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             </Grid>
         </Border>
 
         <!--  clear the shortcut  -->
         <Button
             x:Name="ClearButton"
+            x:Uid="FlyoutShortcut_ClearButton"
             Margin="0,-16,0,0"
             HorizontalAlignment="Center"
-            AutomationProperties.Name="Clear Shortcut"
             Click="ClearButton_Click"
             Style="{StaticResource SubtleBarButtonStyle}">
             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -179,7 +173,7 @@
                     FontSize="14"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Glyph="&#xE74D;" />
-                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Clear Shortcut" />
+                <TextBlock x:Uid="FlyoutShortcut_ClearShortcutText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             </StackPanel>
         </Button>
 
