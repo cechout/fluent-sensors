@@ -26,15 +26,14 @@ namespace FluentSensors.Features.AppStatus
         private string _handleCountText = "";
         private string _gcMemoryText = "";
 
-        // below it the second group hides; the title bar width less what sits in front, see UpdateAvailableWidth
-        private const double MinWidthForFullStatus = 750;
-
-        // the inputs of the group visibility (see UpdateVisibility); all but _isAppReady and
-        // _hasEnoughWidthForFull mirror a setting
+        // the inputs of the group visibility (see UpdateVisibility); all but _isAppReady and the widths mirror a
+        // setting
         private bool _isAppReady;
         private bool _isStatusEnabled;
         private bool _isStatusCollapsed;
-        private bool _hasEnoughWidthForFull = true;
+        private double _readoutRoom = double.MaxValue; // in DIP; from MainWindow, see UpdateAvailableWidth
+        private double _lhmGroupWidth; // the last measured width, 0 until shown once
+        private double _windowsGroupWidth;
         private bool _isLhmGroupEnabled = true;
         private bool _isWindowsGroupEnabled = true;
         private bool _isLhmGroupFirst = true;
@@ -129,13 +128,6 @@ namespace FluentSensors.Features.AppStatus
             }
         }
 
-        // see UpdateAvailableWidth
-        public bool HasEnoughWidthForFull
-        {
-            get => _hasEnoughWidthForFull;
-            set { if (_hasEnoughWidthForFull == value) return; _hasEnoughWidthForFull = value; UpdateVisibility(); }
-        }
-
         // whether each group is wanted; the settings page writes them
         public bool IsLhmGroupEnabled => _isLhmGroupEnabled;
         public bool IsWindowsGroupEnabled => _isWindowsGroupEnabled;
@@ -143,7 +135,7 @@ namespace FluentSensors.Features.AppStatus
         // the leading group; MainWindow moves the columns
         public bool IsLhmGroupFirst => _isLhmGroupFirst;
 
-        // app ready, readout on and not collapsed, group wanted, and leading or with room for the trailing one
+        // app ready, readout on and not collapsed, group wanted, and room for it after the groups in front
         public bool IsLhmGroupVisible
         {
             get => _isLhmGroupVisible;
@@ -195,11 +187,16 @@ namespace FluentSensors.Features.AppStatus
 
         // === public api ===
 
-        // from MainWindow; reservedWidth is what sits in front of the readout (update pill, prerequisite hints), so
-        // MinWidthForFullStatus is about the readout alone
-        public void UpdateAvailableWidth(double titleBarWidth, double reservedWidth)
+        // from MainWindow; room is the free title bar between the toggle button and the caption buttons, the group
+        // widths are the last measured ones with their margin, 0 until a group was shown once
+        public void UpdateAvailableWidth(double room, double lhmGroupWidth, double windowsGroupWidth)
         {
-            HasEnoughWidthForFull = titleBarWidth - reservedWidth >= MinWidthForFullStatus;
+            if (room == _readoutRoom && lhmGroupWidth == _lhmGroupWidth && windowsGroupWidth == _windowsGroupWidth) return;
+
+            _readoutRoom = room;
+            _lhmGroupWidth = lhmGroupWidth;
+            _windowsGroupWidth = windowsGroupWidth;
+            UpdateVisibility();
         }
 
         // re-reads the five readout settings; (MainWindow owns the subscription, a new order moves its columns too)
@@ -226,11 +223,17 @@ namespace FluentSensors.Features.AppStatus
         {
             bool readoutOn = IsAppReady && IsStatusEnabled && !IsStatusCollapsed;
 
-            // only the second group gives way; a single group stays whatever the width
-            bool trailingFits = !(_isLhmGroupEnabled && _isWindowsGroupEnabled) || HasEnoughWidthForFull;
+            // in order, each group only with room left after the ones in front; the trailing group gives way first,
+            // then the leading one, so nothing runs under the caption buttons
+            double lhmNeeded = _isLhmGroupEnabled ? _lhmGroupWidth : 0;
+            double windowsNeeded = _isWindowsGroupEnabled ? _windowsGroupWidth : 0;
+            double leadingNeeded = _isLhmGroupFirst ? lhmNeeded : windowsNeeded;
 
-            IsLhmGroupVisible = readoutOn && _isLhmGroupEnabled && (_isLhmGroupFirst || trailingFits);
-            IsWindowsGroupVisible = readoutOn && _isWindowsGroupEnabled && (!_isLhmGroupFirst || trailingFits);
+            bool leadingFits = leadingNeeded <= _readoutRoom;
+            bool trailingFits = leadingFits && lhmNeeded + windowsNeeded <= _readoutRoom;
+
+            IsLhmGroupVisible = readoutOn && _isLhmGroupEnabled && (_isLhmGroupFirst ? leadingFits : trailingFits);
+            IsWindowsGroupVisible = readoutOn && _isWindowsGroupEnabled && (_isLhmGroupFirst ? trailingFits : leadingFits);
             IsStatusToggleVisible = _isStatusEnabled && (_isLhmGroupEnabled || _isWindowsGroupEnabled);
         }
 

@@ -120,6 +120,12 @@ namespace FluentSensors
         private static readonly Thickness LeadingStatusGroupMargin = new Thickness(8, 0, 0, 0);
         private static readonly Thickness TrailingStatusGroupMargin = new Thickness(12, 0, 0, 0);
 
+        // in DIP; the last measured width of each status group, kept while it is hidden, and the gap the readout keeps
+        // to the caption buttons
+        private double _lhmStatusGroupWidth;
+        private double _windowsStatusGroupWidth;
+        private const double StatusCaptionGap = 12;
+
 
         // === constructor ===
 
@@ -434,16 +440,19 @@ namespace FluentSensors
             UpdateButton.SizeChanged += OnTitleBarExtraSizeChanged;
             DotNetRuntimePopup.SizeChanged += OnTitleBarExtraSizeChanged;
             PawnIoPopup.SizeChanged += OnTitleBarExtraSizeChanged;
+            StatusToggleButton.SizeChanged += OnTitleBarExtraSizeChanged;
+            LhmStatusGroup.SizeChanged += OnTitleBarExtraSizeChanged;
+            WindowsStatusGroup.SizeChanged += OnTitleBarExtraSizeChanged;
 
             ApplyStatusGroupOrder();
         }
 
         private void OnTitleBarExtraSizeChanged(object sender, SizeChangedEventArgs e) => RefreshTitleBarLayout();
 
-        // feeds HasEnoughWidthForFull, whether the trailing group still fits; see AppStatusViewModel.UpdateVisibility
+        // feeds the room for the status groups; see AppStatusViewModel.UpdateVisibility
         private void AppTitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            AppStatus.UpdateAvailableWidth(e.NewSize.Width, MeasureTitleBarExtrasWidth());
+            UpdateReadoutRoom();
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);
         }
 
@@ -452,7 +461,7 @@ namespace FluentSensors
         // (always at Low priority, after layout; a pill that just became visible measures zero before that)
         private void RefreshTitleBarLayout()
         {
-            AppStatus.UpdateAvailableWidth(AppTitleBar.ActualWidth, MeasureTitleBarExtrasWidth());
+            UpdateReadoutRoom();
 
             // info popups hand over their button only; (a rect over the readout inside them would block dragging)
             TitleBarPassthrough.Apply(this, AppTitleBar,
@@ -460,11 +469,26 @@ namespace FluentSensors
                 LhmInfoPopup.InteractiveRegion, WindowsInfoPopup.InteractiveRegion);
         }
 
-        // everything in front of the status readout: the update pill and the visible prerequisite hints; (measured,
-        // the pill width follows its version string and text scaling)
-        private double MeasureTitleBarExtrasWidth()
+        // the room between everything in front of the readout (icon, title, update pill, prerequisite hints, toggle)
+        // and the caption buttons, and the width each group took the last time it was shown; (all measured, the
+        // texts follow the language and text scaling)
+        private void UpdateReadoutRoom()
         {
-            return MeasuredWidth(UpdateButton) + MeasuredWidth(DotNetRuntimePopup) + MeasuredWidth(PawnIoPopup);
+            double inFront = MeasuredWidth(AppTitleIcon) + MeasuredWidth(AppTitleText) + MeasuredWidth(UpdateButton)
+                + MeasuredWidth(DotNetRuntimePopup) + MeasuredWidth(PawnIoPopup) + MeasuredWidth(StatusToggleButton);
+
+            double scale = AppTitleBar.XamlRoot?.RasterizationScale ?? 1.0;
+            double captionButtons = AppWindow.TitleBar.RightInset / scale;
+
+            if (LhmStatusGroup.Visibility == Visibility.Visible && LhmStatusGroup.ActualWidth > 0)
+                _lhmStatusGroupWidth = MeasuredWidth(LhmStatusGroup);
+            if (WindowsStatusGroup.Visibility == Visibility.Visible && WindowsStatusGroup.ActualWidth > 0)
+                _windowsStatusGroupWidth = MeasuredWidth(WindowsStatusGroup);
+
+            AppStatus.UpdateAvailableWidth(
+                AppTitleBar.ActualWidth - inFront - captionButtons - StatusCaptionGap,
+                _lhmStatusGroupWidth,
+                _windowsStatusGroupWidth);
         }
 
         // zero until arranged, which is the state on the pass that reveals it; callers come back once it has a size
