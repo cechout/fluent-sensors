@@ -53,7 +53,8 @@ namespace FluentSensors.Features.Settings
 
             // the time range lists the pickers share; from code, the restores below run before x:Bind would
             PerformanceGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Performance;
-            PerformanceExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
+            PerformanceCpuExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
+            PerformanceGpuExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
             GraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Widget;
             TaskbarGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
             TaskbarFlyoutGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
@@ -654,7 +655,7 @@ namespace FluentSensors.Features.Settings
 
         // === performance page appearance settings ===
 
-        // two ranges for two graph densities; Extended covers the cpu all-threads and gpu extended grids
+        // the overview range, plus one each for the dense cpu all-threads and gpu extended grids
         private void PerformanceGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -665,20 +666,31 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        private void PerformanceExtendedGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void PerformanceCpuExtendedGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
 
             if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
             {
-                SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds = option.Seconds;
+                SettingsService.Instance.PerformanceCpuExtendedGraphTimeSpanSeconds = option.Seconds;
+            }
+        }
+
+        private void PerformanceGpuExtendedGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
+            {
+                SettingsService.Instance.PerformanceGpuExtendedGraphTimeSpanSeconds = option.Seconds;
             }
         }
 
         private void RestorePerformanceGraphTimeSpanSelection()
         {
             SelectTimeSpanItem(PerformanceGraphTimeSpanComboBox, SettingsService.Instance.PerformanceGraphTimeSpanSeconds);
-            SelectTimeSpanItem(PerformanceExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds);
+            SelectTimeSpanItem(PerformanceCpuExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceCpuExtendedGraphTimeSpanSeconds);
+            SelectTimeSpanItem(PerformanceGpuExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceGpuExtendedGraphTimeSpanSeconds);
         }
 
         // nothing selected for a value the list does not have

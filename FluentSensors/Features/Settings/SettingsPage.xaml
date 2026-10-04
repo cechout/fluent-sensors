@@ -293,12 +293,20 @@
                             SelectionChanged="PerformanceGraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="Extended Time Range">
+                    <controls:SettingsCard Header="CPU Extended Time Range">
                         <ComboBox
-                            x:Name="PerformanceExtendedGraphTimeSpanComboBox"
+                            x:Name="PerformanceCpuExtendedGraphTimeSpanComboBox"
                             Width="40"
                             DisplayMemberPath="DisplayName"
-                            SelectionChanged="PerformanceExtendedGraphTimeSpanComboBox_SelectionChanged" />
+                            SelectionChanged="PerformanceCpuExtendedGraphTimeSpanComboBox_SelectionChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Header="GPU Extended Time Range">
+                        <ComboBox
+                            x:Name="PerformanceGpuExtendedGraphTimeSpanComboBox"
+                            Width="40"
+                            DisplayMemberPath="DisplayName"
+                            SelectionChanged="PerformanceGpuExtendedGraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

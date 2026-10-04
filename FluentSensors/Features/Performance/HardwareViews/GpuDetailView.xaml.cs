@@ -128,7 +128,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
                 if (!_extendedTimeSpanHookAttached)
                 {
                     _extendedTimeSpanHookAttached = true;
-                    PerformanceGraphDefaults.BindTimeSpan(ExtendedGrid, PerformanceGraphKind.Extended);
+                    PerformanceGraphDefaults.BindTimeSpan(ExtendedGrid, PerformanceGraphKind.GpuExtended);
                 }
             }
             else

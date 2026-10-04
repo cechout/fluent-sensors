@@ -57,9 +57,11 @@ namespace FluentSensors.Persistence.Models
 
         // --- performance page appearance ---
 
-        // graph; Standard for the overview blocks, Extended for the dense grids (cpu all-threads, gpu extended)
+        // graph; Standard for the overview blocks, CpuExtended and GpuExtended for the dense grids (cpu all-threads,
+        // gpu extended)
         public double PerformanceGraphTimeSpanSeconds { get; set; } = 90;
-        public double PerformanceExtendedGraphTimeSpanSeconds { get; set; } = 30;
+        public double PerformanceCpuExtendedGraphTimeSpanSeconds { get; set; } = 30;
+        public double PerformanceGpuExtendedGraphTimeSpanSeconds { get; set; } = 30;
 
 
         // --- widget window appearance ---
@@ -177,5 +179,8 @@ namespace FluentSensors.Persistence.Models
         public double? TaskbarGraphTimeSpanSeconds { get; set; } = null;
         public int? TaskbarGraphWidthDip { get; set; } = null;
         public string? TaskbarFlyoutAlignment { get; set; } = null;
+
+        // the shared extended range the cpu and gpu ranges replaced; SettingsService copies it onto both once
+        public double? PerformanceExtendedGraphTimeSpanSeconds { get; set; } = null;
     }
 }

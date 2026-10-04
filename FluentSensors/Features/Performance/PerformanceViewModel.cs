@@ -44,11 +44,12 @@ namespace FluentSensors.Features.Performance
             // detached, this lives for the session
             SettingsService.Instance.HardwareIconColorsChanged += RefreshNavItemIconBrushes;
 
-            // no value, either range; both pickers re-read
+            // no value, any range; all pickers re-read
             SettingsService.Instance.PerformanceGraphTimeSpanChanged += () =>
             {
                 OnPropertyChanged(nameof(StandardGraphTimeSpanSeconds));
-                OnPropertyChanged(nameof(ExtendedGraphTimeSpanSeconds));
+                OnPropertyChanged(nameof(CpuExtendedGraphTimeSpanSeconds));
+                OnPropertyChanged(nameof(GpuExtendedGraphTimeSpanSeconds));
             };
 
             // every category the same way: the existing instances, then later ones; getPrimaryGraph picks the
@@ -246,10 +247,16 @@ namespace FluentSensors.Features.Performance
             set => SettingsService.Instance.PerformanceGraphTimeSpanSeconds = value;
         }
 
-        public double ExtendedGraphTimeSpanSeconds
+        public double CpuExtendedGraphTimeSpanSeconds
         {
-            get => PerformanceGraphDefaults.ExtendedTimeSpanSeconds;
-            set => SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds = value;
+            get => PerformanceGraphDefaults.CpuExtendedTimeSpanSeconds;
+            set => SettingsService.Instance.PerformanceCpuExtendedGraphTimeSpanSeconds = value;
+        }
+
+        public double GpuExtendedGraphTimeSpanSeconds
+        {
+            get => PerformanceGraphDefaults.GpuExtendedTimeSpanSeconds;
+            set => SettingsService.Instance.PerformanceGpuExtendedGraphTimeSpanSeconds = value;
         }
 
         // a detail view is shown (false on the start page); sidebar and info panel need one, whatever the toggles say

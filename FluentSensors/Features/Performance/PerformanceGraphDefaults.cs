@@ -8,18 +8,20 @@ using FluentSensors.Persistence.Services;
 namespace FluentSensors.Features.Performance
 {
     // the performance graph time spans:
-    // the overview blocks take the longer span, the dense grids (cpu all threads, gpu extended) a shorter one; both are
-    // settings a graph follows while on screen
+    // the overview blocks take the longer span, the dense grids (cpu all threads, gpu extended) a shorter one each; all
+    // are settings a graph follows while on screen
     public enum PerformanceGraphKind
     {
         Standard,
-        Extended
+        CpuExtended,
+        GpuExtended
     }
 
     public static class PerformanceGraphDefaults
     {
         public static double StandardTimeSpanSeconds => SettingsService.Instance.PerformanceGraphTimeSpanSeconds;
-        public static double ExtendedTimeSpanSeconds => SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds;
+        public static double CpuExtendedTimeSpanSeconds => SettingsService.Instance.PerformanceCpuExtendedGraphTimeSpanSeconds;
+        public static double GpuExtendedTimeSpanSeconds => SettingsService.Instance.PerformanceGpuExtendedGraphTimeSpanSeconds;
 
         // every SensorPanelControl under root on the setting while root is loaded
         // right away for literal children, on Loaded for the x:Load="False" grids, on every change;
@@ -67,7 +69,8 @@ namespace FluentSensors.Features.Performance
 
         private static double ResolveTimeSpanSeconds(PerformanceGraphKind kind) => kind switch
         {
-            PerformanceGraphKind.Extended => ExtendedTimeSpanSeconds,
+            PerformanceGraphKind.CpuExtended => CpuExtendedTimeSpanSeconds,
+            PerformanceGraphKind.GpuExtended => GpuExtendedTimeSpanSeconds,
             _ => StandardTimeSpanSeconds
         };
     }
