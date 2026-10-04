@@ -16,12 +16,16 @@ namespace FluentSensors.Common.Localization
         private static Dictionary<string, string>? _english;
         private static ResourceMap? _map;
 
+        // the setting the running process applied, see AppLanguage.StartupSetting
+        public static bool StartedInEnglish { get; private set; }
+
         // from App(), before AppLanguage.Apply
         //
         // an override set by PrimaryLanguageOverride wins over the Language qualifier of every ResourceContext, so an
         // english lookup after it still returns the app language; the english set is read before it instead
         public static void Configure(bool useEnglish)
         {
+            StartedInEnglish = useEnglish;
             if (!useEnglish) return;
 
             try

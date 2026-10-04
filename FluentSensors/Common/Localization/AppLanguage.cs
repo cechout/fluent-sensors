@@ -22,12 +22,20 @@ namespace FluentSensors.Common.Localization
             ("cs-CZ", "Čeština"),
         };
 
+        // the setting the running process applied; the settings page compares against it to offer a restart
+        public static string StartupSetting { get; private set; } = SystemDefault;
+
         public static bool IsSupported(string? tag) =>
             Supported.Any(language => string.Equals(language.Tag, tag, StringComparison.OrdinalIgnoreCase));
+
+        // an unknown tag counts as Default, the same way Apply treats it
+        public static string Normalize(string? tag) => IsSupported(tag) ? tag! : SystemDefault;
 
         // an empty override clears one a packaged install persisted, so Default really follows Windows again
         public static void Apply(string? tag)
         {
+            StartupSetting = Normalize(tag);
+
             try
             {
                 ApplicationLanguages.PrimaryLanguageOverride = IsSupported(tag) ? tag : "";

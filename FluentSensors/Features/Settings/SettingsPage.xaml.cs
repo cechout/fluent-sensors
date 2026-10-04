@@ -250,30 +250,14 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        // language; the choice only applies on a restart, so it is kept only when the restart is confirmed
-        private async void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        // language; saved right away, it applies on the next start
+        private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
             if (LanguageComboBox.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
-            if (tag == SettingsService.Instance.AppLanguage) return;
 
-            bool confirmed = await ConfirmAction(
-                AppStrings.Get("Settings_LanguageRestartTitle"),
-                AppStrings.Get("Settings_LanguageRestartMessage"),
-                AppStrings.Get("Settings_LanguageRestartConfirm"));
-            if (!confirmed)
-            {
-                _isLoading = true;
-                RestoreLanguageSelection();
-            RestoreTechnicalTermsSelection();
-                _isLoading = false;
-                return;
-            }
-
-            // flushed before the restart, the new process reads the language before the old one exits
             SettingsService.Instance.AppLanguage = tag;
-            PersistenceService.Instance.FlushAll();
-            RestartApp();
+            UpdateLanguageRestartBar();
         }
 
         private void RestoreLanguageSelection()
@@ -290,27 +274,13 @@ namespace FluentSensors.Features.Settings
             SelectByTag(LanguageComboBox, AppLanguage.IsSupported(current) ? current : AppLanguage.SystemDefault);
         }
 
-        // technical terms in english; like the language, kept only when the restart is confirmed
-        private async void TechnicalTermsToggle_Toggled(object sender, RoutedEventArgs e)
+        // technical terms in english; like the language, saved right away and applied on the next start
+        private void TechnicalTermsToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
 
-            bool wanted = TechnicalTermsToggle.IsOn;
-            bool confirmed = await ConfirmAction(
-                AppStrings.Get("Settings_TechnicalTermsRestartTitle"),
-                AppStrings.Get("Settings_TechnicalTermsRestartMessage"),
-                AppStrings.Get("Settings_LanguageRestartConfirm"));
-            if (!confirmed)
-            {
-                _isLoading = true;
-                TechnicalTermsToggle.IsOn = !wanted;
-                _isLoading = false;
-                return;
-            }
-
-            SettingsService.Instance.TechnicalTermsInEnglish = wanted;
-            PersistenceService.Instance.FlushAll();
-            RestartApp();
+            SettingsService.Instance.TechnicalTermsInEnglish = TechnicalTermsToggle.IsOn;
+            UpdateLanguageRestartBar();
         }
 
         // the resource language actually in use, not the setting; Default can resolve to english too
@@ -318,6 +288,28 @@ namespace FluentSensors.Features.Settings
         {
             TechnicalTermsToggle.IsOn = SettingsService.Instance.TechnicalTermsInEnglish;
             TechnicalTermsCard.IsEnabled = AppStrings.Get("App_LanguageTag") != "en-US";
+            UpdateLanguageRestartBar();
+        }
+
+        // open while either choice differs from what this process started with; turning a choice back closes it
+        private void UpdateLanguageRestartBar()
+        {
+            var settings = SettingsService.Instance;
+            bool languageChanged = AppLanguage.Normalize(settings.AppLanguage) != AppLanguage.StartupSetting;
+            bool termsChanged = settings.TechnicalTermsInEnglish != AppTerms.StartedInEnglish;
+
+            LanguageRestartBar.Message = AppStrings.Get(
+                languageChanged && termsChanged ? "Settings_RestartPendingBoth"
+                : languageChanged ? "Settings_RestartPendingLanguage"
+                : "Settings_RestartPendingTerms");
+            LanguageRestartBar.IsOpen = languageChanged || termsChanged;
+        }
+
+        // flushed before the restart, the new process reads the settings before the old one exits
+        private void LanguageRestartButton_Click(object sender, RoutedEventArgs e)
+        {
+            PersistenceService.Instance.FlushAll();
+            RestartApp();
         }
 
         // update interval

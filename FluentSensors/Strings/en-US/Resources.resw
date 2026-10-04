@@ -58,23 +58,29 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Settings_LanguageCard.Header" xml:space="preserve">
+  <data name="Settings_LanguageExpander.Header" xml:space="preserve">
     <value>Language</value>
   </data>
-  <data name="Settings_LanguageCard.Description" xml:space="preserve">
-    <value>Restarts the app</value>
+  <data name="Settings_LanguageExpander.Description" xml:space="preserve">
+    <value>App language and technical terms</value>
+  </data>
+  <data name="Settings_LanguageRestartButton.Content" xml:space="preserve">
+    <value>Restart</value>
+  </data>
+  <data name="Settings_RestartPendingLanguage" xml:space="preserve">
+    <value>Restart the app to show the new language</value>
+  </data>
+  <data name="Settings_RestartPendingTerms" xml:space="preserve">
+    <value>Restart the app to show the technical terms in the new language</value>
+  </data>
+  <data name="Settings_RestartPendingBoth" xml:space="preserve">
+    <value>Restart the app to apply the language changes</value>
+  </data>
+  <data name="Settings_LanguageCard.Header" xml:space="preserve">
+    <value>App Language</value>
   </data>
   <data name="Settings_LanguageComboBox_Default.Content" xml:space="preserve">
     <value>System Default</value>
-  </data>
-  <data name="Settings_LanguageRestartTitle" xml:space="preserve">
-    <value>Change Language?</value>
-  </data>
-  <data name="Settings_LanguageRestartMessage" xml:space="preserve">
-    <value>The app restarts to show the new language.</value>
-  </data>
-  <data name="Settings_LanguageRestartConfirm" xml:space="preserve">
-    <value>Restart</value>
   </data>
   <data name="Main_DotNetRuntimePopup.Description" xml:space="preserve">
     <value>.NET 10 is not installed on this device
@@ -1549,14 +1555,5 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
   </data>
   <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
     <value>Technical Terms in English</value>
-  </data>
-  <data name="Settings_TechnicalTermsCard.Description" xml:space="preserve">
-    <value>Keeps hardware terms like Cache or Rank in English (restarts the app)</value>
-  </data>
-  <data name="Settings_TechnicalTermsRestartTitle" xml:space="preserve">
-    <value>Change Technical Terms?</value>
-  </data>
-  <data name="Settings_TechnicalTermsRestartMessage" xml:space="preserve">
-    <value>The app restarts to show the technical terms in the new language.</value>
   </data>
 </root>

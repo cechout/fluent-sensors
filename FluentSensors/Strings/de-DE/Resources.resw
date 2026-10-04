@@ -58,23 +58,29 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Settings_LanguageCard.Header" xml:space="preserve">
+  <data name="Settings_LanguageExpander.Header" xml:space="preserve">
     <value>Sprache</value>
   </data>
-  <data name="Settings_LanguageCard.Description" xml:space="preserve">
-    <value>Startet die App neu</value>
+  <data name="Settings_LanguageExpander.Description" xml:space="preserve">
+    <value>App-Sprache und Fachbegriffe</value>
+  </data>
+  <data name="Settings_LanguageRestartButton.Content" xml:space="preserve">
+    <value>Neu starten</value>
+  </data>
+  <data name="Settings_RestartPendingLanguage" xml:space="preserve">
+    <value>App neu starten, um die neue Sprache anzuzeigen</value>
+  </data>
+  <data name="Settings_RestartPendingTerms" xml:space="preserve">
+    <value>App neu starten, um die Fachbegriffe in der neuen Sprache anzuzeigen</value>
+  </data>
+  <data name="Settings_RestartPendingBoth" xml:space="preserve">
+    <value>App neu starten, um die Sprachänderungen zu übernehmen</value>
+  </data>
+  <data name="Settings_LanguageCard.Header" xml:space="preserve">
+    <value>App-Sprache</value>
   </data>
   <data name="Settings_LanguageComboBox_Default.Content" xml:space="preserve">
     <value>Systemstandard</value>
-  </data>
-  <data name="Settings_LanguageRestartTitle" xml:space="preserve">
-    <value>Sprache ändern?</value>
-  </data>
-  <data name="Settings_LanguageRestartMessage" xml:space="preserve">
-    <value>Die App startet neu, um die neue Sprache anzuzeigen.</value>
-  </data>
-  <data name="Settings_LanguageRestartConfirm" xml:space="preserve">
-    <value>Neu starten</value>
   </data>
   <data name="Main_DotNetRuntimePopup.Description" xml:space="preserve">
     <value>.NET 10 ist auf diesem Gerät nicht installiert
@@ -1549,14 +1555,5 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
     <value>Fachbegriffe auf Englisch</value>
-  </data>
-  <data name="Settings_TechnicalTermsCard.Description" xml:space="preserve">
-    <value>Hardwarebegriffe wie Cache oder Rank bleiben englisch (startet die App neu)</value>
-  </data>
-  <data name="Settings_TechnicalTermsRestartTitle" xml:space="preserve">
-    <value>Fachbegriffe ändern?</value>
-  </data>
-  <data name="Settings_TechnicalTermsRestartMessage" xml:space="preserve">
-    <value>Die App startet neu, um die Fachbegriffe in der neuen Sprache anzuzeigen.</value>
   </data>
 </root>

@@ -47,32 +47,54 @@
                 </ComboBox>
             </controls:SettingsCard>
 
-            <!--  app language  -->
-            <!--  (the languages after the default come from AppLanguage.Supported, see RestoreLanguageSelection)  -->
-            <controls:SettingsCard
-                x:Uid="Settings_LanguageCard"
+            <!--  language: app language and technical terms  -->
+            <!--
+                (both apply on the next start; the info bar offers the restart while a choice differs from what
+                this process runs with, see UpdateLanguageRestartBar)
+            -->
+            <controls:SettingsExpander
+                x:Uid="Settings_LanguageExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xF2B7;}">
-                <ComboBox
-                    x:Name="LanguageComboBox"
-                    Width="150"
-                    SelectionChanged="LanguageComboBox_SelectionChanged">
-                    <ComboBoxItem x:Uid="Settings_LanguageComboBox_Default" Tag="Default" />
-                </ComboBox>
-            </controls:SettingsCard>
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xF2B7;}"
+                IsExpanded="False">
 
-            <!--  technical terms in english  -->
-            <!--  (disabled while the app runs in english, there is nothing to keep; a change asks to restart)  -->
-            <controls:SettingsCard
-                x:Name="TechnicalTermsCard"
-                x:Uid="Settings_TechnicalTermsCard"
-                fhUi:FocusGroup.IsEnabled="True"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE943;}">
-                <ToggleSwitch
-                    x:Name="TechnicalTermsToggle"
-                    x:Uid="Common_ToggleSwitch"
-                    Toggled="TechnicalTermsToggle_Toggled" />
-            </controls:SettingsCard>
+                <!--  restart hint  -->
+                <controls:SettingsExpander.ItemsHeader>
+                    <InfoBar
+                        x:Name="LanguageRestartBar"
+                        BorderThickness="0"
+                        CornerRadius="0"
+                        IsClosable="False"
+                        IsOpen="False"
+                        Severity="Informational">
+                        <InfoBar.ActionButton>
+                            <Button x:Uid="Settings_LanguageRestartButton" Click="LanguageRestartButton_Click" />
+                        </InfoBar.ActionButton>
+                    </InfoBar>
+                </controls:SettingsExpander.ItemsHeader>
+
+                <controls:SettingsExpander.Items>
+                    <!--  app language  -->
+                    <!--  (the languages after the default come from AppLanguage.Supported, see RestoreLanguageSelection)  -->
+                    <controls:SettingsCard x:Uid="Settings_LanguageCard">
+                        <ComboBox
+                            x:Name="LanguageComboBox"
+                            Width="150"
+                            SelectionChanged="LanguageComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_LanguageComboBox_Default" Tag="Default" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <!--  technical terms in english  -->
+                    <!--  (disabled while the app runs in english, there is nothing to keep)  -->
+                    <controls:SettingsCard x:Name="TechnicalTermsCard" x:Uid="Settings_TechnicalTermsCard">
+                        <ToggleSwitch
+                            x:Name="TechnicalTermsToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="TechnicalTermsToggle_Toggled" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
 
             <!--  hardware icon colors  -->
             <!--

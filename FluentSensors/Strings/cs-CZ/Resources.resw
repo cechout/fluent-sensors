@@ -58,23 +58,29 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Settings_LanguageCard.Header" xml:space="preserve">
+  <data name="Settings_LanguageExpander.Header" xml:space="preserve">
     <value>Jazyk</value>
   </data>
-  <data name="Settings_LanguageCard.Description" xml:space="preserve">
-    <value>Restartuje aplikaci</value>
+  <data name="Settings_LanguageExpander.Description" xml:space="preserve">
+    <value>Jazyk aplikace a technické pojmy</value>
+  </data>
+  <data name="Settings_LanguageRestartButton.Content" xml:space="preserve">
+    <value>Restartovat</value>
+  </data>
+  <data name="Settings_RestartPendingLanguage" xml:space="preserve">
+    <value>Restartujte aplikaci pro zobrazení nového jazyka</value>
+  </data>
+  <data name="Settings_RestartPendingTerms" xml:space="preserve">
+    <value>Restartujte aplikaci pro zobrazení technických pojmů v novém jazyce</value>
+  </data>
+  <data name="Settings_RestartPendingBoth" xml:space="preserve">
+    <value>Restartujte aplikaci pro použití jazykových změn</value>
+  </data>
+  <data name="Settings_LanguageCard.Header" xml:space="preserve">
+    <value>Jazyk aplikace</value>
   </data>
   <data name="Settings_LanguageComboBox_Default.Content" xml:space="preserve">
     <value>Výchozí systémový</value>
-  </data>
-  <data name="Settings_LanguageRestartTitle" xml:space="preserve">
-    <value>Změnit jazyk?</value>
-  </data>
-  <data name="Settings_LanguageRestartMessage" xml:space="preserve">
-    <value>Aplikace se restartuje, aby zobrazila nový jazyk.</value>
-  </data>
-  <data name="Settings_LanguageRestartConfirm" xml:space="preserve">
-    <value>Restartovat</value>
   </data>
   <data name="Main_DotNetRuntimePopup.Description" xml:space="preserve">
     <value>.NET 10 není na tomto zařízení nainstalováno
@@ -1549,14 +1555,5 @@ DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo 
   </data>
   <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
     <value>Technické pojmy v angličtině</value>
-  </data>
-  <data name="Settings_TechnicalTermsCard.Description" xml:space="preserve">
-    <value>Hardwarové pojmy jako Cache nebo Rank zůstanou anglicky (restartuje aplikaci)</value>
-  </data>
-  <data name="Settings_TechnicalTermsRestartTitle" xml:space="preserve">
-    <value>Změnit technické pojmy?</value>
-  </data>
-  <data name="Settings_TechnicalTermsRestartMessage" xml:space="preserve">
-    <value>Aplikace se restartuje, aby zobrazila technické pojmy v novém jazyce.</value>
   </data>
 </root>
