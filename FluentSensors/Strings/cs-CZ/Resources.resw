@@ -770,4 +770,281 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="FlyoutShortcut_NoShortcut" xml:space="preserve">
     <value>Žádná zkratka</value>
   </data>
+  <data name="Start_CopyVersionButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Kopírovat verzi</value>
+  </data>
+  <data name="Start_WhatsNewText.Text" xml:space="preserve">
+    <value>Novinky</value>
+  </data>
+  <data name="Start_SystemText.Text" xml:space="preserve">
+    <value>Systém</value>
+  </data>
+  <data name="Start_AppStatusText.Text" xml:space="preserve">
+    <value>Stav aplikace</value>
+  </data>
+  <data name="Start_LhmPopup.Description" xml:space="preserve">
+    <value>Nalezené senzory - každý senzor, který LibreHardwareMonitor na tomto zařízení hlásí
+Vykreslované senzory - kolik z nich se právě aktivně vykresluje
+LibreHardwareMonitorLib je největší a nejzavedenější knihovna pro monitorování hardwaru ve Windows</value>
+  </data>
+  <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
+    <value>Tato aplikace je postavena na open source projektu LibreHardwareMonitor:</value>
+  </data>
+  <data name="Start_LhmGitHubSource.Label" xml:space="preserve">
+    <value>LibreHardwareMonitor na GitHubu</value>
+  </data>
+  <data name="Start_FoundSensorsText.Text" xml:space="preserve">
+    <value>Nalezené senzory</value>
+  </data>
+  <data name="Start_RenderingSensorsText.Text" xml:space="preserve">
+    <value>Vykreslované senzory</value>
+  </data>
+  <data name="Start_ThisAppPopup.Title" xml:space="preserve">
+    <value>Tato aplikace</value>
+  </data>
+  <data name="Start_ThisAppPopup.Description" xml:space="preserve">
+    <value>Využití CPU - vlastní čas CPU této aplikace vzhledem k celkové kapacitě všech jader
+Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovní sada)
+Doba běhu - jak dlouho aplikace běží od posledního spuštění</value>
+  </data>
+  <data name="Start_ThisAppPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Start_CPUUsageText.Text" xml:space="preserve">
+    <value>Využití CPU</value>
+  </data>
+  <data name="Start_RAMUsageText.Text" xml:space="preserve">
+    <value>Využití RAM</value>
+  </data>
+  <data name="Start_UptimeText.Text" xml:space="preserve">
+    <value>Doba běhu</value>
+  </data>
+  <data name="Start_AboutOpenSourceText.Text" xml:space="preserve">
+    <value>O aplikaci a open source</value>
+  </data>
+  <data name="Start_DocumentationCard.Description" xml:space="preserve">
+    <value>Readme, použití a kompletní zdrojový kód</value>
+  </data>
+  <data name="Start_DocumentationCard.Header" xml:space="preserve">
+    <value>Dokumentace</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubCard.Description" xml:space="preserve">
+    <value>Hlášení chyb a návrhy funkcí</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubCard.Header" xml:space="preserve">
+    <value>Zpětná vazba na GitHubu</value>
+  </data>
+  <data name="Start_DeveloperProfileCard.Header" xml:space="preserve">
+    <value>Profil vývojáře</value>
+  </data>
+  <data name="Start_SupportTheProjectExpander.Description" xml:space="preserve">
+    <value>Fluent Sensors je zdarma a open source</value>
+  </data>
+  <data name="Start_SupportTheProjectExpander.Header" xml:space="preserve">
+    <value>Podpořit projekt</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreCard.Description" xml:space="preserve">
+    <value>Hodnocení pomáhá ostatním aplikaci najít</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreCard.Header" xml:space="preserve">
+    <value>Ohodnotit v Microsoft Store</value>
+  </data>
+  <data name="Start_SponsorOnGitHubCard.Description" xml:space="preserve">
+    <value>Pravidelně nebo jednorázově, přes GitHub</value>
+  </data>
+  <data name="Start_SponsorOnGitHubCard.Header" xml:space="preserve">
+    <value>Sponzorovat na GitHubu</value>
+  </data>
+  <data name="Start_ThirdPartyLibrariesExpander.Description" xml:space="preserve">
+    <value>Open source projekty použité v této aplikaci</value>
+  </data>
+  <data name="Start_ThirdPartyLibrariesExpander.Header" xml:space="preserve">
+    <value>Knihovny třetích stran</value>
+  </data>
+  <data name="Start_WebsiteLink.Content" xml:space="preserve">
+    <value>Web</value>
+  </data>
+  <data name="Start_DocumentationLink.Content" xml:space="preserve">
+    <value>Dokumentace</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubLink.Content" xml:space="preserve">
+    <value>Zpětná vazba na GitHubu</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreLink.Content" xml:space="preserve">
+    <value>Ohodnotit v Microsoft Store</value>
+  </data>
+  <data name="Start_SponsorOnGitHubLink.Content" xml:space="preserve">
+    <value>Sponzorovat na GitHubu</value>
+  </data>
+  <data name="Start_DeveloperProfileLink.Content" xml:space="preserve">
+    <value>Profil vývojáře</value>
+  </data>
+  <data name="ReleaseNotes_GitHubLink.Content" xml:space="preserve">
+    <value>Zobrazit na GitHubu</value>
+  </data>
+  <data name="ReleaseNotes_EmptyText.Text" xml:space="preserve">
+    <value>Tato verze byla vydána bez poznámek</value>
+  </data>
+  <data name="ReleaseNotes_FullChangelogText.Text" xml:space="preserve">
+    <value>Kompletní seznam změn:</value>
+  </data>
+  <data name="ReleaseNotesDialog_WhatsNewText.Text" xml:space="preserve">
+    <value>Novinky</value>
+  </data>
+  <data name="ReleaseNotesDialog_CloseButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zavřít</value>
+  </data>
+  <data name="ReleaseNotesDialog_CloseButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zavřít</value>
+  </data>
+  <data name="Start_UptimeDays" xml:space="preserve">
+    <value>{0}d {1}</value>
+  </data>
+  <data name="Start_SensorCountNone" xml:space="preserve">
+    <value>Žádné senzory</value>
+  </data>
+  <data name="Start_SensorCount_One" xml:space="preserve">
+    <value>{0} senzor</value>
+  </data>
+  <data name="Start_SensorCount_Few" xml:space="preserve">
+    <value>{0} senzory</value>
+  </data>
+  <data name="Start_SensorCount_Many" xml:space="preserve">
+    <value>{0} senzorů</value>
+  </data>
+  <data name="Start_ReleaseNotesFor" xml:space="preserve">
+    <value>Poznámky k verzi {0}</value>
+  </data>
+  <data name="Start_UpdateLastChecked" xml:space="preserve">
+    <value>Naposledy zkontrolováno {0}</value>
+  </data>
+  <data name="Start_UpdateNotChecked" xml:space="preserve">
+    <value>Zatím nezkontrolováno</value>
+  </data>
+  <data name="Start_UpdateUpToDate" xml:space="preserve">
+    <value>Máte nejnovější verzi</value>
+  </data>
+  <data name="Start_UpdateChecking" xml:space="preserve">
+    <value>Hledání aktualizací</value>
+  </data>
+  <data name="Start_UpdateAvailable" xml:space="preserve">
+    <value>Aktualizace k dispozici</value>
+  </data>
+  <data name="Start_UpdateReadyUnnamed" xml:space="preserve">
+    <value>Nová verze je připravena k instalaci</value>
+  </data>
+  <data name="Start_UpdateReady" xml:space="preserve">
+    <value>{0} je připravena k instalaci</value>
+  </data>
+  <data name="Start_UpdateSkipped" xml:space="preserve">
+    <value>{0} přeskočena</value>
+  </data>
+  <data name="Start_UpdateSkippedHint" xml:space="preserve">
+    <value>Vyberte pro instalaci i tak</value>
+  </data>
+  <data name="Start_UpdateFailed" xml:space="preserve">
+    <value>Kontrola se nezdařila</value>
+  </data>
+  <data name="Start_UpdateFailedGitHub" xml:space="preserve">
+    <value>GitHub není dostupný, vyberte pro nový pokus</value>
+  </data>
+  <data name="Start_UpdateFailedStore" xml:space="preserve">
+    <value>Microsoft Store není dostupný, vyberte pro nový pokus</value>
+  </data>
+  <data name="Start_UpdateCheck" xml:space="preserve">
+    <value>Zkontrolovat aktualizace</value>
+  </data>
+  <data name="Start_Unknown" xml:space="preserve">
+    <value>Neznámé</value>
+  </data>
+  <data name="Start_Cores_One" xml:space="preserve">
+    <value>{0} jádro</value>
+  </data>
+  <data name="Start_Cores_Few" xml:space="preserve">
+    <value>{0} jádra</value>
+  </data>
+  <data name="Start_Cores_Many" xml:space="preserve">
+    <value>{0} jader</value>
+  </data>
+  <data name="Start_Threads_One" xml:space="preserve">
+    <value>{0} vlákno</value>
+  </data>
+  <data name="Start_Threads_Few" xml:space="preserve">
+    <value>{0} vlákna</value>
+  </data>
+  <data name="Start_Threads_Many" xml:space="preserve">
+    <value>{0} vláken</value>
+  </data>
+  <data name="Start_SlotsUsed" xml:space="preserve">
+    <value>{0} z {1} slotů</value>
+  </data>
+  <data name="Start_Modules_One" xml:space="preserve">
+    <value>{0} modul</value>
+  </data>
+  <data name="Start_Modules_Few" xml:space="preserve">
+    <value>{0} moduly</value>
+  </data>
+  <data name="Start_Modules_Many" xml:space="preserve">
+    <value>{0} modulů</value>
+  </data>
+  <data name="Start_MemoryTotal" xml:space="preserve">
+    <value>{0} celkem</value>
+  </data>
+  <data name="Start_GpuDriver" xml:space="preserve">
+    <value>Ovladač {0}</value>
+  </data>
+  <data name="ReleaseNotes_EmptyStatus" xml:space="preserve">
+    <value>Historii verzí se nepodařilo načíst a zatím nic není uloženo</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Zavřít</value>
+  </data>
+  <data name="Update_SkipVersion" xml:space="preserve">
+    <value>Přeskočit tuto verzi</value>
+  </data>
+  <data name="Update_Message" xml:space="preserve">
+    <value>Je k dispozici Fluent Sensors {0}. Používáte {1}.</value>
+  </data>
+  <data name="Update_MessageUnnamed" xml:space="preserve">
+    <value>Je k dispozici nová verze Fluent Sensors. Používáte {0}.</value>
+  </data>
+  <data name="Update_Title" xml:space="preserve">
+    <value>Aktualizace k dispozici</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Aktualizovat</value>
+  </data>
+  <data name="Update_OpenStore" xml:space="preserve">
+    <value>Otevřít Store</value>
+  </data>
+  <data name="Update_ManualInstall" xml:space="preserve">
+    <value>Ruční instalace</value>
+  </data>
+  <data name="Update_Downloading" xml:space="preserve">
+    <value>Stahování {0}...</value>
+  </data>
+  <data name="Update_NoAsset" xml:space="preserve">
+    <value>Tato verze nemá odpovídající soubor ke stažení, místo toho se otevře stránka verze</value>
+  </data>
+  <data name="Update_Installing" xml:space="preserve">
+    <value>Instalace, aplikace se sama restartuje</value>
+  </data>
+  <data name="Update_Cancelled" xml:space="preserve">
+    <value>Stahování zrušeno</value>
+  </data>
+  <data name="Update_DownloadFailed" xml:space="preserve">
+    <value>Stahování se nezdařilo, verzi můžete stáhnout ručně</value>
+  </data>
+  <data name="Update_StoreWaiting" xml:space="preserve">
+    <value>Čekání na Microsoft Store...</value>
+  </data>
+  <data name="Update_StoreDownloading" xml:space="preserve">
+    <value>Stahování z Microsoft Store...</value>
+  </data>
+  <data name="Update_StoreInstalled" xml:space="preserve">
+    <value>Aktualizace nainstalována, projeví se při příštím spuštění aplikace</value>
+  </data>
+  <data name="Update_StoreFailed" xml:space="preserve">
+    <value>Microsoft Store aktualizaci nenainstaloval, místo toho se otevře Store</value>
+  </data>
 </root>

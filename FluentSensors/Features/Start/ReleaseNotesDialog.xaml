@@ -45,25 +45,24 @@
 
             <!--  title; Tight and TrimSideBearings start the visible text at the padding  -->
             <TextBlock
+                x:Uid="ReleaseNotesDialog_WhatsNewText"
                 Margin="8,0,0,0"
                 VerticalAlignment="Center"
                 OpticalMarginAlignment="TrimSideBearings"
                 Style="{ThemeResource BodyLargeTextBlockStyle}"
-                Text="What's new"
                 TextLineBounds="Tight" />
 
             <!--  close button  -->
             <Button
+                x:Uid="ReleaseNotesDialog_CloseButton"
                 Grid.Column="1"
                 Width="36"
                 Height="36"
                 Margin="0,0,0,6"
                 Padding="0"
                 VerticalAlignment="Center"
-                AutomationProperties.Name="Close"
                 Click="CloseButton_Click"
-                Style="{StaticResource SubtleBarButtonStyle}"
-                ToolTipService.ToolTip="Close">
+                Style="{StaticResource SubtleBarButtonStyle}">
                 <FontIcon FontSize="14" Glyph="&#xE711;" />
                 <Button.KeyboardAccelerators>
                     <!--  (without a command bar ESC has no close button to map onto)  -->

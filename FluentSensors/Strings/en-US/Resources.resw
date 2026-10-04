@@ -770,4 +770,281 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="FlyoutShortcut_NoShortcut" xml:space="preserve">
     <value>No shortcut</value>
   </data>
+  <data name="Start_CopyVersionButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Copy Version</value>
+  </data>
+  <data name="Start_WhatsNewText.Text" xml:space="preserve">
+    <value>What's new</value>
+  </data>
+  <data name="Start_SystemText.Text" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Start_AppStatusText.Text" xml:space="preserve">
+    <value>App Status</value>
+  </data>
+  <data name="Start_LhmPopup.Description" xml:space="preserve">
+    <value>Found Sensors - every sensor LibreHardwareMonitor reports on this machine
+Rendering Sensors - how many of them are actively drawn right now
+LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows</value>
+  </data>
+  <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
+    <value>This App is powered by the open source LibreHardwareMonitor project:</value>
+  </data>
+  <data name="Start_LhmGitHubSource.Label" xml:space="preserve">
+    <value>LibreHardwareMonitor on GitHub</value>
+  </data>
+  <data name="Start_FoundSensorsText.Text" xml:space="preserve">
+    <value>Found Sensors</value>
+  </data>
+  <data name="Start_RenderingSensorsText.Text" xml:space="preserve">
+    <value>Rendering Sensors</value>
+  </data>
+  <data name="Start_ThisAppPopup.Title" xml:space="preserve">
+    <value>This App</value>
+  </data>
+  <data name="Start_ThisAppPopup.Description" xml:space="preserve">
+    <value>CPU Usage - this app's own CPU time relative to total capacity across all cores
+RAM Usage - physical memory currently mapped by this app (working set)
+Uptime - how long this app has been running since it was last started</value>
+  </data>
+  <data name="Start_ThisAppPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Start_CPUUsageText.Text" xml:space="preserve">
+    <value>CPU usage</value>
+  </data>
+  <data name="Start_RAMUsageText.Text" xml:space="preserve">
+    <value>RAM usage</value>
+  </data>
+  <data name="Start_UptimeText.Text" xml:space="preserve">
+    <value>Uptime</value>
+  </data>
+  <data name="Start_AboutOpenSourceText.Text" xml:space="preserve">
+    <value>About &amp; Open Source</value>
+  </data>
+  <data name="Start_DocumentationCard.Description" xml:space="preserve">
+    <value>Readme, usage and the full source</value>
+  </data>
+  <data name="Start_DocumentationCard.Header" xml:space="preserve">
+    <value>Documentation</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubCard.Description" xml:space="preserve">
+    <value>Bug reports and feature requests</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubCard.Header" xml:space="preserve">
+    <value>Feedback on GitHub</value>
+  </data>
+  <data name="Start_DeveloperProfileCard.Header" xml:space="preserve">
+    <value>Developer Profile</value>
+  </data>
+  <data name="Start_SupportTheProjectExpander.Description" xml:space="preserve">
+    <value>Fluent Sensors is free and open source</value>
+  </data>
+  <data name="Start_SupportTheProjectExpander.Header" xml:space="preserve">
+    <value>Support the Project</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreCard.Description" xml:space="preserve">
+    <value>A rating helps others find the app</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreCard.Header" xml:space="preserve">
+    <value>Review on Microsoft Store</value>
+  </data>
+  <data name="Start_SponsorOnGitHubCard.Description" xml:space="preserve">
+    <value>Recurring or one-off, through GitHub</value>
+  </data>
+  <data name="Start_SponsorOnGitHubCard.Header" xml:space="preserve">
+    <value>Sponsor on GitHub</value>
+  </data>
+  <data name="Start_ThirdPartyLibrariesExpander.Description" xml:space="preserve">
+    <value>Open source projects used in this app</value>
+  </data>
+  <data name="Start_ThirdPartyLibrariesExpander.Header" xml:space="preserve">
+    <value>Third-Party Libraries</value>
+  </data>
+  <data name="Start_WebsiteLink.Content" xml:space="preserve">
+    <value>Website</value>
+  </data>
+  <data name="Start_DocumentationLink.Content" xml:space="preserve">
+    <value>Documentation</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubLink.Content" xml:space="preserve">
+    <value>Feedback on GitHub</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreLink.Content" xml:space="preserve">
+    <value>Review on Microsoft Store</value>
+  </data>
+  <data name="Start_SponsorOnGitHubLink.Content" xml:space="preserve">
+    <value>Sponsor on GitHub</value>
+  </data>
+  <data name="Start_DeveloperProfileLink.Content" xml:space="preserve">
+    <value>Developer Profile</value>
+  </data>
+  <data name="ReleaseNotes_GitHubLink.Content" xml:space="preserve">
+    <value>View on GitHub</value>
+  </data>
+  <data name="ReleaseNotes_EmptyText.Text" xml:space="preserve">
+    <value>This release was published without notes</value>
+  </data>
+  <data name="ReleaseNotes_FullChangelogText.Text" xml:space="preserve">
+    <value>Full changelog:</value>
+  </data>
+  <data name="ReleaseNotesDialog_WhatsNewText.Text" xml:space="preserve">
+    <value>What's new</value>
+  </data>
+  <data name="ReleaseNotesDialog_CloseButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="ReleaseNotesDialog_CloseButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Start_UptimeDays" xml:space="preserve">
+    <value>{0}d {1}</value>
+  </data>
+  <data name="Start_SensorCountNone" xml:space="preserve">
+    <value>No sensors</value>
+  </data>
+  <data name="Start_SensorCount_One" xml:space="preserve">
+    <value>{0} sensor</value>
+  </data>
+  <data name="Start_SensorCount_Few" xml:space="preserve">
+    <value>{0} sensors</value>
+  </data>
+  <data name="Start_SensorCount_Many" xml:space="preserve">
+    <value>{0} sensors</value>
+  </data>
+  <data name="Start_ReleaseNotesFor" xml:space="preserve">
+    <value>Release notes for {0}</value>
+  </data>
+  <data name="Start_UpdateLastChecked" xml:space="preserve">
+    <value>Last checked {0}</value>
+  </data>
+  <data name="Start_UpdateNotChecked" xml:space="preserve">
+    <value>Not checked yet</value>
+  </data>
+  <data name="Start_UpdateUpToDate" xml:space="preserve">
+    <value>You are up to date</value>
+  </data>
+  <data name="Start_UpdateChecking" xml:space="preserve">
+    <value>Checking for updates</value>
+  </data>
+  <data name="Start_UpdateAvailable" xml:space="preserve">
+    <value>Update available</value>
+  </data>
+  <data name="Start_UpdateReadyUnnamed" xml:space="preserve">
+    <value>A new version is ready to install</value>
+  </data>
+  <data name="Start_UpdateReady" xml:space="preserve">
+    <value>{0} is ready to install</value>
+  </data>
+  <data name="Start_UpdateSkipped" xml:space="preserve">
+    <value>{0} skipped</value>
+  </data>
+  <data name="Start_UpdateSkippedHint" xml:space="preserve">
+    <value>Select to install it anyway</value>
+  </data>
+  <data name="Start_UpdateFailed" xml:space="preserve">
+    <value>Check failed</value>
+  </data>
+  <data name="Start_UpdateFailedGitHub" xml:space="preserve">
+    <value>Could not reach GitHub, select to try again</value>
+  </data>
+  <data name="Start_UpdateFailedStore" xml:space="preserve">
+    <value>Could not reach the Microsoft Store, select to try again</value>
+  </data>
+  <data name="Start_UpdateCheck" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Start_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Start_Cores_One" xml:space="preserve">
+    <value>{0} core</value>
+  </data>
+  <data name="Start_Cores_Few" xml:space="preserve">
+    <value>{0} cores</value>
+  </data>
+  <data name="Start_Cores_Many" xml:space="preserve">
+    <value>{0} cores</value>
+  </data>
+  <data name="Start_Threads_One" xml:space="preserve">
+    <value>{0} thread</value>
+  </data>
+  <data name="Start_Threads_Few" xml:space="preserve">
+    <value>{0} threads</value>
+  </data>
+  <data name="Start_Threads_Many" xml:space="preserve">
+    <value>{0} threads</value>
+  </data>
+  <data name="Start_SlotsUsed" xml:space="preserve">
+    <value>{0} of {1} slots</value>
+  </data>
+  <data name="Start_Modules_One" xml:space="preserve">
+    <value>{0} module</value>
+  </data>
+  <data name="Start_Modules_Few" xml:space="preserve">
+    <value>{0} modules</value>
+  </data>
+  <data name="Start_Modules_Many" xml:space="preserve">
+    <value>{0} modules</value>
+  </data>
+  <data name="Start_MemoryTotal" xml:space="preserve">
+    <value>{0} total</value>
+  </data>
+  <data name="Start_GpuDriver" xml:space="preserve">
+    <value>Driver {0}</value>
+  </data>
+  <data name="ReleaseNotes_EmptyStatus" xml:space="preserve">
+    <value>The release history could not be loaded, and nothing has been saved yet</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Update_SkipVersion" xml:space="preserve">
+    <value>Skip this version</value>
+  </data>
+  <data name="Update_Message" xml:space="preserve">
+    <value>Fluent Sensors {0} is available. You are running {1}.</value>
+  </data>
+  <data name="Update_MessageUnnamed" xml:space="preserve">
+    <value>A new version of Fluent Sensors is available. You are running {0}.</value>
+  </data>
+  <data name="Update_Title" xml:space="preserve">
+    <value>Update available</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Update_OpenStore" xml:space="preserve">
+    <value>Open Store</value>
+  </data>
+  <data name="Update_ManualInstall" xml:space="preserve">
+    <value>Manual Install</value>
+  </data>
+  <data name="Update_Downloading" xml:space="preserve">
+    <value>Downloading {0}...</value>
+  </data>
+  <data name="Update_NoAsset" xml:space="preserve">
+    <value>This release has no matching download, opening the release page instead</value>
+  </data>
+  <data name="Update_Installing" xml:space="preserve">
+    <value>Installing, the app will restart on its own</value>
+  </data>
+  <data name="Update_Cancelled" xml:space="preserve">
+    <value>Download cancelled</value>
+  </data>
+  <data name="Update_DownloadFailed" xml:space="preserve">
+    <value>The download failed, you can grab the release manually instead</value>
+  </data>
+  <data name="Update_StoreWaiting" xml:space="preserve">
+    <value>Waiting for the Microsoft Store...</value>
+  </data>
+  <data name="Update_StoreDownloading" xml:space="preserve">
+    <value>Downloading from the Microsoft Store...</value>
+  </data>
+  <data name="Update_StoreInstalled" xml:space="preserve">
+    <value>Update installed, it takes effect the next time the app starts</value>
+  </data>
+  <data name="Update_StoreFailed" xml:space="preserve">
+    <value>The Microsoft Store could not install the update, opening the Store instead</value>
+  </data>
 </root>

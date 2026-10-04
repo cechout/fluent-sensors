@@ -63,12 +63,12 @@
                         <!--  copy version button  -->
                         <!--  (a checkmark for a moment once copied, see CopyVersionButton_Click)  -->
                         <Button
+                            x:Uid="Start_CopyVersionButton"
                             Width="24"
                             Height="24"
                             Margin="0,0,0,0"
                             Padding="0"
                             VerticalAlignment="Bottom"
-                            AutomationProperties.Name="Copy Version"
                             Click="CopyVersionButton_Click"
                             Style="{StaticResource SubtleButtonStyle}">
                             <FontIcon
@@ -131,8 +131,8 @@
                                 VerticalAlignment="Center"
                                 Spacing="2">
                                 <TextBlock
+                                    x:Uid="Start_WhatsNewText"
                                     Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                    Text="What's new"
                                     TextTrimming="CharacterEllipsis"
                                     TextWrapping="NoWrap" />
                                 <TextBlock
@@ -222,9 +222,9 @@
                     all tiles are placed in a SquareGridPanel
                 -->
                 <TextBlock
+                    x:Uid="Start_SystemText"
                     Margin="4,4,0,6"
-                    Style="{StaticResource BodyStrongTextBlockStyle}"
-                    Text="System" />
+                    Style="{StaticResource BodyStrongTextBlockStyle}" />
 
                 <ItemsControl fhUi:FocusGroup.IsEnabled="True" ItemsSource="{x:Bind ViewModel.SystemSnapshot}">
                     <ItemsControl.ItemsPanel>
@@ -360,9 +360,9 @@
                     snapshot, so the page reads as one board)
                 -->
                 <TextBlock
+                    x:Uid="Start_AppStatusText"
                     Margin="4,20,0,6"
-                    Style="{StaticResource BodyStrongTextBlockStyle}"
-                    Text="App Status" />
+                    Style="{StaticResource BodyStrongTextBlockStyle}" />
 
                 <!--  (MaxWidth is both 300 wide cards plus the spacing, so the star columns never push them apart)  -->
                 <Grid
@@ -386,22 +386,21 @@
                         CornerRadius="{ThemeResource ControlCornerRadius}">
                         <StackPanel Margin="16,14,16,14" Spacing="6">
                             <fhInfoPopup:InfoPopupControl
+                                x:Uid="Start_LhmPopup"
                                 Title="LibreHardwareMonitor"
-                                Description="Found Sensors - every sensor LibreHardwareMonitor reports on this machine&#10;Rendering Sensors - how many of them are actively drawn right now&#10;LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows"
                                 PlacementMode="Above"
-                                SourceIntro="This App is powered by the open source LibreHardwareMonitor project:"
                                 TitleTextTrimming="CharacterEllipsis">
                                 <fhInfoPopup:InfoPopupControl.SourceLinks>
-                                    <fhInfoPopup:SourceLink Label="LibreHardwareMonitor on GitHub" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
+                                    <fhInfoPopup:SourceLink x:Uid="Start_LhmGitHubSource" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
                                 </fhInfoPopup:InfoPopupControl.SourceLinks>
                             </fhInfoPopup:InfoPopupControl>
 
                             <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
                                 <StackPanel Spacing="2">
                                     <TextBlock
+                                        x:Uid="Start_FoundSensorsText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="Found Sensors" />
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
                                     <TextBlock
                                         Style="{ThemeResource BodyTextBlockStyle}"
                                         Text="{x:Bind ViewModel.SensorsFoundText, Mode=OneWay}"
@@ -410,9 +409,9 @@
 
                                 <StackPanel Spacing="2">
                                     <TextBlock
+                                        x:Uid="Start_RenderingSensorsText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="Rendering Sensors" />
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
                                     <TextBlock
                                         Style="{ThemeResource BodyTextBlockStyle}"
                                         Text="{x:Bind ViewModel.SensorsRenderedText, Mode=OneWay}"
@@ -433,10 +432,8 @@
                         CornerRadius="{ThemeResource ControlCornerRadius}">
                         <StackPanel Margin="16,14,16,14" Spacing="6">
                             <fhInfoPopup:InfoPopupControl
-                                Title="This App"
-                                Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)&#10;Uptime - how long this app has been running since it was last started"
+                                x:Uid="Start_ThisAppPopup"
                                 PlacementMode="Above"
-                                SourceIntro="Source:"
                                 TitleTextTrimming="CharacterEllipsis">
                                 <fhInfoPopup:InfoPopupControl.SourceLinks>
                                     <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
@@ -446,9 +443,9 @@
                             <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
                                 <StackPanel Spacing="2">
                                     <TextBlock
+                                        x:Uid="Start_CPUUsageText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="CPU usage" />
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
                                     <TextBlock
                                         Style="{ThemeResource BodyTextBlockStyle}"
                                         Text="{x:Bind ViewModel.CpuTileValue, Mode=OneWay}"
@@ -457,9 +454,9 @@
 
                                 <StackPanel Spacing="2">
                                     <TextBlock
+                                        x:Uid="Start_RAMUsageText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="RAM usage" />
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
                                     <TextBlock
                                         Style="{ThemeResource BodyTextBlockStyle}"
                                         Text="{x:Bind ViewModel.RamTileValue, Mode=OneWay}"
@@ -469,9 +466,9 @@
                                 <!--  (ticks on its own timer, not with the status snapshot, see StartPage)  -->
                                 <StackPanel Spacing="2">
                                     <TextBlock
+                                        x:Uid="Start_UptimeText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="Uptime" />
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
                                     <TextBlock
                                         Style="{ThemeResource BodyTextBlockStyle}"
                                         Text="{x:Bind ViewModel.UptimeTileValue, Mode=OneWay}"
@@ -485,9 +482,9 @@
 
                 <!--  content: about and open source  -->
                 <TextBlock
+                    x:Uid="Start_AboutOpenSourceText"
                     Margin="4,20,0,6"
-                    Style="{StaticResource BodyStrongTextBlockStyle}"
-                    Text="About &amp; Open Source" />
+                    Style="{StaticResource BodyStrongTextBlockStyle}" />
 
                 <!--  revisit: flat about section  -->
                 <!--
@@ -510,15 +507,15 @@
 
                     <controls:SettingsExpander.Items>
                         <!--  (the repository is the documentation, so it appears here once and nowhere else)  -->
-                        <controls:SettingsCard Description="Readme, usage and the full source" Header="Documentation">
+                        <controls:SettingsCard x:Uid="Start_DocumentationCard">
                             <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/cechout/fluent-sensors" />
                         </controls:SettingsCard>
 
-                        <controls:SettingsCard Description="Bug reports and feature requests" Header="Feedback on GitHub">
+                        <controls:SettingsCard x:Uid="Start_FeedbackOnGitHubCard">
                             <HyperlinkButton Content="GitHub Issues" NavigateUri="https://github.com/cechout/fluent-sensors/issues/new/choose" />
                         </controls:SettingsCard>
 
-                        <controls:SettingsCard Header="Developer Profile">
+                        <controls:SettingsCard x:Uid="Start_DeveloperProfileCard">
                             <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/cechout" />
                         </controls:SettingsCard>
                     </controls:SettingsExpander.Items>
@@ -527,21 +524,17 @@
                 <!--  support  -->
                 <!--  (the only place in the app that asks for anything)  -->
                 <controls:SettingsExpander
+                    x:Uid="Start_SupportTheProjectExpander"
                     fhUi:FocusGroup.IsEnabled="True"
-                    Description="Fluent Sensors is free and open source"
-                    Header="Support the Project"
                     HeaderIcon="{toolkit:FontIcon Glyph=&#xEB51;}"
                     Visibility="Collapsed">
 
                     <controls:SettingsExpander.Items>
-                        <controls:SettingsCard
-                            Description="A rating helps others find the app"
-                            Header="Review on Microsoft Store"
-                            Visibility="{x:Bind BoolToVisibility(IsStoreBuild)}">
+                        <controls:SettingsCard x:Uid="Start_ReviewOnMicrosoftStoreCard" Visibility="{x:Bind BoolToVisibility(IsStoreBuild)}">
                             <HyperlinkButton Click="StoreReviewLink_Click" Content="Microsoft Store" />
                         </controls:SettingsCard>
 
-                        <controls:SettingsCard Description="Recurring or one-off, through GitHub" Header="Sponsor on GitHub">
+                        <controls:SettingsCard x:Uid="Start_SponsorOnGitHubCard">
                             <HyperlinkButton Content="GitHub Sponsors" NavigateUri="https://github.com/sponsors/cechout" />
                         </controls:SettingsCard>
                     </controls:SettingsExpander.Items>
@@ -549,9 +542,8 @@
 
                 <!--  third-party libraries  -->
                 <controls:SettingsExpander
+                    x:Uid="Start_ThirdPartyLibrariesExpander"
                     fhUi:FocusGroup.IsEnabled="True"
-                    Description="Open source projects used in this app"
-                    Header="Third-Party Libraries"
                     HeaderIcon="{toolkit:FontIcon Glyph=&#xE8F1;}"
                     Visibility="Visible">
 
@@ -569,7 +561,7 @@
                         </controls:SettingsCard>
 
                         <controls:SettingsCard Header="LiveCharts2">
-                            <HyperlinkButton Content="Website" NavigateUri="https://livecharts.dev/" />
+                            <HyperlinkButton x:Uid="Start_WebsiteLink" NavigateUri="https://livecharts.dev/" />
                         </controls:SettingsCard>
 
                         <controls:SettingsCard Header="SkiaSharp">
@@ -601,14 +593,14 @@
                     fhUi:FocusGroup.IsEnabled="True"
                     HorizontalSpacing="4"
                     VerticalSpacing="0">
-                    <HyperlinkButton Content="Documentation" NavigateUri="https://github.com/cechout/fluent-sensors" />
-                    <HyperlinkButton Content="Feedback on GitHub" NavigateUri="https://github.com/cechout/fluent-sensors/issues/new/choose" />
+                    <HyperlinkButton x:Uid="Start_DocumentationLink" NavigateUri="https://github.com/cechout/fluent-sensors" />
+                    <HyperlinkButton x:Uid="Start_FeedbackOnGitHubLink" NavigateUri="https://github.com/cechout/fluent-sensors/issues/new/choose" />
                     <HyperlinkButton
+                        x:Uid="Start_ReviewOnMicrosoftStoreLink"
                         Click="StoreReviewLink_Click"
-                        Content="Review on Microsoft Store"
                         Visibility="{x:Bind BoolToVisibility(IsStoreBuild)}" />
-                    <HyperlinkButton Content="Sponsor on GitHub" NavigateUri="https://github.com/sponsors/cechout" />
-                    <HyperlinkButton Content="Developer Profile" NavigateUri="https://github.com/cechout" />
+                    <HyperlinkButton x:Uid="Start_SponsorOnGitHubLink" NavigateUri="https://github.com/sponsors/cechout" />
+                    <HyperlinkButton x:Uid="Start_DeveloperProfileLink" NavigateUri="https://github.com/cechout" />
                 </controls:WrapPanel>
 
             </StackPanel>

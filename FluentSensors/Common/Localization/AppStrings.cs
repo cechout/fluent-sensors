@@ -25,6 +25,14 @@ namespace FluentSensors.Common.Localization
             }
         }
 
+        // a count with its noun, from <key>_One, <key>_Few (2 to 4) and <key>_Many; the few form is the czech one,
+        // a language without it repeats the many text there
+        public static string Plural(string key, int count)
+        {
+            string form = count == 1 ? "One" : count is >= 2 and <= 4 ? "Few" : "Many";
+            return Format($"{key}_{form}", count);
+        }
+
         // a translation with broken placeholders shows unformatted instead of throwing
         public static string Format(string key, params object[] args)
         {
