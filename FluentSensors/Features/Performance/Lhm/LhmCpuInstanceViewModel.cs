@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
 using FluentSensors.Common.Sensors;
@@ -46,12 +47,12 @@ namespace FluentSensors.Features.Performance.Lhm
 
             // computed per-group averages for the All Threads tiles; the id is only unique per CPU instance
             // (identically named sockets are not a case seen)
-            AvgLoadWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-load-with-threads", "Average Load", "Load");
-            AvgTemperatureWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-temperature-with-threads", "Average Temperature", "Temperature");
-            AvgClockWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-clock-with-threads", "Average Clock", "Clock");
-            AvgLoadWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-load-without-threads", "Average Load", "Load");
-            AvgTemperatureWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-temperature-without-threads", "Average Temperature", "Temperature");
-            AvgClockWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-clock-without-threads", "Average Clock", "Clock");
+            AvgLoadWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-load-with-threads", AppStrings.Get("Cpu_AverageLoad"), "Load");
+            AvgTemperatureWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-temperature-with-threads", AppStrings.Get("Cpu_AverageTemperature"), "Temperature");
+            AvgClockWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-clock-with-threads", AppStrings.Get("Cpu_AverageClock"), "Clock");
+            AvgLoadWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-load-without-threads", AppStrings.Get("Cpu_AverageLoad"), "Load");
+            AvgTemperatureWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-temperature-without-threads", AppStrings.Get("Cpu_AverageTemperature"), "Temperature");
+            AvgClockWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-clock-without-threads", AppStrings.Get("Cpu_AverageClock"), "Clock");
         }
 
 
@@ -253,7 +254,7 @@ namespace FluentSensors.Features.Performance.Lhm
         // === private helpers ===
 
         private static string FormatCacheSize(int cacheSizeKb) => cacheSizeKb > 0 ? $"{cacheSizeKb} KB" : "-";
-        private static string FormatBool(bool value) => value ? "Yes" : "No";
+        private static string FormatBool(bool value) => HardwareInfoFormatter.FormatYesNo(value);
 
         // hybrid labels rest on the documented EfficiencyClass: "a core with a higher value for the efficiency
         // class has intrinsically greater performance and less efficiency"; so the highest group is
@@ -273,7 +274,7 @@ namespace FluentSensors.Features.Performance.Lhm
             if (groups.Count == 1)
             {
                 bool hasSmt = cpu.CoreTopology.Any(c => c.HasSmt);
-                return hasSmt ? "Symmetric, Hyper-Threading enabled" : "Symmetric, no Hyper-Threading";
+                return AppStrings.Get(hasSmt ? "Cpu_TopologySymmetricSmt" : "Cpu_TopologySymmetric");
             }
 
             var parts = new List<string>();
@@ -281,13 +282,13 @@ namespace FluentSensors.Features.Performance.Lhm
             {
                 // only the extremes have a confirmed meaning; a class in between (not seen yet) gets
                 // a number, not a guessed name
-                string label = i == 0 ? "Performance"
-                    : i == groups.Count - 1 ? "Efficient"
-                    : $"Class {groups[i].Key}";
+                string label = i == 0 ? AppStrings.Get("Cpu_TopologyPerformance")
+                    : i == groups.Count - 1 ? AppStrings.Get("Cpu_TopologyEfficient")
+                    : AppStrings.Format("Cpu_TopologyClass", groups[i].Key);
 
                 int coreCount = groups[i].Count();
                 int threadCount = groups[i].Sum(c => c.LogicalProcessorIndices.Count);
-                parts.Add($"{coreCount} {label} ({threadCount} threads)");
+                parts.Add(AppStrings.Format("Cpu_TopologyGroup", coreCount, label, AppStrings.Plural("Start_Threads", threadCount)));
             }
 
             return string.Join(" + ", parts);

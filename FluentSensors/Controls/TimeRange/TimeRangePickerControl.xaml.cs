@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System.Collections.Generic;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.Sensors;
 
 
@@ -83,7 +84,7 @@ namespace FluentSensors.Controls.TimeRange
                 nameof(AccessibleName),
                 typeof(string),
                 typeof(TimeRangePickerControl),
-                new PropertyMetadata("Time Range"));
+                new PropertyMetadata(AppStrings.Get("TimeRange_Name")));
 
         // only set when a consumer supplies one, so the button style keeps its theme-reactive default
         public Brush TextForeground
@@ -115,7 +116,7 @@ namespace FluentSensors.Controls.TimeRange
 
         private string FormatLabel(string label, double seconds)
         {
-            return string.IsNullOrEmpty(label) ? $"Last {seconds:0}s" : $"{label} {seconds:0}s";
+            return string.IsNullOrEmpty(label) ? AppStrings.Format("TimeRange_Last", seconds) : $"{label} {seconds:0}s";
         }
 
 

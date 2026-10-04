@@ -1047,4 +1047,557 @@ Doba běhu - jak dlouho aplikace běží od posledního spuštění</value>
   <data name="Update_StoreFailed" xml:space="preserve">
     <value>Microsoft Store aktualizaci nenainstaloval, místo toho se otevře Store</value>
   </data>
+  <data name="Performance_PerformanceTitleText.Text" xml:space="preserve">
+    <value>Zobrazení hardwaru</value>
+  </data>
+  <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
+    <value>Přehled hardwaru</value>
+  </data>
+  <data name="Performance_HardwareListButton.Label" xml:space="preserve">
+    <value>Seznam hardwaru</value>
+  </data>
+  <data name="Performance_HardwareInfoButton.Label" xml:space="preserve">
+    <value>Informace o hardwaru</value>
+  </data>
+  <data name="Performance_ResizeHardwareListSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost seznamu hardwaru</value>
+  </data>
+  <data name="Cpu_CoresWithThreadsText.Text" xml:space="preserve">
+    <value>Jádra s vlákny</value>
+  </data>
+  <data name="Cpu_ExtendedTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Rozšířený časový rozsah</value>
+  </data>
+  <data name="Cpu_AverageLoadTile.Title" xml:space="preserve">
+    <value>Průměrné zatížení</value>
+  </data>
+  <data name="Cpu_AverageTemperatureTile.Title" xml:space="preserve">
+    <value>Průměrná teplota</value>
+  </data>
+  <data name="Cpu_AverageClockTile.Title" xml:space="preserve">
+    <value>Průměrná frekvence</value>
+  </data>
+  <data name="Cpu_CoresWithoutThreadsText.Text" xml:space="preserve">
+    <value>Jádra bez vláken</value>
+  </data>
+  <data name="Cpu_CPUInfoText.Text" xml:space="preserve">
+    <value>Informace o CPU</value>
+  </data>
+  <data name="Cpu_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Cpu_GeneralPopup.Description" xml:space="preserve">
+    <value>Fyzická jádra - skutečné výpočetní jednotky na čipu
+Logické procesory - celkový počet vláken (SMT/Hyper-Threading zdvojnásobuje na jádro)
+Topologie jader - rozdělení na výkonná a úsporná jádra u hybridních CPU</value>
+  </data>
+  <data name="Cpu_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Cpu_PhysicalCoresText.Text" xml:space="preserve">
+    <value>Fyzická jádra</value>
+  </data>
+  <data name="Cpu_LogicalProcessorsText.Text" xml:space="preserve">
+    <value>Logické procesory</value>
+  </data>
+  <data name="Cpu_CoreTopologyText.Text" xml:space="preserve">
+    <value>Topologie jader</value>
+  </data>
+  <data name="Cpu_SocketText.Text" xml:space="preserve">
+    <value>Patice</value>
+  </data>
+  <data name="Cpu_MaxClockSpeedText.Text" xml:space="preserve">
+    <value>Maximální frekvence</value>
+  </data>
+  <data name="Cpu_CachePopup.Title" xml:space="preserve">
+    <value>Mezipaměť</value>
+  </data>
+  <data name="Cpu_CachePopup.Description" xml:space="preserve">
+    <value>Malá rychlá paměť přímo na čipu pro nedávno použitá data
+L1 - nejmenší a nejrychlejší, pro každé jádro; součet oddělené mezipaměti instrukcí a dat
+L2 - větší, pomalejší, pro každé jádro; sjednocená
+L3 - největší, sdílená všemi jádry; sjednocená</value>
+  </data>
+  <data name="Cpu_CachePopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Cpu_L1CacheText.Text" xml:space="preserve">
+    <value>Mezipaměť L1</value>
+  </data>
+  <data name="Cpu_L2CacheText.Text" xml:space="preserve">
+    <value>Mezipaměť L2</value>
+  </data>
+  <data name="Cpu_L3CacheText.Text" xml:space="preserve">
+    <value>Mezipaměť L3</value>
+  </data>
+  <data name="Cpu_VirtualizationPopup.Title" xml:space="preserve">
+    <value>Virtualizace</value>
+  </data>
+  <data name="Cpu_VirtualizationPopup.Description" xml:space="preserve">
+    <value>Rozšíření - hardwarová podpora CPU pro virtuální počítače (VT-x/AMD-V), využívaná Hyper-V, WSL2 a podobně
+Firmware - aktuálně zapnuto nebo ne (nespolehlivé)</value>
+  </data>
+  <data name="Cpu_VirtualizationPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Cpu_FirmwareText.Text" xml:space="preserve">
+    <value>Firmware</value>
+  </data>
+  <data name="Cpu_ExtensionsText.Text" xml:space="preserve">
+    <value>Rozšíření</value>
+  </data>
+  <data name="Cpu_ShowOverallButton.Label" xml:space="preserve">
+    <value>Celkově</value>
+  </data>
+  <data name="Cpu_ShowAllThreadsButton.Label" xml:space="preserve">
+    <value>Rozšířené</value>
+  </data>
+  <data name="Cpu_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
+  <data name="Gpu_CoreText.Text" xml:space="preserve">
+    <value>Jádro</value>
+  </data>
+  <data name="Gpu_ExtendedTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Rozšířený časový rozsah</value>
+  </data>
+  <data name="Gpu_MemoryText.Text" xml:space="preserve">
+    <value>Paměť</value>
+  </data>
+  <data name="Gpu_PCIeBusText.Text" xml:space="preserve">
+    <value>PCIe / sběrnice</value>
+  </data>
+  <data name="Gpu_EnginesText.Text" xml:space="preserve">
+    <value>Jednotky</value>
+  </data>
+  <data name="Gpu_ShowOverallButton.Label" xml:space="preserve">
+    <value>Celkově</value>
+  </data>
+  <data name="Gpu_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Rozšířené</value>
+  </data>
+  <data name="Gpu_GPUInfoText.Text" xml:space="preserve">
+    <value>Informace o GPU</value>
+  </data>
+  <data name="Gpu_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
+    <value>Verze ovladače - interní číslo ovladače Windows, liší se od schématu verzí výrobce</value>
+  </data>
+  <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Gpu_NameText.Text" xml:space="preserve">
+    <value>Název</value>
+  </data>
+  <data name="Gpu_VendorText.Text" xml:space="preserve">
+    <value>Výrobce</value>
+  </data>
+  <data name="Gpu_DriverVersionText.Text" xml:space="preserve">
+    <value>Verze ovladače</value>
+  </data>
+  <data name="Gpu_MemoryPopup.Title" xml:space="preserve">
+    <value>Paměť</value>
+  </data>
+  <data name="Gpu_MemoryPopup.Description" xml:space="preserve">
+    <value>Vyhrazená paměť - VRAM určená výhradně pro GPU
+Sdílená paměť - systémová RAM, kterou si GPU může navíc půjčit, sdílená s CPU; počítá se pro každou GPU zvlášť z celkové systémové RAM, nedělí se mezi více GPU</value>
+  </data>
+  <data name="Gpu_MemoryPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Gpu_DedicatedMemoryText.Text" xml:space="preserve">
+    <value>Vyhrazená paměť</value>
+  </data>
+  <data name="Gpu_SharedMemoryText.Text" xml:space="preserve">
+    <value>Sdílená paměť</value>
+  </data>
+  <data name="Gpu_IdentifiersPopup.Title" xml:space="preserve">
+    <value>Identifikátory</value>
+  </data>
+  <data name="Gpu_IdentifiersPopup.Description" xml:space="preserve">
+    <value>ID zařízení PCI - kód výrobce a čipu pevně uložený v GPU
+ID zařízení PnP - identifikátor instance tohoto zařízení ve Windows</value>
+  </data>
+  <data name="Gpu_IdentifiersPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Gpu_PCIDeviceIDText.Text" xml:space="preserve">
+    <value>ID zařízení PCI</value>
+  </data>
+  <data name="Gpu_PnPDeviceIDText.Text" xml:space="preserve">
+    <value>ID zařízení PnP</value>
+  </data>
+  <data name="Gpu_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
+  <data name="Memory_MemoryUsedPhysicalTile.Title" xml:space="preserve">
+    <value>Využitá paměť (fyzická)</value>
+  </data>
+  <data name="Memory_MemoryUsedVirtualTile.Title" xml:space="preserve">
+    <value>Využitá paměť (virtuální)</value>
+  </data>
+  <data name="Memory_MemoryUsedVirtualTile.InfoMessage" xml:space="preserve">
+    <value>Odpovídá hodnotě "Potvrzeno" ve Správci úloh; obvykle přesně, ale občas se může lišit.</value>
+  </data>
+  <data name="Memory_RAMInfoText.Text" xml:space="preserve">
+    <value>Informace o RAM</value>
+  </data>
+  <data name="Memory_TotalSlotsText.Text" xml:space="preserve">
+    <value>Sloty celkem</value>
+  </data>
+  <data name="Memory_RamInfoPopup.Description" xml:space="preserve">
+    <value>Typ - generace DDR (DDR4, DDR5, ...)
+Provedení - DIMM (stolní PC) nebo SO-DIMM (notebook)
+Rychlost RAM - nastavená (aktivní) oproti jmenovité (specifikace)
+Napětí - provozní napětí; XMP/EXPO ho může zvýšit
+Banka - fyzická skupina bank/slotů na základní desce, do které modul patří
+Rank - počet nezávislých sad čipů na samotném modulu (nespolehlivé)
+Šířka - data (využitelné bity) oproti celkem (včetně bitů ECC)</value>
+  </data>
+  <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Memory_ManufacturerText.Text" xml:space="preserve">
+    <value>Výrobce</value>
+  </data>
+  <data name="Memory_PartNumberText.Text" xml:space="preserve">
+    <value>Číslo dílu</value>
+  </data>
+  <data name="Memory_SerialNumberText.Text" xml:space="preserve">
+    <value>Sériové číslo</value>
+  </data>
+  <data name="Memory_CapacityText.Text" xml:space="preserve">
+    <value>Kapacita</value>
+  </data>
+  <data name="Memory_TypeText.Text" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="Memory_FormFactorText.Text" xml:space="preserve">
+    <value>Provedení</value>
+  </data>
+  <data name="Memory_RAMSpeedConfiguredRatedText.Text" xml:space="preserve">
+    <value>Rychlost RAM (nastavená / jmenovitá)</value>
+  </data>
+  <data name="Memory_VoltageConfiguredMinMaxText.Text" xml:space="preserve">
+    <value>Napětí (nastavené / min / max)</value>
+  </data>
+  <data name="Memory_BankText.Text" xml:space="preserve">
+    <value>Banka</value>
+  </data>
+  <data name="Memory_RankText.Text" xml:space="preserve">
+    <value>Rank</value>
+  </data>
+  <data name="Memory_WidthTotalDataText.Text" xml:space="preserve">
+    <value>Šířka (celkem / data)</value>
+  </data>
+  <data name="Memory_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
+  <data name="Storage_StorageInfoText.Text" xml:space="preserve">
+    <value>Informace o úložišti</value>
+  </data>
+  <data name="Storage_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Storage_GeneralPopup.Description" xml:space="preserve">
+    <value>Typ sběrnice - rozhraní připojení (NVMe, SATA, USB, ...), omezuje reálnou maximální rychlost disku; čte se z moderního Storage API, protože starší API Windows hlásí disky NVMe chybně jako SCSI</value>
+  </data>
+  <data name="Storage_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Storage_DiskDriveFallbackSource.Label" xml:space="preserve">
+    <value>Win32_DiskDrive (starší záloha)</value>
+  </data>
+  <data name="Storage_ModelText.Text" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="Storage_SizeText.Text" xml:space="preserve">
+    <value>Velikost</value>
+  </data>
+  <data name="Storage_BusTypeText.Text" xml:space="preserve">
+    <value>Typ sběrnice</value>
+  </data>
+  <data name="Storage_IdentifiersPopup.Title" xml:space="preserve">
+    <value>Identifikátory</value>
+  </data>
+  <data name="Storage_IdentifiersPopup.Description" xml:space="preserve">
+    <value>Sériové číslo, revize firmwaru, ID zařízení - společně jednoznačně identifikují právě tento disk a jeho firmware</value>
+  </data>
+  <data name="Storage_IdentifiersPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Storage_SerialNumberText.Text" xml:space="preserve">
+    <value>Sériové číslo</value>
+  </data>
+  <data name="Storage_FirmwareRevisionText.Text" xml:space="preserve">
+    <value>Revize firmwaru</value>
+  </data>
+  <data name="Storage_DeviceIDText.Text" xml:space="preserve">
+    <value>ID zařízení</value>
+  </data>
+  <data name="Storage_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
+  <data name="Network_NetworkInfoText.Text" xml:space="preserve">
+    <value>Informace o síti</value>
+  </data>
+  <data name="Network_ConnectionPopup.Title" xml:space="preserve">
+    <value>Připojení</value>
+  </data>
+  <data name="Network_ConnectionPopup.Description" xml:space="preserve">
+    <value>Představuje jedno aktivní připojení, ne všechna možná připojení adaptéru. Více aktivních připojení (např. Wi-Fi + Ethernet) má každé vlastní položku.
+Hardware - fyzický adaptér za tímto připojením
+Typ - jeho médium (Wi-Fi, Ethernet, ...)</value>
+  </data>
+  <data name="Network_ConnectionPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Network_HardwareText.Text" xml:space="preserve">
+    <value>Hardware</value>
+  </data>
+  <data name="Network_TypeText.Text" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="Network_IPAddressesPopup.Title" xml:space="preserve">
+    <value>IP adresy</value>
+  </data>
+  <data name="Network_IPAddressesPopup.Description" xml:space="preserve">
+    <value>IPv4 a IPv6 jsou nezávislé systémy adres, oba aktivní současně.
+IPv4 - obvykle jedna adresa
+IPv6 - často několik současně (stabilní a střídající se adresy pro ochranu soukromí)</value>
+  </data>
+  <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Network_IPv4AddressesText.Text" xml:space="preserve">
+    <value>Adresy IPv4</value>
+  </data>
+  <data name="Network_IPv6AddressesText.Text" xml:space="preserve">
+    <value>Adresy IPv6</value>
+  </data>
+  <data name="Network_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Network_GeneralPopup.Description" xml:space="preserve">
+    <value>Rychlost linky - vyjednaná rychlost právě tohoto připojení, ne maximální jmenovitá rychlost adaptéru; může být nižší a u Wi-Fi se mění podle podmínek signálu
+DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo nastavena staticky; vlastnost tohoto připojení, ne nastavení celé sítě</value>
+  </data>
+  <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Network_LinkSpeedText.Text" xml:space="preserve">
+    <value>Rychlost linky</value>
+  </data>
+  <data name="Network_MACAddressText.Text" xml:space="preserve">
+    <value>Adresa MAC</value>
+  </data>
+  <data name="Network_DHCPEnabledText.Text" xml:space="preserve">
+    <value>DHCP zapnuto</value>
+  </data>
+  <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
+  <data name="SensorPanel_TogglePanelButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Přepnout panel</value>
+  </data>
+  <data name="SensorPanel_TogglePanelButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Přepnout panel</value>
+  </data>
+  <data name="SensorPanel_SwitchCandidateComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Přepnout senzor</value>
+  </data>
+  <data name="SensorPanel_IncreaseYAxisButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvětšit osu Y</value>
+  </data>
+  <data name="SensorPanel_IncreaseYAxisButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvětšit osu Y</value>
+  </data>
+  <data name="SensorPanel_DecreaseYAxisButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zmenšit osu Y</value>
+  </data>
+  <data name="SensorPanel_DecreaseYAxisButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zmenšit osu Y</value>
+  </data>
+  <data name="SensorPanel_AutoScaleButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Automatické měřítko</value>
+  </data>
+  <data name="SensorPanel_AutoScaleButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Automatické měřítko</value>
+  </data>
+  <data name="SensorPanel_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýšit práh</value>
+  </data>
+  <data name="SensorPanel_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýšit práh</value>
+  </data>
+  <data name="SensorPanel_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Snížit práh</value>
+  </data>
+  <data name="SensorPanel_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Snížit práh</value>
+  </data>
+  <data name="SensorPanel_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Přepnout čáru prahu</value>
+  </data>
+  <data name="SensorPanel_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Přepnout čáru prahu</value>
+  </data>
+  <data name="SensorPanel_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýraznit nad prahem</value>
+  </data>
+  <data name="SensorPanel_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýraznit nad prahem</value>
+  </data>
+  <data name="SensorPanel_ThresholdColorButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva prahu</value>
+  </data>
+  <data name="SensorPanel_ThresholdColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva prahu</value>
+  </data>
+  <data name="SensorPanel_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýraznit pod prahem</value>
+  </data>
+  <data name="SensorPanel_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýraznit pod prahem</value>
+  </data>
+  <data name="Threshold_ThresholdConfigText.Text" xml:space="preserve">
+    <value>Nastavení prahu</value>
+  </data>
+  <data name="Threshold_ThresholdCloseButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zavřít</value>
+  </data>
+  <data name="Threshold_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýšit práh</value>
+  </data>
+  <data name="Threshold_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýšit práh</value>
+  </data>
+  <data name="Threshold_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Snížit práh</value>
+  </data>
+  <data name="Threshold_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Snížit práh</value>
+  </data>
+  <data name="Threshold_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Přepnout čáru prahu</value>
+  </data>
+  <data name="Threshold_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Přepnout čáru prahu</value>
+  </data>
+  <data name="Threshold_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýraznit nad prahem</value>
+  </data>
+  <data name="Threshold_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýraznit nad prahem</value>
+  </data>
+  <data name="Threshold_ThresholdColorButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva prahu</value>
+  </data>
+  <data name="Threshold_ThresholdColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva prahu</value>
+  </data>
+  <data name="Threshold_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýraznit pod prahem</value>
+  </data>
+  <data name="Threshold_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýraznit pod prahem</value>
+  </data>
+  <data name="Cpu_AverageLoad" xml:space="preserve">
+    <value>Průměrné zatížení</value>
+  </data>
+  <data name="Cpu_AverageTemperature" xml:space="preserve">
+    <value>Průměrná teplota</value>
+  </data>
+  <data name="Cpu_AverageClock" xml:space="preserve">
+    <value>Průměrná frekvence</value>
+  </data>
+  <data name="Cpu_TopologySymmetricSmt" xml:space="preserve">
+    <value>Symetrické, Hyper-Threading zapnutý</value>
+  </data>
+  <data name="Cpu_TopologySymmetric" xml:space="preserve">
+    <value>Symetrické, bez Hyper-Threadingu</value>
+  </data>
+  <data name="Cpu_TopologyPerformance" xml:space="preserve">
+    <value>výkonná</value>
+  </data>
+  <data name="Cpu_TopologyEfficient" xml:space="preserve">
+    <value>úsporná</value>
+  </data>
+  <data name="Cpu_TopologyClass" xml:space="preserve">
+    <value>třída {0}</value>
+  </data>
+  <data name="Cpu_TopologyGroup" xml:space="preserve">
+    <value>{0} {1} ({2})</value>
+  </data>
+  <data name="InfoPopup_Source" xml:space="preserve">
+    <value>Zdroj: {0}</value>
+  </data>
+  <data name="InfoPopup_MoreInfo" xml:space="preserve">
+    <value>Další informace</value>
+  </data>
+  <data name="InfoPopup_MoreInfoAbout" xml:space="preserve">
+    <value>Další informace: {0}</value>
+  </data>
+  <data name="SensorPanel_NotFound" xml:space="preserve">
+    <value>Senzor {0} nenalezen</value>
+  </data>
+  <data name="Threshold_Name" xml:space="preserve">
+    <value>Práh {0}</value>
+  </data>
+  <data name="Threshold_NotSet" xml:space="preserve">
+    <value>Práh, nenastaven</value>
+  </data>
+  <data name="TimeRange_Name" xml:space="preserve">
+    <value>Časový rozsah</value>
+  </data>
+  <data name="TimeRange_Last" xml:space="preserve">
+    <value>Posledních {0:0}s</value>
+  </data>
+  <data name="Info_Yes" xml:space="preserve">
+    <value>Ano</value>
+  </data>
+  <data name="Info_No" xml:space="preserve">
+    <value>Ne</value>
+  </data>
+  <data name="Info_Other" xml:space="preserve">
+    <value>Jiné</value>
+  </data>
+  <data name="Info_Unknown" xml:space="preserve">
+    <value>Neznámé</value>
+  </data>
+  <data name="Info_UnknownValue" xml:space="preserve">
+    <value>Neznámé ({0})</value>
+  </data>
+  <data name="Info_CacheInstruction" xml:space="preserve">
+    <value>Instrukce</value>
+  </data>
+  <data name="Info_CacheData" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Info_CacheUnified" xml:space="preserve">
+    <value>Sjednocená</value>
+  </data>
+  <data name="Info_FormChip" xml:space="preserve">
+    <value>Čip</value>
+  </data>
+  <data name="Info_FormProprietaryCard" xml:space="preserve">
+    <value>Proprietární karta</value>
+  </data>
+  <data name="Info_FormRowOfChips" xml:space="preserve">
+    <value>Řada čipů</value>
+  </data>
+  <data name="Info_FormDie" xml:space="preserve">
+    <value>Die</value>
+  </data>
+  <data name="Info_Rank" xml:space="preserve">
+    <value>Rank {0}</value>
+  </data>
+  <data name="Info_ErrorCounts" xml:space="preserve">
+    <value>{0} celkem, {1} opraveno, {2} neopraveno</value>
+  </data>
+  <data name="Info_CycleCount" xml:space="preserve">
+    <value>{0} / {1} max</value>
+  </data>
 </root>

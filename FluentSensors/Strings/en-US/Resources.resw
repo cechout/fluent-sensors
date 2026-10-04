@@ -1047,4 +1047,557 @@ Uptime - how long this app has been running since it was last started</value>
   <data name="Update_StoreFailed" xml:space="preserve">
     <value>The Microsoft Store could not install the update, opening the Store instead</value>
   </data>
+  <data name="Performance_PerformanceTitleText.Text" xml:space="preserve">
+    <value>Hardware View</value>
+  </data>
+  <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
+    <value>Hardware Overview</value>
+  </data>
+  <data name="Performance_HardwareListButton.Label" xml:space="preserve">
+    <value>Hardware List</value>
+  </data>
+  <data name="Performance_HardwareInfoButton.Label" xml:space="preserve">
+    <value>Hardware Info</value>
+  </data>
+  <data name="Performance_ResizeHardwareListSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware List</value>
+  </data>
+  <data name="Cpu_CoresWithThreadsText.Text" xml:space="preserve">
+    <value>Cores With Threads</value>
+  </data>
+  <data name="Cpu_ExtendedTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Extended Time Range</value>
+  </data>
+  <data name="Cpu_AverageLoadTile.Title" xml:space="preserve">
+    <value>Average Load</value>
+  </data>
+  <data name="Cpu_AverageTemperatureTile.Title" xml:space="preserve">
+    <value>Average Temperature</value>
+  </data>
+  <data name="Cpu_AverageClockTile.Title" xml:space="preserve">
+    <value>Average Clock</value>
+  </data>
+  <data name="Cpu_CoresWithoutThreadsText.Text" xml:space="preserve">
+    <value>Cores Without Threads</value>
+  </data>
+  <data name="Cpu_CPUInfoText.Text" xml:space="preserve">
+    <value>CPU Info</value>
+  </data>
+  <data name="Cpu_GeneralPopup.Title" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Cpu_GeneralPopup.Description" xml:space="preserve">
+    <value>Physical Cores - actual processing units on chip
+Logical Processors - total execution threads (SMT/Hyper-Threading doubles per core)
+Core Topology - Performance vs Efficient core split on hybrid CPUs</value>
+  </data>
+  <data name="Cpu_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Cpu_PhysicalCoresText.Text" xml:space="preserve">
+    <value>Physical Cores</value>
+  </data>
+  <data name="Cpu_LogicalProcessorsText.Text" xml:space="preserve">
+    <value>Logical Processors</value>
+  </data>
+  <data name="Cpu_CoreTopologyText.Text" xml:space="preserve">
+    <value>Core Topology</value>
+  </data>
+  <data name="Cpu_SocketText.Text" xml:space="preserve">
+    <value>Socket</value>
+  </data>
+  <data name="Cpu_MaxClockSpeedText.Text" xml:space="preserve">
+    <value>Max Clock Speed</value>
+  </data>
+  <data name="Cpu_CachePopup.Title" xml:space="preserve">
+    <value>Cache</value>
+  </data>
+  <data name="Cpu_CachePopup.Description" xml:space="preserve">
+    <value>Small, fast on-die memory holding recently used data
+L1 - smallest, fastest, per core; sum of separate instruction + data caches
+L2 - larger, slower, per core; unified
+L3 - largest, shared across all cores; unified</value>
+  </data>
+  <data name="Cpu_CachePopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Cpu_L1CacheText.Text" xml:space="preserve">
+    <value>L1 Cache</value>
+  </data>
+  <data name="Cpu_L2CacheText.Text" xml:space="preserve">
+    <value>L2 Cache</value>
+  </data>
+  <data name="Cpu_L3CacheText.Text" xml:space="preserve">
+    <value>L3 Cache</value>
+  </data>
+  <data name="Cpu_VirtualizationPopup.Title" xml:space="preserve">
+    <value>Virtualization</value>
+  </data>
+  <data name="Cpu_VirtualizationPopup.Description" xml:space="preserve">
+    <value>Extensions - CPU hardware support for running virtual machines (VT-x/AMD-V), used by Hyper-V, WSL2, and similar
+Firmware - currently enabled or not (unreliable)</value>
+  </data>
+  <data name="Cpu_VirtualizationPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Cpu_FirmwareText.Text" xml:space="preserve">
+    <value>Firmware</value>
+  </data>
+  <data name="Cpu_ExtensionsText.Text" xml:space="preserve">
+    <value>Extensions</value>
+  </data>
+  <data name="Cpu_ShowOverallButton.Label" xml:space="preserve">
+    <value>Overall</value>
+  </data>
+  <data name="Cpu_ShowAllThreadsButton.Label" xml:space="preserve">
+    <value>Extended</value>
+  </data>
+  <data name="Cpu_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
+  <data name="Gpu_CoreText.Text" xml:space="preserve">
+    <value>Core</value>
+  </data>
+  <data name="Gpu_ExtendedTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Extended Time Range</value>
+  </data>
+  <data name="Gpu_MemoryText.Text" xml:space="preserve">
+    <value>Memory</value>
+  </data>
+  <data name="Gpu_PCIeBusText.Text" xml:space="preserve">
+    <value>PCIe / Bus</value>
+  </data>
+  <data name="Gpu_EnginesText.Text" xml:space="preserve">
+    <value>Engines</value>
+  </data>
+  <data name="Gpu_ShowOverallButton.Label" xml:space="preserve">
+    <value>Overall</value>
+  </data>
+  <data name="Gpu_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Extended</value>
+  </data>
+  <data name="Gpu_GPUInfoText.Text" xml:space="preserve">
+    <value>GPU Info</value>
+  </data>
+  <data name="Gpu_GeneralPopup.Title" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
+    <value>Driver Version - internal Windows driver number, differs from vendor's own version scheme</value>
+  </data>
+  <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Gpu_NameText.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Gpu_VendorText.Text" xml:space="preserve">
+    <value>Vendor</value>
+  </data>
+  <data name="Gpu_DriverVersionText.Text" xml:space="preserve">
+    <value>Driver Version</value>
+  </data>
+  <data name="Gpu_MemoryPopup.Title" xml:space="preserve">
+    <value>Memory</value>
+  </data>
+  <data name="Gpu_MemoryPopup.Description" xml:space="preserve">
+    <value>Dedicated Memory - VRAM reserved exclusively for the GPU
+Shared Memory - system RAM the GPU may additionally borrow, shared with the CPU; calculated independently per GPU from total system RAM, not split between multiple GPUs</value>
+  </data>
+  <data name="Gpu_MemoryPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Gpu_DedicatedMemoryText.Text" xml:space="preserve">
+    <value>Dedicated Memory</value>
+  </data>
+  <data name="Gpu_SharedMemoryText.Text" xml:space="preserve">
+    <value>Shared Memory</value>
+  </data>
+  <data name="Gpu_IdentifiersPopup.Title" xml:space="preserve">
+    <value>Identifiers</value>
+  </data>
+  <data name="Gpu_IdentifiersPopup.Description" xml:space="preserve">
+    <value>PCI Device ID - vendor/chip code hardcoded on the GPU
+PnP Device ID - Windows' instance identifier for this device</value>
+  </data>
+  <data name="Gpu_IdentifiersPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Gpu_PCIDeviceIDText.Text" xml:space="preserve">
+    <value>PCI Device ID</value>
+  </data>
+  <data name="Gpu_PnPDeviceIDText.Text" xml:space="preserve">
+    <value>PnP Device ID</value>
+  </data>
+  <data name="Gpu_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
+  <data name="Memory_MemoryUsedPhysicalTile.Title" xml:space="preserve">
+    <value>Memory Used (Physical)</value>
+  </data>
+  <data name="Memory_MemoryUsedVirtualTile.Title" xml:space="preserve">
+    <value>Memory Used (Virtual)</value>
+  </data>
+  <data name="Memory_MemoryUsedVirtualTile.InfoMessage" xml:space="preserve">
+    <value>Corresponds to Task Manager's "Committed" value; usually exact, but can deviate occasionally.</value>
+  </data>
+  <data name="Memory_RAMInfoText.Text" xml:space="preserve">
+    <value>RAM Info</value>
+  </data>
+  <data name="Memory_TotalSlotsText.Text" xml:space="preserve">
+    <value>Total Slots</value>
+  </data>
+  <data name="Memory_RamInfoPopup.Description" xml:space="preserve">
+    <value>Type - DDR generation (DDR4, DDR5, ...)
+Form Factor - DIMM (desktop) or SO-DIMM (laptop)
+RAM Speed - Configured (active) vs Rated (spec)
+Voltage - operating voltage; XMP/EXPO can raise it
+Bank - physical bank/slot grouping on the motherboard this module belongs to
+Rank - number of independent chip sets on the module itself (unreliable)
+Width - Data (usable bits) vs Total (includes ECC bits)</value>
+  </data>
+  <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Memory_ManufacturerText.Text" xml:space="preserve">
+    <value>Manufacturer</value>
+  </data>
+  <data name="Memory_PartNumberText.Text" xml:space="preserve">
+    <value>Part Number</value>
+  </data>
+  <data name="Memory_SerialNumberText.Text" xml:space="preserve">
+    <value>Serial Number</value>
+  </data>
+  <data name="Memory_CapacityText.Text" xml:space="preserve">
+    <value>Capacity</value>
+  </data>
+  <data name="Memory_TypeText.Text" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Memory_FormFactorText.Text" xml:space="preserve">
+    <value>Form Factor</value>
+  </data>
+  <data name="Memory_RAMSpeedConfiguredRatedText.Text" xml:space="preserve">
+    <value>RAM Speed (Configured / Rated)</value>
+  </data>
+  <data name="Memory_VoltageConfiguredMinMaxText.Text" xml:space="preserve">
+    <value>Voltage (Configured / Min / Max)</value>
+  </data>
+  <data name="Memory_BankText.Text" xml:space="preserve">
+    <value>Bank</value>
+  </data>
+  <data name="Memory_RankText.Text" xml:space="preserve">
+    <value>Rank</value>
+  </data>
+  <data name="Memory_WidthTotalDataText.Text" xml:space="preserve">
+    <value>Width (Total / Data)</value>
+  </data>
+  <data name="Memory_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
+  <data name="Storage_StorageInfoText.Text" xml:space="preserve">
+    <value>Storage Info</value>
+  </data>
+  <data name="Storage_GeneralPopup.Title" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Storage_GeneralPopup.Description" xml:space="preserve">
+    <value>Bus Type - connection interface (NVMe, SATA, USB, ...), caps the drive's realistic maximum speed; read from the modern Storage API since the legacy Windows API misreports NVMe drives as SCSI</value>
+  </data>
+  <data name="Storage_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Storage_DiskDriveFallbackSource.Label" xml:space="preserve">
+    <value>Win32_DiskDrive (legacy fallback)</value>
+  </data>
+  <data name="Storage_ModelText.Text" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="Storage_SizeText.Text" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="Storage_BusTypeText.Text" xml:space="preserve">
+    <value>Bus Type</value>
+  </data>
+  <data name="Storage_IdentifiersPopup.Title" xml:space="preserve">
+    <value>Identifiers</value>
+  </data>
+  <data name="Storage_IdentifiersPopup.Description" xml:space="preserve">
+    <value>Serial Number, Firmware Revision, Device ID - together uniquely identify this exact drive and its firmware</value>
+  </data>
+  <data name="Storage_IdentifiersPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Storage_SerialNumberText.Text" xml:space="preserve">
+    <value>Serial Number</value>
+  </data>
+  <data name="Storage_FirmwareRevisionText.Text" xml:space="preserve">
+    <value>Firmware Revision</value>
+  </data>
+  <data name="Storage_DeviceIDText.Text" xml:space="preserve">
+    <value>Device ID</value>
+  </data>
+  <data name="Storage_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
+  <data name="Network_NetworkInfoText.Text" xml:space="preserve">
+    <value>Network Info</value>
+  </data>
+  <data name="Network_ConnectionPopup.Title" xml:space="preserve">
+    <value>Connection</value>
+  </data>
+  <data name="Network_ConnectionPopup.Description" xml:space="preserve">
+    <value>Represents one active connection, not the adapter's full range of possible connections. Multiple active connections (e.g. Wi-Fi + Ethernet) each get their own separate entry.
+Hardware - physical adapter behind this connection
+Type - its medium (Wi-Fi, Ethernet, ...)</value>
+  </data>
+  <data name="Network_ConnectionPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Network_HardwareText.Text" xml:space="preserve">
+    <value>Hardware</value>
+  </data>
+  <data name="Network_TypeText.Text" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Network_IPAddressesPopup.Title" xml:space="preserve">
+    <value>IP Addresses</value>
+  </data>
+  <data name="Network_IPAddressesPopup.Description" xml:space="preserve">
+    <value>IPv4 and IPv6 are independent addressing systems, both active at once.
+IPv4 - usually one address
+IPv6 - often several at once (stable + rotating privacy addresses)</value>
+  </data>
+  <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Network_IPv4AddressesText.Text" xml:space="preserve">
+    <value>IPv4 Address(es)</value>
+  </data>
+  <data name="Network_IPv6AddressesText.Text" xml:space="preserve">
+    <value>IPv6 Address(es)</value>
+  </data>
+  <data name="Network_GeneralPopup.Title" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Network_GeneralPopup.Description" xml:space="preserve">
+    <value>Link Speed - negotiated rate of this specific connection, not the adapter's maximum rated speed; can be lower, and shifts over time on Wi-Fi as signal conditions change
+DHCP Enabled - whether this connection's own address was assigned automatically or set statically; a property of this connection, not a general network-wide setting</value>
+  </data>
+  <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Network_LinkSpeedText.Text" xml:space="preserve">
+    <value>Link Speed</value>
+  </data>
+  <data name="Network_MACAddressText.Text" xml:space="preserve">
+    <value>MAC Address</value>
+  </data>
+  <data name="Network_DHCPEnabledText.Text" xml:space="preserve">
+    <value>DHCP Enabled</value>
+  </data>
+  <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
+  <data name="SensorPanel_TogglePanelButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Toggle Panel</value>
+  </data>
+  <data name="SensorPanel_TogglePanelButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Toggle Panel</value>
+  </data>
+  <data name="SensorPanel_SwitchCandidateComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Switch Sensor</value>
+  </data>
+  <data name="SensorPanel_IncreaseYAxisButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Increase Y-Axis</value>
+  </data>
+  <data name="SensorPanel_IncreaseYAxisButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Increase Y-Axis</value>
+  </data>
+  <data name="SensorPanel_DecreaseYAxisButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Decrease Y-Axis</value>
+  </data>
+  <data name="SensorPanel_DecreaseYAxisButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Decrease Y-Axis</value>
+  </data>
+  <data name="SensorPanel_AutoScaleButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Auto-Scale</value>
+  </data>
+  <data name="SensorPanel_AutoScaleButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Auto-Scale</value>
+  </data>
+  <data name="SensorPanel_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Increase Threshold</value>
+  </data>
+  <data name="SensorPanel_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Increase Threshold</value>
+  </data>
+  <data name="SensorPanel_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Decrease Threshold</value>
+  </data>
+  <data name="SensorPanel_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Decrease Threshold</value>
+  </data>
+  <data name="SensorPanel_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Toggle Threshold-Line</value>
+  </data>
+  <data name="SensorPanel_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Toggle Threshold-Line</value>
+  </data>
+  <data name="SensorPanel_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Mark Above Threshold</value>
+  </data>
+  <data name="SensorPanel_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Mark Above Threshold</value>
+  </data>
+  <data name="SensorPanel_ThresholdColorButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Threshold Color</value>
+  </data>
+  <data name="SensorPanel_ThresholdColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Threshold Color</value>
+  </data>
+  <data name="SensorPanel_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Mark Under Threshold</value>
+  </data>
+  <data name="SensorPanel_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Mark Under Threshold</value>
+  </data>
+  <data name="Threshold_ThresholdConfigText.Text" xml:space="preserve">
+    <value>Threshold Config</value>
+  </data>
+  <data name="Threshold_ThresholdCloseButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Threshold_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Increase Threshold</value>
+  </data>
+  <data name="Threshold_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Increase Threshold</value>
+  </data>
+  <data name="Threshold_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Decrease Threshold</value>
+  </data>
+  <data name="Threshold_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Decrease Threshold</value>
+  </data>
+  <data name="Threshold_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Toggle Threshold-Line</value>
+  </data>
+  <data name="Threshold_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Toggle Threshold-Line</value>
+  </data>
+  <data name="Threshold_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Mark Above Threshold</value>
+  </data>
+  <data name="Threshold_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Mark Above Threshold</value>
+  </data>
+  <data name="Threshold_ThresholdColorButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Threshold Color</value>
+  </data>
+  <data name="Threshold_ThresholdColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Threshold Color</value>
+  </data>
+  <data name="Threshold_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Mark Under Threshold</value>
+  </data>
+  <data name="Threshold_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Mark Under Threshold</value>
+  </data>
+  <data name="Cpu_AverageLoad" xml:space="preserve">
+    <value>Average Load</value>
+  </data>
+  <data name="Cpu_AverageTemperature" xml:space="preserve">
+    <value>Average Temperature</value>
+  </data>
+  <data name="Cpu_AverageClock" xml:space="preserve">
+    <value>Average Clock</value>
+  </data>
+  <data name="Cpu_TopologySymmetricSmt" xml:space="preserve">
+    <value>Symmetric, Hyper-Threading enabled</value>
+  </data>
+  <data name="Cpu_TopologySymmetric" xml:space="preserve">
+    <value>Symmetric, no Hyper-Threading</value>
+  </data>
+  <data name="Cpu_TopologyPerformance" xml:space="preserve">
+    <value>Performance</value>
+  </data>
+  <data name="Cpu_TopologyEfficient" xml:space="preserve">
+    <value>Efficient</value>
+  </data>
+  <data name="Cpu_TopologyClass" xml:space="preserve">
+    <value>Class {0}</value>
+  </data>
+  <data name="Cpu_TopologyGroup" xml:space="preserve">
+    <value>{0} {1} ({2})</value>
+  </data>
+  <data name="InfoPopup_Source" xml:space="preserve">
+    <value>Source: {0}</value>
+  </data>
+  <data name="InfoPopup_MoreInfo" xml:space="preserve">
+    <value>More Information</value>
+  </data>
+  <data name="InfoPopup_MoreInfoAbout" xml:space="preserve">
+    <value>More Information about {0}</value>
+  </data>
+  <data name="SensorPanel_NotFound" xml:space="preserve">
+    <value>{0} sensor not found</value>
+  </data>
+  <data name="Threshold_Name" xml:space="preserve">
+    <value>Threshold {0}</value>
+  </data>
+  <data name="Threshold_NotSet" xml:space="preserve">
+    <value>Threshold, not set</value>
+  </data>
+  <data name="TimeRange_Name" xml:space="preserve">
+    <value>Time Range</value>
+  </data>
+  <data name="TimeRange_Last" xml:space="preserve">
+    <value>Last {0:0}s</value>
+  </data>
+  <data name="Info_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Info_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Info_Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Info_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Info_UnknownValue" xml:space="preserve">
+    <value>Unknown ({0})</value>
+  </data>
+  <data name="Info_CacheInstruction" xml:space="preserve">
+    <value>Instruction</value>
+  </data>
+  <data name="Info_CacheData" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Info_CacheUnified" xml:space="preserve">
+    <value>Unified</value>
+  </data>
+  <data name="Info_FormChip" xml:space="preserve">
+    <value>Chip</value>
+  </data>
+  <data name="Info_FormProprietaryCard" xml:space="preserve">
+    <value>Proprietary Card</value>
+  </data>
+  <data name="Info_FormRowOfChips" xml:space="preserve">
+    <value>Row of chips</value>
+  </data>
+  <data name="Info_FormDie" xml:space="preserve">
+    <value>Die</value>
+  </data>
+  <data name="Info_Rank" xml:space="preserve">
+    <value>Rank {0}</value>
+  </data>
+  <data name="Info_ErrorCounts" xml:space="preserve">
+    <value>{0} total, {1} corrected, {2} uncorrected</value>
+  </data>
+  <data name="Info_CycleCount" xml:space="preserve">
+    <value>{0} / {1} max</value>
+  </data>
 </root>

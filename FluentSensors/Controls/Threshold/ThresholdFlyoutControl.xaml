@@ -68,21 +68,21 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock
+                            x:Uid="Threshold_ThresholdConfigText"
                             Grid.Column="0"
                             Margin="5,3,10,0"
                             VerticalAlignment="Center"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Threshold Config" />
+                            Style="{ThemeResource CaptionTextBlockStyle}" />
 
                         <Button
                             x:Name="ThresholdCloseButton"
+                            x:Uid="Threshold_ThresholdCloseButton"
                             Grid.Column="0"
                             Width="28"
                             Height="28"
                             Padding="0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
-                            AutomationProperties.Name="Close"
                             Click="ThresholdCloseButton_Click"
                             Style="{StaticResource SubtleButtonStyle}">
                             <FontIcon FontSize="12" Glyph="&#xE711;" />
@@ -106,38 +106,35 @@
                             </Grid.RowDefinitions>
 
                             <RepeatButton
+                                x:Uid="Threshold_IncreaseThresholdButton"
                                 Grid.Row="0"
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
-                                AutomationProperties.Name="Increase Threshold"
-                                Click="{x:Bind Threshold.Increase}"
-                                ToolTipService.ToolTip="Increase Threshold">
+                                Click="{x:Bind Threshold.Increase}">
                                 <FontIcon FontSize="12" Glyph="&#xE70E;" />
                             </RepeatButton>
 
                             <RepeatButton
+                                x:Uid="Threshold_DecreaseThresholdButton"
                                 Grid.Row="1"
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
-                                AutomationProperties.Name="Decrease Threshold"
-                                Click="{x:Bind Threshold.Decrease}"
-                                ToolTipService.ToolTip="Decrease Threshold">
+                                Click="{x:Bind Threshold.Decrease}">
                                 <FontIcon FontSize="12" Glyph="&#xE70D;" />
                             </RepeatButton>
 
                             <ToggleButton
+                                x:Uid="Threshold_ToggleThresholdLineButton"
                                 Grid.Row="2"
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
-                                AutomationProperties.Name="Toggle Threshold-Line"
                                 Content="T"
                                 FontSize="12"
                                 FontWeight="Normal"
-                                IsChecked="{x:Bind Threshold.IsEnabled, Mode=TwoWay}"
-                                ToolTipService.ToolTip="Toggle Threshold-Line" />
+                                IsChecked="{x:Bind Threshold.IsEnabled, Mode=TwoWay}" />
                         </Grid>
 
                         <Grid Grid.Column="1" RowSpacing="3">
@@ -148,13 +145,12 @@
                             </Grid.RowDefinitions>
 
                             <ToggleButton
+                                x:Uid="Threshold_MarkAboveThresholdButton"
                                 Grid.Row="0"
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
-                                AutomationProperties.Name="Mark Above Threshold"
-                                IsChecked="{x:Bind Threshold.IsAboveDirection, Mode=TwoWay}"
-                                ToolTipService.ToolTip="Mark Above Threshold">
+                                IsChecked="{x:Bind Threshold.IsAboveDirection, Mode=TwoWay}">
                                 <FontIcon
                                     FontSize="12"
                                     Glyph="&#xEDE1;"
@@ -166,17 +162,17 @@
                             </ToggleButton>
 
                             <Button
+                                x:Uid="Threshold_ThresholdColorButton"
                                 Grid.Row="1"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
-                                AutomationProperties.Name="Threshold Color"
                                 Background="{x:Bind Threshold.ColorBrush, Mode=OneWay}"
                                 Style="{StaticResource ColorSwatchButtonStyle}">
 
                                 <Button.Flyout>
                                     <Flyout Placement="Bottom" ShouldConstrainToRootBounds="False">
                                         <controls:ColorPicker
-                                            AutomationProperties.Name="Threshold Color"
+                                            x:Uid="Threshold_ThresholdColorPicker"
                                             ColorSpectrumShape="Box"
                                             IsAlphaEnabled="False"
                                             IsAlphaSliderVisible="False"
@@ -191,13 +187,12 @@
                             </Button>
 
                             <ToggleButton
+                                x:Uid="Threshold_MarkUnderThresholdButton"
                                 Grid.Row="2"
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
-                                AutomationProperties.Name="Mark Under Threshold"
-                                IsChecked="{x:Bind Threshold.IsBelowDirection, Mode=TwoWay}"
-                                ToolTipService.ToolTip="Mark Under Threshold">
+                                IsChecked="{x:Bind Threshold.IsBelowDirection, Mode=TwoWay}">
                                 <FontIcon
                                     FontSize="12"
                                     Glyph="&#xEDE1;"

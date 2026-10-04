@@ -1,3 +1,4 @@
+using FluentSensors.Common.Localization;
 using FluentSensors.Diagnostics;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -499,12 +500,12 @@ namespace FluentSensors.Controls.InfoPopup
         private Visibility GetSourceIntroVisibility(string sourceIntro) =>
             string.IsNullOrEmpty(sourceIntro) ? Visibility.Collapsed : Visibility.Visible;
 
-        private string FormatSource(string source) => $"Source: {source}";
+        private string FormatSource(string source) => AppStrings.Format("InfoPopup_Source", source);
 
         // screen reader name, with the title, so a page full of these buttons does not read
         // the same label over and over
         private string GetInfoButtonName(string title) =>
-            string.IsNullOrEmpty(title) ? "More Information" : $"More Information about {title}";
+            string.IsNullOrEmpty(title) ? AppStrings.Get("InfoPopup_MoreInfo") : AppStrings.Format("InfoPopup_MoreInfoAbout", title);
 
         private List<string> SplitParagraphs(string description)
         {

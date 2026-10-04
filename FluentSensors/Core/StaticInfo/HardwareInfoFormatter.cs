@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Net.NetworkInformation;
 
+using FluentSensors.Common.Localization;
+
 namespace FluentSensors.Core.StaticInfo
 {
     // formatting of the WinStaticInfoService facts for the hardware view info panels
@@ -9,7 +11,7 @@ namespace FluentSensors.Core.StaticInfo
     {
         // === shared ===
 
-        public static string FormatYesNo(bool value) => value ? "Yes" : "No";
+        public static string FormatYesNo(bool value) => AppStrings.Get(value ? "Info_Yes" : "Info_No");
 
         public static string FormatMhz(uint speedMhz) => $"{speedMhz} MHz";
 
@@ -49,12 +51,12 @@ namespace FluentSensors.Core.StaticInfo
         {
             return cacheType switch
             {
-                1 => "Other",
-                2 => "Unknown",
-                3 => "Instruction",
-                4 => "Data",
-                5 => "Unified",
-                _ => $"Unknown ({cacheType})"
+                1 => AppStrings.Get("Info_Other"),
+                2 => AppStrings.Get("Info_Unknown"),
+                3 => AppStrings.Get("Info_CacheInstruction"),
+                4 => AppStrings.Get("Info_CacheData"),
+                5 => AppStrings.Get("Info_CacheUnified"),
+                _ => AppStrings.Format("Info_UnknownValue", cacheType)
             };
         }
 
@@ -71,7 +73,7 @@ namespace FluentSensors.Core.StaticInfo
                 0x10DE => "NVIDIA",
                 0x1002 => "AMD",
                 0x8086 => "Intel",
-                _ => $"Unknown (0x{vendorId:X4})"
+                _ => AppStrings.Format("Info_UnknownValue", $"0x{vendorId:X4}")
             };
         }
 
@@ -90,7 +92,7 @@ namespace FluentSensors.Core.StaticInfo
                 24 => "DDR3",
                 26 => "DDR4",
                 34 => "DDR5",
-                _ => $"Unknown ({smbiosType})"
+                _ => AppStrings.Format("Info_UnknownValue", smbiosType)
             };
         }
 
@@ -105,29 +107,29 @@ namespace FluentSensors.Core.StaticInfo
         {
             return formFactor switch
             {
-                0 => "Other",
-                1 => "Unknown",
+                0 => AppStrings.Get("Info_Other"),
+                1 => AppStrings.Get("Info_Unknown"),
                 2 => "SIMM",
                 3 => "SIP",
-                4 => "Chip",
+                4 => AppStrings.Get("Info_FormChip"),
                 5 => "DIP",
                 6 => "ZIP",
-                7 => "Proprietary Card",
+                7 => AppStrings.Get("Info_FormProprietaryCard"),
                 8 => "DIMM",
                 9 => "TSOP",
-                10 => "Row of chips",
+                10 => AppStrings.Get("Info_FormRowOfChips"),
                 11 => "RIMM",
                 12 => "SODIMM",
                 13 => "SRIMM",
                 14 => "FB-DIMM",
-                15 => "Die",
+                15 => AppStrings.Get("Info_FormDie"),
                 _ => "-"
             };
         }
 
         public static string FormatBitsWidth(int totalWidthBits, int dataWidthBits) => $"{totalWidthBits} / {dataWidthBits} bit";
 
-        public static string FormatRank(uint rank) => rank > 0 ? $"Rank {rank}" : "-";
+        public static string FormatRank(uint rank) => rank > 0 ? AppStrings.Format("Info_Rank", rank) : "-";
 
         public static string FormatMillivolts(uint millivolts) => millivolts > 0 ? $"{millivolts / 1000.0:0.##} V" : "-";
 
@@ -152,7 +154,7 @@ namespace FluentSensors.Core.StaticInfo
         public static string FormatErrorCounts(ulong? total, ulong? corrected, ulong? uncorrected)
         {
             if (!total.HasValue && !corrected.HasValue && !uncorrected.HasValue) return "-";
-            return $"{FormatCountOrUnknown(total)} total, {FormatCountOrUnknown(corrected)} corrected, {FormatCountOrUnknown(uncorrected)} uncorrected";
+            return AppStrings.Format("Info_ErrorCounts", FormatCountOrUnknown(total), FormatCountOrUnknown(corrected), FormatCountOrUnknown(uncorrected));
         }
 
         private static string FormatCountOrUnknown(ulong? value) => value?.ToString() ?? "?";
@@ -160,7 +162,7 @@ namespace FluentSensors.Core.StaticInfo
         public static string FormatCycleCount(uint? count, uint? max)
         {
             if (!count.HasValue) return "-";
-            return max.HasValue && max.Value > 0 ? $"{count} / {max} max" : count.Value.ToString();
+            return max.HasValue && max.Value > 0 ? AppStrings.Format("Info_CycleCount", count, max) : count.Value.ToString();
         }
 
         public static string FormatLatencyTriple(ulong? readMs, ulong? writeMs, ulong? flushMs)
