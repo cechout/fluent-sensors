@@ -113,12 +113,11 @@
                 -->
                 <fhInfoPopup:InfoPopupControl
                     x:Name="DotNetRuntimePopup"
+                    x:Uid="Main_DotNetRuntimePopup"
                     Margin="8,1,0,0"
                     VerticalAlignment="Center"
                     ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
-                    Description="NET 10 is not installed on this device&#10;LibreHardwareMonitor needs it to access every available sensor, some readings may be missing or incomplete without it"
                     PlacementMode="Below"
-                    SourceIntro="Recommended:"
                     Visibility="{x:Bind BoolToVisibility(AppStatus.IsDotNetRuntimeMissing), Mode=OneWay}">
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
                         <fhInfoPopup:SourceLink Label=".NET 10 Runtime" Url="https://dotnet.microsoft.com/en-us/download/dotnet/10.0" />
@@ -129,12 +128,11 @@
                 <!--  (the driver is installed separately, nothing else says why the ring 0 readings are empty)  -->
                 <fhInfoPopup:InfoPopupControl
                     x:Name="PawnIoPopup"
+                    x:Uid="Main_PawnIoPopup"
                     Margin="8,1,0,0"
                     VerticalAlignment="Center"
                     ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
-                    Description="PawnIO is not installed on this device&#10;LibreHardwareMonitor reads CPU temperature and power, motherboard sensors and memory timings through this driver, and those stay empty without it&#10;GPU, storage, network and memory readings are not affected"
                     PlacementMode="Below"
-                    SourceIntro="Recommended:"
                     Visibility="{x:Bind BoolToVisibility(AppStatus.IsPawnIoMissing), Mode=OneWay}">
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
                         <fhInfoPopup:SourceLink Label="PawnIO" Url="https://pawnio.eu" />
@@ -145,13 +143,13 @@
             <!--  toggle button for the whole status readout  -->
             <Button
                 x:Name="StatusToggleButton"
+                x:Uid="Main_StatusToggleButton"
                 Grid.Column="4"
                 Width="22"
                 Height="22"
                 Margin="8,1,0,0"
                 Padding="0"
                 VerticalAlignment="Center"
-                AutomationProperties.Name="Toggle Status Readout"
                 Background="Transparent"
                 BorderThickness="0"
                 Click="StatusToggleButton_Click"
@@ -174,10 +172,9 @@
                 Visibility="{x:Bind BoolToVisibility(AppStatus.IsLhmGroupVisible), Mode=OneWay}">
                 <fhInfoPopup:InfoPopupControl
                     x:Name="LhmInfoPopup"
+                    x:Uid="Main_LhmInfoPopup"
                     Margin="-2,1,0,0"
-                    Description="Sensors (found/rendered) - sensors found by LibreHardwareMonitor, and how many are actively drawn&#10;Poll (current/aimed) - measured update rate against the rate set in Settings&#10;Read - duration of one full sensor pass, close to the poll rate means no headroom left&#10;LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows"
                     PlacementMode="Below"
-                    SourceIntro="This App is powered by the open source LibreHardwareMonitor project:"
                     TitleForeground="{ThemeResource TextFillColorSecondaryBrush}">
                     <!--  readouts, carried by the popup so they follow its accent state  -->
                     <!--  (no Foreground of their own, the presenter supplies it)  -->
@@ -200,7 +197,7 @@
                     </fhInfoPopup:InfoPopupControl.TitleContent>
 
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
-                        <fhInfoPopup:SourceLink Label="LibreHardwareMonitor on GitHub" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
+                        <fhInfoPopup:SourceLink x:Uid="Main_LhmGitHubSource" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
                     </fhInfoPopup:InfoPopupControl.SourceLinks>
                 </fhInfoPopup:InfoPopupControl>
             </StackPanel>
@@ -236,10 +233,9 @@
 
                 <fhInfoPopup:InfoPopupControl
                     x:Name="WindowsInfoPopup"
+                    x:Uid="Main_WindowsInfoPopup"
                     Margin="-2,1,0,0"
-                    Description="CPU Usage - this app's own CPU time relative to total capacity across all cores&#10;RAM Usage - physical memory currently mapped by this app (working set)"
                     PlacementMode="Below"
-                    SourceIntro="Source:"
                     TitleForeground="{ThemeResource TextFillColorSecondaryBrush}">
 
                     <!--  readouts, carried by the popup so they follow its accent state  -->
@@ -294,7 +290,7 @@
                 <!--  start page  -->
                 <NavigationViewItem
                     x:Name="StartNavItem"
-                    Content="Start"
+                    x:Uid="Main_StartNavItem"
                     Tag="Start">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE80F;" />
@@ -304,7 +300,7 @@
                 <!--  sensor page  -->
                 <NavigationViewItem
                     x:Name="SensorsNavItem"
-                    Content="Sensors"
+                    x:Uid="Main_SensorsNavItem"
                     Tag="Sensors">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xECAA;" />
@@ -314,7 +310,7 @@
                 <!--  performance page  -->
                 <NavigationViewItem
                     x:Name="PerformanceNavItem"
-                    Content="Hardware View"
+                    x:Uid="Main_PerformanceNavItem"
                     Tag="Performance">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE9D9;" />
@@ -327,7 +323,7 @@
                 <!--  settings page  -->
                 <NavigationViewItem
                     x:Name="SettingsNavItem"
-                    Content="Settings"
+                    x:Uid="Main_SettingsNavItem"
                     Tag="Settings">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE713;" />
@@ -380,10 +376,10 @@
 
                 <TextBlock
                     x:Name="LoadingStatusText"
+                    x:Uid="Main_LoadingStatusText"
                     HorizontalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{ThemeResource BodyStrongTextBlockStyle}"
-                    Text="Starting Fluent Sensors..." />
+                    Style="{ThemeResource BodyStrongTextBlockStyle}" />
             </StackPanel>
         </Grid>
 
@@ -405,9 +401,9 @@
                         (the tab in Text right-aligns the click hint; H.NotifyIcon rebuilds this as a native win32 menu
                         from Text, IsEnabled and Command, so KeyboardAcceleratorTextOverride never shows)
                     -->
-                    <MenuFlyoutItem Command="{x:Bind ShowWidgetWindowCommand}" Text="Widget Window&#x9;Single Click" />
-                    <MenuFlyoutItem Command="{x:Bind ShowCsvWindowCommand}" Text="CSV Window&#x9;Single Click" />
-                    <MenuFlyoutItem Command="{x:Bind TrayDoubleClickCommand}" Text="Main Window&#x9;Double Click" />
+                    <MenuFlyoutItem x:Uid="Main_WidgetWindowSingleClickItem" Command="{x:Bind ShowWidgetWindowCommand}" />
+                    <MenuFlyoutItem x:Uid="Main_CSVWindowSingleClickItem" Command="{x:Bind ShowCsvWindowCommand}" />
+                    <MenuFlyoutItem x:Uid="Main_MainWindowDoubleClickItem" Command="{x:Bind TrayDoubleClickCommand}" />
 
                     <!--<MenuFlyoutSeparator />
 
@@ -418,12 +414,12 @@
                     <MenuFlyoutSeparator />
 
                     <!--  open github page  -->
-                    <MenuFlyoutItem Command="{x:Bind OpenDocumentationCommand}" Text="Documentation" />
+                    <MenuFlyoutItem x:Uid="Main_DocumentationItem" Command="{x:Bind OpenDocumentationCommand}" />
 
                     <MenuFlyoutSeparator />
 
                     <!--  fully exit app  -->
-                    <MenuFlyoutItem Command="{x:Bind ExitAppCommand}" Text="Exit App" />
+                    <MenuFlyoutItem x:Uid="Main_ExitAppItem" Command="{x:Bind ExitAppCommand}" />
                 </MenuFlyout>
             </tb:TaskbarIcon.ContextFlyout>
         </tb:TaskbarIcon>

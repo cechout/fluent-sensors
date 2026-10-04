@@ -76,4 +76,107 @@
   <data name="Settings_LanguageRestartConfirm" xml:space="preserve">
     <value>Restartovat</value>
   </data>
+  <data name="Main_DotNetRuntimePopup.Description" xml:space="preserve">
+    <value>.NET 10 není na tomto zařízení nainstalováno
+LibreHardwareMonitor ho potřebuje pro přístup ke všem dostupným senzorům, bez něj mohou některé hodnoty chybět nebo být neúplné</value>
+  </data>
+  <data name="Main_DotNetRuntimePopup.SourceIntro" xml:space="preserve">
+    <value>Doporučeno:</value>
+  </data>
+  <data name="Main_PawnIoPopup.Description" xml:space="preserve">
+    <value>PawnIO není na tomto zařízení nainstalováno
+LibreHardwareMonitor přes tento ovladač čte teplotu a příkon CPU, senzory základní desky a časování pamětí, bez něj zůstanou prázdné
+Hodnoty GPU, úložiště, sítě a paměti nejsou ovlivněny</value>
+  </data>
+  <data name="Main_PawnIoPopup.SourceIntro" xml:space="preserve">
+    <value>Doporučeno:</value>
+  </data>
+  <data name="Main_StatusToggleButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Přepnout stavový údaj</value>
+  </data>
+  <data name="Main_LhmInfoPopup.Description" xml:space="preserve">
+    <value>Senzory (nalezené/vykreslené) - senzory nalezené LibreHardwareMonitorem a kolik z nich se aktivně vykresluje
+Dotaz (aktuální/cílový) - naměřená obnovovací frekvence oproti frekvenci nastavené v Nastavení
+Čtení - doba jednoho úplného průchodu senzory, blízko frekvenci dotazu znamená, že nezbývá žádná rezerva
+LibreHardwareMonitorLib je největší a nejzavedenější knihovna pro monitorování hardwaru ve Windows</value>
+  </data>
+  <data name="Main_LhmInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Tato aplikace je postavena na open source projektu LibreHardwareMonitor:</value>
+  </data>
+  <data name="Main_LhmGitHubSource.Label" xml:space="preserve">
+    <value>LibreHardwareMonitor na GitHubu</value>
+  </data>
+  <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
+    <value>Využití CPU - vlastní čas CPU této aplikace vzhledem k celkové kapacitě všech jader
+Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovní sada)</value>
+  </data>
+  <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Main_StartNavItem.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Main_SensorsNavItem.Content" xml:space="preserve">
+    <value>Senzory</value>
+  </data>
+  <data name="Main_PerformanceNavItem.Content" xml:space="preserve">
+    <value>Zobrazení hardwaru</value>
+  </data>
+  <data name="Main_SettingsNavItem.Content" xml:space="preserve">
+    <value>Nastavení</value>
+  </data>
+  <data name="Main_LoadingStatusText.Text" xml:space="preserve">
+    <value>Spouštění Fluent Sensors...</value>
+  </data>
+  <data name="Main_WidgetWindowSingleClickItem.Text" xml:space="preserve">
+    <value>Okno widgetu	Jedno kliknutí</value>
+  </data>
+  <data name="Main_CSVWindowSingleClickItem.Text" xml:space="preserve">
+    <value>Okno CSV	Jedno kliknutí</value>
+  </data>
+  <data name="Main_MainWindowDoubleClickItem.Text" xml:space="preserve">
+    <value>Hlavní okno	Dvojklik</value>
+  </data>
+  <data name="Main_DocumentationItem.Text" xml:space="preserve">
+    <value>Dokumentace</value>
+  </data>
+  <data name="Main_ExitAppItem.Text" xml:space="preserve">
+    <value>Ukončit aplikaci</value>
+  </data>
+  <data name="Main_LoadingMotherboard" xml:space="preserve">
+    <value>Inicializace základní desky...</value>
+  </data>
+  <data name="Main_LoadingCpu" xml:space="preserve">
+    <value>Zjišťování CPU...</value>
+  </data>
+  <data name="Main_LoadingGpu" xml:space="preserve">
+    <value>Zjišťování GPU...</value>
+  </data>
+  <data name="Main_LoadingMemoryAndStorage" xml:space="preserve">
+    <value>Kontrola paměti a úložiště...</value>
+  </data>
+  <data name="Main_LoadingControllers" xml:space="preserve">
+    <value>Zjišťování řadičů...</value>
+  </data>
+  <data name="Main_LoadingNetwork" xml:space="preserve">
+    <value>Zjišťování síťových adaptérů...</value>
+  </data>
+  <data name="Main_LoadingWaitingForData" xml:space="preserve">
+    <value>Čekání na data...</value>
+  </data>
+  <data name="Main_LoadingReady" xml:space="preserve">
+    <value>Připraveno</value>
+  </data>
+  <data name="Main_UpdatePill" xml:space="preserve">
+    <value>Aktualizace</value>
+  </data>
+  <data name="Status_Sensors" xml:space="preserve">
+    <value>Senzory: {0}/{1}</value>
+  </data>
+  <data name="Status_Poll" xml:space="preserve">
+    <value>Dotaz: {0:0}/{1}ms (čtení {2:0}ms)</value>
+  </data>
+  <data name="Status_Handles" xml:space="preserve">
+    <value>Handly: {0}</value>
+  </data>
 </root>

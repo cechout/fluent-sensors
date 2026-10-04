@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.UI;
 using FluentSensors.Core;
 using FluentSensors.Persistence.Services;
@@ -238,12 +239,12 @@ namespace FluentSensors.Features.AppStatus
         {
             _dispatcherQueue.TryEnqueue(() =>
             {
-                SensorsText = $"Sensors: {data.SensorsFound}/{data.SensorsRendered}";
+                SensorsText = AppStrings.Format("Status_Sensors", data.SensorsFound, data.SensorsRendered);
                 // measured over configured cadence, plus the read; (the read says how much headroom is left)
-                PollText = $"Poll: {data.ActualUpdateIntervalMs:0}/{data.AimedUpdateIntervalMs}ms (read {data.ReadDurationMs:0}ms)";
+                PollText = AppStrings.Format("Status_Poll", data.ActualUpdateIntervalMs, data.AimedUpdateIntervalMs, data.ReadDurationMs);
                 CpuUsageText = $"CPU: {data.CpuUsagePercent:0.0}%";
                 RamUsageText = $"RAM: {data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
-                HandleCountText = $"Handles: {data.HandleCount}";
+                HandleCountText = AppStrings.Format("Status_Handles", data.HandleCount);
                 GcMemoryText = $"GC: {data.GcMemoryBytes / 1024.0 / 1024.0:0.0} MB";
             });
         }

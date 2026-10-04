@@ -76,4 +76,107 @@
   <data name="Settings_LanguageRestartConfirm" xml:space="preserve">
     <value>Neu starten</value>
   </data>
+  <data name="Main_DotNetRuntimePopup.Description" xml:space="preserve">
+    <value>.NET 10 ist auf diesem Gerät nicht installiert
+LibreHardwareMonitor braucht es für den Zugriff auf alle verfügbaren Sensoren, ohne es können Werte fehlen oder unvollständig sein</value>
+  </data>
+  <data name="Main_DotNetRuntimePopup.SourceIntro" xml:space="preserve">
+    <value>Empfohlen:</value>
+  </data>
+  <data name="Main_PawnIoPopup.Description" xml:space="preserve">
+    <value>PawnIO ist auf diesem Gerät nicht installiert
+LibreHardwareMonitor liest CPU-Temperatur und -Leistung, Mainboard-Sensoren und Speicher-Timings über diesen Treiber, ohne ihn bleiben sie leer
+GPU-, Datenträger-, Netzwerk- und Arbeitsspeicherwerte sind nicht betroffen</value>
+  </data>
+  <data name="Main_PawnIoPopup.SourceIntro" xml:space="preserve">
+    <value>Empfohlen:</value>
+  </data>
+  <data name="Main_StatusToggleButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Statusanzeige umschalten</value>
+  </data>
+  <data name="Main_LhmInfoPopup.Description" xml:space="preserve">
+    <value>Sensoren (gefunden/gezeichnet) - von LibreHardwareMonitor gefundene Sensoren, und wie viele davon aktiv gezeichnet werden
+Abfrage (aktuell/Ziel) - gemessene Aktualisierungsrate gegenüber der in den Einstellungen gewählten
+Lesen - Dauer eines vollständigen Sensordurchlaufs, nahe an der Abfragerate heißt kein Spielraum mehr
+LibreHardwareMonitorLib ist die größte und etablierteste Bibliothek zur Hardwareüberwachung unter Windows</value>
+  </data>
+  <data name="Main_LhmInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Diese App basiert auf dem Open-Source-Projekt LibreHardwareMonitor:</value>
+  </data>
+  <data name="Main_LhmGitHubSource.Label" xml:space="preserve">
+    <value>LibreHardwareMonitor auf GitHub</value>
+  </data>
+  <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
+    <value>CPU-Auslastung - die eigene CPU-Zeit dieser App im Verhältnis zur Gesamtkapazität aller Kerne
+RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Working Set)</value>
+  </data>
+  <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Main_StartNavItem.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Main_SensorsNavItem.Content" xml:space="preserve">
+    <value>Sensoren</value>
+  </data>
+  <data name="Main_PerformanceNavItem.Content" xml:space="preserve">
+    <value>Hardwareansicht</value>
+  </data>
+  <data name="Main_SettingsNavItem.Content" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="Main_LoadingStatusText.Text" xml:space="preserve">
+    <value>Fluent Sensors wird gestartet...</value>
+  </data>
+  <data name="Main_WidgetWindowSingleClickItem.Text" xml:space="preserve">
+    <value>Widget-Fenster	Einfachklick</value>
+  </data>
+  <data name="Main_CSVWindowSingleClickItem.Text" xml:space="preserve">
+    <value>CSV-Fenster	Einfachklick</value>
+  </data>
+  <data name="Main_MainWindowDoubleClickItem.Text" xml:space="preserve">
+    <value>Hauptfenster	Doppelklick</value>
+  </data>
+  <data name="Main_DocumentationItem.Text" xml:space="preserve">
+    <value>Dokumentation</value>
+  </data>
+  <data name="Main_ExitAppItem.Text" xml:space="preserve">
+    <value>App beenden</value>
+  </data>
+  <data name="Main_LoadingMotherboard" xml:space="preserve">
+    <value>Mainboard wird initialisiert...</value>
+  </data>
+  <data name="Main_LoadingCpu" xml:space="preserve">
+    <value>CPU wird erkannt...</value>
+  </data>
+  <data name="Main_LoadingGpu" xml:space="preserve">
+    <value>GPU wird erkannt...</value>
+  </data>
+  <data name="Main_LoadingMemoryAndStorage" xml:space="preserve">
+    <value>Arbeitsspeicher und Datenträger werden geprüft...</value>
+  </data>
+  <data name="Main_LoadingControllers" xml:space="preserve">
+    <value>Controller werden erkannt...</value>
+  </data>
+  <data name="Main_LoadingNetwork" xml:space="preserve">
+    <value>Netzwerkadapter werden erkannt...</value>
+  </data>
+  <data name="Main_LoadingWaitingForData" xml:space="preserve">
+    <value>Warten auf Daten...</value>
+  </data>
+  <data name="Main_LoadingReady" xml:space="preserve">
+    <value>Bereit</value>
+  </data>
+  <data name="Main_UpdatePill" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Status_Sensors" xml:space="preserve">
+    <value>Sensoren: {0}/{1}</value>
+  </data>
+  <data name="Status_Poll" xml:space="preserve">
+    <value>Abfrage: {0:0}/{1}ms (Lesen {2:0}ms)</value>
+  </data>
+  <data name="Status_Handles" xml:space="preserve">
+    <value>Handles: {0}</value>
+  </data>
 </root>

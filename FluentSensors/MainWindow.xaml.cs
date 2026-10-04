@@ -26,6 +26,7 @@ using FluentSensors.Features.Update;
 using FluentSensors.Features.Widget;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
 
@@ -266,32 +267,32 @@ namespace FluentSensors
             var staticInfoPrewarmTask = Task.Run(() => WinStaticInfoService.Instance);
 
             // scan motherboard
-            LoadingStatusText.Text = "Initializing motherboard...";
+            LoadingStatusText.Text = AppStrings.Get("Main_LoadingMotherboard");
             LoadingProgressBar.Value = 15;
             await monitor.InitMotherboardAsync();
 
             // scan CPU
-            LoadingStatusText.Text = "Scanning CPU...";
+            LoadingStatusText.Text = AppStrings.Get("Main_LoadingCpu");
             LoadingProgressBar.Value = 30;
             await monitor.InitCpuAsync();
 
             // scan GPU
-            LoadingStatusText.Text = "Scanning GPU...";
+            LoadingStatusText.Text = AppStrings.Get("Main_LoadingGpu");
             LoadingProgressBar.Value = 45;
             await monitor.InitGpuAsync();
 
             // scan memory and storage
-            LoadingStatusText.Text = "Checking memory and storage...";
+            LoadingStatusText.Text = AppStrings.Get("Main_LoadingMemoryAndStorage");
             LoadingProgressBar.Value = 60;
             await monitor.InitMemoryAndStorageAsync();
 
             // scan fan and aio controllers (Aquacomputer, Corsair Commander, NZXT Kraken)
-            LoadingStatusText.Text = "Scanning controllers...";
+            LoadingStatusText.Text = AppStrings.Get("Main_LoadingControllers");
             LoadingProgressBar.Value = 75;
             await monitor.InitControllerAsync();
 
             // scan network adapters (virtual ones included)
-            LoadingStatusText.Text = "Scanning network adapters...";
+            LoadingStatusText.Text = AppStrings.Get("Main_LoadingNetwork");
             LoadingProgressBar.Value = 100;
             await monitor.InitNetworkAsync();
 
@@ -302,12 +303,12 @@ namespace FluentSensors
             AppStatusService.Instance.Start();
 
             // the first data payload and the static info prewarm, whichever is slower
-            LoadingStatusText.Text = "Waiting for data...";
+            LoadingStatusText.Text = AppStrings.Get("Main_LoadingWaitingForData");
             await Task.WhenAll(
                 SensorsViewModel.Instance.WaitForInitialLoadAsync(),
                 staticInfoPrewarmTask);
 
-            LoadingStatusText.Text = "Ready";
+            LoadingStatusText.Text = AppStrings.Get("Main_LoadingReady");
 
             // manually close navigation pane
             this.DispatcherQueue.TryEnqueue(() =>
@@ -488,7 +489,7 @@ namespace FluentSensors
 
             // a store update GitHub could not name yet still needs a label on the pill
             string versionLabel = UpdateService.VersionLabel(service.Latest?.Version ?? "");
-            AppStatus.UpdateVersionText = versionLabel.Length > 0 ? versionLabel : "Update";
+            AppStatus.UpdateVersionText = versionLabel.Length > 0 ? versionLabel : AppStrings.Get("Main_UpdatePill");
             AppStatus.IsUpdateAvailable = service.IsUpdateAvailable;
 
             this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, RefreshTitleBarLayout);

@@ -76,4 +76,107 @@
   <data name="Settings_LanguageRestartConfirm" xml:space="preserve">
     <value>Restart</value>
   </data>
+  <data name="Main_DotNetRuntimePopup.Description" xml:space="preserve">
+    <value>.NET 10 is not installed on this device
+LibreHardwareMonitor needs it to access every available sensor, some readings may be missing or incomplete without it</value>
+  </data>
+  <data name="Main_DotNetRuntimePopup.SourceIntro" xml:space="preserve">
+    <value>Recommended:</value>
+  </data>
+  <data name="Main_PawnIoPopup.Description" xml:space="preserve">
+    <value>PawnIO is not installed on this device
+LibreHardwareMonitor reads CPU temperature and power, motherboard sensors and memory timings through this driver, and those stay empty without it
+GPU, storage, network and memory readings are not affected</value>
+  </data>
+  <data name="Main_PawnIoPopup.SourceIntro" xml:space="preserve">
+    <value>Recommended:</value>
+  </data>
+  <data name="Main_StatusToggleButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Toggle Status Readout</value>
+  </data>
+  <data name="Main_LhmInfoPopup.Description" xml:space="preserve">
+    <value>Sensors (found/rendered) - sensors found by LibreHardwareMonitor, and how many are actively drawn
+Poll (current/aimed) - measured update rate against the rate set in Settings
+Read - duration of one full sensor pass, close to the poll rate means no headroom left
+LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows</value>
+  </data>
+  <data name="Main_LhmInfoPopup.SourceIntro" xml:space="preserve">
+    <value>This App is powered by the open source LibreHardwareMonitor project:</value>
+  </data>
+  <data name="Main_LhmGitHubSource.Label" xml:space="preserve">
+    <value>LibreHardwareMonitor on GitHub</value>
+  </data>
+  <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
+    <value>CPU Usage - this app's own CPU time relative to total capacity across all cores
+RAM Usage - physical memory currently mapped by this app (working set)</value>
+  </data>
+  <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Main_StartNavItem.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Main_SensorsNavItem.Content" xml:space="preserve">
+    <value>Sensors</value>
+  </data>
+  <data name="Main_PerformanceNavItem.Content" xml:space="preserve">
+    <value>Hardware View</value>
+  </data>
+  <data name="Main_SettingsNavItem.Content" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Main_LoadingStatusText.Text" xml:space="preserve">
+    <value>Starting Fluent Sensors...</value>
+  </data>
+  <data name="Main_WidgetWindowSingleClickItem.Text" xml:space="preserve">
+    <value>Widget Window	Single Click</value>
+  </data>
+  <data name="Main_CSVWindowSingleClickItem.Text" xml:space="preserve">
+    <value>CSV Window	Single Click</value>
+  </data>
+  <data name="Main_MainWindowDoubleClickItem.Text" xml:space="preserve">
+    <value>Main Window	Double Click</value>
+  </data>
+  <data name="Main_DocumentationItem.Text" xml:space="preserve">
+    <value>Documentation</value>
+  </data>
+  <data name="Main_ExitAppItem.Text" xml:space="preserve">
+    <value>Exit App</value>
+  </data>
+  <data name="Main_LoadingMotherboard" xml:space="preserve">
+    <value>Initializing motherboard...</value>
+  </data>
+  <data name="Main_LoadingCpu" xml:space="preserve">
+    <value>Scanning CPU...</value>
+  </data>
+  <data name="Main_LoadingGpu" xml:space="preserve">
+    <value>Scanning GPU...</value>
+  </data>
+  <data name="Main_LoadingMemoryAndStorage" xml:space="preserve">
+    <value>Checking memory and storage...</value>
+  </data>
+  <data name="Main_LoadingControllers" xml:space="preserve">
+    <value>Scanning controllers...</value>
+  </data>
+  <data name="Main_LoadingNetwork" xml:space="preserve">
+    <value>Scanning network adapters...</value>
+  </data>
+  <data name="Main_LoadingWaitingForData" xml:space="preserve">
+    <value>Waiting for data...</value>
+  </data>
+  <data name="Main_LoadingReady" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="Main_UpdatePill" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Status_Sensors" xml:space="preserve">
+    <value>Sensors: {0}/{1}</value>
+  </data>
+  <data name="Status_Poll" xml:space="preserve">
+    <value>Poll: {0:0}/{1}ms (read {2:0}ms)</value>
+  </data>
+  <data name="Status_Handles" xml:space="preserve">
+    <value>Handles: {0}</value>
+  </data>
 </root>
