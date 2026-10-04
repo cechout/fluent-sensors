@@ -1806,4 +1806,9 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
 
 {1}</value>
   </data>
+  <data name="TaskbarWidget_InitFailed" xml:space="preserve">
+    <value>Taskbar widget initialization failed:
+
+{0}</value>
+  </data>
 </root>

@@ -253,7 +253,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             catch (Exception ex)
             {
-                ShowErrorMessage("Fluent Sensors", $"Taskbar widget initialization failed:\n\n{ex.Message}");
+                ShowErrorMessage("Fluent Sensors", AppStrings.Format("TaskbarWidget_InitFailed", ex.Message));
             }
         }
 

@@ -1806,4 +1806,9 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
 
 {1}</value>
   </data>
+  <data name="TaskbarWidget_InitFailed" xml:space="preserve">
+    <value>Das Initialisieren des Taskleisten-Widgets ist fehlgeschlagen:
+
+{0}</value>
+  </data>
 </root>

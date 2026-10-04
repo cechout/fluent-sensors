@@ -1806,4 +1806,9 @@ DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo 
 
 {1}</value>
   </data>
+  <data name="TaskbarWidget_InitFailed" xml:space="preserve">
+    <value>Inicializace widgetu na hlavním panelu selhala:
+
+{0}</value>
+  </data>
 </root>
