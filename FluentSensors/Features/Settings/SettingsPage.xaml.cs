@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
@@ -298,11 +299,19 @@ namespace FluentSensors.Features.Settings
             bool languageChanged = AppLanguage.Normalize(settings.AppLanguage) != AppLanguage.StartupSetting;
             bool termsChanged = settings.TechnicalTermsInEnglish != AppTerms.StartedInEnglish;
 
-            LanguageRestartBar.Message = AppStrings.Get(
+            string message = AppStrings.Get(
                 languageChanged && termsChanged ? "Settings_RestartPendingBoth"
                 : languageChanged ? "Settings_RestartPendingLanguage"
                 : "Settings_RestartPendingTerms");
-            LanguageRestartBar.IsOpen = languageChanged || termsChanged;
+            bool open = languageChanged || termsChanged;
+
+            // announced like an InfoBar would, once per new message
+            if (open && (LanguageRestartBar.Visibility != Visibility.Visible || LanguageRestartText.Text != message))
+            {
+                LanguageRestartText.Text = message;
+                FrameworkElementAutomationPeer.FromElement(LanguageRestartText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+            }
+            LanguageRestartBar.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
         }
 
         // flushed before the restart, the new process reads the settings before the old one exits

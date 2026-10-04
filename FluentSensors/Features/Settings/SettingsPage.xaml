@@ -58,19 +58,59 @@
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xF2B7;}"
                 IsExpanded="False">
 
-                <!--  restart hint  -->
+                <!--  restart hint: icon, message and restart button  -->
+                <!--
+                    (an informational InfoBar built from its own theme resources; the native one stacks its button
+                    right after the message, this one puts the text on the 58 and the button on the 44 of the items)
+                -->
                 <controls:SettingsExpander.ItemsHeader>
-                    <InfoBar
+                    <Grid
                         x:Name="LanguageRestartBar"
-                        BorderThickness="0"
-                        CornerRadius="0"
-                        IsClosable="False"
-                        IsOpen="False"
-                        Severity="Informational">
-                        <InfoBar.ActionButton>
-                            <Button x:Uid="Settings_LanguageRestartButton" Click="LanguageRestartButton_Click" />
-                        </InfoBar.ActionButton>
-                    </InfoBar>
+                        MinHeight="48"
+                        Padding="16,8,44,8"
+                        Background="{ThemeResource InfoBarInformationalSeverityBackgroundBrush}"
+                        Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  icon  -->
+                        <Grid
+                            Margin="0,0,26,0"
+                            VerticalAlignment="Center"
+                            AutomationProperties.AccessibilityView="Raw">
+                            <TextBlock
+                                FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                FontSize="16"
+                                Foreground="{ThemeResource InfoBarInformationalSeverityIconBackground}"
+                                Text="&#xF136;" />
+                            <TextBlock
+                                FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                FontSize="16"
+                                Foreground="{ThemeResource InfoBarInformationalSeverityIconForeground}"
+                                Text="&#xF13F;" />
+                        </Grid>
+
+                        <!--  message  -->
+                        <TextBlock
+                            x:Name="LanguageRestartText"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            AutomationProperties.LiveSetting="Polite"
+                            Foreground="{ThemeResource InfoBarMessageForeground}"
+                            Style="{ThemeResource BodyTextBlockStyle}"
+                            TextWrapping="WrapWholeWords" />
+
+                        <!--  restart button  -->
+                        <Button
+                            x:Uid="Settings_LanguageRestartButton"
+                            Grid.Column="2"
+                            Margin="16,0,0,0"
+                            VerticalAlignment="Center"
+                            Click="LanguageRestartButton_Click" />
+                    </Grid>
                 </controls:SettingsExpander.ItemsHeader>
 
                 <controls:SettingsExpander.Items>
