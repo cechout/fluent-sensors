@@ -12,7 +12,9 @@ sensor library talks to the PawnIO kernel driver, which is installed separately 
 - Preserve existing comments verbatim when you change the code around them.
 - Everything is English: code, comments, commit messages and release notes. UI strings are written in
   English into `Strings/en-US/Resources.resw`, never hardcoded: XAML reads them through `x:Uid`, code
-  through `AppStrings`. The other languages sit next to it, and a key missing there falls back to English.
+  through `AppStrings`. Technical terms (datasheet words like Cache, Rank, Logical Processors) go into
+  `Terms.resw` instead and are read through `AppTerms`, because a setting can keep them in English. The
+  other languages sit next to it, and a key missing there falls back to English.
 - Always follow `.editorconfig`. Text files are LF; `.gitattributes` pins the checkout, and the CI
   `format` job fails on CRLF.
 - Prefix types by where their data comes from: `Lhm` for types facing LibreHardwareMonitorLib, `Win` for
@@ -77,7 +79,7 @@ FluentSensors/
 │                 Update, Widget
 ├── Persistence/  Models, Services
 ├── Properties/   PublishProfiles
-└── Strings/      Resources.resw per language: en-US (source), de-DE, cs-CZ
+└── Strings/      Resources.resw and Terms.resw per language: en-US (source), de-DE, cs-CZ
 ```
 
 `Setup/` holds the Inno Setup installer script, the MSIX packaging script and the Microsoft Store
