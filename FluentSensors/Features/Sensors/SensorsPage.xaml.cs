@@ -38,7 +38,7 @@ namespace FluentSensors.Features.Sensors
         private HashSet<ICommandBarElement> _forcedOverflowElements;
         private bool _commandBarWidthsCached = false;
         private const double OverflowButtonReservedWidth = 48;
-        private const double LeftSectionMinWidth = 260; // from SensorListTitleText
+        private const double LeftSectionMinWidth = 200; // from SensorListTitleText
         private int _commandBarOverflowStartIndex = -1;
 
         // info bar
@@ -539,6 +539,7 @@ namespace FluentSensors.Features.Sensors
 
         // fills the bar in priority order, the first unit that does not fit and everything after it overflows; only a
         // changed split rebuilds (or every resize tick would flicker the labels)
+        // the first unit stays in the bar even when it does not fit, so the bar never shows only the overflow button
         private void UpdateCommandBarOverflow()
         {
             double leftSectionWidth = Math.Max(LeftSectionMinWidth, SensorListTitleText.ActualWidth + SelectionProfileComboBox.ActualWidth + 16);
@@ -565,7 +566,7 @@ namespace FluentSensors.Features.Sensors
             {
                 double unitWidth = fittableUnits[i].Sum(element => _commandBarButtonWidths.GetValueOrDefault(element, 40));
 
-                if (runningWidth + unitWidth > budget)
+                if (i > 0 && runningWidth + unitWidth > budget)
                 {
                     fittableOverflowStartUnitIndex = i;
                     break;

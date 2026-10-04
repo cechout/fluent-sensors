@@ -42,7 +42,7 @@
                 <Grid x:Name="SensorListHeaderGrid" SizeChanged="SensorListHeaderGrid_SizeChanged">
                     <Grid.ColumnDefinitions>
                         <!--  column 0 reserves a minimum width from SensorListTitleText  -->
-                        <ColumnDefinition Width="Auto" MinWidth="260" />
+                        <ColumnDefinition Width="Auto" MinWidth="200" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
