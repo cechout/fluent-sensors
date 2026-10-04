@@ -16,9 +16,12 @@ namespace FluentSensors
         {
             // before InitializeComponent, the first resource lookup fixes the language of the process; read
             // straight from the file, SettingsService loads in OnLaunched
+            // the english terms are read before the override, which would win over their english lookup; the reset
+            // first clears an override a packaged install persisted from the last run
             var settings = PersistenceService.Instance.LoadSettings();
-            AppLanguage.Apply(settings.AppLanguage);
+            AppLanguage.Apply(AppLanguage.SystemDefault);
             AppTerms.Configure(settings.TechnicalTermsInEnglish);
+            AppLanguage.Apply(settings.AppLanguage);
 
             InitializeComponent();
 

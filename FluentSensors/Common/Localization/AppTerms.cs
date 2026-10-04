@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Windows.ApplicationModel.Resources;
 
 
@@ -11,27 +12,45 @@ namespace FluentSensors.Common.Localization
     {
         private const string EnglishTag = "en-US";
 
-        private static bool _useEnglish;
+        // the english terms, read once while no language override is set yet; (null with the setting off)
+        private static Dictionary<string, string>? _english;
         private static ResourceMap? _map;
-        private static ResourceContext? _context;
 
-        // from App(), before the first lookup
-        public static void Configure(bool useEnglish) => _useEnglish = useEnglish;
+        // from App(), before AppLanguage.Apply
+        //
+        // an override set by PrimaryLanguageOverride wins over the Language qualifier of every ResourceContext, so an
+        // english lookup after it still returns the app language; the english set is read before it instead
+        public static void Configure(bool useEnglish)
+        {
+            if (!useEnglish) return;
+
+            try
+            {
+                var manager = new ResourceManager();
+                var context = manager.CreateResourceContext();
+                context.QualifierValues["Language"] = EnglishTag;
+                var map = manager.MainResourceMap.GetSubtree("Terms");
+
+                var english = new Dictionary<string, string>();
+                for (uint i = 0; i < map.ResourceCount; i++)
+                {
+                    var entry = map.GetValueByIndex(i, context);
+                    english[entry.Key] = entry.Value.ValueAsString;
+                }
+                _english = english;
+            }
+            catch { /* the terms stay in the app language */ }
+        }
 
         // a missing key shows the key itself, like AppStrings
         public static string Get(string key)
         {
+            if (_english != null && _english.TryGetValue(key, out string? englishValue)) return englishValue;
+
             try
             {
-                if (_map == null)
-                {
-                    var manager = new ResourceManager();
-                    _context = manager.CreateResourceContext();
-                    if (_useEnglish) _context.QualifierValues["Language"] = EnglishTag;
-                    _map = manager.MainResourceMap.GetSubtree("Terms");
-                }
-
-                string? value = _map.TryGetValue(key, _context)?.ValueAsString;
+                _map ??= new ResourceManager().MainResourceMap.GetSubtree("Terms");
+                string? value = _map.TryGetValue(key)?.ValueAsString;
                 return string.IsNullOrEmpty(value) ? key : value;
             }
             catch
