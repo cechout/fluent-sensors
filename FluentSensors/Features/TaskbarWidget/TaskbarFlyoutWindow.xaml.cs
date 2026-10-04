@@ -1259,12 +1259,6 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        private void CloseWidget_Click(object sender, RoutedEventArgs e)
-        {
-            HideFlyout();
-            TaskbarWidgetWindow.CurrentInstance?.CloseWidget();
-        }
-
         // the snapshot; the flyout graphs stand still, the taskbar graphs run on
         private void PauseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -1551,8 +1545,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 GraphsContentGrid.Background = transparent;
             }
 
-            // the window stroke is opaque in every mode, the separator only off glass (an opaque line on glass stands
-            // still while the material around it moves)
+            // both strokes are translucent: the window stroke the same in every mode, the separator with its own
+            // alpha on glass, tuned against the material instead of the opaque surfaces
             FlyoutRootBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutWindowBorderBrush"];
             FlyoutBottomBarBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary[
                 onGlass ? "FlyoutBottomBarSeparatorOnGlassBrush" : "FlyoutBottomBarSeparatorBrush"];

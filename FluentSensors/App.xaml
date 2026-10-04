@@ -31,11 +31,7 @@
                     -->
                     <!--  (the layers stay upright, the highlight belongs at the top)  -->
                     <x:Double x:Key="TaskbarButtonBorderScaleY">1</x:Double>
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#1DFFFFFF" />
                         <GradientStop Offset="0.10" Color="#0FFFFFFF" />
                         <GradientStop Offset="1.0" Color="#0FFFFFFF" />
@@ -44,11 +40,7 @@
                         normal pressed border, the only one in that state (StrokeBorder is off); top #3B3B3B,
                         sides and bottom #2E2E2E
                     -->
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonPressedBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonPressedBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#1FFFFFFF" />
                         <GradientStop Offset="0.12" Color="#10FFFFFF" />
                         <GradientStop Offset="1.0" Color="#10FFFFFF" />
@@ -58,11 +50,7 @@
                     <!--  (active hover, target #323232)  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#15FFFFFF" />
                     <!--  active hover border; the normal hover highlight, the active hover fill on the sides  -->
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonActiveHoverBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#1DFFFFFF" />
                         <GradientStop Offset="0.10" Color="#15FFFFFF" />
                         <GradientStop Offset="1.0" Color="#15FFFFFF" />
@@ -79,8 +67,8 @@
                     -->
                     <!--  content area; reads as #292929, opaque (the bottom bar paints its own, see 6)  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#242424" />
-                    <!--  window border; reads as #484848  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#464646" />
+                    <!--  window border; the native window stroke (SurfaceStrokeColorDefault), about #464646 over the content area  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#66757575" />
 
                     <!--  5. flyout graphs overlay (dark mode)  -->
                     <!--  (blur modes only, lifts the graphs area off the glass; the opaque mode has no overlay)  -->
@@ -91,8 +79,8 @@
                     <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#1C1C1C" />
 
                     <!--  7. flyout bottom bar separator (dark mode)  -->
-                    <!--  (the 1px line above the bar; reads as #1E1E1E)  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#181818" />
+                    <!--  (the 1px line above the bar; black at 1 - 0x18/0x24, so over the content area it reads as #1E1E1E)  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#55000000" />
                     <!--  (in the blur modes translucent like the native line, it darkens the material)  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#1F000000" />
                 </ResourceDictionary>
@@ -115,21 +103,13 @@
                         bottom and the darker band keeps the height of the dark highlight
                     -->
                     <x:Double x:Key="TaskbarButtonBorderScaleY">-1</x:Double>
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#14000000" />
                         <GradientStop Offset="0.10" Color="#0A000000" />
                         <GradientStop Offset="1.0" Color="#0A000000" />
                     </LinearGradientBrush>
                     <!--  normal pressed border, the only one in that state; the values of TaskbarButtonBorderBrush  -->
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonPressedBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonPressedBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#14000000" />
                         <GradientStop Offset="0.12" Color="#0A000000" />
                         <GradientStop Offset="1.0" Color="#0A000000" />
@@ -139,11 +119,7 @@
                     <!--  (active hover, target #FAFAFA)  -->
                     <SolidColorBrush x:Key="TaskbarButtonActiveHoverBackground" Color="#B8FFFFFF" />
                     <!--  active hover border; on the transparency-on bar top and sides #E5E5E5, bottom #D4D4D4  -->
-                    <LinearGradientBrush
-                        x:Key="TaskbarButtonActiveHoverBorderBrush"
-                        MappingMode="Absolute"
-                        StartPoint="0,0"
-                        EndPoint="0,43.5">
+                    <LinearGradientBrush x:Key="TaskbarButtonActiveHoverBorderBrush" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,43.5">
                         <GradientStop Offset="0.0" Color="#1E000000" />
                         <GradientStop Offset="0.10" Color="#0C000000" />
                         <GradientStop Offset="1.0" Color="#0C000000" />
@@ -158,8 +134,8 @@
                     <!--  (light needs barely any correction, under one level above roughly 230)  -->
                     <!--  content area; opaque (the bottom bar paints its own, see 6)  -->
                     <SolidColorBrush x:Key="FlyoutWindowBackground" Color="#F2F2F2" />
-                    <!--  window border; reads as #BFBFBF  -->
-                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#C0C0C0" />
+                    <!--  window border; the native window stroke (SurfaceStrokeColorDefault), #C0C0C0 over the content area  -->
+                    <SolidColorBrush x:Key="FlyoutWindowBorderBrush" Color="#66757575" />
 
                     <!--  5. flyout graphs overlay (light mode)  -->
                     <!--  (blur modes only, lifts the graphs area off the glass; the opaque mode has no overlay)  -->
@@ -170,8 +146,8 @@
                     <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#EDEDED" />
 
                     <!--  7. flyout bottom bar separator (light mode)  -->
-                    <!--  (the 1px line above the bar; reads as #DDDDDD)  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#DEDEDE" />
+                    <!--  (the 1px line above the bar; black at 1 - 0xDE/0xF2, so over the content area it reads as #DEDEDE)  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#15000000" />
                     <!--  (in the blur modes translucent like the native line, it darkens the material)  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#13000000" />
                 </ResourceDictionary>
@@ -378,7 +354,6 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="{TemplateBinding CornerRadius}">
-
                                 <!--  veil  -->
                                 <!--  (one less than the outer radius, it sits inside the 1px stroke)  -->
                                 <Border

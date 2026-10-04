@@ -22,7 +22,7 @@ namespace FluentSensors.Common.Sensors
     public static class GraphTimeRanges
     {
         public static IReadOnlyList<GraphTimeRange> Performance { get; } = Create(30, 45, 60, 75, 90, 120, 180, 240);
-        public static IReadOnlyList<GraphTimeRange> PerformanceExtended { get; } = Create(15, 20, 25, 30, 35, 40, 45, 60);
+        public static IReadOnlyList<GraphTimeRange> PerformanceExtended { get; } = Create(15, 20, 25, 30, 35, 40, 45, 60, 90);
         public static IReadOnlyList<GraphTimeRange> Widget { get; } = Create(15, 20, 30, 45, 60, 75, 90, 120, 180, 240);
         public static IReadOnlyList<GraphTimeRange> Taskbar { get; } = Create(15, 20, 25, 30, 35, 40, 45, 60, 90, 120);
 

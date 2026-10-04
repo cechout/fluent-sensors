@@ -1,16 +1,12 @@
-﻿using Microsoft.UI.Input;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.System;
-using Windows.UI.Core;
 
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
@@ -32,10 +28,6 @@ namespace FluentSensors.Features.Settings
 
         // while this page writes a status readout setting itself, see OnStatusReadoutChanged
         private bool _isWritingStatusReadout;
-
-        // the flyout shortcut button records the next key combination; the key up after it is swallowed too
-        private bool _isCapturingShortcut;
-        private bool _isSwallowingShortcutKeyUp;
 
         // the gear button of the taskbar flyout asked for the taskbar section before the page was loaded
         private bool _isTaskbarSectionScrollPending;
@@ -61,7 +53,8 @@ namespace FluentSensors.Features.Settings
 
             // the time range lists the pickers share; from code, the restores below run before x:Bind would
             PerformanceGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Performance;
-            PerformanceExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
+            PerformanceCpuExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
+            PerformanceGpuExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
             GraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Widget;
             TaskbarGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
             TaskbarFlyoutGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
@@ -146,8 +139,6 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.GraphTimeSpanChanged -= OnTimeRangeChanged;
             SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnTimeRangeChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnTimeRangeChanged;
-
-            if (_isCapturingShortcut) EndShortcutCapture(swallowKeyUp: false);
         }
 
         // the values of the active taskbar edge; the side cards only on the left and right edge
@@ -664,7 +655,7 @@ namespace FluentSensors.Features.Settings
 
         // === performance page appearance settings ===
 
-        // two ranges for two graph densities; Extended covers the cpu all-threads and gpu extended grids
+        // the overview range, plus one each for the dense cpu all-threads and gpu extended grids
         private void PerformanceGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -675,20 +666,31 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        private void PerformanceExtendedGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void PerformanceCpuExtendedGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
 
             if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
             {
-                SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds = option.Seconds;
+                SettingsService.Instance.PerformanceCpuExtendedGraphTimeSpanSeconds = option.Seconds;
+            }
+        }
+
+        private void PerformanceGpuExtendedGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
+            {
+                SettingsService.Instance.PerformanceGpuExtendedGraphTimeSpanSeconds = option.Seconds;
             }
         }
 
         private void RestorePerformanceGraphTimeSpanSelection()
         {
             SelectTimeSpanItem(PerformanceGraphTimeSpanComboBox, SettingsService.Instance.PerformanceGraphTimeSpanSeconds);
-            SelectTimeSpanItem(PerformanceExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceExtendedGraphTimeSpanSeconds);
+            SelectTimeSpanItem(PerformanceCpuExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceCpuExtendedGraphTimeSpanSeconds);
+            SelectTimeSpanItem(PerformanceGpuExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceGpuExtendedGraphTimeSpanSeconds);
         }
 
         // nothing selected for a value the list does not have
@@ -1062,123 +1064,42 @@ namespace FluentSensors.Features.Settings
             TaskbarFlyoutGraphHeightSlider.Value = SettingsService.Instance.TaskbarFlyoutGraphHeightDip;
         }
 
-        // flyout shortcut; a click arms the button, the next key combination with a modifier becomes the shortcut
-        // the registered one is suspended meanwhile, or it would swallow the keys
-        private void FlyoutShortcutButton_Click(object sender, RoutedEventArgs e)
+        // flyout shortcut; the dialog records it, the registered one is suspended meanwhile or it would swallow the keys
+        private async void FlyoutShortcutButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_isCapturingShortcut) return;
+            var dialog = new FlyoutShortcutDialog(SettingsService.Instance.TaskbarFlyoutShortcut)
+            {
+                XamlRoot = this.XamlRoot,
+                RequestedTheme = DialogTheme.For(this.XamlRoot)
+            };
 
-            _isCapturingShortcut = true;
             FlyoutShortcutRegistration.SetSuspended(true);
-            ShowShortcutStatus(null);
-            ApplyFlyoutShortcutButton();
-        }
-
-        private void FlyoutShortcutButton_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
-        {
-            if (!_isCapturingShortcut) return;
-
-            uint modifiers = ReadShortcutModifiers();
-
-            // a plain tab leaves like everywhere else, never a trap
-            if (e.Key == VirtualKey.Tab && modifiers == 0)
+            try
             {
-                EndShortcutCapture(swallowKeyUp: false);
-                return;
-            }
-
-            e.Handled = true;
-            if (IsModifierKey(e.Key)) return; // waits for the key itself
-
-            if (modifiers == 0)
-            {
-                switch (e.Key)
+                if (await dialog.ShowAsync() == ContentDialogResult.Primary)
                 {
-                    case VirtualKey.Escape:
-                        EndShortcutCapture(swallowKeyUp: true);
-                        break;
-                    case VirtualKey.Back:
-                    case VirtualKey.Delete:
-                        SettingsService.Instance.TaskbarFlyoutShortcut = null;
-                        EndShortcutCapture(swallowKeyUp: true);
-                        break;
-                    default:
-                        ShowShortcutStatus("Add Ctrl, Alt, Shift or Win");
-                        break;
+                    SettingsService.Instance.TaskbarFlyoutShortcut = dialog.Shortcut;
+                    ApplyFlyoutShortcutButton();
                 }
-                return;
             }
-
-            uint virtualKey = (uint)e.Key;
-            if (!WinHotkeyService.Instance.IsAvailable(modifiers, virtualKey))
+            finally
             {
-                ShowShortcutStatus("Already in use");
-                EndShortcutCapture(swallowKeyUp: true);
-                return;
+                FlyoutShortcutRegistration.SetSuspended(false);
             }
-
-            SettingsService.Instance.TaskbarFlyoutShortcut = new KeyboardShortcut { Modifiers = modifiers, VirtualKey = virtualKey };
-            EndShortcutCapture(swallowKeyUp: true);
         }
 
-        // the key up of the recorded key would click the button again (Space) or reach the page
-        private void FlyoutShortcutButton_PreviewKeyUp(object sender, KeyRoutedEventArgs e)
-        {
-            if (!_isCapturingShortcut && !_isSwallowingShortcutKeyUp) return;
-
-            e.Handled = true;
-            if (!IsModifierKey(e.Key)) _isSwallowingShortcutKeyUp = false;
-        }
-
-        private void FlyoutShortcutButton_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_isCapturingShortcut) EndShortcutCapture(swallowKeyUp: false);
-        }
-
-        private void EndShortcutCapture(bool swallowKeyUp)
-        {
-            _isCapturingShortcut = false;
-            _isSwallowingShortcutKeyUp = swallowKeyUp;
-            FlyoutShortcutRegistration.SetSuspended(false);
-            ApplyFlyoutShortcutButton();
-        }
-
-        // the shortcut, "None" or the prompt while recording; the name says the same for a screen reader
+        // the keys or "None"; the name says the same for a screen reader
         private void ApplyFlyoutShortcutButton()
         {
             var shortcut = SettingsService.Instance.TaskbarFlyoutShortcut;
-            string text = _isCapturingShortcut ? "Press a Shortcut"
-                : shortcut != null ? WinHotkeyService.Format(shortcut.Modifiers, shortcut.VirtualKey)
-                : "None";
+            var keys = shortcut != null ? WinHotkeyService.FormatKeys(shortcut.Modifiers, shortcut.VirtualKey) : new List<string>();
 
-            FlyoutShortcutButton.Content = text;
+            FlyoutShortcutDialog.FillKeys(FlyoutShortcutKeysPanel, keys, (Style)FlyoutShortcutKeysPanel.Resources["ShortcutKeyStyle"]);
+            FlyoutShortcutNoneText.Visibility = shortcut == null ? Visibility.Visible : Visibility.Collapsed;
+
+            string text = shortcut != null ? string.Join("+", keys) : "None";
             AutomationProperties.SetName(FlyoutShortcutButton, $"Flyout Shortcut, {text}");
         }
-
-        private void ShowShortcutStatus(string? message)
-        {
-            FlyoutShortcutStatusText.Text = message ?? "";
-            FlyoutShortcutStatusText.Visibility = message != null ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        private static uint ReadShortcutModifiers()
-        {
-            uint modifiers = 0;
-            if (IsKeyDown(VirtualKey.Control)) modifiers |= WinHotkeyService.ModControl;
-            if (IsKeyDown(VirtualKey.Menu)) modifiers |= WinHotkeyService.ModAlt;
-            if (IsKeyDown(VirtualKey.Shift)) modifiers |= WinHotkeyService.ModShift;
-            if (IsKeyDown(VirtualKey.LeftWindows) || IsKeyDown(VirtualKey.RightWindows)) modifiers |= WinHotkeyService.ModWin;
-            return modifiers;
-        }
-
-        private static bool IsModifierKey(VirtualKey key) => key is
-            VirtualKey.Control or VirtualKey.LeftControl or VirtualKey.RightControl or
-            VirtualKey.Menu or VirtualKey.LeftMenu or VirtualKey.RightMenu or
-            VirtualKey.Shift or VirtualKey.LeftShift or VirtualKey.RightShift or
-            VirtualKey.LeftWindows or VirtualKey.RightWindows;
-
-        private static bool IsKeyDown(VirtualKey key) =>
-            InputKeyboardSource.GetKeyStateForCurrentThread(key).HasFlag(CoreVirtualKeyStates.Down);
 
         // widget drag lock
         private void LockWidgetPositionToggle_Toggled(object sender, RoutedEventArgs e)

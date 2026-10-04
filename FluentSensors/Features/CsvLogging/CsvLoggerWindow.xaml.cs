@@ -56,6 +56,7 @@ namespace FluentSensors.Features.CsvLogging
 
         public CsvLoggerViewModel ViewModel { get; }
         public static CsvLoggerWindow CurrentInstance { get; private set; }
+        public static event Action? LoggerStateChanged; // CurrentInstance came or went
         private static CsvLoggerWindow _retainedInstance;
 
         private bool _isClosed = false;
@@ -76,6 +77,7 @@ namespace FluentSensors.Features.CsvLogging
             this.InitializeComponent();
             this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
             CurrentInstance = this;
+            LoggerStateChanged?.Invoke();
 
             // a click on empty space hides the keyboard focus rectangle again
             PointerFocusReset.Attach(Content);
@@ -174,6 +176,7 @@ namespace FluentSensors.Features.CsvLogging
                 var window = _retainedInstance;
                 _retainedInstance = null;
                 CurrentInstance = window;
+                LoggerStateChanged?.Invoke();
 
                 window.ViewModel.SetReadoutActive(true);
                 if (isSelectionLocked)
@@ -326,6 +329,7 @@ namespace FluentSensors.Features.CsvLogging
             this.Activated -= Window_Activated;
             _configurationSource = null;
             CurrentInstance = null;
+            LoggerStateChanged?.Invoke();
         }
 
         private void Window_Activated(object sender, WindowActivatedEventArgs args)
@@ -355,6 +359,7 @@ namespace FluentSensors.Features.CsvLogging
             SaveWindowState();
             CurrentInstance = null;
             _retainedInstance = this;
+            LoggerStateChanged?.Invoke();
 
             _appWindow.Hide();
             ViewModel.SetReadoutActive(false);

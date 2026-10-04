@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -74,6 +75,10 @@ namespace FluentSensors.Features.Sensors
                 _statsElapsedTimer.Start();
             };
             Unloaded += (s, e) => _statsElapsedTimer?.Stop();
+
+            // the taskbar buttons follow the widget; only while loaded, the bar is rebuilt on every Loaded anyway
+            Loaded += (s, e) => ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+            Unloaded += (s, e) => ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
 
             _isLoading = false;
 
@@ -181,6 +186,53 @@ namespace FluentSensors.Features.Sensors
 
             // reuses an embedded or hidden taskbar widget
             TaskbarWidgetWindow.ShowWithSensors(selectedSensors);
+        }
+
+        // the only way to close the taskbar widget; (the flyout has no close button)
+        private void CloseTaskbarWidget_Click(object sender, RoutedEventArgs e)
+        {
+            bool hadKeyboardFocus = CloseTaskbarWidgetButton.FocusState == FocusState.Keyboard;
+
+            TaskbarWidgetWindow.CurrentInstance?.CloseWidget();
+
+            // the pair leaves the bar, so keyboard focus moves on to the pin button instead of getting lost
+            if (hadKeyboardFocus)
+            {
+                DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => PinToTaskbarButton.Focus(FocusState.Keyboard));
+            }
+        }
+
+        // the update and close pair hovers as one: the half under the pointer takes its own hover and pressed fill,
+        // the other half gets the same hover brush as its resting background
+        private void TaskbarWidgetButtons_PointerEntered(object sender, RoutedEventArgs e)
+        {
+            var themeKey = TaskbarWidgetButtonsGrid.ActualTheme == ElementTheme.Light ? "Light" : "Dark";
+            var themeDictionary = (ResourceDictionary)TaskbarWidgetButtonsGrid.Resources.ThemeDictionaries[themeKey];
+            var hoverBrush = (Brush)themeDictionary["TaskbarWidgetButtonsHoverBrush"];
+
+            UpdateTaskbarButton.Background = hoverBrush;
+            CloseTaskbarWidgetButton.Background = hoverBrush;
+        }
+
+        private void TaskbarWidgetButtons_PointerExited(object sender, RoutedEventArgs e)
+        {
+            UpdateTaskbarButton.ClearValue(Control.BackgroundProperty);
+            CloseTaskbarWidgetButton.ClearValue(Control.BackgroundProperty);
+        }
+
+        // the commit button of each profile follows the open state of its window
+        private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            bool affectsActiveProfile = e.PropertyName switch
+            {
+                nameof(SensorsViewModel.IsWidgetOpen) => ViewModel.IsWidgetProfileActive,
+                nameof(SensorsViewModel.IsCsvLoggerOpen) => ViewModel.IsCsvProfileActive,
+                nameof(SensorsViewModel.IsTaskbarWidgetOpen) => ViewModel.IsTaskbarProfileActive,
+                _ => false
+            };
+            if (!affectsActiveProfile || _forcedOverflowElements == null) return;
+
+            RebuildCommandBarOverflow();
         }
 
         // the profile the checkboxes reflect and persist to, with the matching action button (Pin to Widget, Start
@@ -426,25 +478,39 @@ namespace FluentSensors.Features.Sensors
             });
         }
 
-        // with the commit button of the active profile
+        // with the commit button of the active profile; an open window gets it as an update button, the taskbar widget
+        // as its update and close pair with a separator behind (it has no close of its own)
         private ICommandBarElement[] BuildCommandBarPriorityOrder()
         {
-            ICommandBarElement commitButton = ViewModel.ActiveProfile switch
-            {
-                SensorSelectionProfile.WidgetWindow => PinToWidgetButton,
-                SensorSelectionProfile.Csv => StartCsvMonitoringButton,
-                SensorSelectionProfile.Taskbar => PinToTaskbarButton,
-                _ => PinToWidgetButton
-            };
+            PinToWidgetButton.Label = ViewModel.IsWidgetOpen ? "Update Widget" : "Pin to Widget";
+            PinToWidgetIcon.Glyph = ViewModel.IsWidgetOpen ? "\uE895" : "\uE718";
+            StartCsvMonitoringButton.Label = ViewModel.IsCsvLoggerOpen ? "Update CSV Logging" : "Start CSV Logging";
+            StartCsvMonitoringIcon.Glyph = ViewModel.IsCsvLoggerOpen ? "\uE895" : "\uE8A7";
 
-            return new ICommandBarElement[]
+            var order = new List<ICommandBarElement>();
+            switch (ViewModel.ActiveProfile)
             {
-                commitButton,
-                HideSensorsButton,
-                ButtonSeparator,
-                ResetValuesButton,
-                ShowHiddenSensorsButton
-            };
+                case SensorSelectionProfile.Csv:
+                    order.Add(StartCsvMonitoringButton);
+                    break;
+                case SensorSelectionProfile.Taskbar when ViewModel.IsTaskbarWidgetOpen:
+                    order.Add(TaskbarWidgetButtonsContainer);
+                    order.Add(TaskbarWidgetButtonsSeparator);
+                    break;
+                case SensorSelectionProfile.Taskbar:
+                    order.Add(PinToTaskbarButton);
+                    break;
+                default:
+                    order.Add(PinToWidgetButton);
+                    break;
+            }
+
+            order.Add(HideSensorsButton);
+            order.Add(ButtonSeparator);
+            order.Add(ResetValuesButton);
+            order.Add(ShowHiddenSensorsButton);
+
+            return order.ToArray();
         }
 
         // the overflow split follows the header size

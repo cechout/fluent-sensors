@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="FluentSensors.Features.Settings.FlyoutShortcutDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Activation Shortcut"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    PreviewKeyDown="Dialog_PreviewKeyDown"
+    PreviewKeyUp="Dialog_PreviewKeyUp"
+    PrimaryButtonText="Save"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    mc:Ignorable="d">
+
+    <!--  (named style: an implicit style never reaches a subclass, see ReleaseNotesDialog)  -->
+
+    <ContentDialog.Resources>
+        <!--
+            the keys look like buttons but take no pointer, focus or screen reader stop;
+            accent for the recorded keys, default for the schematic
+        -->
+        <Style
+            x:Key="LargeShortcutKeyStyle"
+            BasedOn="{StaticResource AccentButtonStyle}"
+            TargetType="Button">
+            <Setter Property="Height" Value="48" />
+            <Setter Property="MinWidth" Value="48" />
+            <Setter Property="Padding" Value="16,0,16,0" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
+        </Style>
+        <Style
+            x:Key="SchemeKeyStyle"
+            BasedOn="{StaticResource DefaultButtonStyle}"
+            TargetType="Button">
+            <Setter Property="Height" Value="24" />
+            <Setter Property="MinWidth" Value="24" />
+            <Setter Property="Padding" Value="8,0,8,0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
+        </Style>
+        <Style
+            x:Key="SchemeNoteStyle"
+            BasedOn="{StaticResource CaptionTextBlockStyle}"
+            TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </ContentDialog.Resources>
+
+
+    <!--  (a fixed width, below 80 percent of the 600 minimum window width with the dialog padding)  -->
+    <StackPanel
+        Width="380"
+        Margin="0,16,0,-24"
+        Spacing="24">
+
+        <!--  scheme: the keys a shortcut is built from, one position per row  -->
+        <Grid
+            HorizontalAlignment="Left"
+            ColumnSpacing="0"
+            RowSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!--  modifier  -->
+            <StackPanel
+                Grid.Row="0"
+                Grid.Column="1"
+                Orientation="Horizontal"
+                Spacing="4">
+                <Button Content="Ctrl" Style="{StaticResource SchemeKeyStyle}" />
+                <Button Content="Alt" Style="{StaticResource SchemeKeyStyle}" />
+                <Button Content="Win" Style="{StaticResource SchemeKeyStyle}" />
+            </StackPanel>
+            <TextBlock
+                Grid.Row="0"
+                Grid.Column="2"
+                Margin="12,0,0,0"
+                AutomationProperties.Name="Ctrl, Alt or Win: at least one"
+                Style="{StaticResource SchemeNoteStyle}"
+                Text="at least one" />
+
+            <!--  shift  -->
+            <TextBlock
+                Grid.Row="1"
+                Grid.Column="0"
+                Margin="0,0,2,0"
+                Style="{StaticResource SchemeNoteStyle}"
+                Text="+" />
+            <Button
+                Grid.Row="1"
+                Grid.Column="1"
+                HorizontalAlignment="Left"
+                Content="Shift"
+                Style="{StaticResource SchemeKeyStyle}" />
+            <TextBlock
+                Grid.Row="1"
+                Grid.Column="2"
+                Margin="12,0,0,0"
+                AutomationProperties.Name="plus Shift: optional"
+                Style="{StaticResource SchemeNoteStyle}"
+                Text="optional" />
+
+            <!--  key  -->
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="0"
+                Style="{StaticResource SchemeNoteStyle}"
+                Text="+" />
+            <StackPanel
+                Grid.Row="2"
+                Grid.Column="1"
+                Orientation="Horizontal"
+                Spacing="4">
+                <Button Content="A–Z" Style="{StaticResource SchemeKeyStyle}" />
+                <Button Content="0–9" Style="{StaticResource SchemeKeyStyle}" />
+                <Button Content="F1–F24" Style="{StaticResource SchemeKeyStyle}" />
+            </StackPanel>
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="2"
+                Margin="12,0,0,0"
+                AutomationProperties.Name="plus a letter, digit or F key: exactly one"
+                Style="{StaticResource SchemeNoteStyle}"
+                Text="exactly one" />
+        </Grid>
+
+        <!--  the recorded keys, or the placeholder  -->
+        <Border
+            Padding="16"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="8">
+            <Grid
+                x:Name="KeysArea"
+                MinHeight="48"
+                AutomationProperties.LiveSetting="Polite">
+                <StackPanel
+                    x:Name="KeysPanel"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="8" />
+                <TextBlock
+                    x:Name="NoShortcutText"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="No shortcut" />
+            </Grid>
+        </Border>
+
+        <!--  clear the shortcut  -->
+        <Button
+            x:Name="ClearButton"
+            Margin="0,-16,0,0"
+            HorizontalAlignment="Center"
+            AutomationProperties.Name="Clear Shortcut"
+            Click="ClearButton_Click"
+            Style="{StaticResource SubtleBarButtonStyle}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <FontIcon
+                    FontSize="14"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Glyph="&#xE74D;" />
+                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Clear Shortcut" />
+            </StackPanel>
+        </Button>
+
+        <!--  a rejected combination, or a key without a modifier  -->
+        <InfoBar
+            x:Name="WarningInfoBar"
+            IsClosable="False"
+            IsOpen="False"
+            Severity="Warning" />
+    </StackPanel>
+</ContentDialog>

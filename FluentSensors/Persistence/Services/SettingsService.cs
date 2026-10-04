@@ -278,15 +278,30 @@ namespace FluentSensors.Persistence.Services
 
         // seconds of history on the dense grids (cpu all-threads, gpu extended); (small and many,
         // they want a shorter window)
-        private double _performanceExtendedGraphTimeSpanSeconds = Defaults.PerformanceExtendedGraphTimeSpanSeconds;
-        public double PerformanceExtendedGraphTimeSpanSeconds
+        private double _performanceCpuExtendedGraphTimeSpanSeconds = Defaults.PerformanceCpuExtendedGraphTimeSpanSeconds;
+        public double PerformanceCpuExtendedGraphTimeSpanSeconds
         {
-            get => _performanceExtendedGraphTimeSpanSeconds;
+            get => _performanceCpuExtendedGraphTimeSpanSeconds;
             set
             {
-                if (_performanceExtendedGraphTimeSpanSeconds != value)
+                if (_performanceCpuExtendedGraphTimeSpanSeconds != value)
                 {
-                    _performanceExtendedGraphTimeSpanSeconds = value;
+                    _performanceCpuExtendedGraphTimeSpanSeconds = value;
+                    PerformanceGraphTimeSpanChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private double _performanceGpuExtendedGraphTimeSpanSeconds = Defaults.PerformanceGpuExtendedGraphTimeSpanSeconds;
+        public double PerformanceGpuExtendedGraphTimeSpanSeconds
+        {
+            get => _performanceGpuExtendedGraphTimeSpanSeconds;
+            set
+            {
+                if (_performanceGpuExtendedGraphTimeSpanSeconds != value)
+                {
+                    _performanceGpuExtendedGraphTimeSpanSeconds = value;
                     PerformanceGraphTimeSpanChanged?.Invoke();
                     SaveDebounced();
                 }
@@ -964,7 +979,10 @@ namespace FluentSensors.Persistence.Services
             SensorUnitFormatter.DataSizeBasis = _dataSizeUnitBasis;
             SensorUnitFormatter.DataSpeedBasis = _dataSpeedUnitBasis;
             _performanceGraphTimeSpanSeconds = data.PerformanceGraphTimeSpanSeconds;
-            _performanceExtendedGraphTimeSpanSeconds = data.PerformanceExtendedGraphTimeSpanSeconds;
+            _performanceCpuExtendedGraphTimeSpanSeconds =
+                data.PerformanceExtendedGraphTimeSpanSeconds ?? data.PerformanceCpuExtendedGraphTimeSpanSeconds;
+            _performanceGpuExtendedGraphTimeSpanSeconds =
+                data.PerformanceExtendedGraphTimeSpanSeconds ?? data.PerformanceGpuExtendedGraphTimeSpanSeconds;
 
             _taskbarBackdropType = data.TaskbarBackdropType;
             _taskbarTintOpacity = data.TaskbarTintOpacity;
@@ -1025,7 +1043,8 @@ namespace FluentSensors.Persistence.Services
                 DataSizeUnitBasis = _dataSizeUnitBasis,
                 DataSpeedUnitBasis = _dataSpeedUnitBasis,
                 PerformanceGraphTimeSpanSeconds = _performanceGraphTimeSpanSeconds,
-                PerformanceExtendedGraphTimeSpanSeconds = _performanceExtendedGraphTimeSpanSeconds,
+                PerformanceCpuExtendedGraphTimeSpanSeconds = _performanceCpuExtendedGraphTimeSpanSeconds,
+                PerformanceGpuExtendedGraphTimeSpanSeconds = _performanceGpuExtendedGraphTimeSpanSeconds,
 
                 TaskbarBackdropType = _taskbarBackdropType,
                 TaskbarTintOpacity = _taskbarTintOpacity,

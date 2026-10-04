@@ -293,12 +293,20 @@
                             SelectionChanged="PerformanceGraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="Extended Time Range">
+                    <controls:SettingsCard Header="CPU Extended Time Range">
                         <ComboBox
-                            x:Name="PerformanceExtendedGraphTimeSpanComboBox"
+                            x:Name="PerformanceCpuExtendedGraphTimeSpanComboBox"
                             Width="40"
                             DisplayMemberPath="DisplayName"
-                            SelectionChanged="PerformanceExtendedGraphTimeSpanComboBox_SelectionChanged" />
+                            SelectionChanged="PerformanceCpuExtendedGraphTimeSpanComboBox_SelectionChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard Header="GPU Extended Time Range">
+                        <ComboBox
+                            x:Name="PerformanceGpuExtendedGraphTimeSpanComboBox"
+                            Width="40"
+                            DisplayMemberPath="DisplayName"
+                            SelectionChanged="PerformanceGpuExtendedGraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
@@ -644,26 +652,49 @@
             </controls:SettingsCard>
 
             <!--  flyout shortcut  -->
-            <!--  (a click records the next key combination: Escape cancels, Backspace clears; text set from code)  -->
+            <!--  (the keys as accent buttons and an edit pencil; a click opens FlyoutShortcutDialog, keys set from code)  -->
             <controls:SettingsCard
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Open the flyout from the keyboard while the taskbar widget is open; click and press the keys, Backspace clears"
+                Description="Open the flyout from the keyboard while the taskbar widget is open"
                 Header="Flyout Shortcut"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE765;}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock
-                        x:Name="FlyoutShortcutStatusText"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                        Visibility="Collapsed" />
-                    <Button
-                        x:Name="FlyoutShortcutButton"
-                        MinWidth="160"
-                        Click="FlyoutShortcutButton_Click"
-                        LostFocus="FlyoutShortcutButton_LostFocus"
-                        PreviewKeyDown="FlyoutShortcutButton_PreviewKeyDown"
-                        PreviewKeyUp="FlyoutShortcutButton_PreviewKeyUp" />
-                </StackPanel>
+                <Button
+                    x:Name="FlyoutShortcutButton"
+                    Padding="4,4,8,4"
+                    Click="FlyoutShortcutButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <StackPanel
+                            x:Name="FlyoutShortcutKeysPanel"
+                            Orientation="Horizontal"
+                            Spacing="4">
+                            <StackPanel.Resources>
+                                <!--  (accent buttons in look only; the click goes to the button around them)  -->
+                                <Style
+                                    x:Key="ShortcutKeyStyle"
+                                    BasedOn="{StaticResource AccentButtonStyle}"
+                                    TargetType="Button">
+                                    <Setter Property="Height" Value="32" />
+                                    <Setter Property="MinWidth" Value="32" />
+                                    <Setter Property="Padding" Value="8,0,8,0" />
+                                    <Setter Property="FontSize" Value="15" />
+                                    <Setter Property="FontWeight" Value="Normal" />
+                                    <Setter Property="IsHitTestVisible" Value="False" />
+                                    <Setter Property="IsTabStop" Value="False" />
+                                    <Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
+                                </Style>
+                            </StackPanel.Resources>
+                        </StackPanel>
+                        <TextBlock
+                            x:Name="FlyoutShortcutNoneText"
+                            Margin="4,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="None" />
+                        <FontIcon
+                            VerticalAlignment="Center"
+                            FontSize="14"
+                            Glyph="&#xE70F;" />
+                    </StackPanel>
+                </Button>
             </controls:SettingsCard>
 
 

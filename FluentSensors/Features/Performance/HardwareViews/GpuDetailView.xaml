@@ -355,7 +355,7 @@
                                 Margin="0,-4,0,0"
                                 AccessibleName="Extended Time Range"
                                 Options="{x:Bind fhCommon:GraphTimeRanges.PerformanceExtended}"
-                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.GpuExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
                                 TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
 
@@ -420,7 +420,7 @@
                                 Margin="0,-4,0,0"
                                 AccessibleName="Extended Time Range"
                                 Options="{x:Bind fhCommon:GraphTimeRanges.PerformanceExtended}"
-                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.GpuExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
                                 TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
 
@@ -473,7 +473,7 @@
                                 Margin="0,-4,0,0"
                                 AccessibleName="Extended Time Range"
                                 Options="{x:Bind fhCommon:GraphTimeRanges.PerformanceExtended}"
-                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.GpuExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
                                 TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
 
@@ -554,7 +554,7 @@
                                 Margin="0,-4,0,0"
                                 AccessibleName="Extended Time Range"
                                 Options="{x:Bind fhCommon:GraphTimeRanges.PerformanceExtended}"
-                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.ExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.GpuExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
                                 TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
 

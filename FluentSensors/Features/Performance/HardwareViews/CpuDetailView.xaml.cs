@@ -132,7 +132,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
                 if (!_allThreadsTimeSpanHookAttached)
                 {
                     _allThreadsTimeSpanHookAttached = true;
-                    PerformanceGraphDefaults.BindTimeSpan(AllThreadsGrid, PerformanceGraphKind.Extended);
+                    PerformanceGraphDefaults.BindTimeSpan(AllThreadsGrid, PerformanceGraphKind.CpuExtended);
                 }
             }
             else

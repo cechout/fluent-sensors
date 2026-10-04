@@ -33,11 +33,11 @@
             <!--  title row and bottom bar; (one button height, a padding each)  -->
             <x:Double x:Key="FlyoutBarButtonHeight">36</x:Double>
             <Thickness x:Key="FlyoutTitleRowPadding">4,4,4,4</Thickness>
-            <Thickness x:Key="FlyoutBottomBarPadding">4,5,4,5</Thickness>
+            <Thickness x:Key="FlyoutBottomBarPadding">6,5,6,5</Thickness>
             <Thickness x:Key="FlyoutBottomBarSeparatorThickness">0,1,0,0</Thickness>
 
             <!--  time range row  -->
-            <Thickness x:Key="FlyoutTimeRangeRowPadding">4,6,4,6</Thickness>
+            <Thickness x:Key="FlyoutTimeRangeRowPadding">4,7,4,7</Thickness>
             <x:Double x:Key="FlyoutTimeRangePickerHeight">22</x:Double>
         </Border.Resources>
 
@@ -89,9 +89,9 @@
                     </Grid.ColumnDefinitions>
 
                     <!--  title  -->
-                    <!--  (the margin is the button padding of the bottom bar, so it lines up with its text)  -->
+                    <!--  (row padding plus margin, so it lines up with the button texts below, which sit behind padding and a 1 px border)  -->
                     <TextBlock
-                        Margin="9,-2,0,0"
+                        Margin="10,-3,0,0"
                         VerticalAlignment="Center"
                         Style="{StaticResource BodyTextBlockStyle}"
                         Text="System Sensors"
@@ -106,14 +106,14 @@
                     <StackPanel
                         x:Name="ShortcutHintPanel"
                         Grid.Column="1"
-                        Margin="8,0,0,-1"
+                        Margin="6,0,0,2"
                         VerticalAlignment="Center"
                         Orientation="Horizontal"
                         Spacing="1"
                         Visibility="Collapsed">
                         <StackPanel.Resources>
                             <Style x:Key="ShortcutKeyBorderStyle" TargetType="Border">
-                                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+                                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorSecondaryBrush}" />
                                 <Setter Property="BorderThickness" Value="1" />
                                 <Setter Property="CornerRadius" Value="2" />
                                 <Setter Property="Height" Value="16" />
@@ -196,7 +196,7 @@
                     <fhTimeRange:TimeRangePickerControl
                         x:Name="FlyoutTimeRangePicker"
                         Height="{StaticResource FlyoutTimeRangePickerHeight}"
-                        Padding="8,0,8,0"
+                        Padding="9,0,9,0"
                         AccessibleName="Flyout Time Range"
                         Label="Flyout"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
@@ -205,7 +205,7 @@
                     <fhTimeRange:TimeRangePickerControl
                         x:Name="TaskbarTimeRangePicker"
                         Height="{StaticResource FlyoutTimeRangePickerHeight}"
-                        Padding="8,0,8,0"
+                        Padding="9,0,9,0"
                         AccessibleName="Taskbar Time Range"
                         Label="Taskbar"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
@@ -233,7 +233,7 @@
                     <Button
                         x:Name="BackToDashboardButton"
                         Height="{StaticResource FlyoutBarButtonHeight}"
-                        Padding="8,0,8,0"
+                        Padding="7,0,7,0"
                         HorizontalAlignment="Left"
                         Click="BackToDashboard_Click"
                         Content="Manage Taskbar Sensors"
@@ -241,37 +241,22 @@
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource SubtleBarButtonStyle}" />
 
-                    <!--  taskbar widget settings and close, at the right end  -->
-                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-
-                        <!--  open the settings page on its taskbar section  -->
-                        <Button
-                            x:Name="TaskbarSettingsButton"
-                            Width="38"
-                            Height="{StaticResource FlyoutBarButtonHeight}"
-                            Padding="8,0,8,0"
-                            AutomationProperties.Name="Taskbar Widget Settings"
-                            Click="TaskbarSettings_Click"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{StaticResource SubtleBarButtonStyle}"
-                            ToolTipService.ToolTip="Taskbar Widget Settings">
-                            <FontIcon FontSize="14" Glyph="&#xE713;" />
-                        </Button>
-
-                        <!--  close the taskbar widget  -->
-                        <Button
-                            x:Name="CloseWidgetButton"
-                            Width="38"
-                            Height="{StaticResource FlyoutBarButtonHeight}"
-                            Padding="8,0,8,0"
-                            AutomationProperties.Name="Close Taskbar Widget"
-                            Click="CloseWidget_Click"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{StaticResource SubtleBarButtonStyle}"
-                            ToolTipService.ToolTip="Close Taskbar Widget">
-                            <FontIcon FontSize="14" Glyph="&#xE711;" />
-                        </Button>
-                    </StackPanel>
+                    <!--  open the settings page on its taskbar section, at the right end  -->
+                    <!--  (no close button; the widget is closed from the sensor list)  -->
+                    <Button
+                        x:Name="TaskbarSettingsButton"
+                        Width="38"
+                        Height="{StaticResource FlyoutBarButtonHeight}"
+                        Margin="0,0,1,0"
+                        Padding="8,0,8,0"
+                        HorizontalAlignment="Right"
+                        AutomationProperties.Name="Taskbar Widget Settings"
+                        Click="TaskbarSettings_Click"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource SubtleBarButtonStyle}"
+                        ToolTipService.ToolTip="Taskbar Widget Settings">
+                        <FontIcon FontSize="14" Glyph="&#xE713;" />
+                    </Button>
                 </Grid>
             </Border>
         </Grid>
