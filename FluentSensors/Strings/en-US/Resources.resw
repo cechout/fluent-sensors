@@ -1625,7 +1625,7 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
     <value>Pin to Taskbar</value>
   </data>
   <data name="Sensors_UpdateTaskbarText.Text" xml:space="preserve">
-    <value>Update Taskbar</value>
+    <value>Update</value>
   </data>
   <data name="Sensors_CloseTaskbarWidgetButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Close Taskbar Widget</value>

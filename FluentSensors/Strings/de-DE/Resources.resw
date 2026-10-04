@@ -1463,7 +1463,7 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
     <value>Unter Schwellenwert markieren</value>
   </data>
   <data name="Threshold_ThresholdConfigText.Text" xml:space="preserve">
-    <value>Schwellenwert</value>
+    <value>Schwellen&#xAD;wert</value>
   </data>
   <data name="Threshold_ThresholdCloseButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Schließen</value>
@@ -1625,7 +1625,7 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
     <value>An Taskleiste anheften</value>
   </data>
   <data name="Sensors_UpdateTaskbarText.Text" xml:space="preserve">
-    <value>Taskleiste aktualisieren</value>
+    <value>Aktualisieren</value>
   </data>
   <data name="Sensors_CloseTaskbarWidgetButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Taskleisten-Widget schließen</value>

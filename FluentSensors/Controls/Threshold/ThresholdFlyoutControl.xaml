@@ -72,7 +72,8 @@
                             Grid.Column="0"
                             Margin="5,3,10,0"
                             VerticalAlignment="Center"
-                            Style="{ThemeResource CaptionTextBlockStyle}" />
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap" />
 
                         <Button
                             x:Name="ThresholdCloseButton"

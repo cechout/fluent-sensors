@@ -429,15 +429,18 @@
                                 VerticalSpacing="0">
                                 <fhTile:SensorTileControl
                                     x:Uid="Cpu_AverageLoadTile"
-                                    Width="90"
+                                    Width="Auto"
+                                    MaxValueText="00,0 %"
                                     ViewModel="{x:Bind Cpu.AvgLoadWithThreads, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
                                     x:Uid="Cpu_AverageTemperatureTile"
-                                    Width="130"
+                                    Width="Auto"
+                                    MaxValueText="00,0 °C"
                                     ViewModel="{x:Bind Cpu.AvgTemperatureWithThreads, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
                                     x:Uid="Cpu_AverageClockTile"
-                                    Width="130"
+                                    Width="Auto"
+                                    MaxValueText="000,0 MHz"
                                     ViewModel="{x:Bind Cpu.AvgClockWithThreads, Mode=OneWay}" />
                             </controls:WrapPanel>
                         </StackPanel>
