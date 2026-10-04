@@ -13,6 +13,7 @@
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
     xmlns:fhUi="using:FluentSensors.Common.UI"
+    xmlns:loc="using:FluentSensors.Common.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
@@ -269,9 +270,9 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
                 <StackPanel Margin="16" Spacing="24">
                     <TextBlock
-                        x:Uid="Network_NetworkInfoText"
                         Margin="0,0,0,0"
-                        Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                        Text="{x:Bind loc:AppTerms.Get('Network_NetworkInfo')}" />
 
                     <!--  connection  -->
                     <StackPanel Spacing="12">
@@ -315,6 +316,7 @@
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
                             x:Uid="Network_IPAddressesPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Network_IPAddresses')}"
                             Margin="0,0,0,-4"
                             PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -324,9 +326,9 @@
 
                         <StackPanel Spacing="2">
                             <TextBlock
-                                x:Uid="Network_IPv4AddressesText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Network_IPv4Addresses')}" />
                             <TextBlock
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Network.NetworkIPv4AddressesText, Mode=OneWay}"
@@ -335,9 +337,9 @@
 
                         <StackPanel Spacing="2">
                             <TextBlock
-                                x:Uid="Network_IPv6AddressesText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Network_IPv6Addresses')}" />
                             <TextBlock
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Network.NetworkIPv6AddressesText, Mode=OneWay}"
@@ -360,9 +362,9 @@
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Network_LinkSpeedText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Network_LinkSpeed')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -372,9 +374,9 @@
 
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Network_MACAddressText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Network_MACAddress')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -384,9 +386,9 @@
 
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Network_DHCPEnabledText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Network_DHCPEnabled')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"

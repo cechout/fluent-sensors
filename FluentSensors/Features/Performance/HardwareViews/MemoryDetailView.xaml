@@ -13,6 +13,7 @@
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
     xmlns:fhUi="using:FluentSensors.Common.UI"
+    xmlns:loc="using:FluentSensors.Common.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:staticInfo="using:FluentSensors.Core.StaticInfo"
     mc:Ignorable="d">
@@ -160,11 +161,12 @@
                                 HorizontalSpacing="16"
                                 VerticalSpacing="0">
                                 <fhTile:SensorTileControl
-                                    x:Uid="Memory_MemoryUsedPhysicalTile"
+                                    Title="{x:Bind loc:AppTerms.Get('Memory_MemoryUsedPhysical')}"
                                     Width="Auto"
                                     ViewModel="{x:Bind Memory.Used, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
                                     x:Uid="Memory_MemoryUsedVirtualTile"
+                                    Title="{x:Bind loc:AppTerms.Get('Memory_MemoryUsedVirtual')}"
                                     Width="Auto"
                                     ShowInfoButton="True"
                                     ViewModel="{x:Bind Memory.VirtualMemoryUsed, Mode=OneWay}" />
@@ -188,13 +190,13 @@
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
                 <StackPanel Margin="16" Spacing="24">
-                    <TextBlock x:Uid="Memory_RAMInfoText" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                    <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Text="{x:Bind loc:AppTerms.Get('Memory_RAMInfo')}" />
 
                     <StackPanel Spacing="2">
                         <TextBlock
-                            x:Uid="Memory_TotalSlotsText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}" />
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Text="{x:Bind loc:AppTerms.Get('Memory_TotalSlots')}" />
                         <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Memory.MemoryTotalSlotsText, Mode=OneWay}" />
                     </StackPanel>
 
@@ -228,9 +230,9 @@
                                     <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                                         <StackPanel Width="Auto" Spacing="2">
                                             <TextBlock
-                                                x:Uid="Memory_PartNumberText"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="{x:Bind loc:AppTerms.Get('Memory_PartNumber')}"
                                                 TextWrapping="Wrap" />
                                             <TextBlock
                                                 Style="{ThemeResource BodyTextBlockStyle}"
@@ -253,9 +255,9 @@
 
                                     <StackPanel Spacing="2">
                                         <TextBlock
-                                            x:Uid="Memory_CapacityText"
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}" />
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind loc:AppTerms.Get('Memory_Capacity')}" />
                                         <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatBytesAsGb(CapacityBytes)}" />
                                     </StackPanel>
 
@@ -271,9 +273,9 @@
 
                                         <StackPanel Width="Auto" Spacing="2">
                                             <TextBlock
-                                                x:Uid="Memory_FormFactorText"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="{x:Bind loc:AppTerms.Get('Memory_FormFactor')}"
                                                 TextWrapping="Wrap" />
                                             <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatFormFactor(FormFactor)}" />
                                         </StackPanel>
@@ -281,26 +283,26 @@
 
                                     <StackPanel Spacing="2">
                                         <TextBlock
-                                            x:Uid="Memory_RAMSpeedConfiguredRatedText"
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}" />
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind loc:AppTerms.Get('Memory_RAMSpeedConfiguredRated')}" />
                                         <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatSpeedPair(ConfiguredClockSpeedMhz, RatedSpeedMhz)}" />
                                     </StackPanel>
 
                                     <StackPanel Spacing="2">
                                         <TextBlock
-                                            x:Uid="Memory_VoltageConfiguredMinMaxText"
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}" />
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind loc:AppTerms.Get('Memory_VoltageConfiguredMinMax')}" />
                                         <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatVoltageRange(ConfiguredVoltageMillivolts, MinVoltageMillivolts, MaxVoltageMillivolts)}" />
                                     </StackPanel>
 
                                     <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                                         <StackPanel Width="Auto" Spacing="2">
                                             <TextBlock
-                                                x:Uid="Memory_BankText"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="{x:Bind loc:AppTerms.Get('Memory_Bank')}"
                                                 TextWrapping="Wrap" />
                                             <TextBlock
                                                 Style="{ThemeResource BodyTextBlockStyle}"
@@ -310,9 +312,9 @@
 
                                         <StackPanel Width="Auto" Spacing="2">
                                             <TextBlock
-                                                x:Uid="Memory_RankText"
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
+                                                Text="{x:Bind loc:AppTerms.Get('Memory_Rank')}"
                                                 TextWrapping="Wrap" />
                                             <TextBlock
                                                 Foreground="{ThemeResource TextFillColorTertiaryBrush}"
@@ -323,9 +325,9 @@
 
                                     <StackPanel Spacing="2">
                                         <TextBlock
-                                            x:Uid="Memory_WidthTotalDataText"
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}" />
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind loc:AppTerms.Get('Memory_WidthTotalData')}" />
                                         <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatBitsWidth(TotalWidthBits, DataWidthBits)}" />
                                     </StackPanel>
 

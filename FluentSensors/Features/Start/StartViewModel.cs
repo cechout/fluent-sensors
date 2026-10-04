@@ -385,7 +385,7 @@ namespace FluentSensors.Features.Start
                 .FirstOrDefault(g => g.Kind == HardwareGroupKind.Cpu)?.HardwareName ?? "";
 
             string cores = cpu.PhysicalCores > 0 && cpu.LogicalProcessors > 0
-                ? $"{AppStrings.Plural("Start_Cores", cpu.PhysicalCores)} / {AppStrings.Plural("Start_Threads", cpu.LogicalProcessors)}"
+                ? $"{AppTerms.Plural("Start_Cores", cpu.PhysicalCores)} / {AppTerms.Plural("Start_Threads", cpu.LogicalProcessors)}"
                 : "";
 
             string clock = cpu.MaxClockSpeedMhz > 0
@@ -414,13 +414,13 @@ namespace FluentSensors.Features.Start
             if (string.IsNullOrWhiteSpace(name)) name = "Memory";
 
             string slots = memory.TotalSlots > 0
-                ? AppStrings.Format("Start_SlotsUsed", memory.Modules.Count, memory.TotalSlots)
-                : AppStrings.Plural("Start_Modules", memory.Modules.Count);
+                ? AppTerms.Format("Start_SlotsUsed", memory.Modules.Count, memory.TotalSlots)
+                : AppTerms.Plural("Start_Modules", memory.Modules.Count);
 
             rows.Add(Row(
                 HardwareGroupKind.Ram,
                 name,
-                AppStrings.Format("Start_MemoryTotal", HardwareInfoFormatter.FormatBytesAsGb(total)),
+                AppTerms.Format("Start_MemoryTotal", HardwareInfoFormatter.FormatBytesAsGb(total)),
                 slots,
                 HardwareInfoFormatter.FormatMemoryType(first.SmbiosMemoryType),
                 HardwareInfoFormatter.FormatMemorySpeed(first.ConfiguredClockSpeedMhz)));
@@ -436,7 +436,7 @@ namespace FluentSensors.Features.Start
 
                 string driver = string.IsNullOrWhiteSpace(gpu.DriverVersion)
                     ? ""
-                    : AppStrings.Format("Start_GpuDriver", gpu.DriverVersion);
+                    : AppTerms.Format("Start_GpuDriver", gpu.DriverVersion);
 
                 rows.Add(Row(
                     HardwareGroupKind.Gpu,

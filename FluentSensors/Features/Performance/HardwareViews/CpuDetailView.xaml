@@ -14,6 +14,7 @@
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
     xmlns:fhUi="using:FluentSensors.Common.UI"
+    xmlns:loc="using:FluentSensors.Common.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="Root"
     mc:Ignorable="d">
@@ -396,10 +397,10 @@
                             Spacing="8"
                             Visibility="{x:Bind BoolToVisibility(Cpu.HasCoresWithThreads), Mode=OneWay}">
                             <TextBlock
-                                x:Uid="Cpu_CoresWithThreadsText"
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Cpu_CoresWithThreads')}"
                                 Visibility="{x:Bind BoolToVisibility(Cpu.ShowCoreGroupTitles), Mode=OneWay}" />
 
                             <ItemsControl
@@ -428,17 +429,17 @@
                                 HorizontalSpacing="16"
                                 VerticalSpacing="0">
                                 <fhTile:SensorTileControl
-                                    x:Uid="Cpu_AverageLoadTile"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageLoad')}"
                                     Width="Auto"
                                     MaxValueText="00,0 %"
                                     ViewModel="{x:Bind Cpu.AvgLoadWithThreads, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    x:Uid="Cpu_AverageTemperatureTile"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageTemperature')}"
                                     Width="Auto"
                                     MaxValueText="00,0 °C"
                                     ViewModel="{x:Bind Cpu.AvgTemperatureWithThreads, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    x:Uid="Cpu_AverageClockTile"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageClock')}"
                                     Width="Auto"
                                     MaxValueText="000,0 MHz"
                                     ViewModel="{x:Bind Cpu.AvgClockWithThreads, Mode=OneWay}" />
@@ -453,10 +454,10 @@
                             Spacing="8"
                             Visibility="{x:Bind BoolToVisibility(Cpu.HasCoresWithoutThreads), Mode=OneWay}">
                             <TextBlock
-                                x:Uid="Cpu_CoresWithoutThreadsText"
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Cpu_CoresWithoutThreads')}"
                                 Visibility="{x:Bind BoolToVisibility(Cpu.ShowCoreGroupTitles), Mode=OneWay}" />
 
                             <ItemsControl
@@ -485,17 +486,17 @@
                                 HorizontalSpacing="16"
                                 VerticalSpacing="0">
                                 <fhTile:SensorTileControl
-                                    x:Uid="Cpu_AverageLoadTile"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageLoad')}"
                                     Width="Auto"
                                     MaxValueText="00,0 %"
                                     ViewModel="{x:Bind Cpu.AvgLoadWithoutThreads, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    x:Uid="Cpu_AverageTemperatureTile"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageTemperature')}"
                                     Width="Auto"
                                     MaxValueText="00,0 °C"
                                     ViewModel="{x:Bind Cpu.AvgTemperatureWithoutThreads, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    x:Uid="Cpu_AverageClockTile"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageClock')}"
                                     Width="Auto"
                                     MaxValueText="000,0 MHz"
                                     ViewModel="{x:Bind Cpu.AvgClockWithoutThreads, Mode=OneWay}" />
@@ -523,9 +524,9 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
                 <StackPanel Margin="16" Spacing="24">
                     <TextBlock
-                        x:Uid="Cpu_CPUInfoText"
                         Margin="0,0,0,0"
-                        Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                        Text="{x:Bind loc:AppTerms.Get('Cpu_CPUInfo')}" />
 
                     <StackPanel Spacing="12">
 
@@ -543,9 +544,9 @@
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Cpu_PhysicalCoresText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_PhysicalCores')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -555,9 +556,9 @@
 
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Cpu_LogicalProcessorsText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_LogicalProcessors')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -568,9 +569,9 @@
 
                         <StackPanel Spacing="2">
                             <TextBlock
-                                x:Uid="Cpu_CoreTopologyText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Cpu_CoreTopology')}" />
                             <TextBlock
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Cpu.CpuCoreTopologyText, Mode=OneWay}"
@@ -580,9 +581,9 @@
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Cpu_SocketText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_Socket')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -592,9 +593,9 @@
 
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Cpu_MaxClockSpeedText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_MaxClockSpeed')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -608,6 +609,7 @@
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
                             x:Uid="Cpu_CachePopup"
+                            Title="{x:Bind loc:AppTerms.Get('Cpu_Cache')}"
                             Margin="0,0,0,-4"
                             PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -618,9 +620,9 @@
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Cpu_L1CacheText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_L1Cache')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -630,9 +632,9 @@
 
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Cpu_L2CacheText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_L2Cache')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -642,9 +644,9 @@
 
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Cpu_L3CacheText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_L3Cache')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -658,6 +660,7 @@
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
                             x:Uid="Cpu_VirtualizationPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Cpu_Virtualization')}"
                             Margin="0,0,0,-4"
                             PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -668,9 +671,9 @@
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Cpu_FirmwareText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_Firmware')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorTertiaryBrush}"
@@ -681,9 +684,9 @@
 
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Cpu_ExtensionsText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_Extensions')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"

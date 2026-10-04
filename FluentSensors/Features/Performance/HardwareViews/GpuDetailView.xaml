@@ -13,6 +13,7 @@
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
     xmlns:fhUi="using:FluentSensors.Common.UI"
+    xmlns:loc="using:FluentSensors.Common.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
@@ -287,10 +288,10 @@
                         <!--  core; (Power and Voltage at the top, they have no group of their own)  -->
                         <StackPanel Grid.Row="0" Spacing="8">
                             <TextBlock
-                                x:Uid="Gpu_CoreText"
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_Core')}" />
                             <fhControls:SquareGridPanel
                                 MinCellHeight="90"
                                 MinCellWidth="260"
@@ -362,10 +363,10 @@
                         <!--  memory; (Memory Free is part of the MemoryUsed switch)  -->
                         <StackPanel Grid.Row="1" Spacing="8">
                             <TextBlock
-                                x:Uid="Gpu_MemoryText"
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_Memory')}" />
                             <fhControls:SquareGridPanel
                                 MinCellHeight="90"
                                 MinCellWidth="260"
@@ -427,10 +428,10 @@
                         <!--  pcie / bus  -->
                         <StackPanel Grid.Row="2" Spacing="8">
                             <TextBlock
-                                x:Uid="Gpu_PCIeBusText"
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_PCIeBus')}" />
                             <fhControls:SquareGridPanel
                                 MinCellHeight="90"
                                 MinCellWidth="260"
@@ -480,10 +481,10 @@
                         <!--  engines: 1 fixed anchor + 4 switchable slots sharing the full D3D pool  -->
                         <StackPanel Grid.Row="3" Spacing="8">
                             <TextBlock
-                                x:Uid="Gpu_EnginesText"
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_Engines')}" />
                             <fhControls:SquareGridPanel
                                 MinCellHeight="90"
                                 MinCellWidth="260"
@@ -634,9 +635,9 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
                 <StackPanel Margin="16" Spacing="24">
                     <TextBlock
-                        x:Uid="Gpu_GPUInfoText"
                         Margin="0,0,0,0"
-                        Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                        Text="{x:Bind loc:AppTerms.Get('Gpu_GPUInfo')}" />
 
                     <!--  general  -->
                     <StackPanel Spacing="12">
@@ -662,9 +663,9 @@
 
                         <StackPanel Spacing="2">
                             <TextBlock
-                                x:Uid="Gpu_VendorText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_Vendor')}" />
                             <TextBlock
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Gpu.GpuVendorText, Mode=OneWay}"
@@ -673,9 +674,9 @@
 
                         <StackPanel Spacing="2">
                             <TextBlock
-                                x:Uid="Gpu_DriverVersionText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_DriverVersion')}" />
                             <TextBlock
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Gpu.GpuDriverVersionText, Mode=OneWay}"
@@ -687,6 +688,7 @@
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
                             x:Uid="Gpu_MemoryPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Gpu_Memory')}"
                             Margin="0,0,0,-4"
                             PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -697,9 +699,9 @@
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Gpu_DedicatedMemoryText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_DedicatedMemory')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -709,9 +711,9 @@
 
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Gpu_SharedMemoryText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_SharedMemory')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -725,6 +727,7 @@
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
                             x:Uid="Gpu_IdentifiersPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Gpu_Identifiers')}"
                             Margin="0,0,0,-4"
                             PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -736,9 +739,9 @@
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Gpu_PCIDeviceIDText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_PCIDeviceID')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -748,9 +751,9 @@
 
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Gpu_PnPDeviceIDText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_PnPDeviceID')}" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
                                     Text="{x:Bind Gpu.GpuPnpDeviceIdText, Mode=OneWay}"

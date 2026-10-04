@@ -39,5 +39,10 @@ namespace FluentSensors.Common.Localization
                 return key;
             }
         }
+
+        // the same count forms and placeholder rules as AppStrings
+        public static string Plural(string key, int count) => Format($"{key}_{AppStrings.PluralForm(count)}", count);
+
+        public static string Format(string key, params object[] args) => AppStrings.SafeFormat(Get(key), args);
     }
 }

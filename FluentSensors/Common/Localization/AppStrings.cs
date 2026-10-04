@@ -27,16 +27,16 @@ namespace FluentSensors.Common.Localization
 
         // a count with its noun, from <key>_One, <key>_Few (2 to 4) and <key>_Many; the few form is the czech one,
         // a language without it repeats the many text there
-        public static string Plural(string key, int count)
-        {
-            string form = count == 1 ? "One" : count is >= 2 and <= 4 ? "Few" : "Many";
-            return Format($"{key}_{form}", count);
-        }
+        public static string Plural(string key, int count) => Format($"{key}_{PluralForm(count)}", count);
+
+        public static string Format(string key, params object[] args) => SafeFormat(Get(key), args);
+
+        // shared with AppTerms
+        internal static string PluralForm(int count) => count == 1 ? "One" : count is >= 2 and <= 4 ? "Few" : "Many";
 
         // a translation with broken placeholders shows unformatted instead of throwing
-        public static string Format(string key, params object[] args)
+        internal static string SafeFormat(string format, object[] args)
         {
-            string format = Get(key);
             try
             {
                 return string.Format(format, args);

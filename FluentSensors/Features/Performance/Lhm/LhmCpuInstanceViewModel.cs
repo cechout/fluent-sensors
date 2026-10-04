@@ -47,12 +47,12 @@ namespace FluentSensors.Features.Performance.Lhm
 
             // computed per-group averages for the All Threads tiles; the id is only unique per CPU instance
             // (identically named sockets are not a case seen)
-            AvgLoadWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-load-with-threads", AppStrings.Get("Cpu_AverageLoad"), "Load");
-            AvgTemperatureWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-temperature-with-threads", AppStrings.Get("Cpu_AverageTemperature"), "Temperature");
-            AvgClockWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-clock-with-threads", AppStrings.Get("Cpu_AverageClock"), "Clock");
-            AvgLoadWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-load-without-threads", AppStrings.Get("Cpu_AverageLoad"), "Load");
-            AvgTemperatureWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-temperature-without-threads", AppStrings.Get("Cpu_AverageTemperature"), "Temperature");
-            AvgClockWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-clock-without-threads", AppStrings.Get("Cpu_AverageClock"), "Clock");
+            AvgLoadWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-load-with-threads", AppTerms.Get("Cpu_AverageLoad"), "Load");
+            AvgTemperatureWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-temperature-with-threads", AppTerms.Get("Cpu_AverageTemperature"), "Temperature");
+            AvgClockWithThreads = new SensorGraphViewModel($"{hardwareName}-avg-clock-with-threads", AppTerms.Get("Cpu_AverageClock"), "Clock");
+            AvgLoadWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-load-without-threads", AppTerms.Get("Cpu_AverageLoad"), "Load");
+            AvgTemperatureWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-temperature-without-threads", AppTerms.Get("Cpu_AverageTemperature"), "Temperature");
+            AvgClockWithoutThreads = new SensorGraphViewModel($"{hardwareName}-avg-clock-without-threads", AppTerms.Get("Cpu_AverageClock"), "Clock");
         }
 
 
@@ -274,7 +274,7 @@ namespace FluentSensors.Features.Performance.Lhm
             if (groups.Count == 1)
             {
                 bool hasSmt = cpu.CoreTopology.Any(c => c.HasSmt);
-                return AppStrings.Get(hasSmt ? "Cpu_TopologySymmetricSmt" : "Cpu_TopologySymmetric");
+                return AppTerms.Get(hasSmt ? "Cpu_TopologySymmetricSmt" : "Cpu_TopologySymmetric");
             }
 
             var parts = new List<string>();
@@ -282,13 +282,13 @@ namespace FluentSensors.Features.Performance.Lhm
             {
                 // only the extremes have a confirmed meaning; a class in between (not seen yet) gets
                 // a number, not a guessed name
-                string label = i == 0 ? AppStrings.Get("Cpu_TopologyPerformance")
-                    : i == groups.Count - 1 ? AppStrings.Get("Cpu_TopologyEfficient")
-                    : AppStrings.Format("Cpu_TopologyClass", groups[i].Key);
+                string label = i == 0 ? AppTerms.Get("Cpu_TopologyPerformance")
+                    : i == groups.Count - 1 ? AppTerms.Get("Cpu_TopologyEfficient")
+                    : AppTerms.Format("Cpu_TopologyClass", groups[i].Key);
 
                 int coreCount = groups[i].Count();
                 int threadCount = groups[i].Sum(c => c.LogicalProcessorIndices.Count);
-                parts.Add(AppStrings.Format("Cpu_TopologyGroup", coreCount, label, AppStrings.Plural("Start_Threads", threadCount)));
+                parts.Add(AppStrings.Format("Cpu_TopologyGroup", coreCount, label, AppTerms.Plural("Start_Threads", threadCount)));
             }
 
             return string.Join(" + ", parts);

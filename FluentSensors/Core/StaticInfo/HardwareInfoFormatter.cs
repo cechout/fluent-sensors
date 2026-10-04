@@ -53,9 +53,9 @@ namespace FluentSensors.Core.StaticInfo
             {
                 1 => AppStrings.Get("Info_Other"),
                 2 => AppStrings.Get("Info_Unknown"),
-                3 => AppStrings.Get("Info_CacheInstruction"),
-                4 => AppStrings.Get("Info_CacheData"),
-                5 => AppStrings.Get("Info_CacheUnified"),
+                3 => AppTerms.Get("Info_CacheInstruction"),
+                4 => AppTerms.Get("Info_CacheData"),
+                5 => AppTerms.Get("Info_CacheUnified"),
                 _ => AppStrings.Format("Info_UnknownValue", cacheType)
             };
         }
@@ -111,25 +111,25 @@ namespace FluentSensors.Core.StaticInfo
                 1 => AppStrings.Get("Info_Unknown"),
                 2 => "SIMM",
                 3 => "SIP",
-                4 => AppStrings.Get("Info_FormChip"),
+                4 => AppTerms.Get("Info_FormChip"),
                 5 => "DIP",
                 6 => "ZIP",
-                7 => AppStrings.Get("Info_FormProprietaryCard"),
+                7 => AppTerms.Get("Info_FormProprietaryCard"),
                 8 => "DIMM",
                 9 => "TSOP",
-                10 => AppStrings.Get("Info_FormRowOfChips"),
+                10 => AppTerms.Get("Info_FormRowOfChips"),
                 11 => "RIMM",
                 12 => "SODIMM",
                 13 => "SRIMM",
                 14 => "FB-DIMM",
-                15 => AppStrings.Get("Info_FormDie"),
+                15 => AppTerms.Get("Info_FormDie"),
                 _ => "-"
             };
         }
 
         public static string FormatBitsWidth(int totalWidthBits, int dataWidthBits) => $"{totalWidthBits} / {dataWidthBits} bit";
 
-        public static string FormatRank(uint rank) => rank > 0 ? AppStrings.Format("Info_Rank", rank) : "-";
+        public static string FormatRank(uint rank) => rank > 0 ? AppTerms.Format("Info_Rank", rank) : "-";
 
         public static string FormatMillivolts(uint millivolts) => millivolts > 0 ? $"{millivolts / 1000.0:0.##} V" : "-";
 

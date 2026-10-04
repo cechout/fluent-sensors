@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Cpu_CoresWithThreads" xml:space="preserve">
+    <value>Cores With Threads</value>
+  </data>
+  <data name="Cpu_CoresWithoutThreads" xml:space="preserve">
+    <value>Cores Without Threads</value>
+  </data>
+  <data name="Cpu_AverageLoad" xml:space="preserve">
+    <value>Average Load</value>
+  </data>
+  <data name="Cpu_AverageTemperature" xml:space="preserve">
+    <value>Average Temperature</value>
+  </data>
+  <data name="Cpu_AverageClock" xml:space="preserve">
+    <value>Average Clock</value>
+  </data>
+  <data name="Cpu_CPUInfo" xml:space="preserve">
+    <value>CPU Info</value>
+  </data>
+  <data name="Cpu_PhysicalCores" xml:space="preserve">
+    <value>Physical Cores</value>
+  </data>
+  <data name="Cpu_LogicalProcessors" xml:space="preserve">
+    <value>Logical Processors</value>
+  </data>
+  <data name="Cpu_CoreTopology" xml:space="preserve">
+    <value>Core Topology</value>
+  </data>
+  <data name="Cpu_Socket" xml:space="preserve">
+    <value>Socket</value>
+  </data>
+  <data name="Cpu_MaxClockSpeed" xml:space="preserve">
+    <value>Max Clock Speed</value>
+  </data>
+  <data name="Cpu_L1Cache" xml:space="preserve">
+    <value>L1 Cache</value>
+  </data>
+  <data name="Cpu_L2Cache" xml:space="preserve">
+    <value>L2 Cache</value>
+  </data>
+  <data name="Cpu_L3Cache" xml:space="preserve">
+    <value>L3 Cache</value>
+  </data>
+  <data name="Cpu_Cache" xml:space="preserve">
+    <value>Cache</value>
+  </data>
+  <data name="Cpu_Virtualization" xml:space="preserve">
+    <value>Virtualization</value>
+  </data>
+  <data name="Cpu_Firmware" xml:space="preserve">
+    <value>Firmware</value>
+  </data>
+  <data name="Cpu_Extensions" xml:space="preserve">
+    <value>Extensions</value>
+  </data>
+  <data name="Gpu_Core" xml:space="preserve">
+    <value>Core</value>
+  </data>
+  <data name="Gpu_Memory" xml:space="preserve">
+    <value>Memory</value>
+  </data>
+  <data name="Gpu_PCIeBus" xml:space="preserve">
+    <value>PCIe / Bus</value>
+  </data>
+  <data name="Gpu_Engines" xml:space="preserve">
+    <value>Engines</value>
+  </data>
+  <data name="Gpu_GPUInfo" xml:space="preserve">
+    <value>GPU Info</value>
+  </data>
+  <data name="Gpu_Vendor" xml:space="preserve">
+    <value>Vendor</value>
+  </data>
+  <data name="Gpu_DriverVersion" xml:space="preserve">
+    <value>Driver Version</value>
+  </data>
+  <data name="Gpu_DedicatedMemory" xml:space="preserve">
+    <value>Dedicated Memory</value>
+  </data>
+  <data name="Gpu_SharedMemory" xml:space="preserve">
+    <value>Shared Memory</value>
+  </data>
+  <data name="Gpu_PCIDeviceID" xml:space="preserve">
+    <value>PCI Device ID</value>
+  </data>
+  <data name="Gpu_PnPDeviceID" xml:space="preserve">
+    <value>PnP Device ID</value>
+  </data>
+  <data name="Gpu_Identifiers" xml:space="preserve">
+    <value>Identifiers</value>
+  </data>
+  <data name="Memory_MemoryUsedPhysical" xml:space="preserve">
+    <value>Memory Used (Physical)</value>
+  </data>
+  <data name="Memory_MemoryUsedVirtual" xml:space="preserve">
+    <value>Memory Used (Virtual)</value>
+  </data>
+  <data name="Memory_RAMInfo" xml:space="preserve">
+    <value>RAM Info</value>
+  </data>
+  <data name="Memory_TotalSlots" xml:space="preserve">
+    <value>Total Slots</value>
+  </data>
+  <data name="Memory_PartNumber" xml:space="preserve">
+    <value>Part Number</value>
+  </data>
+  <data name="Memory_Capacity" xml:space="preserve">
+    <value>Capacity</value>
+  </data>
+  <data name="Memory_FormFactor" xml:space="preserve">
+    <value>Form Factor</value>
+  </data>
+  <data name="Memory_RAMSpeedConfiguredRated" xml:space="preserve">
+    <value>RAM Speed (Configured / Rated)</value>
+  </data>
+  <data name="Memory_VoltageConfiguredMinMax" xml:space="preserve">
+    <value>Voltage (Configured / Min / Max)</value>
+  </data>
+  <data name="Memory_Bank" xml:space="preserve">
+    <value>Bank</value>
+  </data>
+  <data name="Memory_Rank" xml:space="preserve">
+    <value>Rank</value>
+  </data>
+  <data name="Memory_WidthTotalData" xml:space="preserve">
+    <value>Width (Total / Data)</value>
+  </data>
+  <data name="Storage_StorageInfo" xml:space="preserve">
+    <value>Storage Info</value>
+  </data>
+  <data name="Storage_BusType" xml:space="preserve">
+    <value>Bus Type</value>
+  </data>
+  <data name="Storage_FirmwareRevision" xml:space="preserve">
+    <value>Firmware Revision</value>
+  </data>
+  <data name="Storage_DeviceID" xml:space="preserve">
+    <value>Device ID</value>
+  </data>
+  <data name="Storage_Identifiers" xml:space="preserve">
+    <value>Identifiers</value>
+  </data>
+  <data name="Network_NetworkInfo" xml:space="preserve">
+    <value>Network Info</value>
+  </data>
+  <data name="Network_IPv4Addresses" xml:space="preserve">
+    <value>IPv4 Address(es)</value>
+  </data>
+  <data name="Network_IPv6Addresses" xml:space="preserve">
+    <value>IPv6 Address(es)</value>
+  </data>
+  <data name="Network_LinkSpeed" xml:space="preserve">
+    <value>Link Speed</value>
+  </data>
+  <data name="Network_MACAddress" xml:space="preserve">
+    <value>MAC Address</value>
+  </data>
+  <data name="Network_DHCPEnabled" xml:space="preserve">
+    <value>DHCP Enabled</value>
+  </data>
+  <data name="Network_IPAddresses" xml:space="preserve">
+    <value>IP Addresses</value>
+  </data>
+  <data name="SensorRowHeader_Sensor" xml:space="preserve">
+    <value>Sensor</value>
+  </data>
+  <data name="SensorRowHeader_Current" xml:space="preserve">
+    <value>Current</value>
+  </data>
+  <data name="SensorRowHeader_Minimum" xml:space="preserve">
+    <value>Min</value>
+  </data>
+  <data name="SensorRowHeader_Maximum" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="SensorRowHeader_Average" xml:space="preserve">
+    <value>Avg</value>
+  </data>
+  <data name="SensorRowHeader_Unit" xml:space="preserve">
+    <value>Unit</value>
+  </data>
+  <data name="Cpu_TopologySymmetricSmt" xml:space="preserve">
+    <value>Symmetric, Hyper-Threading enabled</value>
+  </data>
+  <data name="Cpu_TopologySymmetric" xml:space="preserve">
+    <value>Symmetric, no Hyper-Threading</value>
+  </data>
+  <data name="Cpu_TopologyPerformance" xml:space="preserve">
+    <value>Performance</value>
+  </data>
+  <data name="Cpu_TopologyEfficient" xml:space="preserve">
+    <value>Efficient</value>
+  </data>
+  <data name="Cpu_TopologyClass" xml:space="preserve">
+    <value>Class {0}</value>
+  </data>
+  <data name="Info_CacheInstruction" xml:space="preserve">
+    <value>Instruction</value>
+  </data>
+  <data name="Info_CacheData" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Info_CacheUnified" xml:space="preserve">
+    <value>Unified</value>
+  </data>
+  <data name="Info_FormChip" xml:space="preserve">
+    <value>Chip</value>
+  </data>
+  <data name="Info_FormProprietaryCard" xml:space="preserve">
+    <value>Proprietary Card</value>
+  </data>
+  <data name="Info_FormRowOfChips" xml:space="preserve">
+    <value>Row of chips</value>
+  </data>
+  <data name="Info_FormDie" xml:space="preserve">
+    <value>Die</value>
+  </data>
+  <data name="Info_Rank" xml:space="preserve">
+    <value>Rank {0}</value>
+  </data>
+  <data name="Start_Cores_One" xml:space="preserve">
+    <value>{0} core</value>
+  </data>
+  <data name="Start_Cores_Few" xml:space="preserve">
+    <value>{0} cores</value>
+  </data>
+  <data name="Start_Cores_Many" xml:space="preserve">
+    <value>{0} cores</value>
+  </data>
+  <data name="Start_Threads_One" xml:space="preserve">
+    <value>{0} thread</value>
+  </data>
+  <data name="Start_Threads_Few" xml:space="preserve">
+    <value>{0} threads</value>
+  </data>
+  <data name="Start_Threads_Many" xml:space="preserve">
+    <value>{0} threads</value>
+  </data>
+  <data name="Start_Modules_One" xml:space="preserve">
+    <value>{0} module</value>
+  </data>
+  <data name="Start_Modules_Few" xml:space="preserve">
+    <value>{0} modules</value>
+  </data>
+  <data name="Start_Modules_Many" xml:space="preserve">
+    <value>{0} modules</value>
+  </data>
+  <data name="Start_SlotsUsed" xml:space="preserve">
+    <value>{0} of {1} slots</value>
+  </data>
+  <data name="Start_MemoryTotal" xml:space="preserve">
+    <value>{0} total</value>
+  </data>
+  <data name="Start_GpuDriver" xml:space="preserve">
+    <value>Driver {0}</value>
+  </data>
+</root>

@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Cpu_CoresWithThreads" xml:space="preserve">
+    <value>Jádra s vlákny</value>
+  </data>
+  <data name="Cpu_CoresWithoutThreads" xml:space="preserve">
+    <value>Jádra bez vláken</value>
+  </data>
+  <data name="Cpu_AverageLoad" xml:space="preserve">
+    <value>Průměrné zatížení</value>
+  </data>
+  <data name="Cpu_AverageTemperature" xml:space="preserve">
+    <value>Průměrná teplota</value>
+  </data>
+  <data name="Cpu_AverageClock" xml:space="preserve">
+    <value>Průměrná frekvence</value>
+  </data>
+  <data name="Cpu_CPUInfo" xml:space="preserve">
+    <value>Informace o CPU</value>
+  </data>
+  <data name="Cpu_PhysicalCores" xml:space="preserve">
+    <value>Fyzická jádra</value>
+  </data>
+  <data name="Cpu_LogicalProcessors" xml:space="preserve">
+    <value>Logické procesory</value>
+  </data>
+  <data name="Cpu_CoreTopology" xml:space="preserve">
+    <value>Topologie jader</value>
+  </data>
+  <data name="Cpu_Socket" xml:space="preserve">
+    <value>Patice</value>
+  </data>
+  <data name="Cpu_MaxClockSpeed" xml:space="preserve">
+    <value>Maximální frekvence</value>
+  </data>
+  <data name="Cpu_L1Cache" xml:space="preserve">
+    <value>Mezipaměť L1</value>
+  </data>
+  <data name="Cpu_L2Cache" xml:space="preserve">
+    <value>Mezipaměť L2</value>
+  </data>
+  <data name="Cpu_L3Cache" xml:space="preserve">
+    <value>Mezipaměť L3</value>
+  </data>
+  <data name="Cpu_Cache" xml:space="preserve">
+    <value>Mezipaměť</value>
+  </data>
+  <data name="Cpu_Virtualization" xml:space="preserve">
+    <value>Virtualizace</value>
+  </data>
+  <data name="Cpu_Firmware" xml:space="preserve">
+    <value>Firmware</value>
+  </data>
+  <data name="Cpu_Extensions" xml:space="preserve">
+    <value>Rozšíření</value>
+  </data>
+  <data name="Gpu_Core" xml:space="preserve">
+    <value>Jádro</value>
+  </data>
+  <data name="Gpu_Memory" xml:space="preserve">
+    <value>Paměť</value>
+  </data>
+  <data name="Gpu_PCIeBus" xml:space="preserve">
+    <value>PCIe / sběrnice</value>
+  </data>
+  <data name="Gpu_Engines" xml:space="preserve">
+    <value>Jednotky</value>
+  </data>
+  <data name="Gpu_GPUInfo" xml:space="preserve">
+    <value>Informace o GPU</value>
+  </data>
+  <data name="Gpu_Vendor" xml:space="preserve">
+    <value>Výrobce</value>
+  </data>
+  <data name="Gpu_DriverVersion" xml:space="preserve">
+    <value>Verze ovladače</value>
+  </data>
+  <data name="Gpu_DedicatedMemory" xml:space="preserve">
+    <value>Vyhrazená paměť</value>
+  </data>
+  <data name="Gpu_SharedMemory" xml:space="preserve">
+    <value>Sdílená paměť</value>
+  </data>
+  <data name="Gpu_PCIDeviceID" xml:space="preserve">
+    <value>ID zařízení PCI</value>
+  </data>
+  <data name="Gpu_PnPDeviceID" xml:space="preserve">
+    <value>ID zařízení PnP</value>
+  </data>
+  <data name="Gpu_Identifiers" xml:space="preserve">
+    <value>Identifikátory</value>
+  </data>
+  <data name="Memory_MemoryUsedPhysical" xml:space="preserve">
+    <value>Využitá paměť (fyzická)</value>
+  </data>
+  <data name="Memory_MemoryUsedVirtual" xml:space="preserve">
+    <value>Využitá paměť (virtuální)</value>
+  </data>
+  <data name="Memory_RAMInfo" xml:space="preserve">
+    <value>Informace o RAM</value>
+  </data>
+  <data name="Memory_TotalSlots" xml:space="preserve">
+    <value>Sloty celkem</value>
+  </data>
+  <data name="Memory_PartNumber" xml:space="preserve">
+    <value>Číslo dílu</value>
+  </data>
+  <data name="Memory_Capacity" xml:space="preserve">
+    <value>Kapacita</value>
+  </data>
+  <data name="Memory_FormFactor" xml:space="preserve">
+    <value>Provedení</value>
+  </data>
+  <data name="Memory_RAMSpeedConfiguredRated" xml:space="preserve">
+    <value>Rychlost RAM (nastavená / jmenovitá)</value>
+  </data>
+  <data name="Memory_VoltageConfiguredMinMax" xml:space="preserve">
+    <value>Napětí (nastavené / min / max)</value>
+  </data>
+  <data name="Memory_Bank" xml:space="preserve">
+    <value>Banka</value>
+  </data>
+  <data name="Memory_Rank" xml:space="preserve">
+    <value>Rank</value>
+  </data>
+  <data name="Memory_WidthTotalData" xml:space="preserve">
+    <value>Šířka (celkem / data)</value>
+  </data>
+  <data name="Storage_StorageInfo" xml:space="preserve">
+    <value>Informace o úložišti</value>
+  </data>
+  <data name="Storage_BusType" xml:space="preserve">
+    <value>Typ sběrnice</value>
+  </data>
+  <data name="Storage_FirmwareRevision" xml:space="preserve">
+    <value>Revize firmwaru</value>
+  </data>
+  <data name="Storage_DeviceID" xml:space="preserve">
+    <value>ID zařízení</value>
+  </data>
+  <data name="Storage_Identifiers" xml:space="preserve">
+    <value>Identifikátory</value>
+  </data>
+  <data name="Network_NetworkInfo" xml:space="preserve">
+    <value>Informace o síti</value>
+  </data>
+  <data name="Network_IPv4Addresses" xml:space="preserve">
+    <value>Adresy IPv4</value>
+  </data>
+  <data name="Network_IPv6Addresses" xml:space="preserve">
+    <value>Adresy IPv6</value>
+  </data>
+  <data name="Network_LinkSpeed" xml:space="preserve">
+    <value>Rychlost linky</value>
+  </data>
+  <data name="Network_MACAddress" xml:space="preserve">
+    <value>Adresa MAC</value>
+  </data>
+  <data name="Network_DHCPEnabled" xml:space="preserve">
+    <value>DHCP zapnuto</value>
+  </data>
+  <data name="Network_IPAddresses" xml:space="preserve">
+    <value>IP adresy</value>
+  </data>
+  <data name="SensorRowHeader_Sensor" xml:space="preserve">
+    <value>Senzor</value>
+  </data>
+  <data name="SensorRowHeader_Current" xml:space="preserve">
+    <value>Aktuální</value>
+  </data>
+  <data name="SensorRowHeader_Minimum" xml:space="preserve">
+    <value>Min</value>
+  </data>
+  <data name="SensorRowHeader_Maximum" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="SensorRowHeader_Average" xml:space="preserve">
+    <value>Prům.</value>
+  </data>
+  <data name="SensorRowHeader_Unit" xml:space="preserve">
+    <value>Jednotka</value>
+  </data>
+  <data name="Cpu_TopologySymmetricSmt" xml:space="preserve">
+    <value>Symetrické, Hyper-Threading zapnutý</value>
+  </data>
+  <data name="Cpu_TopologySymmetric" xml:space="preserve">
+    <value>Symetrické, bez Hyper-Threadingu</value>
+  </data>
+  <data name="Cpu_TopologyPerformance" xml:space="preserve">
+    <value>výkonná</value>
+  </data>
+  <data name="Cpu_TopologyEfficient" xml:space="preserve">
+    <value>úsporná</value>
+  </data>
+  <data name="Cpu_TopologyClass" xml:space="preserve">
+    <value>třída {0}</value>
+  </data>
+  <data name="Info_CacheInstruction" xml:space="preserve">
+    <value>Instrukce</value>
+  </data>
+  <data name="Info_CacheData" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Info_CacheUnified" xml:space="preserve">
+    <value>Sjednocená</value>
+  </data>
+  <data name="Info_FormChip" xml:space="preserve">
+    <value>Čip</value>
+  </data>
+  <data name="Info_FormProprietaryCard" xml:space="preserve">
+    <value>Proprietární karta</value>
+  </data>
+  <data name="Info_FormRowOfChips" xml:space="preserve">
+    <value>Řada čipů</value>
+  </data>
+  <data name="Info_FormDie" xml:space="preserve">
+    <value>Die</value>
+  </data>
+  <data name="Info_Rank" xml:space="preserve">
+    <value>Rank {0}</value>
+  </data>
+  <data name="Start_Cores_One" xml:space="preserve">
+    <value>{0} jádro</value>
+  </data>
+  <data name="Start_Cores_Few" xml:space="preserve">
+    <value>{0} jádra</value>
+  </data>
+  <data name="Start_Cores_Many" xml:space="preserve">
+    <value>{0} jader</value>
+  </data>
+  <data name="Start_Threads_One" xml:space="preserve">
+    <value>{0} vlákno</value>
+  </data>
+  <data name="Start_Threads_Few" xml:space="preserve">
+    <value>{0} vlákna</value>
+  </data>
+  <data name="Start_Threads_Many" xml:space="preserve">
+    <value>{0} vláken</value>
+  </data>
+  <data name="Start_Modules_One" xml:space="preserve">
+    <value>{0} modul</value>
+  </data>
+  <data name="Start_Modules_Few" xml:space="preserve">
+    <value>{0} moduly</value>
+  </data>
+  <data name="Start_Modules_Many" xml:space="preserve">
+    <value>{0} modulů</value>
+  </data>
+  <data name="Start_SlotsUsed" xml:space="preserve">
+    <value>{0} z {1} slotů</value>
+  </data>
+  <data name="Start_MemoryTotal" xml:space="preserve">
+    <value>{0} celkem</value>
+  </data>
+  <data name="Start_GpuDriver" xml:space="preserve">
+    <value>Ovladač {0}</value>
+  </data>
+</root>
