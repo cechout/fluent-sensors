@@ -179,7 +179,7 @@
                                         Padding="11,0,8,0"
                                         VerticalAlignment="Stretch"
                                         Click="PinToTaskbar_Click"
-                                        CornerRadius="4,0,0,4">
+                                        CornerRadius="4.5,0,0,4.5">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <FontIcon FontSize="16" Glyph="&#xE895;" />
                                             <TextBlock
@@ -199,7 +199,7 @@
                                         VerticalAlignment="Stretch"
                                         AutomationProperties.Name="Close Taskbar Widget"
                                         Click="CloseTaskbarWidget_Click"
-                                        CornerRadius="0,4,4,0"
+                                        CornerRadius="0,4.5,4.5,0"
                                         ToolTipService.ToolTip="Close Taskbar Widget">
                                         <FontIcon FontSize="14" Glyph="&#xE711;" />
                                     </Button>
