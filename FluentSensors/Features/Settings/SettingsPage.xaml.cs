@@ -14,6 +14,7 @@ using FluentSensors.Core;
 using FluentSensors.Core.Startup;
 using FluentSensors.Core.Taskbar;
 using FluentSensors.Common.Csv;
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
 using FluentSensors.Features.TaskbarWidget;
@@ -41,6 +42,7 @@ namespace FluentSensors.Features.Settings
 
             // the saved selections
             RestoreThemeSelection();
+            RestoreLanguageSelection();
             RestoreIntervalSelection();
             RestoreMinimizeToTraySelection();
             RestoreStartupSelection();
@@ -245,6 +247,45 @@ namespace FluentSensors.Features.Settings
                     break;
                 }
             }
+        }
+
+        // language; the choice only applies on a restart, so it is kept only when the restart is confirmed
+        private async void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (LanguageComboBox.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
+            if (tag == SettingsService.Instance.AppLanguage) return;
+
+            bool confirmed = await ConfirmAction(
+                AppStrings.Get("Settings_LanguageRestartTitle"),
+                AppStrings.Get("Settings_LanguageRestartMessage"),
+                AppStrings.Get("Settings_LanguageRestartConfirm"));
+            if (!confirmed)
+            {
+                _isLoading = true;
+                RestoreLanguageSelection();
+                _isLoading = false;
+                return;
+            }
+
+            // flushed before the restart, the new process reads the language before the old one exits
+            SettingsService.Instance.AppLanguage = tag;
+            PersistenceService.Instance.FlushAll();
+            RestartApp();
+        }
+
+        private void RestoreLanguageSelection()
+        {
+            if (LanguageComboBox.Items.Count == 1)
+            {
+                foreach (var (tag, name) in AppLanguage.Supported)
+                {
+                    LanguageComboBox.Items.Add(new ComboBoxItem { Content = name, Tag = tag });
+                }
+            }
+
+            string current = SettingsService.Instance.AppLanguage;
+            SelectByTag(LanguageComboBox, AppLanguage.IsSupported(current) ? current : AppLanguage.SystemDefault);
         }
 
         // update interval

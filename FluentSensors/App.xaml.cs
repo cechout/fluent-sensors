@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Persistence.Services;
 
 
@@ -13,6 +14,10 @@ namespace FluentSensors
 
         public App()
         {
+            // before InitializeComponent, the first resource lookup fixes the language of the process; read
+            // straight from the file, SettingsService loads in OnLaunched
+            AppLanguage.Apply(PersistenceService.Instance.LoadSettings().AppLanguage);
+
             InitializeComponent();
 
             // settings write through a 1 s debounce and MainWindow flushes on its two exit routes

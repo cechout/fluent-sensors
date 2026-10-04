@@ -48,6 +48,20 @@
                 </ComboBox>
             </controls:SettingsCard>
 
+            <!--  app language  -->
+            <!--  (the languages after the default come from AppLanguage.Supported, see RestoreLanguageSelection)  -->
+            <controls:SettingsCard
+                x:Uid="Settings_LanguageCard"
+                fhUi:FocusGroup.IsEnabled="True"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xF2B7;}">
+                <ComboBox
+                    x:Name="LanguageComboBox"
+                    Width="150"
+                    SelectionChanged="LanguageComboBox_SelectionChanged">
+                    <ComboBoxItem x:Uid="Settings_LanguageComboBox_Default" Tag="Default" />
+                </ComboBox>
+            </controls:SettingsCard>
+
             <!--  hardware icon colors  -->
             <!--
                 (reaches the start page tiles, the sensor list and hidden sensor group headers, and the hardware

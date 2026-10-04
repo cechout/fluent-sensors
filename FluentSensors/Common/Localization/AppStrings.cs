@@ -1,0 +1,42 @@
+using System;
+using Microsoft.Windows.ApplicationModel.Resources;
+
+
+namespace FluentSensors.Common.Localization
+{
+    // the strings code sets, from Strings/<language>/Resources.resw; XAML reads the same file through x:Uid
+    // created on first use, after AppLanguage.Apply has picked the language
+    public static class AppStrings
+    {
+        private static ResourceLoader? _loader;
+
+        // a missing key shows the key itself, so a gap in a translation is visible instead of blank
+        public static string Get(string key)
+        {
+            try
+            {
+                _loader ??= new ResourceLoader();
+                string value = _loader.GetString(key);
+                return string.IsNullOrEmpty(value) ? key : value;
+            }
+            catch
+            {
+                return key;
+            }
+        }
+
+        // a translation with broken placeholders shows unformatted instead of throwing
+        public static string Format(string key, params object[] args)
+        {
+            string format = Get(key);
+            try
+            {
+                return string.Format(format, args);
+            }
+            catch (FormatException)
+            {
+                return format;
+            }
+        }
+    }
+}
