@@ -258,6 +258,7 @@ namespace FluentSensors.Features.Settings
             if (LanguageComboBox.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
 
             SettingsService.Instance.AppLanguage = tag;
+            UpdateTechnicalTermsCard();
             UpdateLanguageRestartBar();
         }
 
@@ -284,12 +285,21 @@ namespace FluentSensors.Features.Settings
             UpdateLanguageRestartBar();
         }
 
-        // the resource language actually in use, not the setting; Default can resolve to english too
         private void RestoreTechnicalTermsSelection()
         {
             TechnicalTermsToggle.IsOn = SettingsService.Instance.TechnicalTermsInEnglish;
-            TechnicalTermsCard.IsEnabled = AppStrings.Get("App_LanguageTag") != "en-US";
+            UpdateTechnicalTermsCard();
             UpdateLanguageRestartBar();
+        }
+
+        // off while the next start runs in english anyway, so both choices can change before one restart; the
+        // unchanged setting reads the language actually in use, Default can resolve to english too
+        private void UpdateTechnicalTermsCard()
+        {
+            string language = AppLanguage.Normalize(SettingsService.Instance.AppLanguage);
+            TechnicalTermsCard.IsEnabled = language == AppLanguage.StartupSetting
+                ? AppStrings.Get("App_LanguageTag") != "en-US"
+                : !AppLanguage.ResolvesToEnglish(language);
         }
 
         // open while either choice differs from what this process started with; turning a choice back closes it

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Windows.Globalization;
+using Windows.System.UserProfile;
 
 
 namespace FluentSensors.Common.Localization
@@ -30,6 +31,24 @@ namespace FluentSensors.Common.Localization
 
         // an unknown tag counts as Default, the same way Apply treats it
         public static string Normalize(string? tag) => IsSupported(tag) ? tag! : SystemDefault;
+
+        // whether a setting ends up in english on the next start; Default walks the Windows language list the way the
+        // resource lookup does, the first language with a Strings folder wins, and none of them means english
+        public static bool ResolvesToEnglish(string? setting)
+        {
+            if (IsSupported(setting)) return IsEnglish(setting!);
+
+            foreach (string language in GlobalizationPreferences.Languages)
+            {
+                string primary = language.Split('-')[0];
+                var match = Supported.FirstOrDefault(supported =>
+                    string.Equals(supported.Tag.Split('-')[0], primary, StringComparison.OrdinalIgnoreCase));
+                if (match.Tag != null) return IsEnglish(match.Tag);
+            }
+            return true;
+        }
+
+        private static bool IsEnglish(string tag) => tag.StartsWith("en", StringComparison.OrdinalIgnoreCase);
 
         // an empty override clears one a packaged install persisted, so Default really follows Windows again
         public static void Apply(string? tag)

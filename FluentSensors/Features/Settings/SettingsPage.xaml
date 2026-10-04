@@ -127,7 +127,7 @@
                     </controls:SettingsCard>
 
                     <!--  technical terms in english  -->
-                    <!--  (disabled while the app runs in english, there is nothing to keep)  -->
+                    <!--  (disabled while the selected language is english, there is nothing to keep)  -->
                     <controls:SettingsCard x:Name="TechnicalTermsCard" x:Uid="Settings_TechnicalTermsCard">
                         <ToggleSwitch
                             x:Name="TechnicalTermsToggle"
