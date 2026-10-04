@@ -27,6 +27,15 @@ See the "How to Build" section in the [README](https://github.com/cechout/fluent
 * if it is a bug fix, check whether the same problem shows up elsewhere in the codebase before submitting
 * avoid reformatting or restructuring code you are not otherwise touching, keep the diff to what you actually changed
 
+## Translations
+
+The app text lives in `FluentSensors/Strings/<language>/Resources.resw`, with `en-US` as the source. To fix or add a translation, edit the file of that language, or copy the `en-US` file into a new folder named after the language tag (`fr-FR`, `pl-PL`, ...) and translate the values. Keys without a translation fall back to English, so a partial file is fine.
+
+* never translate sensor names, hardware type names or the CSV column headers, they come from LibreHardwareMonitor and other tools rely on them
+* keep placeholders like `{0}` and line breaks as they are
+* keys ending in `_One`, `_Few` and `_Many` are count forms: one, two to four, and everything else; a language without a separate few form repeats the many text
+* a new language also needs one line in `AppLanguage.Supported` (`FluentSensors/Common/Localization/AppLanguage.cs`) to show up in the language setting
+
 ## A few more things
 
 AI tools are completely fine to use for writing code. Just review what you submit and be able to explain why it is written the way it is, PRs that are clearly unreviewed AI output will not get merged.

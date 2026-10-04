@@ -10,7 +10,9 @@ sensor library talks to the PawnIO kernel driver, which is installed separately 
 - Read the surrounding code before adding an abstraction. Prefer the MVVM, service and singleton patterns
   that the file already uses.
 - Preserve existing comments verbatim when you change the code around them.
-- Everything is English: code, comments, commit messages, UI strings and release notes.
+- Everything is English: code, comments, commit messages and release notes. UI strings are written in
+  English into `Strings/en-US/Resources.resw`, never hardcoded: XAML reads them through `x:Uid`, code
+  through `AppStrings`. The other languages sit next to it, and a key missing there falls back to English.
 - Always follow `.editorconfig`. Text files are LF; `.gitattributes` pins the checkout, and the CI
   `format` job fails on CRLF.
 - Prefix types by where their data comes from: `Lhm` for types facing LibreHardwareMonitorLib, `Win` for
@@ -65,7 +67,7 @@ double hyphen inside a comment is an XML parse error, so anomaly tags are writte
 
 ```text
 FluentSensors/
-├── Common/       cross-cutting helpers: Csv, Markdown, Sensors, UI
+├── Common/       cross-cutting helpers: Csv, Localization, Markdown, Sensors, UI
 ├── Controls/     reusable controls: InfoPopup, SensorGraph, SensorRow, SensorTile, Threshold,
 │                 TimeRange
 ├── Core/         infrastructure: Lhm, Startup, StaticInfo, Taskbar, Update
@@ -74,7 +76,8 @@ FluentSensors/
 │                 AppStatus, CsvLogging, Performance, Sensors, Settings, Start, TaskbarWidget,
 │                 Update, Widget
 ├── Persistence/  Models, Services
-└── Properties/   PublishProfiles
+├── Properties/   PublishProfiles
+└── Strings/      Resources.resw per language: en-US (source), de-DE, cs-CZ
 ```
 
 `Setup/` holds the Inno Setup installer script, the MSIX packaging script and the Microsoft Store
