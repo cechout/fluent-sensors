@@ -299,16 +299,11 @@ namespace FluentSensors.Features.Settings
             bool languageChanged = AppLanguage.Normalize(settings.AppLanguage) != AppLanguage.StartupSetting;
             bool termsChanged = settings.TechnicalTermsInEnglish != AppTerms.StartedInEnglish;
 
-            string message = AppStrings.Get(
-                languageChanged && termsChanged ? "Settings_RestartPendingBoth"
-                : languageChanged ? "Settings_RestartPendingLanguage"
-                : "Settings_RestartPendingTerms");
             bool open = languageChanged || termsChanged;
 
-            // announced like an InfoBar would, once per new message
-            if (open && (LanguageRestartBar.Visibility != Visibility.Visible || LanguageRestartText.Text != message))
+            // announced like an InfoBar would, once when it opens
+            if (open && LanguageRestartBar.Visibility != Visibility.Visible)
             {
-                LanguageRestartText.Text = message;
                 FrameworkElementAutomationPeer.FromElement(LanguageRestartText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
             }
             LanguageRestartBar.Visibility = open ? Visibility.Visible : Visibility.Collapsed;

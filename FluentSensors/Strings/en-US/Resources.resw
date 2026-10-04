@@ -65,16 +65,10 @@
     <value>App language and technical terms</value>
   </data>
   <data name="Settings_LanguageRestartButton.Content" xml:space="preserve">
-    <value>Restart</value>
+    <value>Restart App</value>
   </data>
-  <data name="Settings_RestartPendingLanguage" xml:space="preserve">
-    <value>Restart the app to show the new language</value>
-  </data>
-  <data name="Settings_RestartPendingTerms" xml:space="preserve">
-    <value>Restart the app to show the technical terms in the new language</value>
-  </data>
-  <data name="Settings_RestartPendingBoth" xml:space="preserve">
-    <value>Restart the app to apply the language changes</value>
+  <data name="Settings_LanguageRestartText.Text" xml:space="preserve">
+    <value>Applies the next time the app starts</value>
   </data>
   <data name="Settings_LanguageCard.Header" xml:space="preserve">
     <value>App Language</value>

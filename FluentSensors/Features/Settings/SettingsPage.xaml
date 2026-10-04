@@ -60,15 +60,15 @@
 
                 <!--  restart hint: icon, message and restart button  -->
                 <!--
-                    (an informational InfoBar built from its own theme resources; the native one stacks its button
+                    (a success InfoBar built from its own theme resources; the native one stacks its button
                     right after the message, this one puts the text on the 58 and the button on the 44 of the items)
                 -->
                 <controls:SettingsExpander.ItemsHeader>
                     <Grid
                         x:Name="LanguageRestartBar"
                         MinHeight="48"
-                        Padding="16,8,44,8"
-                        Background="{ThemeResource InfoBarInformationalSeverityBackgroundBrush}"
+                        Padding="21,8,44,8"
+                        Background="{ThemeResource InfoBarSuccessSeverityBackgroundBrush}"
                         Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -78,24 +78,25 @@
 
                         <!--  icon  -->
                         <Grid
-                            Margin="0,0,26,0"
+                            Margin="0,0,21,0"
                             VerticalAlignment="Center"
                             AutomationProperties.AccessibilityView="Raw">
                             <TextBlock
                                 FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                 FontSize="16"
-                                Foreground="{ThemeResource InfoBarInformationalSeverityIconBackground}"
+                                Foreground="{ThemeResource InfoBarSuccessSeverityIconBackground}"
                                 Text="&#xF136;" />
                             <TextBlock
                                 FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                 FontSize="16"
-                                Foreground="{ThemeResource InfoBarInformationalSeverityIconForeground}"
-                                Text="&#xF13F;" />
+                                Foreground="{ThemeResource InfoBarSuccessSeverityIconForeground}"
+                                Text="&#xF13E;" />
                         </Grid>
 
                         <!--  message  -->
                         <TextBlock
                             x:Name="LanguageRestartText"
+                            x:Uid="Settings_LanguageRestartText"
                             Grid.Column="1"
                             VerticalAlignment="Center"
                             AutomationProperties.LiveSetting="Polite"

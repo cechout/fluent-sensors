@@ -65,16 +65,10 @@
     <value>App-Sprache und Fachbegriffe</value>
   </data>
   <data name="Settings_LanguageRestartButton.Content" xml:space="preserve">
-    <value>Neu starten</value>
+    <value>App neu starten</value>
   </data>
-  <data name="Settings_RestartPendingLanguage" xml:space="preserve">
-    <value>App neu starten, um die neue Sprache anzuzeigen</value>
-  </data>
-  <data name="Settings_RestartPendingTerms" xml:space="preserve">
-    <value>App neu starten, um die Fachbegriffe in der neuen Sprache anzuzeigen</value>
-  </data>
-  <data name="Settings_RestartPendingBoth" xml:space="preserve">
-    <value>App neu starten, um die Sprachänderungen zu übernehmen</value>
+  <data name="Settings_LanguageRestartText.Text" xml:space="preserve">
+    <value>Wird beim nächsten App-Start übernommen</value>
   </data>
   <data name="Settings_LanguageCard.Header" xml:space="preserve">
     <value>App-Sprache</value>

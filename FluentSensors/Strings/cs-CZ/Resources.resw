@@ -65,16 +65,10 @@
     <value>Jazyk aplikace a technické pojmy</value>
   </data>
   <data name="Settings_LanguageRestartButton.Content" xml:space="preserve">
-    <value>Restartovat</value>
+    <value>Restartovat aplikaci</value>
   </data>
-  <data name="Settings_RestartPendingLanguage" xml:space="preserve">
-    <value>Restartujte aplikaci pro zobrazení nového jazyka</value>
-  </data>
-  <data name="Settings_RestartPendingTerms" xml:space="preserve">
-    <value>Restartujte aplikaci pro zobrazení technických pojmů v novém jazyce</value>
-  </data>
-  <data name="Settings_RestartPendingBoth" xml:space="preserve">
-    <value>Restartujte aplikaci pro použití jazykových změn</value>
+  <data name="Settings_LanguageRestartText.Text" xml:space="preserve">
+    <value>Projeví se při příštím spuštění aplikace</value>
   </data>
   <data name="Settings_LanguageCard.Header" xml:space="preserve">
     <value>Jazyk aplikace</value>
