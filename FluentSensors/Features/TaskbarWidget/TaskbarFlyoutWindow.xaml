@@ -27,7 +27,7 @@
         -->
         <Border.Resources>
             <!--  graph list; (a margin, not padding on the surface, so the scrollbar rides the window edge)  -->
-            <Thickness x:Key="FlyoutGraphsMargin">4,1,4,0</Thickness>
+            <Thickness x:Key="FlyoutGraphsMargin">4,2,4,0</Thickness>
             <x:Double x:Key="FlyoutGraphSpacing">8</x:Double>
 
             <!--  title row and bottom bar; (one button height, a padding each)  -->
@@ -92,7 +92,7 @@
                     <!--  (row padding plus margin, so it lines up with the button texts below, which sit behind padding and a 1 px border)  -->
                     <TextBlock
                         x:Uid="TaskbarFlyout_SystemSensorsText"
-                        Margin="10,-3,0,0"
+                        Margin="10,-2,0,0"
                         VerticalAlignment="Center"
                         Style="{StaticResource BodyTextBlockStyle}"
                         TextTrimming="CharacterEllipsis"
@@ -106,7 +106,7 @@
                     <StackPanel
                         x:Name="ShortcutHintPanel"
                         Grid.Column="1"
-                        Margin="6,0,0,2"
+                        Margin="6,-1,0,0"
                         VerticalAlignment="Center"
                         Orientation="Horizontal"
                         Spacing="1"
@@ -147,7 +147,6 @@
                         Padding="0"
                         HorizontalAlignment="Right"
                         Click="PauseButton_Click"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource SubtleBarButtonStyle}">
                         <FontIcon x:Name="PauseButtonIcon" FontSize="14" />
                     </Button>
