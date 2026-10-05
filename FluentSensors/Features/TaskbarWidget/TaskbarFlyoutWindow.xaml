@@ -252,8 +252,14 @@
                         Click="TaskbarSettings_Click"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource SubtleBarButtonStyle}">
-                        <!--  the gear of the native settings item, turning on hover and press; the glyph stands in while animations are off  -->
-                        <AnimatedIcon Width="14" Height="14">
+                        <!--
+                            the gear of the native settings item, turning once on press (see TaskbarSettingsButton_PointerPressed);
+                            the glyph stands in while animations are off
+                        -->
+                        <AnimatedIcon
+                            x:Name="TaskbarSettingsIcon"
+                            Width="14"
+                            Height="14">
                             <AnimatedIcon.Source>
                                 <animatedVisuals:AnimatedSettingsVisualSource />
                             </AnimatedIcon.Source>

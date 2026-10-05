@@ -5,6 +5,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -263,6 +264,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
             // a click on empty space hides the keyboard focus rectangle again
             PointerFocusReset.Attach(Content);
+
+            // the Button marks its own press handled
+            TaskbarSettingsButton.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(TaskbarSettingsButton_PointerPressed), true);
 
             _appWindow = this.AppWindow;
             _appWindow.IsShownInSwitchers = false;
@@ -1242,6 +1246,14 @@ namespace FluentSensors.Features.TaskbarWidget
                 newMainWindow.Activate();
                 newMainWindow.OpenSensorsForProfile(SensorSelectionProfile.Taskbar);
             }
+        }
+
+        // the gear turns right on press; the release half of the native animation (Pressed to PointerOver), started
+        // right away, so the tilt of the press half never shows
+        private void TaskbarSettingsButton_PointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            AnimatedIcon.SetState(TaskbarSettingsIcon, "Pressed");
+            AnimatedIcon.SetState(TaskbarSettingsIcon, "PointerOver");
         }
 
         private void TaskbarSettings_Click(object sender, RoutedEventArgs e)
