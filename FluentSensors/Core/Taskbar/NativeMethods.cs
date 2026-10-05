@@ -159,6 +159,11 @@ namespace FluentSensors.Core.Taskbar
         [LibraryImport("user32.dll")]
         internal static partial IntPtr GetForegroundWindow();
 
+        // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool SetForegroundWindow(IntPtr hWnd);
+
         // the desktop shell window (Progman); left out of the fullscreen check, or "Show Desktop" reads as fullscreen
         // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getshellwindow
         [LibraryImport("user32.dll")]
