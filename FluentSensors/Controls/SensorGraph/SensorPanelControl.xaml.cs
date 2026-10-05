@@ -30,8 +30,9 @@ namespace FluentSensors.Controls.SensorGraph
         private const byte GraphColorCardBackgroundAlphaDark = 44;
         private const byte GraphColorCardBackgroundAlphaLight = 44;
 
-        // control panel slide; the hosts width animates, so the graph between them resizes along
+        // control panel slide; the hosts width animates, so the graph between them resizes along (same curve both ways)
         private const int ControlPanelSlideDurationMs = 300;
+        private const EasingMode ControlPanelSlideEasing = EasingMode.EaseInOut;
         private Storyboard? _yAxisControlsStoryboard;
         private Storyboard? _thresholdControlsStoryboard;
 
@@ -723,7 +724,7 @@ namespace FluentSensors.Controls.SensorGraph
                 From = from,
                 To = isOpen ? panelWidth : 0,
                 Duration = TimeSpan.FromMilliseconds(ControlPanelSlideDurationMs),
-                EasingFunction = new CubicEase { EasingMode = isOpen ? EasingMode.EaseOut : EasingMode.EaseIn },
+                EasingFunction = new CubicEase { EasingMode = ControlPanelSlideEasing },
                 EnableDependentAnimation = true
             };
             Storyboard.SetTarget(animation, host);
