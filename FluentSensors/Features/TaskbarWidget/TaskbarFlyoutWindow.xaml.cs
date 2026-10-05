@@ -1295,7 +1295,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // the snapshot; the flyout graphs stand still, the taskbar graphs run on
+        // the snapshot; the flyout and the taskbar graphs stand still together
         private void PauseButton_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.SetFlyoutPaused(!ViewModel.IsFlyoutPaused);
