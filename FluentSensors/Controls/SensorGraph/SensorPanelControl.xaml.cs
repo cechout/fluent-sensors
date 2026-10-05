@@ -31,7 +31,7 @@ namespace FluentSensors.Controls.SensorGraph
         private const byte GraphColorCardBackgroundAlphaLight = 44;
 
         // control panel slide; the hosts width animates, so the graph between them resizes along (same curve both ways)
-        private const int ControlPanelSlideDurationMs = 180;
+        private const int ControlPanelSlideDurationMs = 160;
         private const EasingMode ControlPanelSlideEasing = EasingMode.EaseInOut;
         private Storyboard? _yAxisControlsStoryboard;
         private Storyboard? _thresholdControlsStoryboard;

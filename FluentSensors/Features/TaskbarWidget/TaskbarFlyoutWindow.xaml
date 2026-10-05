@@ -227,7 +227,7 @@
                     Padding="{StaticResource FlyoutBottomBarPadding}"
                     fhUi:FocusGroup.IsEnabled="True">
 
-                    <!--  open the sensor list on the taskbar profile  -->
+                    <!--  open the sensor list on main window  -->
                     <Button
                         x:Name="BackToDashboardButton"
                         x:Uid="TaskbarFlyout_BackToDashboardButton"
@@ -239,8 +239,7 @@
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource SubtleBarButtonStyle}" />
 
-                    <!--  open the settings page on its taskbar section, at the right end  -->
-                    <!--  (no close button; the widget is closed from the sensor list)  -->
+                    <!--  open settings page  -->
                     <Button
                         x:Name="TaskbarSettingsButton"
                         x:Uid="TaskbarFlyout_TaskbarSettingsButton"
@@ -250,7 +249,6 @@
                         Padding="8,0,8,0"
                         HorizontalAlignment="Right"
                         Click="TaskbarSettings_Click"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource SubtleBarButtonStyle}">
                         <!--
                             the gear of the native settings item, turning once on press (see TaskbarSettingsButton_PointerPressed);

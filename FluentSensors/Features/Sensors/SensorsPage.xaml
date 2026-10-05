@@ -157,8 +157,8 @@
                             <!--  revisit: split taskbar buttons; parked while the two plain buttons above are tried out, x:Load keeps it out of the tree  -->
                             <AppBarElementContainer
                                 x:Name="TaskbarWidgetButtonsContainer"
-                                x:Load="False"
-                                VerticalContentAlignment="Stretch">
+                                VerticalContentAlignment="Stretch"
+                                x:Load="False">
                                 <Grid
                                     x:Name="TaskbarWidgetButtonsGrid"
                                     Margin="2,5,2,5"
@@ -434,7 +434,7 @@
             </Grid>
 
 
-            <!--  bottom: control buttons  -->
+            <!--  bottom bar: control buttons  -->
             <Border
                 x:Name="BottomBar"
                 Grid.Row="3"
