@@ -137,6 +137,7 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 IsTabStop="True"
+                OutlineWhileOpen="True"
                 Threshold="{x:Bind ViewModel.Threshold, Mode=OneWay}" />
 
             <!--  current value  -->

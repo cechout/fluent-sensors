@@ -28,17 +28,21 @@
 
     <!--  badge: "-" or the configured value on the threshold color  -->
     <!--
-        a tap opens the editor flyout
+        a tap opens the editor flyout; with OutlineWhileOpen an unset badge shows an empty outline in the picked color
+        while the flyout is open (the border is always 1 px, so only its brush changes)
         the Border is the Content of the UserControl, so the VisualStateGroups live on it; GoToState
         looks only at the Content root
     -->
     <Border
         x:Name="IndicatorBorder"
         Width="34"
-        Padding="5,2"
+        Padding="4,1"
         HorizontalAlignment="Center"
         VerticalAlignment="Center"
         Background="{x:Bind IndicatorBrush, Mode=OneWay}"
+        BackgroundSizing="OuterBorderEdge"
+        BorderBrush="{x:Bind IndicatorBorderBrush, Mode=OneWay}"
+        BorderThickness="1"
         CornerRadius="3"
         Opacity="0.95"
         PointerEntered="IndicatorBorder_PointerEntered"
@@ -49,6 +53,8 @@
         <FlyoutBase.AttachedFlyout>
             <Flyout
                 x:Name="ThresholdFlyout"
+                Closed="ThresholdFlyout_Closed"
+                Opened="ThresholdFlyout_Opened"
                 Placement="Bottom"
                 ShouldConstrainToRootBounds="False">
                 <Flyout.FlyoutPresenterStyle>

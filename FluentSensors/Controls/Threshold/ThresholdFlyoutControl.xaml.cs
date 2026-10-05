@@ -25,6 +25,7 @@ namespace FluentSensors.Controls.Threshold
         private bool _isHovered;
         private bool _isPressed;
         private bool _isThresholdSubscribed;
+        private bool _isFlyoutOpen;
 
 
         // === constructor ===
@@ -73,6 +74,21 @@ namespace FluentSensors.Controls.Threshold
             control.UpdateIndicator();
         }
 
+        // an empty outline in the picked color while the flyout is open and the threshold still unset; the sensor
+        // row opts in, the graph badge does not
+        public bool OutlineWhileOpen
+        {
+            get => (bool)GetValue(OutlineWhileOpenProperty);
+            set => SetValue(OutlineWhileOpenProperty, value);
+        }
+
+        public static readonly DependencyProperty OutlineWhileOpenProperty =
+            DependencyProperty.Register(
+                nameof(OutlineWhileOpen),
+                typeof(bool),
+                typeof(ThresholdFlyoutControl),
+                new PropertyMetadata(false));
+
 
         // === bindable properties ===
 
@@ -88,6 +104,13 @@ namespace FluentSensors.Controls.Threshold
         {
             get => _indicatorBrush;
             private set { _indicatorBrush = value; OnPropertyChanged(); }
+        }
+
+        private Brush _indicatorBorderBrush = new SolidColorBrush(Colors.Transparent);
+        public Brush IndicatorBorderBrush
+        {
+            get => _indicatorBorderBrush;
+            private set { _indicatorBorderBrush = value; OnPropertyChanged(); }
         }
 
 
@@ -180,6 +203,18 @@ namespace FluentSensors.Controls.Threshold
             e.Handled = true;
         }
 
+        private void ThresholdFlyout_Opened(object sender, object e)
+        {
+            _isFlyoutOpen = true;
+            UpdateIndicator();
+        }
+
+        private void ThresholdFlyout_Closed(object sender, object e)
+        {
+            _isFlyoutOpen = false;
+            UpdateIndicator();
+        }
+
         private void ThresholdCloseButton_Click(object sender, RoutedEventArgs e)
         {
             ThresholdFlyout.Hide();
@@ -214,7 +249,8 @@ namespace FluentSensors.Controls.Threshold
 
         // === private helpers ===
 
-        // "-" and transparent when unset, otherwise the scaled value in the threshold color
+        // "-" and transparent when unset (empty and outlined while OutlineWhileOpen applies), otherwise the scaled
+        // value in the threshold color
         private void UpdateIndicator()
         {
             if (Threshold != null && Threshold.IsEnabled)
@@ -222,11 +258,15 @@ namespace FluentSensors.Controls.Threshold
                 var (scaledValue, _) = SensorUnitFormatter.Scale(Threshold.Value, Threshold.SensorType);
                 IndicatorText = $"{scaledValue:0}";
                 IndicatorBrush = Threshold.ColorBrush;
+                IndicatorBorderBrush = new SolidColorBrush(Colors.Transparent); // the semi transparent fill reaches under it
             }
             else
             {
-                IndicatorText = "-";
+                bool isOutlined = OutlineWhileOpen && _isFlyoutOpen && Threshold != null;
+
+                IndicatorText = isOutlined ? "" : "-";
                 IndicatorBrush = new SolidColorBrush(Colors.Transparent);
+                IndicatorBorderBrush = isOutlined ? Threshold!.ColorBrush : new SolidColorBrush(Colors.Transparent);
             }
         }
 
