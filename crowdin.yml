@@ -6,3 +6,8 @@ files:
     translation: /FluentSensors/Strings/%locale%/Resources.resw
   - source: /FluentSensors/Strings/en-US/Terms.resw
     translation: /FluentSensors/Strings/%locale%/Terms.resw
+
+# replaces the default message, which ends in [ci skip]; a skipped head commit never reports the required checks
+# and blocks the merge of the crowdin pull request
+commit_message: "New translations %original_file_name% (%language%)"
+append_commit_message: false
