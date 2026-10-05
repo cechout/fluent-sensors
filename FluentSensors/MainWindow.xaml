@@ -282,7 +282,7 @@
             IsPaneOpen="False"
             IsSettingsVisible="False"
             Opacity="0"
-            OpenPaneLength="170"
+            OpenPaneLength="160"
             PaneDisplayMode="Left"
             SelectionChanged="MainNavigationView_SelectionChanged">
 
