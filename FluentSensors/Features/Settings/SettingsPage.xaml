@@ -33,19 +33,65 @@
                 Margin="4,8,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}" />
 
-            <controls:SettingsCard
-                x:Uid="Settings_AppThemeCard"
+            <!--  appearance: app theme, hardware icon colors and graph rendering  -->
+            <controls:SettingsExpander
+                x:Uid="Settings_AppearanceExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE790;}">
-                <ComboBox
-                    x:Name="ThemeComboBox"
-                    Width="150"
-                    SelectionChanged="ThemeComboBox_SelectionChanged">
-                    <ComboBoxItem x:Uid="Settings_ThemeComboBox_Default" Tag="Default" />
-                    <ComboBoxItem x:Uid="Settings_ThemeComboBox_Light" Tag="Light" />
-                    <ComboBoxItem x:Uid="Settings_ThemeComboBox_Dark" Tag="Dark" />
-                </ComboBox>
-            </controls:SettingsCard>
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE790;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard x:Uid="Settings_AppThemeCard">
+                        <ComboBox
+                            x:Name="ThemeComboBox"
+                            Width="160"
+                            SelectionChanged="ThemeComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_ThemeComboBox_Default" Tag="Default" />
+                            <ComboBoxItem x:Uid="Settings_ThemeComboBox_Light" Tag="Light" />
+                            <ComboBoxItem x:Uid="Settings_ThemeComboBox_Dark" Tag="Dark" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <!--  hardware icon colors  -->
+                    <!--
+                        (reaches the start page tiles, the sensor list and hidden sensor group headers, and the hardware
+                        views own headers; graph colors are a per surface choice and sit in their Graph sections instead)
+                    -->
+                    <controls:SettingsCard x:Uid="Settings_HardwareIconColorsCard">
+                        <ToggleSwitch
+                            x:Name="HardwareIconColorsToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="HardwareIconColorsToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <!--  graph rendering: line style and fill  -->
+                    <!--
+                        (both apply to every graph in the app, the per-surface sections below only add color and range;
+                        the fade stays flat while a threshold is tripped, the alarm zones need the other gradient axis)
+                    -->
+                    <controls:SettingsCard x:Uid="Settings_GraphCard">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox
+                                x:Name="GraphLineStyleComboBox"
+                                x:Uid="Settings_GraphLineStyleComboBox"
+                                Width="150"
+                                SelectionChanged="GraphLineStyleComboBox_SelectionChanged">
+                                <ComboBoxItem x:Uid="Settings_GraphLineStyleComboBox_Stepline" Tag="Stepline" />
+                                <ComboBoxItem x:Uid="Settings_GraphLineStyleComboBox_Smooth" Tag="Smooth" />
+                            </ComboBox>
+
+                            <ComboBox
+                                x:Name="GraphFillComboBox"
+                                x:Uid="Settings_GraphFillComboBox"
+                                Width="150"
+                                SelectionChanged="GraphFillComboBox_SelectionChanged">
+                                <ComboBoxItem x:Uid="Settings_GraphFillComboBox_Fade" Tag="Fade" />
+                                <ComboBoxItem x:Uid="Settings_GraphFillComboBox_Solid" Tag="Solid" />
+                            </ComboBox>
+                        </StackPanel>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
 
             <!--  language: app language and technical terms  -->
             <!--
@@ -133,50 +179,6 @@
                             x:Name="TechnicalTermsToggle"
                             x:Uid="Common_ToggleSwitch"
                             Toggled="TechnicalTermsToggle_Toggled" />
-                    </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
-
-            <!--  hardware icon colors  -->
-            <!--
-                (reaches the start page tiles, the sensor list and hidden sensor group headers, and the hardware
-                views own headers; graph colors are a per surface choice and sit in their Graph sections instead)
-            -->
-            <controls:SettingsCard
-                x:Uid="Settings_HardwareIconColorsCard"
-                fhUi:FocusGroup.IsEnabled="True"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE2B1;}">
-                <ToggleSwitch
-                    x:Name="HardwareIconColorsToggle"
-                    x:Uid="Common_ToggleSwitch"
-                    Toggled="HardwareIconColorsToggle_Toggled" />
-            </controls:SettingsCard>
-
-            <!--  graph rendering  -->
-            <!--  (both rows apply to every graph in the app, the per-surface sections below only add color and range)  -->
-            <controls:SettingsExpander
-                x:Uid="Settings_GraphExpander"
-                fhUi:FocusGroup.IsEnabled="True"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
-                IsExpanded="False">
-
-                <controls:SettingsExpander.Items>
-                    <controls:SettingsCard x:Uid="Settings_LineStyleCard">
-                        <ComboBox
-                            x:Name="GraphLineStyleComboBox"
-                            Width="150"
-                            SelectionChanged="GraphLineStyleComboBox_SelectionChanged">
-                            <ComboBoxItem x:Uid="Settings_GraphLineStyleComboBox_Stepline" Tag="Stepline" />
-                            <ComboBoxItem x:Uid="Settings_GraphLineStyleComboBox_Smooth" Tag="Smooth" />
-                        </ComboBox>
-                    </controls:SettingsCard>
-
-                    <!--  (stays flat while a threshold is tripped, the alarm zones need the other gradient axis)  -->
-                    <controls:SettingsCard x:Uid="Settings_FillFadeCard">
-                        <ToggleSwitch
-                            x:Name="GraphFillFadeToggle"
-                            x:Uid="Common_ToggleSwitch"
-                            Toggled="GraphFillFadeToggle_Toggled" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

@@ -191,8 +191,11 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Settings_GeneralSettingsText.Text" xml:space="preserve">
     <value>General Settings</value>
   </data>
-  <data name="Settings_AppThemeCard.Description" xml:space="preserve">
-    <value>Light, dark, or match Windows</value>
+  <data name="Settings_AppearanceExpander.Description" xml:space="preserve">
+    <value>Theme, icon colors and graphs</value>
+  </data>
+  <data name="Settings_AppearanceExpander.Header" xml:space="preserve">
+    <value>Appearance</value>
   </data>
   <data name="Settings_AppThemeCard.Header" xml:space="preserve">
     <value>App Theme</value>
@@ -206,19 +209,13 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Settings_ThemeComboBox_Dark.Content" xml:space="preserve">
     <value>Dark</value>
   </data>
-  <data name="Settings_HardwareIconColorsCard.Description" xml:space="preserve">
-    <value>Color hardware icons by category</value>
-  </data>
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Hardware Icon Colors</value>
   </data>
-  <data name="Settings_GraphExpander.Description" xml:space="preserve">
-    <value>Line style and area fill of every graph</value>
+  <data name="Settings_GraphCard.Header" xml:space="preserve">
+    <value>Graphs</value>
   </data>
-  <data name="Settings_GraphExpander.Header" xml:space="preserve">
-    <value>Graph</value>
-  </data>
-  <data name="Settings_LineStyleCard.Header" xml:space="preserve">
+  <data name="Settings_GraphLineStyleComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Line Style</value>
   </data>
   <data name="Settings_GraphLineStyleComboBox_Stepline.Content" xml:space="preserve">
@@ -227,8 +224,14 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Settings_GraphLineStyleComboBox_Smooth.Content" xml:space="preserve">
     <value>Smooth</value>
   </data>
-  <data name="Settings_FillFadeCard.Header" xml:space="preserve">
-    <value>Fill Fade</value>
+  <data name="Settings_GraphFillComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Fill</value>
+  </data>
+  <data name="Settings_GraphFillComboBox_Fade.Content" xml:space="preserve">
+    <value>Faded Fill</value>
+  </data>
+  <data name="Settings_GraphFillComboBox_Solid.Content" xml:space="preserve">
+    <value>Solid Fill</value>
   </data>
   <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
     <value>Bytes or bits for data sizes and speeds</value>

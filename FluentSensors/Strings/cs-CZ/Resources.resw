@@ -191,8 +191,11 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_GeneralSettingsText.Text" xml:space="preserve">
     <value>Obecná nastavení</value>
   </data>
-  <data name="Settings_AppThemeCard.Description" xml:space="preserve">
-    <value>Světlý, tmavý nebo podle Windows</value>
+  <data name="Settings_AppearanceExpander.Description" xml:space="preserve">
+    <value>Motiv, barvy ikon a grafy</value>
+  </data>
+  <data name="Settings_AppearanceExpander.Header" xml:space="preserve">
+    <value>Vzhled</value>
   </data>
   <data name="Settings_AppThemeCard.Header" xml:space="preserve">
     <value>Motiv aplikace</value>
@@ -206,19 +209,13 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_ThemeComboBox_Dark.Content" xml:space="preserve">
     <value>Tmavý</value>
   </data>
-  <data name="Settings_HardwareIconColorsCard.Description" xml:space="preserve">
-    <value>Obarvit ikony hardwaru podle kategorie</value>
-  </data>
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Barvy ikon hardwaru</value>
   </data>
-  <data name="Settings_GraphExpander.Description" xml:space="preserve">
-    <value>Styl čáry a výplň plochy všech grafů</value>
+  <data name="Settings_GraphCard.Header" xml:space="preserve">
+    <value>Grafy</value>
   </data>
-  <data name="Settings_GraphExpander.Header" xml:space="preserve">
-    <value>Graf</value>
-  </data>
-  <data name="Settings_LineStyleCard.Header" xml:space="preserve">
+  <data name="Settings_GraphLineStyleComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Styl čáry</value>
   </data>
   <data name="Settings_GraphLineStyleComboBox_Stepline.Content" xml:space="preserve">
@@ -227,8 +224,14 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_GraphLineStyleComboBox_Smooth.Content" xml:space="preserve">
     <value>Hladký</value>
   </data>
-  <data name="Settings_FillFadeCard.Header" xml:space="preserve">
+  <data name="Settings_GraphFillComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Výplň</value>
+  </data>
+  <data name="Settings_GraphFillComboBox_Fade.Content" xml:space="preserve">
     <value>Přechodová výplň</value>
+  </data>
+  <data name="Settings_GraphFillComboBox_Solid.Content" xml:space="preserve">
+    <value>Plná výplň</value>
   </data>
   <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
     <value>Bajty nebo bity pro velikosti a rychlosti dat</value>

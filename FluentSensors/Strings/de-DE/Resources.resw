@@ -191,8 +191,11 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Settings_GeneralSettingsText.Text" xml:space="preserve">
     <value>Allgemeine Einstellungen</value>
   </data>
-  <data name="Settings_AppThemeCard.Description" xml:space="preserve">
-    <value>Hell, dunkel oder wie Windows</value>
+  <data name="Settings_AppearanceExpander.Description" xml:space="preserve">
+    <value>Design, Symbolfarben und Graphen</value>
+  </data>
+  <data name="Settings_AppearanceExpander.Header" xml:space="preserve">
+    <value>Darstellung</value>
   </data>
   <data name="Settings_AppThemeCard.Header" xml:space="preserve">
     <value>App-Design</value>
@@ -206,19 +209,13 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Settings_ThemeComboBox_Dark.Content" xml:space="preserve">
     <value>Dunkel</value>
   </data>
-  <data name="Settings_HardwareIconColorsCard.Description" xml:space="preserve">
-    <value>Hardwaresymbole nach Kategorie einfärben</value>
-  </data>
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Farben der Hardwaresymbole</value>
   </data>
-  <data name="Settings_GraphExpander.Description" xml:space="preserve">
-    <value>Linienstil und Flächenfüllung aller Graphen</value>
+  <data name="Settings_GraphCard.Header" xml:space="preserve">
+    <value>Graphen</value>
   </data>
-  <data name="Settings_GraphExpander.Header" xml:space="preserve">
-    <value>Graph</value>
-  </data>
-  <data name="Settings_LineStyleCard.Header" xml:space="preserve">
+  <data name="Settings_GraphLineStyleComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Linienstil</value>
   </data>
   <data name="Settings_GraphLineStyleComboBox_Stepline.Content" xml:space="preserve">
@@ -227,8 +224,14 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Settings_GraphLineStyleComboBox_Smooth.Content" xml:space="preserve">
     <value>Glatt</value>
   </data>
-  <data name="Settings_FillFadeCard.Header" xml:space="preserve">
+  <data name="Settings_GraphFillComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Füllung</value>
+  </data>
+  <data name="Settings_GraphFillComboBox_Fade.Content" xml:space="preserve">
     <value>Verlaufsfüllung</value>
+  </data>
+  <data name="Settings_GraphFillComboBox_Solid.Content" xml:space="preserve">
+    <value>Volle Füllung</value>
   </data>
   <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
     <value>Bytes oder Bits für Datengrößen und Geschwindigkeiten</value>
@@ -1262,7 +1265,7 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
     <value>Unter Schwellenwert markieren</value>
   </data>
   <data name="Threshold_ThresholdConfigText.Text" xml:space="preserve">
-    <value>Schwellen&#xAD;wert</value>
+    <value>Schwellen­wert</value>
   </data>
   <data name="Threshold_ThresholdCloseButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Schließen</value>
