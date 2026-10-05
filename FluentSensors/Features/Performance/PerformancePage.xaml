@@ -193,11 +193,11 @@
 
                 <TextBlock
                     x:Name="PerformanceTitleText"
+                    x:Uid="Performance_PerformanceTitleText"
                     Grid.Column="0"
                     Margin="4,0,0,0"
                     VerticalAlignment="Center"
-                    Style="{ThemeResource BodyStrongTextBlockStyle}"
-                    Text="Hardware View" />
+                    Style="{ThemeResource BodyStrongTextBlockStyle}" />
 
                 <CommandBar
                     x:Name="PerformanceCommandBar"
@@ -206,7 +206,7 @@
                     fhUi:FocusGroup.IsEnabled="True"
                     DefaultLabelPosition="Right">
 
-                    <AppBarButton Click="StartPageButton_Click" Label="Hardware Overview">
+                    <AppBarButton x:Uid="Performance_HardwareOverviewButton" Click="StartPageButton_Click">
                         <AppBarButton.Icon>
                             <!--<FontIcon Glyph="&#xE80F;" />-->
                             <FontIcon Glyph="&#xE71D;" />
@@ -216,9 +216,9 @@
                     <AppBarSeparator />
 
                     <AppBarToggleButton
+                        x:Uid="Performance_HardwareListButton"
                         Width="42"
                         IsChecked="{x:Bind ViewModel.IsNavSidebarVisible, Mode=TwoWay}"
-                        Label="Hardware List"
                         LabelPosition="Collapsed">
                         <AppBarToggleButton.Icon>
                             <FontIcon Glyph="&#xE90C;" />
@@ -226,10 +226,10 @@
                     </AppBarToggleButton>
 
                     <AppBarToggleButton
+                        x:Uid="Performance_HardwareInfoButton"
                         Width="42"
                         Height="48"
                         IsChecked="{x:Bind ViewModel.IsInfoPanelVisible, Mode=TwoWay}"
-                        Label="Hardware Info"
                         LabelPosition="Collapsed">
                         <AppBarToggleButton.Icon>
                             <FontIcon Glyph="&#xE90D;" />
@@ -331,12 +331,12 @@
             <!--  sidebar splitter  -->
             <!--  (a 9px band on the divider, the last sidebar pixel; it resizes the sidebar column)  -->
             <fhControls:ClampedGridSplitter
+                x:Uid="Performance_ResizeHardwareListSplitter"
                 Grid.Column="1"
                 Width="9"
                 Margin="-5,0,0,0"
                 Padding="0"
                 HorizontalAlignment="Left"
-                AutomationProperties.Name="Resize Hardware List"
                 IsTabStop="False"
                 IsThumbVisible="False"
                 ManipulationCompleted="SidebarSplitter_ManipulationCompleted"

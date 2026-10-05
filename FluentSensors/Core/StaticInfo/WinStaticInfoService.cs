@@ -8,6 +8,8 @@ using System.Threading;
 using Vortice.DXGI;
 using System.Net.Sockets;
 
+using FluentSensors.Common.Localization;
+
 
 namespace FluentSensors.Core.StaticInfo
 {
@@ -384,7 +386,7 @@ namespace FluentSensors.Core.StaticInfo
                 10 => "SAS",
                 11 => "SATA",
                 17 => "NVMe",
-                _ => $"Unknown ({value})"
+                _ => AppStrings.Format("Info_UnknownValue", value)
             };
         }
 

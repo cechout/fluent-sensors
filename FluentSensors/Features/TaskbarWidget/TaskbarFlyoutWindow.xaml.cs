@@ -19,6 +19,7 @@ using WinUIEx;
 using WinUIEx.Messaging;
 using Microsoft.UI.Xaml.Controls;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
 using FluentSensors.Controls.SensorGraph;
@@ -1269,7 +1270,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // glyph, tooltip and name follow the state, like the csv logger pause button
         private void ApplyPauseState()
         {
-            string label = ViewModel.IsFlyoutPaused ? "Resume" : "Pause";
+            string label = AppStrings.Get(ViewModel.IsFlyoutPaused ? "Common_Resume" : "Common_Pause");
             PauseButtonIcon.Glyph = ViewModel.IsFlyoutPaused ? "\uE768" : "\uE769";
             ToolTipService.SetToolTip(PauseButton, label);
             AutomationProperties.SetName(PauseButton, label);

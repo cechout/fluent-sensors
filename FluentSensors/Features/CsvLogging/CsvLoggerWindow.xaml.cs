@@ -12,6 +12,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using WinRT;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.UI;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Features.TaskbarWidget;
@@ -447,7 +448,7 @@ namespace FluentSensors.Features.CsvLogging
         {
             // owned by this window, so it cannot end up behind the always-on-top logger
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-            string picked = Win32FileDialogHelper.PickFolder(hwnd, "CSV Logging Folder", ViewModel.LogFolderText);
+            string picked = Win32FileDialogHelper.PickFolder(hwnd, AppStrings.Get("CsvLogger_FolderPickerTitle"), ViewModel.LogFolderText);
             if (picked == null) return; // user cancelled
 
             ViewModel.SetLogFolder(picked);
@@ -534,7 +535,7 @@ namespace FluentSensors.Features.CsvLogging
 
             // ChevronUp and ChevronDown, escaped to keep the source ascii
             ToggleDetailsIcon.Glyph = _isExpanded ? "\uE70E" : "\uE70D";
-            string toggleLabel = _isExpanded ? "Hide details" : "Show details";
+            string toggleLabel = AppStrings.Get(_isExpanded ? "CsvLogger_HideDetails" : "CsvLogger_ShowDetails");
             ToolTipService.SetToolTip(ToggleDetailsButton, toggleLabel);
             AutomationProperties.SetName(ToggleDetailsButton, toggleLabel);
         }

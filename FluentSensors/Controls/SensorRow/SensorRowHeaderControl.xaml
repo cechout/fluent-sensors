@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:loc="using:FluentSensors.Common.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     HorizontalAlignment="Stretch"
     HorizontalContentAlignment="Stretch"
@@ -57,7 +58,7 @@
             Margin="38,0,0,0"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Sensor"
+            Text="{x:Bind loc:AppTerms.Get('SensorRowHeader_Sensor')}"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap" />
         <TextBlock
@@ -81,7 +82,7 @@
             HorizontalAlignment="Right"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Current"
+            Text="{x:Bind loc:AppTerms.Get('SensorRowHeader_Current')}"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap" />
         <TextBlock
@@ -90,7 +91,7 @@
             HorizontalAlignment="Right"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Min"
+            Text="{x:Bind loc:AppTerms.Get('SensorRowHeader_Minimum')}"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap" />
         <TextBlock
@@ -99,7 +100,7 @@
             HorizontalAlignment="Right"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Max"
+            Text="{x:Bind loc:AppTerms.Get('SensorRowHeader_Maximum')}"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap" />
         <TextBlock
@@ -108,7 +109,7 @@
             HorizontalAlignment="Right"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Avg"
+            Text="{x:Bind loc:AppTerms.Get('SensorRowHeader_Average')}"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap" />
         <TextBlock
@@ -117,7 +118,7 @@
             HorizontalAlignment="Right"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{ThemeResource CaptionTextBlockStyle}"
-            Text="Unit"
+            Text="{x:Bind loc:AppTerms.Get('SensorRowHeader_Unit')}"
             TextTrimming="CharacterEllipsis"
             TextWrapping="NoWrap"
             Visibility="Collapsed" />

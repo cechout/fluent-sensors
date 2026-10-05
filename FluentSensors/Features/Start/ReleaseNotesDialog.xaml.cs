@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.UI;
 using FluentSensors.Core.Update;
 
@@ -137,7 +138,7 @@ namespace FluentSensors.Features.Start
 
         // only a fetch that did not come back gets here
         private static string EmptyStatus() =>
-            "The release history could not be loaded, and nothing has been saved yet";
+            AppStrings.Get("ReleaseNotes_EmptyStatus");
 
         private void ShowStatus(string message)
         {

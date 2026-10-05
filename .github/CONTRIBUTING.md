@@ -1,6 +1,6 @@
-# Contributing to FluentSensors
+# Contributing to Fluent Sensors
 
-Thanks for wanting to contribute. FluentSensors is a solo hobby project, so response times may vary. For anything beyond a small fix, open an issue first to talk through the approach before writing code, saves everyone rework.
+Thanks for wanting to contribute. Fluent Sensors is a solo hobby project, so response times may vary. For anything beyond a small fix, open an issue first to talk through the approach before writing code, saves everyone rework.
 
 ## Getting set up
 
@@ -26,6 +26,16 @@ See the "How to Build" section in the [README](https://github.com/cechout/fluent
 * keep pull requests focused on one thing, and link the issue it addresses if there is one
 * if it is a bug fix, check whether the same problem shows up elsewhere in the codebase before submitting
 * avoid reformatting or restructuring code you are not otherwise touching, keep the diff to what you actually changed
+
+## Translations
+
+The app text lives in `FluentSensors/Strings/<language>/`, with `en-US` as the source: `Resources.resw` holds the general text, `Terms.resw` the technical terms of the hardware view (Cache, Rank, Logical Processors, ...), which users can choose to keep in English. To fix or add a translation, edit the files of that language, or copy both `en-US` files into a new folder named after the language tag (`fr-FR`, `pl-PL`, ...) and translate the values. Keys without a translation fall back to English, so a partial file is fine.
+
+* translate a term the way your language actually uses it; when the English word is the usual one (like Cache in many languages), keeping it is fine
+
+* keep placeholders like `{0}` and line breaks as they are
+* keys ending in `_One`, `_Few` and `_Many` are count forms: one, two to four, and everything else; a language without a separate few form repeats the many text
+* a new language also needs one line in `AppLanguage.Supported` (`FluentSensors/Common/Localization/AppLanguage.cs`) to show up in the language setting
 
 ## A few more things
 

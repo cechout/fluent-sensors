@@ -16,6 +16,7 @@ using Windows.Graphics;
 using WinUIEx;
 using WinUIEx.Messaging;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Controls.SensorRow;
@@ -252,7 +253,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             catch (Exception ex)
             {
-                ShowErrorMessage("Fluent Sensors", $"Taskbar widget initialization failed:\n\n{ex.Message}");
+                ShowErrorMessage("Fluent Sensors", AppStrings.Format("TaskbarWidget_InitFailed", ex.Message));
             }
         }
 
@@ -692,7 +693,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 _embedGaveUp = true;
                 WidgetStateChanged?.Invoke();
-                ShowErrorMessage("Fluent Sensors", $"Taskbar widget embedding failed after {MaxEmbedAttempts} attempts:\n\n{reason}");
+                ShowErrorMessage("Fluent Sensors", AppStrings.Format("TaskbarWidget_EmbedFailed", MaxEmbedAttempts, reason));
             }
         }
 

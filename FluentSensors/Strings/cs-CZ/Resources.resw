@@ -1,0 +1,1553 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings_LanguageExpander.Header" xml:space="preserve">
+    <value>Jazyk</value>
+  </data>
+  <data name="Settings_LanguageExpander.Description" xml:space="preserve">
+    <value>Jazyk aplikace a technické pojmy</value>
+  </data>
+  <data name="Settings_LanguageRestartButton.Content" xml:space="preserve">
+    <value>Restartovat aplikaci</value>
+  </data>
+  <data name="Settings_LanguageRestartText.Text" xml:space="preserve">
+    <value>Projeví se při příštím spuštění aplikace</value>
+  </data>
+  <data name="Settings_LanguageCard.Header" xml:space="preserve">
+    <value>Jazyk aplikace</value>
+  </data>
+  <data name="Settings_LanguageComboBox_Default.Content" xml:space="preserve">
+    <value>Výchozí systémový</value>
+  </data>
+  <data name="Main_DotNetRuntimePopup.Description" xml:space="preserve">
+    <value>.NET 10 není na tomto zařízení nainstalováno
+LibreHardwareMonitor ho potřebuje pro přístup ke všem dostupným senzorům, bez něj mohou některé hodnoty chybět nebo být neúplné</value>
+  </data>
+  <data name="Main_DotNetRuntimePopup.SourceIntro" xml:space="preserve">
+    <value>Doporučeno:</value>
+  </data>
+  <data name="Main_PawnIoPopup.Description" xml:space="preserve">
+    <value>PawnIO není na tomto zařízení nainstalováno
+LibreHardwareMonitor přes tento ovladač čte teplotu a příkon CPU, senzory základní desky a časování pamětí, bez něj zůstanou prázdné
+Hodnoty GPU, úložiště, sítě a paměti nejsou ovlivněny</value>
+  </data>
+  <data name="Main_PawnIoPopup.SourceIntro" xml:space="preserve">
+    <value>Doporučeno:</value>
+  </data>
+  <data name="Main_StatusToggleButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Přepnout stavový údaj</value>
+  </data>
+  <data name="Main_LhmInfoPopup.Description" xml:space="preserve">
+    <value>Senzory (nalezené/vykreslené) - senzory nalezené LibreHardwareMonitorem a kolik z nich se aktivně vykresluje
+Dotaz (aktuální/cílový) - naměřená obnovovací frekvence oproti frekvenci nastavené v Nastavení
+Čtení - doba jednoho úplného průchodu senzory, blízko frekvenci dotazu znamená, že nezbývá žádná rezerva
+LibreHardwareMonitorLib je největší a nejzavedenější knihovna pro monitorování hardwaru ve Windows</value>
+  </data>
+  <data name="Main_LhmInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Tato aplikace je postavena na open source projektu LibreHardwareMonitor:</value>
+  </data>
+  <data name="Main_LhmGitHubSource.Label" xml:space="preserve">
+    <value>LibreHardwareMonitor na GitHubu</value>
+  </data>
+  <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
+    <value>Využití CPU - vlastní čas CPU této aplikace vzhledem k celkové kapacitě všech jader
+Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovní sada)</value>
+  </data>
+  <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Main_StartNavItem.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Main_SensorsNavItem.Content" xml:space="preserve">
+    <value>Senzory</value>
+  </data>
+  <data name="Main_PerformanceNavItem.Content" xml:space="preserve">
+    <value>Grafy</value>
+  </data>
+  <data name="Main_SettingsNavItem.Content" xml:space="preserve">
+    <value>Nastavení</value>
+  </data>
+  <data name="Main_LoadingStatusText.Text" xml:space="preserve">
+    <value>Spouštění Fluent Sensors...</value>
+  </data>
+  <data name="Main_WidgetWindowSingleClickItem.Text" xml:space="preserve">
+    <value>Okno widgetu	Jedno kliknutí</value>
+  </data>
+  <data name="Main_CSVWindowSingleClickItem.Text" xml:space="preserve">
+    <value>Okno CSV	Jedno kliknutí</value>
+  </data>
+  <data name="Main_MainWindowDoubleClickItem.Text" xml:space="preserve">
+    <value>Hlavní okno	Dvojklik</value>
+  </data>
+  <data name="Main_DocumentationItem.Text" xml:space="preserve">
+    <value>Dokumentace</value>
+  </data>
+  <data name="Main_ExitAppItem.Text" xml:space="preserve">
+    <value>Ukončit aplikaci</value>
+  </data>
+  <data name="Main_LoadingMotherboard" xml:space="preserve">
+    <value>Inicializace základní desky...</value>
+  </data>
+  <data name="Main_LoadingCpu" xml:space="preserve">
+    <value>Zjišťování CPU...</value>
+  </data>
+  <data name="Main_LoadingGpu" xml:space="preserve">
+    <value>Zjišťování GPU...</value>
+  </data>
+  <data name="Main_LoadingMemoryAndStorage" xml:space="preserve">
+    <value>Kontrola paměti a úložiště...</value>
+  </data>
+  <data name="Main_LoadingControllers" xml:space="preserve">
+    <value>Zjišťování řadičů...</value>
+  </data>
+  <data name="Main_LoadingNetwork" xml:space="preserve">
+    <value>Zjišťování síťových adaptérů...</value>
+  </data>
+  <data name="Main_LoadingWaitingForData" xml:space="preserve">
+    <value>Čekání na data...</value>
+  </data>
+  <data name="Main_LoadingReady" xml:space="preserve">
+    <value>Připraveno</value>
+  </data>
+  <data name="Main_UpdatePill" xml:space="preserve">
+    <value>Aktualizace</value>
+  </data>
+  <data name="Status_Sensors" xml:space="preserve">
+    <value>Senzory: {0}/{1}</value>
+  </data>
+  <data name="Status_Poll" xml:space="preserve">
+    <value>Dotaz: {0:0}/{1}ms (čtení {2:0}ms)</value>
+  </data>
+  <data name="Status_Handles" xml:space="preserve">
+    <value>Handly: {0}</value>
+  </data>
+  <data name="Common_ToggleSwitch.OnContent" xml:space="preserve">
+    <value>Zapnuto</value>
+  </data>
+  <data name="Common_ToggleSwitch.OffContent" xml:space="preserve">
+    <value>Vypnuto</value>
+  </data>
+  <data name="Settings_SettingsText.Text" xml:space="preserve">
+    <value>Nastavení</value>
+  </data>
+  <data name="Settings_GeneralSettingsText.Text" xml:space="preserve">
+    <value>Obecná nastavení</value>
+  </data>
+  <data name="Settings_AppThemeCard.Description" xml:space="preserve">
+    <value>Světlý, tmavý nebo podle Windows</value>
+  </data>
+  <data name="Settings_AppThemeCard.Header" xml:space="preserve">
+    <value>Motiv aplikace</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Default.Content" xml:space="preserve">
+    <value>Výchozí systémový</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Light.Content" xml:space="preserve">
+    <value>Světlý</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Dark.Content" xml:space="preserve">
+    <value>Tmavý</value>
+  </data>
+  <data name="Settings_HardwareIconColorsCard.Description" xml:space="preserve">
+    <value>Obarvit ikony hardwaru podle kategorie</value>
+  </data>
+  <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
+    <value>Barvy ikon hardwaru</value>
+  </data>
+  <data name="Settings_GraphExpander.Description" xml:space="preserve">
+    <value>Styl čáry a výplň plochy všech grafů</value>
+  </data>
+  <data name="Settings_GraphExpander.Header" xml:space="preserve">
+    <value>Graf</value>
+  </data>
+  <data name="Settings_LineStyleCard.Header" xml:space="preserve">
+    <value>Styl čáry</value>
+  </data>
+  <data name="Settings_GraphLineStyleComboBox_Stepline.Content" xml:space="preserve">
+    <value>Schodový</value>
+  </data>
+  <data name="Settings_GraphLineStyleComboBox_Smooth.Content" xml:space="preserve">
+    <value>Hladký</value>
+  </data>
+  <data name="Settings_FillFadeCard.Header" xml:space="preserve">
+    <value>Přechodová výplň</value>
+  </data>
+  <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
+    <value>Bajty nebo bity pro velikosti a rychlosti dat</value>
+  </data>
+  <data name="Settings_DataUnitsExpander.Header" xml:space="preserve">
+    <value>Datové jednotky</value>
+  </data>
+  <data name="Settings_DataSizeCard.Header" xml:space="preserve">
+    <value>Velikost dat</value>
+  </data>
+  <data name="Settings_DataSpeedCard.Header" xml:space="preserve">
+    <value>Rychlost dat</value>
+  </data>
+  <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
+    <value>Které údaje zobrazuje záhlaví okna a v jakém pořadí</value>
+  </data>
+  <data name="Settings_TitleBarStatusExpander.Header" xml:space="preserve">
+    <value>Stav v záhlaví okna</value>
+  </data>
+  <data name="Settings_StatusLhmGroupCard.Header" xml:space="preserve">
+    <value>Stav senzorů</value>
+  </data>
+  <data name="Settings_StatusWindowsGroupCard.Header" xml:space="preserve">
+    <value>Prostředky aplikace</value>
+  </data>
+  <data name="Settings_StatusGroupOrderCard.Header" xml:space="preserve">
+    <value>Pořadí</value>
+  </data>
+  <data name="Settings_StatusGroupOrderComboBox_LhmFirst.Content" xml:space="preserve">
+    <value>Nejdřív stav senzorů</value>
+  </data>
+  <data name="Settings_StatusGroupOrderComboBox_WindowsFirst.Content" xml:space="preserve">
+    <value>Nejdřív prostředky aplikace</value>
+  </data>
+  <data name="Settings_MinimizeToSystemTrayCard.Description" xml:space="preserve">
+    <value>Skrýt aplikaci do oznamovací oblasti, když jsou všechna okna minimalizována</value>
+  </data>
+  <data name="Settings_MinimizeToSystemTrayCard.Header" xml:space="preserve">
+    <value>Minimalizovat do oznamovací oblasti</value>
+  </data>
+  <data name="Settings_StartupExpander.Description" xml:space="preserve">
+    <value>Co se stane při spuštění Windows a co aplikace udělá při spuštění</value>
+  </data>
+  <data name="Settings_StartupExpander.Header" xml:space="preserve">
+    <value>Spuštění</value>
+  </data>
+  <data name="Settings_RunOnStartupCard.Header" xml:space="preserve">
+    <value>Spouštět s Windows</value>
+  </data>
+  <data name="Settings_DelayStartupCard.Header" xml:space="preserve">
+    <value>Odložené spuštění</value>
+  </data>
+  <data name="Settings_StartMinimizedCard.Header" xml:space="preserve">
+    <value>Spouštět minimalizovaně v oznamovací oblasti</value>
+  </data>
+  <data name="Settings_StartupPageCard.Header" xml:space="preserve">
+    <value>Stránka po spuštění</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Start.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Sensors.Content" xml:space="preserve">
+    <value>Senzory</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Performance.Content" xml:space="preserve">
+    <value>Grafy</value>
+  </data>
+  <data name="Settings_CheckUpdatesCard.Header" xml:space="preserve">
+    <value>Při spuštění kontrolovat aktualizace</value>
+  </data>
+  <data name="Settings_UpdateIntervalCard.Description" xml:space="preserve">
+    <value>Jak často se senzory dotazují</value>
+  </data>
+  <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
+    <value>Interval aktualizace</value>
+  </data>
+  <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
+    <value>Vzhled stránky Grafy</value>
+  </data>
+  <data name="Settings_PerformanceGraphExpander.Description" xml:space="preserve">
+    <value>Časový rozsah přehledových grafů a hustších mřížek</value>
+  </data>
+  <data name="Settings_PerformanceGraphExpander.Header" xml:space="preserve">
+    <value>Graf</value>
+  </data>
+  <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
+    <value>Časový rozsah</value>
+  </data>
+  <data name="Settings_CPUExtendedTimeRangeCard.Header" xml:space="preserve">
+    <value>Časový rozsah CPU rozšířený</value>
+  </data>
+  <data name="Settings_GPUExtendedTimeRangeCard.Header" xml:space="preserve">
+    <value>Časový rozsah GPU rozšířený</value>
+  </data>
+  <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
+    <value>Vzhled okna widgetu</value>
+  </data>
+  <data name="Settings_BackgroundMaterialExpander.Description" xml:space="preserve">
+    <value>Efekt pozadí a barva okna widgetu</value>
+  </data>
+  <data name="Settings_BackgroundMaterialExpander.Header" xml:space="preserve">
+    <value>Materiál pozadí</value>
+  </data>
+  <data name="Settings_BackdropComboBox_Acrylic.Content" xml:space="preserve">
+    <value>Akryl</value>
+  </data>
+  <data name="Settings_BackdropComboBox_Mica.Content" xml:space="preserve">
+    <value>Mica</value>
+  </data>
+  <data name="Settings_BackdropComboBox_None.Content" xml:space="preserve">
+    <value>Plná barva</value>
+  </data>
+  <data name="Settings_TintOpacityCard.Description" xml:space="preserve">
+    <value>(pouze akryl)</value>
+  </data>
+  <data name="Settings_TintOpacityCard.Header" xml:space="preserve">
+    <value>Krytí tónu</value>
+  </data>
+  <data name="Settings_LuminosityOpacityCard.Description" xml:space="preserve">
+    <value>(pouze akryl)</value>
+  </data>
+  <data name="Settings_LuminosityOpacityCard.Header" xml:space="preserve">
+    <value>Krytí jasu</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceCard.Description" xml:space="preserve">
+    <value>(akryl a plná barva)</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceCard.Header" xml:space="preserve">
+    <value>Zdroj barvy pozadí</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zdroj barvy pozadí</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Zvýraznění Windows</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Vlastní barva</value>
+  </data>
+  <data name="Settings_WidgetBackgroundColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva pozadí</value>
+  </data>
+  <data name="Settings_WidgetGraphExpander.Description" xml:space="preserve">
+    <value>Barva a časový rozsah grafu</value>
+  </data>
+  <data name="Settings_WidgetGraphExpander.Header" xml:space="preserve">
+    <value>Graf</value>
+  </data>
+  <data name="Settings_GraphColorSourceCard.Header" xml:space="preserve">
+    <value>Zdroj barvy grafu</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zdroj barvy grafu</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Zvýraznění Windows</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Vlastní barva</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
+    <value>Barva hardwaru</value>
+  </data>
+  <data name="Settings_GraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva grafu</value>
+  </data>
+  <data name="Settings_TaskbarSectionHeader.Text" xml:space="preserve">
+    <value>Vzhled widgetu na hlavním panelu a vysouvacího panelu</value>
+  </data>
+  <data name="Settings_CurrentTaskbarPositionCard.Header" xml:space="preserve">
+    <value>Aktuální poloha hlavního panelu</value>
+  </data>
+  <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
+    <value>Barva grafu, pozadí, časový rozsah, šířka a rozložení na bočním hlavním panelu</value>
+  </data>
+  <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
+    <value>Graf na hlavním panelu</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceCard.Description" xml:space="preserve">
+    <value>(hlavní panel a vysouvací panel)</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceCard.Header" xml:space="preserve">
+    <value>Zdroj barvy grafu</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zdroj barvy grafu</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Zvýraznění Windows</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Vlastní barva</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
+    <value>Barva hardwaru</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva grafu</value>
+  </data>
+  <data name="Settings_GraphBackgroundSourceCard.Header" xml:space="preserve">
+    <value>Zdroj pozadí grafu</value>
+  </data>
+  <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Calculated.Content" xml:space="preserve">
+    <value>Vypočtené</value>
+  </data>
+  <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Transparent.Content" xml:space="preserve">
+    <value>Průhledné</value>
+  </data>
+  <data name="Settings_GraphWidthCard.Header" xml:space="preserve">
+    <value>Šířka grafu</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
+    <value>Směr grafu na bočním hlavním panelu</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
+    <value>Zprava doleva</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_TopToBottom.Content" xml:space="preserve">
+    <value>Shora dolů</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_BottomToTop.Content" xml:space="preserve">
+    <value>Zdola nahoru</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
+    <value>Řádky názvu na bočním hlavním panelu</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
+    <value>Jeden řádek</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesComboBox_2.Content" xml:space="preserve">
+    <value>Dva řádky</value>
+  </data>
+  <data name="Settings_FlyoutAlignmentCard.Description" xml:space="preserve">
+    <value>Kde se vysouvací panel zarovná vůči widgetu</value>
+  </data>
+  <data name="Settings_FlyoutAlignmentCard.Header" xml:space="preserve">
+    <value>Zarovnání vysouvacího panelu</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Center.Content" xml:space="preserve">
+    <value>Na střed</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Left.Content" xml:space="preserve">
+    <value>Vlevo</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Right.Content" xml:space="preserve">
+    <value>Vpravo</value>
+  </data>
+  <data name="Settings_FlyoutGraphExpander.Description" xml:space="preserve">
+    <value>Časový rozsah a výška grafu</value>
+  </data>
+  <data name="Settings_FlyoutGraphExpander.Header" xml:space="preserve">
+    <value>Graf vysouvacího panelu</value>
+  </data>
+  <data name="Settings_GraphHeightCard.Header" xml:space="preserve">
+    <value>Výška grafu</value>
+  </data>
+  <data name="Settings_FlyoutBackgroundMaterialExpander.Description" xml:space="preserve">
+    <value>Efekt pozadí a barva vysouvacího panelu</value>
+  </data>
+  <data name="Settings_FlyoutBackgroundMaterialExpander.Header" xml:space="preserve">
+    <value>Materiál pozadí vysouvacího panelu</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_Acrylic.Content" xml:space="preserve">
+    <value>Akryl</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_Mica.Content" xml:space="preserve">
+    <value>Mica</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_None.Content" xml:space="preserve">
+    <value>Plná barva</value>
+  </data>
+  <data name="Settings_TaskbarTintOpacityCard.Description" xml:space="preserve">
+    <value>(pouze akryl)</value>
+  </data>
+  <data name="Settings_TaskbarTintOpacityCard.Header" xml:space="preserve">
+    <value>Krytí tónu</value>
+  </data>
+  <data name="Settings_TaskbarLuminosityOpacityCard.Description" xml:space="preserve">
+    <value>(pouze akryl)</value>
+  </data>
+  <data name="Settings_TaskbarLuminosityOpacityCard.Header" xml:space="preserve">
+    <value>Krytí jasu</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceCard.Description" xml:space="preserve">
+    <value>(akryl a plná barva)</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceCard.Header" xml:space="preserve">
+    <value>Zdroj barvy pozadí</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zdroj barvy pozadí</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Zvýraznění Windows</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Vlastní barva</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva pozadí</value>
+  </data>
+  <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
+    <value>Chování widgetu na hlavním panelu a vysouvacího panelu</value>
+  </data>
+  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
+    <value>Zabrání přetahování widgetu po hlavním panelu</value>
+  </data>
+  <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
+    <value>Zamknout polohu widgetu na hlavním panelu</value>
+  </data>
+  <data name="Settings_FlyoutShortcutCard.Description" xml:space="preserve">
+    <value>Otevřít vysouvací panel z klávesnice, dokud je widget na hlavním panelu otevřený</value>
+  </data>
+  <data name="Settings_FlyoutShortcutCard.Header" xml:space="preserve">
+    <value>Klávesová zkratka vysouvacího panelu</value>
+  </data>
+  <data name="Settings_FlyoutShortcutNoneText.Text" xml:space="preserve">
+    <value>Žádná</value>
+  </data>
+  <data name="Settings_CSVLoggingText.Text" xml:space="preserve">
+    <value>Záznam do CSV</value>
+  </data>
+  <data name="Settings_CSVFormatExpander.Description" xml:space="preserve">
+    <value>Jak se hodnoty zapisují do záznamu</value>
+  </data>
+  <data name="Settings_CSVFormatExpander.Header" xml:space="preserve">
+    <value>Formát CSV</value>
+  </data>
+  <data name="Settings_CsvNumberFormatComboBox_Local.Content" xml:space="preserve">
+    <value>Regionální</value>
+  </data>
+  <data name="Settings_CsvNumberFormatComboBox_Invariant.Content" xml:space="preserve">
+    <value>Invariantní</value>
+  </data>
+  <data name="Settings_ExampleRowText.Text" xml:space="preserve">
+    <value>Ukázkový řádek:</value>
+  </data>
+  <data name="Settings_DecimalPlacesCard.Header" xml:space="preserve">
+    <value>Desetinná místa</value>
+  </data>
+  <data name="Settings_UnitsInValuesCard.Header" xml:space="preserve">
+    <value>Jednotky v hodnotách</value>
+  </data>
+  <data name="Settings_PauseBehaviorCard.Header" xml:space="preserve">
+    <value>Chování při pozastavení</value>
+  </data>
+  <data name="Settings_CsvPauseSeamComboBox_Gap.Content" xml:space="preserve">
+    <value>Vložit prázdný řádek</value>
+  </data>
+  <data name="Settings_CsvPauseSeamComboBox_Seamless.Content" xml:space="preserve">
+    <value>Plynule pokračovat</value>
+  </data>
+  <data name="Settings_BackupResetText.Text" xml:space="preserve">
+    <value>Záloha a obnovení</value>
+  </data>
+  <data name="Settings_AppDataFolderCard.Description" xml:space="preserve">
+    <value>Kde jsou uložena nastavení, stav oken a senzorů</value>
+  </data>
+  <data name="Settings_AppDataFolderCard.Header" xml:space="preserve">
+    <value>Složka dat aplikace</value>
+  </data>
+  <data name="Settings_OpenAppDataButton.Content" xml:space="preserve">
+    <value>Otevřít</value>
+  </data>
+  <data name="Settings_ExportImportSettingsCard.Description" xml:space="preserve">
+    <value>Zálohovat nebo obnovit všechna nastavení (import restartuje aplikaci)</value>
+  </data>
+  <data name="Settings_ExportImportSettingsCard.Header" xml:space="preserve">
+    <value>Export / import nastavení</value>
+  </data>
+  <data name="Settings_ExportButton.Content" xml:space="preserve">
+    <value>Exportovat</value>
+  </data>
+  <data name="Settings_ImportButton.Content" xml:space="preserve">
+    <value>Importovat</value>
+  </data>
+  <data name="Settings_ResetToDefaultsExpander.Description" xml:space="preserve">
+    <value>Obnovit jednotlivé soubory nastavení na výchozí hodnoty (restartuje aplikaci)</value>
+  </data>
+  <data name="Settings_ResetToDefaultsExpander.Header" xml:space="preserve">
+    <value>Obnovit výchozí</value>
+  </data>
+  <data name="Settings_ResetAllButton.Content" xml:space="preserve">
+    <value>Obnovit vše</value>
+  </data>
+  <data name="Settings_GeneralSettingsCard.Description" xml:space="preserve">
+    <value>Motiv, pozadí, interval aktualizace, vzhled grafů, oznamovací oblast</value>
+  </data>
+  <data name="Settings_GeneralSettingsCard.Header" xml:space="preserve">
+    <value>Obecná nastavení</value>
+  </data>
+  <data name="Settings_ResetButton.Content" xml:space="preserve">
+    <value>Obnovit</value>
+  </data>
+  <data name="Settings_WindowAndPageStatesCard.Description" xml:space="preserve">
+    <value>Poloha a velikost všech oken, stavový údaj v záhlaví, výběr senzorů na stránce Grafy</value>
+  </data>
+  <data name="Settings_WindowAndPageStatesCard.Header" xml:space="preserve">
+    <value>Stav oken a stránek</value>
+  </data>
+  <data name="Settings_SensorStatesCard.Description" xml:space="preserve">
+    <value>Viditelnost jednotlivých senzorů, prahové hodnoty, měřítko grafu, připnutý výběr</value>
+  </data>
+  <data name="Settings_SensorStatesCard.Header" xml:space="preserve">
+    <value>Stav senzorů</value>
+  </data>
+  <data name="FlyoutShortcut_DialogTitle" xml:space="preserve">
+    <value>Klávesová zkratka</value>
+  </data>
+  <data name="FlyoutShortcut_DialogSave" xml:space="preserve">
+    <value>Uložit</value>
+  </data>
+  <data name="FlyoutShortcut_AtLeastOneText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Ctrl, Alt nebo Win: alespoň jedna</value>
+  </data>
+  <data name="FlyoutShortcut_AtLeastOneText.Text" xml:space="preserve">
+    <value>alespoň jedna</value>
+  </data>
+  <data name="FlyoutShortcut_OptionalText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>plus Shift: volitelně</value>
+  </data>
+  <data name="FlyoutShortcut_OptionalText.Text" xml:space="preserve">
+    <value>volitelně</value>
+  </data>
+  <data name="FlyoutShortcut_ExactlyOneText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>plus písmeno, číslice nebo klávesa F: právě jedna</value>
+  </data>
+  <data name="FlyoutShortcut_ExactlyOneText.Text" xml:space="preserve">
+    <value>právě jedna</value>
+  </data>
+  <data name="FlyoutShortcut_NoShortcutText.Text" xml:space="preserve">
+    <value>Žádná zkratka</value>
+  </data>
+  <data name="FlyoutShortcut_ClearButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Odebrat zkratku</value>
+  </data>
+  <data name="FlyoutShortcut_ClearShortcutText.Text" xml:space="preserve">
+    <value>Odebrat zkratku</value>
+  </data>
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Zrušit</value>
+  </data>
+  <data name="Settings_RunOnStartupPortable" xml:space="preserve">
+    <value>Není k dispozici v přenosné verzi, zanechala by po sobě naplánovanou úlohu</value>
+  </data>
+  <data name="Settings_StartupFailedTitle" xml:space="preserve">
+    <value>Spuštění</value>
+  </data>
+  <data name="Settings_StartupFailedMessage" xml:space="preserve">
+    <value>Windows nepřijal změnu naplánované úlohy.</value>
+  </data>
+  <data name="Settings_TaskbarEdgeBottom" xml:space="preserve">
+    <value>Dole</value>
+  </data>
+  <data name="Settings_TaskbarEdgeTop" xml:space="preserve">
+    <value>Nahoře</value>
+  </data>
+  <data name="Settings_TaskbarEdgeLeft" xml:space="preserve">
+    <value>Vlevo</value>
+  </data>
+  <data name="Settings_TaskbarEdgeRight" xml:space="preserve">
+    <value>Vpravo</value>
+  </data>
+  <data name="Settings_FlyoutShortcutNone" xml:space="preserve">
+    <value>Žádná</value>
+  </data>
+  <data name="Settings_FlyoutShortcutName" xml:space="preserve">
+    <value>Klávesová zkratka vysouvacího panelu, {0}</value>
+  </data>
+  <data name="Settings_ExportPickerTitle" xml:space="preserve">
+    <value>Exportovat nastavení</value>
+  </data>
+  <data name="Settings_ImportPickerTitle" xml:space="preserve">
+    <value>Importovat nastavení</value>
+  </data>
+  <data name="Settings_BackupFileType" xml:space="preserve">
+    <value>Soubor zálohy</value>
+  </data>
+  <data name="Settings_ExportSuccessTitle" xml:space="preserve">
+    <value>Export proběhl úspěšně</value>
+  </data>
+  <data name="Settings_ExportSuccessMessage" xml:space="preserve">
+    <value>Vaše nastavení byla exportována.</value>
+  </data>
+  <data name="Settings_ExportFailedTitle" xml:space="preserve">
+    <value>Export se nezdařil</value>
+  </data>
+  <data name="Settings_ExportFailedMessage" xml:space="preserve">
+    <value>Nastavení se nepodařilo exportovat.</value>
+  </data>
+  <data name="Settings_ImportConfirmTitle" xml:space="preserve">
+    <value>Importovat nastavení?</value>
+  </data>
+  <data name="Settings_ImportConfirmMessage" xml:space="preserve">
+    <value>Tím se přepíší všechna aktuální nastavení, stavy oken, stavy senzorů a výběry senzorů a aplikace se poté restartuje.</value>
+  </data>
+  <data name="Settings_ImportConfirm" xml:space="preserve">
+    <value>Importovat</value>
+  </data>
+  <data name="Settings_ImportFailedTitle" xml:space="preserve">
+    <value>Import se nezdařil</value>
+  </data>
+  <data name="Settings_ImportFailedMessage" xml:space="preserve">
+    <value>Vybraný soubor není platná záloha FluentSensors.</value>
+  </data>
+  <data name="Settings_ResetWhatAll" xml:space="preserve">
+    <value>Všechna nastavení</value>
+  </data>
+  <data name="Settings_ResetWhatGeneral" xml:space="preserve">
+    <value>Obecná nastavení</value>
+  </data>
+  <data name="Settings_ResetWhatWindowStates" xml:space="preserve">
+    <value>Stav oken a stránek</value>
+  </data>
+  <data name="Settings_ResetWhatSensorStates" xml:space="preserve">
+    <value>Stav senzorů</value>
+  </data>
+  <data name="Settings_ResetConfirmTitle" xml:space="preserve">
+    <value>Obnovit: {0}?</value>
+  </data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve">
+    <value>Tím se obnoví výchozí hodnoty a aplikace se restartuje. Tuto akci nelze vrátit zpět.</value>
+  </data>
+  <data name="Settings_ResetConfirm" xml:space="preserve">
+    <value>Obnovit</value>
+  </data>
+  <data name="FlyoutShortcut_WarningModifier" xml:space="preserve">
+    <value>Začněte klávesou Ctrl, Alt nebo Win</value>
+  </data>
+  <data name="FlyoutShortcut_WarningInUse" xml:space="preserve">
+    <value>Již se používá</value>
+  </data>
+  <data name="FlyoutShortcut_KeysName" xml:space="preserve">
+    <value>Zkratka, {0}</value>
+  </data>
+  <data name="FlyoutShortcut_NoShortcut" xml:space="preserve">
+    <value>Žádná zkratka</value>
+  </data>
+  <data name="Start_CopyVersionButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Kopírovat verzi</value>
+  </data>
+  <data name="Start_WhatsNewText.Text" xml:space="preserve">
+    <value>Novinky</value>
+  </data>
+  <data name="Start_SystemText.Text" xml:space="preserve">
+    <value>Systém</value>
+  </data>
+  <data name="Start_AppStatusText.Text" xml:space="preserve">
+    <value>Stav aplikace</value>
+  </data>
+  <data name="Start_LhmPopup.Description" xml:space="preserve">
+    <value>Nalezené senzory - každý senzor, který LibreHardwareMonitor na tomto zařízení hlásí
+Vykreslované senzory - kolik z nich se právě aktivně vykresluje
+LibreHardwareMonitorLib je největší a nejzavedenější knihovna pro monitorování hardwaru ve Windows</value>
+  </data>
+  <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
+    <value>Tato aplikace je postavena na open source projektu LibreHardwareMonitor:</value>
+  </data>
+  <data name="Start_LhmGitHubSource.Label" xml:space="preserve">
+    <value>LibreHardwareMonitor na GitHubu</value>
+  </data>
+  <data name="Start_FoundSensorsText.Text" xml:space="preserve">
+    <value>Nalezené senzory</value>
+  </data>
+  <data name="Start_RenderingSensorsText.Text" xml:space="preserve">
+    <value>Vykreslované senzory</value>
+  </data>
+  <data name="Start_ThisAppPopup.Title" xml:space="preserve">
+    <value>Tato aplikace</value>
+  </data>
+  <data name="Start_ThisAppPopup.Description" xml:space="preserve">
+    <value>Využití CPU - vlastní čas CPU této aplikace vzhledem k celkové kapacitě všech jader
+Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovní sada)
+Doba běhu - jak dlouho aplikace běží od posledního spuštění</value>
+  </data>
+  <data name="Start_ThisAppPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Start_CPUUsageText.Text" xml:space="preserve">
+    <value>Využití CPU</value>
+  </data>
+  <data name="Start_RAMUsageText.Text" xml:space="preserve">
+    <value>Využití RAM</value>
+  </data>
+  <data name="Start_UptimeText.Text" xml:space="preserve">
+    <value>Doba běhu</value>
+  </data>
+  <data name="Start_AboutOpenSourceText.Text" xml:space="preserve">
+    <value>O aplikaci a open source</value>
+  </data>
+  <data name="Start_DocumentationCard.Description" xml:space="preserve">
+    <value>Readme, použití a kompletní zdrojový kód</value>
+  </data>
+  <data name="Start_DocumentationCard.Header" xml:space="preserve">
+    <value>Dokumentace</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubCard.Description" xml:space="preserve">
+    <value>Hlášení chyb a návrhy funkcí</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubCard.Header" xml:space="preserve">
+    <value>Zpětná vazba na GitHubu</value>
+  </data>
+  <data name="Start_DeveloperProfileCard.Header" xml:space="preserve">
+    <value>Profil vývojáře</value>
+  </data>
+  <data name="Start_SupportTheProjectExpander.Description" xml:space="preserve">
+    <value>Fluent Sensors je zdarma a open source</value>
+  </data>
+  <data name="Start_SupportTheProjectExpander.Header" xml:space="preserve">
+    <value>Podpořit projekt</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreCard.Description" xml:space="preserve">
+    <value>Hodnocení pomáhá ostatním aplikaci najít</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreCard.Header" xml:space="preserve">
+    <value>Ohodnotit v Microsoft Store</value>
+  </data>
+  <data name="Start_SponsorOnGitHubCard.Description" xml:space="preserve">
+    <value>Pravidelně nebo jednorázově, přes GitHub</value>
+  </data>
+  <data name="Start_SponsorOnGitHubCard.Header" xml:space="preserve">
+    <value>Sponzorovat na GitHubu</value>
+  </data>
+  <data name="Start_ThirdPartyLibrariesExpander.Description" xml:space="preserve">
+    <value>Open source projekty použité v této aplikaci</value>
+  </data>
+  <data name="Start_ThirdPartyLibrariesExpander.Header" xml:space="preserve">
+    <value>Knihovny třetích stran</value>
+  </data>
+  <data name="Start_WebsiteLink.Content" xml:space="preserve">
+    <value>Web</value>
+  </data>
+  <data name="Start_DocumentationLink.Content" xml:space="preserve">
+    <value>Dokumentace</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubLink.Content" xml:space="preserve">
+    <value>Zpětná vazba na GitHubu</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreLink.Content" xml:space="preserve">
+    <value>Ohodnotit v Microsoft Store</value>
+  </data>
+  <data name="Start_SponsorOnGitHubLink.Content" xml:space="preserve">
+    <value>Sponzorovat na GitHubu</value>
+  </data>
+  <data name="Start_DeveloperProfileLink.Content" xml:space="preserve">
+    <value>Profil vývojáře</value>
+  </data>
+  <data name="ReleaseNotes_GitHubLink.Content" xml:space="preserve">
+    <value>Zobrazit na GitHubu</value>
+  </data>
+  <data name="ReleaseNotes_EmptyText.Text" xml:space="preserve">
+    <value>Tato verze byla vydána bez poznámek</value>
+  </data>
+  <data name="ReleaseNotes_FullChangelogText.Text" xml:space="preserve">
+    <value>Kompletní seznam změn:</value>
+  </data>
+  <data name="ReleaseNotesDialog_WhatsNewText.Text" xml:space="preserve">
+    <value>Novinky</value>
+  </data>
+  <data name="ReleaseNotesDialog_CloseButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zavřít</value>
+  </data>
+  <data name="ReleaseNotesDialog_CloseButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zavřít</value>
+  </data>
+  <data name="Start_UptimeDays" xml:space="preserve">
+    <value>{0}d {1}</value>
+  </data>
+  <data name="Start_SensorCountNone" xml:space="preserve">
+    <value>Žádné senzory</value>
+  </data>
+  <data name="Start_SensorCount_One" xml:space="preserve">
+    <value>{0} senzor</value>
+  </data>
+  <data name="Start_SensorCount_Few" xml:space="preserve">
+    <value>{0} senzory</value>
+  </data>
+  <data name="Start_SensorCount_Many" xml:space="preserve">
+    <value>{0} senzorů</value>
+  </data>
+  <data name="Start_ReleaseNotesFor" xml:space="preserve">
+    <value>Poznámky k verzi {0}</value>
+  </data>
+  <data name="Start_UpdateLastChecked" xml:space="preserve">
+    <value>Naposledy zkontrolováno {0}</value>
+  </data>
+  <data name="Start_UpdateNotChecked" xml:space="preserve">
+    <value>Zatím nezkontrolováno</value>
+  </data>
+  <data name="Start_UpdateUpToDate" xml:space="preserve">
+    <value>Máte nejnovější verzi</value>
+  </data>
+  <data name="Start_UpdateChecking" xml:space="preserve">
+    <value>Hledání aktualizací</value>
+  </data>
+  <data name="Start_UpdateAvailable" xml:space="preserve">
+    <value>Aktualizace k dispozici</value>
+  </data>
+  <data name="Start_UpdateReadyUnnamed" xml:space="preserve">
+    <value>Nová verze je připravena k instalaci</value>
+  </data>
+  <data name="Start_UpdateReady" xml:space="preserve">
+    <value>{0} je připravena k instalaci</value>
+  </data>
+  <data name="Start_UpdateSkipped" xml:space="preserve">
+    <value>{0} přeskočena</value>
+  </data>
+  <data name="Start_UpdateSkippedHint" xml:space="preserve">
+    <value>Vyberte pro instalaci i tak</value>
+  </data>
+  <data name="Start_UpdateFailed" xml:space="preserve">
+    <value>Kontrola se nezdařila</value>
+  </data>
+  <data name="Start_UpdateFailedGitHub" xml:space="preserve">
+    <value>GitHub není dostupný, vyberte pro nový pokus</value>
+  </data>
+  <data name="Start_UpdateFailedStore" xml:space="preserve">
+    <value>Microsoft Store není dostupný, vyberte pro nový pokus</value>
+  </data>
+  <data name="Start_UpdateCheck" xml:space="preserve">
+    <value>Zkontrolovat aktualizace</value>
+  </data>
+  <data name="Start_Unknown" xml:space="preserve">
+    <value>Neznámé</value>
+  </data>
+  <data name="ReleaseNotes_EmptyStatus" xml:space="preserve">
+    <value>Historii verzí se nepodařilo načíst a zatím nic není uloženo</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Zavřít</value>
+  </data>
+  <data name="Update_SkipVersion" xml:space="preserve">
+    <value>Přeskočit tuto verzi</value>
+  </data>
+  <data name="Update_Message" xml:space="preserve">
+    <value>Je k dispozici Fluent Sensors {0}. Používáte {1}.</value>
+  </data>
+  <data name="Update_MessageUnnamed" xml:space="preserve">
+    <value>Je k dispozici nová verze Fluent Sensors. Používáte {0}.</value>
+  </data>
+  <data name="Update_Title" xml:space="preserve">
+    <value>Aktualizace k dispozici</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Aktualizovat</value>
+  </data>
+  <data name="Update_OpenStore" xml:space="preserve">
+    <value>Otevřít Store</value>
+  </data>
+  <data name="Update_ManualInstall" xml:space="preserve">
+    <value>Ruční instalace</value>
+  </data>
+  <data name="Update_Downloading" xml:space="preserve">
+    <value>Stahování {0}...</value>
+  </data>
+  <data name="Update_NoAsset" xml:space="preserve">
+    <value>Tato verze nemá odpovídající soubor ke stažení, místo toho se otevře stránka verze</value>
+  </data>
+  <data name="Update_Installing" xml:space="preserve">
+    <value>Instalace, aplikace se sama restartuje</value>
+  </data>
+  <data name="Update_Cancelled" xml:space="preserve">
+    <value>Stahování zrušeno</value>
+  </data>
+  <data name="Update_DownloadFailed" xml:space="preserve">
+    <value>Stahování se nezdařilo, verzi můžete stáhnout ručně</value>
+  </data>
+  <data name="Update_StoreWaiting" xml:space="preserve">
+    <value>Čekání na Microsoft Store...</value>
+  </data>
+  <data name="Update_StoreDownloading" xml:space="preserve">
+    <value>Stahování z Microsoft Store...</value>
+  </data>
+  <data name="Update_StoreInstalled" xml:space="preserve">
+    <value>Aktualizace nainstalována, projeví se při příštím spuštění aplikace</value>
+  </data>
+  <data name="Update_StoreFailed" xml:space="preserve">
+    <value>Microsoft Store aktualizaci nenainstaloval, místo toho se otevře Store</value>
+  </data>
+  <data name="Performance_PerformanceTitleText.Text" xml:space="preserve">
+    <value>Grafy</value>
+  </data>
+  <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
+    <value>Přehled hardwaru</value>
+  </data>
+  <data name="Performance_HardwareListButton.Label" xml:space="preserve">
+    <value>Seznam hardwaru</value>
+  </data>
+  <data name="Performance_HardwareInfoButton.Label" xml:space="preserve">
+    <value>Informace o hardwaru</value>
+  </data>
+  <data name="Performance_ResizeHardwareListSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost seznamu hardwaru</value>
+  </data>
+  <data name="Cpu_ExtendedTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Rozšířený časový rozsah</value>
+  </data>
+  <data name="Cpu_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Cpu_GeneralPopup.Description" xml:space="preserve">
+    <value>Fyzická jádra - skutečné výpočetní jednotky na čipu
+Logické procesory - celkový počet vláken (SMT/Hyper-Threading zdvojnásobuje na jádro)
+Topologie jader - rozdělení na výkonná a úsporná jádra u hybridních CPU</value>
+  </data>
+  <data name="Cpu_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Cpu_CachePopup.Description" xml:space="preserve">
+    <value>Malá rychlá paměť přímo na čipu pro nedávno použitá data
+L1 - nejmenší a nejrychlejší, pro každé jádro; součet oddělené mezipaměti instrukcí a dat
+L2 - větší, pomalejší, pro každé jádro; sjednocená
+L3 - největší, sdílená všemi jádry; sjednocená</value>
+  </data>
+  <data name="Cpu_CachePopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Cpu_VirtualizationPopup.Description" xml:space="preserve">
+    <value>Rozšíření - hardwarová podpora CPU pro virtuální počítače (VT-x/AMD-V), využívaná Hyper-V, WSL2 a podobně
+Firmware - aktuálně zapnuto nebo ne (nespolehlivé)</value>
+  </data>
+  <data name="Cpu_VirtualizationPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Cpu_ShowOverallButton.Label" xml:space="preserve">
+    <value>Celkově</value>
+  </data>
+  <data name="Cpu_ShowAllThreadsButton.Label" xml:space="preserve">
+    <value>Rozšířené</value>
+  </data>
+  <data name="Cpu_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
+  <data name="Gpu_ExtendedTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Rozšířený časový rozsah</value>
+  </data>
+  <data name="Gpu_ShowOverallButton.Label" xml:space="preserve">
+    <value>Celkově</value>
+  </data>
+  <data name="Gpu_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Rozšířené</value>
+  </data>
+  <data name="Gpu_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
+    <value>Verze ovladače - interní číslo ovladače Windows, liší se od schématu verzí výrobce</value>
+  </data>
+  <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Gpu_NameText.Text" xml:space="preserve">
+    <value>Název</value>
+  </data>
+  <data name="Gpu_MemoryPopup.Description" xml:space="preserve">
+    <value>Vyhrazená paměť - VRAM určená výhradně pro GPU
+Sdílená paměť - systémová RAM, kterou si GPU může navíc půjčit, sdílená s CPU; počítá se pro každou GPU zvlášť z celkové systémové RAM, nedělí se mezi více GPU</value>
+  </data>
+  <data name="Gpu_MemoryPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Gpu_IdentifiersPopup.Description" xml:space="preserve">
+    <value>ID zařízení PCI - kód výrobce a čipu pevně uložený v GPU
+ID zařízení PnP - identifikátor instance tohoto zařízení ve Windows</value>
+  </data>
+  <data name="Gpu_IdentifiersPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Gpu_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
+  <data name="Memory_MemoryUsedVirtualTile.InfoMessage" xml:space="preserve">
+    <value>Odpovídá hodnotě "Potvrzeno" ve Správci úloh; obvykle přesně, ale občas se může lišit.</value>
+  </data>
+  <data name="Memory_RamInfoPopup.Description" xml:space="preserve">
+    <value>Typ - generace DDR (DDR4, DDR5, ...)
+Provedení - DIMM (stolní PC) nebo SO-DIMM (notebook)
+Rychlost RAM - nastavená (aktivní) oproti jmenovité (specifikace)
+Napětí - provozní napětí; XMP/EXPO ho může zvýšit
+Banka - fyzická skupina bank/slotů na základní desce, do které modul patří
+Rank - počet nezávislých sad čipů na samotném modulu (nespolehlivé)
+Šířka - data (využitelné bity) oproti celkem (včetně bitů ECC)</value>
+  </data>
+  <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Memory_ManufacturerText.Text" xml:space="preserve">
+    <value>Výrobce</value>
+  </data>
+  <data name="Memory_SerialNumberText.Text" xml:space="preserve">
+    <value>Sériové číslo</value>
+  </data>
+  <data name="Memory_TypeText.Text" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="Memory_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
+  <data name="Storage_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Storage_GeneralPopup.Description" xml:space="preserve">
+    <value>Typ sběrnice - rozhraní připojení (NVMe, SATA, USB, ...), omezuje reálnou maximální rychlost disku; čte se z moderního Storage API, protože starší API Windows hlásí disky NVMe chybně jako SCSI</value>
+  </data>
+  <data name="Storage_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Storage_DiskDriveFallbackSource.Label" xml:space="preserve">
+    <value>Win32_DiskDrive (starší záloha)</value>
+  </data>
+  <data name="Storage_ModelText.Text" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="Storage_SizeText.Text" xml:space="preserve">
+    <value>Velikost</value>
+  </data>
+  <data name="Storage_IdentifiersPopup.Description" xml:space="preserve">
+    <value>Sériové číslo, revize firmwaru, ID zařízení - společně jednoznačně identifikují právě tento disk a jeho firmware</value>
+  </data>
+  <data name="Storage_IdentifiersPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Storage_SerialNumberText.Text" xml:space="preserve">
+    <value>Sériové číslo</value>
+  </data>
+  <data name="Storage_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
+  <data name="Network_ConnectionPopup.Title" xml:space="preserve">
+    <value>Připojení</value>
+  </data>
+  <data name="Network_ConnectionPopup.Description" xml:space="preserve">
+    <value>Představuje jedno aktivní připojení, ne všechna možná připojení adaptéru. Více aktivních připojení (např. Wi-Fi + Ethernet) má každé vlastní položku.
+Hardware - fyzický adaptér za tímto připojením
+Typ - jeho médium (Wi-Fi, Ethernet, ...)</value>
+  </data>
+  <data name="Network_ConnectionPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Network_HardwareText.Text" xml:space="preserve">
+    <value>Hardware</value>
+  </data>
+  <data name="Network_TypeText.Text" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="Network_IPAddressesPopup.Description" xml:space="preserve">
+    <value>IPv4 a IPv6 jsou nezávislé systémy adres, oba aktivní současně.
+IPv4 - obvykle jedna adresa
+IPv6 - často několik současně (stabilní a střídající se adresy pro ochranu soukromí)</value>
+  </data>
+  <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Network_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Network_GeneralPopup.Description" xml:space="preserve">
+    <value>Rychlost linky - vyjednaná rychlost právě tohoto připojení, ne maximální jmenovitá rychlost adaptéru; může být nižší a u Wi-Fi se mění podle podmínek signálu
+DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo nastavena staticky; vlastnost tohoto připojení, ne nastavení celé sítě</value>
+  </data>
+  <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
+  <data name="SensorPanel_TogglePanelButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Přepnout panel</value>
+  </data>
+  <data name="SensorPanel_TogglePanelButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Přepnout panel</value>
+  </data>
+  <data name="SensorPanel_SwitchCandidateComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Přepnout senzor</value>
+  </data>
+  <data name="SensorPanel_IncreaseYAxisButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvětšit osu Y</value>
+  </data>
+  <data name="SensorPanel_IncreaseYAxisButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvětšit osu Y</value>
+  </data>
+  <data name="SensorPanel_DecreaseYAxisButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zmenšit osu Y</value>
+  </data>
+  <data name="SensorPanel_DecreaseYAxisButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zmenšit osu Y</value>
+  </data>
+  <data name="SensorPanel_AutoScaleButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Automatické měřítko</value>
+  </data>
+  <data name="SensorPanel_AutoScaleButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Automatické měřítko</value>
+  </data>
+  <data name="SensorPanel_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýšit práh</value>
+  </data>
+  <data name="SensorPanel_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýšit práh</value>
+  </data>
+  <data name="SensorPanel_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Snížit práh</value>
+  </data>
+  <data name="SensorPanel_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Snížit práh</value>
+  </data>
+  <data name="SensorPanel_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Přepnout čáru prahu</value>
+  </data>
+  <data name="SensorPanel_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Přepnout čáru prahu</value>
+  </data>
+  <data name="SensorPanel_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýraznit nad prahem</value>
+  </data>
+  <data name="SensorPanel_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýraznit nad prahem</value>
+  </data>
+  <data name="SensorPanel_ThresholdColorButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva prahu</value>
+  </data>
+  <data name="SensorPanel_ThresholdColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva prahu</value>
+  </data>
+  <data name="SensorPanel_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýraznit pod prahem</value>
+  </data>
+  <data name="SensorPanel_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýraznit pod prahem</value>
+  </data>
+  <data name="Threshold_ThresholdConfigText.Text" xml:space="preserve">
+    <value>Nastavení prahu</value>
+  </data>
+  <data name="Threshold_ThresholdCloseButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zavřít</value>
+  </data>
+  <data name="Threshold_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýšit práh</value>
+  </data>
+  <data name="Threshold_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýšit práh</value>
+  </data>
+  <data name="Threshold_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Snížit práh</value>
+  </data>
+  <data name="Threshold_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Snížit práh</value>
+  </data>
+  <data name="Threshold_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Přepnout čáru prahu</value>
+  </data>
+  <data name="Threshold_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Přepnout čáru prahu</value>
+  </data>
+  <data name="Threshold_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýraznit nad prahem</value>
+  </data>
+  <data name="Threshold_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýraznit nad prahem</value>
+  </data>
+  <data name="Threshold_ThresholdColorButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva prahu</value>
+  </data>
+  <data name="Threshold_ThresholdColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Barva prahu</value>
+  </data>
+  <data name="Threshold_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zvýraznit pod prahem</value>
+  </data>
+  <data name="Threshold_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zvýraznit pod prahem</value>
+  </data>
+  <data name="Cpu_TopologyGroup" xml:space="preserve">
+    <value>{0} {1} ({2})</value>
+  </data>
+  <data name="InfoPopup_Source" xml:space="preserve">
+    <value>Zdroj: {0}</value>
+  </data>
+  <data name="InfoPopup_MoreInfo" xml:space="preserve">
+    <value>Další informace</value>
+  </data>
+  <data name="InfoPopup_MoreInfoAbout" xml:space="preserve">
+    <value>Další informace: {0}</value>
+  </data>
+  <data name="SensorPanel_NotFound" xml:space="preserve">
+    <value>Senzor {0} nenalezen</value>
+  </data>
+  <data name="Threshold_Name" xml:space="preserve">
+    <value>Práh {0}</value>
+  </data>
+  <data name="Threshold_NotSet" xml:space="preserve">
+    <value>Práh, nenastaven</value>
+  </data>
+  <data name="TimeRange_Name" xml:space="preserve">
+    <value>Časový rozsah</value>
+  </data>
+  <data name="TimeRange_Last" xml:space="preserve">
+    <value>Posledních {0:0}s</value>
+  </data>
+  <data name="Info_Yes" xml:space="preserve">
+    <value>Ano</value>
+  </data>
+  <data name="Info_No" xml:space="preserve">
+    <value>Ne</value>
+  </data>
+  <data name="Info_Other" xml:space="preserve">
+    <value>Jiné</value>
+  </data>
+  <data name="Info_Unknown" xml:space="preserve">
+    <value>Neznámé</value>
+  </data>
+  <data name="Info_UnknownValue" xml:space="preserve">
+    <value>Neznámé ({0})</value>
+  </data>
+  <data name="Info_ErrorCounts" xml:space="preserve">
+    <value>{0} celkem, {1} opraveno, {2} neopraveno</value>
+  </data>
+  <data name="Info_CycleCount" xml:space="preserve">
+    <value>{0} / {1} max</value>
+  </data>
+  <data name="Sensors_SensorListTitleText.Text" xml:space="preserve">
+    <value>Seznam senzorů</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Profil výběru</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_WidgetWindow.Content" xml:space="preserve">
+    <value>Widget</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_Csv.Content" xml:space="preserve">
+    <value>Záznam</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
+    <value>Hlavní panel</value>
+  </data>
+  <data name="Sensors_PinToWidgetButton.Label" xml:space="preserve">
+    <value>Připnout do widgetu</value>
+  </data>
+  <data name="Sensors_StartCsvMonitoringButton.Label" xml:space="preserve">
+    <value>Spustit záznam do CSV</value>
+  </data>
+  <data name="Sensors_PinToTaskbarButton.Label" xml:space="preserve">
+    <value>Připnout na hlavní panel</value>
+  </data>
+  <data name="Sensors_UpdateTaskbarText.Text" xml:space="preserve">
+    <value>Aktualizovat</value>
+  </data>
+  <data name="Sensors_CloseTaskbarWidgetButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zavřít widget na hlavním panelu</value>
+  </data>
+  <data name="Sensors_CloseTaskbarWidgetButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zavřít widget na hlavním panelu</value>
+  </data>
+  <data name="Sensors_HideSensorsButton.Label" xml:space="preserve">
+    <value>Skrýt</value>
+  </data>
+  <data name="Sensors_HideSensorsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Skryje vybrané senzory a ukončí jejich sledování</value>
+  </data>
+  <data name="Sensors_ResetValuesButton.Label" xml:space="preserve">
+    <value>Vynulovat statistiky</value>
+  </data>
+  <data name="Sensors_ShowHiddenSensorsButton.Label" xml:space="preserve">
+    <value>Skryté senzory</value>
+  </data>
+  <data name="Sensors_NoSensorsInfoBar.Title" xml:space="preserve">
+    <value>Nejsou vybrány žádné senzory</value>
+  </data>
+  <data name="Sensors_NoSensorsInfoBar.Message" xml:space="preserve">
+    <value>Vyberte prosím alespoň jeden senzor</value>
+  </data>
+  <data name="Sensors_RunningForText.Text" xml:space="preserve">
+    <value>Běží</value>
+  </data>
+  <data name="Sensors_SelectPinnedButton.Label" xml:space="preserve">
+    <value>Vybrat připnuté</value>
+  </data>
+  <data name="Sensors_DeselectAllButton.Label" xml:space="preserve">
+    <value>Zrušit výběr</value>
+  </data>
+  <data name="HiddenSensors_HiddenSensorsText.Text" xml:space="preserve">
+    <value>Skryté senzory</value>
+  </data>
+  <data name="HiddenSensors_RestoreSelectedButton.Content" xml:space="preserve">
+    <value>Obnovit vybrané</value>
+  </data>
+  <data name="CsvLogger_BackToDashboardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zpět do hlavní aplikace</value>
+  </data>
+  <data name="CsvLogger_BackToDashboardButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zpět do hlavní aplikace</value>
+  </data>
+  <data name="CsvLogger_StartText.Text" xml:space="preserve">
+    <value>Spustit</value>
+  </data>
+  <data name="CsvLogger_StopButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zastavit</value>
+  </data>
+  <data name="CsvLogger_PinnedSensorsText.Text" xml:space="preserve">
+    <value>Připnuté senzory</value>
+  </data>
+  <data name="CsvLogger_PollingRateText.Text" xml:space="preserve">
+    <value>Frekvence dotazů</value>
+  </data>
+  <data name="CsvLogger_TotalElapsedText.Text" xml:space="preserve">
+    <value>Celková doba</value>
+  </data>
+  <data name="CsvLogger_PausesText.Text" xml:space="preserve">
+    <value>Pauzy</value>
+  </data>
+  <data name="CsvLogger_OpenInFileExplorerButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Otevřít v Průzkumníkovi</value>
+  </data>
+  <data name="CsvLogger_OpenInFileExplorerButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Otevřít v Průzkumníkovi</value>
+  </data>
+  <data name="TaskbarFlyout_SystemSensorsText.Text" xml:space="preserve">
+    <value>Systémové senzory</value>
+  </data>
+  <data name="TaskbarFlyout_FlyoutTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Časový rozsah vysouvacího panelu</value>
+  </data>
+  <data name="TaskbarFlyout_FlyoutTimeRangePicker.Label" xml:space="preserve">
+    <value>Panel</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Časový rozsah hlavního panelu</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarTimeRangePicker.Label" xml:space="preserve">
+    <value>Hlavní panel</value>
+  </data>
+  <data name="TaskbarFlyout_BackToDashboardButton.Content" xml:space="preserve">
+    <value>Spravovat senzory na hlavním panelu</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarSettingsButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Nastavení widgetu na hlavním panelu</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarSettingsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Nastavení widgetu na hlavním panelu</value>
+  </data>
+  <data name="Widget_SystemSensorsText.Text" xml:space="preserve">
+    <value>Systémové senzory</value>
+  </data>
+  <data name="Widget_BackToDashboardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zpět do hlavní aplikace</value>
+  </data>
+  <data name="Widget_BackToDashboardButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Zpět do hlavní aplikace</value>
+  </data>
+  <data name="Sensors_GroupCount" xml:space="preserve">
+    <value>{0}/{1} senzorů</value>
+  </data>
+  <data name="Sensors_GroupCountName" xml:space="preserve">
+    <value>Zobrazeno {0} z {1} senzorů</value>
+  </data>
+  <data name="Sensors_UpdateWidget" xml:space="preserve">
+    <value>Aktualizovat widget</value>
+  </data>
+  <data name="Sensors_PinToWidget" xml:space="preserve">
+    <value>Připnout do widgetu</value>
+  </data>
+  <data name="Sensors_UpdateCsvLogging" xml:space="preserve">
+    <value>Aktualizovat záznam do CSV</value>
+  </data>
+  <data name="Sensors_StartCsvLogging" xml:space="preserve">
+    <value>Spustit záznam do CSV</value>
+  </data>
+  <data name="Common_Resume" xml:space="preserve">
+    <value>Pokračovat</value>
+  </data>
+  <data name="Common_Pause" xml:space="preserve">
+    <value>Pozastavit</value>
+  </data>
+  <data name="CsvLogger_StatusSelectionLocked" xml:space="preserve">
+    <value>pro změnu výběru senzorů nejdřív zastavte záznam</value>
+  </data>
+  <data name="CsvLogger_StatusPaused" xml:space="preserve">
+    <value>pozastaveno na {0:N0} řádcích</value>
+  </data>
+  <data name="CsvLogger_StatusRecording" xml:space="preserve">
+    <value>záznam do {0}</value>
+  </data>
+  <data name="CsvLogger_StatusNoSensors" xml:space="preserve">
+    <value>zatím nejsou vybrány žádné senzory, vyberte je v seznamu senzorů</value>
+  </data>
+  <data name="CsvLogger_StatusSaved" xml:space="preserve">
+    <value>{0:N0} řádků uloženo do {1}</value>
+  </data>
+  <data name="CsvLogger_StatusReady" xml:space="preserve">
+    <value>připraveno k záznamu</value>
+  </data>
+  <data name="CsvLogger_StatusWriteFailed" xml:space="preserve">
+    <value>nelze zapisovat do {0}</value>
+  </data>
+  <data name="CsvLogger_FolderPickerTitle" xml:space="preserve">
+    <value>Složka pro záznam do CSV</value>
+  </data>
+  <data name="CsvLogger_HideDetails" xml:space="preserve">
+    <value>Skrýt podrobnosti</value>
+  </data>
+  <data name="CsvLogger_ShowDetails" xml:space="preserve">
+    <value>Zobrazit podrobnosti</value>
+  </data>
+  <data name="TaskbarWidget_EmbedFailed" xml:space="preserve">
+    <value>Vložení widgetu na hlavní panel selhalo po {0} pokusech:
+
+{1}</value>
+  </data>
+  <data name="TaskbarWidget_InitFailed" xml:space="preserve">
+    <value>Inicializace widgetu na hlavním panelu selhala:
+
+{0}</value>
+  </data>
+  <data name="App_LanguageTag" xml:space="preserve">
+    <value>cs-CZ</value>
+  </data>
+  <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
+    <value>Technické pojmy v angličtině</value>
+  </data>
+</root>

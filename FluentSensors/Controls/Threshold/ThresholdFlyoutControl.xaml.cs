@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Windows.System;
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Persistence.Services;
 
@@ -208,7 +209,7 @@ namespace FluentSensors.Controls.Threshold
         }
 
         // the configured value, or that none is set
-        internal string AutomationName => Threshold?.IsEnabled == true ? $"Threshold {IndicatorText}" : "Threshold, not set";
+        internal string AutomationName => Threshold?.IsEnabled == true ? AppStrings.Format("Threshold_Name", IndicatorText) : AppStrings.Get("Threshold_NotSet");
 
 
         // === private helpers ===

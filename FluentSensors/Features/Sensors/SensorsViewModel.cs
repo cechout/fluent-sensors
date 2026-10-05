@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
 using FluentSensors.Core.StaticInfo;
@@ -431,7 +432,7 @@ namespace FluentSensors.Features.Sensors
             TimeSpan elapsed = DateTime.UtcNow - _statsStartedUtc;
 
             string clock = $"{elapsed.Hours}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
-            StatsElapsedText = elapsed.Days > 0 ? $"{elapsed.Days}d {clock}" : clock;
+            StatsElapsedText = elapsed.Days > 0 ? AppStrings.Format("Start_UptimeDays", elapsed.Days, clock) : clock;
         }
 
 

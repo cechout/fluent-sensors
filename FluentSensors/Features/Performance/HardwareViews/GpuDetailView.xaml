@@ -13,6 +13,7 @@
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
     xmlns:fhUi="using:FluentSensors.Common.UI"
+    xmlns:loc="using:FluentSensors.Common.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
@@ -290,7 +291,7 @@
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Core" />
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_Core')}" />
                             <fhControls:SquareGridPanel
                                 MinCellHeight="90"
                                 MinCellWidth="260"
@@ -352,8 +353,8 @@
 
                             <!--  graph time range  -->
                             <fhTimeRange:TimeRangePickerControl
+                                x:Uid="Gpu_ExtendedTimeRangePicker"
                                 Margin="0,-4,0,0"
-                                AccessibleName="Extended Time Range"
                                 Options="{x:Bind fhCommon:GraphTimeRanges.PerformanceExtended}"
                                 SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.GpuExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
                                 TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -365,7 +366,7 @@
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Memory" />
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_Memory')}" />
                             <fhControls:SquareGridPanel
                                 MinCellHeight="90"
                                 MinCellWidth="260"
@@ -417,8 +418,8 @@
 
                             <!--  graph time range  -->
                             <fhTimeRange:TimeRangePickerControl
+                                x:Uid="Gpu_ExtendedTimeRangePicker"
                                 Margin="0,-4,0,0"
-                                AccessibleName="Extended Time Range"
                                 Options="{x:Bind fhCommon:GraphTimeRanges.PerformanceExtended}"
                                 SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.GpuExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
                                 TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -430,7 +431,7 @@
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="PCIe / Bus" />
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_PCIeBus')}" />
                             <fhControls:SquareGridPanel
                                 MinCellHeight="90"
                                 MinCellWidth="260"
@@ -470,8 +471,8 @@
 
                             <!--  graph time range  -->
                             <fhTimeRange:TimeRangePickerControl
+                                x:Uid="Gpu_ExtendedTimeRangePicker"
                                 Margin="0,-4,0,0"
-                                AccessibleName="Extended Time Range"
                                 Options="{x:Bind fhCommon:GraphTimeRanges.PerformanceExtended}"
                                 SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.GpuExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
                                 TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -483,7 +484,7 @@
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Engines" />
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_Engines')}" />
                             <fhControls:SquareGridPanel
                                 MinCellHeight="90"
                                 MinCellWidth="260"
@@ -551,8 +552,8 @@
 
                             <!--  graph time range  -->
                             <fhTimeRange:TimeRangePickerControl
+                                x:Uid="Gpu_ExtendedTimeRangePicker"
                                 Margin="0,-4,0,0"
-                                AccessibleName="Extended Time Range"
                                 Options="{x:Bind fhCommon:GraphTimeRanges.PerformanceExtended}"
                                 SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.GpuExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
                                 TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -599,8 +600,8 @@
 
                     <AppBarButton
                         x:Name="ShowOverallButton"
-                        Click="ShowOverall_Click"
-                        Label="Overall">
+                        x:Uid="Gpu_ShowOverallButton"
+                        Click="ShowOverall_Click">
                         <AppBarButton.Icon>
                             <FontIcon Glyph="&#xF16B;" />
                         </AppBarButton.Icon>
@@ -608,8 +609,8 @@
 
                     <AppBarButton
                         x:Name="ShowExtendedButton"
-                        Click="ShowExtended_Click"
-                        Label="Extended">
+                        x:Uid="Gpu_ShowExtendedButton"
+                        Click="ShowExtended_Click">
                         <AppBarButton.Icon>
                             <FontIcon Glyph="&#xF0E2;" />
                         </AppBarButton.Icon>
@@ -636,16 +637,14 @@
                     <TextBlock
                         Margin="0,0,0,0"
                         Style="{ThemeResource BodyStrongTextBlockStyle}"
-                        Text="GPU Info" />
+                        Text="{x:Bind loc:AppTerms.Get('Gpu_GPUInfo')}" />
 
                     <!--  general  -->
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
-                            Title="General"
+                            x:Uid="Gpu_GeneralPopup"
                             Margin="0,0,0,-4"
-                            Description="Driver Version - internal Windows driver number, differs from vendor's own version scheme"
-                            PlacementMode="TitleAnchored"
-                            SourceIntro="Source:">
+                            PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
                                 <fhInfoPopup:SourceLink Label="Win32_VideoController" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-videocontroller" />
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -653,9 +652,9 @@
 
                         <StackPanel Spacing="2">
                             <TextBlock
+                                x:Uid="Gpu_NameText"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Name" />
+                                Style="{ThemeResource CaptionTextBlockStyle}" />
                             <TextBlock
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Gpu.GpuNameText, Mode=OneWay}"
@@ -666,7 +665,7 @@
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Vendor" />
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_Vendor')}" />
                             <TextBlock
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Gpu.GpuVendorText, Mode=OneWay}"
@@ -677,7 +676,7 @@
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Driver Version" />
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_DriverVersion')}" />
                             <TextBlock
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Gpu.GpuDriverVersionText, Mode=OneWay}"
@@ -688,11 +687,10 @@
                     <!--  memory types  -->
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
-                            Title="Memory"
+                            x:Uid="Gpu_MemoryPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Gpu_Memory')}"
                             Margin="0,0,0,-4"
-                            Description="Dedicated Memory - VRAM reserved exclusively for the GPU&#10;Shared Memory - system RAM the GPU may additionally borrow, shared with the CPU; calculated independently per GPU from total system RAM, not split between multiple GPUs"
-                            PlacementMode="TitleAnchored"
-                            SourceIntro="Source:">
+                            PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
                                 <fhInfoPopup:SourceLink Label="IDXGIAdapter1::GetDesc1 (DXGI)" Url="https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter1-getdesc1" />
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -703,7 +701,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="Dedicated Memory"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_DedicatedMemory')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -715,7 +713,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="Shared Memory"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_SharedMemory')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -728,11 +726,10 @@
                     <!--  identifiers  -->
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
-                            Title="Identifiers"
+                            x:Uid="Gpu_IdentifiersPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Gpu_Identifiers')}"
                             Margin="0,0,0,-4"
-                            Description="PCI Device ID - vendor/chip code hardcoded on the GPU&#10;PnP Device ID - Windows' instance identifier for this device"
-                            PlacementMode="TitleAnchored"
-                            SourceIntro="Source:">
+                            PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
                                 <fhInfoPopup:SourceLink Label="IDXGIAdapter1::GetDesc1 (PCI Device ID)" Url="https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiadapter1-getdesc1" />
                                 <fhInfoPopup:SourceLink Label="Win32_VideoController (PnP Device ID)" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-videocontroller" />
@@ -744,7 +741,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="PCI Device ID"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_PCIDeviceID')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -756,7 +753,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="PnP Device ID" />
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_PnPDeviceID')}" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
                                     Text="{x:Bind Gpu.GpuPnpDeviceIdText, Mode=OneWay}"
@@ -771,6 +768,7 @@
         <!--  info panel splitter  -->
         <!--  (a 9px band centered on the divider line; it resizes the content column before it)  -->
         <fhControls:ClampedGridSplitter
+            x:Uid="Gpu_ResizeHardwareInfoSplitter"
             Grid.Row="0"
             Grid.RowSpan="2"
             Grid.Column="1"
@@ -778,7 +776,6 @@
             Margin="-4,0,0,0"
             Padding="0"
             HorizontalAlignment="Left"
-            AutomationProperties.Name="Resize Hardware Info"
             IsTabStop="False"
             IsThumbVisible="False"
             ManipulationCompleted="InfoPanelSplitter_ManipulationCompleted"

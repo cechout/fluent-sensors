@@ -1,0 +1,8 @@
+# the crowdin github integration reads this file; english is the source, every other language is written back
+# next to it as Strings/<locale>/<file>.resw through a pull request
+# a language crowdin adds also needs its entry in AppLanguage.Supported before the app offers it
+files:
+  - source: /FluentSensors/Strings/en-US/Resources.resw
+    translation: /FluentSensors/Strings/%locale%/Resources.resw
+  - source: /FluentSensors/Strings/en-US/Terms.resw
+    translation: /FluentSensors/Strings/%locale%/Terms.resw

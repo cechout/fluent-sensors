@@ -91,10 +91,10 @@
                     <!--  title  -->
                     <!--  (row padding plus margin, so it lines up with the button texts below, which sit behind padding and a 1 px border)  -->
                     <TextBlock
+                        x:Uid="TaskbarFlyout_SystemSensorsText"
                         Margin="10,-3,0,0"
                         VerticalAlignment="Center"
                         Style="{StaticResource BodyTextBlockStyle}"
-                        Text="System Sensors"
                         TextTrimming="CharacterEllipsis"
                         TextWrapping="NoWrap" />
 
@@ -195,19 +195,17 @@
 
                     <fhTimeRange:TimeRangePickerControl
                         x:Name="FlyoutTimeRangePicker"
+                        x:Uid="TaskbarFlyout_FlyoutTimeRangePicker"
                         Height="{StaticResource FlyoutTimeRangePickerHeight}"
                         Padding="9,0,9,0"
-                        AccessibleName="Flyout Time Range"
-                        Label="Flyout"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
                         TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
 
                     <fhTimeRange:TimeRangePickerControl
                         x:Name="TaskbarTimeRangePicker"
+                        x:Uid="TaskbarFlyout_TaskbarTimeRangePicker"
                         Height="{StaticResource FlyoutTimeRangePickerHeight}"
                         Padding="9,0,9,0"
-                        AccessibleName="Taskbar Time Range"
-                        Label="Taskbar"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
                         TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
@@ -232,11 +230,11 @@
                     <!--  open the sensor list on the taskbar profile  -->
                     <Button
                         x:Name="BackToDashboardButton"
+                        x:Uid="TaskbarFlyout_BackToDashboardButton"
                         Height="{StaticResource FlyoutBarButtonHeight}"
                         Padding="7,0,7,0"
                         HorizontalAlignment="Left"
                         Click="BackToDashboard_Click"
-                        Content="Manage Taskbar Sensors"
                         FontSize="12"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource SubtleBarButtonStyle}" />
@@ -245,16 +243,15 @@
                     <!--  (no close button; the widget is closed from the sensor list)  -->
                     <Button
                         x:Name="TaskbarSettingsButton"
+                        x:Uid="TaskbarFlyout_TaskbarSettingsButton"
                         Width="38"
                         Height="{StaticResource FlyoutBarButtonHeight}"
                         Margin="0,0,1,0"
                         Padding="8,0,8,0"
                         HorizontalAlignment="Right"
-                        AutomationProperties.Name="Taskbar Widget Settings"
                         Click="TaskbarSettings_Click"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{StaticResource SubtleBarButtonStyle}"
-                        ToolTipService.ToolTip="Taskbar Widget Settings">
+                        Style="{StaticResource SubtleBarButtonStyle}">
                         <FontIcon FontSize="14" Glyph="&#xE713;" />
                     </Button>
                 </Grid>

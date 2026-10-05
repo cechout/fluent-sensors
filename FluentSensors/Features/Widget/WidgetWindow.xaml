@@ -29,11 +29,11 @@
             Height="26"
             Background="Transparent">
             <TextBlock
+                x:Uid="Widget_SystemSensorsText"
                 Margin="12,3,0,0"
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="System Sensors" />
+                Style="{StaticResource CaptionTextBlockStyle}" />
         </Grid>
 
 
@@ -76,13 +76,12 @@
                     <!--  back to the main window  -->
                     <Button
                         x:Name="BackToDashboardButton"
+                        x:Uid="Widget_BackToDashboardButton"
                         Width="32"
                         Height="22"
                         Padding="0"
-                        AutomationProperties.Name="Back to Main Application"
                         Click="BackToDashboard_Click"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="Back to Main Application">
+                        Style="{StaticResource SubtleButtonStyle}">
                         <FontIcon
                             FontSize="14"
                             FontWeight="SemiLight"

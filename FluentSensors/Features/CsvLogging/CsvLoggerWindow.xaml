@@ -36,13 +36,12 @@
                 <!--  (same one the widget window carries)  -->
                 <Button
                     x:Name="BackToDashboardButton"
+                    x:Uid="CsvLogger_BackToDashboardButton"
                     Width="32"
                     Padding="0"
                     VerticalAlignment="Stretch"
-                    AutomationProperties.Name="Back to Main Application"
                     Click="BackToDashboard_Click"
-                    Style="{StaticResource SubtleButtonStyle}"
-                    ToolTipService.ToolTip="Back to Main Application">
+                    Style="{StaticResource SubtleButtonStyle}">
                     <FontIcon
                         FontSize="14"
                         FontWeight="SemiLight"
@@ -94,7 +93,7 @@
                     Visibility="{x:Bind ViewModel.StartButtonVisibility, Mode=OneWay}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon FontSize="14" Glyph="&#xE768;" />
-                        <TextBlock Text="Start" />
+                        <TextBlock x:Uid="CsvLogger_StartText" />
                     </StackPanel>
                 </Button>
 
@@ -102,10 +101,10 @@
 
                     <!--  stop button  -->
                     <Button
+                        x:Uid="CsvLogger_StopButton"
                         Width="36"
                         Padding="0"
                         VerticalAlignment="Stretch"
-                        AutomationProperties.Name="Stop"
                         Click="StopLogging_Click"
                         Style="{StaticResource SubtleBarButtonStyle}"
                         Visibility="{x:Bind ViewModel.StopButtonVisibility, Mode=OneWay}">
@@ -212,9 +211,9 @@
                     <!--  number of pinned sensors  -->
                     <StackPanel Width="Auto" Spacing="2">
                         <TextBlock
+                            x:Uid="CsvLogger_PinnedSensorsText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Pinned sensors"
                             TextWrapping="Wrap" />
                         <TextBlock
                             Style="{ThemeResource BodyTextBlockStyle}"
@@ -225,9 +224,9 @@
                     <!--  polling rate  -->
                     <StackPanel Width="Auto" Spacing="2">
                         <TextBlock
+                            x:Uid="CsvLogger_PollingRateText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Polling rate"
                             TextWrapping="Wrap" />
                         <TextBlock
                             Style="{ThemeResource BodyTextBlockStyle}"
@@ -239,9 +238,9 @@
                     <!--  (the main bar shows the recorded stretch; this matches the elapsed column)  -->
                     <StackPanel Width="Auto" Spacing="2">
                         <TextBlock
+                            x:Uid="CsvLogger_TotalElapsedText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Total elapsed"
                             TextWrapping="Wrap" />
                         <TextBlock
                             Style="{ThemeResource BodyTextBlockStyle}"
@@ -252,9 +251,9 @@
                     <!--  what explains the difference between the two durations  -->
                     <StackPanel Width="Auto" Spacing="2">
                         <TextBlock
+                            x:Uid="CsvLogger_PausesText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="Pauses"
                             TextWrapping="Wrap" />
                         <TextBlock
                             Style="{ThemeResource BodyTextBlockStyle}"
@@ -300,13 +299,12 @@
 
                     <!--  opens the folder in the shell; (nothing while it does not exist yet)  -->
                     <Button
+                        x:Uid="CsvLogger_OpenInFileExplorerButton"
                         Grid.Column="1"
                         Width="36"
                         Padding="0"
                         VerticalAlignment="Stretch"
-                        AutomationProperties.Name="Open in File Explorer"
-                        Click="OpenLogFolder_Click"
-                        ToolTipService.ToolTip="Open in File Explorer">
+                        Click="OpenLogFolder_Click">
                         <FontIcon FontSize="14" Glyph="&#xED25;" />
                     </Button>
                 </Grid>

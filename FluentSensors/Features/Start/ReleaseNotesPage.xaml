@@ -44,7 +44,7 @@
                             Style="{ThemeResource CaptionTextBlockStyle}" />
                         <HyperlinkButton
                             x:Name="GitHubLink"
-                            Content="View on GitHub"
+                            x:Uid="ReleaseNotes_GitHubLink"
                             Style="{StaticResource SourceLinkButtonStyle}" />
                         <!--<HyperlinkButton x:Name="GitHubLink" Content="View on GitHub" />-->
                     </StackPanel>
@@ -55,9 +55,9 @@
                     <!--  empty state  -->
                     <TextBlock
                         x:Name="EmptyText"
+                        x:Uid="ReleaseNotes_EmptyText"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{ThemeResource BodyTextBlockStyle}"
-                        Text="This release was published without notes"
                         TextWrapping="Wrap"
                         Visibility="Collapsed" />
 
@@ -71,10 +71,10 @@
                         Spacing="8"
                         Visibility="Collapsed">
                         <TextBlock
+                            x:Uid="ReleaseNotes_FullChangelogText"
                             VerticalAlignment="Center"
                             FontSize="{StaticResource ChangelogLabelFontSize}"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="Full changelog:" />
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <HyperlinkButton
                             x:Name="ChangelogLink"
                             VerticalAlignment="Center"

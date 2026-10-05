@@ -22,31 +22,120 @@
             Spacing="4">
 
             <TextBlock
+                x:Uid="Settings_SettingsText"
                 Margin="4,0,0,12"
-                Style="{StaticResource SubtitleTextBlockStyle}"
-                Text="Settings" />
+                Style="{StaticResource SubtitleTextBlockStyle}" />
 
 
             <!--  general settings  -->
             <TextBlock
+                x:Uid="Settings_GeneralSettingsText"
                 Margin="4,8,0,6"
-                Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="General Settings" />
+                Style="{StaticResource BodyStrongTextBlockStyle}" />
 
             <controls:SettingsCard
+                x:Uid="Settings_AppThemeCard"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Light, dark, or match Windows"
-                Header="App Theme"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE790;}">
                 <ComboBox
                     x:Name="ThemeComboBox"
                     Width="150"
                     SelectionChanged="ThemeComboBox_SelectionChanged">
-                    <ComboBoxItem Content="System Default" Tag="Default" />
-                    <ComboBoxItem Content="Light" Tag="Light" />
-                    <ComboBoxItem Content="Dark" Tag="Dark" />
+                    <ComboBoxItem x:Uid="Settings_ThemeComboBox_Default" Tag="Default" />
+                    <ComboBoxItem x:Uid="Settings_ThemeComboBox_Light" Tag="Light" />
+                    <ComboBoxItem x:Uid="Settings_ThemeComboBox_Dark" Tag="Dark" />
                 </ComboBox>
             </controls:SettingsCard>
+
+            <!--  language: app language and technical terms  -->
+            <!--
+                (both apply on the next start; the info bar offers the restart while a choice differs from what
+                this process runs with, see UpdateLanguageRestartBar)
+            -->
+            <controls:SettingsExpander
+                x:Uid="Settings_LanguageExpander"
+                fhUi:FocusGroup.IsEnabled="True"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xF2B7;}"
+                IsExpanded="False">
+
+                <!--  restart hint: icon, message and restart button  -->
+                <!--
+                    (a success InfoBar built from its own theme resources; the native one stacks its button
+                    right after the message, this one puts the text on the 58 and the button on the 44 of the items)
+                -->
+                <controls:SettingsExpander.ItemsHeader>
+                    <Grid
+                        x:Name="LanguageRestartBar"
+                        MinHeight="48"
+                        Padding="21,8,44,8"
+                        Background="{ThemeResource InfoBarSuccessSeverityBackgroundBrush}"
+                        Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  icon  -->
+                        <Grid
+                            Margin="0,0,21,0"
+                            VerticalAlignment="Center"
+                            AutomationProperties.AccessibilityView="Raw">
+                            <TextBlock
+                                FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                FontSize="16"
+                                Foreground="{ThemeResource InfoBarSuccessSeverityIconBackground}"
+                                Text="&#xF136;" />
+                            <TextBlock
+                                FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                FontSize="16"
+                                Foreground="{ThemeResource InfoBarSuccessSeverityIconForeground}"
+                                Text="&#xF13E;" />
+                        </Grid>
+
+                        <!--  message  -->
+                        <TextBlock
+                            x:Name="LanguageRestartText"
+                            x:Uid="Settings_LanguageRestartText"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            AutomationProperties.LiveSetting="Polite"
+                            Foreground="{ThemeResource InfoBarMessageForeground}"
+                            Style="{ThemeResource BodyTextBlockStyle}"
+                            TextWrapping="WrapWholeWords" />
+
+                        <!--  restart button  -->
+                        <Button
+                            x:Uid="Settings_LanguageRestartButton"
+                            Grid.Column="2"
+                            Margin="16,0,0,0"
+                            VerticalAlignment="Center"
+                            Click="LanguageRestartButton_Click" />
+                    </Grid>
+                </controls:SettingsExpander.ItemsHeader>
+
+                <controls:SettingsExpander.Items>
+                    <!--  app language  -->
+                    <!--  (the languages after the default come from AppLanguage.Supported, see RestoreLanguageSelection)  -->
+                    <controls:SettingsCard x:Uid="Settings_LanguageCard">
+                        <ComboBox
+                            x:Name="LanguageComboBox"
+                            Width="150"
+                            SelectionChanged="LanguageComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_LanguageComboBox_Default" Tag="Default" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <!--  technical terms in english  -->
+                    <!--  (disabled while the selected language is english, there is nothing to keep)  -->
+                    <controls:SettingsCard x:Name="TechnicalTermsCard" x:Uid="Settings_TechnicalTermsCard">
+                        <ToggleSwitch
+                            x:Name="TechnicalTermsToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="TechnicalTermsToggle_Toggled" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
 
             <!--  hardware icon colors  -->
             <!--
@@ -54,43 +143,39 @@
                 views own headers; graph colors are a per surface choice and sit in their Graph sections instead)
             -->
             <controls:SettingsCard
+                x:Uid="Settings_HardwareIconColorsCard"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Color hardware icons by category"
-                Header="Hardware Icon Colors"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE2B1;}">
                 <ToggleSwitch
                     x:Name="HardwareIconColorsToggle"
-                    OffContent="Off"
-                    OnContent="On"
+                    x:Uid="Common_ToggleSwitch"
                     Toggled="HardwareIconColorsToggle_Toggled" />
             </controls:SettingsCard>
 
             <!--  graph rendering  -->
             <!--  (both rows apply to every graph in the app, the per-surface sections below only add color and range)  -->
             <controls:SettingsExpander
+                x:Uid="Settings_GraphExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Line style and area fill of every graph"
-                Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Line Style">
+                    <controls:SettingsCard x:Uid="Settings_LineStyleCard">
                         <ComboBox
                             x:Name="GraphLineStyleComboBox"
                             Width="150"
                             SelectionChanged="GraphLineStyleComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Stepline" Tag="Stepline" />
-                            <ComboBoxItem Content="Smooth" Tag="Smooth" />
+                            <ComboBoxItem x:Uid="Settings_GraphLineStyleComboBox_Stepline" Tag="Stepline" />
+                            <ComboBoxItem x:Uid="Settings_GraphLineStyleComboBox_Smooth" Tag="Smooth" />
                         </ComboBox>
                     </controls:SettingsCard>
 
                     <!--  (stays flat while a threshold is tripped, the alarm zones need the other gradient axis)  -->
-                    <controls:SettingsCard Header="Fill Fade">
+                    <controls:SettingsCard x:Uid="Settings_FillFadeCard">
                         <ToggleSwitch
                             x:Name="GraphFillFadeToggle"
-                            OffContent="Off"
-                            OnContent="On"
+                            x:Uid="Common_ToggleSwitch"
                             Toggled="GraphFillFadeToggle_Toggled" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
@@ -99,14 +184,13 @@
             <!--  data units  -->
             <!--  (reaches every displayed value; csv recordings keep the byte units the raw values are stored in)  -->
             <controls:SettingsExpander
+                x:Uid="Settings_DataUnitsExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Bytes or bits for data sizes and speeds"
-                Header="Data Units"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE8EF;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Data Size">
+                    <controls:SettingsCard x:Uid="Settings_DataSizeCard">
                         <ComboBox
                             x:Name="DataSizeUnitComboBox"
                             Width="150"
@@ -116,7 +200,7 @@
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="Data Speed">
+                    <controls:SettingsCard x:Uid="Settings_DataSpeedCard">
                         <ComboBox
                             x:Name="DataSpeedUnitComboBox"
                             Width="150"
@@ -130,43 +214,39 @@
 
             <!--  title bar status readout  -->
             <controls:SettingsExpander
+                x:Uid="Settings_TitleBarStatusExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Which readouts the title bar shows, and in which order"
-                Header="Title Bar Status"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xF138;}"
                 IsExpanded="False">
 
                 <ToggleSwitch
                     x:Name="StatusReadoutToggle"
-                    OffContent="Off"
-                    OnContent="On"
+                    x:Uid="Common_ToggleSwitch"
                     Toggled="StatusReadoutToggle_Toggled" />
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard x:Name="StatusLhmGroupCard" Header="Sensor Status">
+                    <controls:SettingsCard x:Name="StatusLhmGroupCard" x:Uid="Settings_StatusLhmGroupCard">
                         <ToggleSwitch
                             x:Name="StatusLhmGroupToggle"
-                            OffContent="Off"
-                            OnContent="On"
+                            x:Uid="Common_ToggleSwitch"
                             Toggled="StatusLhmGroupToggle_Toggled" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard x:Name="StatusWindowsGroupCard" Header="App Resources">
+                    <controls:SettingsCard x:Name="StatusWindowsGroupCard" x:Uid="Settings_StatusWindowsGroupCard">
                         <ToggleSwitch
                             x:Name="StatusWindowsGroupToggle"
-                            OffContent="Off"
-                            OnContent="On"
+                            x:Uid="Common_ToggleSwitch"
                             Toggled="StatusWindowsGroupToggle_Toggled" />
                     </controls:SettingsCard>
 
                     <!--  (stays disabled until both readouts above are on, there is nothing to order otherwise)  -->
-                    <controls:SettingsCard x:Name="StatusGroupOrderCard" Header="Order">
+                    <controls:SettingsCard x:Name="StatusGroupOrderCard" x:Uid="Settings_StatusGroupOrderCard">
                         <ComboBox
                             x:Name="StatusGroupOrderComboBox"
                             Width="190"
                             SelectionChanged="StatusGroupOrderComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Sensor status first" Tag="LhmFirst" />
-                            <ComboBoxItem Content="App resources first" Tag="WindowsFirst" />
+                            <ComboBoxItem x:Uid="Settings_StatusGroupOrderComboBox_LhmFirst" Tag="LhmFirst" />
+                            <ComboBoxItem x:Uid="Settings_StatusGroupOrderComboBox_WindowsFirst" Tag="WindowsFirst" />
                         </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
@@ -174,14 +254,12 @@
 
             <!--  behavior settings  -->
             <controls:SettingsCard
+                x:Uid="Settings_MinimizeToSystemTrayCard"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Hide app to system tray when all windows are minimized"
-                Header="Minimize to System Tray"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE744;}">
                 <ToggleSwitch
                     x:Name="MinimizeToTrayToggle"
-                    OffContent="Off"
-                    OnContent="On"
+                    x:Uid="Common_ToggleSwitch"
                     Toggled="MinimizeToTrayToggle_Toggled" />
             </controls:SettingsCard>
 
@@ -191,56 +269,51 @@
                 autostart and its delay are hidden in a portable build, see RestoreStartupSelection
             -->
             <controls:SettingsExpander
+                x:Uid="Settings_StartupExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="What happens when Windows starts, and what the app does when it launches"
-                Header="Startup"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE7E8;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard x:Name="RunOnStartupCard" Header="Run on startup">
+                    <controls:SettingsCard x:Name="RunOnStartupCard" x:Uid="Settings_RunOnStartupCard">
                         <ToggleSwitch
                             x:Name="RunOnStartupToggle"
-                            OffContent="Off"
-                            OnContent="On"
+                            x:Uid="Common_ToggleSwitch"
                             Toggled="RunOnStartupToggle_Toggled" />
                     </controls:SettingsCard>
 
                     <!--  (stays disabled while autostart is off, there is nothing to delay then)  -->
-                    <controls:SettingsCard x:Name="DelayStartupCard" Header="Delay start">
+                    <controls:SettingsCard x:Name="DelayStartupCard" x:Uid="Settings_DelayStartupCard">
                         <ToggleSwitch
                             x:Name="DelayStartupToggle"
-                            OffContent="Off"
-                            OnContent="On"
+                            x:Uid="Common_ToggleSwitch"
                             Toggled="DelayStartupToggle_Toggled" />
                     </controls:SettingsCard>
 
                     <!--  (applies to the sign-in launch only, opening the app yourself always shows the window)  -->
-                    <controls:SettingsCard x:Name="StartMinimizedCard" Header="Start minimized to tray">
+                    <controls:SettingsCard x:Name="StartMinimizedCard" x:Uid="Settings_StartMinimizedCard">
                         <ToggleSwitch
                             x:Name="StartMinimizedToggle"
-                            OffContent="Off"
-                            OnContent="On"
+                            x:Uid="Common_ToggleSwitch"
                             Toggled="StartMinimizedToggle_Toggled" />
                     </controls:SettingsCard>
 
                     <!--  (the labels mirror the navigation entries, so both name the same page)  -->
-                    <controls:SettingsCard x:Name="StartupPageCard" Header="Page shown on launch">
+                    <controls:SettingsCard x:Name="StartupPageCard" x:Uid="Settings_StartupPageCard">
                         <ComboBox
                             x:Name="StartupPageComboBox"
                             Width="190"
                             SelectionChanged="StartupPageComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Start" Tag="Start" />
-                            <ComboBoxItem Content="Sensors" Tag="Sensors" />
-                            <ComboBoxItem Content="Hardware View" Tag="Performance" />
+                            <ComboBoxItem x:Uid="Settings_StartupPageComboBox_Start" Tag="Start" />
+                            <ComboBoxItem x:Uid="Settings_StartupPageComboBox_Sensors" Tag="Sensors" />
+                            <ComboBoxItem x:Uid="Settings_StartupPageComboBox_Performance" Tag="Performance" />
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard x:Name="CheckUpdatesCard" Header="Check for updates on startup">
+                    <controls:SettingsCard x:Name="CheckUpdatesCard" x:Uid="Settings_CheckUpdatesCard">
                         <ToggleSwitch
                             x:Name="CheckUpdatesToggle"
-                            OffContent="Off"
-                            OnContent="On"
+                            x:Uid="Common_ToggleSwitch"
                             Toggled="CheckUpdatesToggle_Toggled" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
@@ -248,9 +321,8 @@
 
             <!--  engine settings  -->
             <controls:SettingsCard
+                x:Uid="Settings_UpdateIntervalCard"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="How often sensors are polled"
-                Header="Update Interval"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE916;}">
                 <ComboBox
                     x:Name="IntervalComboBox"
@@ -272,20 +344,19 @@
 
             <!--  performance page settings  -->
             <TextBlock
+                x:Uid="Settings_PerformancePageAppearanceText"
                 Margin="4,20,0,6"
-                Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="Performance Page Appearance" />
+                Style="{StaticResource BodyStrongTextBlockStyle}" />
 
             <!--  graph appearance  -->
             <controls:SettingsExpander
+                x:Uid="Settings_PerformanceGraphExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Time range of the overview graphs and the denser grids"
-                Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Time Range">
+                    <controls:SettingsCard x:Uid="Settings_TimeRangeCard">
                         <ComboBox
                             x:Name="PerformanceGraphTimeSpanComboBox"
                             Width="40"
@@ -293,7 +364,7 @@
                             SelectionChanged="PerformanceGraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="CPU Extended Time Range">
+                    <controls:SettingsCard x:Uid="Settings_CPUExtendedTimeRangeCard">
                         <ComboBox
                             x:Name="PerformanceCpuExtendedGraphTimeSpanComboBox"
                             Width="40"
@@ -301,7 +372,7 @@
                             SelectionChanged="PerformanceCpuExtendedGraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="GPU Extended Time Range">
+                    <controls:SettingsCard x:Uid="Settings_GPUExtendedTimeRangeCard">
                         <ComboBox
                             x:Name="PerformanceGpuExtendedGraphTimeSpanComboBox"
                             Width="40"
@@ -314,15 +385,14 @@
 
             <!--  widget window settings  -->
             <TextBlock
+                x:Uid="Settings_WidgetWindowAppearanceText"
                 Margin="4,20,0,6"
-                Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="Widget Window Appearance" />
+                Style="{StaticResource BodyStrongTextBlockStyle}" />
 
             <!--  background material  -->
             <controls:SettingsExpander
+                x:Uid="Settings_BackgroundMaterialExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Backdrop effect and color for the widget window"
-                Header="Background Material"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xEF1F;}"
                 IsExpanded="False">
 
@@ -330,16 +400,13 @@
                     x:Name="BackdropComboBox"
                     Width="160"
                     SelectionChanged="BackdropComboBox_SelectionChanged">
-                    <ComboBoxItem Content="Desktop Acrylic" Tag="Acrylic" />
-                    <ComboBoxItem Content="System Mica" Tag="Mica" />
-                    <ComboBoxItem Content="Solid" Tag="None" />
+                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_Acrylic" Tag="Acrylic" />
+                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_Mica" Tag="Mica" />
+                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_None" Tag="None" />
                 </ComboBox>
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard
-                        x:Name="TintOpacityCard"
-                        Description="(Acrylic only)"
-                        Header="Tint Opacity">
+                    <controls:SettingsCard x:Name="TintOpacityCard" x:Uid="Settings_TintOpacityCard">
                         <Slider
                             x:Name="TintSlider"
                             Width="200"
@@ -350,10 +417,7 @@
                             ValueChanged="TintSlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard
-                        x:Name="LuminosityOpacityCard"
-                        Description="(Acrylic only)"
-                        Header="Luminosity Opacity">
+                    <controls:SettingsCard x:Name="LuminosityOpacityCard" x:Uid="Settings_LuminosityOpacityCard">
                         <Slider
                             x:Name="LuminositySlider"
                             Width="200"
@@ -364,21 +428,18 @@
                             ValueChanged="LuminositySlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard
-                        x:Name="BackgroundColorSourceCard"
-                        Description="(Acrylic and Solid)"
-                        Header="Background Color Source">
+                    <controls:SettingsCard x:Name="BackgroundColorSourceCard" x:Uid="Settings_BackgroundColorSourceCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="BackgroundColorSourceComboBox"
+                                x:Uid="Settings_BackgroundColorSourceComboBox"
                                 Width="160"
-                                AutomationProperties.Name="Background Color Source"
                                 SelectionChanged="BackgroundColorSourceComboBox_SelectionChanged">
-                                <ComboBoxItem Content="Windows Accent" Tag="Accent" />
-                                <ComboBoxItem Content="Custom Color" Tag="Custom" />
+                                <ComboBoxItem x:Uid="Settings_BackgroundColorSourceComboBox_Accent" Tag="Accent" />
+                                <ComboBoxItem x:Uid="Settings_BackgroundColorSourceComboBox_Custom" Tag="Custom" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="WidgetBackgroundColorPicker" AutomationProperties.Name="Background Color" />
+                            <controls:ColorPickerButton x:Name="WidgetBackgroundColorPicker" x:Uid="Settings_WidgetBackgroundColorPicker" />
                         </StackPanel>
 
                     </controls:SettingsCard>
@@ -387,30 +448,29 @@
 
             <!--  graph appearance  -->
             <controls:SettingsExpander
+                x:Uid="Settings_WidgetGraphExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Graph color and time range"
-                Header="Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Graph Color Source">
+                    <controls:SettingsCard x:Uid="Settings_GraphColorSourceCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="GraphColorSourceComboBox"
+                                x:Uid="Settings_GraphColorSourceComboBox"
                                 Width="160"
-                                AutomationProperties.Name="Graph Color Source"
                                 SelectionChanged="GraphColorSourceComboBox_SelectionChanged">
-                                <ComboBoxItem Content="Windows Accent" Tag="Accent" />
-                                <ComboBoxItem Content="Custom Color" Tag="Custom" />
-                                <ComboBoxItem Content="Hardware Color" Tag="Hardware" />
+                                <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Accent" Tag="Accent" />
+                                <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Custom" Tag="Custom" />
+                                <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Hardware" Tag="Hardware" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="GraphColorPicker" AutomationProperties.Name="Graph Color" />
+                            <controls:ColorPickerButton x:Name="GraphColorPicker" x:Uid="Settings_GraphColorPicker" />
                         </StackPanel>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="Time Range">
+                    <controls:SettingsCard x:Uid="Settings_TimeRangeCard">
                         <ComboBox
                             x:Name="GraphTimeSpanComboBox"
                             Width="40"
@@ -425,9 +485,9 @@
             <!--  (the jump target of the gear button in the taskbar flyout, see ScrollToTaskbarSection)  -->
             <TextBlock
                 x:Name="TaskbarSectionHeader"
+                x:Uid="Settings_TaskbarSectionHeader"
                 Margin="4,20,0,6"
-                Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="Taskbar Widget &amp; Flyout Appearance" />
+                Style="{StaticResource BodyStrongTextBlockStyle}" />
 
             <!--  the taskbar edge the per edge settings below belong to  -->
             <!--
@@ -435,58 +495,57 @@
                 override the 68 and 16 the toolkit style sets, so this read only row stays lower than the others)
             -->
             <controls:SettingsCard
+                x:Uid="Settings_CurrentTaskbarPositionCard"
                 MinHeight="40"
                 Padding="16,12,16,12"
                 fhUi:FocusGroup.IsEnabled="True"
-                Background="{ThemeResource ControlFillColorTertiaryBrush}"
-                Header="Current Taskbar Position">
+                Background="{ThemeResource ControlFillColorTertiaryBrush}">
                 <TextBlock x:Name="TaskbarPositionText" VerticalAlignment="Center" />
             </controls:SettingsCard>
 
             <!--  taskbar graph appearance  -->
             <controls:SettingsExpander
+                x:Uid="Settings_TaskbarGraphExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Graph color, background, time range, width and side taskbar layout"
-                Header="Taskbar Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="(Taskbar and flyout)" Header="Graph Color Source">
+                    <controls:SettingsCard x:Uid="Settings_TaskbarGraphColorSourceCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="TaskbarGraphColorSourceComboBox"
+                                x:Uid="Settings_TaskbarGraphColorSourceComboBox"
                                 Width="160"
-                                AutomationProperties.Name="Graph Color Source"
                                 SelectionChanged="TaskbarGraphColorSourceComboBox_SelectionChanged">
-                                <ComboBoxItem Content="Windows Accent" Tag="Accent" />
-                                <ComboBoxItem Content="Custom Color" Tag="Custom" />
-                                <ComboBoxItem Content="Hardware Color" Tag="Hardware" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarGraphColorSourceComboBox_Accent" Tag="Accent" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarGraphColorSourceComboBox_Custom" Tag="Custom" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarGraphColorSourceComboBox_Hardware" Tag="Hardware" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" AutomationProperties.Name="Graph Color" />
+                            <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" x:Uid="Settings_TaskbarGraphColorPicker" />
                         </StackPanel>
                     </controls:SettingsCard>
 
                     <!--  transparent drops the calculated tint so the taskbar shows through the graph cards  -->
-                    <controls:SettingsCard Header="Graph Background Source">
+                    <controls:SettingsCard x:Uid="Settings_GraphBackgroundSourceCard">
                         <ComboBox
                             x:Name="TaskbarGraphBackgroundSourceComboBox"
                             Width="160"
                             SelectionChanged="TaskbarGraphBackgroundSourceComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Calculated" Tag="Calculated" />
-                            <ComboBoxItem Content="Transparent" Tag="Transparent" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Calculated" Tag="Calculated" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Transparent" Tag="Transparent" />
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="Time Range">
+                    <controls:SettingsCard x:Uid="Settings_TimeRangeCard">
                         <ComboBox
                             x:Name="TaskbarGraphTimeSpanComboBox"
                             Width="40"
                             DisplayMemberPath="DisplayName"
                             SelectionChanged="TaskbarGraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
-                    <controls:SettingsCard Header="Graph Width">
+                    <controls:SettingsCard x:Uid="Settings_GraphWidthCard">
                         <Slider
                             x:Name="TaskbarGraphWidthSlider"
                             Width="200"
@@ -498,23 +557,23 @@
                     </controls:SettingsCard>
 
                     <!--  side taskbar slot; (only with the taskbar on the left or right)  -->
-                    <controls:SettingsCard x:Name="TaskbarSideGraphDirectionCard" Header="Side Taskbar Graph Direction">
+                    <controls:SettingsCard x:Name="TaskbarSideGraphDirectionCard" x:Uid="Settings_TaskbarSideGraphDirectionCard">
                         <ComboBox
                             x:Name="TaskbarSideGraphDirectionComboBox"
                             Width="160"
                             SelectionChanged="TaskbarSideGraphDirectionComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Right to Left" Tag="RightToLeft" />
-                            <ComboBoxItem Content="Top to Bottom" Tag="TopToBottom" />
-                            <ComboBoxItem Content="Bottom to Top" Tag="BottomToTop" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft" Tag="RightToLeft" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarSideGraphDirectionComboBox_TopToBottom" Tag="TopToBottom" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarSideGraphDirectionComboBox_BottomToTop" Tag="BottomToTop" />
                         </ComboBox>
                     </controls:SettingsCard>
-                    <controls:SettingsCard x:Name="TaskbarSideTitleLinesCard" Header="Side Taskbar Name Lines">
+                    <controls:SettingsCard x:Name="TaskbarSideTitleLinesCard" x:Uid="Settings_TaskbarSideTitleLinesCard">
                         <ComboBox
                             x:Name="TaskbarSideTitleLinesComboBox"
                             Width="160"
                             SelectionChanged="TaskbarSideTitleLinesComboBox_SelectionChanged">
-                            <ComboBoxItem Content="One Line" Tag="1" />
-                            <ComboBoxItem Content="Two Lines" Tag="2" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarSideTitleLinesComboBox_1" Tag="1" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarSideTitleLinesComboBox_2" Tag="2" />
                         </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
@@ -522,37 +581,35 @@
 
             <!--  flyout alignment over the widget  -->
             <controls:SettingsCard
+                x:Uid="Settings_FlyoutAlignmentCard"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Where the flyout lines up relative to the widget"
-                Header="Flyout Alignment"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE8E3;}">
                 <ComboBox
                     x:Name="TaskbarFlyoutAlignmentComboBox"
                     Width="160"
                     SelectionChanged="TaskbarFlyoutAlignmentComboBox_SelectionChanged">
-                    <ComboBoxItem Content="Centered" Tag="Center" />
-                    <ComboBoxItem Content="Left" Tag="Left" />
-                    <ComboBoxItem Content="Right" Tag="Right" />
+                    <ComboBoxItem x:Uid="Settings_TaskbarFlyoutAlignmentComboBox_Center" Tag="Center" />
+                    <ComboBoxItem x:Uid="Settings_TaskbarFlyoutAlignmentComboBox_Left" Tag="Left" />
+                    <ComboBoxItem x:Uid="Settings_TaskbarFlyoutAlignmentComboBox_Right" Tag="Right" />
                 </ComboBox>
             </controls:SettingsCard>
 
             <!--  flyout graph appearance  -->
             <controls:SettingsExpander
+                x:Uid="Settings_FlyoutGraphExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Graph time range and height"
-                Header="Flyout Graph"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Time Range">
+                    <controls:SettingsCard x:Uid="Settings_TimeRangeCard">
                         <ComboBox
                             x:Name="TaskbarFlyoutGraphTimeSpanComboBox"
                             Width="40"
                             DisplayMemberPath="DisplayName"
                             SelectionChanged="TaskbarFlyoutGraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
-                    <controls:SettingsCard Header="Graph Height">
+                    <controls:SettingsCard x:Uid="Settings_GraphHeightCard">
                         <Slider
                             x:Name="TaskbarFlyoutGraphHeightSlider"
                             Width="200"
@@ -567,9 +624,8 @@
 
             <!--  flyout background material  -->
             <controls:SettingsExpander
+                x:Uid="Settings_FlyoutBackgroundMaterialExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Backdrop effect and color for the taskbar flyout"
-                Header="Flyout Background Material"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xEF1F;}"
                 IsExpanded="False">
 
@@ -577,16 +633,13 @@
                     x:Name="TaskbarBackdropComboBox"
                     Width="160"
                     SelectionChanged="TaskbarBackdropComboBox_SelectionChanged">
-                    <ComboBoxItem Content="Desktop Acrylic" Tag="Acrylic" />
-                    <ComboBoxItem Content="System Mica" Tag="Mica" />
-                    <ComboBoxItem Content="Solid" Tag="None" />
+                    <ComboBoxItem x:Uid="Settings_TaskbarBackdropComboBox_Acrylic" Tag="Acrylic" />
+                    <ComboBoxItem x:Uid="Settings_TaskbarBackdropComboBox_Mica" Tag="Mica" />
+                    <ComboBoxItem x:Uid="Settings_TaskbarBackdropComboBox_None" Tag="None" />
                 </ComboBox>
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard
-                        x:Name="TaskbarTintOpacityCard"
-                        Description="(Acrylic only)"
-                        Header="Tint Opacity">
+                    <controls:SettingsCard x:Name="TaskbarTintOpacityCard" x:Uid="Settings_TaskbarTintOpacityCard">
                         <Slider
                             x:Name="TaskbarTintSlider"
                             Width="200"
@@ -597,10 +650,7 @@
                             ValueChanged="TaskbarTintSlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard
-                        x:Name="TaskbarLuminosityOpacityCard"
-                        Description="(Acrylic only)"
-                        Header="Luminosity Opacity">
+                    <controls:SettingsCard x:Name="TaskbarLuminosityOpacityCard" x:Uid="Settings_TaskbarLuminosityOpacityCard">
                         <Slider
                             x:Name="TaskbarLuminositySlider"
                             Width="200"
@@ -611,21 +661,18 @@
                             ValueChanged="TaskbarLuminositySlider_ValueChanged" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard
-                        x:Name="TaskbarBackgroundColorSourceCard"
-                        Description="(Acrylic and Solid)"
-                        Header="Background Color Source">
+                    <controls:SettingsCard x:Name="TaskbarBackgroundColorSourceCard" x:Uid="Settings_TaskbarBackgroundColorSourceCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
                                 x:Name="TaskbarBackgroundColorSourceComboBox"
+                                x:Uid="Settings_TaskbarBackgroundColorSourceComboBox"
                                 Width="160"
-                                AutomationProperties.Name="Background Color Source"
                                 SelectionChanged="TaskbarBackgroundColorSourceComboBox_SelectionChanged">
-                                <ComboBoxItem Content="Windows Accent" Tag="Accent" />
-                                <ComboBoxItem Content="Custom Color" Tag="Custom" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarBackgroundColorSourceComboBox_Accent" Tag="Accent" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarBackgroundColorSourceComboBox_Custom" Tag="Custom" />
                             </ComboBox>
 
-                            <controls:ColorPickerButton x:Name="TaskbarBackgroundColorPicker" AutomationProperties.Name="Background Color" />
+                            <controls:ColorPickerButton x:Name="TaskbarBackgroundColorPicker" x:Uid="Settings_TaskbarBackgroundColorPicker" />
                         </StackPanel>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
@@ -634,29 +681,26 @@
 
             <!--  taskbar widget & flyout behavior settings  -->
             <TextBlock
+                x:Uid="Settings_TaskbarWidgetFlyoutBehaviorText"
                 Margin="4,20,0,6"
-                Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="Taskbar Widget &amp; Flyout Behavior" />
+                Style="{StaticResource BodyStrongTextBlockStyle}" />
 
             <!--  drag lock for the widget position on the taskbar  -->
             <controls:SettingsCard
+                x:Uid="Settings_LockTaskbarWidgetPositionCard"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Stop the taskbar widget from being dragged along the taskbar"
-                Header="Lock Taskbar Widget Position"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE72E;}">
                 <ToggleSwitch
                     x:Name="LockWidgetPositionToggle"
-                    OffContent="Off"
-                    OnContent="On"
+                    x:Uid="Common_ToggleSwitch"
                     Toggled="LockWidgetPositionToggle_Toggled" />
             </controls:SettingsCard>
 
             <!--  flyout shortcut  -->
             <!--  (the keys as accent buttons and an edit pencil; a click opens FlyoutShortcutDialog, keys set from code)  -->
             <controls:SettingsCard
+                x:Uid="Settings_FlyoutShortcutCard"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Open the flyout from the keyboard while the taskbar widget is open"
-                Header="Flyout Shortcut"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE765;}">
                 <Button
                     x:Name="FlyoutShortcutButton"
@@ -686,9 +730,9 @@
                         </StackPanel>
                         <TextBlock
                             x:Name="FlyoutShortcutNoneText"
+                            x:Uid="Settings_FlyoutShortcutNoneText"
                             Margin="4,0,0,0"
-                            VerticalAlignment="Center"
-                            Text="None" />
+                            VerticalAlignment="Center" />
                         <FontIcon
                             VerticalAlignment="Center"
                             FontSize="14"
@@ -700,9 +744,9 @@
 
             <!--  csv logging settings  -->
             <TextBlock
+                x:Uid="Settings_CSVLoggingText"
                 Margin="4,20,0,6"
-                Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="CSV Logging" />
+                Style="{StaticResource BodyStrongTextBlockStyle}" />
 
             <!--  everything that shapes a recorded row  -->
             <!--
@@ -710,9 +754,8 @@
                 correctly at all, the three inside refine it)
             -->
             <controls:SettingsExpander
+                x:Uid="Settings_CSVFormatExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="How values are written into a recording"
-                Header="CSV Format"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE7C3;}"
                 IsExpanded="False">
 
@@ -720,8 +763,8 @@
                     x:Name="CsvNumberFormatComboBox"
                     Width="160"
                     SelectionChanged="CsvNumberFormatComboBox_SelectionChanged">
-                    <ComboBoxItem Content="Regional" Tag="Local" />
-                    <ComboBoxItem Content="Invariant" Tag="Invariant" />
+                    <ComboBoxItem x:Uid="Settings_CsvNumberFormatComboBox_Local" Tag="Local" />
+                    <ComboBoxItem x:Uid="Settings_CsvNumberFormatComboBox_Invariant" Tag="Invariant" />
                 </ComboBox>
 
                 <!--
@@ -745,10 +788,10 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock
+                                x:Uid="Settings_ExampleRowText"
                                 Grid.Column="0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Example row:" />
+                                Style="{ThemeResource CaptionTextBlockStyle}" />
 
                             <TextBlock
                                 x:Name="CsvFormatExampleTextBlock"
@@ -762,7 +805,7 @@
                 </controls:SettingsExpander.ItemsHeader>
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Decimal Places">
+                    <controls:SettingsCard x:Uid="Settings_DecimalPlacesCard">
                         <ComboBox
                             x:Name="CsvDecimalPlacesComboBox"
                             Width="70"
@@ -774,21 +817,20 @@
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="Units In Values">
+                    <controls:SettingsCard x:Uid="Settings_UnitsInValuesCard">
                         <ToggleSwitch
                             x:Name="CsvIncludeUnitsToggle"
-                            OffContent="Off"
-                            OnContent="On"
+                            x:Uid="Common_ToggleSwitch"
                             Toggled="CsvIncludeUnitsToggle_Toggled" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="Pause Behavior">
+                    <controls:SettingsCard x:Uid="Settings_PauseBehaviorCard">
                         <ComboBox
                             x:Name="CsvPauseSeamComboBox"
                             Width="190"
                             SelectionChanged="CsvPauseSeamComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Leave an empty row" Tag="Gap" />
-                            <ComboBoxItem Content="Continue seamlessly" Tag="Seamless" />
+                            <ComboBoxItem x:Uid="Settings_CsvPauseSeamComboBox_Gap" Tag="Gap" />
+                            <ComboBoxItem x:Uid="Settings_CsvPauseSeamComboBox_Seamless" Tag="Seamless" />
                         </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
@@ -798,51 +840,48 @@
 
             <!--  backup and reset  -->
             <TextBlock
+                x:Uid="Settings_BackupResetText"
                 Margin="4,20,0,6"
-                Style="{StaticResource BodyStrongTextBlockStyle}"
-                Text="Backup &amp; Reset" />
+                Style="{StaticResource BodyStrongTextBlockStyle}" />
 
             <!--  (the path is filled in at runtime, it differs per distribution channel)  -->
             <controls:SettingsCard
                 x:Name="AppDataFolderCard"
+                x:Uid="Settings_AppDataFolderCard"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Where settings, window and sensor state are stored"
-                Header="App data folder"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE8B7;}">
-                <Button Click="OpenAppDataFolder_Click" Content="Open" />
+                <Button x:Uid="Settings_OpenAppDataButton" Click="OpenAppDataFolder_Click" />
             </controls:SettingsCard>
 
             <controls:SettingsCard
+                x:Uid="Settings_ExportImportSettingsCard"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Backup or restore all settings (Import Restarts the app)"
-                Header="Export / Import Settings"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE74E;}">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Click="ExportSettings_Click" Content="Export" />
-                    <Button Click="ImportSettings_Click" Content="Import" />
+                    <Button x:Uid="Settings_ExportButton" Click="ExportSettings_Click" />
+                    <Button x:Uid="Settings_ImportButton" Click="ImportSettings_Click" />
                 </StackPanel>
             </controls:SettingsCard>
 
             <controls:SettingsExpander
+                x:Uid="Settings_ResetToDefaultsExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                Description="Restore individual settings files to defaults (Restarts the app)"
-                Header="Reset to Defaults"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE777;}"
                 IsExpanded="False">
 
-                <Button Click="ResetAllSettings_Click" Content="Reset All" />
+                <Button x:Uid="Settings_ResetAllButton" Click="ResetAllSettings_Click" />
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Description="Theme, backdrop, update interval, graph appearance, tray behavior" Header="General Settings">
-                        <Button Click="ResetGeneralSettings_Click" Content="Reset" />
+                    <controls:SettingsCard x:Uid="Settings_GeneralSettingsCard">
+                        <Button x:Uid="Settings_ResetButton" Click="ResetGeneralSettings_Click" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="Position and size of all windows, title bar status readout, hardware page sensor selection" Header="Window and Page States">
-                        <Button Click="ResetWindowAndPageStates_Click" Content="Reset" />
+                    <controls:SettingsCard x:Uid="Settings_WindowAndPageStatesCard">
+                        <Button x:Uid="Settings_ResetButton" Click="ResetWindowAndPageStates_Click" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Description="Per-sensor visibility, thresholds, graph scaling, pinned selection" Header="Sensor States">
-                        <Button Click="ResetSensorStates_Click" Content="Reset" />
+                    <controls:SettingsCard x:Uid="Settings_SensorStatesCard">
+                        <Button x:Uid="Settings_ResetButton" Click="ResetSensorStates_Click" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

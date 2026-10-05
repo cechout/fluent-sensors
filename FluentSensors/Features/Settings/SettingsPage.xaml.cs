@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ using FluentSensors.Core;
 using FluentSensors.Core.Startup;
 using FluentSensors.Core.Taskbar;
 using FluentSensors.Common.Csv;
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
 using FluentSensors.Features.TaskbarWidget;
@@ -41,6 +43,8 @@ namespace FluentSensors.Features.Settings
 
             // the saved selections
             RestoreThemeSelection();
+            RestoreLanguageSelection();
+            RestoreTechnicalTermsSelection();
             RestoreIntervalSelection();
             RestoreMinimizeToTraySelection();
             RestoreStartupSelection();
@@ -144,7 +148,7 @@ namespace FluentSensors.Features.Settings
         // the values of the active taskbar edge; the side cards only on the left and right edge
         private void OnActiveTaskbarEdgeChanged(string edge)
         {
-            TaskbarPositionText.Text = edge;
+            TaskbarPositionText.Text = AppStrings.Get($"Settings_TaskbarEdge{edge}");
 
             var sideVisibility = edge is "Left" or "Right" ? Visibility.Visible : Visibility.Collapsed;
             TaskbarSideGraphDirectionCard.Visibility = sideVisibility;
@@ -247,6 +251,81 @@ namespace FluentSensors.Features.Settings
             }
         }
 
+        // language; saved right away, it applies on the next start
+        private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (LanguageComboBox.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
+
+            SettingsService.Instance.AppLanguage = tag;
+            UpdateTechnicalTermsCard();
+            UpdateLanguageRestartBar();
+        }
+
+        private void RestoreLanguageSelection()
+        {
+            if (LanguageComboBox.Items.Count == 1)
+            {
+                foreach (var (tag, name) in AppLanguage.Supported)
+                {
+                    LanguageComboBox.Items.Add(new ComboBoxItem { Content = name, Tag = tag });
+                }
+            }
+
+            string current = SettingsService.Instance.AppLanguage;
+            SelectByTag(LanguageComboBox, AppLanguage.IsSupported(current) ? current : AppLanguage.SystemDefault);
+        }
+
+        // technical terms in english; like the language, saved right away and applied on the next start
+        private void TechnicalTermsToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            SettingsService.Instance.TechnicalTermsInEnglish = TechnicalTermsToggle.IsOn;
+            UpdateLanguageRestartBar();
+        }
+
+        private void RestoreTechnicalTermsSelection()
+        {
+            TechnicalTermsToggle.IsOn = SettingsService.Instance.TechnicalTermsInEnglish;
+            UpdateTechnicalTermsCard();
+            UpdateLanguageRestartBar();
+        }
+
+        // off while the next start runs in english anyway, so both choices can change before one restart; the
+        // unchanged setting reads the language actually in use, Default can resolve to english too
+        private void UpdateTechnicalTermsCard()
+        {
+            string language = AppLanguage.Normalize(SettingsService.Instance.AppLanguage);
+            TechnicalTermsCard.IsEnabled = language == AppLanguage.StartupSetting
+                ? AppStrings.Get("App_LanguageTag") != "en-US"
+                : !AppLanguage.ResolvesToEnglish(language);
+        }
+
+        // open while either choice differs from what this process started with; turning a choice back closes it
+        private void UpdateLanguageRestartBar()
+        {
+            var settings = SettingsService.Instance;
+            bool languageChanged = AppLanguage.Normalize(settings.AppLanguage) != AppLanguage.StartupSetting;
+            bool termsChanged = settings.TechnicalTermsInEnglish != AppTerms.StartedInEnglish;
+
+            bool open = languageChanged || termsChanged;
+
+            // announced like an InfoBar would, once when it opens
+            if (open && LanguageRestartBar.Visibility != Visibility.Visible)
+            {
+                FrameworkElementAutomationPeer.FromElement(LanguageRestartText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+            }
+            LanguageRestartBar.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        // flushed before the restart, the new process reads the settings before the old one exits
+        private void LanguageRestartButton_Click(object sender, RoutedEventArgs e)
+        {
+            PersistenceService.Instance.FlushAll();
+            RestartApp();
+        }
+
         // update interval
         private void IntervalComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -314,7 +393,7 @@ namespace FluentSensors.Features.Settings
 
             if (!WinAutostartService.IsSupported)
             {
-                RunOnStartupCard.Description = "Not available in the portable version, it would leave a scheduled task behind";
+                RunOnStartupCard.Description = AppStrings.Get("Settings_RunOnStartupPortable");
                 RunOnStartupToggle.Visibility = Visibility.Collapsed;
                 DelayStartupCard.Visibility = Visibility.Collapsed;
                 UpdateStartupCardStates();
@@ -358,7 +437,7 @@ namespace FluentSensors.Features.Settings
             _isLoading = false;
             UpdateStartupCardStates();
 
-            await ShowInfoDialog("Startup", "Windows did not accept the change to the scheduled task.");
+            await ShowInfoDialog(AppStrings.Get("Settings_StartupFailedTitle"), AppStrings.Get("Settings_StartupFailedMessage"));
         }
 
         private async void DelayStartupToggle_Toggled(object sender, RoutedEventArgs e)
@@ -378,7 +457,7 @@ namespace FluentSensors.Features.Settings
             DelayStartupToggle.IsOn = !wanted;
             _isLoading = false;
 
-            await ShowInfoDialog("Startup", "Windows did not accept the change to the scheduled task.");
+            await ShowInfoDialog(AppStrings.Get("Settings_StartupFailedTitle"), AppStrings.Get("Settings_StartupFailedMessage"));
         }
 
         private void StartMinimizedToggle_Toggled(object sender, RoutedEventArgs e)
@@ -1097,8 +1176,8 @@ namespace FluentSensors.Features.Settings
             FlyoutShortcutDialog.FillKeys(FlyoutShortcutKeysPanel, keys, (Style)FlyoutShortcutKeysPanel.Resources["ShortcutKeyStyle"]);
             FlyoutShortcutNoneText.Visibility = shortcut == null ? Visibility.Visible : Visibility.Collapsed;
 
-            string text = shortcut != null ? string.Join("+", keys) : "None";
-            AutomationProperties.SetName(FlyoutShortcutButton, $"Flyout Shortcut, {text}");
+            string text = shortcut != null ? string.Join("+", keys) : AppStrings.Get("Settings_FlyoutShortcutNone");
+            AutomationProperties.SetName(FlyoutShortcutButton, AppStrings.Format("Settings_FlyoutShortcutName", text));
         }
 
         // widget drag lock
@@ -1147,7 +1226,7 @@ namespace FluentSensors.Features.Settings
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(FluentSensors.MainWindow.CurrentInstance);
             string suggestedName = $"FluentSensors-Backup-{DateTime.Now:yyyy-MM-dd}.zip";
 
-            string path = Win32FileDialogHelper.PickSaveFile(hwnd, "Export Settings", suggestedName, "Backup File", "zip");
+            string path = Win32FileDialogHelper.PickSaveFile(hwnd, AppStrings.Get("Settings_ExportPickerTitle"), suggestedName, AppStrings.Get("Settings_BackupFileType"), "zip");
             if (path == null) return; // user cancelled
 
             try
@@ -1155,11 +1234,11 @@ namespace FluentSensors.Features.Settings
                 // settings.json with the live state, even if nothing was saved this session
                 SettingsService.Instance.SaveImmediate();
                 PersistenceService.Instance.ExportBackup(path);
-                await ShowInfoDialog("Export Successful", "Your settings have been exported.");
+                await ShowInfoDialog(AppStrings.Get("Settings_ExportSuccessTitle"), AppStrings.Get("Settings_ExportSuccessMessage"));
             }
             catch
             {
-                await ShowInfoDialog("Export Failed", "The settings could not be exported.");
+                await ShowInfoDialog(AppStrings.Get("Settings_ExportFailedTitle"), AppStrings.Get("Settings_ExportFailedMessage"));
             }
         }
 
@@ -1167,13 +1246,13 @@ namespace FluentSensors.Features.Settings
         {
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(FluentSensors.MainWindow.CurrentInstance);
 
-            string path = Win32FileDialogHelper.PickOpenFile(hwnd, "Import Settings", "Backup File", "zip");
+            string path = Win32FileDialogHelper.PickOpenFile(hwnd, AppStrings.Get("Settings_ImportPickerTitle"), AppStrings.Get("Settings_BackupFileType"), "zip");
             if (path == null) return; // user cancelled
 
             bool confirmed = await ConfirmAction(
-                "Import Settings?",
-                "This will overwrite all current settings, window states, sensor states, and sensor switch choices, then restart the app.",
-                "Import");
+                AppStrings.Get("Settings_ImportConfirmTitle"),
+                AppStrings.Get("Settings_ImportConfirmMessage"),
+                AppStrings.Get("Settings_ImportConfirm"));
             if (!confirmed) return;
 
             bool success = PersistenceService.Instance.ImportBackup(path);
@@ -1190,7 +1269,7 @@ namespace FluentSensors.Features.Settings
             }
             else
             {
-                await ShowInfoDialog("Import Failed", "The selected file is not a valid FluentSensors backup.");
+                await ShowInfoDialog(AppStrings.Get("Settings_ImportFailedTitle"), AppStrings.Get("Settings_ImportFailedMessage"));
             }
         }
 
@@ -1200,7 +1279,7 @@ namespace FluentSensors.Features.Settings
             {
                 Title = title,
                 Content = message,
-                CloseButtonText = "OK",
+                CloseButtonText = AppStrings.Get("Common_OK"),
                 XamlRoot = this.XamlRoot,
                 RequestedTheme = DialogTheme.For(this.XamlRoot)
             };
@@ -1210,7 +1289,7 @@ namespace FluentSensors.Features.Settings
         // reset
         private async void ResetAllSettings_Click(object sender, RoutedEventArgs e)
         {
-            if (await ConfirmReset("All Settings"))
+            if (await ConfirmReset(AppStrings.Get("Settings_ResetWhatAll")))
             {
                 PersistenceService.Instance.ResetAll();
                 RestartApp();
@@ -1219,7 +1298,7 @@ namespace FluentSensors.Features.Settings
 
         private async void ResetGeneralSettings_Click(object sender, RoutedEventArgs e)
         {
-            if (await ConfirmReset("General Settings"))
+            if (await ConfirmReset(AppStrings.Get("Settings_ResetWhatGeneral")))
             {
                 PersistenceService.Instance.ResetSettings();
                 RestartApp();
@@ -1230,7 +1309,7 @@ namespace FluentSensors.Features.Settings
         // picked per performance page slot
         private async void ResetWindowAndPageStates_Click(object sender, RoutedEventArgs e)
         {
-            if (await ConfirmReset("Window and Page States"))
+            if (await ConfirmReset(AppStrings.Get("Settings_ResetWhatWindowStates")))
             {
                 PersistenceService.Instance.ResetWindowStates();
                 PersistenceService.Instance.ResetSensorSwitchStates();
@@ -1250,7 +1329,7 @@ namespace FluentSensors.Features.Settings
 
         private async void ResetSensorStates_Click(object sender, RoutedEventArgs e)
         {
-            if (await ConfirmReset("Sensor States"))
+            if (await ConfirmReset(AppStrings.Get("Settings_ResetWhatSensorStates")))
             {
                 PersistenceService.Instance.ResetSensorStates();
                 PersistenceService.Instance.ResetSensorSelections();
@@ -1260,17 +1339,17 @@ namespace FluentSensors.Features.Settings
 
         private Task<bool> ConfirmReset(string what)
         {
-            return ConfirmAction($"Reset {what}?", "This will restore the default values and restart the app. This action cannot be undone.");
+            return ConfirmAction(AppStrings.Format("Settings_ResetConfirmTitle", what), AppStrings.Get("Settings_ResetConfirmMessage"));
         }
 
-        private async Task<bool> ConfirmAction(string title, string message, string confirmText = "Reset")
+        private async Task<bool> ConfirmAction(string title, string message, string? confirmText = null)
         {
             var dialog = new ContentDialog
             {
                 Title = title,
                 Content = message,
-                PrimaryButtonText = confirmText,
-                CloseButtonText = "Cancel",
+                PrimaryButtonText = confirmText ?? AppStrings.Get("Settings_ResetConfirm"),
+                CloseButtonText = AppStrings.Get("Common_Cancel"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = this.XamlRoot,
                 RequestedTheme = DialogTheme.For(this.XamlRoot)

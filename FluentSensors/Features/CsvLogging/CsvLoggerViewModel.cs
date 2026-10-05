@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Core;
 using FluentSensors.Persistence.Services;
 
@@ -88,7 +89,7 @@ namespace FluentSensors.Features.CsvLogging
 
         // Pause and Play, escaped to keep the source ascii
         public string PauseGlyph => IsPaused ? "\uE768" : "\uE769";
-        public string PauseTooltip => IsPaused ? "Resume" : "Pause";
+        public string PauseTooltip => AppStrings.Get(IsPaused ? "Common_Resume" : "Common_Pause");
 
         private string _logFolderText = "";
         public string LogFolderText
@@ -238,7 +239,7 @@ namespace FluentSensors.Features.CsvLogging
         // a selection pushed during a recording is not taken over (the columns are fixed); the window says so
         public void ShowSelectionLockedHint()
         {
-            _transientHint = "stop the recording first to change the sensor selection";
+            _transientHint = AppStrings.Get("CsvLogger_StatusSelectionLocked");
             StatusText = BuildStatusText();
         }
 
@@ -366,25 +367,25 @@ namespace FluentSensors.Features.CsvLogging
 
             if (service.IsPaused)
             {
-                return $"paused at {service.RowCount:N0} rows";
+                return AppStrings.Format("CsvLogger_StatusPaused", service.RowCount);
             }
 
             if (service.IsRunning)
             {
-                return $"recording to {Path.GetFileName(service.CurrentFilePath)}";
+                return AppStrings.Format("CsvLogger_StatusRecording", Path.GetFileName(service.CurrentFilePath));
             }
 
             if (service.SensorCount == 0)
             {
-                return "no sensors picked yet, select some in the sensor list";
+                return AppStrings.Get("CsvLogger_StatusNoSensors");
             }
 
             if (service.CurrentFilePath != null)
             {
-                return $"saved {service.RowCount:N0} rows to {Path.GetFileName(service.CurrentFilePath)}";
+                return AppStrings.Format("CsvLogger_StatusSaved", service.RowCount, Path.GetFileName(service.CurrentFilePath));
             }
 
-            return "ready to record";
+            return AppStrings.Get("CsvLogger_StatusReady");
         }
 
 

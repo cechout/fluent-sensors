@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Windows.System;
 using Windows.UI.Core;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.UI;
 using FluentSensors.Core.Taskbar;
 using FluentSensors.Persistence.Models;
@@ -35,6 +36,11 @@ namespace FluentSensors.Features.Settings
         {
             this.InitializeComponent();
             Shortcut = current;
+
+            // from code, x:Uid is not applied to the root element
+            Title = AppStrings.Get("FlyoutShortcut_DialogTitle");
+            PrimaryButtonText = AppStrings.Get("FlyoutShortcut_DialogSave");
+            CloseButtonText = AppStrings.Get("Common_Cancel");
 
             // its own popup layer, which the window reset never sees
             PointerFocusReset.Attach(this);
@@ -82,7 +88,7 @@ namespace FluentSensors.Features.Settings
                     return;
                 }
 
-                ShowWarning("Start with Ctrl, Alt or Win");
+                ShowWarning(AppStrings.Get("FlyoutShortcut_WarningModifier"));
                 ShowRecorded();
                 return;
             }
@@ -92,7 +98,7 @@ namespace FluentSensors.Features.Settings
             {
                 _rejected = candidate;
                 IsPrimaryButtonEnabled = false;
-                ShowWarning("Already in use");
+                ShowWarning(AppStrings.Get("FlyoutShortcut_WarningInUse"));
                 ShowRecorded();
                 return;
             }
@@ -137,7 +143,7 @@ namespace FluentSensors.Features.Settings
             FillKeys(KeysPanel, keys, (Style)Resources["LargeShortcutKeyStyle"]);
             NoShortcutText.Visibility = keys.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
-            AutomationProperties.SetName(KeysArea, keys.Count > 0 ? $"Shortcut, {string.Join("+", keys)}" : "No shortcut");
+            AutomationProperties.SetName(KeysArea, keys.Count > 0 ? AppStrings.Format("FlyoutShortcut_KeysName", string.Join("+", keys)) : AppStrings.Get("FlyoutShortcut_NoShortcut"));
             FrameworkElementAutomationPeer.CreatePeerForElement(KeysArea)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
         }
 

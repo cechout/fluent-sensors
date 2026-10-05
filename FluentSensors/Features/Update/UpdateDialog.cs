@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FluentSensors.Common;
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.UI;
 using FluentSensors.Core.Update;
 
@@ -34,7 +35,7 @@ namespace FluentSensors.Features.Update
             // remembered across restarts, the start page button undoes it; (a nameless version cannot be skipped)
             var skipCheckBox = new CheckBox
             {
-                Content = "Skip this version",
+                Content = AppStrings.Get("Update_SkipVersion"),
                 Margin = new Thickness(0, 12, 0, 0),
                 Visibility = hasVersion ? Visibility.Visible : Visibility.Collapsed
             };
@@ -57,8 +58,8 @@ namespace FluentSensors.Features.Update
             content.Children.Add(new TextBlock
             {
                 Text = hasVersion
-                    ? $"Fluent Sensors {UpdateService.VersionLabel(info.Version)} is available. You are running {UpdateService.VersionLabel(UpdateService.CurrentVersion)}."
-                    : $"A new version of Fluent Sensors is available. You are running {UpdateService.VersionLabel(UpdateService.CurrentVersion)}.",
+                    ? AppStrings.Format("Update_Message", UpdateService.VersionLabel(info.Version), UpdateService.VersionLabel(UpdateService.CurrentVersion))
+                    : AppStrings.Format("Update_MessageUnnamed", UpdateService.VersionLabel(UpdateService.CurrentVersion)),
                 TextWrapping = TextWrapping.Wrap
             });
             content.Children.Add(skipCheckBox);
@@ -67,11 +68,11 @@ namespace FluentSensors.Features.Update
 
             var dialog = new ContentDialog
             {
-                Title = "Update available",
+                Title = AppStrings.Get("Update_Title"),
                 Content = content,
-                PrimaryButtonText = "Update",
-                SecondaryButtonText = isStoreBuild ? "Open Store" : "Manual Install",
-                CloseButtonText = "Close",
+                PrimaryButtonText = AppStrings.Get("Update_Install"),
+                SecondaryButtonText = isStoreBuild ? AppStrings.Get("Update_OpenStore") : AppStrings.Get("Update_ManualInstall"),
+                CloseButtonText = AppStrings.Get("Common_Close"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = xamlRoot,
                 RequestedTheme = DialogTheme.For(xamlRoot)
@@ -88,7 +89,7 @@ namespace FluentSensors.Features.Update
             {
                 dialog.IsPrimaryButtonEnabled = !downloading;
                 dialog.IsSecondaryButtonEnabled = !downloading;
-                dialog.CloseButtonText = downloading ? "Cancel" : "Close";
+                dialog.CloseButtonText = downloading ? AppStrings.Get("Common_Cancel") : AppStrings.Get("Common_Close");
                 skipCheckBox.IsEnabled = !downloading;
                 progress.Visibility = downloading ? Visibility.Visible : Visibility.Collapsed;
             }
@@ -120,7 +121,7 @@ namespace FluentSensors.Features.Update
                     return;
                 }
 
-                statusText.Text = $"Downloading {info.AssetName}...";
+                statusText.Text = AppStrings.Format("Update_Downloading", info.AssetName);
 
                 bool handedOver = await RunUpdateAsync(info, progress, statusText, downloadCts.Token);
 
@@ -191,11 +192,11 @@ namespace FluentSensors.Features.Update
                 {
                     // no asset for this build; the release page
                     OpenReleasePage(info.ReleaseUrl);
-                    statusText.Text = "This release has no matching download, opening the release page instead";
+                    statusText.Text = AppStrings.Get("Update_NoAsset");
                     return false;
                 }
 
-                statusText.Text = "Installing, the app will restart on its own";
+                statusText.Text = AppStrings.Get("Update_Installing");
                 progress.IsIndeterminate = true;
 
                 UpdateInstaller.ApplyAndRestart(downloadedPath);
@@ -204,14 +205,14 @@ namespace FluentSensors.Features.Update
             catch (OperationCanceledException)
             {
                 // asked for, so no browser and no error wording
-                statusText.Text = "Download cancelled";
+                statusText.Text = AppStrings.Get("Update_Cancelled");
                 ResetProgress(progress);
                 return false;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[UpdateDialog] update failed: {ex.Message}");
-                statusText.Text = "The download failed, you can grab the release manually instead";
+                statusText.Text = AppStrings.Get("Update_DownloadFailed");
                 ResetProgress(progress);
                 OpenReleasePage(info.ReleaseUrl);
                 return false;
@@ -233,26 +234,26 @@ namespace FluentSensors.Features.Update
                 switch (step.Phase)
                 {
                     case StoreInstallPhase.Waiting:
-                        statusText.Text = "Waiting for the Microsoft Store...";
+                        statusText.Text = AppStrings.Get("Update_StoreWaiting");
                         progress.IsIndeterminate = true;
                         break;
 
                     case StoreInstallPhase.Downloading:
                         // 0 for a few seconds before the first bytes
-                        statusText.Text = "Downloading from the Microsoft Store...";
+                        statusText.Text = AppStrings.Get("Update_StoreDownloading");
                         progress.IsIndeterminate = step.Fraction <= 0;
                         progress.Value = step.Fraction;
                         break;
 
                     case StoreInstallPhase.Installing:
-                        statusText.Text = "Installing, the app will restart on its own";
+                        statusText.Text = AppStrings.Get("Update_Installing");
                         progress.IsIndeterminate = true;
                         onInstalling();
                         break;
                 }
             });
 
-            statusText.Text = "Waiting for the Microsoft Store...";
+            statusText.Text = AppStrings.Get("Update_StoreWaiting");
             progress.IsIndeterminate = true;
 
             StoreInstallResult result;
@@ -271,18 +272,18 @@ namespace FluentSensors.Features.Update
 
             if (result == StoreInstallResult.Installed)
             {
-                statusText.Text = "Update installed, it takes effect the next time the app starts";
+                statusText.Text = AppStrings.Get("Update_StoreInstalled");
                 return;
             }
 
             // a cancel nobody asked for is the store giving up, a failure
             if (result == StoreInstallResult.Canceled && ct.IsCancellationRequested)
             {
-                statusText.Text = "Download cancelled";
+                statusText.Text = AppStrings.Get("Update_Cancelled");
                 return;
             }
 
-            statusText.Text = "The Microsoft Store could not install the update, opening the Store instead";
+            statusText.Text = AppStrings.Get("Update_StoreFailed");
             _ = AppDistribution.OpenStorePageAsync();
         }
 

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Features.Widget;
 using FluentSensors.Features.TaskbarWidget;
 using FluentSensors.Features.CsvLogging;
@@ -482,9 +483,9 @@ namespace FluentSensors.Features.Sensors
         // as its update and close pair with a separator behind (it has no close of its own)
         private ICommandBarElement[] BuildCommandBarPriorityOrder()
         {
-            PinToWidgetButton.Label = ViewModel.IsWidgetOpen ? "Update Widget" : "Pin to Widget";
+            PinToWidgetButton.Label = AppStrings.Get(ViewModel.IsWidgetOpen ? "Sensors_UpdateWidget" : "Sensors_PinToWidget");
             PinToWidgetIcon.Glyph = ViewModel.IsWidgetOpen ? "\uE895" : "\uE718";
-            StartCsvMonitoringButton.Label = ViewModel.IsCsvLoggerOpen ? "Update CSV Logging" : "Start CSV Logging";
+            StartCsvMonitoringButton.Label = AppStrings.Get(ViewModel.IsCsvLoggerOpen ? "Sensors_UpdateCsvLogging" : "Sensors_StartCsvLogging");
             StartCsvMonitoringIcon.Glyph = ViewModel.IsCsvLoggerOpen ? "\uE895" : "\uE8A7";
 
             var order = new List<ICommandBarElement>();
@@ -538,6 +539,7 @@ namespace FluentSensors.Features.Sensors
 
         // fills the bar in priority order, the first unit that does not fit and everything after it overflows; only a
         // changed split rebuilds (or every resize tick would flicker the labels)
+        // the first unit stays in the bar even when it does not fit, so the bar never shows only the overflow button
         private void UpdateCommandBarOverflow()
         {
             double leftSectionWidth = Math.Max(LeftSectionMinWidth, SensorListTitleText.ActualWidth + SelectionProfileComboBox.ActualWidth + 16);
@@ -564,7 +566,7 @@ namespace FluentSensors.Features.Sensors
             {
                 double unitWidth = fittableUnits[i].Sum(element => _commandBarButtonWidths.GetValueOrDefault(element, 40));
 
-                if (runningWidth + unitWidth > budget)
+                if (i > 0 && runningWidth + unitWidth > budget)
                 {
                     fittableOverflowStartUnitIndex = i;
                     break;

@@ -14,6 +14,7 @@
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
     xmlns:fhUi="using:FluentSensors.Common.UI"
+    xmlns:loc="using:FluentSensors.Common.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="Root"
     mc:Ignorable="d">
@@ -399,7 +400,7 @@
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Cores With Threads"
+                                Text="{x:Bind loc:AppTerms.Get('Cpu_CoresWithThreads')}"
                                 Visibility="{x:Bind BoolToVisibility(Cpu.ShowCoreGroupTitles), Mode=OneWay}" />
 
                             <ItemsControl
@@ -416,8 +417,8 @@
 
                             <!--  graph time range  -->
                             <fhTimeRange:TimeRangePickerControl
+                                x:Uid="Cpu_ExtendedTimeRangePicker"
                                 Margin="0,-4,0,0"
-                                AccessibleName="Extended Time Range"
                                 Options="{x:Bind fhCommon:GraphTimeRanges.PerformanceExtended}"
                                 SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.CpuExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
                                 TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -428,16 +429,19 @@
                                 HorizontalSpacing="16"
                                 VerticalSpacing="0">
                                 <fhTile:SensorTileControl
-                                    Title="Average Load"
-                                    Width="90"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageLoad')}"
+                                    Width="Auto"
+                                    MaxValueText="00,0 %"
                                     ViewModel="{x:Bind Cpu.AvgLoadWithThreads, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Average Temperature"
-                                    Width="130"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageTemperature')}"
+                                    Width="Auto"
+                                    MaxValueText="00,0 °C"
                                     ViewModel="{x:Bind Cpu.AvgTemperatureWithThreads, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Average Clock"
-                                    Width="130"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageClock')}"
+                                    Width="Auto"
+                                    MaxValueText="000,0 MHz"
                                     ViewModel="{x:Bind Cpu.AvgClockWithThreads, Mode=OneWay}" />
                             </controls:WrapPanel>
                         </StackPanel>
@@ -453,7 +457,7 @@
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Cores Without Threads"
+                                Text="{x:Bind loc:AppTerms.Get('Cpu_CoresWithoutThreads')}"
                                 Visibility="{x:Bind BoolToVisibility(Cpu.ShowCoreGroupTitles), Mode=OneWay}" />
 
                             <ItemsControl
@@ -470,8 +474,8 @@
 
                             <!--  graph time range  -->
                             <fhTimeRange:TimeRangePickerControl
+                                x:Uid="Cpu_ExtendedTimeRangePicker"
                                 Margin="0,-4,0,0"
-                                AccessibleName="Extended Time Range"
                                 Options="{x:Bind fhCommon:GraphTimeRanges.PerformanceExtended}"
                                 SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.CpuExtendedGraphTimeSpanSeconds, Mode=TwoWay}"
                                 TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -482,17 +486,17 @@
                                 HorizontalSpacing="16"
                                 VerticalSpacing="0">
                                 <fhTile:SensorTileControl
-                                    Title="Average Load"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageLoad')}"
                                     Width="Auto"
                                     MaxValueText="00,0 %"
                                     ViewModel="{x:Bind Cpu.AvgLoadWithoutThreads, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Average Temperature"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageTemperature')}"
                                     Width="Auto"
                                     MaxValueText="00,0 °C"
                                     ViewModel="{x:Bind Cpu.AvgTemperatureWithoutThreads, Mode=OneWay}" />
                                 <fhTile:SensorTileControl
-                                    Title="Average Clock"
+                                    Title="{x:Bind loc:AppTerms.Get('Cpu_AverageClock')}"
                                     Width="Auto"
                                     MaxValueText="000,0 MHz"
                                     ViewModel="{x:Bind Cpu.AvgClockWithoutThreads, Mode=OneWay}" />
@@ -522,17 +526,15 @@
                     <TextBlock
                         Margin="0,0,0,0"
                         Style="{ThemeResource BodyStrongTextBlockStyle}"
-                        Text="CPU Info" />
+                        Text="{x:Bind loc:AppTerms.Get('Cpu_CPUInfo')}" />
 
                     <StackPanel Spacing="12">
 
                         <!--  general  -->
                         <fhInfoPopup:InfoPopupControl
-                            Title="General"
+                            x:Uid="Cpu_GeneralPopup"
                             Margin="0,0,0,-4"
-                            Description="Physical Cores - actual processing units on chip&#10;Logical Processors - total execution threads (SMT/Hyper-Threading doubles per core)&#10;Core Topology - Performance vs Efficient core split on hybrid CPUs"
-                            PlacementMode="TitleAnchored"
-                            SourceIntro="Source:">
+                            PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
                                 <fhInfoPopup:SourceLink Label="Win32_Processor" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-processor" />
                                 <fhInfoPopup:SourceLink Label="GetLogicalProcessorInformationEx" Url="https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformationex" />
@@ -544,7 +546,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="Physical Cores"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_PhysicalCores')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -556,7 +558,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="Logical Processors"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_LogicalProcessors')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -569,7 +571,7 @@
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="Core Topology" />
+                                Text="{x:Bind loc:AppTerms.Get('Cpu_CoreTopology')}" />
                             <TextBlock
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Cpu.CpuCoreTopologyText, Mode=OneWay}"
@@ -581,7 +583,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="Socket"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_Socket')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -593,7 +595,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="Max Clock Speed"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_MaxClockSpeed')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -606,11 +608,10 @@
                     <!--  cache  -->
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
-                            Title="Cache"
+                            x:Uid="Cpu_CachePopup"
+                            Title="{x:Bind loc:AppTerms.Get('Cpu_Cache')}"
                             Margin="0,0,0,-4"
-                            Description="Small, fast on-die memory holding recently used data&#10;L1 - smallest, fastest, per core; sum of separate instruction + data caches&#10;L2 - larger, slower, per core; unified&#10;L3 - largest, shared across all cores; unified"
-                            PlacementMode="TitleAnchored"
-                            SourceIntro="Source:">
+                            PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
                                 <fhInfoPopup:SourceLink Label="Win32_CacheMemory" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-cachememory" />
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -621,7 +622,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="L1 Cache"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_L1Cache')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -633,7 +634,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="L2 Cache"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_L2Cache')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -645,7 +646,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="L3 Cache"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_L3Cache')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -658,11 +659,10 @@
                     <!--  virtualization  -->
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
-                            Title="Virtualization"
+                            x:Uid="Cpu_VirtualizationPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Cpu_Virtualization')}"
                             Margin="0,0,0,-4"
-                            Description="Extensions - CPU hardware support for running virtual machines (VT-x/AMD-V), used by Hyper-V, WSL2, and similar&#10;Firmware - currently enabled or not (unreliable)"
-                            PlacementMode="TitleAnchored"
-                            SourceIntro="Source:">
+                            PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
                                 <fhInfoPopup:SourceLink Label="Win32_Processor" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-processor" />
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -673,7 +673,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="Firmware"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_Firmware')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorTertiaryBrush}"
@@ -686,7 +686,7 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="Extensions"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_Extensions')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
@@ -735,8 +735,8 @@
 
                     <AppBarButton
                         x:Name="ShowOverallButton"
-                        Click="ShowOverall_Click"
-                        Label="Overall">
+                        x:Uid="Cpu_ShowOverallButton"
+                        Click="ShowOverall_Click">
                         <AppBarButton.Icon>
                             <FontIcon Glyph="&#xF16B;" />
                         </AppBarButton.Icon>
@@ -744,8 +744,8 @@
 
                     <AppBarButton
                         x:Name="ShowAllThreadsButton"
-                        Click="ShowAllThreads_Click"
-                        Label="Extended">
+                        x:Uid="Cpu_ShowAllThreadsButton"
+                        Click="ShowAllThreads_Click">
                         <AppBarButton.Icon>
                             <FontIcon Glyph="&#xF0E2;" />
                         </AppBarButton.Icon>
@@ -760,6 +760,7 @@
             does not cover the half reaching into the content)
         -->
         <fhControls:ClampedGridSplitter
+            x:Uid="Cpu_ResizeHardwareInfoSplitter"
             Grid.Row="0"
             Grid.RowSpan="2"
             Grid.Column="1"
@@ -767,7 +768,6 @@
             Margin="-4,0,0,0"
             Padding="0"
             HorizontalAlignment="Left"
-            AutomationProperties.Name="Resize Hardware Info"
             IsTabStop="False"
             IsThumbVisible="False"
             ManipulationCompleted="InfoPanelSplitter_ManipulationCompleted"

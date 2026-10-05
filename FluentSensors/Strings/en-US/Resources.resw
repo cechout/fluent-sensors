@@ -1,0 +1,1553 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings_LanguageExpander.Header" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_LanguageExpander.Description" xml:space="preserve">
+    <value>App language and technical terms</value>
+  </data>
+  <data name="Settings_LanguageRestartButton.Content" xml:space="preserve">
+    <value>Restart App</value>
+  </data>
+  <data name="Settings_LanguageRestartText.Text" xml:space="preserve">
+    <value>Applies the next time the app starts</value>
+  </data>
+  <data name="Settings_LanguageCard.Header" xml:space="preserve">
+    <value>App Language</value>
+  </data>
+  <data name="Settings_LanguageComboBox_Default.Content" xml:space="preserve">
+    <value>System Default</value>
+  </data>
+  <data name="Main_DotNetRuntimePopup.Description" xml:space="preserve">
+    <value>.NET 10 is not installed on this device
+LibreHardwareMonitor needs it to access every available sensor, some readings may be missing or incomplete without it</value>
+  </data>
+  <data name="Main_DotNetRuntimePopup.SourceIntro" xml:space="preserve">
+    <value>Recommended:</value>
+  </data>
+  <data name="Main_PawnIoPopup.Description" xml:space="preserve">
+    <value>PawnIO is not installed on this device
+LibreHardwareMonitor reads CPU temperature and power, motherboard sensors and memory timings through this driver, and those stay empty without it
+GPU, storage, network and memory readings are not affected</value>
+  </data>
+  <data name="Main_PawnIoPopup.SourceIntro" xml:space="preserve">
+    <value>Recommended:</value>
+  </data>
+  <data name="Main_StatusToggleButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Toggle Status Readout</value>
+  </data>
+  <data name="Main_LhmInfoPopup.Description" xml:space="preserve">
+    <value>Sensors (found/rendered) - sensors found by LibreHardwareMonitor, and how many are actively drawn
+Poll (current/aimed) - measured update rate against the rate set in Settings
+Read - duration of one full sensor pass, close to the poll rate means no headroom left
+LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows</value>
+  </data>
+  <data name="Main_LhmInfoPopup.SourceIntro" xml:space="preserve">
+    <value>This App is powered by the open source LibreHardwareMonitor project:</value>
+  </data>
+  <data name="Main_LhmGitHubSource.Label" xml:space="preserve">
+    <value>LibreHardwareMonitor on GitHub</value>
+  </data>
+  <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
+    <value>CPU Usage - this app's own CPU time relative to total capacity across all cores
+RAM Usage - physical memory currently mapped by this app (working set)</value>
+  </data>
+  <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Main_StartNavItem.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Main_SensorsNavItem.Content" xml:space="preserve">
+    <value>Sensors</value>
+  </data>
+  <data name="Main_PerformanceNavItem.Content" xml:space="preserve">
+    <value>Graphs</value>
+  </data>
+  <data name="Main_SettingsNavItem.Content" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Main_LoadingStatusText.Text" xml:space="preserve">
+    <value>Starting Fluent Sensors...</value>
+  </data>
+  <data name="Main_WidgetWindowSingleClickItem.Text" xml:space="preserve">
+    <value>Widget Window	Single Click</value>
+  </data>
+  <data name="Main_CSVWindowSingleClickItem.Text" xml:space="preserve">
+    <value>CSV Window	Single Click</value>
+  </data>
+  <data name="Main_MainWindowDoubleClickItem.Text" xml:space="preserve">
+    <value>Main Window	Double Click</value>
+  </data>
+  <data name="Main_DocumentationItem.Text" xml:space="preserve">
+    <value>Documentation</value>
+  </data>
+  <data name="Main_ExitAppItem.Text" xml:space="preserve">
+    <value>Exit App</value>
+  </data>
+  <data name="Main_LoadingMotherboard" xml:space="preserve">
+    <value>Initializing motherboard...</value>
+  </data>
+  <data name="Main_LoadingCpu" xml:space="preserve">
+    <value>Scanning CPU...</value>
+  </data>
+  <data name="Main_LoadingGpu" xml:space="preserve">
+    <value>Scanning GPU...</value>
+  </data>
+  <data name="Main_LoadingMemoryAndStorage" xml:space="preserve">
+    <value>Checking memory and storage...</value>
+  </data>
+  <data name="Main_LoadingControllers" xml:space="preserve">
+    <value>Scanning controllers...</value>
+  </data>
+  <data name="Main_LoadingNetwork" xml:space="preserve">
+    <value>Scanning network adapters...</value>
+  </data>
+  <data name="Main_LoadingWaitingForData" xml:space="preserve">
+    <value>Waiting for data...</value>
+  </data>
+  <data name="Main_LoadingReady" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="Main_UpdatePill" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Status_Sensors" xml:space="preserve">
+    <value>Sensors: {0}/{1}</value>
+  </data>
+  <data name="Status_Poll" xml:space="preserve">
+    <value>Poll: {0:0}/{1}ms (read {2:0}ms)</value>
+  </data>
+  <data name="Status_Handles" xml:space="preserve">
+    <value>Handles: {0}</value>
+  </data>
+  <data name="Common_ToggleSwitch.OnContent" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="Common_ToggleSwitch.OffContent" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Settings_SettingsText.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Settings_GeneralSettingsText.Text" xml:space="preserve">
+    <value>General Settings</value>
+  </data>
+  <data name="Settings_AppThemeCard.Description" xml:space="preserve">
+    <value>Light, dark, or match Windows</value>
+  </data>
+  <data name="Settings_AppThemeCard.Header" xml:space="preserve">
+    <value>App Theme</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Default.Content" xml:space="preserve">
+    <value>System Default</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Light.Content" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Settings_ThemeComboBox_Dark.Content" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Settings_HardwareIconColorsCard.Description" xml:space="preserve">
+    <value>Color hardware icons by category</value>
+  </data>
+  <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
+    <value>Hardware Icon Colors</value>
+  </data>
+  <data name="Settings_GraphExpander.Description" xml:space="preserve">
+    <value>Line style and area fill of every graph</value>
+  </data>
+  <data name="Settings_GraphExpander.Header" xml:space="preserve">
+    <value>Graph</value>
+  </data>
+  <data name="Settings_LineStyleCard.Header" xml:space="preserve">
+    <value>Line Style</value>
+  </data>
+  <data name="Settings_GraphLineStyleComboBox_Stepline.Content" xml:space="preserve">
+    <value>Stepline</value>
+  </data>
+  <data name="Settings_GraphLineStyleComboBox_Smooth.Content" xml:space="preserve">
+    <value>Smooth</value>
+  </data>
+  <data name="Settings_FillFadeCard.Header" xml:space="preserve">
+    <value>Fill Fade</value>
+  </data>
+  <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
+    <value>Bytes or bits for data sizes and speeds</value>
+  </data>
+  <data name="Settings_DataUnitsExpander.Header" xml:space="preserve">
+    <value>Data Units</value>
+  </data>
+  <data name="Settings_DataSizeCard.Header" xml:space="preserve">
+    <value>Data Size</value>
+  </data>
+  <data name="Settings_DataSpeedCard.Header" xml:space="preserve">
+    <value>Data Speed</value>
+  </data>
+  <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
+    <value>Which readouts the title bar shows, and in which order</value>
+  </data>
+  <data name="Settings_TitleBarStatusExpander.Header" xml:space="preserve">
+    <value>Title Bar Status</value>
+  </data>
+  <data name="Settings_StatusLhmGroupCard.Header" xml:space="preserve">
+    <value>Sensor Status</value>
+  </data>
+  <data name="Settings_StatusWindowsGroupCard.Header" xml:space="preserve">
+    <value>App Resources</value>
+  </data>
+  <data name="Settings_StatusGroupOrderCard.Header" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="Settings_StatusGroupOrderComboBox_LhmFirst.Content" xml:space="preserve">
+    <value>Sensor status first</value>
+  </data>
+  <data name="Settings_StatusGroupOrderComboBox_WindowsFirst.Content" xml:space="preserve">
+    <value>App resources first</value>
+  </data>
+  <data name="Settings_MinimizeToSystemTrayCard.Description" xml:space="preserve">
+    <value>Hide app to system tray when all windows are minimized</value>
+  </data>
+  <data name="Settings_MinimizeToSystemTrayCard.Header" xml:space="preserve">
+    <value>Minimize to System Tray</value>
+  </data>
+  <data name="Settings_StartupExpander.Description" xml:space="preserve">
+    <value>What happens when Windows starts, and what the app does when it launches</value>
+  </data>
+  <data name="Settings_StartupExpander.Header" xml:space="preserve">
+    <value>Startup</value>
+  </data>
+  <data name="Settings_RunOnStartupCard.Header" xml:space="preserve">
+    <value>Run on startup</value>
+  </data>
+  <data name="Settings_DelayStartupCard.Header" xml:space="preserve">
+    <value>Delay start</value>
+  </data>
+  <data name="Settings_StartMinimizedCard.Header" xml:space="preserve">
+    <value>Start minimized to tray</value>
+  </data>
+  <data name="Settings_StartupPageCard.Header" xml:space="preserve">
+    <value>Page shown on launch</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Start.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Sensors.Content" xml:space="preserve">
+    <value>Sensors</value>
+  </data>
+  <data name="Settings_StartupPageComboBox_Performance.Content" xml:space="preserve">
+    <value>Graphs</value>
+  </data>
+  <data name="Settings_CheckUpdatesCard.Header" xml:space="preserve">
+    <value>Check for updates on startup</value>
+  </data>
+  <data name="Settings_UpdateIntervalCard.Description" xml:space="preserve">
+    <value>How often sensors are polled</value>
+  </data>
+  <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
+    <value>Update Interval</value>
+  </data>
+  <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
+    <value>Graphs Page Appearance</value>
+  </data>
+  <data name="Settings_PerformanceGraphExpander.Description" xml:space="preserve">
+    <value>Time range of the overview graphs and the denser grids</value>
+  </data>
+  <data name="Settings_PerformanceGraphExpander.Header" xml:space="preserve">
+    <value>Graph</value>
+  </data>
+  <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
+    <value>Time Range</value>
+  </data>
+  <data name="Settings_CPUExtendedTimeRangeCard.Header" xml:space="preserve">
+    <value>CPU Extended Time Range</value>
+  </data>
+  <data name="Settings_GPUExtendedTimeRangeCard.Header" xml:space="preserve">
+    <value>GPU Extended Time Range</value>
+  </data>
+  <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
+    <value>Widget Window Appearance</value>
+  </data>
+  <data name="Settings_BackgroundMaterialExpander.Description" xml:space="preserve">
+    <value>Backdrop effect and color for the widget window</value>
+  </data>
+  <data name="Settings_BackgroundMaterialExpander.Header" xml:space="preserve">
+    <value>Background Material</value>
+  </data>
+  <data name="Settings_BackdropComboBox_Acrylic.Content" xml:space="preserve">
+    <value>Desktop Acrylic</value>
+  </data>
+  <data name="Settings_BackdropComboBox_Mica.Content" xml:space="preserve">
+    <value>System Mica</value>
+  </data>
+  <data name="Settings_BackdropComboBox_None.Content" xml:space="preserve">
+    <value>Solid</value>
+  </data>
+  <data name="Settings_TintOpacityCard.Description" xml:space="preserve">
+    <value>(Acrylic only)</value>
+  </data>
+  <data name="Settings_TintOpacityCard.Header" xml:space="preserve">
+    <value>Tint Opacity</value>
+  </data>
+  <data name="Settings_LuminosityOpacityCard.Description" xml:space="preserve">
+    <value>(Acrylic only)</value>
+  </data>
+  <data name="Settings_LuminosityOpacityCard.Header" xml:space="preserve">
+    <value>Luminosity Opacity</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceCard.Description" xml:space="preserve">
+    <value>(Acrylic and Solid)</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceCard.Header" xml:space="preserve">
+    <value>Background Color Source</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Background Color Source</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Windows Accent</value>
+  </data>
+  <data name="Settings_BackgroundColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Custom Color</value>
+  </data>
+  <data name="Settings_WidgetBackgroundColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Background Color</value>
+  </data>
+  <data name="Settings_WidgetGraphExpander.Description" xml:space="preserve">
+    <value>Graph color and time range</value>
+  </data>
+  <data name="Settings_WidgetGraphExpander.Header" xml:space="preserve">
+    <value>Graph</value>
+  </data>
+  <data name="Settings_GraphColorSourceCard.Header" xml:space="preserve">
+    <value>Graph Color Source</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Graph Color Source</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Windows Accent</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Custom Color</value>
+  </data>
+  <data name="Settings_GraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
+    <value>Hardware Color</value>
+  </data>
+  <data name="Settings_GraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Graph Color</value>
+  </data>
+  <data name="Settings_TaskbarSectionHeader.Text" xml:space="preserve">
+    <value>Taskbar Widget &amp; Flyout Appearance</value>
+  </data>
+  <data name="Settings_CurrentTaskbarPositionCard.Header" xml:space="preserve">
+    <value>Current Taskbar Position</value>
+  </data>
+  <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
+    <value>Graph color, background, time range, width and side taskbar layout</value>
+  </data>
+  <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
+    <value>Taskbar Graph</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceCard.Description" xml:space="preserve">
+    <value>(Taskbar and flyout)</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceCard.Header" xml:space="preserve">
+    <value>Graph Color Source</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Graph Color Source</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Windows Accent</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Custom Color</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
+    <value>Hardware Color</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Graph Color</value>
+  </data>
+  <data name="Settings_GraphBackgroundSourceCard.Header" xml:space="preserve">
+    <value>Graph Background Source</value>
+  </data>
+  <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Calculated.Content" xml:space="preserve">
+    <value>Calculated</value>
+  </data>
+  <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Transparent.Content" xml:space="preserve">
+    <value>Transparent</value>
+  </data>
+  <data name="Settings_GraphWidthCard.Header" xml:space="preserve">
+    <value>Graph Width</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
+    <value>Side Taskbar Graph Direction</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
+    <value>Right to Left</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_TopToBottom.Content" xml:space="preserve">
+    <value>Top to Bottom</value>
+  </data>
+  <data name="Settings_TaskbarSideGraphDirectionComboBox_BottomToTop.Content" xml:space="preserve">
+    <value>Bottom to Top</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
+    <value>Side Taskbar Name Lines</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
+    <value>One Line</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesComboBox_2.Content" xml:space="preserve">
+    <value>Two Lines</value>
+  </data>
+  <data name="Settings_FlyoutAlignmentCard.Description" xml:space="preserve">
+    <value>Where the flyout lines up relative to the widget</value>
+  </data>
+  <data name="Settings_FlyoutAlignmentCard.Header" xml:space="preserve">
+    <value>Flyout Alignment</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Center.Content" xml:space="preserve">
+    <value>Centered</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Left.Content" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentComboBox_Right.Content" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="Settings_FlyoutGraphExpander.Description" xml:space="preserve">
+    <value>Graph time range and height</value>
+  </data>
+  <data name="Settings_FlyoutGraphExpander.Header" xml:space="preserve">
+    <value>Flyout Graph</value>
+  </data>
+  <data name="Settings_GraphHeightCard.Header" xml:space="preserve">
+    <value>Graph Height</value>
+  </data>
+  <data name="Settings_FlyoutBackgroundMaterialExpander.Description" xml:space="preserve">
+    <value>Backdrop effect and color for the taskbar flyout</value>
+  </data>
+  <data name="Settings_FlyoutBackgroundMaterialExpander.Header" xml:space="preserve">
+    <value>Flyout Background Material</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_Acrylic.Content" xml:space="preserve">
+    <value>Desktop Acrylic</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_Mica.Content" xml:space="preserve">
+    <value>System Mica</value>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_None.Content" xml:space="preserve">
+    <value>Solid</value>
+  </data>
+  <data name="Settings_TaskbarTintOpacityCard.Description" xml:space="preserve">
+    <value>(Acrylic only)</value>
+  </data>
+  <data name="Settings_TaskbarTintOpacityCard.Header" xml:space="preserve">
+    <value>Tint Opacity</value>
+  </data>
+  <data name="Settings_TaskbarLuminosityOpacityCard.Description" xml:space="preserve">
+    <value>(Acrylic only)</value>
+  </data>
+  <data name="Settings_TaskbarLuminosityOpacityCard.Header" xml:space="preserve">
+    <value>Luminosity Opacity</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceCard.Description" xml:space="preserve">
+    <value>(Acrylic and Solid)</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceCard.Header" xml:space="preserve">
+    <value>Background Color Source</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Background Color Source</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox_Accent.Content" xml:space="preserve">
+    <value>Windows Accent</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorSourceComboBox_Custom.Content" xml:space="preserve">
+    <value>Custom Color</value>
+  </data>
+  <data name="Settings_TaskbarBackgroundColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Background Color</value>
+  </data>
+  <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
+    <value>Taskbar Widget &amp; Flyout Behavior</value>
+  </data>
+  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
+    <value>Stop the taskbar widget from being dragged along the taskbar</value>
+  </data>
+  <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
+    <value>Lock Taskbar Widget Position</value>
+  </data>
+  <data name="Settings_FlyoutShortcutCard.Description" xml:space="preserve">
+    <value>Open the flyout from the keyboard while the taskbar widget is open</value>
+  </data>
+  <data name="Settings_FlyoutShortcutCard.Header" xml:space="preserve">
+    <value>Flyout Shortcut</value>
+  </data>
+  <data name="Settings_FlyoutShortcutNoneText.Text" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Settings_CSVLoggingText.Text" xml:space="preserve">
+    <value>CSV Logging</value>
+  </data>
+  <data name="Settings_CSVFormatExpander.Description" xml:space="preserve">
+    <value>How values are written into a recording</value>
+  </data>
+  <data name="Settings_CSVFormatExpander.Header" xml:space="preserve">
+    <value>CSV Format</value>
+  </data>
+  <data name="Settings_CsvNumberFormatComboBox_Local.Content" xml:space="preserve">
+    <value>Regional</value>
+  </data>
+  <data name="Settings_CsvNumberFormatComboBox_Invariant.Content" xml:space="preserve">
+    <value>Invariant</value>
+  </data>
+  <data name="Settings_ExampleRowText.Text" xml:space="preserve">
+    <value>Example row:</value>
+  </data>
+  <data name="Settings_DecimalPlacesCard.Header" xml:space="preserve">
+    <value>Decimal Places</value>
+  </data>
+  <data name="Settings_UnitsInValuesCard.Header" xml:space="preserve">
+    <value>Units In Values</value>
+  </data>
+  <data name="Settings_PauseBehaviorCard.Header" xml:space="preserve">
+    <value>Pause Behavior</value>
+  </data>
+  <data name="Settings_CsvPauseSeamComboBox_Gap.Content" xml:space="preserve">
+    <value>Leave an empty row</value>
+  </data>
+  <data name="Settings_CsvPauseSeamComboBox_Seamless.Content" xml:space="preserve">
+    <value>Continue seamlessly</value>
+  </data>
+  <data name="Settings_BackupResetText.Text" xml:space="preserve">
+    <value>Backup &amp; Reset</value>
+  </data>
+  <data name="Settings_AppDataFolderCard.Description" xml:space="preserve">
+    <value>Where settings, window and sensor state are stored</value>
+  </data>
+  <data name="Settings_AppDataFolderCard.Header" xml:space="preserve">
+    <value>App data folder</value>
+  </data>
+  <data name="Settings_OpenAppDataButton.Content" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Settings_ExportImportSettingsCard.Description" xml:space="preserve">
+    <value>Backup or restore all settings (Import Restarts the app)</value>
+  </data>
+  <data name="Settings_ExportImportSettingsCard.Header" xml:space="preserve">
+    <value>Export / Import Settings</value>
+  </data>
+  <data name="Settings_ExportButton.Content" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Settings_ImportButton.Content" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Settings_ResetToDefaultsExpander.Description" xml:space="preserve">
+    <value>Restore individual settings files to defaults (Restarts the app)</value>
+  </data>
+  <data name="Settings_ResetToDefaultsExpander.Header" xml:space="preserve">
+    <value>Reset to Defaults</value>
+  </data>
+  <data name="Settings_ResetAllButton.Content" xml:space="preserve">
+    <value>Reset All</value>
+  </data>
+  <data name="Settings_GeneralSettingsCard.Description" xml:space="preserve">
+    <value>Theme, backdrop, update interval, graph appearance, tray behavior</value>
+  </data>
+  <data name="Settings_GeneralSettingsCard.Header" xml:space="preserve">
+    <value>General Settings</value>
+  </data>
+  <data name="Settings_ResetButton.Content" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Settings_WindowAndPageStatesCard.Description" xml:space="preserve">
+    <value>Position and size of all windows, title bar status readout, graphs page sensor selection</value>
+  </data>
+  <data name="Settings_WindowAndPageStatesCard.Header" xml:space="preserve">
+    <value>Window and Page States</value>
+  </data>
+  <data name="Settings_SensorStatesCard.Description" xml:space="preserve">
+    <value>Per-sensor visibility, thresholds, graph scaling, pinned selection</value>
+  </data>
+  <data name="Settings_SensorStatesCard.Header" xml:space="preserve">
+    <value>Sensor States</value>
+  </data>
+  <data name="FlyoutShortcut_DialogTitle" xml:space="preserve">
+    <value>Activation Shortcut</value>
+  </data>
+  <data name="FlyoutShortcut_DialogSave" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="FlyoutShortcut_AtLeastOneText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Ctrl, Alt or Win: at least one</value>
+  </data>
+  <data name="FlyoutShortcut_AtLeastOneText.Text" xml:space="preserve">
+    <value>at least one</value>
+  </data>
+  <data name="FlyoutShortcut_OptionalText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>plus Shift: optional</value>
+  </data>
+  <data name="FlyoutShortcut_OptionalText.Text" xml:space="preserve">
+    <value>optional</value>
+  </data>
+  <data name="FlyoutShortcut_ExactlyOneText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>plus a letter, digit or F key: exactly one</value>
+  </data>
+  <data name="FlyoutShortcut_ExactlyOneText.Text" xml:space="preserve">
+    <value>exactly one</value>
+  </data>
+  <data name="FlyoutShortcut_NoShortcutText.Text" xml:space="preserve">
+    <value>No shortcut</value>
+  </data>
+  <data name="FlyoutShortcut_ClearButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Clear Shortcut</value>
+  </data>
+  <data name="FlyoutShortcut_ClearShortcutText.Text" xml:space="preserve">
+    <value>Clear Shortcut</value>
+  </data>
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Settings_RunOnStartupPortable" xml:space="preserve">
+    <value>Not available in the portable version, it would leave a scheduled task behind</value>
+  </data>
+  <data name="Settings_StartupFailedTitle" xml:space="preserve">
+    <value>Startup</value>
+  </data>
+  <data name="Settings_StartupFailedMessage" xml:space="preserve">
+    <value>Windows did not accept the change to the scheduled task.</value>
+  </data>
+  <data name="Settings_TaskbarEdgeBottom" xml:space="preserve">
+    <value>Bottom</value>
+  </data>
+  <data name="Settings_TaskbarEdgeTop" xml:space="preserve">
+    <value>Top</value>
+  </data>
+  <data name="Settings_TaskbarEdgeLeft" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="Settings_TaskbarEdgeRight" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="Settings_FlyoutShortcutNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Settings_FlyoutShortcutName" xml:space="preserve">
+    <value>Flyout Shortcut, {0}</value>
+  </data>
+  <data name="Settings_ExportPickerTitle" xml:space="preserve">
+    <value>Export Settings</value>
+  </data>
+  <data name="Settings_ImportPickerTitle" xml:space="preserve">
+    <value>Import Settings</value>
+  </data>
+  <data name="Settings_BackupFileType" xml:space="preserve">
+    <value>Backup File</value>
+  </data>
+  <data name="Settings_ExportSuccessTitle" xml:space="preserve">
+    <value>Export Successful</value>
+  </data>
+  <data name="Settings_ExportSuccessMessage" xml:space="preserve">
+    <value>Your settings have been exported.</value>
+  </data>
+  <data name="Settings_ExportFailedTitle" xml:space="preserve">
+    <value>Export Failed</value>
+  </data>
+  <data name="Settings_ExportFailedMessage" xml:space="preserve">
+    <value>The settings could not be exported.</value>
+  </data>
+  <data name="Settings_ImportConfirmTitle" xml:space="preserve">
+    <value>Import Settings?</value>
+  </data>
+  <data name="Settings_ImportConfirmMessage" xml:space="preserve">
+    <value>This will overwrite all current settings, window states, sensor states, and sensor switch choices, then restart the app.</value>
+  </data>
+  <data name="Settings_ImportConfirm" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Settings_ImportFailedTitle" xml:space="preserve">
+    <value>Import Failed</value>
+  </data>
+  <data name="Settings_ImportFailedMessage" xml:space="preserve">
+    <value>The selected file is not a valid FluentSensors backup.</value>
+  </data>
+  <data name="Settings_ResetWhatAll" xml:space="preserve">
+    <value>All Settings</value>
+  </data>
+  <data name="Settings_ResetWhatGeneral" xml:space="preserve">
+    <value>General Settings</value>
+  </data>
+  <data name="Settings_ResetWhatWindowStates" xml:space="preserve">
+    <value>Window and Page States</value>
+  </data>
+  <data name="Settings_ResetWhatSensorStates" xml:space="preserve">
+    <value>Sensor States</value>
+  </data>
+  <data name="Settings_ResetConfirmTitle" xml:space="preserve">
+    <value>Reset {0}?</value>
+  </data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve">
+    <value>This will restore the default values and restart the app. This action cannot be undone.</value>
+  </data>
+  <data name="Settings_ResetConfirm" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="FlyoutShortcut_WarningModifier" xml:space="preserve">
+    <value>Start with Ctrl, Alt or Win</value>
+  </data>
+  <data name="FlyoutShortcut_WarningInUse" xml:space="preserve">
+    <value>Already in use</value>
+  </data>
+  <data name="FlyoutShortcut_KeysName" xml:space="preserve">
+    <value>Shortcut, {0}</value>
+  </data>
+  <data name="FlyoutShortcut_NoShortcut" xml:space="preserve">
+    <value>No shortcut</value>
+  </data>
+  <data name="Start_CopyVersionButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Copy Version</value>
+  </data>
+  <data name="Start_WhatsNewText.Text" xml:space="preserve">
+    <value>What's new</value>
+  </data>
+  <data name="Start_SystemText.Text" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Start_AppStatusText.Text" xml:space="preserve">
+    <value>App Status</value>
+  </data>
+  <data name="Start_LhmPopup.Description" xml:space="preserve">
+    <value>Found Sensors - every sensor LibreHardwareMonitor reports on this machine
+Rendering Sensors - how many of them are actively drawn right now
+LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows</value>
+  </data>
+  <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
+    <value>This App is powered by the open source LibreHardwareMonitor project:</value>
+  </data>
+  <data name="Start_LhmGitHubSource.Label" xml:space="preserve">
+    <value>LibreHardwareMonitor on GitHub</value>
+  </data>
+  <data name="Start_FoundSensorsText.Text" xml:space="preserve">
+    <value>Found Sensors</value>
+  </data>
+  <data name="Start_RenderingSensorsText.Text" xml:space="preserve">
+    <value>Rendering Sensors</value>
+  </data>
+  <data name="Start_ThisAppPopup.Title" xml:space="preserve">
+    <value>This App</value>
+  </data>
+  <data name="Start_ThisAppPopup.Description" xml:space="preserve">
+    <value>CPU Usage - this app's own CPU time relative to total capacity across all cores
+RAM Usage - physical memory currently mapped by this app (working set)
+Uptime - how long this app has been running since it was last started</value>
+  </data>
+  <data name="Start_ThisAppPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Start_CPUUsageText.Text" xml:space="preserve">
+    <value>CPU usage</value>
+  </data>
+  <data name="Start_RAMUsageText.Text" xml:space="preserve">
+    <value>RAM usage</value>
+  </data>
+  <data name="Start_UptimeText.Text" xml:space="preserve">
+    <value>Uptime</value>
+  </data>
+  <data name="Start_AboutOpenSourceText.Text" xml:space="preserve">
+    <value>About &amp; Open Source</value>
+  </data>
+  <data name="Start_DocumentationCard.Description" xml:space="preserve">
+    <value>Readme, usage and the full source</value>
+  </data>
+  <data name="Start_DocumentationCard.Header" xml:space="preserve">
+    <value>Documentation</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubCard.Description" xml:space="preserve">
+    <value>Bug reports and feature requests</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubCard.Header" xml:space="preserve">
+    <value>Feedback on GitHub</value>
+  </data>
+  <data name="Start_DeveloperProfileCard.Header" xml:space="preserve">
+    <value>Developer Profile</value>
+  </data>
+  <data name="Start_SupportTheProjectExpander.Description" xml:space="preserve">
+    <value>Fluent Sensors is free and open source</value>
+  </data>
+  <data name="Start_SupportTheProjectExpander.Header" xml:space="preserve">
+    <value>Support the Project</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreCard.Description" xml:space="preserve">
+    <value>A rating helps others find the app</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreCard.Header" xml:space="preserve">
+    <value>Review on Microsoft Store</value>
+  </data>
+  <data name="Start_SponsorOnGitHubCard.Description" xml:space="preserve">
+    <value>Recurring or one-off, through GitHub</value>
+  </data>
+  <data name="Start_SponsorOnGitHubCard.Header" xml:space="preserve">
+    <value>Sponsor on GitHub</value>
+  </data>
+  <data name="Start_ThirdPartyLibrariesExpander.Description" xml:space="preserve">
+    <value>Open source projects used in this app</value>
+  </data>
+  <data name="Start_ThirdPartyLibrariesExpander.Header" xml:space="preserve">
+    <value>Third-Party Libraries</value>
+  </data>
+  <data name="Start_WebsiteLink.Content" xml:space="preserve">
+    <value>Website</value>
+  </data>
+  <data name="Start_DocumentationLink.Content" xml:space="preserve">
+    <value>Documentation</value>
+  </data>
+  <data name="Start_FeedbackOnGitHubLink.Content" xml:space="preserve">
+    <value>Feedback on GitHub</value>
+  </data>
+  <data name="Start_ReviewOnMicrosoftStoreLink.Content" xml:space="preserve">
+    <value>Review on Microsoft Store</value>
+  </data>
+  <data name="Start_SponsorOnGitHubLink.Content" xml:space="preserve">
+    <value>Sponsor on GitHub</value>
+  </data>
+  <data name="Start_DeveloperProfileLink.Content" xml:space="preserve">
+    <value>Developer Profile</value>
+  </data>
+  <data name="ReleaseNotes_GitHubLink.Content" xml:space="preserve">
+    <value>View on GitHub</value>
+  </data>
+  <data name="ReleaseNotes_EmptyText.Text" xml:space="preserve">
+    <value>This release was published without notes</value>
+  </data>
+  <data name="ReleaseNotes_FullChangelogText.Text" xml:space="preserve">
+    <value>Full changelog:</value>
+  </data>
+  <data name="ReleaseNotesDialog_WhatsNewText.Text" xml:space="preserve">
+    <value>What's new</value>
+  </data>
+  <data name="ReleaseNotesDialog_CloseButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="ReleaseNotesDialog_CloseButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Start_UptimeDays" xml:space="preserve">
+    <value>{0}d {1}</value>
+  </data>
+  <data name="Start_SensorCountNone" xml:space="preserve">
+    <value>No sensors</value>
+  </data>
+  <data name="Start_SensorCount_One" xml:space="preserve">
+    <value>{0} sensor</value>
+  </data>
+  <data name="Start_SensorCount_Few" xml:space="preserve">
+    <value>{0} sensors</value>
+  </data>
+  <data name="Start_SensorCount_Many" xml:space="preserve">
+    <value>{0} sensors</value>
+  </data>
+  <data name="Start_ReleaseNotesFor" xml:space="preserve">
+    <value>Release notes for {0}</value>
+  </data>
+  <data name="Start_UpdateLastChecked" xml:space="preserve">
+    <value>Last checked {0}</value>
+  </data>
+  <data name="Start_UpdateNotChecked" xml:space="preserve">
+    <value>Not checked yet</value>
+  </data>
+  <data name="Start_UpdateUpToDate" xml:space="preserve">
+    <value>You are up to date</value>
+  </data>
+  <data name="Start_UpdateChecking" xml:space="preserve">
+    <value>Checking for updates</value>
+  </data>
+  <data name="Start_UpdateAvailable" xml:space="preserve">
+    <value>Update available</value>
+  </data>
+  <data name="Start_UpdateReadyUnnamed" xml:space="preserve">
+    <value>A new version is ready to install</value>
+  </data>
+  <data name="Start_UpdateReady" xml:space="preserve">
+    <value>{0} is ready to install</value>
+  </data>
+  <data name="Start_UpdateSkipped" xml:space="preserve">
+    <value>{0} skipped</value>
+  </data>
+  <data name="Start_UpdateSkippedHint" xml:space="preserve">
+    <value>Select to install it anyway</value>
+  </data>
+  <data name="Start_UpdateFailed" xml:space="preserve">
+    <value>Check failed</value>
+  </data>
+  <data name="Start_UpdateFailedGitHub" xml:space="preserve">
+    <value>Could not reach GitHub, select to try again</value>
+  </data>
+  <data name="Start_UpdateFailedStore" xml:space="preserve">
+    <value>Could not reach the Microsoft Store, select to try again</value>
+  </data>
+  <data name="Start_UpdateCheck" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Start_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="ReleaseNotes_EmptyStatus" xml:space="preserve">
+    <value>The release history could not be loaded, and nothing has been saved yet</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Update_SkipVersion" xml:space="preserve">
+    <value>Skip this version</value>
+  </data>
+  <data name="Update_Message" xml:space="preserve">
+    <value>Fluent Sensors {0} is available. You are running {1}.</value>
+  </data>
+  <data name="Update_MessageUnnamed" xml:space="preserve">
+    <value>A new version of Fluent Sensors is available. You are running {0}.</value>
+  </data>
+  <data name="Update_Title" xml:space="preserve">
+    <value>Update available</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Update_OpenStore" xml:space="preserve">
+    <value>Open Store</value>
+  </data>
+  <data name="Update_ManualInstall" xml:space="preserve">
+    <value>Manual Install</value>
+  </data>
+  <data name="Update_Downloading" xml:space="preserve">
+    <value>Downloading {0}...</value>
+  </data>
+  <data name="Update_NoAsset" xml:space="preserve">
+    <value>This release has no matching download, opening the release page instead</value>
+  </data>
+  <data name="Update_Installing" xml:space="preserve">
+    <value>Installing, the app will restart on its own</value>
+  </data>
+  <data name="Update_Cancelled" xml:space="preserve">
+    <value>Download cancelled</value>
+  </data>
+  <data name="Update_DownloadFailed" xml:space="preserve">
+    <value>The download failed, you can grab the release manually instead</value>
+  </data>
+  <data name="Update_StoreWaiting" xml:space="preserve">
+    <value>Waiting for the Microsoft Store...</value>
+  </data>
+  <data name="Update_StoreDownloading" xml:space="preserve">
+    <value>Downloading from the Microsoft Store...</value>
+  </data>
+  <data name="Update_StoreInstalled" xml:space="preserve">
+    <value>Update installed, it takes effect the next time the app starts</value>
+  </data>
+  <data name="Update_StoreFailed" xml:space="preserve">
+    <value>The Microsoft Store could not install the update, opening the Store instead</value>
+  </data>
+  <data name="Performance_PerformanceTitleText.Text" xml:space="preserve">
+    <value>Graphs</value>
+  </data>
+  <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
+    <value>Hardware Overview</value>
+  </data>
+  <data name="Performance_HardwareListButton.Label" xml:space="preserve">
+    <value>Hardware List</value>
+  </data>
+  <data name="Performance_HardwareInfoButton.Label" xml:space="preserve">
+    <value>Hardware Info</value>
+  </data>
+  <data name="Performance_ResizeHardwareListSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware List</value>
+  </data>
+  <data name="Cpu_ExtendedTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Extended Time Range</value>
+  </data>
+  <data name="Cpu_GeneralPopup.Title" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Cpu_GeneralPopup.Description" xml:space="preserve">
+    <value>Physical Cores - actual processing units on chip
+Logical Processors - total execution threads (SMT/Hyper-Threading doubles per core)
+Core Topology - Performance vs Efficient core split on hybrid CPUs</value>
+  </data>
+  <data name="Cpu_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Cpu_CachePopup.Description" xml:space="preserve">
+    <value>Small, fast on-die memory holding recently used data
+L1 - smallest, fastest, per core; sum of separate instruction + data caches
+L2 - larger, slower, per core; unified
+L3 - largest, shared across all cores; unified</value>
+  </data>
+  <data name="Cpu_CachePopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Cpu_VirtualizationPopup.Description" xml:space="preserve">
+    <value>Extensions - CPU hardware support for running virtual machines (VT-x/AMD-V), used by Hyper-V, WSL2, and similar
+Firmware - currently enabled or not (unreliable)</value>
+  </data>
+  <data name="Cpu_VirtualizationPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Cpu_ShowOverallButton.Label" xml:space="preserve">
+    <value>Overall</value>
+  </data>
+  <data name="Cpu_ShowAllThreadsButton.Label" xml:space="preserve">
+    <value>Extended</value>
+  </data>
+  <data name="Cpu_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
+  <data name="Gpu_ExtendedTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Extended Time Range</value>
+  </data>
+  <data name="Gpu_ShowOverallButton.Label" xml:space="preserve">
+    <value>Overall</value>
+  </data>
+  <data name="Gpu_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Extended</value>
+  </data>
+  <data name="Gpu_GeneralPopup.Title" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
+    <value>Driver Version - internal Windows driver number, differs from vendor's own version scheme</value>
+  </data>
+  <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Gpu_NameText.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Gpu_MemoryPopup.Description" xml:space="preserve">
+    <value>Dedicated Memory - VRAM reserved exclusively for the GPU
+Shared Memory - system RAM the GPU may additionally borrow, shared with the CPU; calculated independently per GPU from total system RAM, not split between multiple GPUs</value>
+  </data>
+  <data name="Gpu_MemoryPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Gpu_IdentifiersPopup.Description" xml:space="preserve">
+    <value>PCI Device ID - vendor/chip code hardcoded on the GPU
+PnP Device ID - Windows' instance identifier for this device</value>
+  </data>
+  <data name="Gpu_IdentifiersPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Gpu_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
+  <data name="Memory_MemoryUsedVirtualTile.InfoMessage" xml:space="preserve">
+    <value>Corresponds to Task Manager's "Committed" value; usually exact, but can deviate occasionally.</value>
+  </data>
+  <data name="Memory_RamInfoPopup.Description" xml:space="preserve">
+    <value>Type - DDR generation (DDR4, DDR5, ...)
+Form Factor - DIMM (desktop) or SO-DIMM (laptop)
+RAM Speed - Configured (active) vs Rated (spec)
+Voltage - operating voltage; XMP/EXPO can raise it
+Bank - physical bank/slot grouping on the motherboard this module belongs to
+Rank - number of independent chip sets on the module itself (unreliable)
+Width - Data (usable bits) vs Total (includes ECC bits)</value>
+  </data>
+  <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Memory_ManufacturerText.Text" xml:space="preserve">
+    <value>Manufacturer</value>
+  </data>
+  <data name="Memory_SerialNumberText.Text" xml:space="preserve">
+    <value>Serial Number</value>
+  </data>
+  <data name="Memory_TypeText.Text" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Memory_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
+  <data name="Storage_GeneralPopup.Title" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Storage_GeneralPopup.Description" xml:space="preserve">
+    <value>Bus Type - connection interface (NVMe, SATA, USB, ...), caps the drive's realistic maximum speed; read from the modern Storage API since the legacy Windows API misreports NVMe drives as SCSI</value>
+  </data>
+  <data name="Storage_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Storage_DiskDriveFallbackSource.Label" xml:space="preserve">
+    <value>Win32_DiskDrive (legacy fallback)</value>
+  </data>
+  <data name="Storage_ModelText.Text" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="Storage_SizeText.Text" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="Storage_IdentifiersPopup.Description" xml:space="preserve">
+    <value>Serial Number, Firmware Revision, Device ID - together uniquely identify this exact drive and its firmware</value>
+  </data>
+  <data name="Storage_IdentifiersPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Storage_SerialNumberText.Text" xml:space="preserve">
+    <value>Serial Number</value>
+  </data>
+  <data name="Storage_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
+  <data name="Network_ConnectionPopup.Title" xml:space="preserve">
+    <value>Connection</value>
+  </data>
+  <data name="Network_ConnectionPopup.Description" xml:space="preserve">
+    <value>Represents one active connection, not the adapter's full range of possible connections. Multiple active connections (e.g. Wi-Fi + Ethernet) each get their own separate entry.
+Hardware - physical adapter behind this connection
+Type - its medium (Wi-Fi, Ethernet, ...)</value>
+  </data>
+  <data name="Network_ConnectionPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Network_HardwareText.Text" xml:space="preserve">
+    <value>Hardware</value>
+  </data>
+  <data name="Network_TypeText.Text" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Network_IPAddressesPopup.Description" xml:space="preserve">
+    <value>IPv4 and IPv6 are independent addressing systems, both active at once.
+IPv4 - usually one address
+IPv6 - often several at once (stable + rotating privacy addresses)</value>
+  </data>
+  <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Network_GeneralPopup.Title" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Network_GeneralPopup.Description" xml:space="preserve">
+    <value>Link Speed - negotiated rate of this specific connection, not the adapter's maximum rated speed; can be lower, and shifts over time on Wi-Fi as signal conditions change
+DHCP Enabled - whether this connection's own address was assigned automatically or set statically; a property of this connection, not a general network-wide setting</value>
+  </data>
+  <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
+  <data name="SensorPanel_TogglePanelButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Toggle Panel</value>
+  </data>
+  <data name="SensorPanel_TogglePanelButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Toggle Panel</value>
+  </data>
+  <data name="SensorPanel_SwitchCandidateComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Switch Sensor</value>
+  </data>
+  <data name="SensorPanel_IncreaseYAxisButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Increase Y-Axis</value>
+  </data>
+  <data name="SensorPanel_IncreaseYAxisButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Increase Y-Axis</value>
+  </data>
+  <data name="SensorPanel_DecreaseYAxisButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Decrease Y-Axis</value>
+  </data>
+  <data name="SensorPanel_DecreaseYAxisButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Decrease Y-Axis</value>
+  </data>
+  <data name="SensorPanel_AutoScaleButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Auto-Scale</value>
+  </data>
+  <data name="SensorPanel_AutoScaleButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Auto-Scale</value>
+  </data>
+  <data name="SensorPanel_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Increase Threshold</value>
+  </data>
+  <data name="SensorPanel_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Increase Threshold</value>
+  </data>
+  <data name="SensorPanel_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Decrease Threshold</value>
+  </data>
+  <data name="SensorPanel_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Decrease Threshold</value>
+  </data>
+  <data name="SensorPanel_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Toggle Threshold-Line</value>
+  </data>
+  <data name="SensorPanel_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Toggle Threshold-Line</value>
+  </data>
+  <data name="SensorPanel_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Mark Above Threshold</value>
+  </data>
+  <data name="SensorPanel_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Mark Above Threshold</value>
+  </data>
+  <data name="SensorPanel_ThresholdColorButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Threshold Color</value>
+  </data>
+  <data name="SensorPanel_ThresholdColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Threshold Color</value>
+  </data>
+  <data name="SensorPanel_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Mark Under Threshold</value>
+  </data>
+  <data name="SensorPanel_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Mark Under Threshold</value>
+  </data>
+  <data name="Threshold_ThresholdConfigText.Text" xml:space="preserve">
+    <value>Threshold Config</value>
+  </data>
+  <data name="Threshold_ThresholdCloseButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Threshold_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Increase Threshold</value>
+  </data>
+  <data name="Threshold_IncreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Increase Threshold</value>
+  </data>
+  <data name="Threshold_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Decrease Threshold</value>
+  </data>
+  <data name="Threshold_DecreaseThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Decrease Threshold</value>
+  </data>
+  <data name="Threshold_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Toggle Threshold-Line</value>
+  </data>
+  <data name="Threshold_ToggleThresholdLineButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Toggle Threshold-Line</value>
+  </data>
+  <data name="Threshold_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Mark Above Threshold</value>
+  </data>
+  <data name="Threshold_MarkAboveThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Mark Above Threshold</value>
+  </data>
+  <data name="Threshold_ThresholdColorButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Threshold Color</value>
+  </data>
+  <data name="Threshold_ThresholdColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Threshold Color</value>
+  </data>
+  <data name="Threshold_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Mark Under Threshold</value>
+  </data>
+  <data name="Threshold_MarkUnderThresholdButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Mark Under Threshold</value>
+  </data>
+  <data name="Cpu_TopologyGroup" xml:space="preserve">
+    <value>{0} {1} ({2})</value>
+  </data>
+  <data name="InfoPopup_Source" xml:space="preserve">
+    <value>Source: {0}</value>
+  </data>
+  <data name="InfoPopup_MoreInfo" xml:space="preserve">
+    <value>More Information</value>
+  </data>
+  <data name="InfoPopup_MoreInfoAbout" xml:space="preserve">
+    <value>More Information about {0}</value>
+  </data>
+  <data name="SensorPanel_NotFound" xml:space="preserve">
+    <value>{0} sensor not found</value>
+  </data>
+  <data name="Threshold_Name" xml:space="preserve">
+    <value>Threshold {0}</value>
+  </data>
+  <data name="Threshold_NotSet" xml:space="preserve">
+    <value>Threshold, not set</value>
+  </data>
+  <data name="TimeRange_Name" xml:space="preserve">
+    <value>Time Range</value>
+  </data>
+  <data name="TimeRange_Last" xml:space="preserve">
+    <value>Last {0:0}s</value>
+  </data>
+  <data name="Info_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Info_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Info_Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Info_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Info_UnknownValue" xml:space="preserve">
+    <value>Unknown ({0})</value>
+  </data>
+  <data name="Info_ErrorCounts" xml:space="preserve">
+    <value>{0} total, {1} corrected, {2} uncorrected</value>
+  </data>
+  <data name="Info_CycleCount" xml:space="preserve">
+    <value>{0} / {1} max</value>
+  </data>
+  <data name="Sensors_SensorListTitleText.Text" xml:space="preserve">
+    <value>Sensor List</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Selection Profile</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_WidgetWindow.Content" xml:space="preserve">
+    <value>Widget</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_Csv.Content" xml:space="preserve">
+    <value>Logging</value>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
+    <value>Taskbar</value>
+  </data>
+  <data name="Sensors_PinToWidgetButton.Label" xml:space="preserve">
+    <value>Pin to Widget</value>
+  </data>
+  <data name="Sensors_StartCsvMonitoringButton.Label" xml:space="preserve">
+    <value>Start CSV Logging</value>
+  </data>
+  <data name="Sensors_PinToTaskbarButton.Label" xml:space="preserve">
+    <value>Pin to Taskbar</value>
+  </data>
+  <data name="Sensors_UpdateTaskbarText.Text" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Sensors_CloseTaskbarWidgetButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Close Taskbar Widget</value>
+  </data>
+  <data name="Sensors_CloseTaskbarWidgetButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Close Taskbar Widget</value>
+  </data>
+  <data name="Sensors_HideSensorsButton.Label" xml:space="preserve">
+    <value>Hide</value>
+  </data>
+  <data name="Sensors_HideSensorsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Hides and stops monitoring the selected sensors</value>
+  </data>
+  <data name="Sensors_ResetValuesButton.Label" xml:space="preserve">
+    <value>Reset Stats</value>
+  </data>
+  <data name="Sensors_ShowHiddenSensorsButton.Label" xml:space="preserve">
+    <value>Hidden Sensors</value>
+  </data>
+  <data name="Sensors_NoSensorsInfoBar.Title" xml:space="preserve">
+    <value>No sensors selected</value>
+  </data>
+  <data name="Sensors_NoSensorsInfoBar.Message" xml:space="preserve">
+    <value>Please select at least one sensor</value>
+  </data>
+  <data name="Sensors_RunningForText.Text" xml:space="preserve">
+    <value>Running for</value>
+  </data>
+  <data name="Sensors_SelectPinnedButton.Label" xml:space="preserve">
+    <value>Select Pinned</value>
+  </data>
+  <data name="Sensors_DeselectAllButton.Label" xml:space="preserve">
+    <value>Deselect All</value>
+  </data>
+  <data name="HiddenSensors_HiddenSensorsText.Text" xml:space="preserve">
+    <value>Hidden Sensors</value>
+  </data>
+  <data name="HiddenSensors_RestoreSelectedButton.Content" xml:space="preserve">
+    <value>Restore Selected</value>
+  </data>
+  <data name="CsvLogger_BackToDashboardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Back to Main Application</value>
+  </data>
+  <data name="CsvLogger_BackToDashboardButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Back to Main Application</value>
+  </data>
+  <data name="CsvLogger_StartText.Text" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="CsvLogger_StopButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="CsvLogger_PinnedSensorsText.Text" xml:space="preserve">
+    <value>Pinned sensors</value>
+  </data>
+  <data name="CsvLogger_PollingRateText.Text" xml:space="preserve">
+    <value>Polling rate</value>
+  </data>
+  <data name="CsvLogger_TotalElapsedText.Text" xml:space="preserve">
+    <value>Total elapsed</value>
+  </data>
+  <data name="CsvLogger_PausesText.Text" xml:space="preserve">
+    <value>Pauses</value>
+  </data>
+  <data name="CsvLogger_OpenInFileExplorerButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Open in File Explorer</value>
+  </data>
+  <data name="CsvLogger_OpenInFileExplorerButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Open in File Explorer</value>
+  </data>
+  <data name="TaskbarFlyout_SystemSensorsText.Text" xml:space="preserve">
+    <value>System Sensors</value>
+  </data>
+  <data name="TaskbarFlyout_FlyoutTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Flyout Time Range</value>
+  </data>
+  <data name="TaskbarFlyout_FlyoutTimeRangePicker.Label" xml:space="preserve">
+    <value>Flyout</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarTimeRangePicker.AccessibleName" xml:space="preserve">
+    <value>Taskbar Time Range</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarTimeRangePicker.Label" xml:space="preserve">
+    <value>Taskbar</value>
+  </data>
+  <data name="TaskbarFlyout_BackToDashboardButton.Content" xml:space="preserve">
+    <value>Manage Taskbar Sensors</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarSettingsButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Taskbar Widget Settings</value>
+  </data>
+  <data name="TaskbarFlyout_TaskbarSettingsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Taskbar Widget Settings</value>
+  </data>
+  <data name="Widget_SystemSensorsText.Text" xml:space="preserve">
+    <value>System Sensors</value>
+  </data>
+  <data name="Widget_BackToDashboardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Back to Main Application</value>
+  </data>
+  <data name="Widget_BackToDashboardButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Back to Main Application</value>
+  </data>
+  <data name="Sensors_GroupCount" xml:space="preserve">
+    <value>{0}/{1} sensors</value>
+  </data>
+  <data name="Sensors_GroupCountName" xml:space="preserve">
+    <value>{0} of {1} sensors shown</value>
+  </data>
+  <data name="Sensors_UpdateWidget" xml:space="preserve">
+    <value>Update Widget</value>
+  </data>
+  <data name="Sensors_PinToWidget" xml:space="preserve">
+    <value>Pin to Widget</value>
+  </data>
+  <data name="Sensors_UpdateCsvLogging" xml:space="preserve">
+    <value>Update CSV Logging</value>
+  </data>
+  <data name="Sensors_StartCsvLogging" xml:space="preserve">
+    <value>Start CSV Logging</value>
+  </data>
+  <data name="Common_Resume" xml:space="preserve">
+    <value>Resume</value>
+  </data>
+  <data name="Common_Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="CsvLogger_StatusSelectionLocked" xml:space="preserve">
+    <value>stop the recording first to change the sensor selection</value>
+  </data>
+  <data name="CsvLogger_StatusPaused" xml:space="preserve">
+    <value>paused at {0:N0} rows</value>
+  </data>
+  <data name="CsvLogger_StatusRecording" xml:space="preserve">
+    <value>recording to {0}</value>
+  </data>
+  <data name="CsvLogger_StatusNoSensors" xml:space="preserve">
+    <value>no sensors picked yet, select some in the sensor list</value>
+  </data>
+  <data name="CsvLogger_StatusSaved" xml:space="preserve">
+    <value>saved {0:N0} rows to {1}</value>
+  </data>
+  <data name="CsvLogger_StatusReady" xml:space="preserve">
+    <value>ready to record</value>
+  </data>
+  <data name="CsvLogger_StatusWriteFailed" xml:space="preserve">
+    <value>could not write to {0}</value>
+  </data>
+  <data name="CsvLogger_FolderPickerTitle" xml:space="preserve">
+    <value>CSV Logging Folder</value>
+  </data>
+  <data name="CsvLogger_HideDetails" xml:space="preserve">
+    <value>Hide details</value>
+  </data>
+  <data name="CsvLogger_ShowDetails" xml:space="preserve">
+    <value>Show details</value>
+  </data>
+  <data name="TaskbarWidget_EmbedFailed" xml:space="preserve">
+    <value>Taskbar widget embedding failed after {0} attempts:
+
+{1}</value>
+  </data>
+  <data name="TaskbarWidget_InitFailed" xml:space="preserve">
+    <value>Taskbar widget initialization failed:
+
+{0}</value>
+  </data>
+  <data name="App_LanguageTag" xml:space="preserve">
+    <value>en-US</value>
+  </data>
+  <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
+    <value>Technical Terms in English</value>
+  </data>
+</root>

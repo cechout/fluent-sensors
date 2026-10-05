@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.UI;
 
 
@@ -462,7 +463,7 @@ namespace FluentSensors.Controls.SensorGraph
         // name and unit come from the consumer, a null ViewModel has none
         private string FormatNotFoundMessage(string sensorName, string unit)
         {
-            return string.IsNullOrEmpty(unit) ? $"{sensorName} sensor not found" : $"{sensorName} ({unit}) sensor not found";
+            return AppStrings.Format("SensorPanel_NotFound", string.IsNullOrEmpty(unit) ? sensorName : $"{sensorName} ({unit})");
         }
 
         private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;

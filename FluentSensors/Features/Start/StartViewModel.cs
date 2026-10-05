@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using Windows.UI;
 
 using FluentSensors.Common;
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Core;
 using FluentSensors.Core.Lhm;
@@ -178,7 +179,7 @@ namespace FluentSensors.Features.Start
             TimeSpan uptime = DateTime.UtcNow - ProcessStartTimeUtc;
 
             string clock = $"{uptime.Hours}:{uptime.Minutes:00}:{uptime.Seconds:00}";
-            string text = uptime.Days > 0 ? $"{uptime.Days}d {clock}" : clock;
+            string text = uptime.Days > 0 ? AppStrings.Format("Start_UptimeDays", uptime.Days, clock) : clock;
 
             if (text != UptimeTileValue) UptimeTileValue = text;
         }
@@ -200,12 +201,7 @@ namespace FluentSensors.Features.Start
 
                 entry.MatchedHardwareNames = matches.Select(m => m.HardwareName).ToList();
                 entry.HasSensors = count > 0;
-                entry.SensorCountText = count switch
-                {
-                    0 => "No sensors",
-                    1 => "1 sensor",
-                    _ => $"{count} sensors"
-                };
+                entry.SensorCountText = count == 0 ? AppStrings.Get("Start_SensorCountNone") : AppStrings.Plural("Start_SensorCount", count);
             }
 
             SyncVisibleEntries();
@@ -259,55 +255,55 @@ namespace FluentSensors.Features.Start
             string notesVersion = release != null && !string.IsNullOrEmpty(release.Version)
                 ? release.Version
                 : UpdateService.CurrentVersion;
-            ReleaseNotesSubtitle = $"Release notes for {UpdateService.VersionLabel(notesVersion)}";
+            ReleaseNotesSubtitle = AppStrings.Format("Start_ReleaseNotesFor", UpdateService.VersionLabel(notesVersion));
 
             IsUpdateChecking = service.UiState == UpdateUiState.Checking;
             IsUpdateActionEnabled = service.UiState != UpdateUiState.Checking;
 
             string lastChecked = service.LastCheckedAt.HasValue
-                ? $"Last checked {service.LastCheckedAt.Value:dd.MM. HH:mm}"
-                : "Not checked yet";
+                ? AppStrings.Format("Start_UpdateLastChecked", service.LastCheckedAt.Value.ToString("dd.MM. HH:mm"))
+                : AppStrings.Get("Start_UpdateNotChecked");
 
             switch (service.UiState)
             {
                 case UpdateUiState.UpToDate:
                     SetBadge("", SuccessColor);
-                    UpdateStatusTitle = "You are up to date";
+                    UpdateStatusTitle = AppStrings.Get("Start_UpdateUpToDate");
                     UpdateStatusDescription = lastChecked;
                     break;
 
                 case UpdateUiState.Checking:
                     SetBadge("", AccentColor());
-                    UpdateStatusTitle = "Checking for updates";
+                    UpdateStatusTitle = AppStrings.Get("Start_UpdateChecking");
                     UpdateStatusDescription = "";
                     break;
 
                 case UpdateUiState.UpdateAvailable:
                     SetBadge("", AccentColor());
-                    UpdateStatusTitle = "Update available";
+                    UpdateStatusTitle = AppStrings.Get("Start_UpdateAvailable");
                     // a store update without a GitHub name has no version
                     UpdateStatusDescription = string.IsNullOrEmpty(service.Latest?.Version)
-                        ? "A new version is ready to install"
-                        : $"{UpdateService.VersionLabel(service.Latest?.Version)} is ready to install";
+                        ? AppStrings.Get("Start_UpdateReadyUnnamed")
+                        : AppStrings.Format("Start_UpdateReady", UpdateService.VersionLabel(service.Latest?.Version));
                     break;
 
                 case UpdateUiState.Skipped:
                     SetBadge("", CautionColor);
-                    UpdateStatusTitle = $"{UpdateService.VersionLabel(service.SkippedVersion)} skipped";
-                    UpdateStatusDescription = "Select to install it anyway";
+                    UpdateStatusTitle = AppStrings.Format("Start_UpdateSkipped", UpdateService.VersionLabel(service.SkippedVersion));
+                    UpdateStatusDescription = AppStrings.Get("Start_UpdateSkippedHint");
                     break;
 
                 case UpdateUiState.Failed:
                     SetBadge("", CriticalColor);
-                    UpdateStatusTitle = "Check failed";
+                    UpdateStatusTitle = AppStrings.Get("Start_UpdateFailed");
                     UpdateStatusDescription = AppDistribution.SupportsSelfUpdate
-                        ? "Could not reach GitHub, select to try again"
-                        : "Could not reach the Microsoft Store, select to try again";
+                        ? AppStrings.Get("Start_UpdateFailedGitHub")
+                        : AppStrings.Get("Start_UpdateFailedStore");
                     break;
 
                 default:
                     SetBadge("", NeutralColor);
-                    UpdateStatusTitle = "Check for updates";
+                    UpdateStatusTitle = AppStrings.Get("Start_UpdateCheck");
                     UpdateStatusDescription = lastChecked;
                     break;
             }
@@ -361,7 +357,7 @@ namespace FluentSensors.Features.Start
                 iconGlyph,
                 HardwareGroupInfo.GetIconBrush(kind),
                 category,
-                string.IsNullOrWhiteSpace(title) ? "Unknown" : title,
+                string.IsNullOrWhiteSpace(title) ? AppStrings.Get("Start_Unknown") : title,
                 details.Where(d => !string.IsNullOrWhiteSpace(d) && d != "-").ToList(),
                 kind,
                 title ?? "");
@@ -389,7 +385,7 @@ namespace FluentSensors.Features.Start
                 .FirstOrDefault(g => g.Kind == HardwareGroupKind.Cpu)?.HardwareName ?? "";
 
             string cores = cpu.PhysicalCores > 0 && cpu.LogicalProcessors > 0
-                ? $"{cpu.PhysicalCores} cores / {cpu.LogicalProcessors} threads"
+                ? $"{AppTerms.Plural("Start_Cores", cpu.PhysicalCores)} / {AppTerms.Plural("Start_Threads", cpu.LogicalProcessors)}"
                 : "";
 
             string clock = cpu.MaxClockSpeedMhz > 0
@@ -418,13 +414,13 @@ namespace FluentSensors.Features.Start
             if (string.IsNullOrWhiteSpace(name)) name = "Memory";
 
             string slots = memory.TotalSlots > 0
-                ? $"{memory.Modules.Count} of {memory.TotalSlots} slots"
-                : $"{memory.Modules.Count} modules";
+                ? AppTerms.Format("Start_SlotsUsed", memory.Modules.Count, memory.TotalSlots)
+                : AppTerms.Plural("Start_Modules", memory.Modules.Count);
 
             rows.Add(Row(
                 HardwareGroupKind.Ram,
                 name,
-                $"{HardwareInfoFormatter.FormatBytesAsGb(total)} total",
+                AppTerms.Format("Start_MemoryTotal", HardwareInfoFormatter.FormatBytesAsGb(total)),
                 slots,
                 HardwareInfoFormatter.FormatMemoryType(first.SmbiosMemoryType),
                 HardwareInfoFormatter.FormatMemorySpeed(first.ConfiguredClockSpeedMhz)));
@@ -440,7 +436,7 @@ namespace FluentSensors.Features.Start
 
                 string driver = string.IsNullOrWhiteSpace(gpu.DriverVersion)
                     ? ""
-                    : $"Driver {gpu.DriverVersion}";
+                    : AppTerms.Format("Start_GpuDriver", gpu.DriverVersion);
 
                 rows.Add(Row(
                     HardwareGroupKind.Gpu,
