@@ -176,7 +176,8 @@
                                     <Button
                                         x:Name="UpdateTaskbarButton"
                                         Grid.Column="0"
-                                        Padding="11,0,8,0"
+                                        Margin="0,0,-0.4,0"
+                                        Padding="11,0,6,0"
                                         VerticalAlignment="Stretch"
                                         Click="PinToTaskbar_Click"
                                         CornerRadius="4.5,0,0,4.5">
@@ -194,9 +195,8 @@
                                         x:Name="CloseTaskbarWidgetButton"
                                         x:Uid="Sensors_CloseTaskbarWidgetButton"
                                         Grid.Column="1"
-                                        Width="32"
-                                        Margin="-0.9,0,0,0"
-                                        Padding="0"
+                                        Margin="-0.5,0,0,0"
+                                        Padding="7,0,9,0"
                                         VerticalAlignment="Stretch"
                                         Click="CloseTaskbarWidget_Click"
                                         CornerRadius="0,4.5,4.5,0">
