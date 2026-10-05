@@ -84,6 +84,11 @@
                         IsOpen="False"
                         Loaded="SensorListCommandBar_Loaded">
 
+                        <!--  (slides in from the right after a rebuild, see AnimateCommandBarEntrance)  -->
+                        <CommandBar.RenderTransform>
+                            <TranslateTransform x:Name="CommandBarTransform" />
+                        </CommandBar.RenderTransform>
+
                         <CommandBar.Resources>
                             <SolidColorBrush x:Key="CommandBarBackground" Color="Transparent" />
                             <SolidColorBrush x:Key="CommandBarBackgroundOpen" Color="Transparent" />

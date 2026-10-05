@@ -41,6 +41,12 @@ namespace FluentSensors.Features.Sensors
         private const double LeftSectionMinWidth = 260; // from SensorListTitleText
         private int _commandBarOverflowStartIndex = -1;
 
+        // command bar entrance after a profile switch or a pin; hidden at once, then slid in from the right
+        private Microsoft.UI.Xaml.Media.Animation.Storyboard? _commandBarEntranceStoryboard;
+        private const double CommandBarEntranceOffset = 40; // px
+        private const int CommandBarEntranceDelayMs = 10;
+        private const int CommandBarEntranceDurationMs = 300;
+
         // info bar
         private bool _infoBarClipHandlersAttached = false;
 
@@ -233,7 +239,7 @@ namespace FluentSensors.Features.Sensors
             };
             if (!affectsActiveProfile || _forcedOverflowElements == null) return;
 
-            RebuildCommandBarOverflow();
+            RebuildCommandBarOverflow(animate: true);
         }
 
         // the profile the checkboxes reflect and persist to, with the matching action button (Pin to Widget, Start
@@ -247,7 +253,7 @@ namespace FluentSensors.Features.Sensors
 
             ViewModel.ActiveProfile = profile;
             SettingsService.Instance.LastSensorProfile = profile;
-            RebuildCommandBarOverflow();
+            RebuildCommandBarOverflow(animate: true);
         }
 
         // opens the list on a profile from outside (the taskbar flyout); through the ComboBox, so the handler above
@@ -460,8 +466,21 @@ namespace FluentSensors.Features.Sensors
 
         // an AppBarButton outside the bar reports another ActualWidth (DefaultLabelPosition only applies to its
         // children), so every element goes in as primary first and the split follows one tick later
-        private void RebuildCommandBarOverflow()
+        // animated, the bar stays hidden through that in between state and slides in once the split is done
+        private void RebuildCommandBarOverflow(bool animate = false)
         {
+            // off the tree a storyboard may never complete and would leave the bar hidden
+            animate &= SensorListCommandBar.IsLoaded;
+
+            if (animate)
+            {
+                HideCommandBar();
+            }
+            else
+            {
+                ShowCommandBar();
+            }
+
             _commandBarPriorityOrder = BuildCommandBarPriorityOrder();
             _commandBarOverflowStartIndex = -1;
 
@@ -476,7 +495,78 @@ namespace FluentSensors.Features.Sensors
             {
                 CacheCommandBarButtonWidths();
                 UpdateCommandBarOverflow();
+
+                if (animate)
+                {
+                    AnimateCommandBarEntrance();
+                }
             });
+        }
+
+        // a running entrance stops and falls back to the hidden base values
+        private void HideCommandBar()
+        {
+            _commandBarEntranceStoryboard?.Stop();
+            _commandBarEntranceStoryboard = null;
+
+            SensorListCommandBar.Opacity = 0;
+            CommandBarTransform.X = CommandBarEntranceOffset;
+        }
+
+        private void ShowCommandBar()
+        {
+            _commandBarEntranceStoryboard?.Stop();
+            _commandBarEntranceStoryboard = null;
+
+            SensorListCommandBar.Opacity = 1;
+            CommandBarTransform.X = 0;
+        }
+
+        private void AnimateCommandBarEntrance()
+        {
+            var beginTime = TimeSpan.FromMilliseconds(CommandBarEntranceDelayMs);
+            var duration = TimeSpan.FromMilliseconds(CommandBarEntranceDurationMs);
+            var easing = new Microsoft.UI.Xaml.Media.Animation.CubicEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseOut };
+
+            var animX = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+            {
+                From = CommandBarEntranceOffset,
+                To = 0,
+                BeginTime = beginTime,
+                Duration = duration,
+                EasingFunction = easing
+            };
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(animX, CommandBarTransform);
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(animX, "X");
+
+            var animOpacity = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+            {
+                From = 0,
+                To = 1,
+                BeginTime = beginTime,
+                Duration = duration,
+                EasingFunction = easing
+            };
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(animOpacity, SensorListCommandBar);
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(animOpacity, "Opacity");
+
+            var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
+            sb.Children.Add(animX);
+            sb.Children.Add(animOpacity);
+
+            // the end values become the base values, so nothing depends on a held animation
+            sb.Completed += (_, _) =>
+            {
+                if (_commandBarEntranceStoryboard != sb) return;
+
+                SensorListCommandBar.Opacity = 1;
+                CommandBarTransform.X = 0;
+                sb.Stop();
+                _commandBarEntranceStoryboard = null;
+            };
+
+            _commandBarEntranceStoryboard = sb;
+            sb.Begin();
         }
 
         // with the commit button of the active profile; an open window gets it as an update button, the taskbar widget
