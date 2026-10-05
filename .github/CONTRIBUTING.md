@@ -1,6 +1,6 @@
-# Contributing to FluentSensors
+# Contributing to Fluent Sensors
 
-Thanks for wanting to contribute. FluentSensors is a solo hobby project, so response times may vary. For anything beyond a small fix, open an issue first to talk through the approach before writing code, saves everyone rework.
+Thanks for wanting to contribute. Fluent Sensors is a solo hobby project, so response times may vary. For anything beyond a small fix, open an issue first to talk through the approach before writing code, saves everyone rework.
 
 ## Getting set up
 
@@ -33,7 +33,6 @@ The app text lives in `FluentSensors/Strings/<language>/`, with `en-US` as the s
 
 * translate a term the way your language actually uses it; when the English word is the usual one (like Cache in many languages), keeping it is fine
 
-* never translate sensor names, hardware type names or the CSV column headers, they come from LibreHardwareMonitor and other tools rely on them
 * keep placeholders like `{0}` and line breaks as they are
 * keys ending in `_One`, `_Few` and `_Many` are count forms: one, two to four, and everything else; a language without a separate few form repeats the many text
 * a new language also needs one line in `AppLanguage.Supported` (`FluentSensors/Common/Localization/AppLanguage.cs`) to show up in the language setting
