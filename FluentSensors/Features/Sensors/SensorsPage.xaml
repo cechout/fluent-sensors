@@ -125,12 +125,35 @@
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
+                            <!--  update and close the taskbar widget as two plain buttons (shown for the Taskbar profile while the widget is open)  -->
+                            <AppBarButton
+                                x:Name="TaskbarUpdateButton"
+                                x:Uid="Sensors_TaskbarUpdateButton"
+                                Click="PinToTaskbar_Click">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xE895;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
+
+                            <AppBarButton
+                                x:Name="TaskbarCloseButton"
+                                x:Uid="Sensors_TaskbarCloseButton"
+                                Click="CloseTaskbarWidget_Click">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xE711;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
+
                             <!--  update and close the taskbar widget (shown for the Taskbar profile while the widget is open)  -->
                             <!--
                                 (two flat buttons joined into one split shape with the colors of the other bar buttons;
                                 hovering either part lights both, see TaskbarWidgetButtons_PointerEntered)
                             -->
-                            <AppBarElementContainer x:Name="TaskbarWidgetButtonsContainer" VerticalContentAlignment="Stretch">
+                            <!--  revisit: split taskbar buttons; parked while the two plain buttons above are tried out, x:Load keeps it out of the tree  -->
+                            <AppBarElementContainer
+                                x:Name="TaskbarWidgetButtonsContainer"
+                                x:Load="False"
+                                VerticalContentAlignment="Stretch">
                                 <Grid
                                     x:Name="TaskbarWidgetButtonsGrid"
                                     Margin="2,5,2,5"
@@ -196,11 +219,15 @@
                                         x:Uid="Sensors_CloseTaskbarWidgetButton"
                                         Grid.Column="1"
                                         Margin="-0.5,0,0,0"
-                                        Padding="7,0,9,0"
+                                        Padding="6,0,9,0"
                                         VerticalAlignment="Stretch"
                                         Click="CloseTaskbarWidget_Click"
                                         CornerRadius="0,4.5,4.5,0">
-                                        <FontIcon FontSize="14" Glyph="&#xE711;" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="12"
+                                            Text="Close" />
+                                        <!--<FontIcon FontSize="14" Glyph="&#xE711;" />-->
                                     </Button>
                                 </Grid>
                             </AppBarElementContainer>

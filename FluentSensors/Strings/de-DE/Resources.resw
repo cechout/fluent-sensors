@@ -1378,6 +1378,12 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   <data name="Sensors_PinToTaskbarButton.Label" xml:space="preserve">
     <value>An Taskleiste anheften</value>
   </data>
+  <data name="Sensors_TaskbarUpdateButton.Label" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="Sensors_TaskbarCloseButton.Label" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
   <data name="Sensors_UpdateTaskbarText.Text" xml:space="preserve">
     <value>Aktualisieren</value>
   </data>

@@ -1378,6 +1378,12 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
   <data name="Sensors_PinToTaskbarButton.Label" xml:space="preserve">
     <value>Pin to Taskbar</value>
   </data>
+  <data name="Sensors_TaskbarUpdateButton.Label" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Sensors_TaskbarCloseButton.Label" xml:space="preserve">
+    <value>Close</value>
+  </data>
   <data name="Sensors_UpdateTaskbarText.Text" xml:space="preserve">
     <value>Update</value>
   </data>

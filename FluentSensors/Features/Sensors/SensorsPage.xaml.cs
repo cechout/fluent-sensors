@@ -192,7 +192,7 @@ namespace FluentSensors.Features.Sensors
         // the only way to close the taskbar widget; (the flyout has no close button)
         private void CloseTaskbarWidget_Click(object sender, RoutedEventArgs e)
         {
-            bool hadKeyboardFocus = CloseTaskbarWidgetButton.FocusState == FocusState.Keyboard;
+            bool hadKeyboardFocus = TaskbarCloseButton.FocusState == FocusState.Keyboard;
 
             TaskbarWidgetWindow.CurrentInstance?.CloseWidget();
 
@@ -495,7 +495,10 @@ namespace FluentSensors.Features.Sensors
                     order.Add(StartCsvMonitoringButton);
                     break;
                 case SensorSelectionProfile.Taskbar when ViewModel.IsTaskbarWidgetOpen:
-                    order.Add(TaskbarWidgetButtonsContainer);
+                    // --- revisit: split taskbar buttons ---
+                    // the joined pair (TaskbarWidgetButtonsContainer) is parked with x:Load while two plain buttons are tried out
+                    order.Add(TaskbarUpdateButton);
+                    order.Add(TaskbarCloseButton);
                     order.Add(TaskbarWidgetButtonsSeparator);
                     break;
                 case SensorSelectionProfile.Taskbar:
