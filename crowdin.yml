@@ -11,3 +11,8 @@ files:
 # and blocks the merge of the crowdin pull request
 commit_message: "New translations %original_file_name% (%language%)"
 append_commit_message: false
+
+# the pull request title becomes the squash commit on main and needs a prefix; a new language gets feat: by hand
+pull_request_title: "chore: update translations from crowdin"
+pull_request_assignees:
+  - cechout
