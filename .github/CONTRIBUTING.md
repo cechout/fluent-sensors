@@ -29,7 +29,9 @@ See the "How to Build" section in the [README](https://github.com/cechout/fluent
 
 ## Translations
 
-The app text lives in `FluentSensors/Strings/<language>/`, with `en-US` as the source: `Resources.resw` holds the general text, `Terms.resw` the technical terms of the hardware view (Cache, Rank, Logical Processors, ...), which users can choose to keep in English. To fix or add a translation, edit the files of that language, or copy both `en-US` files into a new folder named after the language tag (`fr-FR`, `pl-PL`, ...) and translate the values. Keys without a translation fall back to English, so a partial file is fine.
+The easiest way to help is the [Crowdin project](https://crowdin.com/project/fluent-sensors), right in the browser. Approved translations come back into this repository as a pull request. If your language is not listed there yet, open an issue and it gets added.
+
+The app text lives in `FluentSensors/Strings/<language>/`, with `en-US` as the source: `Resources.resw` holds the general text, `Terms.resw` the technical terms of the hardware view (Cache, Rank, Logical Processors, ...), which users can choose to keep in English. To work on the files directly instead, edit the files of that language, or copy both `en-US` files into a new folder named after the language tag (`fr-FR`, `pl-PL`, ...) and translate the values. Keys without a translation fall back to English, so a partial file is fine.
 
 * translate a term the way your language actually uses it; when the English word is the usual one (like Cache in many languages), keeping it is fine
 
