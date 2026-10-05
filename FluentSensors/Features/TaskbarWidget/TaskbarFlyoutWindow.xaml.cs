@@ -221,7 +221,6 @@ namespace FluentSensors.Features.TaskbarWidget
         private int _targetY;
         private bool _isAdjustingPosition;
         private bool _isHiding;
-        private bool _isHandingFocusBack; // a bar button opened the main window, see OpenMainWindowKeepingFlyout
 
         // sensor count the slide is scaled by; (capped at what fits under the height cap)
         private int _animationSensorCount = AnimationReferenceSensorCount;
@@ -1220,9 +1219,6 @@ namespace FluentSensors.Features.TaskbarWidget
                     }
                 }
 
-                // the main window a bar button just opened; the focus comes back right after
-                if (_isHandingFocusBack) return;
-
                 HideFlyout();
             }
             else if (args.WindowActivationState != WindowActivationState.Deactivated)
@@ -1234,34 +1230,34 @@ namespace FluentSensors.Features.TaskbarWidget
         // opens the sensor list on the taskbar profile, the one thing the flyout cannot do itself
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)
         {
-            OpenMainWindowKeepingFlyout(mainWindow => mainWindow.OpenSensorsForProfile(SensorSelectionProfile.Taskbar));
+            HideFlyout();
+
+            if (MainWindow.CurrentInstance != null)
+            {
+                MainWindow.CurrentInstance.OpenSensorsForProfile(SensorSelectionProfile.Taskbar);
+            }
+            else
+            {
+                var newMainWindow = new MainWindow();
+                newMainWindow.Activate();
+                newMainWindow.OpenSensorsForProfile(SensorSelectionProfile.Taskbar);
+            }
         }
 
         private void TaskbarSettings_Click(object sender, RoutedEventArgs e)
         {
-            OpenMainWindowKeepingFlyout(mainWindow => mainWindow.OpenTaskbarSettings());
-        }
+            HideFlyout();
 
-        // the bar buttons leave the flyout open; the main window takes the foreground on its way up, so that one
-        // deactivation is skipped and the focus is handed back, and the next click outside still dismisses the flyout
-        private void OpenMainWindowKeepingFlyout(Action<MainWindow> open)
-        {
-            _isHandingFocusBack = true;
-
-            var mainWindow = MainWindow.CurrentInstance;
-            if (mainWindow == null)
+            if (MainWindow.CurrentInstance != null)
             {
-                mainWindow = new MainWindow();
-                mainWindow.Activate();
+                MainWindow.CurrentInstance.OpenTaskbarSettings();
             }
-            open(mainWindow);
-
-            DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+            else
             {
-                Activate();
-                NativeMethods.SetForegroundWindow(_hwnd);
-                _isHandingFocusBack = false;
-            });
+                var newMainWindow = new MainWindow();
+                newMainWindow.Activate();
+                newMainWindow.OpenTaskbarSettings();
+            }
         }
 
         // the snapshot; the flyout graphs stand still, the taskbar graphs run on
