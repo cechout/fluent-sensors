@@ -196,170 +196,194 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <!--  y-axis control buttons  -->
+            <!--  (inside a clipping host; the panel toggle slides its width, see SetControlPanelOpen)  -->
             <Grid
+                x:Name="YAxisControlsHost"
                 Grid.Column="0"
-                Width="35"
-                Padding="0,0,3,0"
-                RowSpacing="3"
-                Visibility="{x:Bind GetYAxisControlsVisibility(ShowYAxisControls, GraphTapAction, ButtonTapAction, ViewModel.ControlPanelVisibility), Mode=OneWay}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+                SizeChanged="ControlPanelHost_SizeChanged"
+                Visibility="Collapsed">
+                <Grid
+                    x:Name="YAxisControls"
+                    Width="35"
+                    Padding="0,0,3,0"
+                    HorizontalAlignment="Left"
+                    RowSpacing="3"
+                    Visibility="{x:Bind GetYAxisControlsVisibility(ShowYAxisControls, GraphTapAction, ButtonTapAction), Mode=OneWay}">
+                    <Grid.RenderTransform>
+                        <TranslateTransform x:Name="YAxisControlsTransform" />
+                    </Grid.RenderTransform>
 
-                <RepeatButton
-                    x:Uid="SensorPanel_IncreaseYAxisButton"
-                    Grid.Row="0"
-                    Padding="0"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Click="{x:Bind ViewModel.IncreaseYMax}">
-                    <FontIcon FontSize="12" Glyph="&#xE70E;" />
-                </RepeatButton>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-                <RepeatButton
-                    x:Uid="SensorPanel_DecreaseYAxisButton"
-                    Grid.Row="1"
-                    Padding="0"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Click="{x:Bind ViewModel.DecreaseYMax}">
-                    <FontIcon FontSize="12" Glyph="&#xE70D;" />
-                </RepeatButton>
+                    <RepeatButton
+                        x:Uid="SensorPanel_IncreaseYAxisButton"
+                        Grid.Row="0"
+                        Padding="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Click="{x:Bind ViewModel.IncreaseYMax}">
+                        <FontIcon FontSize="12" Glyph="&#xE70E;" />
+                    </RepeatButton>
 
-                <ToggleButton
-                    x:Uid="SensorPanel_AutoScaleButton"
-                    Grid.Row="2"
-                    Padding="0"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Content="A"
-                    FontSize="12"
-                    FontWeight="Normal"
-                    IsChecked="{x:Bind ViewModel.IsAutoScaled, Mode=TwoWay}" />
+                    <RepeatButton
+                        x:Uid="SensorPanel_DecreaseYAxisButton"
+                        Grid.Row="1"
+                        Padding="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Click="{x:Bind ViewModel.DecreaseYMax}">
+                        <FontIcon FontSize="12" Glyph="&#xE70D;" />
+                    </RepeatButton>
+
+                    <ToggleButton
+                        x:Uid="SensorPanel_AutoScaleButton"
+                        Grid.Row="2"
+                        Padding="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Content="A"
+                        FontSize="12"
+                        FontWeight="Normal"
+                        IsChecked="{x:Bind ViewModel.IsAutoScaled, Mode=TwoWay}" />
+                </Grid>
             </Grid>
 
-            <!--  threshold buttons: raise, lower, toggle the line  -->
+            <!--  threshold buttons, both columns as one block in the same kind of host  -->
             <Grid
+                x:Name="ThresholdControlsHost"
                 Grid.Column="2"
-                Width="35"
-                Padding="3,0,0,0"
-                RowSpacing="3"
-                Visibility="{x:Bind GetThresholdControlsVisibility(ShowThresholdControls, GraphTapAction, ButtonTapAction, ViewModel.ControlPanelVisibility), Mode=OneWay}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+                SizeChanged="ControlPanelHost_SizeChanged"
+                Visibility="Collapsed">
+                <StackPanel
+                    x:Name="ThresholdControls"
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal"
+                    Visibility="{x:Bind GetThresholdControlsVisibility(ShowThresholdControls, GraphTapAction, ButtonTapAction), Mode=OneWay}">
+                    <StackPanel.RenderTransform>
+                        <TranslateTransform x:Name="ThresholdControlsTransform" />
+                    </StackPanel.RenderTransform>
 
-                <RepeatButton
-                    x:Uid="SensorPanel_IncreaseThresholdButton"
-                    Grid.Row="0"
-                    Padding="0"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Click="{x:Bind ViewModel.Threshold.Increase}">
-                    <FontIcon FontSize="12" Glyph="&#xE70E;" />
-                </RepeatButton>
+                    <!--  raise, lower, toggle the line  -->
+                    <Grid
+                        Width="35"
+                        Padding="3,0,0,0"
+                        RowSpacing="3">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                <RepeatButton
-                    x:Uid="SensorPanel_DecreaseThresholdButton"
-                    Grid.Row="1"
-                    Padding="0"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Click="{x:Bind ViewModel.Threshold.Decrease}">
-                    <FontIcon FontSize="12" Glyph="&#xE70D;" />
-                </RepeatButton>
+                        <RepeatButton
+                            x:Uid="SensorPanel_IncreaseThresholdButton"
+                            Grid.Row="0"
+                            Padding="0"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Click="{x:Bind ViewModel.Threshold.Increase}">
+                            <FontIcon FontSize="12" Glyph="&#xE70E;" />
+                        </RepeatButton>
 
-                <ToggleButton
-                    x:Uid="SensorPanel_ToggleThresholdLineButton"
-                    Grid.Row="2"
-                    Padding="0"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Content="T"
-                    FontSize="12"
-                    FontWeight="Normal"
-                    IsChecked="{x:Bind ViewModel.Threshold.IsEnabled, Mode=TwoWay}" />
-            </Grid>
+                        <RepeatButton
+                            x:Uid="SensorPanel_DecreaseThresholdButton"
+                            Grid.Row="1"
+                            Padding="0"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Click="{x:Bind ViewModel.Threshold.Decrease}">
+                            <FontIcon FontSize="12" Glyph="&#xE70D;" />
+                        </RepeatButton>
 
-            <!--  threshold buttons: alarm direction  -->
-            <Grid
-                Grid.Column="3"
-                Width="35"
-                Padding="3,0,0,0"
-                RowSpacing="3"
-                Visibility="{x:Bind GetThresholdControlsVisibility(ShowThresholdControls, GraphTapAction, ButtonTapAction, ViewModel.ControlPanelVisibility), Mode=OneWay}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+                        <ToggleButton
+                            x:Uid="SensorPanel_ToggleThresholdLineButton"
+                            Grid.Row="2"
+                            Padding="0"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Content="T"
+                            FontSize="12"
+                            FontWeight="Normal"
+                            IsChecked="{x:Bind ViewModel.Threshold.IsEnabled, Mode=TwoWay}" />
+                    </Grid>
 
-                <ToggleButton
-                    x:Uid="SensorPanel_MarkAboveThresholdButton"
-                    Grid.Row="0"
-                    Padding="0"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    IsChecked="{x:Bind ViewModel.Threshold.IsAboveDirection, Mode=TwoWay}">
-                    <FontIcon
-                        FontSize="12"
-                        Glyph="&#xEDE1;"
-                        RenderTransformOrigin="0.5,0.5">
-                        <FontIcon.RenderTransform>
-                            <RotateTransform Angle="-90" />
-                        </FontIcon.RenderTransform>
-                    </FontIcon>
-                </ToggleButton>
+                    <!--  alarm direction  -->
+                    <Grid
+                        Width="35"
+                        Padding="3,0,0,0"
+                        RowSpacing="3">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                <Button
-                    x:Uid="SensorPanel_ThresholdColorButton"
-                    Grid.Row="1"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Background="{x:Bind ViewModel.Threshold.ColorBrush, Mode=OneWay}"
-                    Style="{StaticResource ColorSwatchButtonStyle}">
+                        <ToggleButton
+                            x:Uid="SensorPanel_MarkAboveThresholdButton"
+                            Grid.Row="0"
+                            Padding="0"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            IsChecked="{x:Bind ViewModel.Threshold.IsAboveDirection, Mode=TwoWay}">
+                            <FontIcon
+                                FontSize="12"
+                                Glyph="&#xEDE1;"
+                                RenderTransformOrigin="0.5,0.5">
+                                <FontIcon.RenderTransform>
+                                    <RotateTransform Angle="-90" />
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
+                        </ToggleButton>
 
-                    <Button.Flyout>
-                        <Flyout Placement="Bottom" ShouldConstrainToRootBounds="False">
-                            <controls:ColorPicker
-                                x:Uid="SensorPanel_ThresholdColorPicker"
-                                ColorSpectrumShape="Box"
-                                IsAlphaEnabled="False"
-                                IsAlphaSliderVisible="False"
-                                IsAlphaTextInputVisible="False"
-                                IsColorChannelTextInputVisible="True"
-                                IsColorPaletteVisible="True"
-                                IsColorSliderVisible="False"
-                                IsColorSpectrumVisible="True"
-                                Color="{x:Bind ViewModel.Threshold.Color, Mode=TwoWay}" />
-                        </Flyout>
-                    </Button.Flyout>
-                </Button>
+                        <Button
+                            x:Uid="SensorPanel_ThresholdColorButton"
+                            Grid.Row="1"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Background="{x:Bind ViewModel.Threshold.ColorBrush, Mode=OneWay}"
+                            Style="{StaticResource ColorSwatchButtonStyle}">
 
-                <ToggleButton
-                    x:Uid="SensorPanel_MarkUnderThresholdButton"
-                    Grid.Row="2"
-                    Padding="0"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    IsChecked="{x:Bind ViewModel.Threshold.IsBelowDirection, Mode=TwoWay}">
-                    <FontIcon
-                        FontSize="12"
-                        Glyph="&#xEDE1;"
-                        RenderTransformOrigin="0.5,0.5">
-                        <FontIcon.RenderTransform>
-                            <RotateTransform Angle="90" />
-                        </FontIcon.RenderTransform>
-                    </FontIcon>
-                </ToggleButton>
+                            <Button.Flyout>
+                                <Flyout Placement="Bottom" ShouldConstrainToRootBounds="False">
+                                    <controls:ColorPicker
+                                        x:Uid="SensorPanel_ThresholdColorPicker"
+                                        ColorSpectrumShape="Box"
+                                        IsAlphaEnabled="False"
+                                        IsAlphaSliderVisible="False"
+                                        IsAlphaTextInputVisible="False"
+                                        IsColorChannelTextInputVisible="True"
+                                        IsColorPaletteVisible="True"
+                                        IsColorSliderVisible="False"
+                                        IsColorSpectrumVisible="True"
+                                        Color="{x:Bind ViewModel.Threshold.Color, Mode=TwoWay}" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+
+                        <ToggleButton
+                            x:Uid="SensorPanel_MarkUnderThresholdButton"
+                            Grid.Row="2"
+                            Padding="0"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            IsChecked="{x:Bind ViewModel.Threshold.IsBelowDirection, Mode=TwoWay}">
+                            <FontIcon
+                                FontSize="12"
+                                Glyph="&#xEDE1;"
+                                RenderTransformOrigin="0.5,0.5">
+                                <FontIcon.RenderTransform>
+                                    <RotateTransform Angle="90" />
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
+                        </ToggleButton>
+                    </Grid>
+                </StackPanel>
             </Grid>
 
             <!--  graph, with the threshold flyout badge top right when a tap action opens it  -->
