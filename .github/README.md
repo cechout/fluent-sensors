@@ -1,4 +1,4 @@
-<img alt="Fluent Sensors" src="../FluentSensors/Assets/Github/frame11.png" />
+<img alt="Fluent Sensors" src="assets/header.png" />
 
 ###
 
