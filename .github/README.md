@@ -1,4 +1,4 @@
-<img width="2560" height="834" alt="frame11" src="https://github.com/user-attachments/assets/95c065e5-a973-44a5-82e9-dc6b4a5fed8c" />
+<img alt="Fluent Sensors" src="assets/header.png" />
 
 ###
 
