@@ -3,6 +3,7 @@
     x:Class="FluentSensors.Features.TaskbarWidget.TaskbarFlyoutWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:animatedVisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhCommon="using:FluentSensors.Common.Sensors"
@@ -251,7 +252,15 @@
                         Click="TaskbarSettings_Click"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource SubtleBarButtonStyle}">
-                        <FontIcon FontSize="14" Glyph="&#xE713;" />
+                        <!--  the gear of the native settings item, turning on hover and press; the glyph stands in while animations are off  -->
+                        <AnimatedIcon Width="14" Height="14">
+                            <AnimatedIcon.Source>
+                                <animatedVisuals:AnimatedSettingsVisualSource />
+                            </AnimatedIcon.Source>
+                            <AnimatedIcon.FallbackIconSource>
+                                <FontIconSource FontSize="14" Glyph="&#xE713;" />
+                            </AnimatedIcon.FallbackIconSource>
+                        </AnimatedIcon>
                     </Button>
                 </Grid>
             </Border>
