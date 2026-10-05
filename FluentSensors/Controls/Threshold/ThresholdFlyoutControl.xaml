@@ -70,7 +70,7 @@
                         <TextBlock
                             x:Uid="Threshold_ThresholdConfigText"
                             Grid.Column="0"
-                            Margin="5,3,10,0"
+                            Margin="5,3,16,0"
                             VerticalAlignment="Center"
                             Style="{ThemeResource CaptionTextBlockStyle}"
                             TextWrapping="Wrap" />
@@ -92,14 +92,14 @@
 
                     <Grid
                         Height="90"
-                        Margin="2"
-                        ColumnSpacing="4">
+                        Margin="0"
+                        ColumnSpacing="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <Grid Grid.Column="0" RowSpacing="4">
+                        <Grid Grid.Column="0" RowSpacing="3">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="*" />
