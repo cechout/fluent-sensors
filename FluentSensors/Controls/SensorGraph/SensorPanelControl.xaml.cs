@@ -2,6 +2,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -27,6 +29,12 @@ namespace FluentSensors.Controls.SensorGraph
         // graph-color card background alpha (UseGraphColorCardBackground)
         private const byte GraphColorCardBackgroundAlphaDark = 44;
         private const byte GraphColorCardBackgroundAlphaLight = 44;
+
+        // control panel slide; the hosts width animates, so the graph between them resizes along (same curve both ways)
+        private const int ControlPanelSlideDurationMs = 160;
+        private const EasingMode ControlPanelSlideEasing = EasingMode.EaseInOut;
+        private Storyboard? _yAxisControlsStoryboard;
+        private Storyboard? _thresholdControlsStoryboard;
 
 
         // === constructor ===
@@ -402,6 +410,9 @@ namespace FluentSensors.Controls.SensorGraph
 
             if (e.Property == ViewModelProperty) panel.SyncSwitchSelection();
 
+            // another sensor brings its own panel state, shown as is
+            if (e.Property == ViewModelProperty) panel.ApplyControlPanelState(animate: false);
+
             // --- workaround: x:Bind function bindings only track the arguments own path, not what
             // the function body reads ---
             // problem: the GetXOrPlaceholder functions take ViewModel itself (to survive a null one), so x:Bind reruns
@@ -542,14 +553,15 @@ namespace FluentSensors.Controls.SensorGraph
 
         // Y-axis and threshold controls share the control panel; flyout mode collapses both,
         // whatever Show*Controls says
-        private Visibility GetYAxisControlsVisibility(bool showYAxisControls, TapAction graphTapAction, TapAction buttonTapAction, Visibility controlPanelVisibility)
+        // (the open state itself sits on the hosts around them, see ApplyControlPanelState)
+        private Visibility GetYAxisControlsVisibility(bool showYAxisControls, TapAction graphTapAction, TapAction buttonTapAction)
         {
-            return showYAxisControls && !IsFlyoutModeActive(graphTapAction, buttonTapAction) ? controlPanelVisibility : Visibility.Collapsed;
+            return showYAxisControls && !IsFlyoutModeActive(graphTapAction, buttonTapAction) ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private Visibility GetThresholdControlsVisibility(bool showThresholdControls, TapAction graphTapAction, TapAction buttonTapAction, Visibility controlPanelVisibility)
+        private Visibility GetThresholdControlsVisibility(bool showThresholdControls, TapAction graphTapAction, TapAction buttonTapAction)
         {
-            return showThresholdControls && !IsFlyoutModeActive(graphTapAction, buttonTapAction) ? controlPanelVisibility : Visibility.Collapsed;
+            return showThresholdControls && !IsFlyoutModeActive(graphTapAction, buttonTapAction) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         // the badge only when a tap opens it
@@ -605,6 +617,24 @@ namespace FluentSensors.Controls.SensorGraph
         private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             Bindings.Update();
+
+            if (e.PropertyName == nameof(SensorGraphViewModel.ControlPanelVisibility))
+            {
+                ApplyControlPanelState(animate: IsLoaded);
+            }
+        }
+
+        // the part of the panel outside the host is cut off; the left panel keeps its right edge on the graph, so
+        // it slides in from the left; the right one sits on the graphs edge anyway and slides in from the right
+        private void ControlPanelHost_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            var host = (FrameworkElement)sender;
+            host.Clip = new RectangleGeometry { Rect = new Windows.Foundation.Rect(0, 0, e.NewSize.Width, e.NewSize.Height) };
+
+            if (host == YAxisControlsHost)
+            {
+                YAxisControlsTransform.X = e.NewSize.Width - GetPanelWidth(YAxisControls);
+            }
         }
 
         private void GraphControl_Tapped(object sender, TappedRoutedEventArgs e)
@@ -661,6 +691,68 @@ namespace FluentSensors.Controls.SensorGraph
                     ThresholdFlyoutBadge.ShowFlyout();
                     break;
             }
+        }
+
+        // opens or closes both panel hosts; a closed host is collapsed, so its buttons leave the tab order
+        private void ApplyControlPanelState(bool animate)
+        {
+            bool isOpen = ViewModel?.ControlPanelVisibility == Visibility.Visible;
+
+            _yAxisControlsStoryboard = SetControlPanelOpen(YAxisControlsHost, GetPanelWidth(YAxisControls), isOpen, animate, _yAxisControlsStoryboard);
+            _thresholdControlsStoryboard = SetControlPanelOpen(ThresholdControlsHost, GetPanelWidth(ThresholdControls), isOpen, animate, _thresholdControlsStoryboard);
+        }
+
+        // slides the host width from where it is now, so a toggle during a running slide turns around smoothly; once
+        // open the width goes back to auto and follows the content
+        private static Storyboard? SetControlPanelOpen(FrameworkElement host, double panelWidth, bool isOpen, bool animate, Storyboard? running)
+        {
+            double from = host.Visibility == Visibility.Visible ? host.ActualWidth : 0;
+            running?.Stop();
+
+            if (!animate || panelWidth <= 0)
+            {
+                host.Width = double.NaN;
+                host.Visibility = isOpen ? Visibility.Visible : Visibility.Collapsed;
+                return null;
+            }
+
+            host.Width = from;
+            host.Visibility = Visibility.Visible;
+
+            var animation = new DoubleAnimation
+            {
+                From = from,
+                To = isOpen ? panelWidth : 0,
+                Duration = TimeSpan.FromMilliseconds(ControlPanelSlideDurationMs),
+                EasingFunction = new CubicEase { EasingMode = ControlPanelSlideEasing },
+                EnableDependentAnimation = true
+            };
+            Storyboard.SetTarget(animation, host);
+            Storyboard.SetTargetProperty(animation, "Width");
+
+            var storyboard = new Storyboard();
+            storyboard.Children.Add(animation);
+            storyboard.Completed += (_, _) =>
+            {
+                host.Width = double.NaN;
+                if (!isOpen) host.Visibility = Visibility.Collapsed;
+                storyboard.Stop();
+            };
+            storyboard.Begin();
+
+            return storyboard;
+        }
+
+        // the width a panel takes when open; 0 while its Show*Controls or the flyout mode hides it
+        private static double GetPanelWidth(FrameworkElement panel)
+        {
+            if (panel.Visibility != Visibility.Visible) return 0;
+            if (!double.IsNaN(panel.Width)) return panel.Width;
+
+            // the threshold block, two fixed width columns side by side
+            return panel is Panel container
+                ? container.Children.OfType<FrameworkElement>().Where(child => child.Visibility == Visibility.Visible).Sum(child => child.Width)
+                : 0;
         }
 
         private void SyncSwitchSelection()

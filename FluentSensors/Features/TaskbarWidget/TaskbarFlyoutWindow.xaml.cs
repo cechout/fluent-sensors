@@ -5,6 +5,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -263,6 +264,10 @@ namespace FluentSensors.Features.TaskbarWidget
 
             // a click on empty space hides the keyboard focus rectangle again
             PointerFocusReset.Attach(Content);
+
+            // the Button marks its own press and keys handled
+            TaskbarSettingsButton.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(TaskbarSettingsButton_PointerPressed), true);
+            TaskbarSettingsButton.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(TaskbarSettingsButton_KeyDown), true);
 
             _appWindow = this.AppWindow;
             _appWindow.IsShownInSwitchers = false;
@@ -1244,6 +1249,36 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        // the gear turns right on every press, pointer or key
+        private void TaskbarSettingsButton_PointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            SpinSettingsGear();
+        }
+
+        private void TaskbarSettingsButton_KeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if ((e.Key == Windows.System.VirtualKey.Enter || e.Key == Windows.System.VirtualKey.Space) && !e.KeyStatus.WasKeyDown)
+            {
+                SpinSettingsGear();
+            }
+        }
+
+        // plays the release half of the native animation (Pressed to PointerOver, the turn) without the press half
+        // (the tilt); AnimatedIcon applies a new State only on its next layout pass, so the second state waits for
+        // that pass, set in one go both collapse into Normal to PointerOver, which does not move
+        private void SpinSettingsGear()
+        {
+            AnimatedIcon.SetState(TaskbarSettingsIcon, "Pressed");
+            TaskbarSettingsIcon.LayoutUpdated -= OnSettingsGearPressedApplied;
+            TaskbarSettingsIcon.LayoutUpdated += OnSettingsGearPressedApplied;
+        }
+
+        private void OnSettingsGearPressedApplied(object? sender, object e)
+        {
+            TaskbarSettingsIcon.LayoutUpdated -= OnSettingsGearPressedApplied;
+            AnimatedIcon.SetState(TaskbarSettingsIcon, "PointerOver");
+        }
+
         private void TaskbarSettings_Click(object sender, RoutedEventArgs e)
         {
             HideFlyout();
@@ -1260,7 +1295,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // the snapshot; the flyout graphs stand still, the taskbar graphs run on
+        // the snapshot; the flyout and the taskbar graphs stand still together
         private void PauseButton_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.SetFlyoutPaused(!ViewModel.IsFlyoutPaused);

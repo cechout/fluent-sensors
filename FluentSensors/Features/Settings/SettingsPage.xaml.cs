@@ -676,16 +676,19 @@ namespace FluentSensors.Features.Settings
         }
 
         // area fill fade, the second global graph switch
-        private void GraphFillFadeToggle_Toggled(object sender, RoutedEventArgs e)
+        private void GraphFillComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
 
-            SettingsService.Instance.GraphFillFade = GraphFillFadeToggle.IsOn;
+            if (GraphFillComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.GraphFillFade = tag == "Fade";
+            }
         }
 
         private void RestoreGraphFillFadeSelection()
         {
-            GraphFillFadeToggle.IsOn = SettingsService.Instance.GraphFillFade;
+            SelectByTag(GraphFillComboBox, SettingsService.Instance.GraphFillFade ? "Fade" : "Solid");
         }
 
         // bytes or bits, separately for sizes and speeds, so a network speed reads Mbit/s while memory stays in MB

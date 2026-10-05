@@ -49,7 +49,8 @@ namespace FluentSensors.Features.TaskbarWidget
         // the same sensors in the same order, on the flyout time range
         public ObservableCollection<SensorGraphViewModel> FlyoutSensors { get; }
 
-        // the flyout snapshot; not persisted, a closed widget ends it
+        // the snapshot of the flyout button, holding the flyout and the taskbar graphs; not persisted, a closed widget
+        // ends it
         public bool IsFlyoutPaused { get; private set; }
 
 
@@ -96,12 +97,12 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // freezes or thaws every flyout graph; the taskbar graphs always run on
+        // freezes or thaws both sets together, the taskbar graphs stand still with the flyout
         public void SetFlyoutPaused(bool paused)
         {
             IsFlyoutPaused = paused;
 
-            foreach (var sensor in FlyoutSensors)
+            foreach (var sensor in AllGraphs())
             {
                 sensor.SetFrozen(paused);
             }
@@ -149,7 +150,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private IEnumerable<SensorGraphViewModel> AllGraphs() => PinnedSensors.Concat(FlyoutSensors);
 
-        // a new flyout graph joins a running snapshot frozen
+        // a new graph joins a running snapshot frozen
         private void Reconcile(ObservableCollection<SensorGraphViewModel> graphs, List<SensorRowViewModel> selectedSensors, SensorGraphScope scope)
         {
             var newIds = new HashSet<string>(selectedSensors.Select(s => s.Id));
@@ -169,7 +170,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 if (!existingIds.Contains(sensor.Id))
                 {
                     var graph = CreateGraph(sensor, scope);
-                    if (scope == SensorGraphScope.TaskbarFlyout) graph.SetFrozen(IsFlyoutPaused);
+                    graph.SetFrozen(IsFlyoutPaused);
                     graphs.Add(graph);
                 }
             }
