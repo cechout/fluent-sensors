@@ -20,7 +20,7 @@ namespace FluentSensors.Persistence.Models
         public string AppTheme { get; set; } = "Default";
 
         // app language; a tag from AppLanguage.Supported, or Default for the Windows display language
-        public string AppLanguage { get; set; } = "Default";
+        public string AppLanguage { get; set; } = "en-US";
         // the technical terms (AppTerms) in english whatever the app language
         public bool TechnicalTermsInEnglish { get; set; } = false;
 
@@ -65,8 +65,8 @@ namespace FluentSensors.Persistence.Models
         // graph; Standard for the overview blocks, CpuExtended and GpuExtended for the dense grids (cpu all-threads,
         // gpu extended)
         public double PerformanceGraphTimeSpanSeconds { get; set; } = 90;
-        public double PerformanceCpuExtendedGraphTimeSpanSeconds { get; set; } = 30;
-        public double PerformanceGpuExtendedGraphTimeSpanSeconds { get; set; } = 30;
+        public double PerformanceCpuExtendedGraphTimeSpanSeconds { get; set; } = 45;
+        public double PerformanceGpuExtendedGraphTimeSpanSeconds { get; set; } = 60;
 
 
         // --- widget window appearance ---
@@ -103,7 +103,7 @@ namespace FluentSensors.Persistence.Models
         public Dictionary<string, TaskbarEdgeSettings>? TaskbarEdges { get; set; } = null;
 
         // flyout graphs; the same on every edge, the flyout keeps its shape there
-        public double TaskbarFlyoutGraphTimeSpanSeconds { get; set; } = 60;
+        public double TaskbarFlyoutGraphTimeSpanSeconds { get; set; } = 90;
         public double TaskbarFlyoutGraphHeightDip { get; set; } = 100; // one graph slot
 
         // the global shortcut that opens the flyout; none by default, so no key combination is taken from other apps
