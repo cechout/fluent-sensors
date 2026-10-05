@@ -265,8 +265,9 @@ namespace FluentSensors.Features.TaskbarWidget
             // a click on empty space hides the keyboard focus rectangle again
             PointerFocusReset.Attach(Content);
 
-            // the Button marks its own press handled
+            // the Button marks its own press and keys handled
             TaskbarSettingsButton.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(TaskbarSettingsButton_PointerPressed), true);
+            TaskbarSettingsButton.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(TaskbarSettingsButton_KeyDown), true);
 
             _appWindow = this.AppWindow;
             _appWindow.IsShownInSwitchers = false;
@@ -1248,11 +1249,33 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // the gear turns right on press; the release half of the native animation (Pressed to PointerOver), started
-        // right away, so the tilt of the press half never shows
+        // the gear turns right on every press, pointer or key
         private void TaskbarSettingsButton_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
+            SpinSettingsGear();
+        }
+
+        private void TaskbarSettingsButton_KeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if ((e.Key == Windows.System.VirtualKey.Enter || e.Key == Windows.System.VirtualKey.Space) && !e.KeyStatus.WasKeyDown)
+            {
+                SpinSettingsGear();
+            }
+        }
+
+        // plays the release half of the native animation (Pressed to PointerOver, the turn) without the press half
+        // (the tilt); AnimatedIcon applies a new State only on its next layout pass, so the second state waits for
+        // that pass, set in one go both collapse into Normal to PointerOver, which does not move
+        private void SpinSettingsGear()
+        {
             AnimatedIcon.SetState(TaskbarSettingsIcon, "Pressed");
+            TaskbarSettingsIcon.LayoutUpdated -= OnSettingsGearPressedApplied;
+            TaskbarSettingsIcon.LayoutUpdated += OnSettingsGearPressedApplied;
+        }
+
+        private void OnSettingsGearPressedApplied(object? sender, object e)
+        {
+            TaskbarSettingsIcon.LayoutUpdated -= OnSettingsGearPressedApplied;
             AnimatedIcon.SetState(TaskbarSettingsIcon, "PointerOver");
         }
 
