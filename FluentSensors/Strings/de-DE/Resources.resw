@@ -120,7 +120,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
     <value>Sensoren</value>
   </data>
   <data name="Main_PerformanceNavItem.Content" xml:space="preserve">
-    <value>Hardwareansicht</value>
+    <value>Graphen</value>
   </data>
   <data name="Main_SettingsNavItem.Content" xml:space="preserve">
     <value>Einstellungen</value>
@@ -294,7 +294,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
     <value>Sensoren</value>
   </data>
   <data name="Settings_StartupPageComboBox_Performance.Content" xml:space="preserve">
-    <value>Hardwareansicht</value>
+    <value>Graphen</value>
   </data>
   <data name="Settings_CheckUpdatesCard.Header" xml:space="preserve">
     <value>Beim Start nach Updates suchen</value>
@@ -306,7 +306,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
     <value>Aktualisierungsintervall</value>
   </data>
   <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
-    <value>Darstellung der Hardwareansicht</value>
+    <value>Darstellung der Graphenseite</value>
   </data>
   <data name="Settings_PerformanceGraphExpander.Description" xml:space="preserve">
     <value>Zeitraum der Übersichtsgraphen und der dichteren Raster</value>
@@ -624,7 +624,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
     <value>Zurücksetzen</value>
   </data>
   <data name="Settings_WindowAndPageStatesCard.Description" xml:space="preserve">
-    <value>Position und Größe aller Fenster, Statusanzeige der Titelleiste, Sensorauswahl der Hardwareansicht</value>
+    <value>Position und Größe aller Fenster, Statusanzeige der Titelleiste, Sensorauswahl der Graphenseite</value>
   </data>
   <data name="Settings_WindowAndPageStatesCard.Header" xml:space="preserve">
     <value>Fenster- und Seitenzustände</value>
@@ -1012,7 +1012,7 @@ Laufzeit - wie lange diese App seit dem letzten Start läuft</value>
     <value>Der Microsoft Store konnte das Update nicht installieren, stattdessen wird der Store geöffnet</value>
   </data>
   <data name="Performance_PerformanceTitleText.Text" xml:space="preserve">
-    <value>Hardwareansicht</value>
+    <value>Graphen</value>
   </data>
   <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
     <value>Hardwareübersicht</value>

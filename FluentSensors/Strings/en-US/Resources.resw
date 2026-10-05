@@ -120,7 +120,7 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
     <value>Sensors</value>
   </data>
   <data name="Main_PerformanceNavItem.Content" xml:space="preserve">
-    <value>Hardware View</value>
+    <value>Graphs</value>
   </data>
   <data name="Main_SettingsNavItem.Content" xml:space="preserve">
     <value>Settings</value>
@@ -294,7 +294,7 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
     <value>Sensors</value>
   </data>
   <data name="Settings_StartupPageComboBox_Performance.Content" xml:space="preserve">
-    <value>Hardware View</value>
+    <value>Graphs</value>
   </data>
   <data name="Settings_CheckUpdatesCard.Header" xml:space="preserve">
     <value>Check for updates on startup</value>
@@ -306,7 +306,7 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
     <value>Update Interval</value>
   </data>
   <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
-    <value>Performance Page Appearance</value>
+    <value>Graphs Page Appearance</value>
   </data>
   <data name="Settings_PerformanceGraphExpander.Description" xml:space="preserve">
     <value>Time range of the overview graphs and the denser grids</value>
@@ -624,7 +624,7 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
     <value>Reset</value>
   </data>
   <data name="Settings_WindowAndPageStatesCard.Description" xml:space="preserve">
-    <value>Position and size of all windows, title bar status readout, hardware page sensor selection</value>
+    <value>Position and size of all windows, title bar status readout, graphs page sensor selection</value>
   </data>
   <data name="Settings_WindowAndPageStatesCard.Header" xml:space="preserve">
     <value>Window and Page States</value>
@@ -1012,7 +1012,7 @@ Uptime - how long this app has been running since it was last started</value>
     <value>The Microsoft Store could not install the update, opening the Store instead</value>
   </data>
   <data name="Performance_PerformanceTitleText.Text" xml:space="preserve">
-    <value>Hardware View</value>
+    <value>Graphs</value>
   </data>
   <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
     <value>Hardware Overview</value>

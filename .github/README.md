@@ -15,7 +15,7 @@ There aren't many hardware monitoring tools that actually look native on Windows
 ## ✨ Features
 
 * **Sensors Page:** Shows every sensor found, with the option to pin sensors to a separate, always-visible widget window or to the taskbar. Any sensor can get a threshold that colors it once its value crosses a limit.
-* **Hardware View Page:** Shows every hardware component LibreHardwareMonitorLib finds as its own tab, so multiple CPUs, GPUs, or drives each get their own tab. Each tab shows the most important graphs for that component, plus static info like cache size, RAM speed, or storage type.
+* **Graphs Page:** Shows every hardware component LibreHardwareMonitorLib finds as its own tab, so multiple CPUs, GPUs, or drives each get their own tab. Each tab shows the most important graphs for that component, plus static info like cache size, RAM speed, or storage type.
 * **CSV Logging:** Records the sensors you pick to a CSV file, for spreadsheets or any other tool.
 * **The Engine (LibreHardwareMonitorLib):** All sensor data, CPU, GPU, RAM, storage, network, is read using the open source [LibreHardwareMonitorLib](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) library, which reaches the hardware through the [PawnIO](https://pawnio.eu) driver. Note: this library has some limitations and can struggle to read certain sensors, like the ones from integrated graphics cards.
 * **The Interface (WinUI 3):** Built with [WinUI 3](https://github.com/microsoft/microsoft-ui-xaml) and the [Windows App SDK](https://github.com/microsoft/WindowsAppSDK), so it looks and behaves like a native Windows 11 app.

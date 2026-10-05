@@ -120,7 +120,7 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
     <value>Senzory</value>
   </data>
   <data name="Main_PerformanceNavItem.Content" xml:space="preserve">
-    <value>Zobrazení hardwaru</value>
+    <value>Grafy</value>
   </data>
   <data name="Main_SettingsNavItem.Content" xml:space="preserve">
     <value>Nastavení</value>
@@ -294,7 +294,7 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
     <value>Senzory</value>
   </data>
   <data name="Settings_StartupPageComboBox_Performance.Content" xml:space="preserve">
-    <value>Zobrazení hardwaru</value>
+    <value>Grafy</value>
   </data>
   <data name="Settings_CheckUpdatesCard.Header" xml:space="preserve">
     <value>Při spuštění kontrolovat aktualizace</value>
@@ -306,7 +306,7 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
     <value>Interval aktualizace</value>
   </data>
   <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
-    <value>Vzhled zobrazení hardwaru</value>
+    <value>Vzhled stránky Grafy</value>
   </data>
   <data name="Settings_PerformanceGraphExpander.Description" xml:space="preserve">
     <value>Časový rozsah přehledových grafů a hustších mřížek</value>
@@ -624,7 +624,7 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
     <value>Obnovit</value>
   </data>
   <data name="Settings_WindowAndPageStatesCard.Description" xml:space="preserve">
-    <value>Poloha a velikost všech oken, stavový údaj v záhlaví, výběr senzorů v zobrazení hardwaru</value>
+    <value>Poloha a velikost všech oken, stavový údaj v záhlaví, výběr senzorů na stránce Grafy</value>
   </data>
   <data name="Settings_WindowAndPageStatesCard.Header" xml:space="preserve">
     <value>Stav oken a stránek</value>
@@ -1012,7 +1012,7 @@ Doba běhu - jak dlouho aplikace běží od posledního spuštění</value>
     <value>Microsoft Store aktualizaci nenainstaloval, místo toho se otevře Store</value>
   </data>
   <data name="Performance_PerformanceTitleText.Text" xml:space="preserve">
-    <value>Zobrazení hardwaru</value>
+    <value>Grafy</value>
   </data>
   <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
     <value>Přehled hardwaru</value>
