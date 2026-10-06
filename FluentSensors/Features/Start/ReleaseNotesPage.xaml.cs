@@ -1,9 +1,12 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
+using Windows.Graphics.Imaging;
 
 using FluentSensors.Common.Markdown;
 using FluentSensors.Core.Update;
@@ -18,13 +21,14 @@ namespace FluentSensors.Features.Start
         // === fields ===
 
         // one banner per release under Assets/Releases, the version with dashes for dots
-        private const string HeroFolder = "ms-appx:///Assets/Releases/";
+        private static readonly string HeroFolder = Path.Combine(AppContext.BaseDirectory, "Assets", "Releases");
 
-        // width over height of the shown banner, for the border height
-        private double _heroAspect;
-
-        // kept for the banner, which loads once the page has a width (see Page_Loaded)
+        // kept for the banner, which renders once the page has a width (see Page_Loaded)
         private string _version = "";
+
+        // the pixel width the banner was last rendered at, and a count so a slower render never lands after a newer one
+        private int _heroPixelWidth;
+        private int _heroRender;
 
 
         // === constructor ===
@@ -78,40 +82,80 @@ namespace FluentSensors.Features.Start
             _version = release.Version;
         }
 
-        // the banner decodes to the page width, which exists only after layout
-        private void Page_Loaded(object sender, RoutedEventArgs e) => ShowHero();
+        // the banner renders at the page width, which exists only after layout; a scale change is a new size too
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (XamlRoot != null) XamlRoot.Changed += XamlRoot_Changed;
+            _ = RenderHeroAsync();
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (XamlRoot != null) XamlRoot.Changed -= XamlRoot_Changed;
+        }
+
+        private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _ = RenderHeroAsync();
+
+        private void XamlRoot_Changed(XamlRoot sender, XamlRootChangedEventArgs args) => _ = RenderHeroAsync();
 
 
         // === private helpers ===
 
-        // the banner ships with the app, off the network (GitHub carries a rounded export, the app a square one);
-        // HeroBorder shows only once the image decoded, a missing file means no header
-        private void ShowHero()
+        // the banner ships with the app, off the network (GitHub carries a rounded export, the app a square one); a
+        // missing file means no header
+        //
+        // scaled in one Fant pass (an average over every source pixel) to the physical width of the page and shown
+        // 1:1 at that size; a decode width plus a stretch to the real, fractional size would filter twice, the
+        // second time bilinear, and leave the text in the banner soft
+        private async Task RenderHeroAsync()
         {
-            if (string.IsNullOrWhiteSpace(_version)) return;
+            if (string.IsNullOrWhiteSpace(_version) || XamlRoot == null || ActualWidth <= 0) return;
 
-            // decoded to the page width; the compositor filters bilinear only and would alias the wide export
-            var bitmap = new BitmapImage
+            double scale = XamlRoot.RasterizationScale;
+            int pixelWidth = (int)Math.Ceiling(ActualWidth * scale); // ceiling, so no seam is left at the right edge
+            if (pixelWidth == _heroPixelWidth) return;
+
+            string path = Path.Combine(HeroFolder, $"{UpdateService.VersionLabel(_version).Replace('.', '-')}.png");
+            if (!File.Exists(path)) return;
+
+            _heroPixelWidth = pixelWidth;
+            int render = ++_heroRender;
+
+            try
             {
-                // Logical keeps it a DIP; a width of zero decodes at natural size
-                DecodePixelType = DecodePixelType.Logical,
-                DecodePixelWidth = (int)this.ActualWidth
-            };
+                using var stream = File.OpenRead(path).AsRandomAccessStream();
+                BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
 
-            bitmap.ImageOpened += (_, _) =>
+                uint width = (uint)pixelWidth;
+                uint height = (uint)Math.Max(1, Math.Round(width * (double)decoder.PixelHeight / decoder.PixelWidth));
+
+                var transform = new BitmapTransform
+                {
+                    ScaledWidth = width,
+                    ScaledHeight = height,
+                    InterpolationMode = BitmapInterpolationMode.Fant
+                };
+
+                SoftwareBitmap bitmap = await decoder.GetSoftwareBitmapAsync(
+                    BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, transform,
+                    ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage);
+
+                var source = new SoftwareBitmapSource();
+                await source.SetBitmapAsync(bitmap);
+
+                if (render != _heroRender) return;
+
+                HeroImage.Source = source;
+                HeroImage.Width = width / scale;
+                HeroImage.Height = height / scale;
+                HeroImage.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
             {
-                if (bitmap.PixelHeight <= 0) return;
-
-                _heroAspect = (double)bitmap.PixelWidth / bitmap.PixelHeight;
-                SetHeroHeight();
-
-                HeroBorder.Visibility = Visibility.Visible;
-            };
-
-            // last, the decode starts with the source
-            bitmap.UriSource = new Uri($"{HeroFolder}{UpdateService.VersionLabel(_version).Replace('.', '-')}.png");
-
-            HeroBorder.Background = new ImageBrush { ImageSource = bitmap, Stretch = Stretch.UniformToFill };
+                // an unreadable banner costs the header only; the next size change tries again
+                Debug.WriteLine($"[ReleaseNotesPage] banner render failed: {ex.Message}");
+                if (render == _heroRender) _heroPixelWidth = 0;
+            }
         }
 
         // the label is XAML and follows the theme; the address and button text come from here
@@ -131,19 +175,6 @@ namespace FluentSensors.Features.Start
             string last = uri.Segments.Length > 0 ? uri.Segments[^1].Trim('/') : "";
 
             return last.Length > 0 ? Uri.UnescapeDataString(last) : uri.Host;
-        }
-
-        private void HeroBorder_SizeChanged(object sender, SizeChangedEventArgs e) => SetHeroHeight();
-
-        // a childless border has no height, the banner aspect gives one; the half pixel guard stops a SizeChanged loop
-        private void SetHeroHeight()
-        {
-            if (_heroAspect <= 0 || HeroBorder.ActualWidth <= 0) return;
-
-            double target = HeroBorder.ActualWidth / _heroAspect;
-            if (Math.Abs(HeroBorder.Height - target) < 0.5) return;
-
-            HeroBorder.Height = target;
         }
     }
 }

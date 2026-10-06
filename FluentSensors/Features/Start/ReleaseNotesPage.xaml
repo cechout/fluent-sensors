@@ -6,6 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Loaded="Page_Loaded"
+    SizeChanged="Page_SizeChanged"
+    Unloaded="Page_Unloaded"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -21,14 +23,14 @@
         <StackPanel>
 
             <!--
-                header image, edge to edge; the border background rather than a child Image, which resamples at a
-                fractional scale and leaves a seam; the height from the banner aspect (see SetHeroHeight)
+                header image, edge to edge; scaled once to the physical pixels of the page width, and Fill at exactly
+                that size maps one bitmap pixel onto one screen pixel (see RenderHeroAsync)
             -->
-            <Border
-                x:Name="HeroBorder"
-                MaxHeight="200"
-                CornerRadius="0"
-                SizeChanged="HeroBorder_SizeChanged"
+            <Image
+                x:Name="HeroImage"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Stretch="Fill"
                 Visibility="Collapsed" />
 
             <!--  release body: date, notes (the Grid only carries the padding)  -->
