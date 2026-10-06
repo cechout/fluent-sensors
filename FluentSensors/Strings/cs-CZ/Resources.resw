@@ -981,11 +981,11 @@ Doba běhu - jak dlouho aplikace běží od posledního spuštění</value>
   <data name="Update_Install" xml:space="preserve">
     <value>Aktualizovat</value>
   </data>
-  <data name="Update_OpenStore" xml:space="preserve">
-    <value>Otevřít Store</value>
+  <data name="Update_OpenStoreLink" xml:space="preserve">
+    <value>Otevřít Microsoft Store</value>
   </data>
-  <data name="Update_ManualInstall" xml:space="preserve">
-    <value>Ruční instalace</value>
+  <data name="Update_ManualInstallLink" xml:space="preserve">
+    <value>Nainstalovat ručně z GitHubu</value>
   </data>
   <data name="Update_Downloading" xml:space="preserve">
     <value>Stahování {0}...</value>

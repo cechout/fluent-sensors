@@ -1016,11 +1016,11 @@ Uptime - how long this app has been running since it was last started</value>
     <value>Update</value>
     <comment>verb; button in the update dialog that installs the update</comment>
   </data>
-  <data name="Update_OpenStore" xml:space="preserve">
-    <value>Open Store</value>
+  <data name="Update_OpenStoreLink" xml:space="preserve">
+    <value>Open the Microsoft Store</value>
   </data>
-  <data name="Update_ManualInstall" xml:space="preserve">
-    <value>Manual Install</value>
+  <data name="Update_ManualInstallLink" xml:space="preserve">
+    <value>Install manually from GitHub</value>
   </data>
   <data name="Update_Downloading" xml:space="preserve">
     <value>Downloading {0}...</value>
