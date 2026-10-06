@@ -981,11 +981,11 @@ Laufzeit - wie lange diese App seit dem letzten Start läuft</value>
   <data name="Update_Install" xml:space="preserve">
     <value>Aktualisieren</value>
   </data>
-  <data name="Update_OpenStore" xml:space="preserve">
-    <value>Store öffnen</value>
+  <data name="Update_OpenStoreLink" xml:space="preserve">
+    <value>Microsoft Store öffnen</value>
   </data>
-  <data name="Update_ManualInstall" xml:space="preserve">
-    <value>Manuell installieren</value>
+  <data name="Update_ManualInstallLink" xml:space="preserve">
+    <value>Manuell von GitHub installieren</value>
   </data>
   <data name="Update_Downloading" xml:space="preserve">
     <value>{0} wird heruntergeladen...</value>

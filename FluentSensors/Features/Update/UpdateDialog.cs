@@ -21,8 +21,8 @@ namespace FluentSensors.Features.Update
     {
         // === public api ===
 
-        // three ways forward (the app does it, you do it, neither) and the checkbox as a modifier on the exit; Close is
-        // the neutral way out, ESC included
+        // three ways forward (the app does it, you do it through the link, neither) and the checkbox as a modifier on
+        // the exit; Close is the neutral way out, ESC included
         public static async Task ShowAsync(XamlRoot? xamlRoot, UpdateInfo? info)
         {
             if (xamlRoot == null || info == null) return;
@@ -38,6 +38,20 @@ namespace FluentSensors.Features.Update
                 Content = AppStrings.Get("Update_SkipVersion"),
                 Margin = new Thickness(0, 12, 0, 0),
                 Visibility = hasVersion ? Visibility.Visible : Visibility.Collapsed
+            };
+
+            // the manual way: the release page, or the store page in the store build; (the negative margin takes the
+            // padding back out, so the text lines up with the content)
+            var manualLink = new HyperlinkButton
+            {
+                Content = isStoreBuild ? AppStrings.Get("Update_OpenStoreLink") : AppStrings.Get("Update_ManualInstallLink"),
+                Margin = new Thickness(-8, 12, -4, 0)
+            };
+
+            manualLink.Click += (_, _) =>
+            {
+                if (isStoreBuild) _ = AppDistribution.OpenStorePageAsync();
+                else OpenReleasePage(info.ReleaseUrl);
             };
 
             var progress = new ProgressBar
@@ -63,6 +77,7 @@ namespace FluentSensors.Features.Update
                 TextWrapping = TextWrapping.Wrap
             });
             content.Children.Add(skipCheckBox);
+            content.Children.Add(manualLink);
             content.Children.Add(progress);
             content.Children.Add(statusText);
 
@@ -71,7 +86,6 @@ namespace FluentSensors.Features.Update
                 Title = AppStrings.Get("Update_Title"),
                 Content = content,
                 PrimaryButtonText = AppStrings.Get("Update_Install"),
-                SecondaryButtonText = isStoreBuild ? AppStrings.Get("Update_OpenStore") : AppStrings.Get("Update_ManualInstall"),
                 CloseButtonText = AppStrings.Get("Common_Close"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = xamlRoot,
@@ -88,7 +102,7 @@ namespace FluentSensors.Features.Update
             void SetDownloading(bool downloading)
             {
                 dialog.IsPrimaryButtonEnabled = !downloading;
-                dialog.IsSecondaryButtonEnabled = !downloading;
+                manualLink.IsEnabled = !downloading;
                 dialog.CloseButtonText = downloading ? AppStrings.Get("Common_Cancel") : AppStrings.Get("Common_Close");
                 skipCheckBox.IsEnabled = !downloading;
                 progress.Visibility = downloading ? Visibility.Visible : Visibility.Collapsed;
@@ -138,15 +152,6 @@ namespace FluentSensors.Features.Update
                 }
 
                 SetDownloading(false);
-            };
-
-            // stays open, the browser (or the store page) opens beside it
-            dialog.SecondaryButtonClick += (sender, args) =>
-            {
-                args.Cancel = true;
-
-                if (isStoreBuild) _ = AppDistribution.OpenStorePageAsync();
-                else OpenReleasePage(info.ReleaseUrl);
             };
 
             // Closing, not CloseButtonClick, so ESC takes the same path: past the abort a download would run unseen,
