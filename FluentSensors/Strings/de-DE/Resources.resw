@@ -115,6 +115,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Main_StartNavItem.Content" xml:space="preserve">
     <value>Start</value>
+    <comment>noun; name of the start page in the navigation</comment>
   </data>
   <data name="Main_SensorsNavItem.Content" xml:space="preserve">
     <value>Sensoren</value>
@@ -166,18 +167,23 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Main_LoadingReady" xml:space="preserve">
     <value>Bereit</value>
+    <comment>status once the sensors finished loading</comment>
   </data>
   <data name="Main_UpdatePill" xml:space="preserve">
     <value>Update</value>
+    <comment>noun; small badge in the title bar that says an update is available</comment>
   </data>
   <data name="Status_Sensors" xml:space="preserve">
     <value>Sensoren: {0}/{1}</value>
+    <comment>title bar status, keep it short; {0} sensors found, {1} sensors currently drawn</comment>
   </data>
   <data name="Status_Poll" xml:space="preserve">
     <value>Abfrage: {0:0}/{1}ms (Lesen {2:0}ms)</value>
+    <comment>title bar status, keep it short; {0} actual and {1} aimed update interval, {2} how long reading the sensors took, all in milliseconds</comment>
   </data>
   <data name="Status_Handles" xml:space="preserve">
     <value>Handles: {0}</value>
+    <comment>title bar status; {0} number of Windows handles the app holds</comment>
   </data>
   <data name="Common_ToggleSwitch.OnContent" xml:space="preserve">
     <value>Ein</value>
@@ -220,6 +226,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_GraphLineStyleComboBox_Stepline.Content" xml:space="preserve">
     <value>Stufen</value>
+    <comment>graph line style; the line steps from value to value instead of curving</comment>
   </data>
   <data name="Settings_GraphLineStyleComboBox_Smooth.Content" xml:space="preserve">
     <value>Glatt</value>
@@ -292,6 +299,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_StartupPageComboBox_Start.Content" xml:space="preserve">
     <value>Start</value>
+    <comment>noun; the start page, as the page the app opens on</comment>
   </data>
   <data name="Settings_StartupPageComboBox_Sensors.Content" xml:space="preserve">
     <value>Sensoren</value>
@@ -316,6 +324,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_PerformanceGraphExpander.Header" xml:space="preserve">
     <value>Graph</value>
+    <comment>section heading for the graphs of the Graphs page</comment>
   </data>
   <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
     <value>Zeitraum</value>
@@ -340,9 +349,11 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_BackdropComboBox_Mica.Content" xml:space="preserve">
     <value>System-Mica</value>
+    <comment>window backdrop option; Mica is the name of a Windows material, keep it</comment>
   </data>
   <data name="Settings_BackdropComboBox_None.Content" xml:space="preserve">
     <value>Einfarbig</value>
+    <comment>window backdrop option; a plain background without Mica or Acrylic</comment>
   </data>
   <data name="Settings_TintOpacityCard.Description" xml:space="preserve">
     <value>(nur Acryl)</value>
@@ -379,6 +390,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_WidgetGraphExpander.Header" xml:space="preserve">
     <value>Graph</value>
+    <comment>section heading for the graphs of the widget window</comment>
   </data>
   <data name="Settings_GraphColorSourceCard.Header" xml:space="preserve">
     <value>Quelle der Graphfarbe</value>
@@ -499,9 +511,11 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_TaskbarBackdropComboBox_Mica.Content" xml:space="preserve">
     <value>System-Mica</value>
+    <comment>taskbar flyout backdrop option; Mica is the name of a Windows material, keep it</comment>
   </data>
   <data name="Settings_TaskbarBackdropComboBox_None.Content" xml:space="preserve">
     <value>Einfarbig</value>
+    <comment>taskbar flyout backdrop option; a plain background without Mica or Acrylic</comment>
   </data>
   <data name="Settings_TaskbarTintOpacityCard.Description" xml:space="preserve">
     <value>(nur Acryl)</value>
@@ -562,12 +576,15 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_CsvNumberFormatComboBox_Local.Content" xml:space="preserve">
     <value>Regional</value>
+    <comment>number format of CSV files; the decimal separator of the Windows region settings</comment>
   </data>
   <data name="Settings_CsvNumberFormatComboBox_Invariant.Content" xml:space="preserve">
     <value>Invariant</value>
+    <comment>number format of CSV files; always a dot as decimal separator, whatever the region</comment>
   </data>
   <data name="Settings_ExampleRowText.Text" xml:space="preserve">
     <value>Beispielzeile:</value>
+    <comment>followed by an example line of a CSV file</comment>
   </data>
   <data name="Settings_DecimalPlacesCard.Header" xml:space="preserve">
     <value>Nachkommastellen</value>
@@ -649,18 +666,21 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="FlyoutShortcut_AtLeastOneText.Text" xml:space="preserve">
     <value>mindestens eine</value>
+    <comment>shortcut dialog, next to the keys Ctrl, Alt and Win: at least one of them is required</comment>
   </data>
   <data name="FlyoutShortcut_OptionalText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>plus Shift: optional</value>
   </data>
   <data name="FlyoutShortcut_OptionalText.Text" xml:space="preserve">
     <value>optional</value>
+    <comment>shortcut dialog, next to the Shift key: it can be added</comment>
   </data>
   <data name="FlyoutShortcut_ExactlyOneText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>plus ein Buchstabe, eine Ziffer oder F-Taste: genau eine</value>
   </data>
   <data name="FlyoutShortcut_ExactlyOneText.Text" xml:space="preserve">
     <value>genau eine</value>
+    <comment>shortcut dialog, next to the letters, digits and F1 to F24: exactly one of them is required</comment>
   </data>
   <data name="FlyoutShortcut_NoShortcutText.Text" xml:space="preserve">
     <value>Keine Tastenkombination</value>
@@ -703,6 +723,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_FlyoutShortcutName" xml:space="preserve">
     <value>Flyout-Tastenkombination, {0}</value>
+    <comment>screen reader name of the shortcut button; {0} the current key combination like Ctrl+Alt+S, or None</comment>
   </data>
   <data name="Settings_ExportPickerTitle" xml:space="preserve">
     <value>Einstellungen exportieren</value>
@@ -754,6 +775,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_ResetConfirmTitle" xml:space="preserve">
     <value>{0} zurücksetzen?</value>
+    <comment>dialog title; {0} what gets reset, one of the Settings_ResetWhat texts like All Settings</comment>
   </data>
   <data name="Settings_ResetConfirmMessage" xml:space="preserve">
     <value>Damit werden die Standardwerte wiederhergestellt und die App neu gestartet. Das kann nicht rückgängig gemacht werden.</value>
@@ -769,6 +791,7 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="FlyoutShortcut_KeysName" xml:space="preserve">
     <value>Tastenkombination, {0}</value>
+    <comment>screen reader name of the recorded shortcut; {0} the key combination like Ctrl+Alt+S</comment>
   </data>
   <data name="FlyoutShortcut_NoShortcut" xml:space="preserve">
     <value>Keine Tastenkombination</value>
@@ -902,24 +925,30 @@ Laufzeit - wie lange diese App seit dem letzten Start läuft</value>
   </data>
   <data name="Start_UptimeDays" xml:space="preserve">
     <value>{0}T {1}</value>
+    <comment>elapsed time over a day; {0} number of days, {1} the rest as h:mm:ss; d is the short form of days</comment>
   </data>
   <data name="Start_SensorCountNone" xml:space="preserve">
     <value>Keine Sensoren</value>
   </data>
   <data name="Start_SensorCount_One" xml:space="preserve">
     <value>{0} Sensor</value>
+    <comment>found sensors of one hardware on the start page; {0} the number; count form for exactly one</comment>
   </data>
   <data name="Start_SensorCount_Few" xml:space="preserve">
     <value>{0} Sensoren</value>
+    <comment>found sensors of one hardware on the start page; {0} the number; count form for two to four; a language without a separate few form repeats the many text</comment>
   </data>
   <data name="Start_SensorCount_Many" xml:space="preserve">
     <value>{0} Sensoren</value>
+    <comment>found sensors of one hardware on the start page; {0} the number; count form for everything else, zero included</comment>
   </data>
   <data name="Start_ReleaseNotesFor" xml:space="preserve">
     <value>Versionshinweise für {0}</value>
+    <comment>{0} a version label like v1.7.0</comment>
   </data>
   <data name="Start_UpdateLastChecked" xml:space="preserve">
     <value>Zuletzt geprüft {0}</value>
+    <comment>{0} date and time of the last update check, like 05.10. 18:30</comment>
   </data>
   <data name="Start_UpdateNotChecked" xml:space="preserve">
     <value>Noch nicht geprüft</value>
@@ -938,15 +967,18 @@ Laufzeit - wie lange diese App seit dem letzten Start läuft</value>
   </data>
   <data name="Start_UpdateReady" xml:space="preserve">
     <value>{0} ist bereit zur Installation</value>
+    <comment>{0} a version label like v1.7.0</comment>
   </data>
   <data name="Start_UpdateSkipped" xml:space="preserve">
     <value>{0} übersprungen</value>
+    <comment>{0} a version label like v1.7.0 the user chose to skip</comment>
   </data>
   <data name="Start_UpdateSkippedHint" xml:space="preserve">
     <value>Auswählen, um sie trotzdem zu installieren</value>
   </data>
   <data name="Start_UpdateFailed" xml:space="preserve">
     <value>Prüfung fehlgeschlagen</value>
+    <comment>the update check failed</comment>
   </data>
   <data name="Start_UpdateFailedGitHub" xml:space="preserve">
     <value>GitHub war nicht erreichbar, zum erneuten Versuch auswählen</value>
@@ -971,15 +1003,18 @@ Laufzeit - wie lange diese App seit dem letzten Start läuft</value>
   </data>
   <data name="Update_Message" xml:space="preserve">
     <value>Fluent Sensors {0} ist verfügbar. Du verwendest {1}.</value>
+    <comment>{0} the new version, {1} the installed version, both like v1.7.0</comment>
   </data>
   <data name="Update_MessageUnnamed" xml:space="preserve">
     <value>Eine neue Version von Fluent Sensors ist verfügbar. Du verwendest {0}.</value>
+    <comment>{0} the installed version like v1.6.0; the name of the new version is not known yet</comment>
   </data>
   <data name="Update_Title" xml:space="preserve">
     <value>Update verfügbar</value>
   </data>
   <data name="Update_Install" xml:space="preserve">
     <value>Aktualisieren</value>
+    <comment>verb; button in the update dialog that installs the update</comment>
   </data>
   <data name="Update_OpenStoreLink" xml:space="preserve">
     <value>Microsoft Store öffnen</value>
@@ -989,6 +1024,7 @@ Laufzeit - wie lange diese App seit dem letzten Start läuft</value>
   </data>
   <data name="Update_Downloading" xml:space="preserve">
     <value>{0} wird heruntergeladen...</value>
+    <comment>{0} file name of the download, like FluentSensors_Installer.exe</comment>
   </data>
   <data name="Update_NoAsset" xml:space="preserve">
     <value>Dieses Release hat keinen passenden Download, stattdessen wird die Release-Seite geöffnet</value>
@@ -1308,21 +1344,26 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Cpu_TopologyGroup" xml:space="preserve">
     <value>{0} {1} ({2})</value>
+    <comment>one core group of a hybrid CPU, like 6 Performance (12 threads); {0} number of cores, {1} the core type (Cpu_TopologyPerformance, Cpu_TopologyEfficient or Cpu_TopologyClass), {2} the thread count with its word</comment>
   </data>
   <data name="InfoPopup_Source" xml:space="preserve">
     <value>Quelle: {0}</value>
+    <comment>{0} where the values come from, like WMI or LibreHardwareMonitor</comment>
   </data>
   <data name="InfoPopup_MoreInfo" xml:space="preserve">
     <value>Weitere Informationen</value>
   </data>
   <data name="InfoPopup_MoreInfoAbout" xml:space="preserve">
     <value>Weitere Informationen zu {0}</value>
+    <comment>screen reader name of an info button; {0} the title of the section it explains, like Cache</comment>
   </data>
   <data name="SensorPanel_NotFound" xml:space="preserve">
     <value>Sensor {0} nicht gefunden</value>
+    <comment>{0} sensor name, with its unit in parentheses when it has one, like CPU Package (W)</comment>
   </data>
   <data name="Threshold_Name" xml:space="preserve">
     <value>Schwellenwert {0}</value>
+    <comment>screen reader name of a threshold badge; {0} the threshold value as shown, like 85</comment>
   </data>
   <data name="Threshold_NotSet" xml:space="preserve">
     <value>Schwellenwert, nicht gesetzt</value>
@@ -1332,6 +1373,7 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="TimeRange_Last" xml:space="preserve">
     <value>Letzte {0:0}s</value>
+    <comment>graph time range, keep it short; {0} number of seconds; s is the short form of seconds</comment>
   </data>
   <data name="Info_Yes" xml:space="preserve">
     <value>Ja</value>
@@ -1347,12 +1389,15 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Info_UnknownValue" xml:space="preserve">
     <value>Unbekannt ({0})</value>
+    <comment>a hardware value the app has no name for; {0} the raw value, like 0x10DE</comment>
   </data>
   <data name="Info_ErrorCounts" xml:space="preserve">
     <value>{0} gesamt, {1} korrigiert, {2} nicht korrigiert</value>
+    <comment>read or write errors of a drive; {0} total, {1} corrected, {2} uncorrected; each a number or ?</comment>
   </data>
   <data name="Info_CycleCount" xml:space="preserve">
     <value>{0} / {1} max</value>
+    <comment>start stop or load unload cycles of a drive; {0} cycles so far, {1} the rated maximum</comment>
   </data>
   <data name="Sensors_SensorListTitleText.Text" xml:space="preserve">
     <value>Sensorliste</value>
@@ -1362,12 +1407,15 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Sensors_SelectionProfileComboBox_WidgetWindow.Content" xml:space="preserve">
     <value>Widget</value>
+    <comment>sensor selection profile; the sensors picked for the widget window</comment>
   </data>
   <data name="Sensors_SelectionProfileComboBox_Csv.Content" xml:space="preserve">
     <value>Aufzeichnung</value>
+    <comment>sensor selection profile; the sensors picked for CSV logging</comment>
   </data>
   <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
     <value>Taskleiste</value>
+    <comment>sensor selection profile; the sensors picked for the taskbar widget</comment>
   </data>
   <data name="Sensors_PinToWidgetButton.Label" xml:space="preserve">
     <value>An Widget anheften</value>
@@ -1380,12 +1428,14 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Sensors_TaskbarUpdateButton.Label" xml:space="preserve">
     <value>Aktualisieren</value>
+    <comment>verb; applies the selected sensors to the open taskbar widget</comment>
   </data>
   <data name="Sensors_TaskbarCloseButton.Label" xml:space="preserve">
     <value>Schließen</value>
   </data>
   <data name="Sensors_UpdateTaskbarText.Text" xml:space="preserve">
     <value>Aktualisieren</value>
+    <comment>verb; applies the selected sensors to the open taskbar widget</comment>
   </data>
   <data name="Sensors_CloseTaskbarWidgetButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Taskleisten-Widget schließen</value>
@@ -1395,6 +1445,7 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Sensors_HideSensorsButton.Label" xml:space="preserve">
     <value>Ausblenden</value>
+    <comment>verb; hides the selected sensors from the list</comment>
   </data>
   <data name="Sensors_HideSensorsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
     <value>Blendet die ausgewählten Sensoren aus und beendet ihre Überwachung</value>
@@ -1413,6 +1464,7 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Sensors_RunningForText.Text" xml:space="preserve">
     <value>Läuft seit</value>
+    <comment>followed by the time since the stats were last reset, like Running for 0:05:12</comment>
   </data>
   <data name="Sensors_SelectPinnedButton.Label" xml:space="preserve">
     <value>Angeheftete auswählen</value>
@@ -1434,6 +1486,7 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="CsvLogger_StartText.Text" xml:space="preserve">
     <value>Start</value>
+    <comment>verb; starts a CSV recording</comment>
   </data>
   <data name="CsvLogger_StopButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Stopp</value>
@@ -1464,12 +1517,14 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="TaskbarFlyout_FlyoutTimeRangePicker.Label" xml:space="preserve">
     <value>Flyout</value>
+    <comment>label of the time range picker for the flyout graphs, keep it short</comment>
   </data>
   <data name="TaskbarFlyout_TaskbarTimeRangePicker.AccessibleName" xml:space="preserve">
     <value>Zeitraum der Taskleiste</value>
   </data>
   <data name="TaskbarFlyout_TaskbarTimeRangePicker.Label" xml:space="preserve">
     <value>Taskleiste</value>
+    <comment>label of the time range picker for the taskbar graphs, keep it short</comment>
   </data>
   <data name="TaskbarFlyout_BackToDashboardButton.Content" xml:space="preserve">
     <value>Taskleisten-Sensoren verwalten</value>
@@ -1491,9 +1546,11 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Sensors_GroupCount" xml:space="preserve">
     <value>{0}/{1} Sensoren</value>
+    <comment>header of a hardware group in the sensor list, keep it short; {0} shown sensors, {1} all sensors of this hardware</comment>
   </data>
   <data name="Sensors_GroupCountName" xml:space="preserve">
     <value>{0} von {1} Sensoren angezeigt</value>
+    <comment>screen reader version of Sensors_GroupCount; {0} shown sensors, {1} all sensors of this hardware</comment>
   </data>
   <data name="Sensors_UpdateWidget" xml:space="preserve">
     <value>Widget aktualisieren</value>
@@ -1509,30 +1566,36 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Common_Resume" xml:space="preserve">
     <value>Fortsetzen</value>
+    <comment>verb; button that continues the graphs or a recording after a pause</comment>
   </data>
   <data name="Common_Pause" xml:space="preserve">
     <value>Pause</value>
+    <comment>verb; button that pauses the graphs or a recording</comment>
   </data>
   <data name="CsvLogger_StatusSelectionLocked" xml:space="preserve">
     <value>erst die Aufzeichnung stoppen, um die Sensorauswahl zu ändern</value>
   </data>
   <data name="CsvLogger_StatusPaused" xml:space="preserve">
     <value>pausiert bei {0:N0} Zeilen</value>
+    <comment>CSV recording status; {0} number of rows recorded so far</comment>
   </data>
   <data name="CsvLogger_StatusRecording" xml:space="preserve">
     <value>Aufzeichnung in {0}</value>
+    <comment>CSV recording status; {0} file name of the recording</comment>
   </data>
   <data name="CsvLogger_StatusNoSensors" xml:space="preserve">
     <value>noch keine Sensoren gewählt, wähle welche in der Sensorliste aus</value>
   </data>
   <data name="CsvLogger_StatusSaved" xml:space="preserve">
     <value>{0:N0} Zeilen in {1} gespeichert</value>
+    <comment>CSV recording status; {0} number of rows, {1} file name of the recording</comment>
   </data>
   <data name="CsvLogger_StatusReady" xml:space="preserve">
     <value>bereit zur Aufzeichnung</value>
   </data>
   <data name="CsvLogger_StatusWriteFailed" xml:space="preserve">
     <value>konnte nicht in {0} schreiben</value>
+    <comment>CSV recording status; {0} the folder the recording could not be written to</comment>
   </data>
   <data name="CsvLogger_FolderPickerTitle" xml:space="preserve">
     <value>Ordner für die CSV-Aufzeichnung</value>
@@ -1547,14 +1610,17 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
     <value>Das Einbetten des Taskleisten-Widgets ist nach {0} Versuchen fehlgeschlagen:
 
 {1}</value>
+    <comment>error message; {0} number of attempts, {1} technical error text, which stays in English</comment>
   </data>
   <data name="TaskbarWidget_InitFailed" xml:space="preserve">
     <value>Das Initialisieren des Taskleisten-Widgets ist fehlgeschlagen:
 
 {0}</value>
+    <comment>error message; {0} technical error text, which stays in English</comment>
   </data>
   <data name="App_LanguageTag" xml:space="preserve">
     <value>de-DE</value>
+    <comment>not shown in the app; the language tag of this file, set it to the tag of your language, e.g. de-DE</comment>
   </data>
   <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
     <value>Fachbegriffe auf Englisch</value>
