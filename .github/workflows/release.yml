@@ -8,8 +8,10 @@ on:
     tags:
       - "v*"
 
+# actions: read lets the signpath action fetch the unsigned artifacts
 permissions:
   contents: write
+  actions: read
 
 jobs:
   build:
@@ -52,6 +54,40 @@ jobs:
       - name: publish win-x64
         run: msbuild FluentSensors/FluentSensors.csproj -t:Publish -p:Configuration=Release -p:Platform=x64 -p:PublishProfile=FolderProfile -p:NoBuild=true
 
+      # --- code signing (signpath foundation) ---
+      # signpath signs inside the zip that upload-artifact makes and hands the signed files back; every request waits
+      # for a manual approval, hence the long timeout
+      # SIGNPATH_SIGNING_POLICY picks the certificate: test-signing (self-signed) or release-signing
+      # the app binaries go first, so the installer and the portable zip are built from the signed ones
+      - name: upload unsigned app binaries
+        id: upload-unsigned-app
+        uses: actions/upload-artifact@v7
+        with:
+          name: FluentSensors_Unsigned_App
+          path: |
+            FluentSensors/bin/x64/Release/net10.0-windows10.0.19041.0/publish/win-x64/FluentSensors.exe
+            FluentSensors/bin/x64/Release/net10.0-windows10.0.19041.0/publish/win-x64/FluentSensors.dll
+
+      # version feeds the product version check of the app-binaries configuration
+      - name: sign app binaries
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: fluent-sensors
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY }}
+          artifact-configuration-slug: app-binaries
+          github-artifact-id: ${{ steps.upload-unsigned-app.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: Setup/Signed/App
+          parameters: |
+            version: ${{ toJSON(steps.version.outputs.version) }}
+
+      - name: replace app binaries with the signed ones
+        shell: pwsh
+        run: Copy-Item -Path Setup/Signed/App/FluentSensors.exe, Setup/Signed/App/FluentSensors.dll -Destination FluentSensors/bin/x64/Release/net10.0-windows10.0.19041.0/publish/win-x64 -Force
+
       - name: install inno setup
         run: choco install innosetup -y --no-progress
 
@@ -61,6 +97,31 @@ jobs:
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
           /DMyAppVersion=${{ steps.version.outputs.version }}
           Setup\Inno_Setup.iss
+
+      # the uninstaller ISCC embeds stays unsigned; it is built inside the compile, out of reach of the signing request
+      - name: upload unsigned installer
+        id: upload-unsigned-installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: FluentSensors_Unsigned_Installer
+          path: Setup/Output/FluentSensors_Installer.exe
+
+      - name: sign installer
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: fluent-sensors
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY }}
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.upload-unsigned-installer.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: Setup/Signed/Installer
+
+      - name: replace installer with the signed one
+        shell: pwsh
+        run: Copy-Item -Path Setup/Signed/Installer/FluentSensors_Installer.exe -Destination Setup/Output -Force
 
       # portable: the publish output with the marker file that moves the settings next to the exe; staged apart, so the
       # marker never reaches the installer
@@ -86,6 +147,7 @@ jobs:
           path: Setup/Output/FluentSensors_Portable_${{ steps.version.outputs.version }}.zip
 
       # a draft only; a human publishes it
+      # a tag with a suffix (v1.7.0-signtest) is a pipeline test: also a prerelease, which the updater never offers
       - name: create draft release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -94,6 +156,7 @@ jobs:
           Setup/Output/FluentSensors_Installer.exe
           Setup/Output/FluentSensors_Portable_${{ steps.version.outputs.version }}.zip
           --draft --generate-notes --title "FluentSensors ${{ github.ref_name }}"
+          ${{ contains(github.ref_name, '-') && '--prerelease' || '' }}
 
       # last, after the draft exists: it needs the msix targets of Visual Studio, and a runner without them must not
       # cost the installer, the zip or the release
@@ -121,9 +184,10 @@ jobs:
   # once the github text is final, submitting stays a click
   # runs while the STORE_SUBMISSION variable is draft; a job of its own, so a failed upload re-runs
   # without a second github draft
+  # never for a test tag with a suffix (v1.7.0-signtest)
   store:
     needs: build
-    if: vars.STORE_SUBMISSION == 'draft'
+    if: vars.STORE_SUBMISSION == 'draft' && !contains(github.ref_name, '-')
     runs-on: windows-latest
     timeout-minutes: 30
     permissions:
