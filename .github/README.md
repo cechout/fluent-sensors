@@ -39,6 +39,14 @@ Installer and portable are on the [releases page](https://github.com/cechout/flu
 
 The app collects nothing, has no telemetry and no account. It only goes online for updates: to check whether a newer version exists, on GitHub or in the Microsoft Store, and to load the release notes. One switch in the settings keeps it from going online on its own. [PRIVACY.md](PRIVACY.md) explains exactly what is sent and when.
 
+## 🔏 Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+- Signed: `FluentSensors.exe`, `FluentSensors.dll` and the installer of every GitHub release, built by GitHub Actions from this repository. Third-party libraries ship as their authors publish them.
+- Authors, reviewers and approvers: [Daniel Čech](https://github.com/cechout). Every signing request is approved by hand.
+- Privacy: see above and [PRIVACY.md](PRIVACY.md).
+
 ## 🛠️ How to Build
 
 ### 1. Prerequisites
