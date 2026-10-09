@@ -120,6 +120,7 @@
                     Margin="8,1,0,0"
                     VerticalAlignment="Center"
                     ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                    ButtonGlyphForeground="{ThemeResource SystemFillColorCautionBrush}"
                     PlacementMode="Below"
                     Visibility="{x:Bind BoolToVisibility(AppStatus.IsDotNetRuntimeMissing), Mode=OneWay}">
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
@@ -135,6 +136,7 @@
                     Margin="8,1,0,0"
                     VerticalAlignment="Center"
                     ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                    ButtonGlyphForeground="{ThemeResource SystemFillColorCautionBrush}"
                     PlacementMode="Below"
                     Visibility="{x:Bind BoolToVisibility(AppStatus.IsPawnIoMissing), Mode=OneWay}">
                     <fhInfoPopup:InfoPopupControl.SourceLinks>

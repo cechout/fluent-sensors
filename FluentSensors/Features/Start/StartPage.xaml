@@ -573,10 +573,12 @@
                                     Margin="0,-3,0,-3"
                                     VerticalAlignment="Center"
                                     ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                                    ButtonGlyphForeground="{ThemeResource SystemFillColorCautionBrush}"
                                     PlacementMode="Above" />
                                 <TextBlock
                                     x:Uid="Start_GpuNotDisplayText"
                                     VerticalAlignment="Center"
+                                    Foreground="{ThemeResource SystemFillColorCautionBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}" />
                             </StackPanel>
 
