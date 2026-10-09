@@ -253,6 +253,10 @@ namespace FluentSensors.Features.TaskbarWidget
         private DesktopAcrylicController? _acrylicController;
         private SystemBackdropConfiguration? _configurationSource;
 
+        // the backdrop link the card material moves onto; rooted for the process lifetime, closing it off the UI
+        // thread kills the process
+        private static WinBackdropLink? _backdropLink;
+
 
         // === constructor ===
 
@@ -353,6 +357,34 @@ namespace FluentSensors.Features.TaskbarWidget
             this.Activated += Window_Activated;
 
             KickBackdropRefresh();
+
+            ProbeBackdropLink();
+        }
+
+
+        // === backdrop link ===
+
+        // phase 1 of the flyout redesign; creates the link once and logs what it hands back, nothing is attached yet
+        private void ProbeBackdropLink()
+        {
+            if (_backdropLink != null) return;
+
+            try
+            {
+                var compositor = ElementCompositionPreview.GetElementVisual(FlyoutRootBorder).Compositor;
+                _backdropLink = WinBackdropLink.Create(compositor);
+
+                bool sameQueue = _backdropLink.DispatcherQueue == this.DispatcherQueue;
+                Debug.WriteLine($"[BackdropLink] created via {_backdropLink.ActivationRoute}; " +
+                    $"dispatcher queue matches window: {sameQueue}; " +
+                    $"placement visual: {_backdropLink.PlacementVisual.GetType().FullName}; " +
+                    $"border mode: {_backdropLink.BorderMode}; " +
+                    $"target: {_backdropLink.Target.GetType().FullName}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[BackdropLink] failed: 0x{ex.HResult:X8} {ex.GetType().Name}: {ex.Message}");
+            }
         }
 
 
