@@ -283,6 +283,7 @@ namespace FluentSensors.Features.Performance.Lhm
         public string GpuNameText => _staticInfo?.Name ?? "-";
         public string GpuVendorText => _staticInfo != null ? HardwareInfoFormatter.FormatVendorName(_staticInfo.VendorId) : "-";
         public string GpuDriverVersionText => _staticInfo?.DriverVersion ?? "-";
+        public string GpuDisplayText => _staticInfo != null && HardwareInfoFormatter.FormatGpuDisplay(_staticInfo) is { Length: > 0 } display ? display : "-";
         public string GpuDedicatedMemoryText => _staticInfo != null ? HardwareInfoFormatter.FormatBytesAsGb(_staticInfo.DedicatedVideoMemoryBytes) : "-";
         public string GpuSharedMemoryText => _staticInfo != null ? HardwareInfoFormatter.FormatBytesAsGb(_staticInfo.SharedSystemMemoryBytes) : "-";
         public string GpuDeviceIdText => _staticInfo != null ? HardwareInfoFormatter.FormatPciId(_staticInfo.DeviceId) : "-";

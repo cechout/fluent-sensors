@@ -834,7 +834,9 @@ LibreHardwareMonitorLib je největší a nejzavedenější knihovna pro monitoro
   <data name="Start_ThisAppPopup.Description" xml:space="preserve">
     <value>Využití CPU - vlastní čas CPU této aplikace vzhledem k celkové kapacitě všech jader
 Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovní sada)
-Doba běhu - jak dlouho aplikace běží od posledního spuštění</value>
+Doba běhu - jak dlouho aplikace běží od posledního spuštění
+Handly - otevřené objekty Windows (soubory, vlákna, události) této aplikace
+Paměť GC - spravovaná halda .NET, součást využití RAM</value>
   </data>
   <data name="Start_ThisAppPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -847,6 +849,12 @@ Doba běhu - jak dlouho aplikace běží od posledního spuštění</value>
   </data>
   <data name="Start_UptimeText.Text" xml:space="preserve">
     <value>Doba běhu</value>
+  </data>
+  <data name="Start_HandlesText.Text" xml:space="preserve">
+    <value>Handly</value>
+  </data>
+  <data name="Start_GcMemoryText.Text" xml:space="preserve">
+    <value>Paměť GC</value>
   </data>
   <data name="Start_UpdateIntervalText.Text" xml:space="preserve">
     <value>Interval aktualizace</value>
@@ -873,7 +881,7 @@ Doba běhu - jak dlouho aplikace běží od posledního spuštění</value>
     <value>Běží na - grafický procesor, který vykresluje tuto aplikaci
 Využití GPU - podíl této aplikace na jejím nejvytíženějším enginu GPU, jako ve Správci úloh
 Paměť GPU - vyhrazená a sdílená grafická paměť této aplikace
-Displej - obnovovací frekvence aktivních displejů</value>
+Obnovovací frekvence - aktivních displejů</value>
   </data>
   <data name="Start_GraphicsPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -887,11 +895,11 @@ Displej - obnovovací frekvence aktivních displejů</value>
   <data name="Start_GpuMemoryText.Text" xml:space="preserve">
     <value>Paměť GPU</value>
   </data>
-  <data name="Start_DisplayText.Text" xml:space="preserve">
-    <value>Displej</value>
+  <data name="Start_RefreshRateText.Text" xml:space="preserve">
+    <value>Obnovovací frekvence</value>
   </data>
   <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
-    <value>Není GPU displeje</value>
+    <value>Displej přes jinou GPU</value>
   </data>
   <data name="Start_GraphicsSettingsLink.Content" xml:space="preserve">
     <value>Nastavení grafiky Windows</value>
@@ -1168,7 +1176,8 @@ Firmware - aktuálně zapnuto nebo ne (nespolehlivé)</value>
     <value>Obecné</value>
   </data>
   <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Verze ovladače - interní číslo ovladače Windows, liší se od schématu verzí výrobce</value>
+    <value>Verze ovladače - interní číslo ovladače Windows, liší se od schématu verzí výrobce
+Displej - displeje, které tato GPU ovládá, nebo u hybridního notebooku GPU, přes kterou jde její obraz</value>
   </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1431,6 +1440,18 @@ DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo 
   </data>
   <data name="Info_No" xml:space="preserve">
     <value>Ne</value>
+  </data>
+  <data name="Info_DisplayBuiltIn" xml:space="preserve">
+    <value>Vestavěný displej</value>
+  </data>
+  <data name="Info_DisplayExternal" xml:space="preserve">
+    <value>Externí displej</value>
+  </data>
+  <data name="Info_DisplayVia" xml:space="preserve">
+    <value>přes {0}</value>
+  </data>
+  <data name="Info_DisplayNone" xml:space="preserve">
+    <value>Žádný</value>
   </data>
   <data name="Info_Other" xml:space="preserve">
     <value>Jiné</value>

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using Vortice.DXGI;
 
-using FluentSensors.Core.Startup;
+using FluentSensors.Core.StaticInfo;
 
 
 namespace FluentSensors.Core
@@ -85,13 +85,13 @@ namespace FluentSensors.Core
                     if (runningTime > mostRunningTime) { adapter = luid; mostRunningTime = runningTime; }
                 }
 
-                var screens = WinGpuPreference.ScreenAdapters();
-                bool isDisplayAdapter = adapter == null || screens == null || screens.Exists(s => s.AdapterLuid == adapter);
+                var displays = WinDisplayTopology.QueryDisplays();
+                bool isDisplayAdapter = adapter == null || displays == null || displays.Exists(d => d.AdapterLuid == adapter);
 
                 var refreshRates = new List<int>();
-                foreach (var screen in screens ?? new List<WinScreenPath>())
+                foreach (var display in displays ?? new List<WinDisplay>())
                 {
-                    if (screen.RefreshRateHz > 0 && !refreshRates.Contains(screen.RefreshRateHz)) refreshRates.Add(screen.RefreshRateHz);
+                    if (display.RefreshRateHz > 0 && !refreshRates.Contains(display.RefreshRateHz)) refreshRates.Add(display.RefreshRateHz);
                 }
                 refreshRates.Sort((a, b) => b.CompareTo(a));
 

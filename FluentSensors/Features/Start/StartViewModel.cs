@@ -62,10 +62,12 @@ namespace FluentSensors.Features.Start
         private string _uptimeTileValue = "-";
         private string _updateIntervalTileValue = "-";
         private string _readTimeTileValue = "-";
+        private string _handlesTileValue = "-";
+        private string _gcMemoryTileValue = "-";
         private string _gpuAdapterTileValue = "-";
         private string _gpuUsageTileValue = "-";
         private string _gpuMemoryTileValue = "-";
-        private string _displayTileValue = "-";
+        private string _refreshRateTileValue = "-";
         private bool _isGpuNotDisplay;
 
         // process start, the splash included; utc, so daylight saving does not move the uptime
@@ -165,6 +167,18 @@ namespace FluentSensors.Features.Start
             private set { _uptimeTileValue = value; OnPropertyChanged(); }
         }
 
+        public string HandlesTileValue
+        {
+            get => _handlesTileValue;
+            private set { _handlesTileValue = value; OnPropertyChanged(); }
+        }
+
+        public string GcMemoryTileValue
+        {
+            get => _gcMemoryTileValue;
+            private set { _gcMemoryTileValue = value; OnPropertyChanged(); }
+        }
+
         // measured against configured, as the title bar readout
         public string UpdateIntervalTileValue
         {
@@ -201,10 +215,10 @@ namespace FluentSensors.Features.Start
             private set { _gpuMemoryTileValue = value; OnPropertyChanged(); }
         }
 
-        public string DisplayTileValue
+        public string RefreshRateTileValue
         {
-            get => _displayTileValue;
-            private set { _displayTileValue = value; OnPropertyChanged(); }
+            get => _refreshRateTileValue;
+            private set { _refreshRateTileValue = value; OnPropertyChanged(); }
         }
 
         // the app renders on a gpu that drives no screen, so every frame is copied across
@@ -224,6 +238,8 @@ namespace FluentSensors.Features.Start
             SensorsRenderedText = data.SensorsRendered.ToString();
             CpuTileValue = $"{data.CpuUsagePercent:0.0} %";
             RamTileValue = $"{data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
+            HandlesTileValue = data.HandleCount.ToString();
+            GcMemoryTileValue = $"{data.GcMemoryBytes / 1024.0 / 1024.0:0.0} MB";
             UpdateIntervalTileValue = AppStrings.Format("Start_UpdateIntervalValue", data.ActualUpdateIntervalMs, data.AimedUpdateIntervalMs);
             ReadTimeTileValue = $"{data.ReadDurationMs:0} ms";
 
@@ -236,7 +252,7 @@ namespace FluentSensors.Features.Start
             GpuAdapterTileValue = data.AdapterName ?? "-";
             GpuUsageTileValue = $"{data.UsagePercent:0.0} %";
             GpuMemoryTileValue = $"{data.MemoryBytes / 1024.0 / 1024.0:0} MB";
-            DisplayTileValue = data.RefreshRatesHz.Count == 0 ? "-" : string.Join(" / ", data.RefreshRatesHz) + " Hz";
+            RefreshRateTileValue = data.RefreshRatesHz.Count == 0 ? "-" : string.Join(" / ", data.RefreshRatesHz) + " Hz";
             IsGpuNotDisplay = !data.IsDisplayAdapter;
         }
 
@@ -502,16 +518,17 @@ namespace FluentSensors.Features.Start
                     ? HardwareInfoFormatter.FormatBytesAsGb(gpu.DedicatedVideoMemoryBytes)
                     : "";
 
-                string driver = string.IsNullOrWhiteSpace(gpu.DriverVersion)
-                    ? ""
-                    : AppTerms.Format("Start_GpuDriver", gpu.DriverVersion);
+                // where its picture goes, so a hybrid laptop shows which gpu drives the display; (the driver version is
+                // on the gpu page)
+                string display = HardwareInfoFormatter.FormatGpuDisplay(gpu);
+                if (display.Length > 0) display = AppTerms.Format("Start_GpuDisplay", display);
 
                 rows.Add(Row(
                     HardwareGroupKind.Gpu,
                     gpu.Name,
                     HardwareInfoFormatter.FormatVendorName(gpu.VendorId),
                     memory,
-                    driver));
+                    display));
             }
         }
 

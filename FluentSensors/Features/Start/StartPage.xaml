@@ -500,6 +500,28 @@
                                         Text="{x:Bind ViewModel.UptimeTileValue, Mode=OneWay}"
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_HandlesText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.HandlesTileValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_GcMemoryText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.GcMemoryTileValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
                             </controls:WrapPanel>
                         </StackPanel>
                     </Border>
@@ -524,6 +546,20 @@
                                 </fhInfoPopup:InfoPopupControl.SourceLinks>
                             </fhInfoPopup:InfoPopupControl>
 
+                            <!--  (on its own line, the name is long; the hint below refers to it)  -->
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    x:Uid="Start_RunningOnText"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind ViewModel.GpuAdapterTileValue, Mode=OneWay}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap"
+                                    ToolTipService.ToolTip="{x:Bind ViewModel.GpuAdapterTileValue, Mode=OneWay}" />
+                            </StackPanel>
+
                             <!--  (wording and look still open)  -->
                             <StackPanel
                                 Orientation="Horizontal"
@@ -536,21 +572,11 @@
                                 <TextBlock x:Uid="Start_GpuNotDisplayText" Style="{ThemeResource CaptionTextBlockStyle}" />
                             </StackPanel>
 
-                            <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
-                                <StackPanel Spacing="2">
-                                    <TextBlock
-                                        x:Uid="Start_RunningOnText"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Style="{ThemeResource CaptionTextBlockStyle}" />
-                                    <TextBlock
-                                        Style="{ThemeResource BodyTextBlockStyle}"
-                                        Text="{x:Bind ViewModel.GpuAdapterTileValue, Mode=OneWay}"
-                                        TextTrimming="CharacterEllipsis"
-                                        TextWrapping="NoWrap"
-                                        ToolTipService.ToolTip="{x:Bind ViewModel.GpuAdapterTileValue, Mode=OneWay}"
-                                        Typography.NumeralAlignment="Tabular" />
-                                </StackPanel>
-
+                            <!--  (the top margin makes the gap to the line above the 8 of the wrapped rows)  -->
+                            <controls:WrapPanel
+                                Margin="0,2,0,0"
+                                HorizontalSpacing="24"
+                                VerticalSpacing="8">
                                 <StackPanel Spacing="2">
                                     <TextBlock
                                         x:Uid="Start_GpuUsageText"
@@ -575,12 +601,12 @@
 
                                 <StackPanel Spacing="2">
                                     <TextBlock
-                                        x:Uid="Start_DisplayText"
+                                        x:Uid="Start_RefreshRateText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                         Style="{ThemeResource CaptionTextBlockStyle}" />
                                     <TextBlock
                                         Style="{ThemeResource BodyTextBlockStyle}"
-                                        Text="{x:Bind ViewModel.DisplayTileValue, Mode=OneWay}"
+                                        Text="{x:Bind ViewModel.RefreshRateTileValue, Mode=OneWay}"
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
                             </controls:WrapPanel>

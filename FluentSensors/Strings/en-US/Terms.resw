@@ -135,6 +135,14 @@
   <data name="Gpu_DriverVersion" xml:space="preserve">
     <value>Driver Version</value>
   </data>
+  <data name="Gpu_Display" xml:space="preserve">
+    <value>Display</value>
+    <comment>the screens a GPU drives</comment>
+  </data>
+  <data name="Start_GpuDisplay" xml:space="preserve">
+    <value>Display: {0}</value>
+    <comment>{0} where the picture of the GPU goes: display names, "via" another GPU, or none</comment>
+  </data>
   <data name="Gpu_DedicatedMemory" xml:space="preserve">
     <value>Dedicated Memory</value>
   </data>
@@ -340,9 +348,5 @@
   <data name="Start_MemoryTotal" xml:space="preserve">
     <value>{0} total</value>
     <comment>{0} the memory size, like 32 GB</comment>
-  </data>
-  <data name="Start_GpuDriver" xml:space="preserve">
-    <value>Driver {0}</value>
-    <comment>{0} the driver version number</comment>
   </data>
 </root>

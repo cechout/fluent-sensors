@@ -834,7 +834,9 @@ LibreHardwareMonitorLib ist die größte und etablierteste Bibliothek zur Hardwa
   <data name="Start_ThisAppPopup.Description" xml:space="preserve">
     <value>CPU-Auslastung - die eigene CPU-Zeit dieser App im Verhältnis zur Gesamtkapazität aller Kerne
 RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Working Set)
-Laufzeit - wie lange diese App seit dem letzten Start läuft</value>
+Laufzeit - wie lange diese App seit dem letzten Start läuft
+Handles - offene Windows-Objekte (Dateien, Threads, Ereignisse) dieser App
+GC-Speicher - der verwaltete .NET-Heap, ein Teil der RAM-Auslastung</value>
   </data>
   <data name="Start_ThisAppPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -847,6 +849,12 @@ Laufzeit - wie lange diese App seit dem letzten Start läuft</value>
   </data>
   <data name="Start_UptimeText.Text" xml:space="preserve">
     <value>Laufzeit</value>
+  </data>
+  <data name="Start_HandlesText.Text" xml:space="preserve">
+    <value>Handles</value>
+  </data>
+  <data name="Start_GcMemoryText.Text" xml:space="preserve">
+    <value>GC-Speicher</value>
   </data>
   <data name="Start_UpdateIntervalText.Text" xml:space="preserve">
     <value>Aktualisierungsintervall</value>
@@ -873,7 +881,7 @@ Laufzeit - wie lange diese App seit dem letzten Start läuft</value>
     <value>Läuft auf - der Grafikprozessor, der diese App zeichnet
 GPU-Auslastung - der Anteil dieser App an ihrer am stärksten ausgelasteten GPU-Engine, wie im Task-Manager
 GPU-Speicher - dedizierter und gemeinsam genutzter Grafikspeicher dieser App
-Bildschirm - Bildwiederholrate der aktiven Bildschirme</value>
+Bildwiederholrate - der aktiven Bildschirme</value>
   </data>
   <data name="Start_GraphicsPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -887,11 +895,11 @@ Bildschirm - Bildwiederholrate der aktiven Bildschirme</value>
   <data name="Start_GpuMemoryText.Text" xml:space="preserve">
     <value>GPU-Speicher</value>
   </data>
-  <data name="Start_DisplayText.Text" xml:space="preserve">
-    <value>Bildschirm</value>
+  <data name="Start_RefreshRateText.Text" xml:space="preserve">
+    <value>Bildwiederholrate</value>
   </data>
   <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
-    <value>Nicht die Bildschirm-GPU</value>
+    <value>Bildschirm über eine andere GPU</value>
   </data>
   <data name="Start_GraphicsSettingsLink.Content" xml:space="preserve">
     <value>Windows-Grafikeinstellungen</value>
@@ -1168,7 +1176,8 @@ Firmware - aktuell aktiviert oder nicht (unzuverlässig)</value>
     <value>Allgemein</value>
   </data>
   <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Treiberversion - interne Windows-Treibernummer, weicht vom Versionsschema des Herstellers ab</value>
+    <value>Treiberversion - interne Windows-Treibernummer, weicht vom Versionsschema des Herstellers ab
+Bildschirm - die Bildschirme, die diese GPU ansteuert, oder bei einem Hybrid-Laptop die GPU, über die ihr Bild läuft</value>
   </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -1431,6 +1440,18 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Info_No" xml:space="preserve">
     <value>Nein</value>
+  </data>
+  <data name="Info_DisplayBuiltIn" xml:space="preserve">
+    <value>Integrierter Bildschirm</value>
+  </data>
+  <data name="Info_DisplayExternal" xml:space="preserve">
+    <value>Externer Bildschirm</value>
+  </data>
+  <data name="Info_DisplayVia" xml:space="preserve">
+    <value>über {0}</value>
+  </data>
+  <data name="Info_DisplayNone" xml:space="preserve">
+    <value>Keiner</value>
   </data>
   <data name="Info_Other" xml:space="preserve">
     <value>Sonstige</value>

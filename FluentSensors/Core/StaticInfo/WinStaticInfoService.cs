@@ -130,16 +130,44 @@ namespace FluentSensors.Core.StaticInfo
                     DeviceId: dxgiMatch?.DeviceId ?? 0,
                     DedicatedVideoMemoryBytes: dxgiMatch?.DedicatedVideoMemory ?? 0,
                     DedicatedSystemMemoryBytes: dxgiMatch?.DedicatedSystemMemory ?? 0,
-                    SharedSystemMemoryBytes: dxgiMatch?.SharedSystemMemory ?? 0
+                    SharedSystemMemoryBytes: dxgiMatch?.SharedSystemMemory ?? 0,
+                    AdapterLuid: dxgiMatch?.Luid ?? 0,
+                    Displays: Array.Empty<WinDisplay>(),
+                    DisplayViaGpuName: null
                 ));
             }
 
-            return result;
+            return WithDisplays(result);
+        }
+
+        // each gpu with the displays it scans out; a hybrid discrete one without any renders through the integrated one
+        // that drives the panel
+        private static List<WinGpuInfo> WithDisplays(List<WinGpuInfo> gpus)
+        {
+            List<WinDisplay>? displays = null;
+            try { displays = WinDisplayTopology.QueryDisplays(); }
+            catch { /* no display config; the gpus keep no display line */ }
+            if (displays == null) return gpus;
+
+            var withDisplays = gpus
+                .Select(g => g with { Displays = g.AdapterLuid == 0 ? new List<WinDisplay>() : displays.FindAll(d => d.AdapterLuid == g.AdapterLuid) })
+                .ToList();
+
+            string? integratedName = withDisplays
+                .FirstOrDefault(g => g.Displays.Count > 0 && WinDisplayTopology.HybridRole(g.AdapterLuid) == WinHybridRole.Integrated)?
+                .Name;
+
+            return withDisplays
+                .Select(g => g.Displays.Count == 0 && g.AdapterLuid != 0 && WinDisplayTopology.HybridRole(g.AdapterLuid) == WinHybridRole.Discrete
+                    ? g with { DisplayViaGpuName = integratedName }
+                    : g)
+                .ToList();
         }
 
         // DXGI-only facts, matched to the WMI GPUs by name; an intermediate step only
         private record DxgiAdapterInfo(
             string Description,
+            long Luid,
             uint VendorId,
             uint DeviceId,
             ulong DedicatedVideoMemory,
@@ -166,6 +194,7 @@ namespace FluentSensors.Core.StaticInfo
                         var desc = adapter.Description1;
                         result.Add(new DxgiAdapterInfo(
                             desc.Description,
+                            desc.Luid,
                             (uint)desc.VendorId,
                             (uint)desc.DeviceId,
                             (ulong)desc.DedicatedVideoMemory,

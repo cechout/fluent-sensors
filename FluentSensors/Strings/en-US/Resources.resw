@@ -834,7 +834,9 @@ LibreHardwareMonitorLib is the largest and most established hardware monitoring 
   <data name="Start_ThisAppPopup.Description" xml:space="preserve">
     <value>CPU Usage - this app's own CPU time relative to total capacity across all cores
 RAM Usage - physical memory currently mapped by this app (working set)
-Uptime - how long this app has been running since it was last started</value>
+Uptime - how long this app has been running since it was last started
+Handles - open Windows objects (files, threads, events) held by this app
+GC memory - the .NET managed heap, part of the RAM usage</value>
   </data>
   <data name="Start_ThisAppPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
@@ -847,6 +849,14 @@ Uptime - how long this app has been running since it was last started</value>
   </data>
   <data name="Start_UptimeText.Text" xml:space="preserve">
     <value>Uptime</value>
+  </data>
+  <data name="Start_HandlesText.Text" xml:space="preserve">
+    <value>Handles</value>
+    <comment>count of open Windows handles of this app</comment>
+  </data>
+  <data name="Start_GcMemoryText.Text" xml:space="preserve">
+    <value>GC memory</value>
+    <comment>size of the .NET garbage collected heap</comment>
   </data>
   <data name="Start_UpdateIntervalText.Text" xml:space="preserve">
     <value>Update interval</value>
@@ -877,7 +887,7 @@ Uptime - how long this app has been running since it was last started</value>
     <value>Running on - the graphics processor that draws this app
 GPU usage - this app's share of its busiest GPU engine, like Task Manager
 GPU memory - dedicated and shared graphics memory used by this app
-Display - refresh rate of the active displays</value>
+Refresh rate - of the active displays</value>
   </data>
   <data name="Start_GraphicsPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
@@ -892,12 +902,12 @@ Display - refresh rate of the active displays</value>
   <data name="Start_GpuMemoryText.Text" xml:space="preserve">
     <value>GPU memory</value>
   </data>
-  <data name="Start_DisplayText.Text" xml:space="preserve">
-    <value>Display</value>
+  <data name="Start_RefreshRateText.Text" xml:space="preserve">
+    <value>Refresh rate</value>
     <comment>refresh rate of the screens</comment>
   </data>
   <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
-    <value>Not the display GPU</value>
+    <value>Display via another GPU</value>
     <comment>warning: the app renders on a different graphics processor than the one driving the screen</comment>
   </data>
   <data name="Start_GraphicsSettingsLink.Content" xml:space="preserve">
@@ -1175,7 +1185,8 @@ Firmware - currently enabled or not (unreliable)</value>
     <value>General</value>
   </data>
   <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Driver Version - internal Windows driver number, differs from vendor's own version scheme</value>
+    <value>Driver Version - internal Windows driver number, differs from vendor's own version scheme
+Display - the displays this GPU drives, or the GPU its picture goes through on a hybrid laptop</value>
   </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
@@ -1438,6 +1449,22 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
   </data>
   <data name="Info_No" xml:space="preserve">
     <value>No</value>
+  </data>
+  <data name="Info_DisplayBuiltIn" xml:space="preserve">
+    <value>Built-in display</value>
+    <comment>the laptop panel</comment>
+  </data>
+  <data name="Info_DisplayExternal" xml:space="preserve">
+    <value>External display</value>
+    <comment>a monitor that reports no name</comment>
+  </data>
+  <data name="Info_DisplayVia" xml:space="preserve">
+    <value>via {0}</value>
+    <comment>{0} the GPU name; a hybrid laptop GPU whose picture goes through the integrated GPU</comment>
+  </data>
+  <data name="Info_DisplayNone" xml:space="preserve">
+    <value>None</value>
+    <comment>a GPU that drives no display</comment>
   </data>
   <data name="Info_Other" xml:space="preserve">
     <value>Other</value>
