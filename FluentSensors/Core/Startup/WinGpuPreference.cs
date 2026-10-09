@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
@@ -7,6 +8,9 @@ using FluentSensors.Common;
 
 namespace FluentSensors.Core.Startup
 {
+    // one active screen: the adapter that scans it out and its refresh rate
+    public record WinScreenPath(long AdapterLuid, int RefreshRateHz);
+
     // the graphics preference of this exe, as the windows graphics settings page stores it:
     // on a hybrid laptop the screen hangs on the integrated gpu, which also runs the desktop compositor; an app that
     // renders on the discrete gpu has every frame copied across, and the composition animations of the flyout then miss
@@ -28,6 +32,8 @@ namespace FluentSensors.Core.Startup
         private const uint QdcOnlyActivePaths = 0x2;
         private const int PathInfoSize = 72; // DISPLAYCONFIG_PATH_INFO
         private const int ModeInfoSize = 64; // DISPLAYCONFIG_MODE_INFO
+        private const int PathSourceAdapterOffset = 0; // sourceInfo.adapterId
+        private const int PathTargetRefreshRateOffset = 48; // targetInfo.refreshRate
 
         // adapter type; KMTQAITYPE_ADAPTERTYPE answers a D3DKMT_ADAPTERTYPE bit field
         private const int KmtQaiTypeAdapterType = 15;
@@ -68,6 +74,31 @@ namespace FluentSensors.Core.Startup
         }
 
 
+        // the active screens from the display config, which names the adapter that scans out; DXGI hands the outputs
+        // of a hybrid laptop to whichever gpu it prefers for this process
+        public static List<WinScreenPath>? ScreenAdapters()
+        {
+            if (GetDisplayConfigBufferSizes(QdcOnlyActivePaths, out uint pathCount, out uint modeCount) != 0) return null;
+
+            var paths = new byte[pathCount * PathInfoSize];
+            var modes = new byte[modeCount * ModeInfoSize];
+            if (QueryDisplayConfig(QdcOnlyActivePaths, ref pathCount, paths, ref modeCount, modes, IntPtr.Zero) != 0) return null;
+
+            var result = new List<WinScreenPath>();
+            for (int i = 0; i < pathCount; i++)
+            {
+                int path = i * PathInfoSize;
+                long adapter = (long)BitConverter.ToInt32(paths, path + PathSourceAdapterOffset + 4) << 32
+                    | BitConverter.ToUInt32(paths, path + PathSourceAdapterOffset);
+                uint numerator = BitConverter.ToUInt32(paths, path + PathTargetRefreshRateOffset);
+                uint denominator = BitConverter.ToUInt32(paths, path + PathTargetRefreshRateOffset + 4);
+
+                result.Add(new WinScreenPath(adapter, denominator == 0 ? 0 : (int)Math.Round((double)numerator / denominator)));
+            }
+            return result;
+        }
+
+
         // === private helpers ===
 
         // the value is a list of name=value; entries, other settings of the page (windowed game optimizations) can sit
@@ -99,25 +130,19 @@ namespace FluentSensors.Core.Startup
 
         // true when every screen hangs on the integrated gpu of a hybrid system, false on a single gpu or when a screen
         // hangs on another one, null when it cannot tell
-        // the screens come from the display config, which names the adapter that scans out, and the kernel flags each
-        // adapter as the integrated or discrete half of a hybrid pair; DXGI would read the preference for this process
-        // on its first factory and keep it, before the value below is written
+        // the kernel flags each adapter as the integrated or discrete half of a hybrid pair; DXGI would read the
+        // preference for this process on its first factory and keep it, before the value below is written
         private static bool? ScreensOnPowerSavingGpu()
         {
-            if (GetDisplayConfigBufferSizes(QdcOnlyActivePaths, out uint pathCount, out uint modeCount) != 0) return null;
+            var screens = ScreenAdapters();
+            if (screens == null || screens.Count == 0) return null;
 
-            var paths = new byte[pathCount * PathInfoSize];
-            var modes = new byte[modeCount * ModeInfoSize];
-            if (QueryDisplayConfig(QdcOnlyActivePaths, ref pathCount, paths, ref modeCount, modes, IntPtr.Zero) != 0) return null;
-            if (pathCount == 0) return null;
-
-            for (int i = 0; i < pathCount; i++)
+            foreach (var screen in screens)
             {
-                // sourceInfo.adapterId, the first field of DISPLAYCONFIG_PATH_INFO
                 var open = new D3DKMT_OPENADAPTERFROMLUID
                 {
-                    AdapterLuidLowPart = BitConverter.ToUInt32(paths, i * PathInfoSize),
-                    AdapterLuidHighPart = BitConverter.ToInt32(paths, i * PathInfoSize + 4)
+                    AdapterLuidLowPart = (uint)screen.AdapterLuid,
+                    AdapterLuidHighPart = (int)(screen.AdapterLuid >> 32)
                 };
 
                 uint? adapterType = QueryAdapterType(ref open);

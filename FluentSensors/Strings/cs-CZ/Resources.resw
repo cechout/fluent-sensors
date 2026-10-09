@@ -811,6 +811,9 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Start_LhmPopup.Description" xml:space="preserve">
     <value>Nalezené senzory - každý senzor, který LibreHardwareMonitor na tomto zařízení hlásí
 Vykreslované senzory - kolik z nich se právě aktivně vykresluje
+Interval aktualizace - naměřený oproti nastavenému intervalu dotazování
+Doba čtení - jak dlouho trvá jedno přečtení všech senzorů
+Ovladač PawnIO - přístup k jádru pro senzory CPU, základní desky a paměti
 LibreHardwareMonitorLib je největší a nejzavedenější knihovna pro monitorování hardwaru ve Windows</value>
   </data>
   <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
@@ -844,6 +847,54 @@ Doba běhu - jak dlouho aplikace běží od posledního spuštění</value>
   </data>
   <data name="Start_UptimeText.Text" xml:space="preserve">
     <value>Doba běhu</value>
+  </data>
+  <data name="Start_UpdateIntervalText.Text" xml:space="preserve">
+    <value>Interval aktualizace</value>
+  </data>
+  <data name="Start_UpdateIntervalValue" xml:space="preserve">
+    <value>{0:0} / {1} ms</value>
+  </data>
+  <data name="Start_ReadTimeText.Text" xml:space="preserve">
+    <value>Doba čtení</value>
+  </data>
+  <data name="Start_PawnIoText.Text" xml:space="preserve">
+    <value>Ovladač PawnIO</value>
+  </data>
+  <data name="Start_PawnIoInstalled" xml:space="preserve">
+    <value>Nainstalován</value>
+  </data>
+  <data name="Start_PawnIoMissing" xml:space="preserve">
+    <value>Chybí</value>
+  </data>
+  <data name="Start_GraphicsPopup.Title" xml:space="preserve">
+    <value>Grafika</value>
+  </data>
+  <data name="Start_GraphicsPopup.Description" xml:space="preserve">
+    <value>Běží na - grafický procesor, který vykresluje tuto aplikaci
+Využití GPU - podíl této aplikace na jejím nejvytíženějším enginu GPU, jako ve Správci úloh
+Paměť GPU - vyhrazená a sdílená grafická paměť této aplikace
+Displej - obnovovací frekvence aktivních displejů</value>
+  </data>
+  <data name="Start_GraphicsPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Start_RunningOnText.Text" xml:space="preserve">
+    <value>Běží na</value>
+  </data>
+  <data name="Start_GpuUsageText.Text" xml:space="preserve">
+    <value>Využití GPU</value>
+  </data>
+  <data name="Start_GpuMemoryText.Text" xml:space="preserve">
+    <value>Paměť GPU</value>
+  </data>
+  <data name="Start_DisplayText.Text" xml:space="preserve">
+    <value>Displej</value>
+  </data>
+  <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
+    <value>Není GPU displeje</value>
+  </data>
+  <data name="Start_GraphicsSettingsLink.Content" xml:space="preserve">
+    <value>Nastavení grafiky Windows</value>
   </data>
   <data name="Start_AboutOpenSourceText.Text" xml:space="preserve">
     <value>O aplikaci a open source</value>

@@ -811,6 +811,9 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Start_LhmPopup.Description" xml:space="preserve">
     <value>Gefundene Sensoren - jeder Sensor, den LibreHardwareMonitor auf diesem Gerät meldet
 Gezeichnete Sensoren - wie viele davon gerade aktiv gezeichnet werden
+Aktualisierungsintervall - gemessen gegen das eingestellte Abfrageintervall
+Lesedauer - wie lange ein Lesevorgang aller Sensoren dauert
+PawnIO-Treiber - Kernelzugriff für CPU-, Mainboard- und Speichersensoren
 LibreHardwareMonitorLib ist die größte und etablierteste Bibliothek zur Hardwareüberwachung unter Windows</value>
   </data>
   <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
@@ -844,6 +847,54 @@ Laufzeit - wie lange diese App seit dem letzten Start läuft</value>
   </data>
   <data name="Start_UptimeText.Text" xml:space="preserve">
     <value>Laufzeit</value>
+  </data>
+  <data name="Start_UpdateIntervalText.Text" xml:space="preserve">
+    <value>Aktualisierungsintervall</value>
+  </data>
+  <data name="Start_UpdateIntervalValue" xml:space="preserve">
+    <value>{0:0} / {1} ms</value>
+  </data>
+  <data name="Start_ReadTimeText.Text" xml:space="preserve">
+    <value>Lesedauer</value>
+  </data>
+  <data name="Start_PawnIoText.Text" xml:space="preserve">
+    <value>PawnIO-Treiber</value>
+  </data>
+  <data name="Start_PawnIoInstalled" xml:space="preserve">
+    <value>Installiert</value>
+  </data>
+  <data name="Start_PawnIoMissing" xml:space="preserve">
+    <value>Fehlt</value>
+  </data>
+  <data name="Start_GraphicsPopup.Title" xml:space="preserve">
+    <value>Grafik</value>
+  </data>
+  <data name="Start_GraphicsPopup.Description" xml:space="preserve">
+    <value>Läuft auf - der Grafikprozessor, der diese App zeichnet
+GPU-Auslastung - der Anteil dieser App an ihrer am stärksten ausgelasteten GPU-Engine, wie im Task-Manager
+GPU-Speicher - dedizierter und gemeinsam genutzter Grafikspeicher dieser App
+Bildschirm - Bildwiederholrate der aktiven Bildschirme</value>
+  </data>
+  <data name="Start_GraphicsPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Start_RunningOnText.Text" xml:space="preserve">
+    <value>Läuft auf</value>
+  </data>
+  <data name="Start_GpuUsageText.Text" xml:space="preserve">
+    <value>GPU-Auslastung</value>
+  </data>
+  <data name="Start_GpuMemoryText.Text" xml:space="preserve">
+    <value>GPU-Speicher</value>
+  </data>
+  <data name="Start_DisplayText.Text" xml:space="preserve">
+    <value>Bildschirm</value>
+  </data>
+  <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
+    <value>Nicht die Bildschirm-GPU</value>
+  </data>
+  <data name="Start_GraphicsSettingsLink.Content" xml:space="preserve">
+    <value>Windows-Grafikeinstellungen</value>
   </data>
   <data name="Start_AboutOpenSourceText.Text" xml:space="preserve">
     <value>Info &amp; Open Source</value>

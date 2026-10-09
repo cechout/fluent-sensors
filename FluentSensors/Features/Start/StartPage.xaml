@@ -364,22 +364,17 @@
                     Margin="4,20,0,6"
                     Style="{StaticResource BodyStrongTextBlockStyle}" />
 
-                <!--  (MaxWidth is both 300 wide cards plus the spacing, so the star columns never push them apart)  -->
-                <Grid
-                    MaxWidth="608"
+                <!--  (a row takes the tallest card, so the three read as one board; MaxWidth is three 300 wide cards)  -->
+                <fhControls:SquareGridPanel
+                    MaxWidth="916"
                     HorizontalAlignment="Left"
                     fhUi:FocusGroup.IsEnabled="True"
-                    ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                    MinCellWidth="240"
+                    Spacing="8">
 
                     <!--  lhm group  -->
                     <!--  (the inset sits on the panel, nothing in this card has to reach its edge)  -->
                     <Border
-                        Grid.Column="0"
-                        MaxWidth="300"
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
@@ -417,6 +412,39 @@
                                         Text="{x:Bind ViewModel.SensorsRenderedText, Mode=OneWay}"
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_UpdateIntervalText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.UpdateIntervalTileValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_ReadTimeText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.ReadTimeTileValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_PawnIoText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.PawnIoTileValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
                             </controls:WrapPanel>
                         </StackPanel>
                     </Border>
@@ -424,8 +452,6 @@
                     <!--  this app group  -->
                     <!--  (the usage of this app, not of the machine, as the flyout spells out)  -->
                     <Border
-                        Grid.Column="1"
-                        MaxWidth="300"
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
@@ -477,7 +503,96 @@
                             </controls:WrapPanel>
                         </StackPanel>
                     </Border>
-                </Grid>
+
+                    <!--  graphics group  -->
+                    <!--
+                        (the gpu of this app; on a hybrid laptop rendering on the discrete gpu every frame is copied to the
+                        one driving the screen, the link leads to where the user picks the gpu)
+                    -->
+                    <Border
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{ThemeResource ControlCornerRadius}">
+                        <StackPanel Margin="16,14,16,14" Spacing="6">
+                            <fhInfoPopup:InfoPopupControl
+                                x:Uid="Start_GraphicsPopup"
+                                PlacementMode="Above"
+                                TitleTextTrimming="CharacterEllipsis">
+                                <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                    <fhInfoPopup:SourceLink Label="Windows GPU performance counters" Url="https://devblogs.microsoft.com/directx/gpus-in-the-task-manager/" />
+                                </fhInfoPopup:InfoPopupControl.SourceLinks>
+                            </fhInfoPopup:InfoPopupControl>
+
+                            <!--  (wording and look still open)  -->
+                            <StackPanel
+                                Orientation="Horizontal"
+                                Spacing="6"
+                                Visibility="{x:Bind ViewModel.IsGpuNotDisplay, Mode=OneWay}">
+                                <FontIcon
+                                    FontSize="12"
+                                    Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                    Glyph="&#xE7BA;" />
+                                <TextBlock x:Uid="Start_GpuNotDisplayText" Style="{ThemeResource CaptionTextBlockStyle}" />
+                            </StackPanel>
+
+                            <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_RunningOnText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.GpuAdapterTileValue, Mode=OneWay}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.GpuAdapterTileValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_GpuUsageText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.GpuUsageTileValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_GpuMemoryText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.GpuMemoryTileValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_DisplayText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.DisplayTileValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+                            </controls:WrapPanel>
+
+                            <!--  (the negative inset lines the link text up with the values)  -->
+                            <HyperlinkButton
+                                x:Uid="Start_GraphicsSettingsLink"
+                                Margin="-11,0,0,-6"
+                                Click="GraphicsSettingsLink_Click" />
+                        </StackPanel>
+                    </Border>
+                </fhControls:SquareGridPanel>
 
 
                 <!--  content: about and open source  -->

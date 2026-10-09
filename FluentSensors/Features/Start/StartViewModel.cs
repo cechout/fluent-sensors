@@ -60,6 +60,13 @@ namespace FluentSensors.Features.Start
         private string _cpuTileValue = "-";
         private string _ramTileValue = "-";
         private string _uptimeTileValue = "-";
+        private string _updateIntervalTileValue = "-";
+        private string _readTimeTileValue = "-";
+        private string _gpuAdapterTileValue = "-";
+        private string _gpuUsageTileValue = "-";
+        private string _gpuMemoryTileValue = "-";
+        private string _displayTileValue = "-";
+        private bool _isGpuNotDisplay;
 
         // process start, the splash included; utc, so daylight saving does not move the uptime
         private static readonly DateTime ProcessStartTimeUtc = Process.GetCurrentProcess().StartTime.ToUniversalTime();
@@ -158,6 +165,55 @@ namespace FluentSensors.Features.Start
             private set { _uptimeTileValue = value; OnPropertyChanged(); }
         }
 
+        // measured against configured, as the title bar readout
+        public string UpdateIntervalTileValue
+        {
+            get => _updateIntervalTileValue;
+            private set { _updateIntervalTileValue = value; OnPropertyChanged(); }
+        }
+
+        public string ReadTimeTileValue
+        {
+            get => _readTimeTileValue;
+            private set { _readTimeTileValue = value; OnPropertyChanged(); }
+        }
+
+        // checked once at startup, like the title bar hint
+        public string PawnIoTileValue { get; } =
+            AppStrings.Get(WinStaticInfoService.Instance.IsPawnIoInstalled ? "Start_PawnIoInstalled" : "Start_PawnIoMissing");
+
+        // the graphics tile, from WinAppGpuMonitor while the page shows
+        public string GpuAdapterTileValue
+        {
+            get => _gpuAdapterTileValue;
+            private set { _gpuAdapterTileValue = value; OnPropertyChanged(); }
+        }
+
+        public string GpuUsageTileValue
+        {
+            get => _gpuUsageTileValue;
+            private set { _gpuUsageTileValue = value; OnPropertyChanged(); }
+        }
+
+        public string GpuMemoryTileValue
+        {
+            get => _gpuMemoryTileValue;
+            private set { _gpuMemoryTileValue = value; OnPropertyChanged(); }
+        }
+
+        public string DisplayTileValue
+        {
+            get => _displayTileValue;
+            private set { _displayTileValue = value; OnPropertyChanged(); }
+        }
+
+        // the app renders on a gpu that drives no screen, so every frame is copied across
+        public bool IsGpuNotDisplay
+        {
+            get => _isGpuNotDisplay;
+            private set { _isGpuNotDisplay = value; OnPropertyChanged(); }
+        }
+
 
         // === live app status ===
 
@@ -168,8 +224,20 @@ namespace FluentSensors.Features.Start
             SensorsRenderedText = data.SensorsRendered.ToString();
             CpuTileValue = $"{data.CpuUsagePercent:0.0} %";
             RamTileValue = $"{data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
+            UpdateIntervalTileValue = AppStrings.Format("Start_UpdateIntervalValue", data.ActualUpdateIntervalMs, data.AimedUpdateIntervalMs);
+            ReadTimeTileValue = $"{data.ReadDurationMs:0} ms";
 
             RefreshSensorCounts();
+        }
+
+        // the first read has no usage yet, it is a rate
+        public void ApplyGpu(AppGpuData data)
+        {
+            GpuAdapterTileValue = data.AdapterName ?? "-";
+            GpuUsageTileValue = $"{data.UsagePercent:0.0} %";
+            GpuMemoryTileValue = $"{data.MemoryBytes / 1024.0 / 1024.0:0} MB";
+            DisplayTileValue = data.RefreshRatesHz.Count == 0 ? "-" : string.Join(" / ", data.RefreshRatesHz) + " Hz";
+            IsGpuNotDisplay = !data.IsDisplayAdapter;
         }
 
         // session uptime, 2:14:37, past a day 1d 2:14:37; called more often than once a second (see

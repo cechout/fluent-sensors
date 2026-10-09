@@ -811,6 +811,9 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Start_LhmPopup.Description" xml:space="preserve">
     <value>Found Sensors - every sensor LibreHardwareMonitor reports on this machine
 Rendering Sensors - how many of them are actively drawn right now
+Update interval - measured against the configured polling interval
+Read time - how long one read of all sensors takes
+PawnIO driver - kernel access for CPU, mainboard and memory sensors
 LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows</value>
   </data>
   <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
@@ -844,6 +847,61 @@ Uptime - how long this app has been running since it was last started</value>
   </data>
   <data name="Start_UptimeText.Text" xml:space="preserve">
     <value>Uptime</value>
+  </data>
+  <data name="Start_UpdateIntervalText.Text" xml:space="preserve">
+    <value>Update interval</value>
+  </data>
+  <data name="Start_UpdateIntervalValue" xml:space="preserve">
+    <value>{0:0} / {1} ms</value>
+    <comment>update interval; {0} measured, {1} configured, both in milliseconds</comment>
+  </data>
+  <data name="Start_ReadTimeText.Text" xml:space="preserve">
+    <value>Read time</value>
+  </data>
+  <data name="Start_PawnIoText.Text" xml:space="preserve">
+    <value>PawnIO driver</value>
+    <comment>PawnIO is a product name, keep it</comment>
+  </data>
+  <data name="Start_PawnIoInstalled" xml:space="preserve">
+    <value>Installed</value>
+    <comment>state of the PawnIO driver</comment>
+  </data>
+  <data name="Start_PawnIoMissing" xml:space="preserve">
+    <value>Missing</value>
+    <comment>state of the PawnIO driver</comment>
+  </data>
+  <data name="Start_GraphicsPopup.Title" xml:space="preserve">
+    <value>Graphics</value>
+  </data>
+  <data name="Start_GraphicsPopup.Description" xml:space="preserve">
+    <value>Running on - the graphics processor that draws this app
+GPU usage - this app's share of its busiest GPU engine, like Task Manager
+GPU memory - dedicated and shared graphics memory used by this app
+Display - refresh rate of the active displays</value>
+  </data>
+  <data name="Start_GraphicsPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Start_RunningOnText.Text" xml:space="preserve">
+    <value>Running on</value>
+    <comment>the graphics processor this app renders on</comment>
+  </data>
+  <data name="Start_GpuUsageText.Text" xml:space="preserve">
+    <value>GPU usage</value>
+  </data>
+  <data name="Start_GpuMemoryText.Text" xml:space="preserve">
+    <value>GPU memory</value>
+  </data>
+  <data name="Start_DisplayText.Text" xml:space="preserve">
+    <value>Display</value>
+    <comment>refresh rate of the screens</comment>
+  </data>
+  <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
+    <value>Not the display GPU</value>
+    <comment>warning: the app renders on a different graphics processor than the one driving the screen</comment>
+  </data>
+  <data name="Start_GraphicsSettingsLink.Content" xml:space="preserve">
+    <value>Windows graphics settings</value>
   </data>
   <data name="Start_AboutOpenSourceText.Text" xml:space="preserve">
     <value>About &amp; Open Source</value>
