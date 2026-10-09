@@ -50,10 +50,10 @@
                 <Thickness x:Key="FlyoutGraphsMargin">4,2,4,0</Thickness>
                 <x:Double x:Key="FlyoutGraphSpacing">8</x:Double>
 
-                <!--  title row and bottom bar; (one button height, a padding each)  -->
+                <!--  title row and bottom bar; (one button height, a padding each; the bar runs down to the card border)  -->
                 <x:Double x:Key="FlyoutBarButtonHeight">36</x:Double>
                 <Thickness x:Key="FlyoutTitleRowPadding">4,4,4,4</Thickness>
-                <Thickness x:Key="FlyoutBottomBarPadding">6,5,6,5</Thickness>
+                <Thickness x:Key="FlyoutBottomBarPadding">6,5,6,6</Thickness>
                 <Thickness x:Key="FlyoutBottomBarSeparatorThickness">0,1,0,0</Thickness>
 
                 <!--  time range row  -->
@@ -235,7 +235,6 @@
                 <Border
                     x:Name="FlyoutBottomBarBorder"
                     Grid.Row="1"
-                    Margin="0,0,0,1"
                     Background="{ThemeResource FlyoutBottomBarBackground}"
                     BorderBrush="{ThemeResource FlyoutBottomBarSeparatorBrush}"
                     BorderThickness="{StaticResource FlyoutBottomBarSeparatorThickness}"

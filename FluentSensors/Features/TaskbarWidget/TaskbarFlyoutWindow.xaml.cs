@@ -161,18 +161,21 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // --- mica preset (BackdropType "Mica" with Windows transparency on) ---
         // over a flat backdrop the controller resolves to lerp(backdrop, tint, luminosity); the native shell flyouts
-        // measure as 4 percent backdrop transmission in dark and 9 in light
-        // no TintOpacity: the tint blend carries hue and saturation only, so a gray tint makes it a no-op (the source
-        // names its BlendEffectMode swapped, the tint layer reads as Luminosity there):
+        // measure as 4 percent backdrop transmission in dark and 9.4 in light (their bottom bar, the bare material)
+        // TintOpacity: the tint blend carries hue and saturation only, so a gray tint leaves every gray value alone
+        // and only takes the color out of what shows through; the native flyouts pass far less color than the
+        // default does (the source names its BlendEffectMode swapped, the tint layer reads as Luminosity there):
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.cpp
         // tints are the Fluent acrylic base tones, AcrylicBackgroundFillColorBaseBrush, not pre-compensated (the
         // render shift applies once to the finished composite):
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush_19h1_themeresources.xaml
         public static readonly Windows.UI.Color MicaPresetDarkTintColor = Windows.UI.Color.FromArgb(255, 0x20, 0x20, 0x20);
         public const float MicaPresetDarkLuminosity = 0.96f;
+        public const float MicaPresetDarkTintOpacity = 0.8f;
 
         public static readonly Windows.UI.Color MicaPresetLightTintColor = Windows.UI.Color.FromArgb(255, 0xF3, 0xF3, 0xF3);
-        public const float MicaPresetLightLuminosity = 0.91f;
+        public const float MicaPresetLightLuminosity = 0.902f;
+        public const float MicaPresetLightTintOpacity = 0.5f;
 
 
         // === fields ===
@@ -265,8 +268,9 @@ namespace FluentSensors.Features.TaskbarWidget
         private WinBackdropLink? _backdropLink;
         private static readonly List<WinBackdropLink> _retiredBackdropLinks = new();
 
-        // card corner radius in dip, the clip of the material; (CornerRadius of FlyoutRootBorder)
+        // card corner radius and stroke in dip; (CornerRadius and BorderThickness of FlyoutRootBorder)
         private const float CardCornerRadiusDip = 8f;
+        private const float CardBorderDip = 1f;
 
         // edge treatment of the link material and of the placement visual (its rounded clip)
         private const CompositionBorderMode BackdropLinkBorderMode = CompositionBorderMode.Hard;
@@ -410,8 +414,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // the material covers the card to its outer edge, the card stroke draws over it; sizes are in dip, so a
-        // scale change needs nothing here
+        // the material stops inside the card stroke, so the stroke lies over the backdrop and the shadow like the
+        // native one; sizes are in dip, so a scale change needs nothing here
         private void FlyoutBackdropHost_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (_isClosed || _backdropLink == null) return;
@@ -421,8 +425,10 @@ namespace FluentSensors.Features.TaskbarWidget
             float height = (float)e.NewSize.Height;
             visual.Size = new Vector2(width, height);
 
-            var radius = new Vector2(CardCornerRadiusDip);
-            visual.Clip = visual.Compositor.CreateRectangleClip(0, 0, width, height, radius, radius, radius, radius);
+            float inset = CardBorderDip;
+            var radius = new Vector2(CardCornerRadiusDip - inset);
+            visual.Clip = visual.Compositor.CreateRectangleClip(
+                inset, inset, width - inset, height - inset, radius, radius, radius, radius);
         }
 
         // drops the link for good: no controller may target it any more (UI thread only, see _backdropLink)
@@ -1638,12 +1644,14 @@ namespace FluentSensors.Features.TaskbarWidget
                     if (isLight)
                     {
                         _acrylicController.TintColor = MicaPresetLightTintColor;
+                        _acrylicController.TintOpacity = MicaPresetLightTintOpacity;
                         _acrylicController.LuminosityOpacity = MicaPresetLightLuminosity;
                         _acrylicController.FallbackColor = MicaPresetLightTintColor;
                     }
                     else
                     {
                         _acrylicController.TintColor = MicaPresetDarkTintColor;
+                        _acrylicController.TintOpacity = MicaPresetDarkTintOpacity;
                         _acrylicController.LuminosityOpacity = MicaPresetDarkLuminosity;
                         _acrylicController.FallbackColor = MicaPresetDarkTintColor;
                     }
@@ -1824,15 +1832,27 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
             }
 
-            // black with alpha, premultiplied; cut out under the card, antialiased along its rounded edge
-            double radius = CardCornerRadiusDip * _shadowScale;
+            // black with alpha, premultiplied; cut out under the material, inside the card stroke (the stroke lies
+            // over the shadow, as on the native flyouts), antialiased along the rounded edge
+            double inset = CardBorderDip * _shadowScale;
+            double radius = (CardCornerRadiusDip - CardBorderDip) * _shadowScale;
             var pixels = new byte[width * height * 4];
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
                     double alpha = 1.0 - transmission[(y * width) + x];
-                    alpha *= 1.0 - RoundedRectCoverage(x + 0.5, y + 0.5, card, radius);
+
+                    // under the stroke the native shadow keeps its strength, the model only fits outside the card
+                    // and falls off inside it; so the stroke takes the value of the nearest pixel outside
+                    double onCard = RoundedRectCoverage(x + 0.5, y + 0.5, card, 0, CardCornerRadiusDip * _shadowScale);
+                    if (onCard > 0)
+                    {
+                        double outside = 1.0 - transmission[NearestOutsideIndex(x, y, card, width)];
+                        alpha += (outside - alpha) * onCard;
+                    }
+
+                    alpha *= 1.0 - RoundedRectCoverage(x + 0.5, y + 0.5, card, inset, radius);
                     pixels[(((y * width) + x) * 4) + 3] = (byte)Math.Round(Math.Clamp(alpha, 0.0, 1.0) * 255.0);
                 }
             }
@@ -1863,13 +1883,33 @@ namespace FluentSensors.Features.TaskbarWidget
             return profile;
         }
 
-        // how much of the pixel at the point the card covers, from the signed distance to its rounded outline
-        private static double RoundedRectCoverage(double px, double py, RectInt32 rect, double radius)
+        // the first pixel outside the card, straight across its nearest edge
+        private static int NearestOutsideIndex(int x, int y, RectInt32 card, int width)
         {
-            double halfWidth = rect.Width / 2.0;
-            double halfHeight = rect.Height / 2.0;
-            double qx = Math.Abs(px - (rect.X + halfWidth)) - (halfWidth - radius);
-            double qy = Math.Abs(py - (rect.Y + halfHeight)) - (halfHeight - radius);
+            int toLeft = x - card.X;
+            int toRight = card.X + card.Width - 1 - x;
+            int toTop = y - card.Y;
+            int toBottom = card.Y + card.Height - 1 - y;
+            int nearest = Math.Min(Math.Min(toLeft, toRight), Math.Min(toTop, toBottom));
+
+            if (nearest == toLeft) x = card.X - 1;
+            else if (nearest == toRight) x = card.X + card.Width;
+            else if (nearest == toTop) y = card.Y - 1;
+            else y = card.Y + card.Height;
+
+            return (y * width) + x;
+        }
+
+        // how much of the pixel at the point the rect, shrunk by inset, covers, from the signed distance to its
+        // rounded outline
+        private static double RoundedRectCoverage(double px, double py, RectInt32 rect, double inset, double radius)
+        {
+            double centerX = rect.X + (rect.Width / 2.0);
+            double centerY = rect.Y + (rect.Height / 2.0);
+            double halfWidth = (rect.Width / 2.0) - inset;
+            double halfHeight = (rect.Height / 2.0) - inset;
+            double qx = Math.Abs(px - centerX) - (halfWidth - radius);
+            double qy = Math.Abs(py - centerY) - (halfHeight - radius);
             double outside = Math.Sqrt(Math.Pow(Math.Max(qx, 0), 2) + Math.Pow(Math.Max(qy, 0), 2));
             double distance = outside + Math.Min(Math.Max(qx, qy), 0) - radius;
             return Math.Clamp(0.5 - distance, 0.0, 1.0);
@@ -1893,10 +1933,11 @@ namespace FluentSensors.Features.TaskbarWidget
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.h
         private const int NoiseSeed = 0x5EED;
 
-        // opacity stays the recipe constant, the strength is the value range around a mean of 128; (so tuning the
-        // grain never moves the calibrated colors)
+        // opacity stays the recipe constant, the strength is the standard deviation around a mean of 128, in screen
+        // levels (so tuning the grain never moves the calibrated colors); a bell like the native grain, about six
+        // levels wide, sd 1.03 on the dark surfaces
         private const double NoiseLayerOpacity = 0.02;
-        private const double NoiseSpreadLevels = 3.5;
+        private const double NoiseDeviationLevels = 1.0;
 
         private Microsoft.UI.Xaml.Media.Imaging.WriteableBitmap? _noiseBitmap;
         private double _noiseScale;
@@ -1930,11 +1971,13 @@ namespace FluentSensors.Features.TaskbarWidget
             var random = new Random(NoiseSeed);
             var pixels = new byte[width * height * 4];
 
-            int half = (int)Math.Round(NoiseSpreadLevels / (2.0 * NoiseLayerOpacity));
+            double deviation = NoiseDeviationLevels / NoiseLayerOpacity;
 
             for (int i = 0; i < pixels.Length; i += 4)
             {
-                byte level = (byte)(128 - half + random.Next((half * 2) + 1));
+                // Box-Muller
+                double gaussian = Math.Sqrt(-2.0 * Math.Log(1.0 - random.NextDouble())) * Math.Cos(2.0 * Math.PI * random.NextDouble());
+                byte level = (byte)Math.Clamp(Math.Round(128 + (gaussian * deviation)), 0, 255);
                 pixels[i] = level;
                 pixels[i + 1] = level;
                 pixels[i + 2] = level;
