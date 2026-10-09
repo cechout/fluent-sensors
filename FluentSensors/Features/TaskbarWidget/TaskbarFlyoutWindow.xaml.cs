@@ -42,7 +42,8 @@ namespace FluentSensors.Features.TaskbarWidget
     // 2. a height capped against the work area, the graph list scrolls past it
     // 3. Z-order directly beneath Shell_TrayWnd, so it slides out from under the taskbar
     // 4. a real window slide on CompositionTarget.Rendering plus a composition opacity fade
-    // 5. DWM corner and shadow settings that follow the Windows transparency setting
+    // 5. a transparent window around the card: the material rides a backdrop link clipped to the card, the
+    //    shadow is a computed bitmap in the margin; DWM corners and shadow only when the link is unavailable
     // 6. a DesktopAcrylicController backdrop with a swapchain kick after a rebuild
     //
     // references:
@@ -1128,9 +1129,14 @@ namespace FluentSensors.Features.TaskbarWidget
             int windowWidthPx = desiredWidthPx + (2 * shadowPx);
             int windowHeightPx = desiredHeightPx + shadowPx + shadowBottomPx;
 
-            // the same pixels as XAML padding, so the card lands on exactly the rect computed above
-            FlyoutWindowRoot.Padding = new Thickness(
-                shadowPx / scale, shadowPx / scale, shadowPx / scale, shadowBottomPx / scale);
+            // the same pixels as XAML margin, so the card lands on exactly the rect computed above
+            var cardMargin = new Thickness(shadowPx / scale, shadowPx / scale, shadowPx / scale, shadowBottomPx / scale);
+            FlyoutRootBorder.Margin = cardMargin;
+            FlyoutBackdropHost.Margin = cardMargin;
+
+            _shadowWindowSizePx = new SizeInt32(windowWidthPx, windowHeightPx);
+            _shadowCardRectPx = new RectInt32(shadowPx, shadowPx, desiredWidthPx, desiredHeightPx);
+            _shadowScale = scale;
 
             // from the taskbar DPI like the rest of the geometry, see _slideOffsetX
             (_slideOffsetX, _slideOffsetY) = CalculateSlideOffset(edge, GetSlideDistancePx(scale), windowWidthPx, windowHeightPx);
@@ -1143,6 +1149,7 @@ namespace FluentSensors.Features.TaskbarWidget
             _isAdjustingPosition = false;
 
             UpdateShadowPolicy();
+            RenderCardShadow();
         }
 
         // slide vector from the target toward the taskbar edge, where the window hides behind the taskbar or off
@@ -1716,6 +1723,9 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 EnsureNoiseBitmap(FlyoutRootBorder.ActualWidth, FlyoutRootBorder.ActualHeight);
             }
+
+            // the shadow opacities follow the theme
+            RenderCardShadow();
         }
 
         // for a pure OS accent change; both calls resolve the accent fresh, no rebuild needed
@@ -1724,6 +1734,157 @@ namespace FluentSensors.Features.TaskbarWidget
             UpdateAcrylicProperties();
             UpdateSolidBackground();
         }
+
+        // === card shadow ===
+
+        // the Windows shell shadow (Quick Settings, which Battery Flyout matches to one level), fitted over every
+        // margin pixel of a 1022 px card at 175 percent: three layers composed as 1 - (1 - a1)(1 - a2)(1 - a3), each
+        // a box around the card with Gaussian blurred edges; same geometry in both themes, light about half as
+        // strong; only with Windows transparency on, the shell draws none without it
+        // the third layer fades the sides out toward the top, over a stretch that grows with the card height (Quick
+        // Settings, 678 px, reaches the full side at 280 px, the 1022 px card at 380 px), so its top edge scales
+        private const double ShadowFitScale = 1.75;
+        private const double ShadowFitCardHeightPx = 1022;
+        private static readonly ShadowLayer[] CardShadowLayers =
+        [
+            // tight
+            new(SigmaXPx: 5.91, SpreadXPx: -5.76, TopPx: 8.80, TopSigmaPx: 5.91, BottomPx: -2.72, BottomSigmaPx: 5.91,
+                TopScalesWithHeight: false, DarkOpacity: 0.685, LightOpacity: 0.277),
+            // wide, further down
+            new(SigmaXPx: 13.08, SpreadXPx: -9.60, TopPx: 30.32, TopSigmaPx: 13.08, BottomPx: 11.12, BottomSigmaPx: 13.08,
+                TopScalesWithHeight: false, DarkOpacity: 0.314, LightOpacity: 0.151),
+            // side ramp
+            new(SigmaXPx: 10.35, SpreadXPx: 1.25, TopPx: 185.16, TopSigmaPx: 78.09, BottomPx: 8.40, BottomSigmaPx: 14.94,
+                TopScalesWithHeight: true, DarkOpacity: 0.150, LightOpacity: 0.080),
+        ];
+
+        // one layer, in px at ShadowFitScale: the card rect grown sideways by SpreadXPx, its top edge moved down by
+        // TopPx and its bottom edge by BottomPx, each edge blurred with its own sigma
+        private readonly record struct ShadowLayer(
+            double SigmaXPx, double SpreadXPx, double TopPx, double TopSigmaPx, double BottomPx, double BottomSigmaPx,
+            bool TopScalesWithHeight, double DarkOpacity, double LightOpacity);
+
+        // geometry from PositionNextToTaskbar, in physical px; the card rect is window local
+        private SizeInt32 _shadowWindowSizePx;
+        private RectInt32 _shadowCardRectPx;
+        private double _shadowScale;
+
+        // what the current bitmap was rendered for, so an unchanged open does not render again
+        private (SizeInt32 Window, RectInt32 Card, double Scale, bool IsLight) _shadowRenderedFor;
+
+        private void RenderCardShadow()
+        {
+            if (_isClosed || FlyoutShadowImage == null) return;
+
+            bool isTransparencyEnabled = _uiSettings != null && _uiSettings.AdvancedEffectsEnabled;
+            bool show = UsesCardWindow && isTransparencyEnabled && _shadowWindowSizePx.Width > 0 && _shadowScale > 0;
+            FlyoutShadowImage.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            if (!show) return;
+
+            bool isLight = IsCurrentThemeLight();
+            var renderFor = (_shadowWindowSizePx, _shadowCardRectPx, _shadowScale, isLight);
+            if (FlyoutShadowImage.Source != null && renderFor == _shadowRenderedFor) return;
+
+            int width = _shadowWindowSizePx.Width;
+            int height = _shadowWindowSizePx.Height;
+            var card = _shadowCardRectPx;
+            double fitToWindow = _shadowScale / ShadowFitScale;
+
+            // transmission per pixel, multiplied up layer by layer; a blurred rect is separable, so each layer is one
+            // profile across and one down
+            var transmission = new double[width * height];
+            Array.Fill(transmission, 1.0);
+
+            double heightScale = card.Height / (ShadowFitCardHeightPx * fitToWindow);
+
+            foreach (var layer in CardShadowLayers)
+            {
+                double topScale = layer.TopScalesWithHeight ? fitToWindow * heightScale : fitToWindow;
+                double spreadX = layer.SpreadXPx * fitToWindow;
+                double sigmaX = layer.SigmaXPx * fitToWindow;
+                double opacity = isLight ? layer.LightOpacity : layer.DarkOpacity;
+
+                var across = BlurredEdgeProfile(width,
+                    card.X - spreadX, sigmaX,
+                    card.X + card.Width + spreadX, sigmaX);
+                var down = BlurredEdgeProfile(height,
+                    card.Y + (layer.TopPx * topScale), layer.TopSigmaPx * topScale,
+                    card.Y + card.Height + (layer.BottomPx * fitToWindow), layer.BottomSigmaPx * fitToWindow);
+
+                for (int y = 0; y < height; y++)
+                {
+                    double row = opacity * down[y];
+                    if (row <= 0) continue;
+
+                    int offset = y * width;
+                    for (int x = 0; x < width; x++)
+                    {
+                        transmission[offset + x] *= 1.0 - (row * across[x]);
+                    }
+                }
+            }
+
+            // black with alpha, premultiplied; cut out under the card, antialiased along its rounded edge
+            double radius = CardCornerRadiusDip * _shadowScale;
+            var pixels = new byte[width * height * 4];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    double alpha = 1.0 - transmission[(y * width) + x];
+                    alpha *= 1.0 - RoundedRectCoverage(x + 0.5, y + 0.5, card, radius);
+                    pixels[(((y * width) + x) * 4) + 3] = (byte)Math.Round(Math.Clamp(alpha, 0.0, 1.0) * 255.0);
+                }
+            }
+
+            var bitmap = new Microsoft.UI.Xaml.Media.Imaging.WriteableBitmap(width, height);
+            using (var stream = bitmap.PixelBuffer.AsStream())
+            {
+                stream.Write(pixels, 0, pixels.Length);
+            }
+            bitmap.Invalidate();
+
+            // one bitmap pixel per physical pixel
+            FlyoutShadowImage.Width = width / _shadowScale;
+            FlyoutShadowImage.Height = height / _shadowScale;
+            FlyoutShadowImage.Source = bitmap;
+            _shadowRenderedFor = renderFor;
+        }
+
+        // a box from start to end, each edge blurred with its own Gaussian, sampled at the pixel centers
+        private static double[] BlurredEdgeProfile(int length, double start, double startSigma, double end, double endSigma)
+        {
+            var profile = new double[length];
+            for (int i = 0; i < length; i++)
+            {
+                double center = i + 0.5;
+                profile[i] = Math.Max(0.0, NormalCdf((center - start) / startSigma) - NormalCdf((center - end) / endSigma));
+            }
+            return profile;
+        }
+
+        // how much of the pixel at the point the card covers, from the signed distance to its rounded outline
+        private static double RoundedRectCoverage(double px, double py, RectInt32 rect, double radius)
+        {
+            double halfWidth = rect.Width / 2.0;
+            double halfHeight = rect.Height / 2.0;
+            double qx = Math.Abs(px - (rect.X + halfWidth)) - (halfWidth - radius);
+            double qy = Math.Abs(py - (rect.Y + halfHeight)) - (halfHeight - radius);
+            double outside = Math.Sqrt(Math.Pow(Math.Max(qx, 0), 2) + Math.Pow(Math.Max(qy, 0), 2));
+            double distance = outside + Math.Min(Math.Max(qx, qy), 0) - radius;
+            return Math.Clamp(0.5 - distance, 0.0, 1.0);
+        }
+
+        // standard normal cumulative distribution; Abramowitz and Stegun 7.1.26 for erf, error below 1.5e-7
+        private static double NormalCdf(double z)
+        {
+            double x = Math.Abs(z) / Math.Sqrt(2.0);
+            double t = 1.0 / (1.0 + (0.3275911 * x));
+            double polynomial = t * (0.254829592 + (t * (-0.284496736 + (t * (1.421413741 + (t * (-1.453152027 + (t * 1.061405429))))))));
+            double erf = 1.0 - (polynomial * Math.Exp(-x * x));
+            return z >= 0 ? 0.5 * (1.0 + erf) : 0.5 * (1.0 - erf);
+        }
+
 
         // === acrylic grain ===
 

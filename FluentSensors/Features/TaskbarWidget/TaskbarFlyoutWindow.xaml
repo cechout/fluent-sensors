@@ -16,10 +16,20 @@
     mc:Ignorable="d">
 
     <!--
-        the window around the card: a transparent margin the shadow falls into, set as padding in
-        PositionNextToTaskbar (zero on the window level construction); the transparent fill swallows clicks into it
+        the window around the card: a transparent margin the shadow falls into, set as the margin of the card and
+        its material in PositionNextToTaskbar (zero on the window level construction); the transparent fill
+        swallows clicks into it
     -->
     <Grid x:Name="FlyoutWindowRoot" Background="Transparent">
+
+        <!--  the shadow: a bitmap over the whole window, computed in RenderCardShadow  -->
+        <Image
+            x:Name="FlyoutShadowImage"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            IsHitTestVisible="False"
+            Stretch="Fill"
+            Visibility="Collapsed" />
 
         <!--  the material: the backdrop link visual hangs here, behind the card, sized and clipped to it in code  -->
         <Grid x:Name="FlyoutBackdropHost" IsHitTestVisible="False" />
