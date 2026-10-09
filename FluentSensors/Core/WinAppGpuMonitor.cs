@@ -17,8 +17,7 @@ namespace FluentSensors.Core
         string? AdapterName, // null until the app has run on a gpu
         double UsagePercent,
         long MemoryBytes,
-        bool IsDisplayAdapter, // false on a hybrid laptop rendering on the discrete gpu, which copies every frame
-        IReadOnlyList<int> RefreshRatesHz // one per refresh rate in use, highest first
+        bool IsDisplayAdapter // false on a hybrid laptop rendering on the discrete gpu, which copies every frame
     );
 
     public sealed partial class WinAppGpuMonitor : IDisposable
@@ -88,19 +87,11 @@ namespace FluentSensors.Core
                 var displays = WinDisplayTopology.QueryDisplays();
                 bool isDisplayAdapter = adapter == null || displays == null || displays.Exists(d => d.AdapterLuid == adapter);
 
-                var refreshRates = new List<int>();
-                foreach (var display in displays ?? new List<WinDisplay>())
-                {
-                    if (display.RefreshRateHz > 0 && !refreshRates.Contains(display.RefreshRateHz)) refreshRates.Add(display.RefreshRateHz);
-                }
-                refreshRates.Sort((a, b) => b.CompareTo(a));
-
                 return new AppGpuData(
                     adapter == null ? null : AdapterName(adapter.Value),
                     Math.Min(usage, 100),
                     memory,
-                    isDisplayAdapter,
-                    refreshRates);
+                    isDisplayAdapter);
             }
         }
 

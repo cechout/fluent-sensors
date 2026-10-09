@@ -489,15 +489,14 @@
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
 
-                                <!--  (ticks on its own timer, not with the status snapshot, see StartPage)  -->
                                 <StackPanel Spacing="2">
                                     <TextBlock
-                                        x:Uid="Start_UptimeText"
+                                        x:Uid="Start_GcMemoryText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                         Style="{ThemeResource CaptionTextBlockStyle}" />
                                     <TextBlock
                                         Style="{ThemeResource BodyTextBlockStyle}"
-                                        Text="{x:Bind ViewModel.UptimeTileValue, Mode=OneWay}"
+                                        Text="{x:Bind ViewModel.GcMemoryTileValue, Mode=OneWay}"
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
 
@@ -512,14 +511,15 @@
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
 
+                                <!--  (ticks on its own timer, not with the status snapshot, see StartPage)  -->
                                 <StackPanel Spacing="2">
                                     <TextBlock
-                                        x:Uid="Start_GcMemoryText"
+                                        x:Uid="Start_UptimeText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                         Style="{ThemeResource CaptionTextBlockStyle}" />
                                     <TextBlock
                                         Style="{ThemeResource BodyTextBlockStyle}"
-                                        Text="{x:Bind ViewModel.GcMemoryTileValue, Mode=OneWay}"
+                                        Text="{x:Bind ViewModel.UptimeTileValue, Mode=OneWay}"
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
                             </controls:WrapPanel>
@@ -572,6 +572,13 @@
                                 <TextBlock x:Uid="Start_GpuNotDisplayText" Style="{ThemeResource CaptionTextBlockStyle}" />
                             </StackPanel>
 
+                            <!--  (the info popup link style, under the gpu it is about)  -->
+                            <HyperlinkButton
+                                x:Uid="Start_GraphicsSettingsLink"
+                                Margin="-7,0,0,2"
+                                Click="GraphicsSettingsLink_Click"
+                                Style="{StaticResource SourceLinkButtonStyle}" />
+
                             <!--  (the top margin makes the gap to the line above the 8 of the wrapped rows)  -->
                             <controls:WrapPanel
                                 Margin="0,2,0,0"
@@ -598,24 +605,7 @@
                                         Text="{x:Bind ViewModel.GpuMemoryTileValue, Mode=OneWay}"
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
-
-                                <StackPanel Spacing="2">
-                                    <TextBlock
-                                        x:Uid="Start_RefreshRateText"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Style="{ThemeResource CaptionTextBlockStyle}" />
-                                    <TextBlock
-                                        Style="{ThemeResource BodyTextBlockStyle}"
-                                        Text="{x:Bind ViewModel.RefreshRateTileValue, Mode=OneWay}"
-                                        Typography.NumeralAlignment="Tabular" />
-                                </StackPanel>
                             </controls:WrapPanel>
-
-                            <!--  (the negative inset lines the link text up with the values)  -->
-                            <HyperlinkButton
-                                x:Uid="Start_GraphicsSettingsLink"
-                                Margin="-11,0,0,-6"
-                                Click="GraphicsSettingsLink_Click" />
                         </StackPanel>
                     </Border>
                 </fhControls:SquareGridPanel>

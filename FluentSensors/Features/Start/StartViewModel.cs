@@ -67,7 +67,6 @@ namespace FluentSensors.Features.Start
         private string _gpuAdapterTileValue = "-";
         private string _gpuUsageTileValue = "-";
         private string _gpuMemoryTileValue = "-";
-        private string _refreshRateTileValue = "-";
         private bool _isGpuNotDisplay;
 
         // process start, the splash included; utc, so daylight saving does not move the uptime
@@ -215,12 +214,6 @@ namespace FluentSensors.Features.Start
             private set { _gpuMemoryTileValue = value; OnPropertyChanged(); }
         }
 
-        public string RefreshRateTileValue
-        {
-            get => _refreshRateTileValue;
-            private set { _refreshRateTileValue = value; OnPropertyChanged(); }
-        }
-
         // the app renders on a gpu that drives no screen, so every frame is copied across
         public bool IsGpuNotDisplay
         {
@@ -252,7 +245,6 @@ namespace FluentSensors.Features.Start
             GpuAdapterTileValue = data.AdapterName ?? "-";
             GpuUsageTileValue = $"{data.UsagePercent:0.0} %";
             GpuMemoryTileValue = $"{data.MemoryBytes / 1024.0 / 1024.0:0} MB";
-            RefreshRateTileValue = data.RefreshRatesHz.Count == 0 ? "-" : string.Join(" / ", data.RefreshRatesHz) + " Hz";
             IsGpuNotDisplay = !data.IsDisplayAdapter;
         }
 

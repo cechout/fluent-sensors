@@ -97,8 +97,7 @@ GPU, storage, network and memory readings are not affected</value>
   <data name="Main_LhmInfoPopup.Description" xml:space="preserve">
     <value>Sensors (found/rendered) - sensors found by LibreHardwareMonitor, and how many are actively drawn
 Poll (current/aimed) - measured update rate against the rate set in Settings
-Read - duration of one full sensor pass, close to the poll rate means no headroom left
-LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows</value>
+Read - duration of one full sensor pass, close to the poll rate means no headroom left</value>
   </data>
   <data name="Main_LhmInfoPopup.SourceIntro" xml:space="preserve">
     <value>This App is powered by the open source LibreHardwareMonitor project:</value>
@@ -812,9 +811,8 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
     <value>Found Sensors - every sensor LibreHardwareMonitor reports on this machine
 Rendering Sensors - how many of them are actively drawn right now
 Update interval - measured against the configured polling interval
-Read time - how long one read of all sensors takes
-PawnIO driver - kernel access for CPU, mainboard and memory sensors
-LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows</value>
+Read time - how long one full read of all sensors takes
+PawnIO driver - kernel access for CPU, mainboard and memory sensors</value>
   </data>
   <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
     <value>This App is powered by the open source LibreHardwareMonitor project:</value>
@@ -834,9 +832,9 @@ LibreHardwareMonitorLib is the largest and most established hardware monitoring 
   <data name="Start_ThisAppPopup.Description" xml:space="preserve">
     <value>CPU Usage - this app's own CPU time relative to total capacity across all cores
 RAM Usage - physical memory currently mapped by this app (working set)
-Uptime - how long this app has been running since it was last started
+GC memory - the .NET managed heap, part of the RAM usage
 Handles - open Windows objects (files, threads, events) held by this app
-GC memory - the .NET managed heap, part of the RAM usage</value>
+Uptime - how long this app has been running since it was last started</value>
   </data>
   <data name="Start_ThisAppPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
@@ -885,9 +883,8 @@ GC memory - the .NET managed heap, part of the RAM usage</value>
   </data>
   <data name="Start_GraphicsPopup.Description" xml:space="preserve">
     <value>Running on - the graphics processor that draws this app
-GPU usage - this app's share of its busiest GPU engine, like Task Manager
-GPU memory - dedicated and shared graphics memory used by this app
-Refresh rate - of the active displays</value>
+GPU usage - this app's share of its busiest GPU engine (like Task Manager)
+GPU memory - dedicated and shared graphics memory used by this app</value>
   </data>
   <data name="Start_GraphicsPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
@@ -901,10 +898,6 @@ Refresh rate - of the active displays</value>
   </data>
   <data name="Start_GpuMemoryText.Text" xml:space="preserve">
     <value>GPU memory</value>
-  </data>
-  <data name="Start_RefreshRateText.Text" xml:space="preserve">
-    <value>Refresh rate</value>
-    <comment>refresh rate of the screens</comment>
   </data>
   <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
     <value>Display via another GPU</value>
