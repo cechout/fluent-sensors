@@ -137,9 +137,11 @@
   </data>
   <data name="Gpu_Display" xml:space="preserve">
     <value>Displej</value>
+    <comment>the screens a GPU drives</comment>
   </data>
   <data name="Start_GpuDisplay" xml:space="preserve">
     <value>Displej: {0}</value>
+    <comment>{0} where the picture of the GPU goes: display names, "via" another GPU, or none</comment>
   </data>
   <data name="Gpu_DedicatedMemory" xml:space="preserve">
     <value>Vyhrazená paměť</value>
