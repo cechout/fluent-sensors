@@ -265,8 +265,9 @@ namespace FluentSensors.Features.TaskbarWidget
         private DesktopAcrylicController? _acrylicController;
         private SystemBackdropConfiguration? _configurationSource;
 
-        // the backdrop link the card material rides on, one per window; closing it off the UI thread kills the
-        // process, so SafeDestroy closes it and parks it in _retiredBackdropLinks, out of reach of the finalizer
+        // the backdrop link the card material rides on, one per window and so one per process (the flyout is never
+        // closed); closing it off the UI thread kills the process, so a retired one is closed here and parked in
+        // _retiredBackdropLinks, out of reach of the finalizer
         private WinBackdropLink? _backdropLink;
         private static readonly List<WinBackdropLink> _retiredBackdropLinks = new();
 
@@ -367,10 +368,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
             ((FrameworkElement)this.Content).ActualThemeChanged += (s, e) =>
             {
-                if (_isClosed) return;
                 this.DispatcherQueue.TryEnqueue(() =>
                 {
-                    if (_isClosed) return;
                     SetConfigurationSourceTheme();
                     UpdateAcrylicProperties();
                     UpdateSolidBackground();
@@ -386,8 +385,6 @@ namespace FluentSensors.Features.TaskbarWidget
             FlyoutRootBorder.SizeChanged += FlyoutRootBorder_SizeChanged;
             _appWindow.Closing += AppWindow_Closing;
             this.Activated += Window_Activated;
-
-            KickBackdropRefresh();
         }
 
 
@@ -424,7 +421,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // native one; sizes are in dip, the inset follows the pixel snapped stroke (a scale change resizes the host)
         private void FlyoutBackdropHost_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (_isClosed || _backdropLink == null) return;
+            if (_backdropLink == null) return;
 
             var visual = _backdropLink.PlacementVisual;
             float width = (float)e.NewSize.Width;
@@ -497,8 +494,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // named so SafeDestroy can detach it (every rebuilt window subscribes anew); goes through the router, since
-        // ColorValuesChanged also fires for a pure accent change that needs no rebuild
+        // goes through the router, since ColorValuesChanged also fires for a pure accent change that needs no rebuild
         private void OnSystemVisualSettingsChanged(UISettings sender, object args)
         {
             RouteSystemVisualsChange(sender);
@@ -682,71 +678,6 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
-        private bool _isClosed = false;
-
-        // --- memory leak: flyout instance never released after a real close ---
-        // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
-        // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
-        // fix: none here; the one place that destroys for real, since DWM only rebinds the acrylic on a full
-        // recreation (see ScheduleRecreation); one leaked CCW per OS theme or transparency change, knowingly paid
-        // only ever called from ExecuteFullRebuild
-        public void SafeDestroy()
-        {
-            if (_isClosed) return;
-            _isClosed = true;
-
-            // a close still in flight must not hide a dead window
-            CancelSlideOut();
-
-            try
-            {
-                SettingsService.Instance.ThemeChanged -= OnThemeChanged;
-                SettingsService.Instance.TaskbarBackdropTypeChanged -= OnBackdropTypeChanged;
-                SettingsService.Instance.TaskbarOpacityChanged -= OnOpacityChanged;
-                SettingsService.Instance.TaskbarTintColorChanged -= OnTintColorChanged;
-                SettingsService.Instance.TaskbarFlyoutAlignmentChanged -= OnFlyoutAlignmentChanged;
-                SettingsService.Instance.TaskbarFlyoutGraphHeightChanged -= OnFlyoutGraphHeightChanged;
-                SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnTaskbarGraphTimeSpanChanged;
-                SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnFlyoutGraphTimeSpanChanged;
-                FlyoutShortcutRegistration.RegistrationChanged -= OnShortcutRegistrationChanged;
-            }
-            catch { }
-
-            try
-            {
-                if (_uiSettings != null)
-                {
-                    _uiSettings.AdvancedEffectsEnabledChanged -= OnSystemVisualSettingsChanged;
-                    _uiSettings.ColorValuesChanged -= OnSystemVisualSettingsChanged;
-                    _uiSettings = null;
-                }
-            }
-            catch { }
-
-            // detached first, or AppWindow_Closing cancels the Close below and brings this
-            // window back as _retainedInstance
-            try
-            {
-                _appWindow.Closing -= AppWindow_Closing;
-                _appWindow.Changed -= AppWindow_Changed;
-                this.Activated -= Window_Activated;
-            }
-            catch { }
-
-            try
-            {
-                _messageMonitor?.Dispose();
-                _messageMonitor = null;
-                _acrylicController?.Dispose();
-                _acrylicController = null;
-                // after the controller, so nothing targets the link any more; SafeDestroy runs on the UI thread
-                RetireBackdropLink();
-                _noiseBitmap = null;
-                this.Close();
-            }
-            catch { }
-        }
-
         private static Microsoft.UI.Dispatching.DispatcherQueueTimer? _recreateDebounceTimer;
         private static Microsoft.UI.Dispatching.DispatcherQueueTimer? _accentRefreshDebounceTimer;
 
@@ -847,8 +778,10 @@ namespace FluentSensors.Features.TaskbarWidget
         // --- workaround: window recreation on global OS theme/transparency change ---
         // problem: after a Windows theme or transparency change, DWM does not bind the DesktopAcrylicController blur
         // without a full window recreation (empirical, cause unknown)
-        // fix: destroy and rebuild every open window (this flyout, WidgetWindow, TaskbarWidgetWindow, CsvLoggerWindow);
-        // the acrylic ones kick their backdrop from the constructor via KickBackdropRefresh
+        // fix: destroy and rebuild every open window (WidgetWindow, TaskbarWidgetWindow, CsvLoggerWindow); the acrylic
+        // ones kick their backdrop from the constructor via KickBackdropRefresh
+        // the flyout is left out: its material binds without either, on the link and on the window, so it only applies
+        // the new state (measured on build 26300, Intel and NVIDIA rendering)
         // only the Windows-level UISettings events land here; never toggle a persisted setting to force a repaint
         // instead (an interrupted toggle persists its intermediate value)
         public static void ScheduleRecreation()
@@ -880,26 +813,15 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
-        // the destructive half of the ScheduleRecreation workaround and the only caller of SafeDestroy; the flyout
-        // goes first and comes back last, since it anchors to the new taskbar widget
+        // the destructive half of the ScheduleRecreation workaround; the flyout stays and only applies the new state,
+        // an open one hides and comes back last, since it anchors to the new taskbar widget
         private static void ExecuteFullRebuild()
         {
-            bool flyoutWasVisible = CurrentInstance != null && CurrentInstance._appWindow != null && CurrentInstance._appWindow.IsVisible;
+            var flyout = CurrentInstance ?? _retainedInstance;
+            bool flyoutWasVisible = flyout != null && flyout._appWindow.IsVisible;
 
-            // 1. both flyout instances
-            if (CurrentInstance != null)
-            {
-                var old = CurrentInstance;
-                CurrentInstance = null;
-                old.SafeDestroy();
-            }
-
-            if (_retainedInstance != null)
-            {
-                var old = _retainedInstance;
-                _retainedInstance = null;
-                old.SafeDestroy();
-            }
+            // 1. the flyout
+            flyout?.ApplySystemVisuals(flyoutWasVisible);
 
             // 2. WidgetWindow, if open
             WidgetWindow.RecreateWindow();
@@ -909,6 +831,22 @@ namespace FluentSensors.Features.TaskbarWidget
 
             // 4. CsvLoggerWindow; (a running recording lives in CsvLoggingService and is unaffected)
             CsvLoggerWindow.RecreateWindow();
+        }
+
+
+        // a Windows theme or transparency change; an open flyout hides at once, without the slide, so the rebuilt
+        // widget can reopen it at its new place
+        private void ApplySystemVisuals(bool hide)
+        {
+            if (hide)
+            {
+                CancelSlideOut();
+                SetGraphsRenderingActive(false);
+                _appWindow.Hide();
+            }
+
+            SetBackdrop(SettingsService.Instance.TaskbarBackdropType);
+            ApplyTheme(SettingsService.Instance.AppTheme);
         }
 
 
@@ -969,7 +907,7 @@ namespace FluentSensors.Features.TaskbarWidget
             batch.End();
             batch.Completed += (s, e) => DispatcherQueue.TryEnqueue(() =>
             {
-                if (_exitBatch != batch || _isClosed) return;
+                if (_exitBatch != batch) return;
                 _exitBatch = null;
                 onCompleted();
             });
@@ -1417,7 +1355,6 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (_isClosed) return;
                 ApplyShortcutHint();
             });
         }
@@ -1439,10 +1376,6 @@ namespace FluentSensors.Features.TaskbarWidget
         // WidgetWindow and TaskbarWidgetWindow)
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
-            // SafeDestroy is closing for real; a closed window handed back as _retainedInstance would leave the flyout
-            // unable to repaint for the rest of the session
-            if (_isClosed) return;
-
             args.Cancel = true;
             HideFlyout();
             CurrentInstance = null;
@@ -1483,7 +1416,7 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (_isClosed || TaskbarWidgetWindow.CurrentInstance == null) return;
+                if (TaskbarWidgetWindow.CurrentInstance == null) return;
                 PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
             });
         }
@@ -1493,7 +1426,7 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (_isClosed || TaskbarWidgetWindow.CurrentInstance == null) return;
+                if (TaskbarWidgetWindow.CurrentInstance == null) return;
                 PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
             });
         }
@@ -1503,7 +1436,6 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (_isClosed) return;
                 TaskbarTimeRangePicker.SelectedSeconds = newTimeSpanSeconds;
             });
         }
@@ -1512,15 +1444,12 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (_isClosed) return;
                 FlyoutTimeRangePicker.SelectedSeconds = newTimeSpanSeconds;
             });
         }
 
         private void ApplyTheme(string themeTag)
         {
-            if (_isClosed) return;
-
             var elementTheme = themeTag switch
             {
                 "Light" => ElementTheme.Light,
@@ -1555,8 +1484,6 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private bool IsCurrentThemeLight()
         {
-            if (_isClosed) return false;
-
             string themeTag = SettingsService.Instance.AppTheme;
             if (themeTag == "Light") return true;
             if (themeTag == "Dark") return false;
@@ -1573,8 +1500,6 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void UpdateAcrylicProperties()
         {
-            if (_isClosed) return;
-
             if (_acrylicController != null)
             {
                 bool isLight = IsCurrentThemeLight();
@@ -1627,7 +1552,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // value from here outranks it)
         private void UpdateSolidBackground()
         {
-            if (_isClosed || FlyoutRootBorder == null) return;
+            if (FlyoutRootBorder == null) return;
 
             bool isLight = IsCurrentThemeLight();
             var themeDictionary = (ResourceDictionary)Application.Current.Resources
@@ -1724,7 +1649,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void RenderCardShadow()
         {
-            if (_isClosed || FlyoutShadowImage == null) return;
+            if (FlyoutShadowImage == null) return;
 
             bool isTransparencyEnabled = _uiSettings != null && _uiSettings.AdvancedEffectsEnabled;
             bool show = UsesCardWindow && isTransparencyEnabled && _shadowWindowSizePx.Width > 0 && _shadowScale > 0;
@@ -1861,7 +1786,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // one physical pixel instead of being smeared into coarse grain
         private void EnsureNoiseBitmap(double widthDip, double heightDip)
         {
-            if (_isClosed || widthDip <= 0 || heightDip <= 0) return;
+            if (widthDip <= 0 || heightDip <= 0) return;
 
             double scale = FlyoutRootBorder.XamlRoot?.RasterizationScale ?? 1.0;
             if (scale <= 0) scale = 1.0;
@@ -1929,7 +1854,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void FlyoutRootBorder_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (_isClosed || FlyoutNoiseHost.Visibility != Visibility.Visible) return;
+            if (FlyoutNoiseHost.Visibility != Visibility.Visible) return;
 
             EnsureNoiseBitmap(e.NewSize.Width, e.NewSize.Height);
         }
@@ -1940,7 +1865,6 @@ namespace FluentSensors.Features.TaskbarWidget
         // MicaController for the same setting)
         public void SetBackdrop(string backdropType)
         {
-            if (_isClosed) return;
             DispatcherQueue.EnsureSystemDispatcherQueue();
 
             bool isTransparencyEnabled = _uiSettings != null && _uiSettings.AdvancedEffectsEnabled;
@@ -2014,35 +1938,11 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void SetConfigurationSourceTheme()
         {
-            if (_isClosed || _configurationSource == null) return;
+            if (_configurationSource == null) return;
 
             _configurationSource.Theme = IsCurrentThemeLight()
                 ? SystemBackdropTheme.Light
                 : SystemBackdropTheme.Dark;
-        }
-
-        // --- workaround: DWM backdrop swapchain kick ---
-        // problem: after a Windows transparency or theme change, DesktopAcrylicController needs a rebind to attach its
-        // blur to the new DWM swapchain
-        // fix: after a rebuild, kick the backdrop once (None, then the current one), with parameters only
-        private void KickBackdropRefresh()
-        {
-            if (_isClosed) return;
-
-            string currentBackdrop = SettingsService.Instance.TaskbarBackdropType;
-            if (currentBackdrop == "Mica" || currentBackdrop == "Acrylic")
-            {
-                var timer = this.DispatcherQueue.CreateTimer();
-                timer.Interval = TimeSpan.FromMilliseconds(80);
-                timer.IsRepeating = false;
-                timer.Tick += (s, e) =>
-                {
-                    if (_isClosed) return;
-                    SetBackdrop("None");
-                    SetBackdrop(currentBackdrop);
-                };
-                timer.Start();
-            }
         }
     }
 }
