@@ -183,6 +183,12 @@ namespace FluentSensors.Features.TaskbarWidget
         public const int FlyoutMarginToTaskbarDip = 12;
         public const int FlyoutMarginToScreenEdgeDip = 12; // along the taskbar
 
+        // card construction: the window is the card plus a transparent margin the shadow falls into, on every side;
+        // the anchor gaps above stay gaps to the card
+        public const int FlyoutShadowMarginDip = 12;
+        // below the card when no taskbar is there to cut the shadow, so it fades out in full
+        public const int FlyoutShadowFalloffMarginDip = 32;
+
         // inward offset from the widget edge TaskbarFlyoutAlignment picks; (Center ignores it)
         public const int FlyoutAlignmentOffsetDip = 0;
 
@@ -257,6 +263,9 @@ namespace FluentSensors.Features.TaskbarWidget
         // thread kills the process
         private static WinBackdropLink? _backdropLink;
 
+        // the construction the current geometry was placed for, see UsesCardWindow
+        private bool _isCardWindow;
+
 
         // === constructor ===
 
@@ -309,6 +318,9 @@ namespace FluentSensors.Features.TaskbarWidget
             _messageMonitor = new WindowMessageMonitor(_hwnd);
             _messageMonitor.WindowMessageReceived += OnWindowMessageReceived;
 
+            // before the first backdrop, which picks the construction from it
+            EnsureBackdropLink();
+
             // shadow policy follows the Windows transparency setting
             InitializeShadowPolicy();
 
@@ -357,15 +369,13 @@ namespace FluentSensors.Features.TaskbarWidget
             this.Activated += Window_Activated;
 
             KickBackdropRefresh();
-
-            ProbeBackdropLink();
         }
 
 
         // === backdrop link ===
 
-        // phase 1 of the flyout redesign; creates the link once and logs what it hands back, nothing is attached yet
-        private void ProbeBackdropLink()
+        // creates the link once per process; without it the flyout keeps the window level construction
+        private void EnsureBackdropLink()
         {
             if (_backdropLink != null) return;
 
@@ -373,19 +383,18 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 var compositor = ElementCompositionPreview.GetElementVisual(FlyoutRootBorder).Compositor;
                 _backdropLink = WinBackdropLink.Create(compositor);
-
-                bool sameQueue = _backdropLink.DispatcherQueue == this.DispatcherQueue;
-                Debug.WriteLine($"[BackdropLink] created via {_backdropLink.ActivationRoute}; " +
-                    $"dispatcher queue matches window: {sameQueue}; " +
-                    $"placement visual: {_backdropLink.PlacementVisual.GetType().FullName}; " +
-                    $"border mode: {_backdropLink.BorderMode}; " +
-                    $"target: {_backdropLink.Target.GetType().FullName}");
+                Debug.WriteLine($"[BackdropLink] created via {_backdropLink.ActivationRoute}");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[BackdropLink] failed: 0x{ex.HResult:X8} {ex.GetType().Name}: {ex.Message}");
             }
         }
+
+        // --- revisit: acrylic still on the window ---
+        // the card construction runs only while no window level controller is attached, since that one fills the
+        // whole window rect, margin included; once the material rides the link this is the link alone
+        private bool UsesCardWindow => _backdropLink != null && _acrylicController == null;
 
 
         // === shadow policy ===
@@ -419,7 +428,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
             bool isTransparencyEnabled = _uiSettings != null && _uiSettings.AdvancedEffectsEnabled;
 
-            if (isTransparencyEnabled)
+            // the card window takes the flat branch in both states; the card draws corners and border itself
+            if (isTransparencyEnabled && !UsesCardWindow)
             {
                 // transparency on; DWM rounds the corners and clips the acrylic (the native shadow comes with it)
                 int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
@@ -433,7 +443,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             else
             {
-                // transparency off; no DWM rounding and no shadow, the XAML border draws the 8px corners
+                // transparency off or the card window; no DWM rounding and no shadow, the XAML border draws the 8px
+                // corners
                 int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DONOTROUND;
                 DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPreference, sizeof(int));
 
@@ -1041,14 +1052,30 @@ namespace FluentSensors.Features.TaskbarWidget
 
             _isAnchored = true;
 
+            // everything above placed the card; the card window grows around it by the shadow margin, the larger one
+            // at the bottom unless the taskbar sits there and cuts the shadow at its edge
+            _isCardWindow = UsesCardWindow;
+            int shadowPx = _isCardWindow ? (int)Math.Round(FlyoutShadowMarginDip * scale) : 0;
+            int shadowBottomPx = !_isCardWindow ? 0 : (int)Math.Round(
+                (edge == ScreenEdge.Bottom ? FlyoutShadowMarginDip : FlyoutShadowFalloffMarginDip) * scale);
+
+            _targetX -= shadowPx;
+            _targetY -= shadowPx;
+            int windowWidthPx = desiredWidthPx + (2 * shadowPx);
+            int windowHeightPx = desiredHeightPx + shadowPx + shadowBottomPx;
+
+            // the same pixels as XAML padding, so the card lands on exactly the rect computed above
+            FlyoutWindowRoot.Padding = new Thickness(
+                shadowPx / scale, shadowPx / scale, shadowPx / scale, shadowBottomPx / scale);
+
             // from the taskbar DPI like the rest of the geometry, see _slideOffsetX
-            (_slideOffsetX, _slideOffsetY) = CalculateSlideOffset(edge, GetSlideDistancePx(scale), desiredWidthPx, desiredHeightPx);
+            (_slideOffsetX, _slideOffsetY) = CalculateSlideOffset(edge, GetSlideDistancePx(scale), windowWidthPx, windowHeightPx);
 
             int initialX = startForSlideAnimation ? (_targetX + _slideOffsetX) : _targetX;
             int initialY = startForSlideAnimation ? (_targetY + _slideOffsetY) : _targetY;
 
             _isAdjustingPosition = true;
-            _appWindow.MoveAndResize(new RectInt32(initialX, initialY, desiredWidthPx, desiredHeightPx));
+            _appWindow.MoveAndResize(new RectInt32(initialX, initialY, windowWidthPx, windowHeightPx));
             _isAdjustingPosition = false;
 
             UpdateShadowPolicy();
@@ -1767,7 +1794,15 @@ namespace FluentSensors.Features.TaskbarWidget
             // the base color, read off the controller set above
             UpdateSolidBackground();
 
-            UpdateShadowPolicy();
+            // a controller coming or going switches the construction, which moves the window around the card
+            if (_isAnchored && _isCardWindow != UsesCardWindow && TaskbarWidgetWindow.CurrentInstance != null)
+            {
+                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+            }
+            else
+            {
+                UpdateShadowPolicy();
+            }
         }
 
         private void SetConfigurationSourceTheme()
