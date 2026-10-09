@@ -41,7 +41,7 @@ namespace FluentSensors.Features.TaskbarWidget
     // 1. no titlebar stripe, WM_NCCALCSIZE returning 0
     // 2. a height capped against the work area, the graph list scrolls past it
     // 3. Z-order directly beneath Shell_TrayWnd, so it slides out from under the taskbar
-    // 4. a real window slide on CompositionTarget.Rendering plus a composition opacity fade
+    // 4. a composition slide of the card inside the still window plus an opacity fade of the content
     // 5. a transparent window around the card: the material rides a backdrop link clipped to the card, the
     //    shadow is a computed bitmap in the margin; DWM corners and shadow only when the link is unavailable
     // 6. a DesktopAcrylicController backdrop with a swapchain kick after a rebuild
@@ -133,25 +133,32 @@ namespace FluentSensors.Features.TaskbarWidget
 
 
         // --- animation & performance settings ---
+        // the card slides inside the still window as a composition translation, like the native flyouts, and the
+        // window edge on the taskbar side clips it; it reaches the full refresh rate when the app renders on the GPU
+        // that drives the display (on a hybrid laptop set to the other GPU every frame is copied across, measured
+        // 165 Hz against 30 to 80)
 
-        public const int WindowSlideDistanceDip = 300;
-
-        // in ms
+        // open: ease-out cubic over a fixed duration, only the distance grows with the pinned sensors; (the native
+        // Start menu, 726 dip tall, settles in 160 ms, so a taller card must not take longer)
+        public const int SlideDistanceDip = 300;
         public const int EnterAnimationDurationMs = 240;
-        public const int ExitAnimationDurationMs = 140;
 
-        // scaling with the pinned sensor count; durations and distance are tuned for AnimationReferenceSensorCount,
-        // each sensor above or below scales them by its factor (0 = fixed, 0.18 = 18 percent per sensor)
+        // close: the Windows Quick Settings curve, measured; accelerating over 515 dip in 167 ms, hidden at its end
+        public const int ExitAnimationDurationMs = 167;
+        public const int ExitSlideDistanceDip = 515;
+        private static readonly Vector2 ExitEasingControlPoint1 = new(0.751f, 0f);
+        private static readonly Vector2 ExitEasingControlPoint2 = new(0.950f, 0.612f);
+
+        // scaling of the open distance with the pinned sensor count; tuned for AnimationReferenceSensorCount, each
+        // sensor above or below scales it by the factor
         public const int AnimationReferenceSensorCount = 2;
-        public const double EnterDurationPerSensorFactor = 0.20;
-        public const double ExitDurationPerSensorFactor = 0.14;
         public const double SlideDistancePerSensorFactor = 0.10;
 
-        // clamps the scaling, so one sensor does not snap open and a full flyout does not crawl
+        // clamps the scaling
         public const double MinAnimationScaleFactor = 0.75;
         public const double MaxAnimationScaleFactor = 3.0;
 
-        // fade opacity
+        // fade opacity; the content only, material, stroke and shadow do not fade
         public const float EnterFadeStartOpacity = 0.0f;
         public const float EnterFadeEndOpacity = 1.0f;
         public const float ExitFadeEndOpacity = 0.9f;
@@ -241,19 +248,14 @@ namespace FluentSensors.Features.TaskbarWidget
         private FluentSensors.Controls.VerticalStretchPanel? _graphsPanel;
         private bool _isGraphsScrolling;
 
-        // native window slide, ticked from CompositionTarget.Rendering; (a DispatcherTimer caps out near 60 fps, the
-        // compositor tick follows the display refresh rate)
-        private bool _isAnimating;
-        private Stopwatch? _animStopwatch;
-        private int _animStartX, _animStartY, _animTargetX, _animTargetY;
-        private int _animDurationMs;
-        private bool _animIsEntering;
-        private Action? _animOnComplete;
+        // slide toward the taskbar edge, a unit vector in screen axes, and the open distance in dip; set per open
+        private Vector3 _slideDirection = new(0, 1, 0);
+        private float _slideDistanceDip = SlideDistanceDip;
 
-        // slide offset in px, from the target toward the taskbar; set per open from the taskbar DPI (recomputing it
-        // against the window DPI could jump the first frame on a mixed-DPI setup)
-        private int _slideOffsetX;
-        private int _slideOffsetY;
+        // the close in flight; its batch completes after the animations and hides the window, a newer slide replaces
+        // it and its completion is ignored
+        private CompositionScopedBatch? _exitBatch;
+        private bool _isSlideTurningAround;
 
         public TaskbarWidgetViewModel ViewModel { get; }
         public static TaskbarFlyoutWindow? CurrentInstance { get; private set; }
@@ -334,6 +336,7 @@ namespace FluentSensors.Features.TaskbarWidget
             // before the first backdrop, which picks the construction from it
             EnsureBackdropLink();
 
+
             // shadow policy follows the Windows transparency setting
             InitializeShadowPolicy();
 
@@ -373,6 +376,9 @@ namespace FluentSensors.Features.TaskbarWidget
                     UpdateSolidBackground();
                 });
             };
+
+            // the card slide animates the translation of the window content on its composition visual
+            ElementCompositionPreview.SetIsTranslationEnabled(FlyoutWindowRoot, true);
 
             GraphsItemsControl.LayoutUpdated += OnGraphsItemsControlLayoutUpdated;
 
@@ -567,11 +573,11 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             if (CurrentInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
             {
-                CurrentInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                CurrentInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
             }
             else if (_retainedInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
             {
-                _retainedInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                _retainedInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
             }
         }
 
@@ -583,7 +589,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             var window = new TaskbarFlyoutWindow(widgetWindow.ViewModel);
             _retainedInstance = window;
-            window.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: false);
+            window.PositionNextToTaskbar(widgetWindow);
 
             if (KeepFlyoutGraphsActiveInBackground)
             {
@@ -621,8 +627,9 @@ namespace FluentSensors.Features.TaskbarWidget
             if (CurrentInstance != null)
             {
                 CurrentInstance.ApplyTheme(SettingsService.Instance.AppTheme);
-                CurrentInstance.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: true);
+                CurrentInstance.PositionNextToTaskbar(widgetWindow);
                 CurrentInstance.SetGraphsRenderingActive(true);
+                CurrentInstance.PrepareSlideIn();
                 CurrentInstance._appWindow.Show();
                 CurrentInstance.EnsureBehindTaskbarZOrder();
                 CurrentInstance.Activate();
@@ -637,8 +644,9 @@ namespace FluentSensors.Features.TaskbarWidget
                 CurrentInstance = window;
 
                 window.ApplyTheme(SettingsService.Instance.AppTheme);
-                window.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: true);
+                window.PositionNextToTaskbar(widgetWindow);
                 window.SetGraphsRenderingActive(true);
+                window.PrepareSlideIn();
                 window._appWindow.Show();
                 window.EnsureBehindTaskbarZOrder();
                 window.Activate();
@@ -648,8 +656,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
             var newWindow = new TaskbarFlyoutWindow(widgetWindow.ViewModel);
             newWindow.ApplyTheme(SettingsService.Instance.AppTheme);
-            newWindow.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: true);
+            newWindow.PositionNextToTaskbar(widgetWindow);
             newWindow.SetGraphsRenderingActive(true);
+            newWindow.PrepareSlideIn();
             newWindow._appWindow.Show();
             newWindow.EnsureBehindTaskbarZOrder();
             newWindow.Activate();
@@ -684,8 +693,8 @@ namespace FluentSensors.Features.TaskbarWidget
             if (_isClosed) return;
             _isClosed = true;
 
-            // a slide still in flight would keep the static Rendering event ticking a dead window
-            StopSlide();
+            // a close still in flight must not hide a dead window
+            CancelSlideOut();
 
             try
             {
@@ -901,42 +910,115 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
 
-        // === window slide and content fade ===
+        // === card slide and content fade ===
 
+        // the card at its start before the window shows, so the first frame never shows it at the final place; a
+        // reopen during the close turns around where the card is instead
+        private void PrepareSlideIn()
+        {
+            CancelSlideOut();
+            _isSlideTurningAround = _appWindow.IsVisible;
+
+            if (_isCardWindow && !_isSlideTurningAround)
+            {
+                var visual = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot);
+                visual.StopAnimation("Translation");
+                visual.Properties.InsertVector3("Translation", _slideDirection * _slideDistanceDip);
+            }
+        }
+
+        // out from behind the taskbar edge, our ease-out cubic; the window level construction only fades, its
+        // backdrop fills the window rect and would stay behind as a plate
         private void SlideIn()
         {
             TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(true);
+            CancelSlideOut();
 
-            int durationMs = ScaleAnimationDuration(EnterAnimationDurationMs, EnterDurationPerSensorFactor);
+            var compositor = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot).Compositor;
+            var easing = compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 1f), new Vector2(2f / 3f, 1f));
 
-            // 1. content fade
-            PlayContentFade(EnterFadeStartOpacity, EnterFadeEndOpacity, durationMs, isEntering: true);
+            PlayContentFade(_isSlideTurningAround ? null : EnterFadeStartOpacity, EnterFadeEndOpacity, EnterAnimationDurationMs, easing);
 
-            // 2. window slide, out from behind the taskbar
-            int startX = _targetX + _slideOffsetX;
-            int startY = _targetY + _slideOffsetY;
-
-            EnsureBehindTaskbarZOrder();
-            AnimateNativeWindowPosition(startX, startY, _targetX, _targetY, durationMs, isEntering: true);
+            if (_isCardWindow)
+            {
+                PlayCardSlide(_isSlideTurningAround ? null : _slideDirection * _slideDistanceDip, Vector3.Zero, EnterAnimationDurationMs, easing);
+            }
         }
 
+        // back behind the taskbar edge on the Quick Settings curve, from wherever the open has got to; the window
+        // hides once the batch completes
         private void SlideOut(Action onCompleted)
         {
             TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
 
-            int durationMs = ScaleAnimationDuration(ExitAnimationDurationMs, ExitDurationPerSensorFactor);
+            var compositor = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot).Compositor;
+            var easing = compositor.CreateCubicBezierEasingFunction(ExitEasingControlPoint1, ExitEasingControlPoint2);
 
-            // 1. content fade
-            PlayContentFade(1.0f, ExitFadeEndOpacity, durationMs, isEntering: false);
+            var batch = compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+            _exitBatch = batch;
 
-            // 2. window slide, back behind the taskbar; (only the slide axis moves)
-            int currentX = _appWindow.Position.X;
-            int currentY = _appWindow.Position.Y;
-            int endX = _slideOffsetX != 0 ? _targetX + _slideOffsetX : currentX;
-            int endY = _slideOffsetY != 0 ? _targetY + _slideOffsetY : currentY;
+            PlayContentFade(null, ExitFadeEndOpacity, ExitAnimationDurationMs, easing);
 
-            EnsureBehindTaskbarZOrder();
-            AnimateNativeWindowPosition(currentX, currentY, endX, endY, durationMs, isEntering: false, onComplete: onCompleted);
+            if (_isCardWindow)
+            {
+                PlayCardSlide(null, _slideDirection * ExitSlideDistanceDip, ExitAnimationDurationMs, easing);
+            }
+
+            batch.End();
+            batch.Completed += (s, e) => DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_exitBatch != batch || _isClosed) return;
+                _exitBatch = null;
+                onCompleted();
+            });
+        }
+
+        // drops a close in flight, so its completion no longer hides the window (a reopen during the close)
+        private void CancelSlideOut()
+        {
+            _exitBatch = null;
+            _isHiding = false;
+        }
+
+        // opacity of the content only; from null starts at the current value, so a close can interrupt an open
+        private void PlayContentFade(float? fromOpacity, float toOpacity, int durationMs, CompositionEasingFunction easing)
+        {
+            if (RootGrid == null) return;
+            var visual = ElementCompositionPreview.GetElementVisual(RootGrid);
+
+            var opacityAnim = visual.Compositor.CreateScalarKeyFrameAnimation();
+            if (fromOpacity is float from)
+            {
+                opacityAnim.InsertKeyFrame(0.0f, from);
+            }
+            else
+            {
+                opacityAnim.InsertExpressionKeyFrame(0.0f, "this.StartingValue");
+            }
+            opacityAnim.InsertKeyFrame(1.0f, toOpacity, easing);
+            opacityAnim.Duration = TimeSpan.FromMilliseconds(durationMs);
+            visual.StartAnimation("Opacity", opacityAnim);
+        }
+
+        // the translation of the whole window content (shadow, material, card), in dip; from null as above
+        // on the handoff visual only (start value included, see PrepareSlideIn); the XAML Translation property is
+        // never set, a static value there wins against the animation and leaves the card at its start
+        private void PlayCardSlide(Vector3? from, Vector3 to, int durationMs, CompositionEasingFunction easing)
+        {
+            var visual = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot);
+
+            var slideAnim = visual.Compositor.CreateVector3KeyFrameAnimation();
+            if (from is Vector3 start)
+            {
+                slideAnim.InsertKeyFrame(0.0f, start);
+            }
+            else
+            {
+                slideAnim.InsertExpressionKeyFrame(0.0f, "this.StartingValue");
+            }
+            slideAnim.InsertKeyFrame(1.0f, to, easing);
+            slideAnim.Duration = TimeSpan.FromMilliseconds(durationMs);
+            visual.StartAnimation("Translation", slideAnim);
         }
 
         // shared scaling law: how far a value moves from its base with the number of graph rows shown
@@ -947,104 +1029,12 @@ namespace FluentSensors.Features.TaskbarWidget
             return Math.Clamp(factor, MinAnimationScaleFactor, MaxAnimationScaleFactor);
         }
 
-        private int ScaleAnimationDuration(int baseDurationMs, double perSensorFactor)
-        {
-            return (int)Math.Round(baseDurationMs * AnimationScaleFactor(perSensorFactor));
-        }
-
-        // slide distance in px; (PositionNextToTaskbar parks the window on the same value, so both read it here)
-        private int GetSlideDistancePx(double scaleFactor)
-        {
-            return (int)Math.Round(WindowSlideDistanceDip * AnimationScaleFactor(SlideDistancePerSensorFactor) * scaleFactor);
-        }
-
-        // same curve as the window slide, so fade and slide never diverge: ease-out 1-(1-p)^3 on enter, ease-in p^3
-        // on exit, as the bezier points (1/3,1)/(2/3,1) and (1/3,0)/(2/3,0) that reduce to exactly those
-        private void PlayContentFade(float fromOpacity, float toOpacity, int durationMs, bool isEntering)
-        {
-            if (RootGrid == null) return;
-            var visual = ElementCompositionPreview.GetElementVisual(RootGrid);
-            var compositor = visual?.Compositor;
-            if (compositor == null) return;
-
-            var easing = isEntering
-                ? compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 1f), new Vector2(2f / 3f, 1f))
-                : compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 0f), new Vector2(2f / 3f, 0f));
-
-            // opacity only; the window itself does the moving
-            var opacityAnim = compositor.CreateScalarKeyFrameAnimation();
-            opacityAnim.InsertKeyFrame(0.0f, fromOpacity);
-            opacityAnim.InsertKeyFrame(1.0f, toOpacity, easing);
-            opacityAnim.Duration = TimeSpan.FromMilliseconds(durationMs);
-            visual.StartAnimation("Opacity", opacityAnim);
-        }
-
-        private void AnimateNativeWindowPosition(int startX, int startY, int targetX, int targetY, int durationMs, bool isEntering, Action? onComplete = null)
-        {
-            StopSlide();
-
-            _animStartX = startX;
-            _animStartY = startY;
-            _animTargetX = targetX;
-            _animTargetY = targetY;
-            _animDurationMs = durationMs;
-            _animIsEntering = isEntering;
-            _animOnComplete = onComplete;
-
-            _isAdjustingPosition = true;
-            SetWindowPos(_hwnd, IntPtr.Zero, startX, startY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-            _isAdjustingPosition = false;
-
-            _isAnimating = true;
-            _animStopwatch = Stopwatch.StartNew();
-            Microsoft.UI.Xaml.Media.CompositionTarget.Rendering += OnSlideFrame;
-        }
-
-        // ticks with the compositor frame, so the slide keeps pace with the display refresh rate
-        private void OnSlideFrame(object? sender, object e)
-        {
-            if (_animStopwatch == null) return;
-
-            double progress = Math.Clamp((double)_animStopwatch.ElapsedMilliseconds / _animDurationMs, 0.0, 1.0);
-
-            // Fluent 2 easing; enter 1-(1-p)^3, exit p^3
-            double ease = _animIsEntering
-                ? (1.0 - Math.Pow(1.0 - progress, 3))
-                : Math.Pow(progress, 3);
-
-            int currentX = (int)Math.Round(_animStartX + ((_animTargetX - _animStartX) * ease));
-            int currentY = (int)Math.Round(_animStartY + ((_animTargetY - _animStartY) * ease));
-
-            _isAdjustingPosition = true;
-            SetWindowPos(_hwnd, IntPtr.Zero, currentX, currentY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-            _isAdjustingPosition = false;
-
-            if (progress >= 1.0)
-            {
-                var onComplete = _animOnComplete;
-                _animOnComplete = null;
-                StopSlide();
-                onComplete?.Invoke();
-            }
-        }
-
-        // every path that ends a slide (completion, a new slide, SafeDestroy) calls this; the static Rendering event
-        // otherwise keeps ticking for the life of the process
-        private void StopSlide()
-        {
-            if (!_isAnimating) return;
-            _isAnimating = false;
-            Microsoft.UI.Xaml.Media.CompositionTarget.Rendering -= OnSlideFrame;
-            _animStopwatch?.Stop();
-            _animStopwatch = null;
-        }
-
 
         // === window sizing and positioning ===
 
         // places the flyout beside the taskbar widget, on the desktop side of the taskbar edge: along the taskbar per
         // TaskbarFlyoutAlignment, FlyoutMarginToTaskbarDip off it, clamped to the primary work area
-        private void PositionNextToTaskbar(TaskbarWidgetWindow widgetWindow, bool startForSlideAnimation = false)
+        private void PositionNextToTaskbar(TaskbarWidgetWindow widgetWindow)
         {
             var widgetHwnd = WinRT.Interop.WindowNative.GetWindowHandle(widgetWindow);
             NativeMethods.GetWindowRect(widgetHwnd, out var widgetRect);
@@ -1149,77 +1139,22 @@ namespace FluentSensors.Features.TaskbarWidget
             _shadowCardRectPx = new RectInt32(shadowPx, shadowPx, desiredWidthPx, desiredHeightPx);
             _shadowScale = scale;
 
-            // from the taskbar DPI like the rest of the geometry, see _slideOffsetX
-            (_slideOffsetX, _slideOffsetY) = CalculateSlideOffset(edge, GetSlideDistancePx(scale), windowWidthPx, windowHeightPx);
-
-            int initialX = startForSlideAnimation ? (_targetX + _slideOffsetX) : _targetX;
-            int initialY = startForSlideAnimation ? (_targetY + _slideOffsetY) : _targetY;
+            // the card slides toward the taskbar edge, where the window edge clips it
+            _slideDirection = edge switch
+            {
+                ScreenEdge.Top => new Vector3(0, -1, 0),
+                ScreenEdge.Left => new Vector3(-1, 0, 0),
+                ScreenEdge.Right => new Vector3(1, 0, 0),
+                _ => new Vector3(0, 1, 0)
+            };
+            _slideDistanceDip = (float)(SlideDistanceDip * AnimationScaleFactor(SlideDistancePerSensorFactor));
 
             _isAdjustingPosition = true;
-            _appWindow.MoveAndResize(new RectInt32(initialX, initialY, windowWidthPx, windowHeightPx));
+            _appWindow.MoveAndResize(new RectInt32(_targetX, _targetY, windowWidthPx, windowHeightPx));
             _isAdjustingPosition = false;
 
             UpdateShadowPolicy();
             RenderCardShadow();
-        }
-
-        // slide vector from the target toward the taskbar edge, where the window hides behind the taskbar or off
-        // screen; cut to the taskbar monitor only when the path would cross a neighboring monitor
-        private (int X, int Y) CalculateSlideOffset(ScreenEdge edge, int distancePx, int widthPx, int heightPx)
-        {
-            var monitor = DisplayArea.Primary.OuterBounds;
-
-            (int X, int Y) direction = edge switch
-            {
-                ScreenEdge.Top => (0, -1),
-                ScreenEdge.Left => (-1, 0),
-                ScreenEdge.Right => (1, 0),
-                _ => (0, 1)
-            };
-
-            // distance until the far window edge reaches the monitor edge
-            int roomPx = edge switch
-            {
-                ScreenEdge.Top => _targetY - monitor.Y,
-                ScreenEdge.Left => _targetX - monitor.X,
-                ScreenEdge.Right => (monitor.X + monitor.Width) - (_targetX + widthPx),
-                _ => (monitor.Y + monitor.Height) - (_targetY + heightPx)
-            };
-
-            if (distancePx > roomPx)
-            {
-                // the whole path from the parked start to the target
-                var path = new RectInt32(
-                    Math.Min(_targetX, _targetX + (direction.X * distancePx)),
-                    Math.Min(_targetY, _targetY + (direction.Y * distancePx)),
-                    widthPx + Math.Abs(direction.X * distancePx),
-                    heightPx + Math.Abs(direction.Y * distancePx));
-
-                if (OverlapsOtherDisplay(path, monitor))
-                {
-                    distancePx = Math.Max(0, roomPx);
-                }
-            }
-
-            return (direction.X * distancePx, direction.Y * distancePx);
-        }
-
-        private static bool OverlapsOtherDisplay(RectInt32 rect, RectInt32 ownMonitor)
-        {
-            // indexed loop; foreach over DisplayArea.FindAll() throws an InvalidCastException (WinRT enumerator bug)
-            var displayAreas = DisplayArea.FindAll();
-            for (int i = 0; i < displayAreas.Count; i++)
-            {
-                var bounds = displayAreas[i].OuterBounds;
-                if (bounds.Equals(ownMonitor)) continue;
-
-                if (rect.X < bounds.X + bounds.Width && rect.X + rect.Width > bounds.X &&
-                    rect.Y < bounds.Y + bounds.Height && rect.Y + rect.Height > bounds.Y)
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         private double GetScaleFactor()
@@ -1265,7 +1200,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
-            if (_isAdjustingPosition || _isAnimating) return;
+            if (_isAdjustingPosition) return;
 
             if (args.DidSizeChange && _isAnchored)
             {
@@ -1547,7 +1482,7 @@ namespace FluentSensors.Features.TaskbarWidget
             this.DispatcherQueue.TryEnqueue(() =>
             {
                 if (_isClosed || TaskbarWidgetWindow.CurrentInstance == null) return;
-                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
             });
         }
 
@@ -1557,7 +1492,7 @@ namespace FluentSensors.Features.TaskbarWidget
             this.DispatcherQueue.TryEnqueue(() =>
             {
                 if (_isClosed || TaskbarWidgetWindow.CurrentInstance == null) return;
-                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
             });
         }
 
@@ -2046,7 +1981,7 @@ namespace FluentSensors.Features.TaskbarWidget
             // a retired link switches the construction, which moves the window around the card
             if (_isAnchored && _isCardWindow != UsesCardWindow && TaskbarWidgetWindow.CurrentInstance != null)
             {
-                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
             }
             else
             {
