@@ -560,16 +560,24 @@
                                     ToolTipService.ToolTip="{x:Bind ViewModel.GpuAdapterTileValue, Mode=OneWay}" />
                             </StackPanel>
 
-                            <!--  (wording and look still open)  -->
+                            <!--
+                                (the caution info button of the title bar hints; the negative margin keeps the row at the
+                                caption line height, so the button does not push the lines around it apart)
+                            -->
                             <StackPanel
                                 Orientation="Horizontal"
-                                Spacing="6"
+                                Spacing="8"
                                 Visibility="{x:Bind ViewModel.IsGpuNotDisplay, Mode=OneWay}">
-                                <FontIcon
-                                    FontSize="12"
-                                    Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                                    Glyph="&#xE7BA;" />
-                                <TextBlock x:Uid="Start_GpuNotDisplayText" Style="{ThemeResource CaptionTextBlockStyle}" />
+                                <fhInfoPopup:InfoPopupControl
+                                    x:Uid="Start_GpuNotDisplayPopup"
+                                    Margin="0,-3,0,-3"
+                                    VerticalAlignment="Center"
+                                    ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                                    PlacementMode="Above" />
+                                <TextBlock
+                                    x:Uid="Start_GpuNotDisplayText"
+                                    VerticalAlignment="Center"
+                                    Style="{ThemeResource CaptionTextBlockStyle}" />
                             </StackPanel>
 
                             <!--  (the info popup link style, under the gpu it is about)  -->

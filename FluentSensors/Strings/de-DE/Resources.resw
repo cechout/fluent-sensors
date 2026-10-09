@@ -892,6 +892,12 @@ GPU-Speicher - dedizierter und gemeinsam genutzter Grafikspeicher dieser App</va
   <data name="Start_GpuMemoryText.Text" xml:space="preserve">
     <value>GPU-Speicher</value>
   </data>
+  <data name="Start_GpuNotDisplayPopup.Description" xml:space="preserve">
+    <value>Diese App läuft auf einer GPU, die nicht mit dem Bildschirm verbunden ist
+Jedes Bild wird zur GPU kopiert, die den Bildschirm ansteuert, daher laufen Animationen wie das Taskleisten-Flyout mit deutlich weniger Bildern pro Sekunde; wie viel weniger, hängt vom System ab
+Eine stärkere GPU bringt dieser App nichts: Die Graphen zeichnet die CPU, sie brauchen kaum Grafikleistung
+Wähle in den Windows-Grafikeinstellungen Energiesparmodus für FluentSensors und starte die App neu</value>
+  </data>
   <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
     <value>Bildschirm über eine andere GPU</value>
   </data>

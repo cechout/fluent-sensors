@@ -892,6 +892,12 @@ Paměť GPU - vyhrazená a sdílená grafická paměť této aplikace</value>
   <data name="Start_GpuMemoryText.Text" xml:space="preserve">
     <value>Paměť GPU</value>
   </data>
+  <data name="Start_GpuNotDisplayPopup.Description" xml:space="preserve">
+    <value>Tato aplikace běží na GPU, která není připojena k obrazovce
+Každý snímek se kopíruje do GPU, která obrazovku ovládá, proto animace jako flyout na hlavním panelu běží s výrazně nižší snímkovou frekvencí; o kolik nižší, závisí na systému
+Výkonnější GPU této aplikaci nic nepřinese: grafy kreslí procesor a potřebují minimum grafického výkonu
+V nastavení grafiky Windows zvolte pro FluentSensors úsporný režim a aplikaci restartujte</value>
+  </data>
   <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
     <value>Displej přes jinou GPU</value>
   </data>

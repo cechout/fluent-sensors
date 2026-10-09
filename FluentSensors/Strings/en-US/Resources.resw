@@ -899,6 +899,13 @@ GPU memory - dedicated and shared graphics memory used by this app</value>
   <data name="Start_GpuMemoryText.Text" xml:space="preserve">
     <value>GPU memory</value>
   </data>
+  <data name="Start_GpuNotDisplayPopup.Description" xml:space="preserve">
+    <value>This app renders on a GPU that is not connected to the screen
+Every frame is copied over to the GPU that drives the screen, so animations like the taskbar flyout run at a far lower frame rate; how much lower depends on the system
+A stronger GPU brings this app nothing: the graphs are drawn by the CPU and need almost no graphics power
+Choose Power saving for FluentSensors in the Windows graphics settings and restart the app</value>
+    <comment>why rendering on a gpu that drives no screen hurts and what to do</comment>
+  </data>
   <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
     <value>Display via another GPU</value>
     <comment>warning: the app renders on a different graphics processor than the one driving the screen</comment>
