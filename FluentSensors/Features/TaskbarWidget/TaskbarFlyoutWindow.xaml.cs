@@ -433,7 +433,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
             double scale = FlyoutBackdropHost.XamlRoot?.RasterizationScale ?? 1.0;
             float inset = (float)(CardStrokePx(scale) / scale);
-            var radius = new Vector2(CardCornerRadiusDip - inset);
+            // the corners 1 px tighter: clip and stroke antialias the same corner pixels, and their partial coverages
+            // left a hairline of backdrop between them; this way the material reaches under the stroke edge there
+            var radius = new Vector2(CardCornerRadiusDip - inset - (float)(1.0 / scale));
             visual.Clip = visual.Compositor.CreateRectangleClip(
                 inset, inset, width - inset, height - inset, radius, radius, radius, radius);
         }
