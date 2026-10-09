@@ -850,27 +850,33 @@ Laufzeit - wie lange diese App seit dem letzten Start läuft</value>
   </data>
   <data name="Start_HandlesText.Text" xml:space="preserve">
     <value>Handles</value>
+    <comment>count of open Windows handles of this app</comment>
   </data>
   <data name="Start_GcMemoryText.Text" xml:space="preserve">
     <value>GC-Speicher</value>
+    <comment>size of the .NET garbage collected heap</comment>
   </data>
   <data name="Start_UpdateIntervalText.Text" xml:space="preserve">
     <value>Aktualisierungsintervall</value>
   </data>
   <data name="Start_UpdateIntervalValue" xml:space="preserve">
     <value>{0:0} / {1} ms</value>
+    <comment>update interval; {0} measured, {1} configured, both in milliseconds</comment>
   </data>
   <data name="Start_ReadTimeText.Text" xml:space="preserve">
     <value>Lesedauer</value>
   </data>
   <data name="Start_PawnIoText.Text" xml:space="preserve">
     <value>PawnIO-Treiber</value>
+    <comment>PawnIO is a product name, keep it</comment>
   </data>
   <data name="Start_PawnIoInstalled" xml:space="preserve">
     <value>Installiert</value>
+    <comment>state of the PawnIO driver</comment>
   </data>
   <data name="Start_PawnIoMissing" xml:space="preserve">
     <value>Fehlt</value>
+    <comment>state of the PawnIO driver</comment>
   </data>
   <data name="Start_GraphicsPopup.Title" xml:space="preserve">
     <value>Grafik</value>
@@ -885,6 +891,7 @@ GPU-Speicher - dedizierter und gemeinsam genutzter Grafikspeicher dieser App</va
   </data>
   <data name="Start_RunningOnText.Text" xml:space="preserve">
     <value>Läuft auf</value>
+    <comment>the graphics processor this app renders on</comment>
   </data>
   <data name="Start_GpuUsageText.Text" xml:space="preserve">
     <value>GPU-Auslastung</value>
@@ -897,9 +904,11 @@ GPU-Speicher - dedizierter und gemeinsam genutzter Grafikspeicher dieser App</va
 Jedes Bild wird zur GPU kopiert, die den Bildschirm ansteuert, daher laufen Animationen wie das Taskleisten-Flyout mit deutlich weniger Bildern pro Sekunde; wie viel weniger, hängt vom System ab
 Eine stärkere GPU bringt dieser App nichts: Die Graphen zeichnet die CPU, sie brauchen kaum Grafikleistung
 Wähle in den Windows-Grafikeinstellungen Energiesparmodus für FluentSensors und starte die App neu</value>
+    <comment>why rendering on a gpu that drives no screen hurts and what to do</comment>
   </data>
   <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
     <value>Bildschirm über eine andere GPU</value>
+    <comment>warning: the app renders on a different graphics processor than the one driving the screen</comment>
   </data>
   <data name="Start_GraphicsSettingsLink.Content" xml:space="preserve">
     <value>Windows-Grafikeinstellungen</value>
@@ -1443,15 +1452,19 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Info_DisplayBuiltIn" xml:space="preserve">
     <value>Integrierter Bildschirm</value>
+    <comment>the laptop panel</comment>
   </data>
   <data name="Info_DisplayExternal" xml:space="preserve">
     <value>Externer Bildschirm</value>
+    <comment>a monitor that reports no name</comment>
   </data>
   <data name="Info_DisplayVia" xml:space="preserve">
     <value>über {0}</value>
+    <comment>{0} the GPU name; a hybrid laptop GPU whose picture goes through the integrated GPU</comment>
   </data>
   <data name="Info_DisplayNone" xml:space="preserve">
     <value>Keiner</value>
+    <comment>a GPU that drives no display</comment>
   </data>
   <data name="Info_Other" xml:space="preserve">
     <value>Sonstige</value>
