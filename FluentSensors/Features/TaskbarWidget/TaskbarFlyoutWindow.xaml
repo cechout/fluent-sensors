@@ -21,6 +21,9 @@
     -->
     <Grid x:Name="FlyoutWindowRoot" Background="Transparent">
 
+        <!--  the material: the backdrop link visual hangs here, behind the card, sized and clipped to it in code  -->
+        <Grid x:Name="FlyoutBackdropHost" IsHitTestVisible="False" />
+
         <Border
             x:Name="FlyoutRootBorder"
             Background="{ThemeResource FlyoutWindowBackground}"

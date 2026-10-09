@@ -259,9 +259,17 @@ namespace FluentSensors.Features.TaskbarWidget
         private DesktopAcrylicController? _acrylicController;
         private SystemBackdropConfiguration? _configurationSource;
 
-        // the backdrop link the card material moves onto; rooted for the process lifetime, closing it off the UI
-        // thread kills the process
-        private static WinBackdropLink? _backdropLink;
+        // the backdrop link the card material rides on, one per window; closing it off the UI thread kills the
+        // process, so SafeDestroy closes it and parks it in _retiredBackdropLinks, out of reach of the finalizer
+        private WinBackdropLink? _backdropLink;
+        private static readonly List<WinBackdropLink> _retiredBackdropLinks = new();
+
+        // card corner radius in dip, the clip of the material; (CornerRadius of FlyoutRootBorder)
+        private const float CardCornerRadiusDip = 8f;
+
+        // edge treatment of the link material and of the placement visual (its rounded clip)
+        private const CompositionBorderMode BackdropLinkBorderMode = CompositionBorderMode.Hard;
+        private const CompositionBorderMode BackdropPlacementBorderMode = CompositionBorderMode.Soft;
 
         // the construction the current geometry was placed for, see UsesCardWindow
         private bool _isCardWindow;
@@ -374,27 +382,81 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === backdrop link ===
 
-        // creates the link once per process; without it the flyout keeps the window level construction
+        // creates the link and hangs its visual behind the card; without it the flyout keeps the window level
+        // construction
         private void EnsureBackdropLink()
         {
             if (_backdropLink != null) return;
 
+            WinBackdropLink? link = null;
             try
             {
-                var compositor = ElementCompositionPreview.GetElementVisual(FlyoutRootBorder).Compositor;
-                _backdropLink = WinBackdropLink.Create(compositor);
-                Debug.WriteLine($"[BackdropLink] created via {_backdropLink.ActivationRoute}");
+                var compositor = ElementCompositionPreview.GetElementVisual(FlyoutBackdropHost).Compositor;
+                link = WinBackdropLink.Create(compositor);
+                link.BorderMode = BackdropLinkBorderMode;
+                link.PlacementVisual.BorderMode = BackdropPlacementBorderMode;
+
+                ElementCompositionPreview.SetElementChildVisual(FlyoutBackdropHost, link.PlacementVisual);
+                FlyoutBackdropHost.SizeChanged += FlyoutBackdropHost_SizeChanged;
+
+                _backdropLink = link;
+                Debug.WriteLine($"[BackdropLink] created via {link.ActivationRoute}");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[BackdropLink] failed: 0x{ex.HResult:X8} {ex.GetType().Name}: {ex.Message}");
+                if (link != null) RetireLink(link);
             }
         }
 
-        // --- revisit: acrylic still on the window ---
-        // the card construction runs only while no window level controller is attached, since that one fills the
-        // whole window rect, margin included; once the material rides the link this is the link alone
-        private bool UsesCardWindow => _backdropLink != null && _acrylicController == null;
+        // the material covers the card to its outer edge, the card stroke draws over it; sizes are in dip, so a
+        // scale change needs nothing here
+        private void FlyoutBackdropHost_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (_isClosed || _backdropLink == null) return;
+
+            var visual = _backdropLink.PlacementVisual;
+            float width = (float)e.NewSize.Width;
+            float height = (float)e.NewSize.Height;
+            visual.Size = new Vector2(width, height);
+
+            var radius = new Vector2(CardCornerRadiusDip);
+            visual.Clip = visual.Compositor.CreateRectangleClip(0, 0, width, height, radius, radius, radius, radius);
+        }
+
+        // drops the link for good: no controller may target it any more (UI thread only, see _backdropLink)
+        private void RetireBackdropLink()
+        {
+            if (_backdropLink == null) return;
+
+            var link = _backdropLink;
+            _backdropLink = null;
+            FlyoutBackdropHost.SizeChanged -= FlyoutBackdropHost_SizeChanged;
+
+            try
+            {
+                ElementCompositionPreview.SetElementChildVisual(FlyoutBackdropHost, null);
+            }
+            catch { }
+
+            RetireLink(link);
+        }
+
+        private static void RetireLink(WinBackdropLink link)
+        {
+            _retiredBackdropLinks.Add(link);
+            try
+            {
+                link.Close();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[BackdropLink] close failed: 0x{ex.HResult:X8} {ex.Message}");
+            }
+        }
+
+        // the card construction, whenever the link exists: the window is transparent, the material rides the card
+        private bool UsesCardWindow => _backdropLink != null;
 
 
         // === shadow policy ===
@@ -654,6 +716,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 _messageMonitor = null;
                 _acrylicController?.Dispose();
                 _acrylicController = null;
+                // after the controller, so nothing targets the link any more; SafeDestroy runs on the UI thread
+                RetireBackdropLink();
                 _noiseBitmap = null;
                 this.Close();
             }
@@ -1781,12 +1845,15 @@ namespace FluentSensors.Features.TaskbarWidget
                 // Base is the variant the Windows 11 shell surfaces use:
                 // https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.composition.systembackdrops.desktopacrylickind
                 _acrylicController.Kind = DesktopAcrylicKind.Base;
-                _acrylicController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
+                AddBackdropTarget(_acrylicController);
                 _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
 
                 UpdateAcrylicProperties();
             }
-            else
+
+            // the card window stays transparent under the link material, the window level one only without a
+            // controller
+            if (UsesCardWindow || _acrylicController == null)
             {
                 this.SystemBackdrop = new TransparentTintBackdrop();
             }
@@ -1794,7 +1861,7 @@ namespace FluentSensors.Features.TaskbarWidget
             // the base color, read off the controller set above
             UpdateSolidBackground();
 
-            // a controller coming or going switches the construction, which moves the window around the card
+            // a retired link switches the construction, which moves the window around the card
             if (_isAnchored && _isCardWindow != UsesCardWindow && TaskbarWidgetWindow.CurrentInstance != null)
             {
                 PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
@@ -1803,6 +1870,27 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 UpdateShadowPolicy();
             }
+        }
+
+        // the link when there is one, the window otherwise; a link the controller refuses is retired, so the flyout
+        // falls back to the window level construction for good (SetBackdrop then re-places the window)
+        private void AddBackdropTarget(DesktopAcrylicController controller)
+        {
+            if (_backdropLink != null)
+            {
+                try
+                {
+                    controller.AddSystemBackdropTarget(_backdropLink.Target);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[BackdropLink] target refused: 0x{ex.HResult:X8} {ex.Message}");
+                    RetireBackdropLink();
+                }
+            }
+
+            controller.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
         }
 
         private void SetConfigurationSourceTheme()
