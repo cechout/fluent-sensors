@@ -77,6 +77,25 @@ namespace FluentSensors.Core.StaticInfo
             };
         }
 
+        // where the picture goes: the displays it drives, the integrated gpu a hybrid discrete one renders through, or
+        // none; "" when the gpu had no DXGI match and so no known adapter
+        public static string FormatGpuDisplay(WinGpuInfo gpu)
+        {
+            if (gpu.AdapterLuid == 0) return "";
+
+            if (gpu.Displays.Count > 0)
+            {
+                return string.Join(", ", gpu.Displays.Select(d =>
+                    d.IsBuiltIn ? AppStrings.Get("Info_DisplayBuiltIn")
+                    : d.FriendlyName.Length > 0 ? d.FriendlyName
+                    : AppStrings.Get("Info_DisplayExternal")));
+            }
+
+            return gpu.DisplayViaGpuName != null
+                ? AppStrings.Format("Info_DisplayVia", gpu.DisplayViaGpuName)
+                : AppStrings.Get("Info_DisplayNone");
+        }
+
 
         // === ram ===
 

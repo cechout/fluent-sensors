@@ -1,4 +1,7 @@
-﻿namespace FluentSensors.Core.StaticInfo
+﻿using System.Collections.Generic;
+
+
+namespace FluentSensors.Core.StaticInfo
 {
     // one GPU; not Win32_VideoController.AdapterRAM, a uint32 that truncates 4 GB and more (undocumented but
     // reproduced, an 8 GB RTX 2070 reports 4293918720):
@@ -14,6 +17,11 @@
         uint DeviceId,
         ulong DedicatedVideoMemoryBytes,
         ulong DedicatedSystemMemoryBytes,
-        ulong SharedSystemMemoryBytes
+        ulong SharedSystemMemoryBytes,
+        long AdapterLuid, // 0 without a DXGI match
+
+        // where the picture of this gpu goes, see WinDisplayTopology; read once at startup like the rest
+        IReadOnlyList<WinDisplay> Displays, // the displays it scans out itself
+        string? DisplayViaGpuName // the integrated gpu a hybrid discrete one renders through, when it drives none
     );
 }

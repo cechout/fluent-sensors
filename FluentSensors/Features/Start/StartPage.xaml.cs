@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
@@ -32,6 +33,10 @@ namespace FluentSensors.Features.Start
         // would (the view model only raises on a text change)
         private static readonly TimeSpan UptimeTimerInterval = TimeSpan.FromMilliseconds(250);
         private DispatcherQueueTimer? _uptimeTimer;
+
+        // the graphics tile; open while the page shows, a read walks every gpu engine of every process
+        private WinAppGpuMonitor? _gpuMonitor;
+        private bool _isGpuReadRunning;
 
         // copy version button
         private const string CopyGlyph = "\uE8C8";
@@ -79,6 +84,9 @@ namespace FluentSensors.Features.Start
             ViewModel.RefreshUptime();
             _uptimeTimer ??= CreateUptimeTimer();
             _uptimeTimer.Start();
+
+            _gpuMonitor = new WinAppGpuMonitor();
+            ReadGpu();
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -90,6 +98,9 @@ namespace FluentSensors.Features.Start
             this.ActualThemeChanged -= OnActualThemeChanged;
 
             _uptimeTimer?.Stop();
+
+            _gpuMonitor?.Dispose();
+            _gpuMonitor = null;
         }
 
         // runs while loaded only; Page_Loaded catches up on return
@@ -120,7 +131,32 @@ namespace FluentSensors.Features.Start
         }
 
         // on the UI thread as well, see AppStatusService.Tick
-        private void OnStatusUpdated(AppStatusData data) => ViewModel.ApplyStatus(data);
+        private void OnStatusUpdated(AppStatusData data)
+        {
+            ViewModel.ApplyStatus(data);
+            ReadGpu();
+        }
+
+        // off the UI thread at the status cadence, one read at a time
+        private void ReadGpu()
+        {
+            var monitor = _gpuMonitor;
+            if (monitor == null || _isGpuReadRunning) return;
+
+            _isGpuReadRunning = true;
+            Task.Run(() =>
+            {
+                AppGpuData? data = null;
+                try { data = monitor.Read(); }
+                catch { /* the counters vanished; the tile keeps its last values */ }
+
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    _isGpuReadRunning = false;
+                    if (data != null && monitor == _gpuMonitor) ViewModel.ApplyGpu(data);
+                });
+            });
+        }
 
         // two exports, not one image for both backgrounds
         private void ApplyHeroImage()
@@ -180,6 +216,25 @@ namespace FluentSensors.Features.Start
 
         private async void StoreReviewLink_Click(object sender, RoutedEventArgs e) =>
             await AppDistribution.OpenStoreReviewAsync();
+
+        // Launcher first, the shell as the fallback, as for the store links; (from the elevated app Launcher may not
+        // reach the settings app)
+        private async void GraphicsSettingsLink_Click(object sender, RoutedEventArgs e)
+        {
+            var uri = new Uri("ms-settings:display-advancedgraphics");
+
+            try
+            {
+                if (await Windows.System.Launcher.LaunchUriAsync(uri)) return;
+            }
+            catch { /* the shell below gets the next try */ }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(uri.ToString()) { UseShellExecute = true });
+            }
+            catch { /* nothing left to try, the click simply does nothing */ }
+        }
 
         private async Task ShowUpdateDialogAsync(UpdateInfo? info)
         {

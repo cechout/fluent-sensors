@@ -97,8 +97,7 @@ Hodnoty GPU, úložiště, sítě a paměti nejsou ovlivněny</value>
   <data name="Main_LhmInfoPopup.Description" xml:space="preserve">
     <value>Senzory (nalezené/vykreslené) - senzory nalezené LibreHardwareMonitorem a kolik z nich se aktivně vykresluje
 Dotaz (aktuální/cílový) - naměřená obnovovací frekvence oproti frekvenci nastavené v Nastavení
-Čtení - doba jednoho úplného průchodu senzory, blízko frekvenci dotazu znamená, že nezbývá žádná rezerva
-LibreHardwareMonitorLib je největší a nejzavedenější knihovna pro monitorování hardwaru ve Windows</value>
+Čtení - doba jednoho úplného průchodu senzory, blízko frekvenci dotazu znamená, že nezbývá žádná rezerva</value>
   </data>
   <data name="Main_LhmInfoPopup.SourceIntro" xml:space="preserve">
     <value>Tato aplikace je postavena na open source projektu LibreHardwareMonitor:</value>
@@ -811,7 +810,9 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Start_LhmPopup.Description" xml:space="preserve">
     <value>Nalezené senzory - každý senzor, který LibreHardwareMonitor na tomto zařízení hlásí
 Vykreslované senzory - kolik z nich se právě aktivně vykresluje
-LibreHardwareMonitorLib je největší a nejzavedenější knihovna pro monitorování hardwaru ve Windows</value>
+Interval aktualizace - naměřený oproti nastavenému intervalu dotazování
+Doba čtení - jak dlouho trvá jedno úplné přečtení všech senzorů
+Ovladač PawnIO - přístup k jádru pro senzory CPU, základní desky a paměti</value>
   </data>
   <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
     <value>Tato aplikace je postavena na open source projektu LibreHardwareMonitor:</value>
@@ -831,6 +832,8 @@ LibreHardwareMonitorLib je největší a nejzavedenější knihovna pro monitoro
   <data name="Start_ThisAppPopup.Description" xml:space="preserve">
     <value>Využití CPU - vlastní čas CPU této aplikace vzhledem k celkové kapacitě všech jader
 Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovní sada)
+Paměť GC - spravovaná halda .NET, součást využití RAM
+Handly - otevřené objekty Windows (soubory, vlákna, události) této aplikace
 Doba běhu - jak dlouho aplikace běží od posledního spuštění</value>
   </data>
   <data name="Start_ThisAppPopup.SourceIntro" xml:space="preserve">
@@ -844,6 +847,62 @@ Doba běhu - jak dlouho aplikace běží od posledního spuštění</value>
   </data>
   <data name="Start_UptimeText.Text" xml:space="preserve">
     <value>Doba běhu</value>
+  </data>
+  <data name="Start_HandlesText.Text" xml:space="preserve">
+    <value>Handly</value>
+  </data>
+  <data name="Start_GcMemoryText.Text" xml:space="preserve">
+    <value>Paměť GC</value>
+  </data>
+  <data name="Start_UpdateIntervalText.Text" xml:space="preserve">
+    <value>Interval aktualizace</value>
+  </data>
+  <data name="Start_UpdateIntervalValue" xml:space="preserve">
+    <value>{0:0} / {1} ms</value>
+  </data>
+  <data name="Start_ReadTimeText.Text" xml:space="preserve">
+    <value>Doba čtení</value>
+  </data>
+  <data name="Start_PawnIoText.Text" xml:space="preserve">
+    <value>Ovladač PawnIO</value>
+  </data>
+  <data name="Start_PawnIoInstalled" xml:space="preserve">
+    <value>Nainstalován</value>
+  </data>
+  <data name="Start_PawnIoMissing" xml:space="preserve">
+    <value>Chybí</value>
+  </data>
+  <data name="Start_GraphicsPopup.Title" xml:space="preserve">
+    <value>Grafika</value>
+  </data>
+  <data name="Start_GraphicsPopup.Description" xml:space="preserve">
+    <value>Běží na - grafický procesor, který vykresluje tuto aplikaci
+Využití GPU - podíl této aplikace na jejím nejvytíženějším enginu GPU (jako ve Správci úloh)
+Paměť GPU - vyhrazená a sdílená grafická paměť této aplikace</value>
+  </data>
+  <data name="Start_GraphicsPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Start_RunningOnText.Text" xml:space="preserve">
+    <value>Běží na</value>
+  </data>
+  <data name="Start_GpuUsageText.Text" xml:space="preserve">
+    <value>Využití GPU</value>
+  </data>
+  <data name="Start_GpuMemoryText.Text" xml:space="preserve">
+    <value>Paměť GPU</value>
+  </data>
+  <data name="Start_GpuNotDisplayPopup.Description" xml:space="preserve">
+    <value>Tato aplikace běží na GPU, která není připojena k obrazovce
+Každý snímek se kopíruje do GPU, která obrazovku ovládá, proto animace jako flyout na hlavním panelu běží s výrazně nižší snímkovou frekvencí; o kolik nižší, závisí na systému
+Výkonnější GPU této aplikaci nic nepřinese: grafy kreslí procesor a potřebují minimum grafického výkonu
+V nastavení grafiky Windows zvolte pro FluentSensors úsporný režim a aplikaci restartujte</value>
+  </data>
+  <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
+    <value>Displej přes jinou GPU</value>
+  </data>
+  <data name="Start_GraphicsSettingsLink.Content" xml:space="preserve">
+    <value>Nastavení grafiky Windows</value>
   </data>
   <data name="Start_AboutOpenSourceText.Text" xml:space="preserve">
     <value>O aplikaci a open source</value>
@@ -1117,7 +1176,8 @@ Firmware - aktuálně zapnuto nebo ne (nespolehlivé)</value>
     <value>Obecné</value>
   </data>
   <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Verze ovladače - interní číslo ovladače Windows, liší se od schématu verzí výrobce</value>
+    <value>Verze ovladače - interní číslo ovladače Windows, liší se od schématu verzí výrobce
+Displej - displeje, které tato GPU ovládá, nebo u hybridního notebooku GPU, přes kterou jde její obraz</value>
   </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1380,6 +1440,18 @@ DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo 
   </data>
   <data name="Info_No" xml:space="preserve">
     <value>Ne</value>
+  </data>
+  <data name="Info_DisplayBuiltIn" xml:space="preserve">
+    <value>Vestavěný displej</value>
+  </data>
+  <data name="Info_DisplayExternal" xml:space="preserve">
+    <value>Externí displej</value>
+  </data>
+  <data name="Info_DisplayVia" xml:space="preserve">
+    <value>přes {0}</value>
+  </data>
+  <data name="Info_DisplayNone" xml:space="preserve">
+    <value>Žádný</value>
   </data>
   <data name="Info_Other" xml:space="preserve">
     <value>Jiné</value>

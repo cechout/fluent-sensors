@@ -25,6 +25,9 @@
 	  <ApplicationIcon>Assets\Icon\Icon.ico</ApplicationIcon>
 	  <WindowsPackageType>None</WindowsPackageType>
 	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+
+	  <!-- Program.cs holds Main, so the gpu preference is written before WinUI creates its first device -->
+	  <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
 	<ItemGroup>
 		<None Remove="Assets\IconDraft31.ico" />

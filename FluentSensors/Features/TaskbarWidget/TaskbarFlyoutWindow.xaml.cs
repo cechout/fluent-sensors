@@ -41,8 +41,9 @@ namespace FluentSensors.Features.TaskbarWidget
     // 1. no titlebar stripe, WM_NCCALCSIZE returning 0
     // 2. a height capped against the work area, the graph list scrolls past it
     // 3. Z-order directly beneath Shell_TrayWnd, so it slides out from under the taskbar
-    // 4. a real window slide on CompositionTarget.Rendering plus a composition opacity fade
-    // 5. DWM corner and shadow settings that follow the Windows transparency setting
+    // 4. a composition slide of the card inside the still window plus an opacity fade of the content
+    // 5. a transparent window around the card: the material rides a backdrop link clipped to the card, the
+    //    shadow is a computed bitmap in the margin; DWM corners and shadow only when the link is unavailable
     // 6. a DesktopAcrylicController backdrop with a swapchain kick after a rebuild
     //
     // references:
@@ -132,25 +133,32 @@ namespace FluentSensors.Features.TaskbarWidget
 
 
         // --- animation & performance settings ---
+        // the card slides inside the still window as a composition translation, like the native flyouts, and the
+        // window edge on the taskbar side clips it; it reaches the full refresh rate when the app renders on the GPU
+        // that drives the display (on a hybrid laptop set to the other GPU every frame is copied across, measured
+        // 165 Hz against 30 to 80)
 
-        public const int WindowSlideDistanceDip = 300;
-
-        // in ms
+        // open: ease-out cubic over a fixed duration, only the distance grows with the pinned sensors; (the native
+        // Start menu, 726 dip tall, settles in 160 ms, so a taller card must not take longer)
+        public const int SlideDistanceDip = 300;
         public const int EnterAnimationDurationMs = 240;
-        public const int ExitAnimationDurationMs = 140;
 
-        // scaling with the pinned sensor count; durations and distance are tuned for AnimationReferenceSensorCount,
-        // each sensor above or below scales them by its factor (0 = fixed, 0.18 = 18 percent per sensor)
+        // close: the Windows Quick Settings curve, measured; accelerating over 515 dip in 167 ms, hidden at its end
+        public const int ExitAnimationDurationMs = 167;
+        public const int ExitSlideDistanceDip = 515;
+        private static readonly Vector2 ExitEasingControlPoint1 = new(0.751f, 0f);
+        private static readonly Vector2 ExitEasingControlPoint2 = new(0.950f, 0.612f);
+
+        // scaling of the open distance with the pinned sensor count; tuned for AnimationReferenceSensorCount, each
+        // sensor above or below scales it by the factor
         public const int AnimationReferenceSensorCount = 2;
-        public const double EnterDurationPerSensorFactor = 0.20;
-        public const double ExitDurationPerSensorFactor = 0.14;
         public const double SlideDistancePerSensorFactor = 0.10;
 
-        // clamps the scaling, so one sensor does not snap open and a full flyout does not crawl
+        // clamps the scaling
         public const double MinAnimationScaleFactor = 0.75;
         public const double MaxAnimationScaleFactor = 3.0;
 
-        // fade opacity
+        // fade opacity; the content only, material, stroke and shadow do not fade
         public const float EnterFadeStartOpacity = 0.0f;
         public const float EnterFadeEndOpacity = 1.0f;
         public const float ExitFadeEndOpacity = 0.9f;
@@ -160,18 +168,21 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // --- mica preset (BackdropType "Mica" with Windows transparency on) ---
         // over a flat backdrop the controller resolves to lerp(backdrop, tint, luminosity); the native shell flyouts
-        // measure as 4 percent backdrop transmission in dark and 9 in light
-        // no TintOpacity: the tint blend carries hue and saturation only, so a gray tint makes it a no-op (the source
-        // names its BlendEffectMode swapped, the tint layer reads as Luminosity there):
+        // measure as 4 percent backdrop transmission in dark and 9.4 in light (their bottom bar, the bare material)
+        // TintOpacity: the tint blend carries hue and saturation only, so a gray tint leaves every gray value alone
+        // and only takes the color out of what shows through; the native flyouts pass far less color than the
+        // default does (the source names its BlendEffectMode swapped, the tint layer reads as Luminosity there):
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.cpp
         // tints are the Fluent acrylic base tones, AcrylicBackgroundFillColorBaseBrush, not pre-compensated (the
         // render shift applies once to the finished composite):
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush_19h1_themeresources.xaml
         public static readonly Windows.UI.Color MicaPresetDarkTintColor = Windows.UI.Color.FromArgb(255, 0x20, 0x20, 0x20);
         public const float MicaPresetDarkLuminosity = 0.96f;
+        public const float MicaPresetDarkTintOpacity = 0.8f;
 
         public static readonly Windows.UI.Color MicaPresetLightTintColor = Windows.UI.Color.FromArgb(255, 0xF3, 0xF3, 0xF3);
-        public const float MicaPresetLightLuminosity = 0.91f;
+        public const float MicaPresetLightLuminosity = 0.902f;
+        public const float MicaPresetLightTintOpacity = 0.5f;
 
 
         // === fields ===
@@ -182,6 +193,12 @@ namespace FluentSensors.Features.TaskbarWidget
         // area, which caps the height)
         public const int FlyoutMarginToTaskbarDip = 12;
         public const int FlyoutMarginToScreenEdgeDip = 12; // along the taskbar
+
+        // card construction: the window is the card plus a transparent margin the shadow falls into, on every side;
+        // the anchor gaps above stay gaps to the card
+        public const int FlyoutShadowMarginDip = 12;
+        // below the card when no taskbar is there to cut the shadow, so it fades out in full
+        public const int FlyoutShadowFalloffMarginDip = 32;
 
         // inward offset from the widget edge TaskbarFlyoutAlignment picks; (Center ignores it)
         public const int FlyoutAlignmentOffsetDip = 0;
@@ -231,19 +248,14 @@ namespace FluentSensors.Features.TaskbarWidget
         private FluentSensors.Controls.VerticalStretchPanel? _graphsPanel;
         private bool _isGraphsScrolling;
 
-        // native window slide, ticked from CompositionTarget.Rendering; (a DispatcherTimer caps out near 60 fps, the
-        // compositor tick follows the display refresh rate)
-        private bool _isAnimating;
-        private Stopwatch? _animStopwatch;
-        private int _animStartX, _animStartY, _animTargetX, _animTargetY;
-        private int _animDurationMs;
-        private bool _animIsEntering;
-        private Action? _animOnComplete;
+        // slide toward the taskbar edge, a unit vector in screen axes, and the open distance in dip; set per open
+        private Vector3 _slideDirection = new(0, 1, 0);
+        private float _slideDistanceDip = SlideDistanceDip;
 
-        // slide offset in px, from the target toward the taskbar; set per open from the taskbar DPI (recomputing it
-        // against the window DPI could jump the first frame on a mixed-DPI setup)
-        private int _slideOffsetX;
-        private int _slideOffsetY;
+        // the close in flight; its batch completes after the animations and hides the window, a newer slide replaces
+        // it and its completion is ignored
+        private CompositionScopedBatch? _exitBatch;
+        private bool _isSlideTurningAround;
 
         public TaskbarWidgetViewModel ViewModel { get; }
         public static TaskbarFlyoutWindow? CurrentInstance { get; private set; }
@@ -252,6 +264,23 @@ namespace FluentSensors.Features.TaskbarWidget
         // system backdrop; (no MicaController, "Mica" runs through _acrylicController too, see SetBackdrop)
         private DesktopAcrylicController? _acrylicController;
         private SystemBackdropConfiguration? _configurationSource;
+
+        // the backdrop link the card material rides on, one per window and so one per process (the flyout is never
+        // closed); closing it off the UI thread kills the process, so a retired one is closed here and parked in
+        // _retiredBackdropLinks, out of reach of the finalizer
+        private WinBackdropLink? _backdropLink;
+        private static readonly List<WinBackdropLink> _retiredBackdropLinks = new();
+
+        // card corner radius and stroke in dip; (CornerRadius and BorderThickness of FlyoutRootBorder)
+        private const float CardCornerRadiusDip = 8f;
+        private const float CardBorderDip = 1f;
+
+        // edge treatment of the link material and of the placement visual (its rounded clip)
+        private const CompositionBorderMode BackdropLinkBorderMode = CompositionBorderMode.Hard;
+        private const CompositionBorderMode BackdropPlacementBorderMode = CompositionBorderMode.Soft;
+
+        // the construction the current geometry was placed for, see UsesCardWindow
+        private bool _isCardWindow;
 
 
         // === constructor ===
@@ -305,6 +334,10 @@ namespace FluentSensors.Features.TaskbarWidget
             _messageMonitor = new WindowMessageMonitor(_hwnd);
             _messageMonitor.WindowMessageReceived += OnWindowMessageReceived;
 
+            // before the first backdrop, which picks the construction from it
+            EnsureBackdropLink();
+
+
             // shadow policy follows the Windows transparency setting
             InitializeShadowPolicy();
 
@@ -335,15 +368,16 @@ namespace FluentSensors.Features.TaskbarWidget
 
             ((FrameworkElement)this.Content).ActualThemeChanged += (s, e) =>
             {
-                if (_isClosed) return;
                 this.DispatcherQueue.TryEnqueue(() =>
                 {
-                    if (_isClosed) return;
                     SetConfigurationSourceTheme();
                     UpdateAcrylicProperties();
                     UpdateSolidBackground();
                 });
             };
+
+            // the card slide animates the translation of the window content on its composition visual
+            ElementCompositionPreview.SetIsTranslationEnabled(FlyoutWindowRoot, true);
 
             GraphsItemsControl.LayoutUpdated += OnGraphsItemsControlLayoutUpdated;
 
@@ -351,9 +385,95 @@ namespace FluentSensors.Features.TaskbarWidget
             FlyoutRootBorder.SizeChanged += FlyoutRootBorder_SizeChanged;
             _appWindow.Closing += AppWindow_Closing;
             this.Activated += Window_Activated;
-
-            KickBackdropRefresh();
         }
+
+
+        // === backdrop link ===
+
+        // creates the link and hangs its visual behind the card; without it the flyout keeps the window level
+        // construction
+        private void EnsureBackdropLink()
+        {
+            if (_backdropLink != null) return;
+
+            WinBackdropLink? link = null;
+            try
+            {
+                var compositor = ElementCompositionPreview.GetElementVisual(FlyoutBackdropHost).Compositor;
+                link = WinBackdropLink.Create(compositor);
+                link.BorderMode = BackdropLinkBorderMode;
+                link.PlacementVisual.BorderMode = BackdropPlacementBorderMode;
+
+                ElementCompositionPreview.SetElementChildVisual(FlyoutBackdropHost, link.PlacementVisual);
+                FlyoutBackdropHost.SizeChanged += FlyoutBackdropHost_SizeChanged;
+
+                _backdropLink = link;
+                Debug.WriteLine($"[BackdropLink] created via {link.ActivationRoute}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[BackdropLink] failed: 0x{ex.HResult:X8} {ex.GetType().Name}: {ex.Message}");
+                if (link != null) RetireLink(link);
+            }
+        }
+
+        // the material stops inside the card stroke, so the stroke lies over the backdrop and the shadow like the
+        // native one; sizes are in dip, the inset follows the pixel snapped stroke (a scale change resizes the host)
+        private void FlyoutBackdropHost_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (_backdropLink == null) return;
+
+            var visual = _backdropLink.PlacementVisual;
+            float width = (float)e.NewSize.Width;
+            float height = (float)e.NewSize.Height;
+            visual.Size = new Vector2(width, height);
+
+            double scale = FlyoutBackdropHost.XamlRoot?.RasterizationScale ?? 1.0;
+            float inset = (float)(CardStrokePx(scale) / scale);
+            // the corners 1 px tighter: clip and stroke antialias the same corner pixels, and their partial coverages
+            // left a hairline of backdrop between them; this way the material reaches under the stroke edge there
+            var radius = new Vector2(CardCornerRadiusDip - inset - (float)(1.0 / scale));
+            visual.Clip = visual.Compositor.CreateRectangleClip(
+                inset, inset, width - inset, height - inset, radius, radius, radius, radius);
+        }
+
+        // the card stroke in physical px; layout rounding snaps the 1 dip stroke to whole pixels (2 at 175 percent,
+        // both rows read as pure stroke over the backdrop), so material and shadow cut-out start behind that
+        private static double CardStrokePx(double scale) => Math.Max(1.0, Math.Round(CardBorderDip * scale));
+
+        // drops the link for good: no controller may target it any more (UI thread only, see _backdropLink)
+        private void RetireBackdropLink()
+        {
+            if (_backdropLink == null) return;
+
+            var link = _backdropLink;
+            _backdropLink = null;
+            FlyoutBackdropHost.SizeChanged -= FlyoutBackdropHost_SizeChanged;
+
+            try
+            {
+                ElementCompositionPreview.SetElementChildVisual(FlyoutBackdropHost, null);
+            }
+            catch { }
+
+            RetireLink(link);
+        }
+
+        private static void RetireLink(WinBackdropLink link)
+        {
+            _retiredBackdropLinks.Add(link);
+            try
+            {
+                link.Close();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[BackdropLink] close failed: 0x{ex.HResult:X8} {ex.Message}");
+            }
+        }
+
+        // the card construction, whenever the link exists: the window is transparent, the material rides the card
+        private bool UsesCardWindow => _backdropLink != null;
 
 
         // === shadow policy ===
@@ -374,8 +494,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
-        // named so SafeDestroy can detach it (every rebuilt window subscribes anew); goes through the router, since
-        // ColorValuesChanged also fires for a pure accent change that needs no rebuild
+        // goes through the router, since ColorValuesChanged also fires for a pure accent change that needs no rebuild
         private void OnSystemVisualSettingsChanged(UISettings sender, object args)
         {
             RouteSystemVisualsChange(sender);
@@ -387,7 +506,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
             bool isTransparencyEnabled = _uiSettings != null && _uiSettings.AdvancedEffectsEnabled;
 
-            if (isTransparencyEnabled)
+            // the card window takes the flat branch in both states; the card draws corners and border itself
+            if (isTransparencyEnabled && !UsesCardWindow)
             {
                 // transparency on; DWM rounds the corners and clips the acrylic (the native shadow comes with it)
                 int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
@@ -401,7 +521,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             else
             {
-                // transparency off; no DWM rounding and no shadow, the XAML border draws the 8px corners
+                // transparency off or the card window; no DWM rounding and no shadow, the XAML border draws the 8px
+                // corners
                 int cornerPreference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DONOTROUND;
                 DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPreference, sizeof(int));
 
@@ -450,11 +571,11 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             if (CurrentInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
             {
-                CurrentInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                CurrentInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
             }
             else if (_retainedInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
             {
-                _retainedInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                _retainedInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
             }
         }
 
@@ -466,7 +587,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             var window = new TaskbarFlyoutWindow(widgetWindow.ViewModel);
             _retainedInstance = window;
-            window.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: false);
+            window.PositionNextToTaskbar(widgetWindow);
 
             if (KeepFlyoutGraphsActiveInBackground)
             {
@@ -504,8 +625,9 @@ namespace FluentSensors.Features.TaskbarWidget
             if (CurrentInstance != null)
             {
                 CurrentInstance.ApplyTheme(SettingsService.Instance.AppTheme);
-                CurrentInstance.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: true);
+                CurrentInstance.PositionNextToTaskbar(widgetWindow);
                 CurrentInstance.SetGraphsRenderingActive(true);
+                CurrentInstance.PrepareSlideIn();
                 CurrentInstance._appWindow.Show();
                 CurrentInstance.EnsureBehindTaskbarZOrder();
                 CurrentInstance.Activate();
@@ -520,8 +642,9 @@ namespace FluentSensors.Features.TaskbarWidget
                 CurrentInstance = window;
 
                 window.ApplyTheme(SettingsService.Instance.AppTheme);
-                window.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: true);
+                window.PositionNextToTaskbar(widgetWindow);
                 window.SetGraphsRenderingActive(true);
+                window.PrepareSlideIn();
                 window._appWindow.Show();
                 window.EnsureBehindTaskbarZOrder();
                 window.Activate();
@@ -531,8 +654,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
             var newWindow = new TaskbarFlyoutWindow(widgetWindow.ViewModel);
             newWindow.ApplyTheme(SettingsService.Instance.AppTheme);
-            newWindow.PositionNextToTaskbar(widgetWindow, startForSlideAnimation: true);
+            newWindow.PositionNextToTaskbar(widgetWindow);
             newWindow.SetGraphsRenderingActive(true);
+            newWindow.PrepareSlideIn();
             newWindow._appWindow.Show();
             newWindow.EnsureBehindTaskbarZOrder();
             newWindow.Activate();
@@ -552,69 +676,6 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow.Hide();
                 TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
             });
-        }
-
-        private bool _isClosed = false;
-
-        // --- memory leak: flyout instance never released after a real close ---
-        // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
-        // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
-        // fix: none here; the one place that destroys for real, since DWM only rebinds the acrylic on a full
-        // recreation (see ScheduleRecreation); one leaked CCW per OS theme or transparency change, knowingly paid
-        // only ever called from ExecuteFullRebuild
-        public void SafeDestroy()
-        {
-            if (_isClosed) return;
-            _isClosed = true;
-
-            // a slide still in flight would keep the static Rendering event ticking a dead window
-            StopSlide();
-
-            try
-            {
-                SettingsService.Instance.ThemeChanged -= OnThemeChanged;
-                SettingsService.Instance.TaskbarBackdropTypeChanged -= OnBackdropTypeChanged;
-                SettingsService.Instance.TaskbarOpacityChanged -= OnOpacityChanged;
-                SettingsService.Instance.TaskbarTintColorChanged -= OnTintColorChanged;
-                SettingsService.Instance.TaskbarFlyoutAlignmentChanged -= OnFlyoutAlignmentChanged;
-                SettingsService.Instance.TaskbarFlyoutGraphHeightChanged -= OnFlyoutGraphHeightChanged;
-                SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnTaskbarGraphTimeSpanChanged;
-                SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnFlyoutGraphTimeSpanChanged;
-                FlyoutShortcutRegistration.RegistrationChanged -= OnShortcutRegistrationChanged;
-            }
-            catch { }
-
-            try
-            {
-                if (_uiSettings != null)
-                {
-                    _uiSettings.AdvancedEffectsEnabledChanged -= OnSystemVisualSettingsChanged;
-                    _uiSettings.ColorValuesChanged -= OnSystemVisualSettingsChanged;
-                    _uiSettings = null;
-                }
-            }
-            catch { }
-
-            // detached first, or AppWindow_Closing cancels the Close below and brings this
-            // window back as _retainedInstance
-            try
-            {
-                _appWindow.Closing -= AppWindow_Closing;
-                _appWindow.Changed -= AppWindow_Changed;
-                this.Activated -= Window_Activated;
-            }
-            catch { }
-
-            try
-            {
-                _messageMonitor?.Dispose();
-                _messageMonitor = null;
-                _acrylicController?.Dispose();
-                _acrylicController = null;
-                _noiseBitmap = null;
-                this.Close();
-            }
-            catch { }
         }
 
         private static Microsoft.UI.Dispatching.DispatcherQueueTimer? _recreateDebounceTimer;
@@ -717,8 +778,10 @@ namespace FluentSensors.Features.TaskbarWidget
         // --- workaround: window recreation on global OS theme/transparency change ---
         // problem: after a Windows theme or transparency change, DWM does not bind the DesktopAcrylicController blur
         // without a full window recreation (empirical, cause unknown)
-        // fix: destroy and rebuild every open window (this flyout, WidgetWindow, TaskbarWidgetWindow, CsvLoggerWindow);
-        // the acrylic ones kick their backdrop from the constructor via KickBackdropRefresh
+        // fix: destroy and rebuild every open window (WidgetWindow, TaskbarWidgetWindow, CsvLoggerWindow); the acrylic
+        // ones kick their backdrop from the constructor via KickBackdropRefresh
+        // the flyout is left out: its material binds without either, on the link and on the window, so it only applies
+        // the new state (measured on build 26300, Intel and NVIDIA rendering)
         // only the Windows-level UISettings events land here; never toggle a persisted setting to force a repaint
         // instead (an interrupted toggle persists its intermediate value)
         public static void ScheduleRecreation()
@@ -750,26 +813,15 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
-        // the destructive half of the ScheduleRecreation workaround and the only caller of SafeDestroy; the flyout
-        // goes first and comes back last, since it anchors to the new taskbar widget
+        // the destructive half of the ScheduleRecreation workaround; the flyout stays and only applies the new state,
+        // an open one hides and comes back last, since it anchors to the new taskbar widget
         private static void ExecuteFullRebuild()
         {
-            bool flyoutWasVisible = CurrentInstance != null && CurrentInstance._appWindow != null && CurrentInstance._appWindow.IsVisible;
+            var flyout = CurrentInstance ?? _retainedInstance;
+            bool flyoutWasVisible = flyout != null && flyout._appWindow.IsVisible;
 
-            // 1. both flyout instances
-            if (CurrentInstance != null)
-            {
-                var old = CurrentInstance;
-                CurrentInstance = null;
-                old.SafeDestroy();
-            }
-
-            if (_retainedInstance != null)
-            {
-                var old = _retainedInstance;
-                _retainedInstance = null;
-                old.SafeDestroy();
-            }
+            // 1. the flyout
+            flyout?.ApplySystemVisuals(flyoutWasVisible);
 
             // 2. WidgetWindow, if open
             WidgetWindow.RecreateWindow();
@@ -782,42 +834,131 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
 
-        // === window slide and content fade ===
+        // a Windows theme or transparency change; an open flyout hides at once, without the slide, so the rebuilt
+        // widget can reopen it at its new place
+        private void ApplySystemVisuals(bool hide)
+        {
+            if (hide)
+            {
+                CancelSlideOut();
+                SetGraphsRenderingActive(false);
+                _appWindow.Hide();
+            }
 
+            SetBackdrop(SettingsService.Instance.TaskbarBackdropType);
+            ApplyTheme(SettingsService.Instance.AppTheme);
+        }
+
+
+        // === card slide and content fade ===
+
+        // the card at its start before the window shows, so the first frame never shows it at the final place; a
+        // reopen during the close turns around where the card is instead
+        private void PrepareSlideIn()
+        {
+            CancelSlideOut();
+            _isSlideTurningAround = _appWindow.IsVisible;
+
+            if (_isCardWindow && !_isSlideTurningAround)
+            {
+                var visual = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot);
+                visual.StopAnimation("Translation");
+                visual.Properties.InsertVector3("Translation", _slideDirection * _slideDistanceDip);
+            }
+        }
+
+        // out from behind the taskbar edge, our ease-out cubic; the window level construction only fades, its
+        // backdrop fills the window rect and would stay behind as a plate
         private void SlideIn()
         {
             TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(true);
+            CancelSlideOut();
 
-            int durationMs = ScaleAnimationDuration(EnterAnimationDurationMs, EnterDurationPerSensorFactor);
+            var compositor = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot).Compositor;
+            var easing = compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 1f), new Vector2(2f / 3f, 1f));
 
-            // 1. content fade
-            PlayContentFade(EnterFadeStartOpacity, EnterFadeEndOpacity, durationMs, isEntering: true);
+            PlayContentFade(_isSlideTurningAround ? null : EnterFadeStartOpacity, EnterFadeEndOpacity, EnterAnimationDurationMs, easing);
 
-            // 2. window slide, out from behind the taskbar
-            int startX = _targetX + _slideOffsetX;
-            int startY = _targetY + _slideOffsetY;
-
-            EnsureBehindTaskbarZOrder();
-            AnimateNativeWindowPosition(startX, startY, _targetX, _targetY, durationMs, isEntering: true);
+            if (_isCardWindow)
+            {
+                PlayCardSlide(_isSlideTurningAround ? null : _slideDirection * _slideDistanceDip, Vector3.Zero, EnterAnimationDurationMs, easing);
+            }
         }
 
+        // back behind the taskbar edge on the Quick Settings curve, from wherever the open has got to; the window
+        // hides once the batch completes
         private void SlideOut(Action onCompleted)
         {
             TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
 
-            int durationMs = ScaleAnimationDuration(ExitAnimationDurationMs, ExitDurationPerSensorFactor);
+            var compositor = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot).Compositor;
+            var easing = compositor.CreateCubicBezierEasingFunction(ExitEasingControlPoint1, ExitEasingControlPoint2);
 
-            // 1. content fade
-            PlayContentFade(1.0f, ExitFadeEndOpacity, durationMs, isEntering: false);
+            var batch = compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+            _exitBatch = batch;
 
-            // 2. window slide, back behind the taskbar; (only the slide axis moves)
-            int currentX = _appWindow.Position.X;
-            int currentY = _appWindow.Position.Y;
-            int endX = _slideOffsetX != 0 ? _targetX + _slideOffsetX : currentX;
-            int endY = _slideOffsetY != 0 ? _targetY + _slideOffsetY : currentY;
+            PlayContentFade(null, ExitFadeEndOpacity, ExitAnimationDurationMs, easing);
 
-            EnsureBehindTaskbarZOrder();
-            AnimateNativeWindowPosition(currentX, currentY, endX, endY, durationMs, isEntering: false, onComplete: onCompleted);
+            if (_isCardWindow)
+            {
+                PlayCardSlide(null, _slideDirection * ExitSlideDistanceDip, ExitAnimationDurationMs, easing);
+            }
+
+            batch.End();
+            batch.Completed += (s, e) => DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_exitBatch != batch) return;
+                _exitBatch = null;
+                onCompleted();
+            });
+        }
+
+        // drops a close in flight, so its completion no longer hides the window (a reopen during the close)
+        private void CancelSlideOut()
+        {
+            _exitBatch = null;
+            _isHiding = false;
+        }
+
+        // opacity of the content only; from null starts at the current value, so a close can interrupt an open
+        private void PlayContentFade(float? fromOpacity, float toOpacity, int durationMs, CompositionEasingFunction easing)
+        {
+            if (RootGrid == null) return;
+            var visual = ElementCompositionPreview.GetElementVisual(RootGrid);
+
+            var opacityAnim = visual.Compositor.CreateScalarKeyFrameAnimation();
+            if (fromOpacity is float from)
+            {
+                opacityAnim.InsertKeyFrame(0.0f, from);
+            }
+            else
+            {
+                opacityAnim.InsertExpressionKeyFrame(0.0f, "this.StartingValue");
+            }
+            opacityAnim.InsertKeyFrame(1.0f, toOpacity, easing);
+            opacityAnim.Duration = TimeSpan.FromMilliseconds(durationMs);
+            visual.StartAnimation("Opacity", opacityAnim);
+        }
+
+        // the translation of the whole window content (shadow, material, card), in dip; from null as above
+        // on the handoff visual only (start value included, see PrepareSlideIn); the XAML Translation property is
+        // never set, a static value there wins against the animation and leaves the card at its start
+        private void PlayCardSlide(Vector3? from, Vector3 to, int durationMs, CompositionEasingFunction easing)
+        {
+            var visual = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot);
+
+            var slideAnim = visual.Compositor.CreateVector3KeyFrameAnimation();
+            if (from is Vector3 start)
+            {
+                slideAnim.InsertKeyFrame(0.0f, start);
+            }
+            else
+            {
+                slideAnim.InsertExpressionKeyFrame(0.0f, "this.StartingValue");
+            }
+            slideAnim.InsertKeyFrame(1.0f, to, easing);
+            slideAnim.Duration = TimeSpan.FromMilliseconds(durationMs);
+            visual.StartAnimation("Translation", slideAnim);
         }
 
         // shared scaling law: how far a value moves from its base with the number of graph rows shown
@@ -828,104 +969,12 @@ namespace FluentSensors.Features.TaskbarWidget
             return Math.Clamp(factor, MinAnimationScaleFactor, MaxAnimationScaleFactor);
         }
 
-        private int ScaleAnimationDuration(int baseDurationMs, double perSensorFactor)
-        {
-            return (int)Math.Round(baseDurationMs * AnimationScaleFactor(perSensorFactor));
-        }
-
-        // slide distance in px; (PositionNextToTaskbar parks the window on the same value, so both read it here)
-        private int GetSlideDistancePx(double scaleFactor)
-        {
-            return (int)Math.Round(WindowSlideDistanceDip * AnimationScaleFactor(SlideDistancePerSensorFactor) * scaleFactor);
-        }
-
-        // same curve as the window slide, so fade and slide never diverge: ease-out 1-(1-p)^3 on enter, ease-in p^3
-        // on exit, as the bezier points (1/3,1)/(2/3,1) and (1/3,0)/(2/3,0) that reduce to exactly those
-        private void PlayContentFade(float fromOpacity, float toOpacity, int durationMs, bool isEntering)
-        {
-            if (RootGrid == null) return;
-            var visual = ElementCompositionPreview.GetElementVisual(RootGrid);
-            var compositor = visual?.Compositor;
-            if (compositor == null) return;
-
-            var easing = isEntering
-                ? compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 1f), new Vector2(2f / 3f, 1f))
-                : compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 0f), new Vector2(2f / 3f, 0f));
-
-            // opacity only; the window itself does the moving
-            var opacityAnim = compositor.CreateScalarKeyFrameAnimation();
-            opacityAnim.InsertKeyFrame(0.0f, fromOpacity);
-            opacityAnim.InsertKeyFrame(1.0f, toOpacity, easing);
-            opacityAnim.Duration = TimeSpan.FromMilliseconds(durationMs);
-            visual.StartAnimation("Opacity", opacityAnim);
-        }
-
-        private void AnimateNativeWindowPosition(int startX, int startY, int targetX, int targetY, int durationMs, bool isEntering, Action? onComplete = null)
-        {
-            StopSlide();
-
-            _animStartX = startX;
-            _animStartY = startY;
-            _animTargetX = targetX;
-            _animTargetY = targetY;
-            _animDurationMs = durationMs;
-            _animIsEntering = isEntering;
-            _animOnComplete = onComplete;
-
-            _isAdjustingPosition = true;
-            SetWindowPos(_hwnd, IntPtr.Zero, startX, startY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-            _isAdjustingPosition = false;
-
-            _isAnimating = true;
-            _animStopwatch = Stopwatch.StartNew();
-            Microsoft.UI.Xaml.Media.CompositionTarget.Rendering += OnSlideFrame;
-        }
-
-        // ticks with the compositor frame, so the slide keeps pace with the display refresh rate
-        private void OnSlideFrame(object? sender, object e)
-        {
-            if (_animStopwatch == null) return;
-
-            double progress = Math.Clamp((double)_animStopwatch.ElapsedMilliseconds / _animDurationMs, 0.0, 1.0);
-
-            // Fluent 2 easing; enter 1-(1-p)^3, exit p^3
-            double ease = _animIsEntering
-                ? (1.0 - Math.Pow(1.0 - progress, 3))
-                : Math.Pow(progress, 3);
-
-            int currentX = (int)Math.Round(_animStartX + ((_animTargetX - _animStartX) * ease));
-            int currentY = (int)Math.Round(_animStartY + ((_animTargetY - _animStartY) * ease));
-
-            _isAdjustingPosition = true;
-            SetWindowPos(_hwnd, IntPtr.Zero, currentX, currentY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-            _isAdjustingPosition = false;
-
-            if (progress >= 1.0)
-            {
-                var onComplete = _animOnComplete;
-                _animOnComplete = null;
-                StopSlide();
-                onComplete?.Invoke();
-            }
-        }
-
-        // every path that ends a slide (completion, a new slide, SafeDestroy) calls this; the static Rendering event
-        // otherwise keeps ticking for the life of the process
-        private void StopSlide()
-        {
-            if (!_isAnimating) return;
-            _isAnimating = false;
-            Microsoft.UI.Xaml.Media.CompositionTarget.Rendering -= OnSlideFrame;
-            _animStopwatch?.Stop();
-            _animStopwatch = null;
-        }
-
 
         // === window sizing and positioning ===
 
         // places the flyout beside the taskbar widget, on the desktop side of the taskbar edge: along the taskbar per
         // TaskbarFlyoutAlignment, FlyoutMarginToTaskbarDip off it, clamped to the primary work area
-        private void PositionNextToTaskbar(TaskbarWidgetWindow widgetWindow, bool startForSlideAnimation = false)
+        private void PositionNextToTaskbar(TaskbarWidgetWindow widgetWindow)
         {
             var widgetHwnd = WinRT.Interop.WindowNative.GetWindowHandle(widgetWindow);
             NativeMethods.GetWindowRect(widgetHwnd, out var widgetRect);
@@ -1009,76 +1058,43 @@ namespace FluentSensors.Features.TaskbarWidget
 
             _isAnchored = true;
 
-            // from the taskbar DPI like the rest of the geometry, see _slideOffsetX
-            (_slideOffsetX, _slideOffsetY) = CalculateSlideOffset(edge, GetSlideDistancePx(scale), desiredWidthPx, desiredHeightPx);
+            // everything above placed the card; the card window grows around it by the shadow margin, the larger one
+            // at the bottom unless the taskbar sits there and cuts the shadow at its edge
+            _isCardWindow = UsesCardWindow;
+            int shadowPx = _isCardWindow ? (int)Math.Round(FlyoutShadowMarginDip * scale) : 0;
+            int shadowBottomPx = !_isCardWindow ? 0 : (int)Math.Round(
+                (edge == ScreenEdge.Bottom ? FlyoutShadowMarginDip : FlyoutShadowFalloffMarginDip) * scale);
 
-            int initialX = startForSlideAnimation ? (_targetX + _slideOffsetX) : _targetX;
-            int initialY = startForSlideAnimation ? (_targetY + _slideOffsetY) : _targetY;
+            _targetX -= shadowPx;
+            _targetY -= shadowPx;
+            int windowWidthPx = desiredWidthPx + (2 * shadowPx);
+            int windowHeightPx = desiredHeightPx + shadowPx + shadowBottomPx;
+
+            // the same pixels as XAML margin, so the card lands on exactly the rect computed above
+            var cardMargin = new Thickness(shadowPx / scale, shadowPx / scale, shadowPx / scale, shadowBottomPx / scale);
+            FlyoutRootBorder.Margin = cardMargin;
+            FlyoutBackdropHost.Margin = cardMargin;
+
+            _shadowWindowSizePx = new SizeInt32(windowWidthPx, windowHeightPx);
+            _shadowCardRectPx = new RectInt32(shadowPx, shadowPx, desiredWidthPx, desiredHeightPx);
+            _shadowScale = scale;
+
+            // the card slides toward the taskbar edge, where the window edge clips it
+            _slideDirection = edge switch
+            {
+                ScreenEdge.Top => new Vector3(0, -1, 0),
+                ScreenEdge.Left => new Vector3(-1, 0, 0),
+                ScreenEdge.Right => new Vector3(1, 0, 0),
+                _ => new Vector3(0, 1, 0)
+            };
+            _slideDistanceDip = (float)(SlideDistanceDip * AnimationScaleFactor(SlideDistancePerSensorFactor));
 
             _isAdjustingPosition = true;
-            _appWindow.MoveAndResize(new RectInt32(initialX, initialY, desiredWidthPx, desiredHeightPx));
+            _appWindow.MoveAndResize(new RectInt32(_targetX, _targetY, windowWidthPx, windowHeightPx));
             _isAdjustingPosition = false;
 
             UpdateShadowPolicy();
-        }
-
-        // slide vector from the target toward the taskbar edge, where the window hides behind the taskbar or off
-        // screen; cut to the taskbar monitor only when the path would cross a neighboring monitor
-        private (int X, int Y) CalculateSlideOffset(ScreenEdge edge, int distancePx, int widthPx, int heightPx)
-        {
-            var monitor = DisplayArea.Primary.OuterBounds;
-
-            (int X, int Y) direction = edge switch
-            {
-                ScreenEdge.Top => (0, -1),
-                ScreenEdge.Left => (-1, 0),
-                ScreenEdge.Right => (1, 0),
-                _ => (0, 1)
-            };
-
-            // distance until the far window edge reaches the monitor edge
-            int roomPx = edge switch
-            {
-                ScreenEdge.Top => _targetY - monitor.Y,
-                ScreenEdge.Left => _targetX - monitor.X,
-                ScreenEdge.Right => (monitor.X + monitor.Width) - (_targetX + widthPx),
-                _ => (monitor.Y + monitor.Height) - (_targetY + heightPx)
-            };
-
-            if (distancePx > roomPx)
-            {
-                // the whole path from the parked start to the target
-                var path = new RectInt32(
-                    Math.Min(_targetX, _targetX + (direction.X * distancePx)),
-                    Math.Min(_targetY, _targetY + (direction.Y * distancePx)),
-                    widthPx + Math.Abs(direction.X * distancePx),
-                    heightPx + Math.Abs(direction.Y * distancePx));
-
-                if (OverlapsOtherDisplay(path, monitor))
-                {
-                    distancePx = Math.Max(0, roomPx);
-                }
-            }
-
-            return (direction.X * distancePx, direction.Y * distancePx);
-        }
-
-        private static bool OverlapsOtherDisplay(RectInt32 rect, RectInt32 ownMonitor)
-        {
-            // indexed loop; foreach over DisplayArea.FindAll() throws an InvalidCastException (WinRT enumerator bug)
-            var displayAreas = DisplayArea.FindAll();
-            for (int i = 0; i < displayAreas.Count; i++)
-            {
-                var bounds = displayAreas[i].OuterBounds;
-                if (bounds.Equals(ownMonitor)) continue;
-
-                if (rect.X < bounds.X + bounds.Width && rect.X + rect.Width > bounds.X &&
-                    rect.Y < bounds.Y + bounds.Height && rect.Y + rect.Height > bounds.Y)
-                {
-                    return true;
-                }
-            }
-            return false;
+            RenderCardShadow();
         }
 
         private double GetScaleFactor()
@@ -1124,7 +1140,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
-            if (_isAdjustingPosition || _isAnimating) return;
+            if (_isAdjustingPosition) return;
 
             if (args.DidSizeChange && _isAnchored)
             {
@@ -1339,7 +1355,6 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (_isClosed) return;
                 ApplyShortcutHint();
             });
         }
@@ -1361,10 +1376,6 @@ namespace FluentSensors.Features.TaskbarWidget
         // WidgetWindow and TaskbarWidgetWindow)
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
-            // SafeDestroy is closing for real; a closed window handed back as _retainedInstance would leave the flyout
-            // unable to repaint for the rest of the session
-            if (_isClosed) return;
-
             args.Cancel = true;
             HideFlyout();
             CurrentInstance = null;
@@ -1405,8 +1416,8 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (_isClosed || TaskbarWidgetWindow.CurrentInstance == null) return;
-                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                if (TaskbarWidgetWindow.CurrentInstance == null) return;
+                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
             });
         }
 
@@ -1415,8 +1426,8 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (_isClosed || TaskbarWidgetWindow.CurrentInstance == null) return;
-                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance, startForSlideAnimation: false);
+                if (TaskbarWidgetWindow.CurrentInstance == null) return;
+                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
             });
         }
 
@@ -1425,7 +1436,6 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (_isClosed) return;
                 TaskbarTimeRangePicker.SelectedSeconds = newTimeSpanSeconds;
             });
         }
@@ -1434,15 +1444,12 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (_isClosed) return;
                 FlyoutTimeRangePicker.SelectedSeconds = newTimeSpanSeconds;
             });
         }
 
         private void ApplyTheme(string themeTag)
         {
-            if (_isClosed) return;
-
             var elementTheme = themeTag switch
             {
                 "Light" => ElementTheme.Light,
@@ -1477,8 +1484,6 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private bool IsCurrentThemeLight()
         {
-            if (_isClosed) return false;
-
             string themeTag = SettingsService.Instance.AppTheme;
             if (themeTag == "Light") return true;
             if (themeTag == "Dark") return false;
@@ -1495,8 +1500,6 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void UpdateAcrylicProperties()
         {
-            if (_isClosed) return;
-
             if (_acrylicController != null)
             {
                 bool isLight = IsCurrentThemeLight();
@@ -1508,12 +1511,14 @@ namespace FluentSensors.Features.TaskbarWidget
                     if (isLight)
                     {
                         _acrylicController.TintColor = MicaPresetLightTintColor;
+                        _acrylicController.TintOpacity = MicaPresetLightTintOpacity;
                         _acrylicController.LuminosityOpacity = MicaPresetLightLuminosity;
                         _acrylicController.FallbackColor = MicaPresetLightTintColor;
                     }
                     else
                     {
                         _acrylicController.TintColor = MicaPresetDarkTintColor;
+                        _acrylicController.TintOpacity = MicaPresetDarkTintOpacity;
                         _acrylicController.LuminosityOpacity = MicaPresetDarkLuminosity;
                         _acrylicController.FallbackColor = MicaPresetDarkTintColor;
                     }
@@ -1547,7 +1552,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // value from here outranks it)
         private void UpdateSolidBackground()
         {
-            if (_isClosed || FlyoutRootBorder == null) return;
+            if (FlyoutRootBorder == null) return;
 
             bool isLight = IsCurrentThemeLight();
             var themeDictionary = (ResourceDictionary)Application.Current.Resources
@@ -1593,6 +1598,9 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 EnsureNoiseBitmap(FlyoutRootBorder.ActualWidth, FlyoutRootBorder.ActualHeight);
             }
+
+            // the shadow opacities follow the theme
+            RenderCardShadow();
         }
 
         // for a pure OS accent change; both calls resolve the accent fresh, no rebuild needed
@@ -1602,6 +1610,162 @@ namespace FluentSensors.Features.TaskbarWidget
             UpdateSolidBackground();
         }
 
+        // === card shadow ===
+
+        // the Windows shell shadow (Quick Settings, which Battery Flyout matches to one level), fitted over every
+        // margin pixel of a 1022 px card at 175 percent: three layers composed as 1 - (1 - a1)(1 - a2)(1 - a3), each
+        // a box around the card with Gaussian blurred edges; same geometry in both themes, light about half as
+        // strong; only with Windows transparency on, the shell draws none without it
+        // the third layer fades the sides out toward the top, over a stretch that grows with the card height (Quick
+        // Settings, 678 px, reaches the full side at 280 px, the 1022 px card at 380 px), so its top edge scales
+        private const double ShadowFitScale = 1.75;
+        private const double ShadowFitCardHeightPx = 1022;
+        private static readonly ShadowLayer[] CardShadowLayers =
+        [
+            // tight
+            new(SigmaXPx: 5.91, SpreadXPx: -5.76, TopPx: 8.80, TopSigmaPx: 5.91, BottomPx: -2.72, BottomSigmaPx: 5.91,
+                TopScalesWithHeight: false, DarkOpacity: 0.685, LightOpacity: 0.277),
+            // wide, further down
+            new(SigmaXPx: 13.08, SpreadXPx: -9.60, TopPx: 30.32, TopSigmaPx: 13.08, BottomPx: 11.12, BottomSigmaPx: 13.08,
+                TopScalesWithHeight: false, DarkOpacity: 0.314, LightOpacity: 0.151),
+            // side ramp
+            new(SigmaXPx: 10.35, SpreadXPx: 1.25, TopPx: 185.16, TopSigmaPx: 78.09, BottomPx: 8.40, BottomSigmaPx: 14.94,
+                TopScalesWithHeight: true, DarkOpacity: 0.150, LightOpacity: 0.080),
+        ];
+
+        // one layer, in px at ShadowFitScale: the card rect grown sideways by SpreadXPx, its top edge moved down by
+        // TopPx and its bottom edge by BottomPx, each edge blurred with its own sigma
+        private readonly record struct ShadowLayer(
+            double SigmaXPx, double SpreadXPx, double TopPx, double TopSigmaPx, double BottomPx, double BottomSigmaPx,
+            bool TopScalesWithHeight, double DarkOpacity, double LightOpacity);
+
+        // geometry from PositionNextToTaskbar, in physical px; the card rect is window local
+        private SizeInt32 _shadowWindowSizePx;
+        private RectInt32 _shadowCardRectPx;
+        private double _shadowScale;
+
+        // what the current bitmap was rendered for, so an unchanged open does not render again
+        private (SizeInt32 Window, RectInt32 Card, double Scale, bool IsLight) _shadowRenderedFor;
+
+        private void RenderCardShadow()
+        {
+            if (FlyoutShadowImage == null) return;
+
+            bool isTransparencyEnabled = _uiSettings != null && _uiSettings.AdvancedEffectsEnabled;
+            bool show = UsesCardWindow && isTransparencyEnabled && _shadowWindowSizePx.Width > 0 && _shadowScale > 0;
+            FlyoutShadowImage.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            if (!show) return;
+
+            bool isLight = IsCurrentThemeLight();
+            var renderFor = (_shadowWindowSizePx, _shadowCardRectPx, _shadowScale, isLight);
+            if (FlyoutShadowImage.Source != null && renderFor == _shadowRenderedFor) return;
+
+            int width = _shadowWindowSizePx.Width;
+            int height = _shadowWindowSizePx.Height;
+            var card = _shadowCardRectPx;
+            double fitToWindow = _shadowScale / ShadowFitScale;
+
+            // transmission per pixel, multiplied up layer by layer; a blurred rect is separable, so each layer is one
+            // profile across and one down
+            var transmission = new double[width * height];
+            Array.Fill(transmission, 1.0);
+
+            double heightScale = card.Height / (ShadowFitCardHeightPx * fitToWindow);
+
+            foreach (var layer in CardShadowLayers)
+            {
+                double topScale = layer.TopScalesWithHeight ? fitToWindow * heightScale : fitToWindow;
+                double spreadX = layer.SpreadXPx * fitToWindow;
+                double sigmaX = layer.SigmaXPx * fitToWindow;
+                double opacity = isLight ? layer.LightOpacity : layer.DarkOpacity;
+
+                var across = BlurredEdgeProfile(width,
+                    card.X - spreadX, sigmaX,
+                    card.X + card.Width + spreadX, sigmaX);
+                var down = BlurredEdgeProfile(height,
+                    card.Y + (layer.TopPx * topScale), layer.TopSigmaPx * topScale,
+                    card.Y + card.Height + (layer.BottomPx * fitToWindow), layer.BottomSigmaPx * fitToWindow);
+
+                for (int y = 0; y < height; y++)
+                {
+                    double row = opacity * down[y];
+                    if (row <= 0) continue;
+
+                    int offset = y * width;
+                    for (int x = 0; x < width; x++)
+                    {
+                        transmission[offset + x] *= 1.0 - (row * across[x]);
+                    }
+                }
+            }
+
+            // black with alpha, premultiplied; cut out under the material, inside the card stroke (the stroke lies
+            // over the shadow, as on the native flyouts), antialiased along the rounded edge
+            double inset = CardStrokePx(_shadowScale);
+            double radius = (CardCornerRadiusDip * _shadowScale) - inset;
+            var pixels = new byte[width * height * 4];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    double alpha = 1.0 - transmission[(y * width) + x];
+                    alpha *= 1.0 - RoundedRectCoverage(x + 0.5, y + 0.5, card, inset, radius);
+                    pixels[(((y * width) + x) * 4) + 3] = (byte)Math.Round(Math.Clamp(alpha, 0.0, 1.0) * 255.0);
+                }
+            }
+
+            var bitmap = new Microsoft.UI.Xaml.Media.Imaging.WriteableBitmap(width, height);
+            using (var stream = bitmap.PixelBuffer.AsStream())
+            {
+                stream.Write(pixels, 0, pixels.Length);
+            }
+            bitmap.Invalidate();
+
+            // one bitmap pixel per physical pixel
+            FlyoutShadowImage.Width = width / _shadowScale;
+            FlyoutShadowImage.Height = height / _shadowScale;
+            FlyoutShadowImage.Source = bitmap;
+            _shadowRenderedFor = renderFor;
+        }
+
+        // a box from start to end, each edge blurred with its own Gaussian, sampled at the pixel centers
+        private static double[] BlurredEdgeProfile(int length, double start, double startSigma, double end, double endSigma)
+        {
+            var profile = new double[length];
+            for (int i = 0; i < length; i++)
+            {
+                double center = i + 0.5;
+                profile[i] = Math.Max(0.0, NormalCdf((center - start) / startSigma) - NormalCdf((center - end) / endSigma));
+            }
+            return profile;
+        }
+
+        // how much of the pixel at the point the rect, shrunk by inset, covers, from the signed distance to its
+        // rounded outline
+        private static double RoundedRectCoverage(double px, double py, RectInt32 rect, double inset, double radius)
+        {
+            double centerX = rect.X + (rect.Width / 2.0);
+            double centerY = rect.Y + (rect.Height / 2.0);
+            double halfWidth = (rect.Width / 2.0) - inset;
+            double halfHeight = (rect.Height / 2.0) - inset;
+            double qx = Math.Abs(px - centerX) - (halfWidth - radius);
+            double qy = Math.Abs(py - centerY) - (halfHeight - radius);
+            double outside = Math.Sqrt(Math.Pow(Math.Max(qx, 0), 2) + Math.Pow(Math.Max(qy, 0), 2));
+            double distance = outside + Math.Min(Math.Max(qx, qy), 0) - radius;
+            return Math.Clamp(0.5 - distance, 0.0, 1.0);
+        }
+
+        // standard normal cumulative distribution; Abramowitz and Stegun 7.1.26 for erf, error below 1.5e-7
+        private static double NormalCdf(double z)
+        {
+            double x = Math.Abs(z) / Math.Sqrt(2.0);
+            double t = 1.0 / (1.0 + (0.3275911 * x));
+            double polynomial = t * (0.254829592 + (t * (-0.284496736 + (t * (1.421413741 + (t * (-1.453152027 + (t * 1.061405429))))))));
+            double erf = 1.0 - (polynomial * Math.Exp(-x * x));
+            return z >= 0 ? 0.5 * (1.0 + erf) : 0.5 * (1.0 - erf);
+        }
+
+
         // === acrylic grain ===
 
         // the acrylic recipe ends with a 2 percent noise layer (sc_noiseOpacity) that the backdrop controller does
@@ -1609,10 +1773,11 @@ namespace FluentSensors.Features.TaskbarWidget
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.h
         private const int NoiseSeed = 0x5EED;
 
-        // opacity stays the recipe constant, the strength is the value range around a mean of 128; (so tuning the
-        // grain never moves the calibrated colors)
+        // opacity stays the recipe constant, the strength is the standard deviation around a mean of 128, in screen
+        // levels (so tuning the grain never moves the calibrated colors); a bell like the native grain, about six
+        // levels wide, sd 1.03 on the dark surfaces
         private const double NoiseLayerOpacity = 0.02;
-        private const double NoiseSpreadLevels = 3.5;
+        private const double NoiseDeviationLevels = 1.0;
 
         private Microsoft.UI.Xaml.Media.Imaging.WriteableBitmap? _noiseBitmap;
         private double _noiseScale;
@@ -1621,7 +1786,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // one physical pixel instead of being smeared into coarse grain
         private void EnsureNoiseBitmap(double widthDip, double heightDip)
         {
-            if (_isClosed || widthDip <= 0 || heightDip <= 0) return;
+            if (widthDip <= 0 || heightDip <= 0) return;
 
             double scale = FlyoutRootBorder.XamlRoot?.RasterizationScale ?? 1.0;
             if (scale <= 0) scale = 1.0;
@@ -1646,11 +1811,13 @@ namespace FluentSensors.Features.TaskbarWidget
             var random = new Random(NoiseSeed);
             var pixels = new byte[width * height * 4];
 
-            int half = (int)Math.Round(NoiseSpreadLevels / (2.0 * NoiseLayerOpacity));
+            double deviation = NoiseDeviationLevels / NoiseLayerOpacity;
 
             for (int i = 0; i < pixels.Length; i += 4)
             {
-                byte level = (byte)(128 - half + random.Next((half * 2) + 1));
+                // Box-Muller
+                double gaussian = Math.Sqrt(-2.0 * Math.Log(1.0 - random.NextDouble())) * Math.Cos(2.0 * Math.PI * random.NextDouble());
+                byte level = (byte)Math.Clamp(Math.Round(128 + (gaussian * deviation)), 0, 255);
                 pixels[i] = level;
                 pixels[i + 1] = level;
                 pixels[i + 2] = level;
@@ -1687,7 +1854,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private void FlyoutRootBorder_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (_isClosed || FlyoutNoiseHost.Visibility != Visibility.Visible) return;
+            if (FlyoutNoiseHost.Visibility != Visibility.Visible) return;
 
             EnsureNoiseBitmap(e.NewSize.Width, e.NewSize.Height);
         }
@@ -1698,7 +1865,6 @@ namespace FluentSensors.Features.TaskbarWidget
         // MicaController for the same setting)
         public void SetBackdrop(string backdropType)
         {
-            if (_isClosed) return;
             DispatcherQueue.EnsureSystemDispatcherQueue();
 
             bool isTransparencyEnabled = _uiSettings != null && _uiSettings.AdvancedEffectsEnabled;
@@ -1722,12 +1888,15 @@ namespace FluentSensors.Features.TaskbarWidget
                 // Base is the variant the Windows 11 shell surfaces use:
                 // https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.composition.systembackdrops.desktopacrylickind
                 _acrylicController.Kind = DesktopAcrylicKind.Base;
-                _acrylicController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
+                AddBackdropTarget(_acrylicController);
                 _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
 
                 UpdateAcrylicProperties();
             }
-            else
+
+            // the card window stays transparent under the link material, the window level one only without a
+            // controller
+            if (UsesCardWindow || _acrylicController == null)
             {
                 this.SystemBackdrop = new TransparentTintBackdrop();
             }
@@ -1735,40 +1904,45 @@ namespace FluentSensors.Features.TaskbarWidget
             // the base color, read off the controller set above
             UpdateSolidBackground();
 
-            UpdateShadowPolicy();
+            // a retired link switches the construction, which moves the window around the card
+            if (_isAnchored && _isCardWindow != UsesCardWindow && TaskbarWidgetWindow.CurrentInstance != null)
+            {
+                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
+            }
+            else
+            {
+                UpdateShadowPolicy();
+            }
+        }
+
+        // the link when there is one, the window otherwise; a link the controller refuses is retired, so the flyout
+        // falls back to the window level construction for good (SetBackdrop then re-places the window)
+        private void AddBackdropTarget(DesktopAcrylicController controller)
+        {
+            if (_backdropLink != null)
+            {
+                try
+                {
+                    controller.AddSystemBackdropTarget(_backdropLink.Target);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[BackdropLink] target refused: 0x{ex.HResult:X8} {ex.Message}");
+                    RetireBackdropLink();
+                }
+            }
+
+            controller.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
         }
 
         private void SetConfigurationSourceTheme()
         {
-            if (_isClosed || _configurationSource == null) return;
+            if (_configurationSource == null) return;
 
             _configurationSource.Theme = IsCurrentThemeLight()
                 ? SystemBackdropTheme.Light
                 : SystemBackdropTheme.Dark;
-        }
-
-        // --- workaround: DWM backdrop swapchain kick ---
-        // problem: after a Windows transparency or theme change, DesktopAcrylicController needs a rebind to attach its
-        // blur to the new DWM swapchain
-        // fix: after a rebuild, kick the backdrop once (None, then the current one), with parameters only
-        private void KickBackdropRefresh()
-        {
-            if (_isClosed) return;
-
-            string currentBackdrop = SettingsService.Instance.TaskbarBackdropType;
-            if (currentBackdrop == "Mica" || currentBackdrop == "Acrylic")
-            {
-                var timer = this.DispatcherQueue.CreateTimer();
-                timer.Interval = TimeSpan.FromMilliseconds(80);
-                timer.IsRepeating = false;
-                timer.Tick += (s, e) =>
-                {
-                    if (_isClosed) return;
-                    SetBackdrop("None");
-                    SetBackdrop(currentBackdrop);
-                };
-                timer.Start();
-            }
         }
     }
 }

@@ -97,8 +97,7 @@ GPU, storage, network and memory readings are not affected</value>
   <data name="Main_LhmInfoPopup.Description" xml:space="preserve">
     <value>Sensors (found/rendered) - sensors found by LibreHardwareMonitor, and how many are actively drawn
 Poll (current/aimed) - measured update rate against the rate set in Settings
-Read - duration of one full sensor pass, close to the poll rate means no headroom left
-LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows</value>
+Read - duration of one full sensor pass, close to the poll rate means no headroom left</value>
   </data>
   <data name="Main_LhmInfoPopup.SourceIntro" xml:space="preserve">
     <value>This App is powered by the open source LibreHardwareMonitor project:</value>
@@ -811,7 +810,9 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Start_LhmPopup.Description" xml:space="preserve">
     <value>Found Sensors - every sensor LibreHardwareMonitor reports on this machine
 Rendering Sensors - how many of them are actively drawn right now
-LibreHardwareMonitorLib is the largest and most established hardware monitoring library for Windows</value>
+Update interval - measured against the configured polling interval
+Read time - how long one full read of all sensors takes
+PawnIO driver - kernel access for CPU, mainboard and memory sensors</value>
   </data>
   <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
     <value>This App is powered by the open source LibreHardwareMonitor project:</value>
@@ -831,6 +832,8 @@ LibreHardwareMonitorLib is the largest and most established hardware monitoring 
   <data name="Start_ThisAppPopup.Description" xml:space="preserve">
     <value>CPU Usage - this app's own CPU time relative to total capacity across all cores
 RAM Usage - physical memory currently mapped by this app (working set)
+GC memory - the .NET managed heap, part of the RAM usage
+Handles - open Windows objects (files, threads, events) held by this app
 Uptime - how long this app has been running since it was last started</value>
   </data>
   <data name="Start_ThisAppPopup.SourceIntro" xml:space="preserve">
@@ -844,6 +847,71 @@ Uptime - how long this app has been running since it was last started</value>
   </data>
   <data name="Start_UptimeText.Text" xml:space="preserve">
     <value>Uptime</value>
+  </data>
+  <data name="Start_HandlesText.Text" xml:space="preserve">
+    <value>Handles</value>
+    <comment>count of open Windows handles of this app</comment>
+  </data>
+  <data name="Start_GcMemoryText.Text" xml:space="preserve">
+    <value>GC memory</value>
+    <comment>size of the .NET garbage collected heap</comment>
+  </data>
+  <data name="Start_UpdateIntervalText.Text" xml:space="preserve">
+    <value>Update interval</value>
+  </data>
+  <data name="Start_UpdateIntervalValue" xml:space="preserve">
+    <value>{0:0} / {1} ms</value>
+    <comment>update interval; {0} measured, {1} configured, both in milliseconds</comment>
+  </data>
+  <data name="Start_ReadTimeText.Text" xml:space="preserve">
+    <value>Read time</value>
+  </data>
+  <data name="Start_PawnIoText.Text" xml:space="preserve">
+    <value>PawnIO driver</value>
+    <comment>PawnIO is a product name, keep it</comment>
+  </data>
+  <data name="Start_PawnIoInstalled" xml:space="preserve">
+    <value>Installed</value>
+    <comment>state of the PawnIO driver</comment>
+  </data>
+  <data name="Start_PawnIoMissing" xml:space="preserve">
+    <value>Missing</value>
+    <comment>state of the PawnIO driver</comment>
+  </data>
+  <data name="Start_GraphicsPopup.Title" xml:space="preserve">
+    <value>Graphics</value>
+  </data>
+  <data name="Start_GraphicsPopup.Description" xml:space="preserve">
+    <value>Running on - the graphics processor that draws this app
+GPU usage - this app's share of its busiest GPU engine (like Task Manager)
+GPU memory - dedicated and shared graphics memory used by this app</value>
+  </data>
+  <data name="Start_GraphicsPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Start_RunningOnText.Text" xml:space="preserve">
+    <value>Running on</value>
+    <comment>the graphics processor this app renders on</comment>
+  </data>
+  <data name="Start_GpuUsageText.Text" xml:space="preserve">
+    <value>GPU usage</value>
+  </data>
+  <data name="Start_GpuMemoryText.Text" xml:space="preserve">
+    <value>GPU memory</value>
+  </data>
+  <data name="Start_GpuNotDisplayPopup.Description" xml:space="preserve">
+    <value>This app renders on a GPU that is not connected to the screen
+Every frame is copied over to the GPU that drives the screen, so animations like the taskbar flyout run at a far lower frame rate; how much lower depends on the system
+A stronger GPU brings this app nothing: the graphs are drawn by the CPU and need almost no graphics power
+Choose Power saving for FluentSensors in the Windows graphics settings and restart the app</value>
+    <comment>why rendering on a gpu that drives no screen hurts and what to do</comment>
+  </data>
+  <data name="Start_GpuNotDisplayText.Text" xml:space="preserve">
+    <value>Display via another GPU</value>
+    <comment>warning: the app renders on a different graphics processor than the one driving the screen</comment>
+  </data>
+  <data name="Start_GraphicsSettingsLink.Content" xml:space="preserve">
+    <value>Windows graphics settings</value>
   </data>
   <data name="Start_AboutOpenSourceText.Text" xml:space="preserve">
     <value>About &amp; Open Source</value>
@@ -1117,7 +1185,8 @@ Firmware - currently enabled or not (unreliable)</value>
     <value>General</value>
   </data>
   <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Driver Version - internal Windows driver number, differs from vendor's own version scheme</value>
+    <value>Driver Version - internal Windows driver number, differs from vendor's own version scheme
+Display - the displays this GPU drives, or the GPU its picture goes through on a hybrid laptop</value>
   </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
@@ -1380,6 +1449,22 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
   </data>
   <data name="Info_No" xml:space="preserve">
     <value>No</value>
+  </data>
+  <data name="Info_DisplayBuiltIn" xml:space="preserve">
+    <value>Built-in display</value>
+    <comment>the laptop panel</comment>
+  </data>
+  <data name="Info_DisplayExternal" xml:space="preserve">
+    <value>External display</value>
+    <comment>a monitor that reports no name</comment>
+  </data>
+  <data name="Info_DisplayVia" xml:space="preserve">
+    <value>via {0}</value>
+    <comment>{0} the GPU name; a hybrid laptop GPU whose picture goes through the integrated GPU</comment>
+  </data>
+  <data name="Info_DisplayNone" xml:space="preserve">
+    <value>None</value>
+    <comment>a GPU that drives no display</comment>
   </data>
   <data name="Info_Other" xml:space="preserve">
     <value>Other</value>

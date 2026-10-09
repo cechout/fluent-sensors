@@ -647,6 +647,7 @@
                             PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
                                 <fhInfoPopup:SourceLink Label="Win32_VideoController" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-videocontroller" />
+                                <fhInfoPopup:SourceLink Label="QueryDisplayConfig" Url="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-querydisplayconfig" />
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
@@ -680,6 +681,18 @@
                             <TextBlock
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Gpu.GpuDriverVersionText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <!--  (the displays it drives, or the integrated gpu a hybrid discrete one renders through)  -->
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_Display')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Gpu.GpuDisplayText, Mode=OneWay}"
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </StackPanel>

@@ -60,6 +60,14 @@ namespace FluentSensors.Features.Start
         private string _cpuTileValue = "-";
         private string _ramTileValue = "-";
         private string _uptimeTileValue = "-";
+        private string _updateIntervalTileValue = "-";
+        private string _readTimeTileValue = "-";
+        private string _handlesTileValue = "-";
+        private string _gcMemoryTileValue = "-";
+        private string _gpuAdapterTileValue = "-";
+        private string _gpuUsageTileValue = "-";
+        private string _gpuMemoryTileValue = "-";
+        private bool _isGpuNotDisplay;
 
         // process start, the splash included; utc, so daylight saving does not move the uptime
         private static readonly DateTime ProcessStartTimeUtc = Process.GetCurrentProcess().StartTime.ToUniversalTime();
@@ -158,6 +166,61 @@ namespace FluentSensors.Features.Start
             private set { _uptimeTileValue = value; OnPropertyChanged(); }
         }
 
+        public string HandlesTileValue
+        {
+            get => _handlesTileValue;
+            private set { _handlesTileValue = value; OnPropertyChanged(); }
+        }
+
+        public string GcMemoryTileValue
+        {
+            get => _gcMemoryTileValue;
+            private set { _gcMemoryTileValue = value; OnPropertyChanged(); }
+        }
+
+        // measured against configured, as the title bar readout
+        public string UpdateIntervalTileValue
+        {
+            get => _updateIntervalTileValue;
+            private set { _updateIntervalTileValue = value; OnPropertyChanged(); }
+        }
+
+        public string ReadTimeTileValue
+        {
+            get => _readTimeTileValue;
+            private set { _readTimeTileValue = value; OnPropertyChanged(); }
+        }
+
+        // checked once at startup, like the title bar hint
+        public string PawnIoTileValue { get; } =
+            AppStrings.Get(WinStaticInfoService.Instance.IsPawnIoInstalled ? "Start_PawnIoInstalled" : "Start_PawnIoMissing");
+
+        // the graphics tile, from WinAppGpuMonitor while the page shows
+        public string GpuAdapterTileValue
+        {
+            get => _gpuAdapterTileValue;
+            private set { _gpuAdapterTileValue = value; OnPropertyChanged(); }
+        }
+
+        public string GpuUsageTileValue
+        {
+            get => _gpuUsageTileValue;
+            private set { _gpuUsageTileValue = value; OnPropertyChanged(); }
+        }
+
+        public string GpuMemoryTileValue
+        {
+            get => _gpuMemoryTileValue;
+            private set { _gpuMemoryTileValue = value; OnPropertyChanged(); }
+        }
+
+        // the app renders on a gpu that drives no screen, so every frame is copied across
+        public bool IsGpuNotDisplay
+        {
+            get => _isGpuNotDisplay;
+            private set { _isGpuNotDisplay = value; OnPropertyChanged(); }
+        }
+
 
         // === live app status ===
 
@@ -168,8 +231,21 @@ namespace FluentSensors.Features.Start
             SensorsRenderedText = data.SensorsRendered.ToString();
             CpuTileValue = $"{data.CpuUsagePercent:0.0} %";
             RamTileValue = $"{data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
+            HandlesTileValue = data.HandleCount.ToString();
+            GcMemoryTileValue = $"{data.GcMemoryBytes / 1024.0 / 1024.0:0.0} MB";
+            UpdateIntervalTileValue = AppStrings.Format("Start_UpdateIntervalValue", data.ActualUpdateIntervalMs, data.AimedUpdateIntervalMs);
+            ReadTimeTileValue = $"{data.ReadDurationMs:0} ms";
 
             RefreshSensorCounts();
+        }
+
+        // the first read has no usage yet, it is a rate
+        public void ApplyGpu(AppGpuData data)
+        {
+            GpuAdapterTileValue = data.AdapterName ?? "-";
+            GpuUsageTileValue = $"{data.UsagePercent:0.0} %";
+            GpuMemoryTileValue = $"{data.MemoryBytes / 1024.0 / 1024.0:0} MB";
+            IsGpuNotDisplay = !data.IsDisplayAdapter;
         }
 
         // session uptime, 2:14:37, past a day 1d 2:14:37; called more often than once a second (see
@@ -434,16 +510,17 @@ namespace FluentSensors.Features.Start
                     ? HardwareInfoFormatter.FormatBytesAsGb(gpu.DedicatedVideoMemoryBytes)
                     : "";
 
-                string driver = string.IsNullOrWhiteSpace(gpu.DriverVersion)
-                    ? ""
-                    : AppTerms.Format("Start_GpuDriver", gpu.DriverVersion);
+                // where its picture goes, so a hybrid laptop shows which gpu drives the display; (the driver version is
+                // on the gpu page)
+                string display = HardwareInfoFormatter.FormatGpuDisplay(gpu);
+                if (display.Length > 0) display = AppTerms.Format("Start_GpuDisplay", display);
 
                 rows.Add(Row(
                     HardwareGroupKind.Gpu,
                     gpu.Name,
                     HardwareInfoFormatter.FormatVendorName(gpu.VendorId),
                     memory,
-                    driver));
+                    display));
             }
         }
 

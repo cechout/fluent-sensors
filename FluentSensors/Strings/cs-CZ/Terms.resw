@@ -135,6 +135,12 @@
   <data name="Gpu_DriverVersion" xml:space="preserve">
     <value>Verze ovladače</value>
   </data>
+  <data name="Gpu_Display" xml:space="preserve">
+    <value>Displej</value>
+  </data>
+  <data name="Start_GpuDisplay" xml:space="preserve">
+    <value>Displej: {0}</value>
+  </data>
   <data name="Gpu_DedicatedMemory" xml:space="preserve">
     <value>Vyhrazená paměť</value>
   </data>
@@ -340,9 +346,5 @@
   <data name="Start_MemoryTotal" xml:space="preserve">
     <value>{0} celkem</value>
     <comment>{0} the memory size, like 32 GB</comment>
-  </data>
-  <data name="Start_GpuDriver" xml:space="preserve">
-    <value>Ovladač {0}</value>
-    <comment>{0} the driver version number</comment>
   </data>
 </root>

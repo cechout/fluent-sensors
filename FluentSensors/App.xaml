@@ -72,17 +72,17 @@
 
                     <!--  5. flyout graphs overlay (dark mode)  -->
                     <!--  (blur modes only, lifts the graphs area off the glass; the opaque mode has no overlay)  -->
-                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#0AFFFFFF" />
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#09FFFFFF" />
 
                     <!--  6. flyout bottom bar (dark mode)  -->
                     <!--  (reads as #222222, opaque, independent of the content area)  -->
                     <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#1C1C1C" />
 
                     <!--  7. flyout bottom bar separator (dark mode)  -->
-                    <!--  (the 1px line above the bar; black at 1 - 0x18/0x24, so over the content area it reads as #1E1E1E)  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#55000000" />
+                    <!--  (the 1px line above the bar; black at 1 - 0x19/0x24, so over the content area it reads as #191919)  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#4E000000" />
                     <!--  (in the blur modes translucent like the native line, it darkens the material)  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#1F000000" />
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#1B000000" />
                 </ResourceDictionary>
 
 
@@ -139,17 +139,17 @@
 
                     <!--  5. flyout graphs overlay (light mode)  -->
                     <!--  (blur modes only, lifts the graphs area off the glass; the opaque mode has no overlay)  -->
-                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#38FFFFFF" />
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#41FFFFFF" />
 
                     <!--  6. flyout bottom bar (light mode)  -->
                     <!--  (opaque, independent of the content area)  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#EDEDED" />
+                    <SolidColorBrush x:Key="FlyoutBottomBarBackground" Color="#EEEEEE" />
 
                     <!--  7. flyout bottom bar separator (light mode)  -->
-                    <!--  (the 1px line above the bar; black at 1 - 0xDE/0xF2, so over the content area it reads as #DEDEDE)  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#15000000" />
+                    <!--  (the 1px line above the bar; black at 1 - 0xE0/0xF2, so over the content area it reads as #E0E0E0)  -->
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorBrush" Color="#13000000" />
                     <!--  (in the blur modes translucent like the native line, it darkens the material)  -->
-                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#13000000" />
+                    <SolidColorBrush x:Key="FlyoutBottomBarSeparatorOnGlassBrush" Color="#0F000000" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
@@ -394,7 +394,7 @@
             <!--  (the info popup link, shared with the release dialog; the negative margin aligns the text)  -->
             <Style x:Key="SourceLinkButtonStyle" TargetType="HyperlinkButton">
                 <Setter Property="Padding" Value="6,2,6,2" />
-                <Setter Property="Margin" Value="-6,0,0,0" />
+                <Setter Property="Margin" Value="-7,0,0,0" />
                 <Setter Property="CornerRadius" Value="4" />
                 <Setter Property="HorizontalAlignment" Value="Left" />
                 <Setter Property="HorizontalContentAlignment" Value="Left" />
