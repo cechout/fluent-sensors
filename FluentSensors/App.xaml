@@ -139,7 +139,7 @@
 
                     <!--  5. flyout graphs overlay (light mode)  -->
                     <!--  (blur modes only, lifts the graphs area off the glass; the opaque mode has no overlay)  -->
-                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#44FFFFFF" />
+                    <SolidColorBrush x:Key="FlyoutGraphsBackground" Color="#41FFFFFF" />
 
                     <!--  6. flyout bottom bar (light mode)  -->
                     <!--  (opaque, independent of the content area)  -->

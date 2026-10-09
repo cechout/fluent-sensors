@@ -415,7 +415,7 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // the material stops inside the card stroke, so the stroke lies over the backdrop and the shadow like the
-        // native one; sizes are in dip, so a scale change needs nothing here
+        // native one; sizes are in dip, the inset follows the pixel snapped stroke (a scale change resizes the host)
         private void FlyoutBackdropHost_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (_isClosed || _backdropLink == null) return;
@@ -425,11 +425,16 @@ namespace FluentSensors.Features.TaskbarWidget
             float height = (float)e.NewSize.Height;
             visual.Size = new Vector2(width, height);
 
-            float inset = CardBorderDip;
+            double scale = FlyoutBackdropHost.XamlRoot?.RasterizationScale ?? 1.0;
+            float inset = (float)(CardStrokePx(scale) / scale);
             var radius = new Vector2(CardCornerRadiusDip - inset);
             visual.Clip = visual.Compositor.CreateRectangleClip(
                 inset, inset, width - inset, height - inset, radius, radius, radius, radius);
         }
+
+        // the card stroke in physical px; layout rounding snaps the 1 dip stroke to whole pixels (2 at 175 percent,
+        // both rows read as pure stroke over the backdrop), so material and shadow cut-out start behind that
+        private static double CardStrokePx(double scale) => Math.Max(1.0, Math.Round(CardBorderDip * scale));
 
         // drops the link for good: no controller may target it any more (UI thread only, see _backdropLink)
         private void RetireBackdropLink()
@@ -1834,24 +1839,14 @@ namespace FluentSensors.Features.TaskbarWidget
 
             // black with alpha, premultiplied; cut out under the material, inside the card stroke (the stroke lies
             // over the shadow, as on the native flyouts), antialiased along the rounded edge
-            double inset = CardBorderDip * _shadowScale;
-            double radius = (CardCornerRadiusDip - CardBorderDip) * _shadowScale;
+            double inset = CardStrokePx(_shadowScale);
+            double radius = (CardCornerRadiusDip * _shadowScale) - inset;
             var pixels = new byte[width * height * 4];
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
                     double alpha = 1.0 - transmission[(y * width) + x];
-
-                    // under the stroke the native shadow keeps its strength, the model only fits outside the card
-                    // and falls off inside it; so the stroke takes the value of the nearest pixel outside
-                    double onCard = RoundedRectCoverage(x + 0.5, y + 0.5, card, 0, CardCornerRadiusDip * _shadowScale);
-                    if (onCard > 0)
-                    {
-                        double outside = 1.0 - transmission[NearestOutsideIndex(x, y, card, width)];
-                        alpha += (outside - alpha) * onCard;
-                    }
-
                     alpha *= 1.0 - RoundedRectCoverage(x + 0.5, y + 0.5, card, inset, radius);
                     pixels[(((y * width) + x) * 4) + 3] = (byte)Math.Round(Math.Clamp(alpha, 0.0, 1.0) * 255.0);
                 }
@@ -1881,23 +1876,6 @@ namespace FluentSensors.Features.TaskbarWidget
                 profile[i] = Math.Max(0.0, NormalCdf((center - start) / startSigma) - NormalCdf((center - end) / endSigma));
             }
             return profile;
-        }
-
-        // the first pixel outside the card, straight across its nearest edge
-        private static int NearestOutsideIndex(int x, int y, RectInt32 card, int width)
-        {
-            int toLeft = x - card.X;
-            int toRight = card.X + card.Width - 1 - x;
-            int toTop = y - card.Y;
-            int toBottom = card.Y + card.Height - 1 - y;
-            int nearest = Math.Min(Math.Min(toLeft, toRight), Math.Min(toTop, toBottom));
-
-            if (nearest == toLeft) x = card.X - 1;
-            else if (nearest == toRight) x = card.X + card.Width;
-            else if (nearest == toTop) y = card.Y - 1;
-            else y = card.Y + card.Height;
-
-            return (y * width) + x;
         }
 
         // how much of the pixel at the point the rect, shrunk by inset, covers, from the signed distance to its
