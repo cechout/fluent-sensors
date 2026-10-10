@@ -102,6 +102,11 @@ namespace FluentSensors.Features.Widget
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(CustomTitleBar);
 
+            // "Widget 1" and up, the name the tray and the sensors page use; also the taskbar and Alt+Tab title
+            string title = AppStrings.Format("Widget_WindowTitle", index + 1);
+            Title = title;
+            TitleText.Text = title;
+
             // always on top follows the z-order, see ApplyZOrder
             var presenter = OverlappedPresenter.Create();
             presenter.IsMaximizable = false;
