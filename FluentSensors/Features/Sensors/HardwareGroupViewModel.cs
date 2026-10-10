@@ -18,13 +18,25 @@ namespace FluentSensors.Features.Sensors
     {
         // === fields ===
 
-        public string HardwareName { get; set; } = "Hardware Name not provided"; // expander description
+        // expander description; a display name that can arrive late, see SensorsViewModel.RefreshGroupDisplayNames
+        private string _hardwareName = "Hardware Name not provided";
+        public string HardwareName
+        {
+            get => _hardwareName;
+            set { if (_hardwareName == value) return; _hardwareName = value; OnPropertyChanged(); }
+        }
 
         // the raw LHM name; HardwareName is a display name (it differs for storage and network), so
         // outside callers match on this
         public string LhmHardwareName { get; set; } = "";
         public string GroupLabel { get; set; } = "Hardware"; // expander header
-        public string IconGlyph { get; set; } = ""; // from HardwareGroupInfo
+        // from HardwareGroupInfo
+        private string _iconGlyph = "";
+        public string IconGlyph
+        {
+            get => _iconGlyph;
+            set { if (_iconGlyph == value) return; _iconGlyph = value; OnPropertyChanged(); }
+        }
 
         // kept for the rows, which colour their widget and taskbar graphs by it
         public HardwareGroupKind Kind { get; set; } = HardwareGroupKind.Other;

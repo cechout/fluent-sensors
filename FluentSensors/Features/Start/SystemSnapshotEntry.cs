@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml.Media;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 using FluentSensors.Common.Sensors;
@@ -11,13 +12,14 @@ namespace FluentSensors.Features.Start
     // one snapshot tile:
     // category, device, a few static facts and the LHM sensor count; a list, since a category can
     // hold two GPUs or three drives
-    // a class, since the sensor count (LHM keeps discovering after the splash) and the icon colour (the setting)
-    // move while the page is open
+    // a class, since the sensor count (LHM keeps discovering after the splash), the icon colour (the setting) and
+    // the facts (link speed, the display a gpu drives) move while the page is open
     public class SystemSnapshotEntry : INotifyPropertyChanged
     {
         // === fields ===
 
         private SolidColorBrush _iconBrush;
+        private IReadOnlyList<string> _details;
         private string _sensorCountText = "";
         private IReadOnlyList<string> _matchedHardwareNames = new List<string>();
         private bool _hasSensors;
@@ -38,7 +40,7 @@ namespace FluentSensors.Features.Start
             IconBrush = iconBrush;
             Category = category;
             Title = title;
-            Details = details;
+            _details = details;
             MatchKind = matchKind;
             MatchName = matchName;
         }
@@ -49,7 +51,13 @@ namespace FluentSensors.Features.Start
         public string IconGlyph { get; }
         public string Category { get; } // the HardwareGroupInfo label, "CPU"
         public string Title { get; } // the device name
-        public IReadOnlyList<string> Details { get; }
+
+        // swapped whole when Windows was asked again and a fact differs, see StartViewModel.RefreshSnapshot
+        public IReadOnlyList<string> Details
+        {
+            get => _details;
+            set { if (_details.SequenceEqual(value)) return; _details = value; OnPropertyChanged(); }
+        }
 
         // follows the colour setting, see StartViewModel.IconBrushFor
         public SolidColorBrush IconBrush

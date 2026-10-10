@@ -16,7 +16,7 @@ namespace FluentSensors.Features.Performance.Lhm
         // === fields ===
 
         // best-effort match against the WMI drives (see HardwareNameMatcher); null without a match
-        private readonly WinStorageDriveInfo _staticInfo;
+        private WinStorageDriveInfo _staticInfo;
 
 
         // === constructor ===
@@ -25,10 +25,10 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             HardwareName = hardwareName;
 
-            _staticInfo = HardwareNameMatcher.FindBestMatch(
-                hardwareName,
-                WinStaticInfoService.Instance.Drives,
-                drive => drive.FriendlyName);
+            _staticInfo = MatchStaticInfo();
+
+            // never detached; an instance lives for the session
+            WinStaticInfoService.Instance.DrivesChanged += OnStaticInfoChanged;
 
             TotalActivityOptions = new ObservableCollection<SensorSwitchCandidate>();
             ReadRateOptions = new ObservableCollection<SensorSwitchCandidate>();
@@ -135,6 +135,35 @@ namespace FluentSensors.Features.Performance.Lhm
         public string StorageStartStopCyclesText => HardwareInfoFormatter.FormatCycleCount(_staticInfo?.StartStopCycleCount, _staticInfo?.StartStopCycleCountMax);
         public string StorageLoadUnloadCyclesText => HardwareInfoFormatter.FormatCycleCount(_staticInfo?.LoadUnloadCycleCount, _staticInfo?.LoadUnloadCycleCountMax);
         public string StorageLatencyMaxText => HardwareInfoFormatter.FormatLatencyTriple(_staticInfo?.ReadLatencyMaxMs, _staticInfo?.WriteLatencyMaxMs, _staticInfo?.FlushLatencyMaxMs);
+
+
+        // === event handlers ===
+
+        // Windows was asked again (a drive was plugged in, the reliability counters moved); every static text re-reads
+        private void OnStaticInfoChanged()
+        {
+            _staticInfo = MatchStaticInfo();
+
+            foreach (string propertyName in StaticInfoPropertyNames) OnPropertyChanged(propertyName);
+        }
+
+        private static readonly string[] StaticInfoPropertyNames =
+        {
+            nameof(StorageFriendlyNameText), nameof(StorageSerialNumberText), nameof(StorageFirmwareRevisionText),
+            nameof(StorageBusTypeText), nameof(StorageSizeText), nameof(StoragePnpDeviceIdText),
+            nameof(StorageManufactureDateText), nameof(PerformanceDisplayName), nameof(StorageTemperatureText),
+            nameof(StorageTemperatureMaxText), nameof(StorageWearText), nameof(StoragePowerOnHoursText),
+            nameof(StorageReadErrorsText), nameof(StorageWriteErrorsText), nameof(StorageStartStopCyclesText),
+            nameof(StorageLoadUnloadCyclesText), nameof(StorageLatencyMaxText)
+        };
+
+
+        // === private helpers ===
+
+        private WinStorageDriveInfo MatchStaticInfo() => HardwareNameMatcher.FindBestMatch(
+            HardwareName,
+            WinStaticInfoService.Instance.Drives,
+            drive => drive.FriendlyName);
 
 
         // === INotifyPropertyChanged implementation ===

@@ -20,7 +20,7 @@ namespace FluentSensors.Core.StaticInfo
         ulong SharedSystemMemoryBytes,
         long AdapterLuid, // 0 without a DXGI match
 
-        // where the picture of this gpu goes, see WinDisplayTopology; read once at startup like the rest
+        // where the picture of this gpu goes, see WinDisplayTopology
         IReadOnlyList<WinDisplay> Displays, // the displays it scans out itself
         string? DisplayViaGpuName // the integrated gpu a hybrid discrete one renders through, when it drives none
     );

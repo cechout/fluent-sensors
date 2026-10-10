@@ -79,6 +79,8 @@ namespace FluentSensors.Features.Sensors
 
             // never detached; this view model lives for the whole session
             SettingsService.Instance.HardwareIconColorsChanged += RefreshGroupIconBrushes;
+            WinStaticInfoService.Instance.DrivesChanged += RefreshGroupDisplayNames;
+            WinStaticInfoService.Instance.NetworkAdaptersChanged += RefreshGroupDisplayNames;
         }
 
 
@@ -260,6 +262,18 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
+        // a drive or adapter that LHM reported before Windows listed it got its raw name; the lists were asked again
+        private void RefreshGroupDisplayNames()
+        {
+            foreach (var group in HardwareGroups)
+            {
+                if (group.Kind != HardwareGroupKind.Storage && group.Kind != HardwareGroupKind.Network) continue;
+
+                group.HardwareName = GetDisplayName(group.Kind, group.LhmHardwareName);
+                group.IconGlyph = GetIconGlyph(group.Kind, group.LhmHardwareName);
+            }
+        }
+
         // the expander group of a new instance, with its sensors now and later
         private void OnHardwareInstanceDiscovered(LhmHardwareInstance instance)
         {
@@ -267,10 +281,10 @@ namespace FluentSensors.Features.Sensors
 
             var group = new HardwareGroupViewModel
             {
-                HardwareName = GetDisplayName(instance),
+                HardwareName = GetDisplayName(instance.Kind, instance.HardwareName),
                 LhmHardwareName = instance.HardwareName,
                 GroupLabel = profile.Label,
-                IconGlyph = GetIconGlyph(instance),
+                IconGlyph = GetIconGlyph(instance.Kind, instance.HardwareName),
                 Kind = instance.Kind
             };
             group.PropertyChanged += Group_PropertyChanged;
@@ -285,36 +299,36 @@ namespace FluentSensors.Features.Sensors
 
         // display only: storage and network show the matched model or adapter description (like PerformanceViewModel),
         // which reads better than the LHM name
-        private static string GetDisplayName(LhmHardwareInstance instance)
+        private static string GetDisplayName(HardwareGroupKind kind, string lhmHardwareName)
         {
-            switch (instance.Kind)
+            switch (kind)
             {
                 case HardwareGroupKind.Storage:
                     var drive = HardwareNameMatcher.FindBestMatch(
-                        instance.HardwareName,
+                        lhmHardwareName,
                         WinStaticInfoService.Instance.Drives,
                         d => d.FriendlyName);
-                    return drive?.FriendlyName ?? instance.HardwareName;
+                    return drive?.FriendlyName ?? lhmHardwareName;
 
                 case HardwareGroupKind.Network:
                     var adapter = HardwareNameMatcher.FindBestMatch(
-                        instance.HardwareName,
+                        lhmHardwareName,
                         WinStaticInfoService.Instance.NetworkAdapters,
                         a => a.Name);
-                    return adapter?.Description ?? instance.HardwareName;
+                    return adapter?.Description ?? lhmHardwareName;
 
                 default:
-                    return instance.HardwareName;
+                    return lhmHardwareName;
             }
         }
 
         // the category glyph; a wireless adapter gets its own, matched like GetDisplayName
-        private static string GetIconGlyph(LhmHardwareInstance instance)
+        private static string GetIconGlyph(HardwareGroupKind kind, string lhmHardwareName)
         {
-            if (instance.Kind != HardwareGroupKind.Network) return HardwareGroupInfo.GetProfile(instance.Kind).IconGlyph;
+            if (kind != HardwareGroupKind.Network) return HardwareGroupInfo.GetProfile(kind).IconGlyph;
 
             var adapter = HardwareNameMatcher.FindBestMatch(
-                instance.HardwareName,
+                lhmHardwareName,
                 WinStaticInfoService.Instance.NetworkAdapters,
                 a => a.Name);
             return HardwareGroupInfo.GetNetworkIconGlyph(adapter?.InterfaceType);

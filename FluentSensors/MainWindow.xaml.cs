@@ -344,6 +344,9 @@ namespace FluentSensors
             AppStatus.IsAppReady = true;
             AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;
             AppStatus.IsPawnIoMissing = !WinStaticInfoService.Instance.IsPawnIoInstalled;
+
+            // from here the gpu, drive and network facts follow Windows
+            WinStaticInfoRefresher.Instance.Start(this);
             // a profile or taskbar settings request from the splash outranks the startup page; (the blocks below need
             // the page)
             _isStartupNavigation = true;

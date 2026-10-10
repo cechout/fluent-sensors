@@ -171,7 +171,7 @@ namespace FluentSensors.Features.Performance.Lhm
         public double AllThreadsOpacity => IsShowingAllThreads ? 1 : 0;
         public bool AllThreadsIsHitTestVisible => IsShowingAllThreads;
 
-        // static CPU info; computed, WinStaticInfoService never changes, so no notifications
+        // static CPU info; computed, the cpu facts of WinStaticInfoService never change, so no notifications
         public string CpuPhysicalCoresText => WinStaticInfoService.Instance.Cpu.PhysicalCores.ToString();
         public string CpuLogicalProcessorsText => WinStaticInfoService.Instance.Cpu.LogicalProcessors.ToString();
         public string CpuL1CacheText => HardwareInfoFormatter.FormatCacheLevelTotal(WinStaticInfoService.Instance.Cpu.CacheEntries, level: 3);

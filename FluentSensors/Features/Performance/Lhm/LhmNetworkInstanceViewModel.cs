@@ -17,7 +17,7 @@ namespace FluentSensors.Features.Performance.Lhm
         // === fields ===
 
         // best-effort match against the WMI adapters (see HardwareNameMatcher); null without a match
-        private readonly WinNetworkAdapterInfo _staticInfo;
+        private WinNetworkAdapterInfo _staticInfo;
 
 
         // === constructor ===
@@ -26,10 +26,10 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             HardwareName = hardwareName;
 
-            _staticInfo = HardwareNameMatcher.FindBestMatch(
-                hardwareName,
-                WinStaticInfoService.Instance.NetworkAdapters,
-                adapter => adapter.Name);
+            _staticInfo = MatchStaticInfo();
+
+            // never detached; an instance lives for the session
+            WinStaticInfoService.Instance.NetworkAdaptersChanged += OnStaticInfoChanged;
 
             NetworkUtilizationOptions = new ObservableCollection<SensorSwitchCandidate>();
         }
@@ -93,6 +93,32 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // the header and tile glyph; wi-fi for a wireless adapter, see HardwareGroupInfo.GetNetworkIconGlyph
         public string IconGlyph => HardwareGroupInfo.GetNetworkIconGlyph(_staticInfo?.InterfaceType);
+
+
+        // === event handlers ===
+
+        // Windows was asked again (an adapter came up, the link speed or an address moved); every static text re-reads
+        private void OnStaticInfoChanged()
+        {
+            _staticInfo = MatchStaticInfo();
+
+            foreach (string propertyName in StaticInfoPropertyNames) OnPropertyChanged(propertyName);
+        }
+
+        private static readonly string[] StaticInfoPropertyNames =
+        {
+            nameof(NetworkNameText), nameof(NetworkMacAddressText), nameof(NetworkSpeedText),
+            nameof(NetworkInterfaceTypeText), nameof(NetworkIPv4AddressesText), nameof(NetworkIPv6AddressesText),
+            nameof(NetworkDhcpEnabledText), nameof(PerformanceDisplayName), nameof(IconGlyph)
+        };
+
+
+        // === private helpers ===
+
+        private WinNetworkAdapterInfo MatchStaticInfo() => HardwareNameMatcher.FindBestMatch(
+            HardwareName,
+            WinStaticInfoService.Instance.NetworkAdapters,
+            adapter => adapter.Name);
 
 
         // === INotifyPropertyChanged implementation ===

@@ -293,7 +293,7 @@ namespace FluentSensors.Features.Performance
 
             foreach (var item in collection)
             {
-                NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, getHardwareName(item), item, getPrimaryGraph));
+                NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, item, getHardwareName, getPrimaryGraph));
             }
 
             ((INotifyCollectionChanged)collection).CollectionChanged += (s, e) => OnHardwareCollectionChanged(e, kind, getHardwareName, getPrimaryGraph);
@@ -308,7 +308,7 @@ namespace FluentSensors.Features.Performance
 
             foreach (var newItem in e.NewItems)
             {
-                NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, getHardwareName(newItem), newItem, getPrimaryGraph));
+                NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, newItem, getHardwareName, getPrimaryGraph));
             }
         }
 

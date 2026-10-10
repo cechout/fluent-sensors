@@ -287,7 +287,7 @@
 
                                         <!--  static facts  -->
                                         <!--  (wrapped, so a narrow tile reflows instead of clipping)  -->
-                                        <ItemsControl Margin="16,16,16,12" ItemsSource="{x:Bind Details}">
+                                        <ItemsControl Margin="16,16,16,12" ItemsSource="{x:Bind Details, Mode=OneWay}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
                                                     <controls:WrapPanel HorizontalSpacing="14" VerticalSpacing="2" />

@@ -14,7 +14,7 @@ namespace FluentSensors.Features.Performance.Lhm
         // === fields ===
 
         // best-effort match against the WMI GPUs (see HardwareNameMatcher); null without a match
-        private readonly WinGpuInfo _staticInfo;
+        private WinGpuInfo _staticInfo;
 
         // switchable D3D engine slots in the Extended Engines group, all on D3dEngineOptions
         public const int D3dEngineSlotCount = 4;
@@ -31,10 +31,10 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             HardwareName = hardwareName;
 
-            _staticInfo = HardwareNameMatcher.FindBestMatch(
-                hardwareName,
-                WinStaticInfoService.Instance.Gpus,
-                gpu => gpu.Name);
+            _staticInfo = MatchStaticInfo();
+
+            // never detached; an instance lives for the session
+            WinStaticInfoService.Instance.GpusChanged += OnStaticInfoChanged;
 
             TemperatureOptions = new ObservableCollection<SensorSwitchCandidate>();
             PackagePowerOptions = new ObservableCollection<SensorSwitchCandidate>();
@@ -290,7 +290,30 @@ namespace FluentSensors.Features.Performance.Lhm
         public string GpuPnpDeviceIdText => _staticInfo?.PnpDeviceId ?? "-";
 
 
+        // === event handlers ===
+
+        // Windows was asked again (a driver update, a monitor moved to another gpu); every static text re-reads
+        private void OnStaticInfoChanged()
+        {
+            _staticInfo = MatchStaticInfo();
+
+            foreach (string propertyName in StaticInfoPropertyNames) OnPropertyChanged(propertyName);
+        }
+
+        private static readonly string[] StaticInfoPropertyNames =
+        {
+            nameof(GpuNameText), nameof(GpuVendorText), nameof(GpuDriverVersionText),
+            nameof(GpuDisplayText), nameof(GpuDedicatedMemoryText), nameof(GpuSharedMemoryText),
+            nameof(GpuDeviceIdText), nameof(GpuPnpDeviceIdText)
+        };
+
+
         // === private helpers ===
+
+        private WinGpuInfo MatchStaticInfo() => HardwareNameMatcher.FindBestMatch(
+            HardwareName,
+            WinStaticInfoService.Instance.Gpus,
+            gpu => gpu.Name);
 
         // the D3dEngineSlot setters; persisted per slot ("D3DEngine1" to "D3DEngine4")
         private void SetD3dEngineSlot(int slotIndex, SensorGraphViewModel value)

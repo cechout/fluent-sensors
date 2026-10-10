@@ -19,17 +19,22 @@ namespace FluentSensors.Features.Performance
         // re-derives PrimaryGraph on every instance change; the sensor does not exist yet at construction
         private readonly Func<object, SensorGraphViewModel> _getPrimaryGraph;
 
+        // re-read with it; a drive or adapter gets its model name once Windows lists it, which can be after LHM does
+        private readonly Func<object, string> _getDisplayName;
+
 
         // === constructor ===
 
-        public PerformanceNavItemViewModel(HardwareGroupKind kind, string groupLabel, string displayName, object target,
-            Func<object, SensorGraphViewModel> getPrimaryGraph)
+        public PerformanceNavItemViewModel(HardwareGroupKind kind, string groupLabel, object target,
+            Func<object, string> getDisplayName, Func<object, SensorGraphViewModel> getPrimaryGraph)
         {
             Kind = kind;
             GroupLabel = groupLabel;
-            _displayName = displayName;
             Target = target;
+            _getDisplayName = getDisplayName;
             _getPrimaryGraph = getPrimaryGraph;
+
+            _displayName = _getDisplayName(Target);
 
             PrimaryGraph = _getPrimaryGraph(Target);
 
@@ -79,7 +84,7 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // the sidebar label, the CPU product or GPU model name; set at construction
+        // the sidebar label, the CPU product or GPU model name; follows the instance, see OnTargetPropertyChanged
         private string _displayName;
         public string DisplayName
         {
@@ -129,6 +134,9 @@ namespace FluentSensors.Features.Performance
                     $"[NavItem {GroupLabel}] PrimaryGraph SWAPPED: old={PrimaryGraph?.GetHashCode():X}, new={newGraph?.GetHashCode():X}, newDataCount={newGraph?.SensorData?.Count}");
             }
             PrimaryGraph = newGraph;
+
+            DisplayName = _getDisplayName(Target);
+            if (e.PropertyName == nameof(LhmNetworkInstanceViewModel.IconGlyph)) OnPropertyChanged(nameof(GroupIconGlyph));
         }
 
 

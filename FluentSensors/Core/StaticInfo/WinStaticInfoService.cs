@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
+using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using Vortice.DXGI;
 using System.Net.Sockets;
 
@@ -16,6 +18,7 @@ namespace FluentSensors.Core.StaticInfo
     // static hardware info:
     // facts from Windows itself (WMI and Win32), queried once on first access, unlike the live
     // LHM sensors; a lazy singleton
+    // gpus, drives and network adapters can move while the app runs and are asked again, see the refresh section
     // the constructor blocks the first thread that touches Instance through several WMI queries, so it is prewarmed at
     // startup (see MainWindow.StartHardwareServiceAsync)
     public class WinStaticInfoService
@@ -40,13 +43,14 @@ namespace FluentSensors.Core.StaticInfo
 
 
         // === public binding surface ===
-        // (no INotifyPropertyChanged, nothing changes after construction)
+        // (no INotifyPropertyChanged; cpu, memory and motherboard never change after construction, the three lists
+        // are swapped whole by a refresh, which raises the matching event)
 
         public WinCpuInfo Cpu { get; }
-        public IReadOnlyList<WinGpuInfo> Gpus { get; }
+        public IReadOnlyList<WinGpuInfo> Gpus { get; private set; }
         public WinMemoryInfo Memory { get; }
-        public IReadOnlyList<WinStorageDriveInfo> Drives { get; }
-        public IReadOnlyList<WinNetworkAdapterInfo> NetworkAdapters { get; }
+        public IReadOnlyList<WinStorageDriveInfo> Drives { get; private set; }
+        public IReadOnlyList<WinNetworkAdapterInfo> NetworkAdapters { get; private set; }
         public WinMotherboardInfo Motherboard { get; }
 
         // true once any Major >= 10 shared framework version is found, see QueryDotNetRuntimeInstalled
@@ -54,6 +58,74 @@ namespace FluentSensors.Core.StaticInfo
 
         // true while the PawnIO kernel driver is present, see QueryPawnIoInstalled
         public bool IsPawnIoInstalled { get; }
+
+
+        // === refresh ===
+
+        // each asks Windows again off the calling thread, then swaps its list and raises its event back on it; called
+        // from the UI thread only (WinStaticInfoRefresher), so a consumer never sees a list change under it
+        // a device that is gone stays listed with its last values, like its LHM instance stays in the hardware tree
+
+        public event Action? GpusChanged;
+        public event Action? DrivesChanged;
+        public event Action? NetworkAdaptersChanged;
+
+        // the gpu list, the driver versions and the display each gpu drives
+        public async Task RefreshGpusAsync()
+        {
+            var merged = await QueryMergedAsync(Gpus, QueryGpus, g => string.IsNullOrEmpty(g.PnpDeviceId) ? g.Name : g.PnpDeviceId);
+            if (merged == null) return;
+
+            Gpus = merged;
+            GpusChanged?.Invoke();
+        }
+
+        // the drive list and the reliability counters (temperature, power on hours, errors, wear)
+        public async Task RefreshDrivesAsync()
+        {
+            var merged = await QueryMergedAsync(Drives, QueryDrives, d => string.IsNullOrEmpty(d.SerialNumber) ? d.FriendlyName : d.SerialNumber);
+            if (merged == null) return;
+
+            Drives = merged;
+            DrivesChanged?.Invoke();
+        }
+
+        // the adapters that are up, their link speed and addresses
+        public async Task RefreshNetworkAdaptersAsync()
+        {
+            var merged = await QueryMergedAsync(NetworkAdapters, QueryNetworkAdapters, a => a.Name);
+            if (merged == null) return;
+
+            NetworkAdapters = merged;
+            NetworkAdaptersChanged?.Invoke();
+        }
+
+        // the current list with every fresh item in the place of its predecessor and the new ones at the end; null
+        // when the query failed or nothing differs
+        private static async Task<List<T>?> QueryMergedAsync<T>(IReadOnlyList<T> current, Func<List<T>> query, Func<T, string> getKey)
+        {
+            List<T> fresh;
+            try
+            {
+                fresh = await Task.Run(query);
+            }
+            catch
+            {
+                return null; // a failed WMI query keeps the last list
+            }
+
+            var merged = current.ToList();
+            foreach (var item in fresh)
+            {
+                string key = getKey(item);
+                int index = merged.FindIndex(m => getKey(m) == key);
+                if (index >= 0) merged[index] = item;
+                else merged.Add(item);
+            }
+
+            // by content; the records hold lists (addresses, displays), which their own equality compares by reference
+            return JsonSerializer.Serialize(merged) == JsonSerializer.Serialize(current.ToList()) ? null : merged;
+        }
 
 
         // === private helpers ===
