@@ -331,13 +331,15 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         private bool _isClosed = false;
+        private bool _isOrphaned; // the HWND died with explorer.exe; Hide and Close must not reach this window
+        private static readonly List<TaskbarWidgetWindow> _orphanedInstances = new();
 
         // --- memory leak: taskbar widget instance never released after a real close ---
         // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
         // fix: none here; the one place that destroys for real, since an OS theme or transparency change only reaches a
         // window built after it (see TaskbarFlyoutWindow.ScheduleRecreation); one leaked CCW per change, knowingly paid
-        // only ever called from RecreateWindow
+        // called from RecreateWindow, and from CloseWidget for an orphaned widget
         public void SafeDestroy(bool disposeViewModel)
         {
             if (_isClosed) return;
@@ -359,6 +361,26 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow.Closing -= AppWindow_Closing;
             }
             catch { }
+
+            // --- workaround: Window.Close on a window whose HWND is already gone ---
+            // problem: the embedded widget is a child of Shell_TrayWnd, so an explorer.exe restart destroys it from the
+            // other process; Window.Close() on it is then an access violation in coreclr that no catch can stop
+            // (confirmed: WM_NCDESTROY at the kill, IsWindow false at the next poll, crash on every restart)
+            // fix: skip Detach and Close and park the instance for good; never finalized either, since a finalizer
+            // releasing WinUI objects off the UI thread is a fail-fast; one dead instance per explorer restart
+            if (_isOrphaned || !NativeMethods.IsWindow(_hwnd))
+            {
+                _taskbarHwnd = IntPtr.Zero;
+                _isEmbedded = false;
+
+                if (disposeViewModel)
+                {
+                    ViewModel?.Cleanup();
+                }
+
+                _orphanedInstances.Add(this);
+                return;
+            }
 
             try
             {
@@ -476,6 +498,14 @@ namespace FluentSensors.Features.TaskbarWidget
                     const uint WM_SETCURSOR = 0x0020;
                     const uint WM_MOUSEMOVE = 0x0200;
                     const uint WM_MOUSELEAVE = 0x02A3;
+                    const uint WM_NCDESTROY = 0x0082;
+
+                    // explorer.exe died and took its child with it; our own destroy always sets _isClosed first
+                    if (e.Message.MessageId == WM_NCDESTROY && !_isClosed)
+                    {
+                        _isOrphaned = true;
+                        return;
+                    }
 
                     if (e.Message.MessageId == WM_SETCURSOR || e.Message.MessageId == WM_MOUSEMOVE)
                     {
@@ -702,6 +732,16 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
 
+            // hidden while explorer.exe is down: a dead window cannot be hidden or reused, so it is dropped
+            if (_isOrphaned)
+            {
+                CurrentInstance = null;
+                SafeDestroy(disposeViewModel: true);
+                SaveWindowState(wasOpen: false);
+                WidgetStateChanged?.Invoke();
+                return;
+            }
+
             CurrentInstance = null;
             _retainedInstance = this;
 
@@ -890,6 +930,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // === taskbar tracking ===
 
         private bool _isTrackingTaskbar;
+        private DispatcherQueueTimer _zOrderTimer;
 
         // follows the taskbar while embedded; an edge move, a resolution or scaling change and an explorer.exe restart
         // all arrive as a changed snapshot
@@ -900,6 +941,18 @@ namespace FluentSensors.Features.TaskbarWidget
 
             WinTaskbarService.Instance.TaskbarsChanged += OnTaskbarsChanged;
             WinTaskbarService.Instance.StartMonitoring();
+
+            // on a timer, since explorer.exe builds its taskbar island at no fixed point after a restart
+            _zOrderTimer = DispatcherQueue.CreateTimer();
+            _zOrderTimer.Interval = TimeSpan.FromSeconds(1);
+            _zOrderTimer.Tick += (s, e) =>
+            {
+                if (_isEmbedded && !_isOrphaned && _taskbarHwnd != IntPtr.Zero)
+                {
+                    WinTaskbarEmbedder.KeepAboveShell(_hwnd, _taskbarHwnd);
+                }
+            };
+            _zOrderTimer.Start();
         }
 
         private void StopTrackingTaskbar()
@@ -909,6 +962,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
             WinTaskbarService.Instance.TaskbarsChanged -= OnTaskbarsChanged;
             WinTaskbarService.Instance.StopMonitoring();
+
+            _zOrderTimer?.Stop();
+            _zOrderTimer = null;
         }
 
         // raised on the polling thread
