@@ -110,7 +110,7 @@ namespace FluentSensors.Features.CsvLogging
             SaveWindowState();
 
             // theming
-            _backdrop = new WindowBackdrop(this, RootGrid, () => SettingsService.Instance.CsvBackdrop);
+            _backdrop = new WindowBackdrop(this, RootGrid, () => SettingsService.Instance.CsvBackdrop, NoiseHost, NoiseOverlay);
             _backdrop.Apply(SettingsService.Instance.CsvBackgroundMaterial);
             ApplyTheme(SettingsService.Instance.AppTheme);
 

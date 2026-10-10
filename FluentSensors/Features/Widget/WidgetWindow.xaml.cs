@@ -133,7 +133,7 @@ namespace FluentSensors.Features.Widget
             SaveWindowState();
 
             // theming
-            _backdrop = new WindowBackdrop(this, RootGrid, () => SettingsService.Instance.WidgetBackdrop);
+            _backdrop = new WindowBackdrop(this, RootGrid, () => SettingsService.Instance.WidgetBackdrop, NoiseHost, NoiseOverlay);
             _backdrop.Apply(SettingsService.Instance.BackgroundMaterial);
             ApplyTheme(SettingsService.Instance.AppTheme);
 

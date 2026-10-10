@@ -4,6 +4,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Shapes;
 using System;
 using Windows.UI;
 using Windows.UI.ViewManagement;
@@ -26,6 +27,7 @@ namespace FluentSensors.Common.UI
         private readonly Window _window;
         private readonly Panel _rootPanel;
         private readonly Func<WindowBackdropSettings> _readSettings;
+        private readonly AcrylicGrain _grain;
 
         private DesktopAcrylicController? _acrylicController;
         private MicaController? _micaController;
@@ -35,11 +37,15 @@ namespace FluentSensors.Common.UI
 
         // === constructor ===
 
-        public WindowBackdrop(Window window, Panel rootPanel, Func<WindowBackdropSettings> readSettings)
+        // the grain host and its rectangle sit in the root panel, under every other child
+        public WindowBackdrop(Window window, Panel rootPanel, Func<WindowBackdropSettings> readSettings,
+            UIElement grainHost, Rectangle grainOverlay)
         {
             _window = window;
             _rootPanel = rootPanel;
             _readSettings = readSettings;
+            _grain = new AcrylicGrain(grainHost, grainOverlay, rootPanel);
+            _rootPanel.SizeChanged += RootPanel_SizeChanged;
         }
 
 
@@ -89,10 +95,12 @@ namespace FluentSensors.Common.UI
 
                 // transparent, so the material shows
                 _rootPanel.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                UpdateGlassSurface();
             }
             else
             {
                 UpdateSolidBackground();
+                UpdateGlassSurface();
             }
         }
 
@@ -134,6 +142,7 @@ namespace FluentSensors.Common.UI
             _isDisposed = true;
 
             DisposeControllers();
+            _rootPanel.SizeChanged -= RootPanel_SizeChanged;
 
             if (_configurationSource != null)
             {
@@ -176,11 +185,17 @@ namespace FluentSensors.Common.UI
 
         // transparent, so the material shows; system acrylic with Windows transparency on takes the lift of the flyout
         // graphs area (FlyoutGraphsBackground), the surface its preset is matched to the Windows flyouts under
+        // the grain belongs to the acrylic, so it shows whenever the blur does, like on the taskbar flyout
         private void UpdateGlassSurface()
         {
-            if (_isDisposed || _acrylicController == null) return;
+            if (_isDisposed) return;
 
-            if (_readSettings().Material == BackdropMaterial.SystemAcrylic && IsTransparencyEnabled())
+            bool isTransparencyEnabled = IsTransparencyEnabled();
+            _grain.Show(_acrylicController != null && isTransparencyEnabled, _rootPanel.ActualWidth, _rootPanel.ActualHeight);
+
+            if (_acrylicController == null) return;
+
+            if (_readSettings().Material == BackdropMaterial.SystemAcrylic && isTransparencyEnabled)
             {
                 var themeDictionary = (ResourceDictionary)Application.Current.Resources
                     .ThemeDictionaries[IsLightTheme() ? "Light" : "Default"];
@@ -203,6 +218,13 @@ namespace FluentSensors.Common.UI
             {
                 return false;
             }
+        }
+
+        private void RootPanel_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (_isDisposed || !_grain.IsVisible) return;
+
+            _grain.Ensure(e.NewSize.Width, e.NewSize.Height);
         }
 
         private void DisposeControllers()

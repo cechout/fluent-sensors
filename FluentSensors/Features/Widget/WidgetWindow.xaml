@@ -21,6 +21,19 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!--
+            acrylic grain: the material paints noise last, the backdrop controller does not; below every fill, so it
+            grains the material and not the text or graphs; shown by WindowBackdrop for acrylic with Windows
+            transparency on, sized from code like the taskbar flyout grain
+        -->
+        <Canvas
+            x:Name="NoiseHost"
+            Grid.RowSpan="3"
+            IsHitTestVisible="False"
+            Visibility="Collapsed">
+            <Rectangle x:Name="NoiseOverlay" />
+        </Canvas>
+
         <!--  custom title bar: title  -->
         <!--  (26 tall; part of ChromeHeight in code)  -->
         <Grid
