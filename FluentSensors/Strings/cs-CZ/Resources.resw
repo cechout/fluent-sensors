@@ -128,9 +128,6 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Main_LoadingStatusText.Text" xml:space="preserve">
     <value>Spouštění Fluent Sensors...</value>
   </data>
-  <data name="Main_WidgetWindowSingleClickItem.Text" xml:space="preserve">
-    <value>Okno widgetu	Jedno kliknutí</value>
-  </data>
   <data name="Main_CSVWindowSingleClickItem.Text" xml:space="preserve">
     <value>Okno CSV	Jedno kliknutí</value>
   </data>
@@ -315,24 +312,8 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
     <value>Interval aktualizace</value>
   </data>
-  <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
-    <value>Vzhled stránky Grafy</value>
-  </data>
-  <data name="Settings_PerformanceGraphExpander.Description" xml:space="preserve">
-    <value>Časový rozsah přehledových grafů a hustších mřížek</value>
-  </data>
-  <data name="Settings_PerformanceGraphExpander.Header" xml:space="preserve">
-    <value>Graf</value>
-    <comment>section heading for the graphs of the Graphs page</comment>
-  </data>
   <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
     <value>Časový rozsah</value>
-  </data>
-  <data name="Settings_CPUExtendedTimeRangeCard.Header" xml:space="preserve">
-    <value>Časový rozsah CPU rozšířený</value>
-  </data>
-  <data name="Settings_GPUExtendedTimeRangeCard.Header" xml:space="preserve">
-    <value>Časový rozsah GPU rozšířený</value>
   </data>
   <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
     <value>Vzhled okna widgetu</value>
@@ -343,31 +324,15 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_BackgroundMaterialExpander.Header" xml:space="preserve">
     <value>Materiál pozadí</value>
   </data>
-  <data name="Settings_BackdropComboBox_Acrylic.Content" xml:space="preserve">
-    <value>Akryl</value>
-  </data>
   <data name="Settings_BackdropComboBox_Mica.Content" xml:space="preserve">
     <value>Mica</value>
     <comment>window backdrop option; Mica is the name of a Windows material, keep it</comment>
   </data>
-  <data name="Settings_BackdropComboBox_None.Content" xml:space="preserve">
-    <value>Plná barva</value>
-    <comment>window backdrop option; a plain background without Mica or Acrylic</comment>
-  </data>
-  <data name="Settings_TintOpacityCard.Description" xml:space="preserve">
-    <value>(pouze akryl)</value>
-  </data>
   <data name="Settings_TintOpacityCard.Header" xml:space="preserve">
     <value>Krytí tónu</value>
   </data>
-  <data name="Settings_LuminosityOpacityCard.Description" xml:space="preserve">
-    <value>(pouze akryl)</value>
-  </data>
   <data name="Settings_LuminosityOpacityCard.Header" xml:space="preserve">
     <value>Krytí jasu</value>
-  </data>
-  <data name="Settings_BackgroundColorSourceCard.Description" xml:space="preserve">
-    <value>(akryl a plná barva)</value>
   </data>
   <data name="Settings_BackgroundColorSourceCard.Header" xml:space="preserve">
     <value>Zdroj barvy pozadí</value>
@@ -383,9 +348,6 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   </data>
   <data name="Settings_WidgetBackgroundColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Barva pozadí</value>
-  </data>
-  <data name="Settings_WidgetGraphExpander.Description" xml:space="preserve">
-    <value>Barva a časový rozsah grafu</value>
   </data>
   <data name="Settings_WidgetGraphExpander.Header" xml:space="preserve">
     <value>Graf</value>
@@ -505,31 +467,15 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_FlyoutBackgroundMaterialExpander.Header" xml:space="preserve">
     <value>Materiál pozadí vysouvacího panelu</value>
   </data>
-  <data name="Settings_TaskbarBackdropComboBox_Acrylic.Content" xml:space="preserve">
-    <value>Akryl</value>
-  </data>
   <data name="Settings_TaskbarBackdropComboBox_Mica.Content" xml:space="preserve">
     <value>Mica</value>
     <comment>taskbar flyout backdrop option; Mica is the name of a Windows material, keep it</comment>
   </data>
-  <data name="Settings_TaskbarBackdropComboBox_None.Content" xml:space="preserve">
-    <value>Plná barva</value>
-    <comment>taskbar flyout backdrop option; a plain background without Mica or Acrylic</comment>
-  </data>
-  <data name="Settings_TaskbarTintOpacityCard.Description" xml:space="preserve">
-    <value>(pouze akryl)</value>
-  </data>
   <data name="Settings_TaskbarTintOpacityCard.Header" xml:space="preserve">
     <value>Krytí tónu</value>
   </data>
-  <data name="Settings_TaskbarLuminosityOpacityCard.Description" xml:space="preserve">
-    <value>(pouze akryl)</value>
-  </data>
   <data name="Settings_TaskbarLuminosityOpacityCard.Header" xml:space="preserve">
     <value>Krytí jasu</value>
-  </data>
-  <data name="Settings_TaskbarBackgroundColorSourceCard.Description" xml:space="preserve">
-    <value>(akryl a plná barva)</value>
   </data>
   <data name="Settings_TaskbarBackgroundColorSourceCard.Header" xml:space="preserve">
     <value>Zdroj barvy pozadí</value>
@@ -1619,9 +1565,6 @@ DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo 
   </data>
   <data name="TaskbarFlyout_TaskbarSettingsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
     <value>Nastavení widgetu na hlavním panelu</value>
-  </data>
-  <data name="Widget_SystemSensorsText.Text" xml:space="preserve">
-    <value>Systémové senzory</value>
   </data>
   <data name="Widget_BackToDashboardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Zpět do hlavní aplikace</value>
