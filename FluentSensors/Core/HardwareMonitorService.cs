@@ -171,6 +171,10 @@ namespace FluentSensors.Core
             // already running
             if (_cts != null) return;
 
+            // before the first flatten, which then covers whatever was added in between
+            _computer.HardwareAdded += OnHardwareAdded;
+            _computer.HardwareRemoved += OnHardwareRemoved;
+
             InitAllSensors();
 
             NetworkChange.NetworkAddressChanged += OnNetworkAddressChanged;
@@ -186,6 +190,8 @@ namespace FluentSensors.Core
             if (_cts == null) return;
 
             NetworkChange.NetworkAddressChanged -= OnNetworkAddressChanged;
+            _computer.HardwareAdded -= OnHardwareAdded;
+            _computer.HardwareRemoved -= OnHardwareRemoved;
 
             _cts.Cancel();
 
@@ -504,6 +510,34 @@ namespace FluentSensors.Core
                     .Select(nic => nic.Name));
         }
 
+        // a drive or a network adapter that was plugged in after the scan; LHM watches both itself and raises this on
+        // its own thread, the sensors join the next tick
+        private void OnHardwareAdded(IHardware hardware)
+        {
+            var sensors = new List<ISensor>();
+            DiscoverSensors(hardware, sensors);
+
+            lock (_sensorLock)
+            {
+                foreach (var sensor in sensors)
+                {
+                    if (!_activeSensors.Contains(sensor)) _activeSensors.Add(sensor);
+                }
+            }
+        }
+
+        // unplugged; LHM closed the hardware, its sensors would only repeat their last value
+        private void OnHardwareRemoved(IHardware hardware)
+        {
+            var sensors = new List<ISensor>();
+            DiscoverSensors(hardware, sensors);
+
+            lock (_sensorLock)
+            {
+                _activeSensors.RemoveAll(sensors.Contains);
+            }
+        }
+
         // flattens the hardware tree into _activeSensors, under _sensorLock against the polling loop
         private void InitAllSensors()
         {
@@ -513,22 +547,22 @@ namespace FluentSensors.Core
 
                 foreach (var hardware in _computer.Hardware)
                 {
-                    DiscoverSensors(hardware);
+                    DiscoverSensors(hardware, _activeSensors);
                 }
             }
         }
 
-        private void DiscoverSensors(IHardware hardware)
+        private static void DiscoverSensors(IHardware hardware, List<ISensor> target)
         {
             foreach (var sensor in hardware.Sensors)
             {
-                _activeSensors.Add(sensor);
+                target.Add(sensor);
             }
 
             // sub-hardware, e.g. the super I/O chips under a motherboard
             foreach (var subHardware in hardware.SubHardware)
             {
-                DiscoverSensors(subHardware);
+                DiscoverSensors(subHardware, target);
             }
         }
     }

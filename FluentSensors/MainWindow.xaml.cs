@@ -342,8 +342,8 @@ namespace FluentSensors
             MainNavigationView.Opacity = 1;
             SplashOverlay.Visibility = Visibility.Collapsed;
             AppStatus.IsAppReady = true;
-            AppStatus.IsDotNetRuntimeMissing = !WinStaticInfoService.Instance.IsDotNetRuntimeInstalled;
-            AppStatus.IsPawnIoMissing = !WinStaticInfoService.Instance.IsPawnIoInstalled;
+            ApplyPrerequisiteHints();
+            WinStaticInfoService.Instance.PrerequisitesChanged += ApplyPrerequisiteHints;
 
             // from here the gpu, drive and network facts follow Windows
             WinStaticInfoRefresher.Instance.Start(this);
@@ -461,6 +461,8 @@ namespace FluentSensors
             UpdateButton.SizeChanged += OnTitleBarExtraSizeChanged;
             DotNetRuntimePopup.SizeChanged += OnTitleBarExtraSizeChanged;
             PawnIoPopup.SizeChanged += OnTitleBarExtraSizeChanged;
+            DotNetRuntimeRestartPopup.SizeChanged += OnTitleBarExtraSizeChanged;
+            PawnIoRestartPopup.SizeChanged += OnTitleBarExtraSizeChanged;
             StatusToggleButton.SizeChanged += OnTitleBarExtraSizeChanged;
             LhmStatusGroup.SizeChanged += OnTitleBarExtraSizeChanged;
             WindowsStatusGroup.SizeChanged += OnTitleBarExtraSizeChanged;
@@ -469,6 +471,17 @@ namespace FluentSensors
         }
 
         private void OnTitleBarExtraSizeChanged(object sender, SizeChangedEventArgs e) => RefreshTitleBarLayout();
+
+        // one hint per prerequisite at most: missing, or installed since and waiting for a restart
+        private void ApplyPrerequisiteHints()
+        {
+            var info = WinStaticInfoService.Instance;
+
+            AppStatus.IsDotNetRuntimeMissing = info.DotNetRuntimeState == WinPrerequisiteState.Missing;
+            AppStatus.IsDotNetRuntimeRestartRequired = info.DotNetRuntimeState == WinPrerequisiteState.RestartRequired;
+            AppStatus.IsPawnIoMissing = info.PawnIoState == WinPrerequisiteState.Missing;
+            AppStatus.IsPawnIoRestartRequired = info.PawnIoState == WinPrerequisiteState.RestartRequired;
+        }
 
         // feeds the room for the status groups; see AppStatusViewModel.UpdateVisibility
         private void AppTitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -486,7 +499,8 @@ namespace FluentSensors
 
             // info popups hand over their button only; (a rect over the readout inside them would block dragging)
             TitleBarPassthrough.Apply(this, AppTitleBar,
-                UpdateButton, DotNetRuntimePopup.InteractiveRegion, PawnIoPopup.InteractiveRegion, StatusToggleButton,
+                UpdateButton, DotNetRuntimePopup.InteractiveRegion, PawnIoPopup.InteractiveRegion,
+                DotNetRuntimeRestartPopup.InteractiveRegion, PawnIoRestartPopup.InteractiveRegion, StatusToggleButton,
                 LhmInfoPopup.InteractiveRegion, WindowsInfoPopup.InteractiveRegion);
         }
 
@@ -496,7 +510,8 @@ namespace FluentSensors
         private void UpdateReadoutRoom()
         {
             double inFront = MeasuredWidth(AppTitleIcon) + MeasuredWidth(AppTitleText) + MeasuredWidth(UpdateButton)
-                + MeasuredWidth(DotNetRuntimePopup) + MeasuredWidth(PawnIoPopup) + MeasuredWidth(StatusToggleButton);
+                + MeasuredWidth(DotNetRuntimePopup) + MeasuredWidth(PawnIoPopup)
+                + MeasuredWidth(DotNetRuntimeRestartPopup) + MeasuredWidth(PawnIoRestartPopup) + MeasuredWidth(StatusToggleButton);
 
             double scale = AppTitleBar.XamlRoot?.RasterizationScale ?? 1.0;
             double captionButtons = AppWindow.TitleBar.RightInset / scale;

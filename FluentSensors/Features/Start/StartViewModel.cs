@@ -87,6 +87,7 @@ namespace FluentSensors.Features.Start
             WinStaticInfoService.Instance.GpusChanged += RefreshSnapshot;
             WinStaticInfoService.Instance.DrivesChanged += RefreshSnapshot;
             WinStaticInfoService.Instance.NetworkAdaptersChanged += RefreshSnapshot;
+            WinStaticInfoService.Instance.PrerequisitesChanged += () => OnPropertyChanged(nameof(PawnIoTileValue));
         }
 
 
@@ -196,9 +197,13 @@ namespace FluentSensors.Features.Start
             private set { _readTimeTileValue = value; OnPropertyChanged(); }
         }
 
-        // checked once at startup, like the title bar hint
-        public string PawnIoTileValue { get; } =
-            AppStrings.Get(WinStaticInfoService.Instance.IsPawnIoInstalled ? "Start_PawnIoInstalled" : "Start_PawnIoMissing");
+        // follows WinStaticInfoService like the title bar hint; missing can turn into restart required
+        public string PawnIoTileValue => AppStrings.Get(WinStaticInfoService.Instance.PawnIoState switch
+        {
+            WinPrerequisiteState.Installed => "Start_PawnIoInstalled",
+            WinPrerequisiteState.RestartRequired => "Start_PawnIoRestartRequired",
+            _ => "Start_PawnIoMissing"
+        });
 
         // the graphics tile, from WinAppGpuMonitor while the page shows
         public string GpuAdapterTileValue

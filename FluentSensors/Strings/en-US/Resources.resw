@@ -91,6 +91,14 @@ GPU, storage, network and memory readings are not affected</value>
   <data name="Main_PawnIoPopup.SourceIntro" xml:space="preserve">
     <value>Recommended:</value>
   </data>
+  <data name="Main_DotNetRuntimeRestartPopup.Description" xml:space="preserve">
+    <value>.NET 10 was installed while Fluent Sensors was running
+Restart Fluent Sensors so LibreHardwareMonitor can access every available sensor</value>
+  </data>
+  <data name="Main_PawnIoRestartPopup.Description" xml:space="preserve">
+    <value>PawnIO was installed while Fluent Sensors was running
+Restart Fluent Sensors to read CPU temperature and power, motherboard sensors and memory timings</value>
+  </data>
   <data name="Main_StatusToggleButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Toggle Status Readout</value>
   </data>
@@ -878,6 +886,10 @@ Uptime - how long this app has been running since it was last started</value>
   <data name="Start_PawnIoMissing" xml:space="preserve">
     <value>Missing</value>
     <comment>state of the PawnIO driver</comment>
+  </data>
+  <data name="Start_PawnIoRestartRequired" xml:space="preserve">
+    <value>Restart required</value>
+    <comment>state of the PawnIO driver: installed while the app runs, the app has to be restarted to use it</comment>
   </data>
   <data name="Start_GraphicsPopup.Title" xml:space="preserve">
     <value>Graphics</value>

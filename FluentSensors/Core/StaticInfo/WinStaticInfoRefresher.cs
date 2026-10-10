@@ -12,6 +12,7 @@ namespace FluentSensors.Core.StaticInfo
     // decides when WinStaticInfoService asks Windows again:
     // on an event where Windows has one (network change, device change, display change, the main window coming
     // back), on a slow timer for what has none (link speed, storage counters)
+    // the prerequisites (PawnIO, .NET) only when the main window comes back
     // lives on the UI thread of the main window and only starts the queries; the service runs them off it
     public sealed class WinStaticInfoRefresher
     {
@@ -23,7 +24,11 @@ namespace FluentSensors.Core.StaticInfo
 
         // the timer; only while the main window is shown, nothing reads these values from the tray
         private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(10); // network: link speed has no event
-        private static readonly TimeSpan DrivePollInterval = TimeSpan.FromSeconds(60); // a WMI round trip to each drive
+        // a WMI round trip to each drive; can reading the counters this often keep a sleeping hdd awake? unmeasured
+        private static readonly TimeSpan DrivePollInterval = TimeSpan.FromSeconds(60);
+
+        // the prerequisite look starts a process (dotnet --list-runtimes), so not on every activation in a row
+        private static readonly TimeSpan PrerequisiteMinInterval = TimeSpan.FromSeconds(5);
 
         // one plug or network switch raises a burst of events; the query waits until they stop
         private static readonly TimeSpan NetworkSettleTime = TimeSpan.FromSeconds(1);
@@ -43,7 +48,9 @@ namespace FluentSensors.Core.StaticInfo
         private Task? _gpuRefresh;
         private Task? _driveRefresh;
         private Task? _networkRefresh;
+        private Task? _prerequisiteRefresh;
         private long _driveRefreshTimestamp;
+        private long _prerequisiteRefreshTimestamp;
 
 
         // === singleton instance ===
@@ -85,10 +92,14 @@ namespace FluentSensors.Core.StaticInfo
             _messageMonitor = new WindowMessageMonitor(WinRT.Interop.WindowNative.GetWindowHandle(mainWindow));
             _messageMonitor.WindowMessageReceived += OnWindowMessageReceived;
 
-            // back from the tray or from another window; the timer stood still or the values are up to a tick old
+            // back from the tray or from another window; the timer stood still or the values are up to a tick old,
+            // and it is the moment a user returns from installing what a hint asked for
             mainWindow.Activated += (s, e) =>
             {
-                if (e.WindowActivationState != WindowActivationState.Deactivated) RefreshWhatIsDue();
+                if (e.WindowActivationState == WindowActivationState.Deactivated) return;
+
+                RefreshWhatIsDue();
+                RefreshPrerequisites();
             };
         }
 
@@ -138,6 +149,19 @@ namespace FluentSensors.Core.StaticInfo
         {
             if (_networkRefresh is { IsCompleted: false }) return;
             _networkRefresh = WinStaticInfoService.Instance.RefreshNetworkAdaptersAsync();
+        }
+
+        // only while one is missing; nothing to find otherwise
+        private void RefreshPrerequisites()
+        {
+            var info = WinStaticInfoService.Instance;
+            if (info.PawnIoState != WinPrerequisiteState.Missing && info.DotNetRuntimeState != WinPrerequisiteState.Missing) return;
+
+            if (_prerequisiteRefresh is { IsCompleted: false }) return;
+            if (_prerequisiteRefresh != null && Stopwatch.GetElapsedTime(_prerequisiteRefreshTimestamp) < PrerequisiteMinInterval) return;
+
+            _prerequisiteRefreshTimestamp = Stopwatch.GetTimestamp();
+            _prerequisiteRefresh = info.RefreshPrerequisitesAsync();
         }
 
         // one shot; Restart pushes it back while events keep coming

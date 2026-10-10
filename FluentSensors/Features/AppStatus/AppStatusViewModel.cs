@@ -44,6 +44,8 @@ namespace FluentSensors.Features.AppStatus
 
         private bool _isDotNetRuntimeMissing;
         private bool _isPawnIoMissing;
+        private bool _isDotNetRuntimeRestartRequired;
+        private bool _isPawnIoRestartRequired;
 
         // the update pill shares the title bar, so its state lives here too; set by
         // MainWindow on an UpdateService answer
@@ -156,8 +158,8 @@ namespace FluentSensors.Features.AppStatus
             private set { if (_isStatusToggleVisible == value) return; _isStatusToggleVisible = value; OnPropertyChanged(); }
         }
 
-        // set once with IsAppReady, after the WinStaticInfoService runtime check; independent of IsStatusEnabled, the
-        // readout toggle must not hide this hint
+        // set with IsAppReady and again when WinStaticInfoService found one installed while the app runs (missing
+        // turns into restart required); independent of IsStatusEnabled, the readout toggle must not hide these hints
         public bool IsDotNetRuntimeMissing
         {
             get => _isDotNetRuntimeMissing;
@@ -168,6 +170,18 @@ namespace FluentSensors.Features.AppStatus
         {
             get => _isPawnIoMissing;
             set { if (_isPawnIoMissing == value) return; _isPawnIoMissing = value; OnPropertyChanged(); }
+        }
+
+        public bool IsDotNetRuntimeRestartRequired
+        {
+            get => _isDotNetRuntimeRestartRequired;
+            set { if (_isDotNetRuntimeRestartRequired == value) return; _isDotNetRuntimeRestartRequired = value; OnPropertyChanged(); }
+        }
+
+        public bool IsPawnIoRestartRequired
+        {
+            get => _isPawnIoRestartRequired;
+            set { if (_isPawnIoRestartRequired == value) return; _isPawnIoRestartRequired = value; OnPropertyChanged(); }
         }
 
         // while UpdateService reports an update (GitHub, or the store in the store build)

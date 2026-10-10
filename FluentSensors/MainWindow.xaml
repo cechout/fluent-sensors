@@ -128,6 +128,18 @@
                     </fhInfoPopup:InfoPopupControl.SourceLinks>
                 </fhInfoPopup:InfoPopupControl>
 
+                <!--  dotnet runtime restart hint  -->
+                <!--  (the runtime was installed while the app runs; takes the place of the hint above)  -->
+                <fhInfoPopup:InfoPopupControl
+                    x:Name="DotNetRuntimeRestartPopup"
+                    x:Uid="Main_DotNetRuntimeRestartPopup"
+                    Margin="8,1,0,0"
+                    VerticalAlignment="Center"
+                    ButtonBackground="{ThemeResource SystemFillColorAttentionBackgroundBrush}"
+                    ButtonGlyphForeground="{ThemeResource SystemFillColorAttentionBrush}"
+                    PlacementMode="Below"
+                    Visibility="{x:Bind BoolToVisibility(AppStatus.IsDotNetRuntimeRestartRequired), Mode=OneWay}" />
+
                 <!--  pawnio driver hint  -->
                 <!--  (the driver is installed separately, nothing else says why the ring 0 readings are empty)  -->
                 <fhInfoPopup:InfoPopupControl
@@ -143,6 +155,18 @@
                         <fhInfoPopup:SourceLink Label="PawnIO" Url="https://pawnio.eu" />
                     </fhInfoPopup:InfoPopupControl.SourceLinks>
                 </fhInfoPopup:InfoPopupControl>
+
+                <!--  pawnio driver restart hint  -->
+                <!--  (the driver was installed while the app runs; takes the place of the hint above)  -->
+                <fhInfoPopup:InfoPopupControl
+                    x:Name="PawnIoRestartPopup"
+                    x:Uid="Main_PawnIoRestartPopup"
+                    Margin="8,1,0,0"
+                    VerticalAlignment="Center"
+                    ButtonBackground="{ThemeResource SystemFillColorAttentionBackgroundBrush}"
+                    ButtonGlyphForeground="{ThemeResource SystemFillColorAttentionBrush}"
+                    PlacementMode="Below"
+                    Visibility="{x:Bind BoolToVisibility(AppStatus.IsPawnIoRestartRequired), Mode=OneWay}" />
             </StackPanel>
 
             <!--  toggle button for the whole status readout  -->

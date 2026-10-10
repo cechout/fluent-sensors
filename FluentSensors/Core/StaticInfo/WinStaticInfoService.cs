@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Management;
+using Microsoft.Win32;
 using System.Net.NetworkInformation;
 using System.Text.Json;
 using System.Threading;
@@ -37,9 +38,20 @@ namespace FluentSensors.Core.StaticInfo
             Drives = QueryDrives();
             NetworkAdapters = QueryNetworkAdapters();
             Motherboard = QueryMotherboard();
-            IsDotNetRuntimeInstalled = QueryDotNetRuntimeInstalled();
-            IsPawnIoInstalled = QueryPawnIoInstalled();
+            DotNetRuntimeState = !PretendPrerequisitesMissing && QueryDotNetRuntimeInstalled()
+                ? WinPrerequisiteState.Installed
+                : WinPrerequisiteState.Missing;
+            PawnIoState = !PretendPrerequisitesMissing && QueryPawnIoInstalled()
+                ? WinPrerequisiteState.Installed
+                : WinPrerequisiteState.Missing;
         }
+
+
+        // === switches ===
+
+        // true starts with both prerequisites missing whatever the machine has, to look at the hints; coming back
+        // to the main window then finds the real ones and shows the restart state
+        private const bool PretendPrerequisitesMissing = false;
 
 
         // === public binding surface ===
@@ -53,11 +65,11 @@ namespace FluentSensors.Core.StaticInfo
         public IReadOnlyList<WinNetworkAdapterInfo> NetworkAdapters { get; private set; }
         public WinMotherboardInfo Motherboard { get; }
 
-        // true once any Major >= 10 shared framework version is found, see QueryDotNetRuntimeInstalled
-        public bool IsDotNetRuntimeInstalled { get; }
+        // installed once any Major >= 10 shared framework version is found, see QueryDotNetRuntimeInstalled
+        public WinPrerequisiteState DotNetRuntimeState { get; private set; }
 
-        // true while the PawnIO kernel driver is present, see QueryPawnIoInstalled
-        public bool IsPawnIoInstalled { get; }
+        // installed while the PawnIO kernel driver is present, see QueryPawnIoInstalled
+        public WinPrerequisiteState PawnIoState { get; private set; }
 
 
         // === refresh ===
@@ -69,6 +81,7 @@ namespace FluentSensors.Core.StaticInfo
         public event Action? GpusChanged;
         public event Action? DrivesChanged;
         public event Action? NetworkAdaptersChanged;
+        public event Action? PrerequisitesChanged;
 
         // the gpu list, the driver versions and the display each gpu drives
         public async Task RefreshGpusAsync()
@@ -98,6 +111,19 @@ namespace FluentSensors.Core.StaticInfo
 
             NetworkAdapters = merged;
             NetworkAdaptersChanged?.Invoke();
+        }
+
+        // looks again for what was missing at startup; found now means installed while the app runs, and LHM needs a
+        // restart to use it
+        public async Task RefreshPrerequisitesAsync()
+        {
+            bool dotNetArrived = DotNetRuntimeState == WinPrerequisiteState.Missing && await Task.Run(QueryDotNetRuntimeInstalled);
+            bool pawnIoArrived = PawnIoState == WinPrerequisiteState.Missing && await Task.Run(QueryPawnIoRegistered);
+            if (!dotNetArrived && !pawnIoArrived) return;
+
+            if (dotNetArrived) DotNetRuntimeState = WinPrerequisiteState.RestartRequired;
+            if (pawnIoArrived) PawnIoState = WinPrerequisiteState.RestartRequired;
+            PrerequisitesChanged?.Invoke();
         }
 
         // the current list with every fresh item in the place of its predecessor and the new ones at the end; null
@@ -584,6 +610,29 @@ namespace FluentSensors.Core.StaticInfo
                 // a library version without the property counts as installed, so the hint never shows on a fine machine
                 return true;
             }
+        }
+
+        // the same look LHM takes, for asking again: PawnIo.IsInstalled reads the uninstall entry once in its static
+        // constructor and never changes afterwards
+        private static bool QueryPawnIoRegistered()
+        {
+            const string UninstallKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PawnIO";
+
+            try
+            {
+                foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+                {
+                    using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view);
+                    using var key = baseKey.OpenSubKey(UninstallKey);
+                    if (Version.TryParse(key?.GetValue("DisplayVersion") as string, out _)) return true;
+                }
+            }
+            catch
+            {
+                // no access to the key; stays missing
+            }
+
+            return false;
         }
 
         // many LHM sensors (several CPU and GPU ones) only populate with a .NET Desktop Runtime 10 or newer installed
