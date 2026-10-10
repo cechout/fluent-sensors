@@ -38,7 +38,7 @@ namespace FluentSensors.Features.Widget
         // === fields ===
 
         // each window has its own sensors, z-order, time range and place; the material is shared
-        public const int MaxWidgetWindows = 3;
+        public const int MaxWidgetWindows = 5;
 
         private AppWindow _appWindow;
         private readonly string _windowKey;

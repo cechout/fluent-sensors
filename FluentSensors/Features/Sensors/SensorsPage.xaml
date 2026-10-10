@@ -73,8 +73,8 @@
                             <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_Taskbar" Tag="Taskbar" />
                         </ComboBox>
 
-                        <!--  the widget window of the widget profile, 1 to 3  -->
-                        <!--  (numbers filled in from code, see WidgetWindow.MaxWidgetWindows)  -->
+                        <!--  the widget window of the widget profile  -->
+                        <!--  (numbers filled in from code, 1 to WidgetWindow.MaxWidgetWindows)  -->
                         <ComboBox
                             x:Name="WidgetWindowComboBox"
                             x:Uid="Sensors_WidgetWindowComboBox"

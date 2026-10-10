@@ -100,10 +100,8 @@ namespace FluentSensors
         public XamlUICommand ShowMainWindowCommand { get; } = new XamlUICommand(); // restore; sensors page
         public XamlUICommand OpenPerformanceCommand { get; } = new XamlUICommand(); // restore; performance page
         public XamlUICommand OpenSettingsCommand { get; } = new XamlUICommand(); // restore; settings page
-        public XamlUICommand ShowWidgetWindow1Command { get; } = new XamlUICommand(); // one widget only
-        public XamlUICommand ShowWidgetWindow2Command { get; } = new XamlUICommand();
-        public XamlUICommand ShowWidgetWindow3Command { get; } = new XamlUICommand();
         public XamlUICommand ShowCsvWindowCommand { get; } = new XamlUICommand(); // the csv logger only
+        private readonly MenuFlyoutItem[] _widgetTrayItems = new MenuFlyoutItem[WidgetWindow.MaxWidgetWindows]; // one widget only, each
         public XamlUICommand OpenDocumentationCommand { get; } = new XamlUICommand(); // the project page in the browser
         public XamlUICommand ExitAppCommand { get; } = new XamlUICommand();
         public XamlUICommand TrayLeftClickCommand { get; } = new XamlUICommand(); // single click; open readouts
@@ -227,16 +225,21 @@ namespace FluentSensors
                 RestoreApp();
                 MainNavigationView.SelectedItem = SettingsNavItem;
             };
-            ShowWidgetWindow1Command.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen(0);
-            ShowWidgetWindow2Command.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen(1);
-            ShowWidgetWindow3Command.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen(2);
             ShowCsvWindowCommand.ExecuteRequested += (s, e) => CsvLoggerWindow.RestoreIfOpen();
             OpenDocumentationCommand.ExecuteRequested += (s, e) => OpenProjectPage();
 
-            // the widget entries are numbered from code, the text is one format string
-            WidgetWindow1TrayItem.Text = AppStrings.Format("Main_WidgetWindowTrayItem", 1);
-            WidgetWindow2TrayItem.Text = AppStrings.Format("Main_WidgetWindowTrayItem", 2);
-            WidgetWindow3TrayItem.Text = AppStrings.Format("Main_WidgetWindowTrayItem", 3);
+            // one entry per possible widget window, numbered through one format string; each restores its window only
+            for (int index = 0; index < _widgetTrayItems.Length; index++)
+            {
+                int widgetIndex = index;
+                var command = new XamlUICommand();
+                command.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen(widgetIndex);
+                _widgetTrayItems[index] = new MenuFlyoutItem
+                {
+                    Text = AppStrings.Format("Main_WidgetWindowTrayItem", index + 1),
+                    Command = command
+                };
+            }
             WidgetWindow.WidgetStateChanged += UpdateWidgetTrayItems;
             UpdateWidgetTrayItems();
 
@@ -883,19 +886,17 @@ namespace FluentSensors
         // menu from Items on every open and ignores Visibility, so the entries go in and out of the list instead
         private void UpdateWidgetTrayItems()
         {
-            MenuFlyoutItem[] entries = { WidgetWindow1TrayItem, WidgetWindow2TrayItem, WidgetWindow3TrayItem };
-
-            foreach (var entry in entries)
+            foreach (var entry in _widgetTrayItems)
             {
                 TrayMenu.Items.Remove(entry);
             }
 
             int insertAt = 0;
-            for (int index = 0; index < entries.Length; index++)
+            for (int index = 0; index < _widgetTrayItems.Length; index++)
             {
                 if (WidgetWindow.GetOpenInstance(index) != null)
                 {
-                    TrayMenu.Items.Insert(insertAt++, entries[index]);
+                    TrayMenu.Items.Insert(insertAt++, _widgetTrayItems[index]);
                 }
             }
         }

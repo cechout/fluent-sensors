@@ -130,7 +130,7 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   </data>
   <data name="Main_WidgetWindowTrayItem" xml:space="preserve">
     <value>Widget {0}	Single Click</value>
-    <comment>tray menu entry; {0} is the widget window number, 1 to 3; keep the tab before the click hint</comment>
+    <comment>tray menu entry; {0} is the widget window number, 1 to 5; keep the tab before the click hint</comment>
   </data>
   <data name="Main_CSVWindowSingleClickItem.Text" xml:space="preserve">
     <value>CSV Window	Single Click</value>
@@ -1501,7 +1501,7 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
   </data>
   <data name="Sensors_WidgetWindowComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Widget Window</value>
-    <comment>the second picker next to the selection profile; which of the widget windows, 1 to 3</comment>
+    <comment>the second picker next to the selection profile; which of the widget windows, 1 to 5</comment>
   </data>
   <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
     <value>Taskbar</value>
