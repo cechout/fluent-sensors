@@ -213,10 +213,17 @@ namespace FluentSensors.Features.Widget
         }
 
         // brings the widget back without touching its content, for the tray; a no-op unless it is open
+        // one pinned to the desktop becomes a normal window and stays one, or it could not come to the front
         public static void RestoreIfOpen(int index)
         {
             var window = _openInstances[index];
             if (window == null) return;
+
+            if (window._zOrder == WindowZOrder.Desktop)
+            {
+                window.ApplyZOrder(WindowZOrder.Normal);
+                window.SaveWindowState();
+            }
 
             if (window._appWindow.Presenter is OverlappedPresenter presenter)
             {

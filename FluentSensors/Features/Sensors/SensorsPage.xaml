@@ -59,9 +59,11 @@
                             Style="{ThemeResource BodyStrongTextBlockStyle}" />
 
                         <!--  the profile the checkboxes reflect and commit to  -->
+                        <!--  (a fixed width for the longest profile name of any language; sized to its content it narrows while open)  -->
                         <ComboBox
                             x:Name="SelectionProfileComboBox"
                             x:Uid="Sensors_SelectionProfileComboBox"
+                            Width="140"
                             Margin="12,0,0,0"
                             VerticalAlignment="Center"
                             SelectedIndex="0"
