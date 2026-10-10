@@ -144,6 +144,11 @@ namespace FluentSensors.Core.Taskbar
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool DestroyWindow(IntPtr hWnd);
 
+        // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-iswindow
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool IsWindow(IntPtr hWnd);
+
         // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-defwindowprocw
         [LibraryImport("user32.dll")]
         internal static partial IntPtr DefWindowProcW(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
@@ -226,6 +231,8 @@ namespace FluentSensors.Core.Taskbar
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
 
+        internal const uint SWP_NOSIZE = 0x0001;
+        internal const uint SWP_NOMOVE = 0x0002;
         internal const uint SWP_NOACTIVATE = 0x0010;
         internal const uint SWP_FRAMECHANGED = 0x0020; // applies a GWL_STYLE change
         internal const uint SWP_SHOWWINDOW = 0x0040;
@@ -234,6 +241,21 @@ namespace FluentSensors.Core.Taskbar
         [LibraryImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        internal const uint GW_HWNDPREV = 3; // the sibling above in z-order
+
+        // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindow
+        [LibraryImport("user32.dll")]
+        internal static partial IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-iswindowvisible
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool IsWindowVisible(IntPtr hWnd);
+
+        // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowthreadprocessid
+        [LibraryImport("user32.dll")]
+        internal static partial uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
 
         // === mouse tracking ===

@@ -63,6 +63,25 @@ namespace FluentSensors.Core.Taskbar
                 NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_FRAMECHANGED | NativeMethods.SWP_SHOWWINDOW);
         }
 
+        // explorer.exe builds its taskbar XAML island after a restart, so it lands above a widget that embedded first
+        // and takes every click on it; raises hwnd back over any visible sibling of the taskbar process
+        internal static void KeepAboveShell(IntPtr hwnd, IntPtr taskbarHwnd)
+        {
+            NativeMethods.GetWindowThreadProcessId(taskbarHwnd, out uint shellProcessId);
+
+            for (var above = NativeMethods.GetWindow(hwnd, NativeMethods.GW_HWNDPREV); above != IntPtr.Zero;
+                 above = NativeMethods.GetWindow(above, NativeMethods.GW_HWNDPREV))
+            {
+                NativeMethods.GetWindowThreadProcessId(above, out uint processId);
+                if (processId == shellProcessId && NativeMethods.IsWindowVisible(above))
+                {
+                    NativeMethods.SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0,
+                        NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE);
+                    return;
+                }
+            }
+        }
+
         // back to a top level window, before hiding, so AppWindow keeps a shape it understands
         internal static void Detach(IntPtr hwnd)
         {
