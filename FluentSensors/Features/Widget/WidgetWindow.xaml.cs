@@ -437,14 +437,14 @@ namespace FluentSensors.Features.Widget
             SaveWindowState();
         }
 
-        // on top, normal, desktop, on top
+        // desktop, normal, on top, desktop; the bar climbs the arrow
         private void ZOrderButton_Click(object sender, RoutedEventArgs e)
         {
             ApplyZOrder(_zOrder switch
             {
-                WindowZOrder.AlwaysOnTop => WindowZOrder.Normal,
-                WindowZOrder.Normal => WindowZOrder.Desktop,
-                _ => WindowZOrder.AlwaysOnTop
+                WindowZOrder.Desktop => WindowZOrder.Normal,
+                WindowZOrder.Normal => WindowZOrder.AlwaysOnTop,
+                _ => WindowZOrder.Desktop
             });
             SaveWindowState();
             FlashZOrderBar();
