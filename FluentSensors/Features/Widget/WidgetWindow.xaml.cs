@@ -3,11 +3,13 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Linq;
+using Windows.Foundation;
 using WinUIEx;
 
 using FluentSensors.Common.Localization;
@@ -65,11 +67,14 @@ namespace FluentSensors.Features.Widget
         private readonly WinDesktopPin _desktopPin;
 
         // --- z-order icon ---
-        // in px on its 15 px grid; the bar is centered on the arrow, round caps add half a px at each end
-        private const double ZOrderBarWidth = 10;
+        // in px on its 15 px grid, at half pixels; round caps add half a px at each end
+        private const double ZOrderBarWidth = 15; // centered on the arrow
+        private const double ZOrderArrowTip = 2.5; // 1 px clear of a bar at 0.5
+        private const double ZOrderArrowEnd = 12.5; // 1 px clear of a bar at 14.5
+        private const double ZOrderArrowArm = 3; // the head per side, at 45 degrees; 1 px clear of the middle bar
         // the accent flash of the bar after a click, in ms; held, then faded back
-        private const int ZOrderFlashHoldMs = 300;
-        private const int ZOrderFlashFadeMs = 700;
+        private const int ZOrderFlashHoldMs = 1000;
+        private const int ZOrderFlashFadeMs = 500;
         private Storyboard? _zOrderFlash;
 
 
@@ -477,23 +482,46 @@ namespace FluentSensors.Features.Widget
                 }
             }
 
-            // only the bar moves: on the tip, through the middle, on the end of the arrow
+            // only the bar moves: over the arrow, through its middle, under it
             (string labelKey, double barY) = zOrder switch
             {
                 WindowZOrder.Normal => ("Widget_ZOrderNormal", 7.5),
                 WindowZOrder.Desktop => ("Widget_ZOrderDesktop", 14.5),
                 _ => ("Widget_ZOrderAlwaysOnTop", 0.5)
             };
-            foreach (var bar in new[] { ZOrderBar, ZOrderBarAccent })
-            {
-                bar.X1 = 7.5 - ZOrderBarWidth / 2;
-                bar.X2 = 7.5 + ZOrderBarWidth / 2;
-                bar.Y1 = bar.Y2 = barY;
-            }
+            ZOrderIcon.Data = BuildZOrderGeometry(barY);
+            ZOrderBarAccent.X1 = 7.5 - ZOrderBarWidth / 2;
+            ZOrderBarAccent.X2 = 7.5 + ZOrderBarWidth / 2;
+            ZOrderBarAccent.Y1 = ZOrderBarAccent.Y2 = barY;
 
             string label = AppStrings.Get(labelKey);
             ToolTipService.SetToolTip(ZOrderButton, label);
             AutomationProperties.SetName(ZOrderButton, label);
+        }
+
+        // shaft, head and bar as open figures of one geometry
+        private static PathGeometry BuildZOrderGeometry(double barY)
+        {
+            const double center = 7.5;
+            var geometry = new PathGeometry();
+            geometry.Figures.Add(BuildOpenFigure(new Point(center, ZOrderArrowTip), new Point(center, ZOrderArrowEnd)));
+            geometry.Figures.Add(BuildOpenFigure(
+                new Point(center - ZOrderArrowArm, ZOrderArrowTip + ZOrderArrowArm),
+                new Point(center, ZOrderArrowTip),
+                new Point(center + ZOrderArrowArm, ZOrderArrowTip + ZOrderArrowArm)));
+            geometry.Figures.Add(BuildOpenFigure(
+                new Point(center - ZOrderBarWidth / 2, barY), new Point(center + ZOrderBarWidth / 2, barY)));
+            return geometry;
+        }
+
+        private static PathFigure BuildOpenFigure(Point start, params Point[] points)
+        {
+            var figure = new PathFigure { StartPoint = start, IsClosed = false, IsFilled = false };
+            foreach (var point in points)
+            {
+                figure.Segments.Add(new LineSegment { Point = point });
+            }
+            return figure;
         }
 
         // the snapshot; every graph stands still, like the taskbar flyout

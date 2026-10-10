@@ -99,9 +99,9 @@
 
                     <!--  z-order  -->
                     <!--
-                        (on top, normal, pinned to desktop: a fixed full height arrow up with a bar on its tip, through
-                        its middle or on its end, drawn on a 15 px grid at half pixels; ApplyZOrder places the bar and
-                        sets name and tooltip, a click flashes the accent bar)
+                        (on top, normal, pinned to desktop: a fixed arrow up with a bar over it, through its middle or
+                        under it, on a 15 px grid at half pixels; arrow and bar are one geometry from ApplyZOrder, so the
+                        crossing is not drawn twice; a click flashes the accent bar)
                     -->
                     <Button
                         x:Name="ZOrderButton"
@@ -112,16 +112,10 @@
                         Style="{StaticResource SubtleButtonStyle}">
                         <Canvas Width="15" Height="15">
                             <Path
-                                Data="M7.5,0.5 L7.5,14.5 M3.5,4.5 L7.5,0.5 L11.5,4.5"
+                                x:Name="ZOrderIcon"
                                 Stroke="{ThemeResource TextFillColorSecondaryBrush}"
                                 StrokeEndLineCap="Round"
                                 StrokeLineJoin="Round"
-                                StrokeStartLineCap="Round"
-                                StrokeThickness="1" />
-                            <Line
-                                x:Name="ZOrderBar"
-                                Stroke="{ThemeResource TextFillColorSecondaryBrush}"
-                                StrokeEndLineCap="Round"
                                 StrokeStartLineCap="Round"
                                 StrokeThickness="1" />
                             <Line

@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 using Windows.UI;
+using Windows.UI.ViewManagement;
 using WinRT;
 
 
@@ -78,9 +79,7 @@ namespace FluentSensors.Common.UI
                 _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
 
                 UpdateProperties();
-
-                // transparent, so the material shows
-                _rootPanel.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                UpdateGlassSurface();
             }
             else if (material == BackdropMaterial.Mica && MicaController.IsSupported())
             {
@@ -175,6 +174,37 @@ namespace FluentSensors.Common.UI
             _rootPanel.Background = new SolidColorBrush(targetColor);
         }
 
+        // transparent, so the material shows; system acrylic with Windows transparency on takes the lift of the flyout
+        // graphs area (FlyoutGraphsBackground), the surface its preset is matched to the Windows flyouts under
+        private void UpdateGlassSurface()
+        {
+            if (_isDisposed || _acrylicController == null) return;
+
+            if (_readSettings().Material == BackdropMaterial.SystemAcrylic && IsTransparencyEnabled())
+            {
+                var themeDictionary = (ResourceDictionary)Application.Current.Resources
+                    .ThemeDictionaries[IsLightTheme() ? "Light" : "Default"];
+                _rootPanel.Background = (Brush)themeDictionary["FlyoutGraphsBackground"];
+            }
+            else
+            {
+                _rootPanel.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            }
+        }
+
+        // read on every apply; a change of the Windows setting rebuilds the window anyway
+        private static bool IsTransparencyEnabled()
+        {
+            try
+            {
+                return new UISettings().AdvancedEffectsEnabled;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private void DisposeControllers()
         {
             _acrylicController?.Dispose();
@@ -192,11 +222,12 @@ namespace FluentSensors.Common.UI
             }
         }
 
-        // the system preset differs per theme
+        // the system preset and its lift differ per theme
         private void Content_ActualThemeChanged(FrameworkElement sender, object args)
         {
             SetConfigurationSourceTheme();
             UpdateProperties();
+            UpdateGlassSurface();
         }
 
         private void SetConfigurationSourceTheme()
