@@ -35,14 +35,14 @@
         </Canvas>
 
         <!--  custom title bar: title  -->
-        <!--  (26 tall; part of ChromeHeight in code)  -->
+        <!--  (26 tall; part of ChromeHeight in code; the text is the window name, set in the constructor)  -->
         <Grid
             x:Name="CustomTitleBar"
             Grid.Row="0"
             Height="26"
             Background="Transparent">
             <TextBlock
-                x:Uid="Widget_SystemSensorsText"
+                x:Name="TitleText"
                 Margin="12,3,0,0"
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -73,7 +73,7 @@
         </Grid>
 
 
-        <!--  bottom bar: back to the main window, time range + z-order and pause  -->
+        <!--  bottom bar: back to the main window and time range on the left, z-order and pause on the right  -->
         <!--  (flat 22 px buttons, a plain divider above; part of ChromeHeight in code)  -->
         <Border
             Grid.Row="2"
@@ -109,6 +109,12 @@
                         Padding="8,0,8,0"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Widget}"
                         TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal"
+                    Spacing="4">
 
                     <!--  z-order  -->
                     <!--
@@ -140,24 +146,23 @@
                                 StrokeThickness="1" />
                         </Canvas>
                     </Button>
-                </StackPanel>
 
-                <!--  pause  -->
-                <!--  (freezes and resumes every graph; name, tooltip and glyph set in ApplyPauseState)  -->
-                <Button
-                    x:Name="PauseButton"
-                    Width="32"
-                    Height="22"
-                    Padding="0"
-                    HorizontalAlignment="Right"
-                    Click="PauseButton_Click"
-                    Style="{StaticResource SubtleButtonStyle}">
-                    <FontIcon
-                        x:Name="PauseButtonIcon"
-                        FontSize="14"
-                        FontWeight="SemiLight"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </Button>
+                    <!--  pause  -->
+                    <!--  (freezes and resumes every graph; name, tooltip and glyph set in ApplyPauseState)  -->
+                    <Button
+                        x:Name="PauseButton"
+                        Width="32"
+                        Height="22"
+                        Padding="0"
+                        Click="PauseButton_Click"
+                        Style="{StaticResource SubtleButtonStyle}">
+                        <FontIcon
+                            x:Name="PauseButtonIcon"
+                            FontSize="14"
+                            FontWeight="SemiLight"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </Button>
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>

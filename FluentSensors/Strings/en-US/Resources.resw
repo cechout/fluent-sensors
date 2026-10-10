@@ -1625,8 +1625,8 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
   <data name="TaskbarFlyout_TaskbarSettingsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
     <value>Taskbar Widget Settings</value>
   </data>
-  <data name="Widget_SystemSensorsText.Text" xml:space="preserve">
-    <value>System Sensors</value>
+  <data name="Widget_WindowTitle" xml:space="preserve">
+    <value>Widget {0}</value>
   </data>
   <data name="Widget_ZOrderAlwaysOnTop" xml:space="preserve">
     <value>Always on Top</value>

@@ -102,6 +102,11 @@ namespace FluentSensors.Features.Widget
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(CustomTitleBar);
 
+            // "Widget 1" and up, the name the tray and the sensors page use; also the taskbar and Alt+Tab title
+            string title = AppStrings.Format("Widget_WindowTitle", index + 1);
+            Title = title;
+            TitleText.Text = title;
+
             // always on top follows the z-order, see ApplyZOrder
             var presenter = OverlappedPresenter.Create();
             presenter.IsMaximizable = false;
@@ -432,14 +437,14 @@ namespace FluentSensors.Features.Widget
             SaveWindowState();
         }
 
-        // on top, normal, desktop, on top
+        // desktop, normal, on top, desktop; the bar climbs the arrow
         private void ZOrderButton_Click(object sender, RoutedEventArgs e)
         {
             ApplyZOrder(_zOrder switch
             {
-                WindowZOrder.AlwaysOnTop => WindowZOrder.Normal,
-                WindowZOrder.Normal => WindowZOrder.Desktop,
-                _ => WindowZOrder.AlwaysOnTop
+                WindowZOrder.Desktop => WindowZOrder.Normal,
+                WindowZOrder.Normal => WindowZOrder.AlwaysOnTop,
+                _ => WindowZOrder.Desktop
             });
             SaveWindowState();
             FlashZOrderBar();
