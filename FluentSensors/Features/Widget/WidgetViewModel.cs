@@ -23,9 +23,10 @@ namespace FluentSensors.Features.Widget
 
         // === constructor ===
 
-        public WidgetViewModel(List<SensorRowViewModel> selectedSensors)
+        public WidgetViewModel(List<SensorRowViewModel> selectedSensors, double timeSpanSeconds)
         {
             PinnedSensors = new ObservableCollection<SensorGraphViewModel>();
+            TimeSpanSeconds = timeSpanSeconds;
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
             HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
@@ -33,7 +34,7 @@ namespace FluentSensors.Features.Widget
             // one graph per selected sensor
             foreach (var sensor in selectedSensors)
             {
-                PinnedSensors.Add(new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, hardwareKind: sensor.HardwareKind));
+                PinnedSensors.Add(CreateGraph(sensor));
             }
         }
 
@@ -45,6 +46,9 @@ namespace FluentSensors.Features.Widget
 
         // the snapshot; not persisted, a closed widget ends it
         public bool IsPaused { get; private set; }
+
+        // the time range of this window; every graph takes it as its own, never the setting
+        public double TimeSpanSeconds { get; private set; }
 
 
         // === public methods ===
@@ -70,7 +74,7 @@ namespace FluentSensors.Features.Widget
             {
                 if (!existingIds.Contains(sensor.Id))
                 {
-                    var graph = new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, hardwareKind: sensor.HardwareKind);
+                    var graph = CreateGraph(sensor);
                     graph.SetFrozen(IsPaused); // joins a running snapshot frozen
                     PinnedSensors.Add(graph);
                 }
@@ -95,6 +99,18 @@ namespace FluentSensors.Features.Widget
                 {
                     PinnedSensors.Move(currentIndex, targetIndex);
                 }
+            }
+        }
+
+
+        public void SetTimeSpan(double seconds)
+        {
+            if (TimeSpanSeconds == seconds) return;
+            TimeSpanSeconds = seconds;
+
+            foreach (var sensor in PinnedSensors)
+            {
+                sensor.ApplyViewOverrides(seconds, null, null);
             }
         }
 
@@ -147,6 +163,12 @@ namespace FluentSensors.Features.Widget
                 sensor.SetFrozen(paused);
             }
         }
+
+
+        // === private helpers ===
+
+        private SensorGraphViewModel CreateGraph(SensorRowViewModel sensor) =>
+            new SensorGraphViewModel(sensor.Id, sensor.Name, sensor.SensorType, TimeSpanSeconds, hardwareKind: sensor.HardwareKind);
 
 
         // === event handlers ===

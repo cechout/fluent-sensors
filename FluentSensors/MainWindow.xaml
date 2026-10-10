@@ -414,7 +414,9 @@
                         (the tab in Text right-aligns the click hint; H.NotifyIcon rebuilds this as a native win32 menu
                         from Text, IsEnabled and Command, so KeyboardAcceleratorTextOverride never shows)
                     -->
-                    <MenuFlyoutItem x:Uid="Main_WidgetWindowSingleClickItem" Command="{x:Bind ShowWidgetWindowCommand}" />
+                    <MenuFlyoutItem x:Name="WidgetWindow1TrayItem" Command="{x:Bind ShowWidgetWindow1Command}" />
+                    <MenuFlyoutItem x:Name="WidgetWindow2TrayItem" Command="{x:Bind ShowWidgetWindow2Command}" />
+                    <MenuFlyoutItem x:Name="WidgetWindow3TrayItem" Command="{x:Bind ShowWidgetWindow3Command}" />
                     <MenuFlyoutItem x:Uid="Main_CSVWindowSingleClickItem" Command="{x:Bind ShowCsvWindowCommand}" />
                     <MenuFlyoutItem x:Uid="Main_MainWindowDoubleClickItem" Command="{x:Bind TrayDoubleClickCommand}" />
 

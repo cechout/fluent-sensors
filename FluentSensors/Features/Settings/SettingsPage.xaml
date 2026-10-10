@@ -402,9 +402,10 @@
                     x:Name="BackdropComboBox"
                     Width="160"
                     SelectionChanged="BackdropComboBox_SelectionChanged">
-                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_Acrylic" Tag="Acrylic" />
                     <ComboBoxItem x:Uid="Settings_BackdropComboBox_Mica" Tag="Mica" />
-                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_None" Tag="None" />
+                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_SystemAcrylic" Tag="SystemAcrylic" />
+                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_CustomAcrylic" Tag="CustomAcrylic" />
+                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_Solid" Tag="Solid" />
                 </ComboBox>
 
                 <controls:SettingsExpander.Items>
@@ -470,14 +471,6 @@
 
                             <controls:ColorPickerButton x:Name="GraphColorPicker" x:Uid="Settings_GraphColorPicker" />
                         </StackPanel>
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard x:Uid="Settings_TimeRangeCard">
-                        <ComboBox
-                            x:Name="GraphTimeSpanComboBox"
-                            Width="40"
-                            DisplayMemberPath="DisplayName"
-                            SelectionChanged="GraphTimeSpanComboBox_SelectionChanged" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
@@ -635,9 +628,10 @@
                     x:Name="TaskbarBackdropComboBox"
                     Width="160"
                     SelectionChanged="TaskbarBackdropComboBox_SelectionChanged">
-                    <ComboBoxItem x:Uid="Settings_TaskbarBackdropComboBox_Acrylic" Tag="Acrylic" />
                     <ComboBoxItem x:Uid="Settings_TaskbarBackdropComboBox_Mica" Tag="Mica" />
-                    <ComboBoxItem x:Uid="Settings_TaskbarBackdropComboBox_None" Tag="None" />
+                    <ComboBoxItem x:Uid="Settings_TaskbarBackdropComboBox_SystemAcrylic" Tag="SystemAcrylic" />
+                    <ComboBoxItem x:Uid="Settings_TaskbarBackdropComboBox_CustomAcrylic" Tag="CustomAcrylic" />
+                    <ComboBoxItem x:Uid="Settings_TaskbarBackdropComboBox_Solid" Tag="Solid" />
                 </ComboBox>
 
                 <controls:SettingsExpander.Items>

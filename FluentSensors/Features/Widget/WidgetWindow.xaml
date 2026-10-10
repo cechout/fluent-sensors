@@ -60,7 +60,7 @@
         </Grid>
 
 
-        <!--  bottom bar: back to the main window and time range + pause  -->
+        <!--  bottom bar: back to the main window, time range + z-order and pause  -->
         <!--  (flat 22 px buttons, a plain divider above; part of ChromeHeight in code)  -->
         <Border
             Grid.Row="2"
@@ -96,6 +96,22 @@
                         Padding="8,0,8,0"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Widget}"
                         TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                    <!--  z-order  -->
+                    <!--  (on top, normal, pinned to desktop; name, tooltip and glyph set in ApplyZOrder)  -->
+                    <Button
+                        x:Name="ZOrderButton"
+                        Width="32"
+                        Height="22"
+                        Padding="0"
+                        Click="ZOrderButton_Click"
+                        Style="{StaticResource SubtleButtonStyle}">
+                        <FontIcon
+                            x:Name="ZOrderButtonIcon"
+                            FontSize="14"
+                            FontWeight="SemiLight"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </Button>
                 </StackPanel>
 
                 <!--  pause  -->

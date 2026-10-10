@@ -70,7 +70,7 @@ namespace FluentSensors.Features.Sensors
             tree.HardwareGroups.CollectionChanged += OnTreeHardwareGroupsChanged;
 
             // a widget may have reopened from its saved state before this view model existed
-            IsWidgetOpen = WidgetWindow.CurrentInstance != null;
+            IsWidgetOpen = WidgetWindow.GetOpenInstance(ActiveWidgetIndex) != null;
             IsTaskbarWidgetOpen = TaskbarWidgetWindow.CurrentInstance != null;
             IsCsvLoggerOpen = CsvLoggerWindow.CurrentInstance != null;
             WidgetWindow.WidgetStateChanged += OnWidgetStateChanged;
@@ -105,12 +105,31 @@ namespace FluentSensors.Features.Sensors
             }
         }
         public bool IsWidgetProfileActive => ActiveProfile == SensorSelectionProfile.WidgetWindow;
+
+        // the widget window (0 based) the widget profile reflects; the other profiles ignore it
+        private int _activeWidgetIndex;
+        public int ActiveWidgetIndex
+        {
+            get => _activeWidgetIndex;
+            set
+            {
+                value = Math.Clamp(value, 0, WidgetWindow.MaxWidgetWindows - 1);
+                if (_activeWidgetIndex == value) return;
+                _activeWidgetIndex = value;
+                OnPropertyChanged();
+                OnWidgetStateChanged();
+                if (IsWidgetProfileActive)
+                {
+                    ResyncCheckboxesForActiveProfile();
+                }
+            }
+        }
         public bool IsCsvProfileActive => ActiveProfile == SensorSelectionProfile.Csv;
         public bool IsTaskbarProfileActive => ActiveProfile == SensorSelectionProfile.Taskbar;
 
         public bool IsPinnedAvailable => ActiveProfile switch
         {
-            SensorSelectionProfile.WidgetWindow => WidgetWindow.CurrentInstance != null,
+            SensorSelectionProfile.WidgetWindow => WidgetWindow.GetOpenInstance(ActiveWidgetIndex) != null,
             SensorSelectionProfile.Taskbar => TaskbarWidgetWindow.CurrentInstance != null && TaskbarWidgetWindow.CurrentInstance.IsEmbedded,
             _ => false
         };
@@ -208,10 +227,10 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // the open states and IsPinnedAvailable follow the widget, the taskbar widget and the csv logger
+        // the open states and IsPinnedAvailable follow the active widget, the taskbar widget and the csv logger
         private void OnWidgetStateChanged()
         {
-            IsWidgetOpen = WidgetWindow.CurrentInstance != null;
+            IsWidgetOpen = WidgetWindow.GetOpenInstance(ActiveWidgetIndex) != null;
             IsTaskbarWidgetOpen = TaskbarWidgetWindow.CurrentInstance != null;
             IsCsvLoggerOpen = CsvLoggerWindow.CurrentInstance != null;
             OnPropertyChanged(nameof(IsPinnedAvailable));
@@ -225,7 +244,7 @@ namespace FluentSensors.Features.Sensors
             if (_isResyncingCheckboxes) return;
             if (sender is not SensorRowViewModel row || row.IsHidden) return;
 
-            SensorSelectionService.Instance.SetMembership(ActiveProfile, row.Id, row.IsSelected);
+            SensorSelectionService.Instance.SetMembership(ActiveProfile, row.Id, row.IsSelected, ActiveWidgetIndex);
         }
 
 
@@ -311,7 +330,7 @@ namespace FluentSensors.Features.Sensors
             {
                 foreach (var sensor in group.Sensors)
                 {
-                    sensor.IsSelected = !sensor.IsHidden && SensorSelectionService.Instance.IsSelected(ActiveProfile, sensor.Id);
+                    sensor.IsSelected = !sensor.IsHidden && SensorSelectionService.Instance.IsSelected(ActiveProfile, sensor.Id, ActiveWidgetIndex);
                 }
             }
 
@@ -333,7 +352,7 @@ namespace FluentSensors.Features.Sensors
                 HardwareKind = group.Kind,
                 IsHidden = isHidden,
                 Entry = entry,
-                IsSelected = !isHidden && SensorSelectionService.Instance.IsSelected(ActiveProfile, entry.Id),
+                IsSelected = !isHidden && SensorSelectionService.Instance.IsSelected(ActiveProfile, entry.Id, ActiveWidgetIndex),
             };
             newRow.PropertyChanged += OnSensorRowSelectionChanged;
 
@@ -387,7 +406,7 @@ namespace FluentSensors.Features.Sensors
             }
             else if (ActiveProfile == SensorSelectionProfile.WidgetWindow)
             {
-                var widgetViewModel = WidgetWindow.CurrentInstance?.ViewModel;
+                var widgetViewModel = WidgetWindow.GetOpenInstance(ActiveWidgetIndex)?.ViewModel;
                 if (widgetViewModel == null) return;
                 pinnedIds = new HashSet<string>(widgetViewModel.PinnedSensors.Select(s => s.SensorId));
             }

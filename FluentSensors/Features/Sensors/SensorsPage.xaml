@@ -47,6 +47,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel
+                        x:Name="SensorListTitlePanel"
                         Grid.Column="0"
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
@@ -69,6 +70,16 @@
                             <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_Csv" Tag="Csv" />
                             <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_Taskbar" Tag="Taskbar" />
                         </ComboBox>
+
+                        <!--  the widget window of the widget profile, 1 to 3  -->
+                        <!--  (numbers filled in from code, see WidgetWindow.MaxWidgetWindows)  -->
+                        <ComboBox
+                            x:Name="WidgetWindowComboBox"
+                            x:Uid="Sensors_WidgetWindowComboBox"
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            SelectionChanged="WidgetWindowComboBox_SelectionChanged"
+                            Visibility="{x:Bind ViewModel.IsWidgetProfileActive, Mode=OneWay}" />
                     </StackPanel>
 
                     <!--  command bar in column 1, after the minimum of column 0  -->

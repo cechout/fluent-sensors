@@ -66,8 +66,13 @@ namespace FluentSensors.Features.Sensors
             // back on the last profile; still under the loading guard, SensorListCommandBar_Loaded builds the bar from
             // ActiveProfile a moment later
             var lastProfile = SettingsService.Instance.LastSensorProfile;
+            ViewModel.ActiveWidgetIndex = SettingsService.Instance.LastWidgetWindowIndex;
             ViewModel.ActiveProfile = lastProfile;
             SelectProfile(lastProfile);
+
+            // the widget window numbers, 1 and up
+            WidgetWindowComboBox.ItemsSource = Enumerable.Range(1, WidgetWindow.MaxWidgetWindows).ToList();
+            WidgetWindowComboBox.SelectedIndex = ViewModel.ActiveWidgetIndex;
 
             // the group header icons are plain brushes, rebuilt on ActualTheme (the AppTheme setting fires
             // before the new theme is in place)
@@ -132,8 +137,8 @@ namespace FluentSensors.Features.Sensors
                 return;
             }
 
-            // reuses an open or hidden widget window (see WidgetWindow._retainedInstance)
-            WidgetWindow.ShowWithSensors(selectedSensors);
+            // reuses an open or hidden widget window (see WidgetWindow._retainedInstances)
+            WidgetWindow.ShowWithSensors(ViewModel.ActiveWidgetIndex, selectedSensors);
         }
 
         // opens or reconfigures the csv logger with the checked sensors
@@ -253,6 +258,16 @@ namespace FluentSensors.Features.Sensors
 
             ViewModel.ActiveProfile = profile;
             SettingsService.Instance.LastSensorProfile = profile;
+            RebuildCommandBarOverflow(animate: true);
+        }
+
+        // which widget window the widget profile shows; the checkboxes, the pin button and its open state follow it
+        private void WidgetWindowComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading || WidgetWindowComboBox.SelectedIndex < 0) return;
+
+            ViewModel.ActiveWidgetIndex = WidgetWindowComboBox.SelectedIndex;
+            SettingsService.Instance.LastWidgetWindowIndex = ViewModel.ActiveWidgetIndex;
             RebuildCommandBarOverflow(animate: true);
         }
 
@@ -635,7 +650,7 @@ namespace FluentSensors.Features.Sensors
         // the first unit stays in the bar even when it does not fit, so the bar never shows only the overflow button
         private void UpdateCommandBarOverflow()
         {
-            double leftSectionWidth = Math.Max(LeftSectionMinWidth, SensorListTitleText.ActualWidth + SelectionProfileComboBox.ActualWidth + 16);
+            double leftSectionWidth = Math.Max(LeftSectionMinWidth, SensorListTitlePanel.ActualWidth);
             double availableWidth = SensorListHeaderGrid.ActualWidth - leftSectionWidth;
 
             if (availableWidth <= 0) return;

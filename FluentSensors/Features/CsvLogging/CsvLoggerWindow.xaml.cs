@@ -1,5 +1,3 @@
-using Microsoft.UI.Composition;
-using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -10,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using WinRT;
 
 using FluentSensors.Common.Localization;
 using FluentSensors.Common.UI;
@@ -24,8 +21,8 @@ namespace FluentSensors.Features.CsvLogging
 {
     // the csv logger:
     // a small always-on-top readout for a recording; start, stop, running time, sensor count and rows written
-    // chrome, backdrop and retained-instance lifecycle follow WidgetWindow (there is no shared window base, every
-    // window carries its own copy)
+    // chrome and retained-instance lifecycle follow WidgetWindow (there is no shared window base, every window
+    // carries its own copy); the backdrop is the shared WindowBackdrop
     public sealed partial class CsvLoggerWindow : Window
     {
         // === win32 api imports ===
@@ -64,9 +61,7 @@ namespace FluentSensors.Features.CsvLogging
         private static bool _isRecreating = false;
 
         // system backdrop
-        private DesktopAcrylicController _acrylicController;
-        private MicaController _micaController;
-        private SystemBackdropConfiguration _configurationSource;
+        private readonly WindowBackdrop _backdrop;
         private Windows.UI.ViewManagement.UISettings? _uiSettings;
 
 
@@ -115,12 +110,13 @@ namespace FluentSensors.Features.CsvLogging
             SaveWindowState();
 
             // theming
-            SetBackdrop(SettingsService.Instance.BackdropType);
+            _backdrop = new WindowBackdrop(this, RootGrid);
+            _backdrop.Apply(SettingsService.Instance.BackgroundMaterial);
             ApplyTheme(SettingsService.Instance.AppTheme);
 
             // event routing
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
-            SettingsService.Instance.BackdropTypeChanged += OnBackdropTypeChanged;
+            SettingsService.Instance.BackgroundMaterialChanged += OnBackgroundMaterialChanged;
             SettingsService.Instance.OpacityChanged += OnOpacityChanged;
             SettingsService.Instance.TintColorChanged += OnTintColorChanged;
 
@@ -142,7 +138,7 @@ namespace FluentSensors.Features.CsvLogging
             _appWindow.Changed += AppWindow_Changed;
             _appWindow.Closing += AppWindow_Closing;
 
-            KickBackdropRefresh();
+            _backdrop.KickRefresh();
         }
 
 
@@ -213,7 +209,7 @@ namespace FluentSensors.Features.CsvLogging
             try
             {
                 SettingsService.Instance.ThemeChanged -= OnThemeChanged;
-                SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
+                SettingsService.Instance.BackgroundMaterialChanged -= OnBackgroundMaterialChanged;
                 SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
                 SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
             }
@@ -243,10 +239,7 @@ namespace FluentSensors.Features.CsvLogging
 
             try
             {
-                _acrylicController?.Dispose();
-                _acrylicController = null;
-                _micaController?.Dispose();
-                _micaController = null;
+                _backdrop.Dispose();
                 this.Close();
             }
             catch { }
@@ -313,7 +306,7 @@ namespace FluentSensors.Features.CsvLogging
             SaveWindowState();
 
             // settings events
-            SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
+            SettingsService.Instance.BackgroundMaterialChanged -= OnBackgroundMaterialChanged;
             SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
             SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
@@ -322,25 +315,10 @@ namespace FluentSensors.Features.CsvLogging
             LowerRegion.SizeChanged -= OnRegionSizeChanged;
             ViewModel.Cleanup();
 
-            _acrylicController?.Dispose();
-            _acrylicController = null;
-            _micaController?.Dispose();
-            _micaController = null;
+            _backdrop.Dispose();
 
-            this.Activated -= Window_Activated;
-            _configurationSource = null;
             CurrentInstance = null;
             LoggerStateChanged?.Invoke();
-        }
-
-        private void Window_Activated(object sender, WindowActivatedEventArgs args)
-        {
-            if (_configurationSource != null)
-            {
-                // always active, or a click outside drops the blur to the inactive material
-                // while the logger stays on top
-                _configurationSource.IsInputActive = true;
-            }
         }
 
         // --- memory leak: CsvLoggerWindow never released after close ---
@@ -486,11 +464,11 @@ namespace FluentSensors.Features.CsvLogging
             });
         }
 
-        private void OnBackdropTypeChanged(string newType)
+        private void OnBackgroundMaterialChanged(BackdropMaterial material)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                SetBackdrop(newType);
+                _backdrop.Apply(material);
             });
         }
 
@@ -498,7 +476,7 @@ namespace FluentSensors.Features.CsvLogging
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                UpdateAcrylicProperties();
+                _backdrop.Refresh();
             });
         }
 
@@ -506,8 +484,7 @@ namespace FluentSensors.Features.CsvLogging
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                UpdateAcrylicProperties();
-                UpdateSolidBackground();
+                _backdrop.Refresh();
             });
         }
 
@@ -715,138 +692,10 @@ namespace FluentSensors.Features.CsvLogging
             }
         }
 
-        private void UpdateAcrylicProperties()
-        {
-            if (_isClosed) return;
-
-            if (_acrylicController != null)
-            {
-                Windows.UI.Color targetColor;
-                if (SettingsService.Instance.UseAccentColor)
-                {
-                    targetColor = (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"];
-                }
-                else
-                {
-                    targetColor = SettingsService.Instance.CustomTintColor;
-                }
-
-                _acrylicController.TintColor = targetColor;
-                _acrylicController.TintOpacity = SettingsService.Instance.TintOpacity;
-                _acrylicController.LuminosityOpacity = SettingsService.Instance.LuminosityOpacity;
-            }
-        }
-
-        private void UpdateSolidBackground()
-        {
-            if (_isClosed) return;
-
-            // only for the solid material ("None")
-            if (SettingsService.Instance.BackdropType == "None")
-            {
-                Windows.UI.Color targetColor = SettingsService.Instance.UseAccentColor
-                    ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
-                    : SettingsService.Instance.CustomTintColor;
-
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(targetColor);
-            }
-        }
-
-        // for a pure OS accent change; both calls resolve the accent fresh, no rebuild needed
+        // for a pure OS accent change; resolves the accent fresh, no rebuild needed
         public void RefreshAccentSurfaces()
         {
-            UpdateAcrylicProperties();
-            UpdateSolidBackground();
-        }
-
-        // applies the backdrop material from the settings, per the Microsoft guide:
-        // https://learn.microsoft.com/en-us/windows/apps/develop/ui/system-backdrops
-        public void SetBackdrop(string backdropType)
-        {
-            if (_isClosed) return;
-
-            DispatcherQueue.EnsureSystemDispatcherQueue();
-
-            if (_configurationSource == null)
-            {
-                _configurationSource = new SystemBackdropConfiguration();
-                this.Activated += Window_Activated;
-                ((FrameworkElement)this.Content).ActualThemeChanged += Window_ThemeChanged;
-
-                _configurationSource.IsInputActive = true;
-                SetConfigurationSourceTheme();
-            }
-
-            // drop the current controller
-            _acrylicController?.Dispose();
-            _acrylicController = null;
-            _micaController?.Dispose();
-            _micaController = null;
-
-            if (backdropType == "Acrylic" && DesktopAcrylicController.IsSupported())
-            {
-                _acrylicController = new DesktopAcrylicController();
-                _acrylicController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
-                _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
-
-                UpdateAcrylicProperties();
-
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-            }
-            else if (backdropType == "Mica" && MicaController.IsSupported())
-            {
-                _micaController = new MicaController();
-                _micaController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
-                _micaController.SetSystemBackdropConfiguration(_configurationSource);
-
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-            }
-            else
-            {
-                UpdateSolidBackground();
-            }
-        }
-
-        private void Window_ThemeChanged(FrameworkElement sender, object args)
-        {
-            SetConfigurationSourceTheme();
-        }
-
-        private void SetConfigurationSourceTheme()
-        {
-            if (_configurationSource != null && this.Content is FrameworkElement frameworkElement)
-            {
-                _configurationSource.Theme = frameworkElement.ActualTheme switch
-                {
-                    ElementTheme.Dark => SystemBackdropTheme.Dark,
-                    ElementTheme.Light => SystemBackdropTheme.Light,
-                    _ => SystemBackdropTheme.Default
-                };
-            }
-        }
-
-        // --- workaround: DWM backdrop swapchain kick ---
-        // problem: after a Windows transparency or theme change, DesktopAcrylicController needs a rebind to attach its
-        // blur to the new DWM swapchain
-        // fix: after a rebuild, kick the backdrop once (None, then the current one), with parameters only
-        private void KickBackdropRefresh()
-        {
-            if (_isClosed) return;
-
-            string currentBackdrop = SettingsService.Instance.BackdropType;
-            if (currentBackdrop == "Mica" || currentBackdrop == "Acrylic")
-            {
-                var timer = this.DispatcherQueue.CreateTimer();
-                timer.Interval = TimeSpan.FromMilliseconds(80);
-                timer.IsRepeating = false;
-                timer.Tick += (s, e) =>
-                {
-                    if (_isClosed) return;
-                    SetBackdrop("None");
-                    SetBackdrop(currentBackdrop);
-                };
-                timer.Start();
-            }
+            _backdrop.Refresh();
         }
     }
 }

@@ -44,7 +44,7 @@ namespace FluentSensors.Features.TaskbarWidget
     // 4. a composition slide of the card inside the still window plus an opacity fade of the content
     // 5. a transparent window around the card: the material rides a backdrop link clipped to the card, the
     //    shadow is a computed bitmap in the margin; DWM corners and shadow only when the link is unavailable
-    // 6. a DesktopAcrylicController backdrop with a swapchain kick after a rebuild
+    // 6. a MicaController or DesktopAcrylicController backdrop (the materials in BackdropMaterials)
     //
     // references:
     // https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.input.inputnonclientpointersource
@@ -166,24 +166,6 @@ namespace FluentSensors.Features.TaskbarWidget
         // keeps the graphs rendering while hidden, so they are current the moment the flyout opens
         public const bool KeepFlyoutGraphsActiveInBackground = true;
 
-        // --- mica preset (BackdropType "Mica" with Windows transparency on) ---
-        // over a flat backdrop the controller resolves to lerp(backdrop, tint, luminosity); the native shell flyouts
-        // measure as 4 percent backdrop transmission in dark and 9.4 in light (their bottom bar, the bare material)
-        // TintOpacity: the tint blend carries hue and saturation only, so a gray tint leaves every gray value alone
-        // and only takes the color out of what shows through; the native flyouts pass far less color than the
-        // default does (the source names its BlendEffectMode swapped, the tint layer reads as Luminosity there):
-        // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.cpp
-        // tints are the Fluent acrylic base tones, AcrylicBackgroundFillColorBaseBrush, not pre-compensated (the
-        // render shift applies once to the finished composite):
-        // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush_19h1_themeresources.xaml
-        public static readonly Windows.UI.Color MicaPresetDarkTintColor = Windows.UI.Color.FromArgb(255, 0x20, 0x20, 0x20);
-        public const float MicaPresetDarkLuminosity = 0.96f;
-        public const float MicaPresetDarkTintOpacity = 0.8f;
-
-        public static readonly Windows.UI.Color MicaPresetLightTintColor = Windows.UI.Color.FromArgb(255, 0xF3, 0xF3, 0xF3);
-        public const float MicaPresetLightLuminosity = 0.902f;
-        public const float MicaPresetLightTintOpacity = 0.5f;
-
 
         // === fields ===
 
@@ -261,8 +243,9 @@ namespace FluentSensors.Features.TaskbarWidget
         public static TaskbarFlyoutWindow? CurrentInstance { get; private set; }
         private static TaskbarFlyoutWindow? _retainedInstance;
 
-        // system backdrop; (no MicaController, "Mica" runs through _acrylicController too, see SetBackdrop)
+        // system backdrop; one of the two at a time, see SetBackdrop
         private DesktopAcrylicController? _acrylicController;
+        private MicaController? _micaController;
         private SystemBackdropConfiguration? _configurationSource;
 
         // the backdrop link the card material rides on, one per window and so one per process (the flyout is never
@@ -342,11 +325,11 @@ namespace FluentSensors.Features.TaskbarWidget
             InitializeShadowPolicy();
 
             // theming and backdrop, from the taskbar settings
-            SetBackdrop(SettingsService.Instance.TaskbarBackdropType);
+            SetBackdrop(SettingsService.Instance.TaskbarBackgroundMaterial);
             ApplyTheme(SettingsService.Instance.AppTheme);
 
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
-            SettingsService.Instance.TaskbarBackdropTypeChanged += OnBackdropTypeChanged;
+            SettingsService.Instance.TaskbarBackgroundMaterialChanged += OnBackgroundMaterialChanged;
             SettingsService.Instance.TaskbarOpacityChanged += OnOpacityChanged;
             SettingsService.Instance.TaskbarTintColorChanged += OnTintColorChanged;
             SettingsService.Instance.TaskbarFlyoutAlignmentChanged += OnFlyoutAlignmentChanged;
@@ -761,15 +744,19 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
-        // refreshes the accent surfaces of all three windows: graph colors (and the taskbar card tint riding on them),
+        // refreshes the accent surfaces of every open window: graph colors (and the taskbar card tint riding on them),
         // acrylic tint and solid background; the flyout shares the taskbar widget ViewModel, so its graphs come along
         private static void ExecuteAccentRefresh()
         {
             TaskbarWidgetWindow.CurrentInstance?.ViewModel.RefreshGraphColors();
 
-            var widget = WidgetWindow.CurrentInstance;
-            widget?.ViewModel.RefreshGraphColors();
-            widget?.RefreshAccentSurfaces();
+            foreach (var widget in WidgetWindow.OpenInstances)
+            {
+                widget.ViewModel.RefreshGraphColors();
+                widget.RefreshAccentSurfaces();
+            }
+
+            CsvLoggerWindow.CurrentInstance?.RefreshAccentSurfaces();
 
             var flyout = CurrentInstance ?? _retainedInstance;
             flyout?.RefreshAccentSurfaces();
@@ -823,8 +810,8 @@ namespace FluentSensors.Features.TaskbarWidget
             // 1. the flyout
             flyout?.ApplySystemVisuals(flyoutWasVisible);
 
-            // 2. WidgetWindow, if open
-            WidgetWindow.RecreateWindow();
+            // 2. every WidgetWindow, if open
+            WidgetWindow.RecreateWindows();
 
             // 3. TaskbarWidgetWindow; (the rebuilt widget reopens the flyout itself once embedded)
             TaskbarWidgetWindow.RecreateWindow(restoreFlyout: flyoutWasVisible);
@@ -845,7 +832,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 _appWindow.Hide();
             }
 
-            SetBackdrop(SettingsService.Instance.TaskbarBackdropType);
+            SetBackdrop(SettingsService.Instance.TaskbarBackgroundMaterial);
             ApplyTheme(SettingsService.Instance.AppTheme);
         }
 
@@ -1392,9 +1379,9 @@ namespace FluentSensors.Features.TaskbarWidget
             this.DispatcherQueue.TryEnqueue(() => ApplyTheme(newTheme));
         }
 
-        private void OnBackdropTypeChanged(string newType)
+        private void OnBackgroundMaterialChanged(BackdropMaterial material)
         {
-            this.DispatcherQueue.TryEnqueue(() => SetBackdrop(newType));
+            this.DispatcherQueue.TryEnqueue(() => SetBackdrop(material));
         }
 
         private void OnOpacityChanged(float tintOpacity, float luminosityOpacity)
@@ -1498,56 +1485,27 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        // the preset of the theme for system acrylic, the users values for custom acrylic
         private void UpdateAcrylicProperties()
         {
-            if (_acrylicController != null)
-            {
-                bool isLight = IsCurrentThemeLight();
-                string backdropType = SettingsService.Instance.TaskbarBackdropType;
+            if (_acrylicController == null) return;
 
-                if (backdropType == "Mica")
-                {
-                    // mica preset
-                    if (isLight)
-                    {
-                        _acrylicController.TintColor = MicaPresetLightTintColor;
-                        _acrylicController.TintOpacity = MicaPresetLightTintOpacity;
-                        _acrylicController.LuminosityOpacity = MicaPresetLightLuminosity;
-                        _acrylicController.FallbackColor = MicaPresetLightTintColor;
-                    }
-                    else
-                    {
-                        _acrylicController.TintColor = MicaPresetDarkTintColor;
-                        _acrylicController.TintOpacity = MicaPresetDarkTintOpacity;
-                        _acrylicController.LuminosityOpacity = MicaPresetDarkLuminosity;
-                        _acrylicController.FallbackColor = MicaPresetDarkTintColor;
-                    }
-                }
-                else
-                {
-                    // "Acrylic" follows the settings sliders
-                    // fallback tint when no accent or custom color applies (matches the opaque path)
-                    Windows.UI.Color defaultTint = isLight
-                        ? Windows.UI.Color.FromArgb(255, 0xED, 0xED, 0xED)
-                        : Windows.UI.Color.FromArgb(255, 0x22, 0x22, 0x22);
-
-                    Windows.UI.Color targetColor = SettingsService.Instance.TaskbarUseAccentColor
-                        ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
-                        : (SettingsService.Instance.TaskbarCustomTintColor.A > 0 ? SettingsService.Instance.TaskbarCustomTintColor : defaultTint);
-
-                    _acrylicController.TintColor = targetColor;
-                    _acrylicController.TintOpacity = SettingsService.Instance.TaskbarTintOpacity;
-                    _acrylicController.LuminosityOpacity = SettingsService.Instance.TaskbarLuminosityOpacity;
-                    _acrylicController.FallbackColor = defaultTint;
-                }
-            }
+            var settings = SettingsService.Instance;
+            BackdropMaterials.Configure(
+                _acrylicController,
+                settings.TaskbarBackgroundMaterial,
+                IsCurrentThemeLight(),
+                BackdropMaterials.ResolveTintColor(settings.TaskbarUseAccentColor, settings.TaskbarCustomTintColor),
+                settings.TaskbarTintOpacity,
+                settings.TaskbarLuminosityOpacity);
         }
 
         // paints every flyout surface for the current backdrop mode, three exclusive cases in this order:
         // 1. a backdrop controller is attached; root and bar transparent, the graphs area keeps its translucent lift
-        // 2. material "None" (Solid); the root takes the users accent or custom color, the graphs area the same lift
-        // 3. otherwise (Mica/Acrylic with Windows transparency off); every surface its own flat opaque color, no
-        //    overlay, so each one can be calibrated on its own
+        // 2. Solid, or Custom Acrylic with Windows transparency off; the root takes the users accent or custom color,
+        //    the graphs area the same lift
+        // 3. otherwise (Mica or System Acrylic with Windows transparency off); every surface its own flat opaque color,
+        //    no overlay, so each one can be calibrated on its own
         // colors come from the App.xaml theme dictionary; (the XAML {ThemeResource} is only the first paint, a local
         // value from here outranks it)
         private void UpdateSolidBackground()
@@ -1561,7 +1519,8 @@ namespace FluentSensors.Features.TaskbarWidget
             var transparent = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
             var graphsOverlay = (Microsoft.UI.Xaml.Media.Brush)themeDictionary["FlyoutGraphsBackground"];
 
-            bool onGlass = _acrylicController != null;
+            bool onGlass = _acrylicController != null || _micaController != null;
+            var material = SettingsService.Instance.TaskbarBackgroundMaterial;
 
             if (onGlass)
             {
@@ -1569,11 +1528,10 @@ namespace FluentSensors.Features.TaskbarWidget
                 FlyoutBottomBarBorder.Background = transparent;
                 GraphsContentGrid.Background = graphsOverlay;
             }
-            else if (SettingsService.Instance.TaskbarBackdropType == "None")
+            else if (material is BackdropMaterial.Solid or BackdropMaterial.CustomAcrylic)
             {
-                Windows.UI.Color targetColor = SettingsService.Instance.TaskbarUseAccentColor
-                    ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
-                    : SettingsService.Instance.TaskbarCustomTintColor;
+                Windows.UI.Color targetColor = BackdropMaterials.ResolveTintColor(
+                    SettingsService.Instance.TaskbarUseAccentColor, SettingsService.Instance.TaskbarCustomTintColor);
 
                 FlyoutRootBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(targetColor);
                 FlyoutBottomBarBorder.Background = transparent;
@@ -1592,9 +1550,10 @@ namespace FluentSensors.Features.TaskbarWidget
             FlyoutBottomBarBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary[
                 onGlass ? "FlyoutBottomBarSeparatorOnGlassBrush" : "FlyoutBottomBarSeparatorBrush"];
 
-            // the grain belongs to the material, so it shows in the blur modes only
-            FlyoutNoiseHost.Visibility = onGlass ? Visibility.Visible : Visibility.Collapsed;
-            if (onGlass)
+            // the grain belongs to the acrylic, so it shows in the blur modes only
+            bool showsGrain = _acrylicController != null;
+            FlyoutNoiseHost.Visibility = showsGrain ? Visibility.Visible : Visibility.Collapsed;
+            if (showsGrain)
             {
                 EnsureNoiseBitmap(FlyoutRootBorder.ActualWidth, FlyoutRootBorder.ActualHeight);
             }
@@ -1859,11 +1818,11 @@ namespace FluentSensors.Features.TaskbarWidget
             EnsureNoiseBitmap(e.NewSize.Width, e.NewSize.Height);
         }
 
-        // applies the backdrop for the current setting and the Windows transparency state
-        // "Mica" runs through DesktopAcrylicController too, with the MicaPreset constants instead of the sliders: real
-        // Mica only samples the wallpaper and shows next to nothing on a small flyout (WidgetWindow uses a real
-        // MicaController for the same setting)
-        public void SetBackdrop(string backdropType)
+        // applies the backdrop for the material and the Windows transparency state; without transparency no controller,
+        // UpdateSolidBackground paints the flat surfaces instead
+        // Mica only samples the wallpaper and shows next to nothing on a small flyout; System Acrylic is the look of
+        // the Windows flyouts
+        public void SetBackdrop(BackdropMaterial material)
         {
             DispatcherQueue.EnsureSystemDispatcherQueue();
 
@@ -1880,9 +1839,11 @@ namespace FluentSensors.Features.TaskbarWidget
 
             _acrylicController?.Dispose();
             _acrylicController = null;
+            _micaController?.Dispose();
+            _micaController = null;
             this.SystemBackdrop = null;
 
-            if (isTransparencyEnabled && (backdropType == "Acrylic" || backdropType == "Mica") && DesktopAcrylicController.IsSupported())
+            if (isTransparencyEnabled && BackdropMaterials.IsAcrylic(material) && DesktopAcrylicController.IsSupported())
             {
                 _acrylicController = new DesktopAcrylicController();
                 // Base is the variant the Windows 11 shell surfaces use:
@@ -1893,10 +1854,16 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 UpdateAcrylicProperties();
             }
+            else if (isTransparencyEnabled && material == BackdropMaterial.Mica && MicaController.IsSupported())
+            {
+                _micaController = new MicaController();
+                AddBackdropTarget(_micaController);
+                _micaController.SetSystemBackdropConfiguration(_configurationSource);
+            }
 
             // the card window stays transparent under the link material, the window level one only without a
             // controller
-            if (UsesCardWindow || _acrylicController == null)
+            if (UsesCardWindow || (_acrylicController == null && _micaController == null))
             {
                 this.SystemBackdrop = new TransparentTintBackdrop();
             }
@@ -1917,7 +1884,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // the link when there is one, the window otherwise; a link the controller refuses is retired, so the flyout
         // falls back to the window level construction for good (SetBackdrop then re-places the window)
-        private void AddBackdropTarget(DesktopAcrylicController controller)
+        private void AddBackdropTarget(ISystemBackdropControllerWithTargets controller)
         {
             if (_backdropLink != null)
             {

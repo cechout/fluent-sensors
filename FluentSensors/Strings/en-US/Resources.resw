@@ -128,8 +128,9 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Main_LoadingStatusText.Text" xml:space="preserve">
     <value>Starting Fluent Sensors...</value>
   </data>
-  <data name="Main_WidgetWindowSingleClickItem.Text" xml:space="preserve">
-    <value>Widget Window	Single Click</value>
+  <data name="Main_WidgetWindowTrayItem" xml:space="preserve">
+    <value>Widget {0}	Single Click</value>
+    <comment>tray menu entry; {0} is the widget window number, 1 to 3; keep the tab before the click hint</comment>
   </data>
   <data name="Main_CSVWindowSingleClickItem.Text" xml:space="preserve">
     <value>CSV Window	Single Click</value>
@@ -338,36 +339,41 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
     <value>Widget Window Appearance</value>
   </data>
   <data name="Settings_BackgroundMaterialExpander.Description" xml:space="preserve">
-    <value>Backdrop effect and color for the widget window</value>
+    <value>Backdrop effect and color for the widget and CSV windows</value>
   </data>
   <data name="Settings_BackgroundMaterialExpander.Header" xml:space="preserve">
     <value>Background Material</value>
-  </data>
-  <data name="Settings_BackdropComboBox_Acrylic.Content" xml:space="preserve">
-    <value>Desktop Acrylic</value>
   </data>
   <data name="Settings_BackdropComboBox_Mica.Content" xml:space="preserve">
     <value>System Mica</value>
     <comment>window backdrop option; Mica is the name of a Windows material, keep it</comment>
   </data>
-  <data name="Settings_BackdropComboBox_None.Content" xml:space="preserve">
+  <data name="Settings_BackdropComboBox_SystemAcrylic.Content" xml:space="preserve">
+    <value>System Acrylic</value>
+    <comment>window backdrop option; the Windows blur with the look of the Windows flyouts; Acrylic is the name of a Windows material, keep it</comment>
+  </data>
+  <data name="Settings_BackdropComboBox_CustomAcrylic.Content" xml:space="preserve">
+    <value>Custom Acrylic</value>
+    <comment>window backdrop option; the Windows blur with the tint and opacities set below; Acrylic is the name of a Windows material, keep it</comment>
+  </data>
+  <data name="Settings_BackdropComboBox_Solid.Content" xml:space="preserve">
     <value>Solid</value>
     <comment>window backdrop option; a plain background without Mica or Acrylic</comment>
   </data>
   <data name="Settings_TintOpacityCard.Description" xml:space="preserve">
-    <value>(Acrylic only)</value>
+    <value>(Custom Acrylic only)</value>
   </data>
   <data name="Settings_TintOpacityCard.Header" xml:space="preserve">
     <value>Tint Opacity</value>
   </data>
   <data name="Settings_LuminosityOpacityCard.Description" xml:space="preserve">
-    <value>(Acrylic only)</value>
+    <value>(Custom Acrylic only)</value>
   </data>
   <data name="Settings_LuminosityOpacityCard.Header" xml:space="preserve">
     <value>Luminosity Opacity</value>
   </data>
   <data name="Settings_BackgroundColorSourceCard.Description" xml:space="preserve">
-    <value>(Acrylic and Solid)</value>
+    <value>(Custom Acrylic and Solid)</value>
   </data>
   <data name="Settings_BackgroundColorSourceCard.Header" xml:space="preserve">
     <value>Background Color Source</value>
@@ -385,7 +391,7 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
     <value>Background Color</value>
   </data>
   <data name="Settings_WidgetGraphExpander.Description" xml:space="preserve">
-    <value>Graph color and time range</value>
+    <value>Graph color</value>
   </data>
   <data name="Settings_WidgetGraphExpander.Header" xml:space="preserve">
     <value>Graph</value>
@@ -505,31 +511,36 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Settings_FlyoutBackgroundMaterialExpander.Header" xml:space="preserve">
     <value>Flyout Background Material</value>
   </data>
-  <data name="Settings_TaskbarBackdropComboBox_Acrylic.Content" xml:space="preserve">
-    <value>Desktop Acrylic</value>
-  </data>
   <data name="Settings_TaskbarBackdropComboBox_Mica.Content" xml:space="preserve">
     <value>System Mica</value>
     <comment>taskbar flyout backdrop option; Mica is the name of a Windows material, keep it</comment>
   </data>
-  <data name="Settings_TaskbarBackdropComboBox_None.Content" xml:space="preserve">
+  <data name="Settings_TaskbarBackdropComboBox_SystemAcrylic.Content" xml:space="preserve">
+    <value>System Acrylic</value>
+    <comment>taskbar flyout backdrop option; the Windows blur with the look of the Windows flyouts; Acrylic is the name of a Windows material, keep it</comment>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_CustomAcrylic.Content" xml:space="preserve">
+    <value>Custom Acrylic</value>
+    <comment>taskbar flyout backdrop option; the Windows blur with the tint and opacities set below; Acrylic is the name of a Windows material, keep it</comment>
+  </data>
+  <data name="Settings_TaskbarBackdropComboBox_Solid.Content" xml:space="preserve">
     <value>Solid</value>
     <comment>taskbar flyout backdrop option; a plain background without Mica or Acrylic</comment>
   </data>
   <data name="Settings_TaskbarTintOpacityCard.Description" xml:space="preserve">
-    <value>(Acrylic only)</value>
+    <value>(Custom Acrylic only)</value>
   </data>
   <data name="Settings_TaskbarTintOpacityCard.Header" xml:space="preserve">
     <value>Tint Opacity</value>
   </data>
   <data name="Settings_TaskbarLuminosityOpacityCard.Description" xml:space="preserve">
-    <value>(Acrylic only)</value>
+    <value>(Custom Acrylic only)</value>
   </data>
   <data name="Settings_TaskbarLuminosityOpacityCard.Header" xml:space="preserve">
     <value>Luminosity Opacity</value>
   </data>
   <data name="Settings_TaskbarBackgroundColorSourceCard.Description" xml:space="preserve">
-    <value>(Acrylic and Solid)</value>
+    <value>(Custom Acrylic and Solid)</value>
   </data>
   <data name="Settings_TaskbarBackgroundColorSourceCard.Header" xml:space="preserve">
     <value>Background Color Source</value>
@@ -1498,6 +1509,10 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
     <value>Logging</value>
     <comment>sensor selection profile; the sensors picked for CSV logging</comment>
   </data>
+  <data name="Sensors_WidgetWindowComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Widget Window</value>
+    <comment>the second picker next to the selection profile; which of the widget windows, 1 to 3</comment>
+  </data>
   <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
     <value>Taskbar</value>
     <comment>sensor selection profile; the sensors picked for the taskbar widget</comment>
@@ -1622,6 +1637,18 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
   </data>
   <data name="Widget_SystemSensorsText.Text" xml:space="preserve">
     <value>System Sensors</value>
+  </data>
+  <data name="Widget_ZOrderAlwaysOnTop" xml:space="preserve">
+    <value>Always on Top</value>
+    <comment>widget window button; names the current state, a click moves on to the next</comment>
+  </data>
+  <data name="Widget_ZOrderNormal" xml:space="preserve">
+    <value>Normal Window</value>
+    <comment>widget window button; names the current state, a click moves on to the next</comment>
+  </data>
+  <data name="Widget_ZOrderDesktop" xml:space="preserve">
+    <value>Pinned to Desktop</value>
+    <comment>widget window button; the window stays below all others and on the desktop with Win+D</comment>
   </data>
   <data name="Widget_BackToDashboardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Back to Main Application</value>

@@ -71,8 +71,11 @@ namespace FluentSensors.Persistence.Models
 
         // --- widget window appearance ---
 
-        // background material
-        public string BackdropType { get; set; } = "Mica";
+        // background material, shared with the csv logger window; the default is a constant, the saved value starts
+        // null (a file without one either predates it and LoadFromData maps the legacy BackdropType, or there is no
+        // file yet)
+        public const BackdropMaterial DefaultBackgroundMaterial = BackdropMaterial.SystemAcrylic;
+        public BackdropMaterial? BackgroundMaterial { get; set; } = null;
         public float TintOpacity { get; set; } = 0.4f;
         public float LuminosityOpacity { get; set; } = 0.2f;
         public bool UseAccentColor { get; set; } = true;
@@ -109,8 +112,9 @@ namespace FluentSensors.Persistence.Models
         // the global shortcut that opens the flyout; none by default, so no key combination is taken from other apps
         public KeyboardShortcut? TaskbarFlyoutShortcut { get; set; } = null;
 
-        // flyout background material
-        public string TaskbarBackdropType { get; set; } = "Mica";
+        // flyout background material; the default works like the widget one
+        public const BackdropMaterial DefaultTaskbarBackgroundMaterial = BackdropMaterial.SystemAcrylic;
+        public BackdropMaterial? TaskbarBackgroundMaterial { get; set; } = null;
         public float TaskbarTintOpacity { get; set; } = 0.4f;
         public float TaskbarLuminosityOpacity { get; set; } = 0.2f;
         public bool TaskbarUseAccentColor { get; set; } = true;
@@ -138,8 +142,9 @@ namespace FluentSensors.Persistence.Models
         // page button is the way back)
         public string SkippedUpdateVersion { get; set; } = "";
 
-        // sensors page; the profile it opens on
+        // sensors page; the profile it opens on, and the widget window (0 based) of the widget profile
         public SensorSelectionProfile LastSensorProfile { get; set; } = SensorSelectionProfile.WidgetWindow;
+        public int LastWidgetWindowIndex { get; set; } = 0;
 
         // csv logger window; the recording folder, empty = Documents\FluentSensors
         public string CsvLogFolder { get; set; } = "";
@@ -187,5 +192,10 @@ namespace FluentSensors.Persistence.Models
 
         // the shared extended range the cpu and gpu ranges replaced; SettingsService copies it onto both once
         public double? PerformanceExtendedGraphTimeSpanSeconds { get; set; } = null;
+
+        // the three material tags ("Mica", "Acrylic", "None") the four BackdropMaterial values replaced; a new key
+        // instead of new tags, so an older version reading this file never misreads one
+        public string? BackdropType { get; set; } = null;
+        public string? TaskbarBackdropType { get; set; } = null;
     }
 }
