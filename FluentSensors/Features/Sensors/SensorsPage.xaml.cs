@@ -38,7 +38,7 @@ namespace FluentSensors.Features.Sensors
         private HashSet<ICommandBarElement> _forcedOverflowElements;
         private bool _commandBarWidthsCached = false;
         private const double OverflowButtonReservedWidth = 48;
-        private const double LeftSectionMinWidth = 260; // from SensorListTitleText
+        private const double LeftSectionMinWidth = 280; // from SensorListTitleText
         private int _commandBarOverflowStartIndex = -1;
 
         // command bar entrance after a profile switch or a pin; hidden at once, then slid in from the right
