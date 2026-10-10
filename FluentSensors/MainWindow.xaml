@@ -408,13 +408,14 @@
             Visibility="Visible">
 
             <tb:TaskbarIcon.ContextFlyout>
-                <MenuFlyout>
+                <MenuFlyout x:Name="TrayMenu">
                     <!--  show windows  -->
                     <!--
                         (the tab in Text right-aligns the click hint; H.NotifyIcon rebuilds this as a native win32 menu
-                        from Text, IsEnabled and Command, so KeyboardAcceleratorTextOverride never shows)
+                        from Text, IsEnabled and Command, so KeyboardAcceleratorTextOverride never shows; the widget
+                        entries come from code and are only in the list while their window is open, see
+                        UpdateWidgetTrayItems)
                     -->
-                    <MenuFlyoutItem x:Uid="Main_WidgetWindowSingleClickItem" Command="{x:Bind ShowWidgetWindowCommand}" />
                     <MenuFlyoutItem x:Uid="Main_CSVWindowSingleClickItem" Command="{x:Bind ShowCsvWindowCommand}" />
                     <MenuFlyoutItem x:Uid="Main_MainWindowDoubleClickItem" Command="{x:Bind TrayDoubleClickCommand}" />
 

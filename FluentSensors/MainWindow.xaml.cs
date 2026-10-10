@@ -100,8 +100,8 @@ namespace FluentSensors
         public XamlUICommand ShowMainWindowCommand { get; } = new XamlUICommand(); // restore; sensors page
         public XamlUICommand OpenPerformanceCommand { get; } = new XamlUICommand(); // restore; performance page
         public XamlUICommand OpenSettingsCommand { get; } = new XamlUICommand(); // restore; settings page
-        public XamlUICommand ShowWidgetWindowCommand { get; } = new XamlUICommand(); // the widget only
         public XamlUICommand ShowCsvWindowCommand { get; } = new XamlUICommand(); // the csv logger only
+        private readonly MenuFlyoutItem[] _widgetTrayItems = new MenuFlyoutItem[WidgetWindow.MaxWidgetWindows]; // one widget only, each
         public XamlUICommand OpenDocumentationCommand { get; } = new XamlUICommand(); // the project page in the browser
         public XamlUICommand ExitAppCommand { get; } = new XamlUICommand();
         public XamlUICommand TrayLeftClickCommand { get; } = new XamlUICommand(); // single click; open readouts
@@ -201,6 +201,7 @@ namespace FluentSensors
             {
                 SettingsService.Instance.ThemeChanged -= OnThemeChanged;
                 SettingsService.Instance.StatusReadoutChanged -= OnStatusReadoutChanged;
+                WidgetWindow.WidgetStateChanged -= UpdateWidgetTrayItems;
                 CurrentInstance = null;
             };
             ((FrameworkElement)this.Content).Loaded += MainWindow_Loaded;
@@ -224,14 +225,28 @@ namespace FluentSensors
                 RestoreApp();
                 MainNavigationView.SelectedItem = SettingsNavItem;
             };
-            ShowWidgetWindowCommand.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen();
             ShowCsvWindowCommand.ExecuteRequested += (s, e) => CsvLoggerWindow.RestoreIfOpen();
             OpenDocumentationCommand.ExecuteRequested += (s, e) => OpenProjectPage();
 
-            // both restores are no-ops for a closed window, so one click brings back whatever is open
+            // one entry per possible widget window, numbered through one format string; each restores its window only
+            for (int index = 0; index < _widgetTrayItems.Length; index++)
+            {
+                int widgetIndex = index;
+                var command = new XamlUICommand();
+                command.ExecuteRequested += (s, e) => WidgetWindow.RestoreIfOpen(widgetIndex);
+                _widgetTrayItems[index] = new MenuFlyoutItem
+                {
+                    Text = AppStrings.Format("Main_WidgetWindowTrayItem", index + 1),
+                    Command = command
+                };
+            }
+            WidgetWindow.WidgetStateChanged += UpdateWidgetTrayItems;
+            UpdateWidgetTrayItems();
+
+            // the restores are no-ops for a closed window, so one click brings back whatever is open
             TrayLeftClickCommand.ExecuteRequested += (s, e) =>
             {
-                WidgetWindow.RestoreIfOpen();
+                WidgetWindow.RestoreAllOpen();
                 CsvLoggerWindow.RestoreIfOpen();
             };
             TrayDoubleClickCommand.ExecuteRequested += (s, e) => OpenDashboard();
@@ -359,7 +374,7 @@ namespace FluentSensors
             // read before the two restores below take the focus, see ReclaimForeground
             bool hadForeground = GetForegroundWindow() == WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-            TryRestoreWidgetWindow();
+            TryRestoreWidgetWindows();
             TryRestoreTaskbarWidgetWindow();
 
             if (hadForeground)
@@ -379,19 +394,22 @@ namespace FluentSensors
             UpdateService.Instance.Start(WinRT.Interop.WindowNative.GetWindowHandle(this));
         }
 
-        // reopens the widget with the pinned sensors that still exist, if it was open when the app last closed
-        private void TryRestoreWidgetWindow()
+        // reopens every widget with the pinned sensors that still exist, if it was open when the app last closed
+        private void TryRestoreWidgetWindows()
         {
-            var widgetState = WindowStateService.Instance.GetState("Widget");
-            if (widgetState == null || !widgetState.WasOpen) return;
+            for (int index = 0; index < WidgetWindow.MaxWidgetWindows; index++)
+            {
+                var widgetState = WindowStateService.Instance.GetState(WidgetWindow.GetWindowKey(index));
+                if (widgetState == null || !widgetState.WasOpen) continue;
 
-            var pinnedSensorIds = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetWindow);
-            if (pinnedSensorIds.Count == 0) return;
+                var pinnedSensorIds = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetWindow, index);
+                if (pinnedSensorIds.Count == 0) continue;
 
-            var pinnedSensors = FindSensorRowsByIds(pinnedSensorIds);
-            if (pinnedSensors.Count == 0) return; // none exist on this system any more
+                var pinnedSensors = FindSensorRowsByIds(pinnedSensorIds);
+                if (pinnedSensors.Count == 0) continue; // none exist on this system any more
 
-            WidgetWindow.ShowWithSensors(pinnedSensors);
+                WidgetWindow.ShowWithSensors(index, pinnedSensors);
+            }
         }
 
         // the same for the taskbar widget and the taskbar profile
@@ -695,15 +713,12 @@ namespace FluentSensors
             bool isMainReady = _isDashboardClosed || !this.AppWindow.IsVisible ||
                                (this.AppWindow.Presenter is OverlappedPresenter opMain && opMain.State == OverlappedPresenterState.Minimized);
 
-            // widget window: absent, hidden or minimized
-            bool isWidgetReady = true;
-            if (WidgetWindow.CurrentInstance != null)
-            {
-                var opWidget = WidgetWindow.CurrentInstance.AppWindow.Presenter as OverlappedPresenter;
-                isWidgetReady = !WidgetWindow.CurrentInstance.AppWindow.IsVisible || (opWidget != null && opWidget.State == OverlappedPresenterState.Minimized);
-            }
+            // widget windows: absent, hidden or minimized
+            bool isWidgetReady = WidgetWindow.OpenInstances.All(widget =>
+                !widget.AppWindow.IsVisible ||
+                (widget.AppWindow.Presenter is OverlappedPresenter opWidget && opWidget.State == OverlappedPresenterState.Minimized));
 
-            // both out of the way: hide the app from the taskbar
+            // all out of the way: hide the app from the taskbar
             if (isMainReady && isWidgetReady)
             {
                 // unless the hide shield already has it
@@ -712,9 +727,9 @@ namespace FluentSensors
                     this.Hide();
                 }
 
-                if (WidgetWindow.CurrentInstance != null)
+                foreach (var widget in WidgetWindow.OpenInstances)
                 {
-                    WidgetWindow.CurrentInstance.Hide();
+                    widget.Hide();
                 }
             }
         }
@@ -855,15 +870,34 @@ namespace FluentSensors
                 OpenDashboard();
             }
 
-            // the widget window whenever it exists
-            if (WidgetWindow.CurrentInstance != null)
+            // every widget window that exists
+            foreach (var widget in WidgetWindow.OpenInstances)
             {
-                WidgetWindow.CurrentInstance.Show();
-                if (WidgetWindow.CurrentInstance.AppWindow.Presenter is OverlappedPresenter opWidget)
+                widget.Show();
+                if (widget.AppWindow.Presenter is OverlappedPresenter opWidget)
                 {
                     opWidget.Restore();
                 }
-                WidgetWindow.CurrentInstance.Activate();
+                widget.Activate();
+            }
+        }
+
+        // one tray entry per open widget window, in window order at the top of the menu; H.NotifyIcon builds its native
+        // menu from Items on every open and ignores Visibility, so the entries go in and out of the list instead
+        private void UpdateWidgetTrayItems()
+        {
+            foreach (var entry in _widgetTrayItems)
+            {
+                TrayMenu.Items.Remove(entry);
+            }
+
+            int insertAt = 0;
+            for (int index = 0; index < _widgetTrayItems.Length; index++)
+            {
+                if (WidgetWindow.GetOpenInstance(index) != null)
+                {
+                    TrayMenu.Items.Insert(insertAt++, _widgetTrayItems[index]);
+                }
             }
         }
 

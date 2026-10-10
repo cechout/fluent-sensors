@@ -21,6 +21,19 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!--
+            acrylic grain: the material paints noise last, the backdrop controller does not; below every fill, so it
+            grains the material and not the text or graphs; shown by WindowBackdrop for system acrylic with Windows
+            transparency on, sized from code like the taskbar flyout grain
+        -->
+        <Canvas
+            x:Name="NoiseHost"
+            Grid.RowSpan="3"
+            IsHitTestVisible="False"
+            Visibility="Collapsed">
+            <Rectangle x:Name="NoiseOverlay" />
+        </Canvas>
+
         <!--  custom title bar: title  -->
         <!--  (26 tall; part of ChromeHeight in code)  -->
         <Grid
@@ -60,7 +73,7 @@
         </Grid>
 
 
-        <!--  bottom bar: back to the main window and time range + pause  -->
+        <!--  bottom bar: back to the main window, time range + z-order and pause  -->
         <!--  (flat 22 px buttons, a plain divider above; part of ChromeHeight in code)  -->
         <Border
             Grid.Row="2"
@@ -96,6 +109,37 @@
                         Padding="8,0,8,0"
                         Options="{x:Bind fhCommon:GraphTimeRanges.Widget}"
                         TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                    <!--  z-order  -->
+                    <!--
+                        (on top, normal, pinned to desktop: a fixed arrow up with a bar over it, through its middle or
+                        under it, on a 15 px grid at half pixels; arrow and bar are one geometry from ApplyZOrder, so the
+                        crossing is not drawn twice; a click flashes the accent bar)
+                    -->
+                    <Button
+                        x:Name="ZOrderButton"
+                        Width="32"
+                        Height="22"
+                        Padding="0"
+                        Click="ZOrderButton_Click"
+                        Style="{StaticResource SubtleButtonStyle}">
+                        <Canvas Width="15" Height="15">
+                            <Path
+                                x:Name="ZOrderIcon"
+                                Stroke="{ThemeResource TextFillColorSecondaryBrush}"
+                                StrokeEndLineCap="Round"
+                                StrokeLineJoin="Round"
+                                StrokeStartLineCap="Round"
+                                StrokeThickness="1" />
+                            <Line
+                                x:Name="ZOrderBarAccent"
+                                Opacity="0"
+                                Stroke="{ThemeResource AccentFillColorDefaultBrush}"
+                                StrokeEndLineCap="Round"
+                                StrokeStartLineCap="Round"
+                                StrokeThickness="1" />
+                        </Canvas>
+                    </Button>
                 </StackPanel>
 
                 <!--  pause  -->

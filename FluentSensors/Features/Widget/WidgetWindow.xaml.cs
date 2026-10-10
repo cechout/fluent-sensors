@@ -1,15 +1,15 @@
-using Microsoft.UI.Composition;
-using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using System;
 using System.Collections.Generic;
-using WinRT;
 using System.Runtime.InteropServices;
 using System.Linq;
+using Windows.Foundation;
 using WinUIEx;
 
 using FluentSensors.Common.Localization;
@@ -37,8 +37,11 @@ namespace FluentSensors.Features.Widget
 
         // === fields ===
 
+        // each window has its own sensors, z-order, time range and place; the material is shared
+        public const int MaxWidgetWindows = 5;
+
         private AppWindow _appWindow;
-        private const string WindowKey = "Widget";
+        private readonly string _windowKey;
 
         // resize floor in DIP; MinPanelHeight per pinned sensor, MinWidgetWidth for the window
         private const int MinPanelHeight = 90;
@@ -48,25 +51,47 @@ namespace FluentSensors.Features.Widget
         private const int ChromeHeight = 73;
 
         public WidgetViewModel ViewModel { get; }
-        public static WidgetWindow CurrentInstance { get; private set; }
+        public int Index { get; } // 0 based, shown as "Widget 1" and up
+
+        // per index: the open window, and the one hidden by its X for reuse
+        private static readonly WidgetWindow?[] _openInstances = new WidgetWindow?[MaxWidgetWindows];
+        private static readonly WidgetWindow?[] _retainedInstances = new WidgetWindow?[MaxWidgetWindows];
         public static event Action WidgetStateChanged;
-        private static WidgetWindow _retainedInstance;
 
         // system backdrop
-        private DesktopAcrylicController _acrylicController;
-        private MicaController _micaController;
-        private SystemBackdropConfiguration _configurationSource;
+        private readonly WindowBackdrop _backdrop;
         private Windows.UI.ViewManagement.UISettings? _uiSettings;
+
+        // z-order; the desktop state is the pin
+        private WindowZOrder _zOrder;
+        private readonly WinDesktopPin _desktopPin;
+
+        // --- z-order icon ---
+        // in px on its 15 px grid, at half pixels; round caps add half a px at each end
+        private const double ZOrderBarWidth = 15; // centered on the arrow
+        private const double ZOrderArrowTip = 2.5; // 1 px clear of a bar at 0.5
+        private const double ZOrderArrowEnd = 12.5; // 1 px clear of a bar at 14.5
+        private const double ZOrderArrowArm = 3; // the head per side, at 45 degrees; 1 px clear of the middle bar
+        // the accent flash of the bar after a click, in ms; held, then faded back
+        private const int ZOrderFlashHoldMs = 1000;
+        private const int ZOrderFlashFadeMs = 500;
+        private Storyboard? _zOrderFlash;
 
 
         // === constructor ===
 
-        public WidgetWindow(List<SensorRowViewModel> selectedSensors)
+        public WidgetWindow(int index, List<SensorRowViewModel> selectedSensors)
         {
-            ViewModel = new WidgetViewModel(selectedSensors);
+            Index = index;
+            _windowKey = GetWindowKey(index);
+            var savedState = WindowStateService.Instance.GetState(_windowKey);
+
+            // a window that never picked a time range starts on the setting
+            ViewModel = new WidgetViewModel(selectedSensors,
+                savedState?.GraphTimeSpanSeconds ?? SettingsService.Instance.GraphTimeSpanSeconds);
             this.InitializeComponent();
             this.AppWindow.SetIcon("Assets\\Icon\\Icon.ico");
-            CurrentInstance = this;
+            _openInstances[index] = this;
             WidgetStateChanged?.Invoke();
 
             // a click on empty space hides the keyboard focus rectangle again
@@ -77,8 +102,8 @@ namespace FluentSensors.Features.Widget
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(CustomTitleBar);
 
+            // always on top follows the z-order, see ApplyZOrder
             var presenter = OverlappedPresenter.Create();
-            presenter.IsAlwaysOnTop = true; // readable over other apps
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = true;
             presenter.IsResizable = true;
@@ -90,7 +115,6 @@ namespace FluentSensors.Features.Widget
             // restores X, Y and width when they land on a connected monitor, otherwise only sizes the window and
             // Windows places it; the height always follows the current sensor count
             double scaleFactor = GetScaleFactor();
-            var savedState = WindowStateService.Instance.GetState(WindowKey);
             if (savedState != null && IsPositionOnScreen(savedState.X, savedState.Y, savedState.Width, savedState.Height))
             {
                 int height = CalculateWidgetHeight(selectedSensors.Count, scaleFactor);
@@ -102,23 +126,26 @@ namespace FluentSensors.Features.Widget
                 ResizeWidgetToFitSensors(selectedSensors.Count);
             }
 
+            _desktopPin = new WinDesktopPin(WinRT.Interop.WindowNative.GetWindowHandle(this), _appWindow, DispatcherQueue);
+            ApplyZOrder(savedState?.ZOrder ?? WindowZOrder.AlwaysOnTop);
+
             // marked open, so it reopens on the next launch (with the sensors from SensorSelectionService)
             SaveWindowState();
 
             // theming
-            SetBackdrop(SettingsService.Instance.BackdropType);
+            _backdrop = new WindowBackdrop(this, RootGrid, () => SettingsService.Instance.WidgetBackdrop, NoiseHost, NoiseOverlay);
+            _backdrop.Apply(SettingsService.Instance.BackgroundMaterial);
             ApplyTheme(SettingsService.Instance.AppTheme);
 
             // event routing
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
-            SettingsService.Instance.BackdropTypeChanged += OnBackdropTypeChanged;
+            SettingsService.Instance.BackgroundMaterialChanged += OnBackgroundMaterialChanged;
             SettingsService.Instance.OpacityChanged += OnOpacityChanged;
             SettingsService.Instance.TintColorChanged += OnTintColorChanged;
 
-            // the widget time range; the picker and the settings page write the same setting
-            TimeRangePicker.SelectedSeconds = SettingsService.Instance.GraphTimeSpanSeconds;
+            // the time range of this window
+            TimeRangePicker.SelectedSeconds = ViewModel.TimeSpanSeconds;
             TimeRangePicker.RegisterPropertyChangedCallback(TimeRangePickerControl.SelectedSecondsProperty, OnTimeRangePicked);
-            SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged;
 
             ApplyPauseState();
 
@@ -135,31 +162,39 @@ namespace FluentSensors.Features.Widget
             _appWindow.Changed += AppWindow_Changed;
             _appWindow.Closing += AppWindow_Closing;
 
-            KickBackdropRefresh();
+            _backdrop.KickRefresh();
         }
 
 
         // === public methods ===
 
-        // shows the widget, reusing the hidden _retainedInstance if there is one
-        public static void ShowWithSensors(List<SensorRowViewModel> selectedSensors)
+        // the window state key; "Widget" for the first, so it keeps the state it had as the only widget window
+        public static string GetWindowKey(int index) => index == 0 ? "Widget" : $"Widget{index + 1}";
+
+        public static WidgetWindow? GetOpenInstance(int index) => _openInstances[index];
+
+        public static IEnumerable<WidgetWindow> OpenInstances => _openInstances.OfType<WidgetWindow>();
+
+        // shows the widget of this index, reusing its hidden window if there is one
+        public static void ShowWithSensors(int index, List<SensorRowViewModel> selectedSensors)
         {
             // already open: swap the content and resize in place
-            if (CurrentInstance != null)
+            var openWindow = _openInstances[index];
+            if (openWindow != null)
             {
-                CurrentInstance.ReconfigureFor(selectedSensors);
-                CurrentInstance.Activate();
+                openWindow.ReconfigureFor(selectedSensors);
+                openWindow.Activate();
                 return;
             }
 
             // hidden by its X: reuse that window
-            if (_retainedInstance != null)
+            var window = _retainedInstances[index];
+            if (window != null)
             {
-                var window = _retainedInstance;
-                _retainedInstance = null;
+                _retainedInstances[index] = null;
 
                 window.ReconfigureFor(selectedSensors);
-                CurrentInstance = window;
+                _openInstances[index] = window;
                 WidgetStateChanged?.Invoke();
 
                 // level 2 reverse: flat baseline, live data, then rendering; the reopened widget starts fresh
@@ -173,21 +208,38 @@ namespace FluentSensors.Features.Widget
             }
 
             // none yet this session
-            var newWindow = new WidgetWindow(selectedSensors);
+            var newWindow = new WidgetWindow(index, selectedSensors);
             newWindow.Activate();
         }
 
-        // brings the widget back without touching its content, for the tray single click; a no-op unless it is open
-        public static void RestoreIfOpen()
+        // brings the widget back without touching its content, for the tray; a no-op unless it is open
+        // one pinned to the desktop becomes a normal window and stays one, or it could not come to the front
+        public static void RestoreIfOpen(int index)
         {
-            if (CurrentInstance == null) return;
+            var window = _openInstances[index];
+            if (window == null) return;
 
-            if (CurrentInstance._appWindow.Presenter is OverlappedPresenter presenter)
+            if (window._zOrder == WindowZOrder.Desktop)
+            {
+                window.ApplyZOrder(WindowZOrder.Normal);
+                window.SaveWindowState();
+            }
+
+            if (window._appWindow.Presenter is OverlappedPresenter presenter)
             {
                 presenter.Restore();
             }
-            CurrentInstance._appWindow.Show();
-            CurrentInstance.Activate();
+            window._appWindow.Show();
+            window.Activate();
+        }
+
+        // every open one, for the tray single click
+        public static void RestoreAllOpen()
+        {
+            for (int i = 0; i < MaxWidgetWindows; i++)
+            {
+                RestoreIfOpen(i);
+            }
         }
 
         private bool _isClosed = false;
@@ -200,10 +252,9 @@ namespace FluentSensors.Features.Widget
             try
             {
                 SettingsService.Instance.ThemeChanged -= OnThemeChanged;
-                SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
+                SettingsService.Instance.BackgroundMaterialChanged -= OnBackgroundMaterialChanged;
                 SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
                 SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
-                SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
             }
             catch { }
 
@@ -219,7 +270,7 @@ namespace FluentSensors.Features.Widget
             catch { }
 
             // detached first, or AppWindow_Closing cancels the Close below and brings this window back as
-            // _retainedInstance; WidgetWindow_Closed stays, it does the real teardown
+            // a retained instance; WidgetWindow_Closed stays, it does the real teardown
             try
             {
                 _appWindow.Closing -= AppWindow_Closing;
@@ -229,40 +280,46 @@ namespace FluentSensors.Features.Widget
 
             try
             {
-                _acrylicController?.Dispose();
-                _acrylicController = null;
-                _micaController?.Dispose();
-                _micaController = null;
+                _desktopPin.Release();
+                _backdrop.Dispose();
                 this.Close();
             }
             catch { }
         }
 
-        private static bool _isRecreating = false;
+        private static readonly bool[] _isRecreating = new bool[MaxWidgetWindows];
 
-        // destroys and rebuilds the widget on an OS theme or transparency change
-        public static void RecreateWindow()
+        // destroys and rebuilds every widget on an OS theme or transparency change
+        public static void RecreateWindows()
         {
-            if (_isRecreating) return;
-            if (CurrentInstance == null && _retainedInstance == null) return;
-            _isRecreating = true;
-
-            var ids = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetWindow);
-            var sensors = ResolveSensors(ids);
-            bool wasVisible = CurrentInstance != null && CurrentInstance._appWindow != null && CurrentInstance._appWindow.IsVisible;
-
-            if (CurrentInstance != null)
+            for (int i = 0; i < MaxWidgetWindows; i++)
             {
-                var old = CurrentInstance;
-                CurrentInstance = null;
-                old.SafeDestroy();
+                RecreateWindow(i);
+            }
+        }
+
+        private static void RecreateWindow(int index)
+        {
+            if (_isRecreating[index]) return;
+            if (_openInstances[index] == null && _retainedInstances[index] == null) return;
+            _isRecreating[index] = true;
+
+            var ids = SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetWindow, index);
+            var sensors = ResolveSensors(ids);
+            var openWindow = _openInstances[index];
+            bool wasVisible = openWindow != null && openWindow._appWindow != null && openWindow._appWindow.IsVisible;
+
+            if (openWindow != null)
+            {
+                _openInstances[index] = null;
+                openWindow.SafeDestroy();
             }
 
-            if (_retainedInstance != null)
+            var retainedWindow = _retainedInstances[index];
+            if (retainedWindow != null)
             {
-                var old = _retainedInstance;
-                _retainedInstance = null;
-                old.SafeDestroy();
+                _retainedInstances[index] = null;
+                retainedWindow.SafeDestroy();
             }
 
             if (sensors.Count > 0 && wasVisible)
@@ -274,22 +331,22 @@ namespace FluentSensors.Features.Widget
                 {
                     try
                     {
-                        ShowWithSensors(sensors);
+                        ShowWithSensors(index, sensors);
                     }
                     finally
                     {
-                        _isRecreating = false;
+                        _isRecreating[index] = false;
                     }
                 });
 
                 if (!queued)
                 {
-                    _isRecreating = false;
+                    _isRecreating[index] = false;
                 }
             }
             else
             {
-                _isRecreating = false;
+                _isRecreating[index] = false;
             }
         }
 
@@ -319,53 +376,43 @@ namespace FluentSensors.Features.Widget
             SaveWindowState(wasOpen: false);
 
             // settings events
-            SettingsService.Instance.BackdropTypeChanged -= OnBackdropTypeChanged;
+            SettingsService.Instance.BackgroundMaterialChanged -= OnBackgroundMaterialChanged;
             SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
             SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
-            SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
 
             // the HardwareMonitorService subscription
             ViewModel.Cleanup();
 
             // backdrop controllers, per the Microsoft docs
-            _acrylicController?.Dispose();
-            _acrylicController = null;
-            _micaController?.Dispose();
-            _micaController = null;
+            _desktopPin.Release();
+            _backdrop.Dispose();
 
-            this.Activated -= Window_Activated;
-            _configurationSource = null;
-            CurrentInstance = null;
-            WidgetStateChanged?.Invoke();
-        }
-
-        private void Window_Activated(object sender, WindowActivatedEventArgs args)
-        {
-            if (_configurationSource != null)
+            // a rebuild may have put its successor in place already
+            if (_openInstances[Index] == this)
             {
-                // always active, or a click outside drops the blur while the widget stays on screen
-                _configurationSource.IsInputActive = true;
+                _openInstances[Index] = null;
             }
+            WidgetStateChanged?.Invoke();
         }
 
         // --- memory leak: WidgetWindow never released after close ---
         // problem: WinUI 3 never releases a closed secondary Window (confirmed, still open, even with empty content):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/9063
-        // fix: hide instead of closing and keep the instance as _retainedInstance (same as HiddenSensorsWindow);
+        // fix: hide instead of closing and keep the instance in _retainedInstances (same as HiddenSensorsWindow);
         // controllers, settings events and the ViewModel stay alive for the reuse
         // always, whatever MinimizeToTray says; quitting is decided by MainWindow and the tray Exit, never here
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
-            // SafeDestroy is closing for real; a closed window in _retainedInstance would ignore every
+            // SafeDestroy is closing for real; a closed window in _retainedInstances would ignore every
             // later SetBackdrop and ApplyTheme
             if (_isClosed) return;
 
             args.Cancel = true;
 
             SaveWindowState(wasOpen: false);
-            CurrentInstance = null;
-            _retainedInstance = this;
+            _openInstances[Index] = null;
+            _retainedInstances[Index] = this;
             WidgetStateChanged?.Invoke();
 
             _appWindow.Hide();
@@ -381,7 +428,107 @@ namespace FluentSensors.Features.Widget
 
         private void OnTimeRangePicked(DependencyObject sender, DependencyProperty dp)
         {
-            SettingsService.Instance.GraphTimeSpanSeconds = TimeRangePicker.SelectedSeconds;
+            ViewModel.SetTimeSpan(TimeRangePicker.SelectedSeconds);
+            SaveWindowState();
+        }
+
+        // on top, normal, desktop, on top
+        private void ZOrderButton_Click(object sender, RoutedEventArgs e)
+        {
+            ApplyZOrder(_zOrder switch
+            {
+                WindowZOrder.AlwaysOnTop => WindowZOrder.Normal,
+                WindowZOrder.Normal => WindowZOrder.Desktop,
+                _ => WindowZOrder.AlwaysOnTop
+            });
+            SaveWindowState();
+            FlashZOrderBar();
+        }
+
+        // the accent copy of the bar shows at once and fades out again; a click during the fade starts it over
+        private void FlashZOrderBar()
+        {
+            _zOrderFlash?.Stop();
+
+            var opacity = new DoubleAnimationUsingKeyFrames();
+            opacity.KeyFrames.Add(new DiscreteDoubleKeyFrame { KeyTime = TimeSpan.Zero, Value = 1 });
+            opacity.KeyFrames.Add(new DiscreteDoubleKeyFrame { KeyTime = TimeSpan.FromMilliseconds(ZOrderFlashHoldMs), Value = 1 });
+            opacity.KeyFrames.Add(new EasingDoubleKeyFrame
+            {
+                KeyTime = TimeSpan.FromMilliseconds(ZOrderFlashHoldMs + ZOrderFlashFadeMs),
+                Value = 0,
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            });
+            Storyboard.SetTarget(opacity, ZOrderBarAccent);
+            Storyboard.SetTargetProperty(opacity, "Opacity");
+
+            _zOrderFlash = new Storyboard();
+            _zOrderFlash.Children.Add(opacity);
+            _zOrderFlash.Begin();
+        }
+
+        // icon, tooltip and name follow the state, like the pause button
+        private void ApplyZOrder(WindowZOrder zOrder)
+        {
+            _zOrder = zOrder;
+
+            if (_appWindow.Presenter is OverlappedPresenter presenter)
+            {
+                if (zOrder == WindowZOrder.Desktop)
+                {
+                    // no minimize; without a taskbar button a minimized widget only comes back from the tray
+                    presenter.IsAlwaysOnTop = false;
+                    presenter.IsMinimizable = false;
+                    _desktopPin.Pin();
+                }
+                else
+                {
+                    _desktopPin.Unpin();
+                    presenter.IsMinimizable = true;
+                    presenter.IsAlwaysOnTop = zOrder == WindowZOrder.AlwaysOnTop; // readable over other apps
+                }
+            }
+
+            // only the bar moves: over the arrow, through its middle, under it
+            (string labelKey, double barY) = zOrder switch
+            {
+                WindowZOrder.Normal => ("Widget_ZOrderNormal", 7.5),
+                WindowZOrder.Desktop => ("Widget_ZOrderDesktop", 14.5),
+                _ => ("Widget_ZOrderAlwaysOnTop", 0.5)
+            };
+            ZOrderIcon.Data = BuildZOrderGeometry(barY);
+            ZOrderBarAccent.X1 = 7.5 - ZOrderBarWidth / 2;
+            ZOrderBarAccent.X2 = 7.5 + ZOrderBarWidth / 2;
+            ZOrderBarAccent.Y1 = ZOrderBarAccent.Y2 = barY;
+
+            string label = AppStrings.Get(labelKey);
+            ToolTipService.SetToolTip(ZOrderButton, label);
+            AutomationProperties.SetName(ZOrderButton, label);
+        }
+
+        // shaft, head and bar as open figures of one geometry
+        private static PathGeometry BuildZOrderGeometry(double barY)
+        {
+            const double center = 7.5;
+            var geometry = new PathGeometry();
+            geometry.Figures.Add(BuildOpenFigure(new Point(center, ZOrderArrowTip), new Point(center, ZOrderArrowEnd)));
+            geometry.Figures.Add(BuildOpenFigure(
+                new Point(center - ZOrderArrowArm, ZOrderArrowTip + ZOrderArrowArm),
+                new Point(center, ZOrderArrowTip),
+                new Point(center + ZOrderArrowArm, ZOrderArrowTip + ZOrderArrowArm)));
+            geometry.Figures.Add(BuildOpenFigure(
+                new Point(center - ZOrderBarWidth / 2, barY), new Point(center + ZOrderBarWidth / 2, barY)));
+            return geometry;
+        }
+
+        private static PathFigure BuildOpenFigure(Point start, params Point[] points)
+        {
+            var figure = new PathFigure { StartPoint = start, IsClosed = false, IsFilled = false };
+            foreach (var point in points)
+            {
+                figure.Segments.Add(new LineSegment { Point = point });
+            }
+            return figure;
         }
 
         // the snapshot; every graph stands still, like the taskbar flyout
@@ -425,11 +572,11 @@ namespace FluentSensors.Features.Widget
             });
         }
 
-        private void OnBackdropTypeChanged(string newType)
+        private void OnBackgroundMaterialChanged(BackdropMaterial material)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                SetBackdrop(newType);
+                _backdrop.Apply(material);
             });
         }
 
@@ -437,7 +584,7 @@ namespace FluentSensors.Features.Widget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                UpdateAcrylicProperties();
+                _backdrop.Refresh();
             });
         }
 
@@ -445,16 +592,7 @@ namespace FluentSensors.Features.Widget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                UpdateAcrylicProperties();
-                UpdateSolidBackground();
-            });
-        }
-
-        private void OnGraphTimeSpanChanged(double newTimeSpanSeconds)
-        {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                TimeRangePicker.SelectedSeconds = newTimeSpanSeconds;
+                _backdrop.Refresh();
             });
         }
 
@@ -605,7 +743,7 @@ namespace FluentSensors.Features.Widget
             ApplyMinimumWindowSize(selectedSensors.Count);
 
             double scaleFactor = GetScaleFactor();
-            var savedState = WindowStateService.Instance.GetState(WindowKey);
+            var savedState = WindowStateService.Instance.GetState(_windowKey);
             if (savedState != null && IsPositionOnScreen(savedState.X, savedState.Y, savedState.Width, savedState.Height))
             {
                 int height = CalculateWidgetHeight(selectedSensors.Count, scaleFactor);
@@ -620,10 +758,11 @@ namespace FluentSensors.Features.Widget
             SaveWindowState();
         }
 
-        // writes rect and open state (debounced); the pinned sensors belong to SensorSelectionService
+        // writes rect, open state, z-order and time range (debounced); the pinned sensors belong to
+        // SensorSelectionService
         private void SaveWindowState(bool wasOpen = true)
         {
-            var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
+            var state = WindowStateService.Instance.GetState(_windowKey) ?? new Persistence.Models.WindowState();
 
             // a minimized window reports (-32000, -32000); the last real rect is kept
             bool isMinimized = this.AppWindow.Presenter is OverlappedPresenter presenter &&
@@ -636,8 +775,10 @@ namespace FluentSensors.Features.Widget
                 state.Height = _appWindow.Size.Height;
             }
             state.WasOpen = wasOpen;
+            state.ZOrder = _zOrder;
+            state.GraphTimeSpanSeconds = ViewModel.TimeSpanSeconds;
 
-            WindowStateService.Instance.SetState(WindowKey, state);
+            WindowStateService.Instance.SetState(_windowKey, state);
         }
 
 
@@ -668,143 +809,10 @@ namespace FluentSensors.Features.Widget
             }
         }
 
-        private void UpdateAcrylicProperties()
-        {
-            if (_isClosed) return;
-
-            if (_acrylicController != null)
-            {
-                Windows.UI.Color targetColor;
-                if (SettingsService.Instance.UseAccentColor)
-                {
-                    // the live accent color
-                    targetColor = (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"];
-                }
-                else
-                {
-                    targetColor = SettingsService.Instance.CustomTintColor;
-                }
-
-                _acrylicController.TintColor = targetColor;
-                _acrylicController.TintOpacity = SettingsService.Instance.TintOpacity;
-                _acrylicController.LuminosityOpacity = SettingsService.Instance.LuminosityOpacity;
-            }
-        }
-
-        private void UpdateSolidBackground()
-        {
-            if (_isClosed) return;
-
-            // only for the solid material ("None")
-            if (SettingsService.Instance.BackdropType == "None")
-            {
-                // the same color resolution as UpdateAcrylicProperties
-                Windows.UI.Color targetColor = SettingsService.Instance.UseAccentColor
-                    ? (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]
-                    : SettingsService.Instance.CustomTintColor;
-
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(targetColor);
-            }
-        }
-
-        // for a pure OS accent change; both calls resolve the accent fresh, no rebuild needed
+        // for a pure OS accent change; resolves the accent fresh, no rebuild needed
         public void RefreshAccentSurfaces()
         {
-            UpdateAcrylicProperties();
-            UpdateSolidBackground();
-        }
-
-        // applies the backdrop material from the settings, per the Microsoft guide:
-        // https://learn.microsoft.com/en-us/windows/apps/develop/ui/system-backdrops
-        public void SetBackdrop(string backdropType)
-        {
-            if (_isClosed) return;
-
-            DispatcherQueue.EnsureSystemDispatcherQueue();
-
-            if (_configurationSource == null)
-            {
-                _configurationSource = new SystemBackdropConfiguration();
-                this.Activated += Window_Activated;
-                ((FrameworkElement)this.Content).ActualThemeChanged += Window_ThemeChanged;
-
-                _configurationSource.IsInputActive = true;
-                SetConfigurationSourceTheme();
-            }
-
-            // drop the current controller
-            _acrylicController?.Dispose();
-            _acrylicController = null;
-            _micaController?.Dispose();
-            _micaController = null;
-
-            if (backdropType == "Acrylic" && DesktopAcrylicController.IsSupported())
-            {
-                _acrylicController = new DesktopAcrylicController();
-                _acrylicController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
-                _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
-
-                UpdateAcrylicProperties();
-
-                // transparent, so the material shows
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-            }
-            else if (backdropType == "Mica" && MicaController.IsSupported())
-            {
-                _micaController = new MicaController();
-                _micaController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
-                _micaController.SetSystemBackdropConfiguration(_configurationSource);
-
-                // transparent, so the material shows
-                RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-            }
-            else
-            {
-                // solid
-                UpdateSolidBackground();
-            }
-        }
-
-        private void Window_ThemeChanged(FrameworkElement sender, object args)
-        {
-            SetConfigurationSourceTheme();
-        }
-
-        private void SetConfigurationSourceTheme()
-        {
-            if (_configurationSource != null && this.Content is FrameworkElement frameworkElement)
-            {
-                _configurationSource.Theme = frameworkElement.ActualTheme switch
-                {
-                    ElementTheme.Dark => SystemBackdropTheme.Dark,
-                    ElementTheme.Light => SystemBackdropTheme.Light,
-                    _ => SystemBackdropTheme.Default
-                };
-            }
-        }
-
-        // --- workaround: DWM backdrop swapchain kick ---
-        // problem: after a Windows transparency or theme change, DesktopAcrylicController needs a rebind to attach its
-        // blur to the new DWM swapchain
-        // fix: after a rebuild, kick the backdrop once (None, then the current one), with parameters only
-        private void KickBackdropRefresh()
-        {
-            if (_isClosed) return;
-
-            string currentBackdrop = SettingsService.Instance.BackdropType;
-            if (currentBackdrop == "Mica" || currentBackdrop == "Acrylic")
-            {
-                var timer = this.DispatcherQueue.CreateTimer();
-                timer.Interval = TimeSpan.FromMilliseconds(80);
-                timer.IsRepeating = false;
-                timer.Tick += (s, e) =>
-                {
-                    if (_isClosed) return;
-                    SetBackdrop("None");
-                    SetBackdrop(currentBackdrop);
-                };
-                timer.Start();
-            }
+            _backdrop.Refresh();
         }
     }
 }

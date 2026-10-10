@@ -47,6 +47,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel
+                        x:Name="SensorListTitlePanel"
                         Grid.Column="0"
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
@@ -58,9 +59,11 @@
                             Style="{ThemeResource BodyStrongTextBlockStyle}" />
 
                         <!--  the profile the checkboxes reflect and commit to  -->
+                        <!--  (a fixed width; sized to its content it narrows while open)  -->
                         <ComboBox
                             x:Name="SelectionProfileComboBox"
                             x:Uid="Sensors_SelectionProfileComboBox"
+                            Width="120"
                             Margin="12,0,0,0"
                             VerticalAlignment="Center"
                             SelectedIndex="0"
@@ -69,6 +72,16 @@
                             <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_Csv" Tag="Csv" />
                             <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_Taskbar" Tag="Taskbar" />
                         </ComboBox>
+
+                        <!--  the widget window of the widget profile  -->
+                        <!--  (numbers filled in from code, 1 to WidgetWindow.MaxWidgetWindows)  -->
+                        <ComboBox
+                            x:Name="WidgetWindowComboBox"
+                            x:Uid="Sensors_WidgetWindowComboBox"
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            SelectionChanged="WidgetWindowComboBox_SelectionChanged"
+                            Visibility="{x:Bind ViewModel.IsWidgetProfileActive, Mode=OneWay}" />
                     </StackPanel>
 
                     <!--  command bar in column 1, after the minimum of column 0  -->

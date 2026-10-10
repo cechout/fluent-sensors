@@ -56,18 +56,12 @@ namespace FluentSensors.Features.Settings
             RestoreHardwareIconColorsSelection();
 
             // the time range lists the pickers share; from code, the restores below run before x:Bind would
-            PerformanceGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Performance;
-            PerformanceCpuExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
-            PerformanceGpuExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
-            GraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Widget;
             TaskbarGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
             TaskbarFlyoutGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
 
-            RestorePerformanceGraphTimeSpanSelection();
-
             RestoreBackgroundMaterialSettings();
+            RestoreCsvBackgroundMaterialSettings();
             RestoreGraphColorSettings();
-            RestoreGraphTimeSpanSelection();
 
             RestoreTaskbarBackgroundMaterialSettings();
             RestoreTaskbarGraphColorSettings();
@@ -87,6 +81,10 @@ namespace FluentSensors.Features.Settings
             WidgetBackgroundColorPicker.RegisterPropertyChangedCallback(
                 CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
                 WidgetBackgroundColorPicker_SelectedColorChanged);
+
+            CsvBackgroundColorPicker.RegisterPropertyChangedCallback(
+                CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
+                CsvBackgroundColorPicker_SelectedColorChanged);
 
             GraphColorPicker.RegisterPropertyChangedCallback(
                 CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
@@ -121,9 +119,8 @@ namespace FluentSensors.Features.Settings
             }
             OnActiveTaskbarEdgeChanged(SettingsService.Instance.ActiveTaskbarEdge);
 
-            // the time range pickers under the graphs, in the widget and in the flyout write the same settings
-            SettingsService.Instance.PerformanceGraphTimeSpanChanged += OnTimeRangesChanged;
-            SettingsService.Instance.GraphTimeSpanChanged += OnTimeRangeChanged;
+            // the time range pickers in the flyout write the same settings; (the performance page and each widget
+            // window keep theirs next to the graphs)
             SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnTimeRangeChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged += OnTimeRangeChanged;
             OnTimeRangesChanged();
@@ -139,8 +136,6 @@ namespace FluentSensors.Features.Settings
         {
             SettingsService.Instance.StatusReadoutChanged -= OnStatusReadoutChanged;
             SettingsService.Instance.ActiveTaskbarEdgeChanged -= OnActiveTaskbarEdgeChanged;
-            SettingsService.Instance.PerformanceGraphTimeSpanChanged -= OnTimeRangesChanged;
-            SettingsService.Instance.GraphTimeSpanChanged -= OnTimeRangeChanged;
             SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnTimeRangeChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnTimeRangeChanged;
         }
@@ -166,8 +161,6 @@ namespace FluentSensors.Features.Settings
         private void OnTimeRangesChanged()
         {
             _isLoading = true;
-            RestorePerformanceGraphTimeSpanSelection();
-            RestoreGraphTimeSpanSelection();
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarFlyoutGraphSelection();
             _isLoading = false;
@@ -735,76 +728,35 @@ namespace FluentSensors.Features.Settings
         }
 
 
-        // === performance page appearance settings ===
-
-        // the overview range, plus one each for the dense cpu all-threads and gpu extended grids
-        private void PerformanceGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_isLoading) return;
-
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
-            {
-                SettingsService.Instance.PerformanceGraphTimeSpanSeconds = option.Seconds;
-            }
-        }
-
-        private void PerformanceCpuExtendedGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_isLoading) return;
-
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
-            {
-                SettingsService.Instance.PerformanceCpuExtendedGraphTimeSpanSeconds = option.Seconds;
-            }
-        }
-
-        private void PerformanceGpuExtendedGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_isLoading) return;
-
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
-            {
-                SettingsService.Instance.PerformanceGpuExtendedGraphTimeSpanSeconds = option.Seconds;
-            }
-        }
-
-        private void RestorePerformanceGraphTimeSpanSelection()
-        {
-            SelectTimeSpanItem(PerformanceGraphTimeSpanComboBox, SettingsService.Instance.PerformanceGraphTimeSpanSeconds);
-            SelectTimeSpanItem(PerformanceCpuExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceCpuExtendedGraphTimeSpanSeconds);
-            SelectTimeSpanItem(PerformanceGpuExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceGpuExtendedGraphTimeSpanSeconds);
-        }
-
-        // nothing selected for a value the list does not have
-        private static void SelectTimeSpanItem(ComboBox comboBox, double timeSpanSeconds)
-        {
-            comboBox.SelectedItem = GraphTimeRanges.Find(comboBox.ItemsSource as IReadOnlyList<GraphTimeRange>, timeSpanSeconds);
-        }
-
-
         // === widget appearance settings ===
 
         // background material
         private void BackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (BackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            if (BackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out BackdropMaterial material))
             {
-                SettingsService.Instance.BackdropType = tag;
+                SettingsService.Instance.BackgroundMaterial = material;
             }
 
             UpdateBackgroundMaterialCardStates();
         }
 
-        // the backdrop decides which rows apply: the opacity sliders are acrylic only, a color source only exists for
-        // acrylic and solid (mica brings its own); the picker follows its source
+        // the material decides which rows apply: the opacity sliders are custom acrylic only, a color source only exists
+        // for custom acrylic and solid (mica and system acrylic bring their own); the picker follows its source
         private void UpdateBackgroundMaterialCardStates()
         {
-            string backdrop = SettingsService.Instance.BackdropType;
-
-            TintOpacityCard.IsEnabled = backdrop == "Acrylic";
-            LuminosityOpacityCard.IsEnabled = backdrop == "Acrylic";
-            BackgroundColorSourceCard.IsEnabled = backdrop is "Acrylic" or "None";
+            ApplyMaterialCardStates(SettingsService.Instance.BackgroundMaterial,
+                TintOpacityCard, LuminosityOpacityCard, BackgroundColorSourceCard);
             WidgetBackgroundColorPicker.IsEnabled = !SettingsService.Instance.UseAccentColor;
+        }
+
+        private static void ApplyMaterialCardStates(
+            BackdropMaterial material, Control tintOpacityCard, Control luminosityOpacityCard, Control colorSourceCard)
+        {
+            tintOpacityCard.IsEnabled = material == BackdropMaterial.CustomAcrylic;
+            luminosityOpacityCard.IsEnabled = material == BackdropMaterial.CustomAcrylic;
+            colorSourceCard.IsEnabled = material is BackdropMaterial.CustomAcrylic or BackdropMaterial.Solid;
         }
 
         private void BackgroundColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -846,15 +798,7 @@ namespace FluentSensors.Features.Settings
         {
             BackgroundColorSourceComboBox.SelectedIndex = SettingsService.Instance.UseAccentColor ? 0 : 1;
 
-            string currentBackdrop = SettingsService.Instance.BackdropType;
-            foreach (ComboBoxItem item in BackdropComboBox.Items)
-            {
-                if (item.Tag?.ToString() == currentBackdrop)
-                {
-                    BackdropComboBox.SelectedItem = item;
-                    break;
-                }
-            }
+            SelectByTag(BackdropComboBox, SettingsService.Instance.BackgroundMaterial.ToString());
 
             TintSlider.Value = SettingsService.Instance.TintOpacity;
             LuminositySlider.Value = SettingsService.Instance.LuminosityOpacity;
@@ -896,16 +840,6 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        private void GraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_isLoading) return;
-
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
-            {
-                SettingsService.Instance.GraphTimeSpanSeconds = option.Seconds;
-            }
-        }
-
         private void RestoreGraphColorSettings()
         {
             SelectByTag(GraphColorSourceComboBox, SettingsService.Instance.GraphColorSource.ToString());
@@ -914,20 +848,91 @@ namespace FluentSensors.Features.Settings
             UpdateGraphColorPickerStates();
         }
 
-        private void RestoreGraphTimeSpanSelection()
+
+        // === csv logger appearance settings ===
+
+        // background material; the same rules as the widget window, its own values
+        private void CsvBackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            SelectTimeSpanItem(GraphTimeSpanComboBox, SettingsService.Instance.GraphTimeSpanSeconds);
+            if (CsvBackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out BackdropMaterial material))
+            {
+                SettingsService.Instance.CsvBackgroundMaterial = material;
+            }
+
+            UpdateCsvBackgroundMaterialCardStates();
+        }
+
+        private void UpdateCsvBackgroundMaterialCardStates()
+        {
+            ApplyMaterialCardStates(SettingsService.Instance.CsvBackgroundMaterial,
+                CsvTintOpacityCard, CsvLuminosityOpacityCard, CsvBackgroundColorSourceCard);
+            CsvBackgroundColorPicker.IsEnabled = !SettingsService.Instance.CsvUseAccentColor;
+        }
+
+        private void CsvBackgroundColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CsvBackgroundColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.CsvUseAccentColor = (tag == "Accent");
+            }
+
+            UpdateCsvBackgroundMaterialCardStates();
+        }
+
+        private void CsvTintSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            SettingsService.Instance.CsvTintOpacity = (float)e.NewValue;
+        }
+
+        private void CsvLuminositySlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            SettingsService.Instance.CsvLuminosityOpacity = (float)e.NewValue;
+        }
+
+        private void CsvBackgroundColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
+        {
+            if (_isLoading) return;
+
+            if (sender is CommunityToolkit.WinUI.Controls.ColorPickerButton colorPicker)
+            {
+                // a picked color switches the source to custom
+                SettingsService.Instance.CsvUseAccentColor = false;
+                CsvBackgroundColorSourceComboBox.SelectedIndex = 1;
+
+                SettingsService.Instance.CsvCustomTintColor = colorPicker.SelectedColor;
+                UpdateCsvBackgroundMaterialCardStates();
+            }
+        }
+
+        private void RestoreCsvBackgroundMaterialSettings()
+        {
+            CsvBackgroundColorSourceComboBox.SelectedIndex = SettingsService.Instance.CsvUseAccentColor ? 0 : 1;
+            SelectByTag(CsvBackdropComboBox, SettingsService.Instance.CsvBackgroundMaterial.ToString());
+
+            CsvTintSlider.Value = SettingsService.Instance.CsvTintOpacity;
+            CsvLuminositySlider.Value = SettingsService.Instance.CsvLuminosityOpacity;
+            CsvBackgroundColorPicker.SelectedColor = SettingsService.Instance.CsvCustomTintColor;
+
+            UpdateCsvBackgroundMaterialCardStates();
         }
 
 
         // === taskbar & flyout appearance settings ===
 
+        // nothing selected for a value the list does not have
+        private static void SelectTimeSpanItem(ComboBox comboBox, double timeSpanSeconds)
+        {
+            comboBox.SelectedItem = GraphTimeRanges.Find(comboBox.ItemsSource as IReadOnlyList<GraphTimeRange>, timeSpanSeconds);
+        }
+
         // background material
         private void TaskbarBackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (TaskbarBackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            if (TaskbarBackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out BackdropMaterial material))
             {
-                SettingsService.Instance.TaskbarBackdropType = tag;
+                SettingsService.Instance.TaskbarBackgroundMaterial = material;
             }
 
             UpdateTaskbarBackgroundMaterialCardStates();
@@ -936,11 +941,8 @@ namespace FluentSensors.Features.Settings
         // same rule as the widget window, see UpdateBackgroundMaterialCardStates
         private void UpdateTaskbarBackgroundMaterialCardStates()
         {
-            string backdrop = SettingsService.Instance.TaskbarBackdropType;
-
-            TaskbarTintOpacityCard.IsEnabled = backdrop == "Acrylic";
-            TaskbarLuminosityOpacityCard.IsEnabled = backdrop == "Acrylic";
-            TaskbarBackgroundColorSourceCard.IsEnabled = backdrop is "Acrylic" or "None";
+            ApplyMaterialCardStates(SettingsService.Instance.TaskbarBackgroundMaterial,
+                TaskbarTintOpacityCard, TaskbarLuminosityOpacityCard, TaskbarBackgroundColorSourceCard);
             TaskbarBackgroundColorPicker.IsEnabled = !SettingsService.Instance.TaskbarUseAccentColor;
         }
 
@@ -981,15 +983,7 @@ namespace FluentSensors.Features.Settings
         {
             TaskbarBackgroundColorSourceComboBox.SelectedIndex = SettingsService.Instance.TaskbarUseAccentColor ? 0 : 1;
 
-            string currentBackdrop = SettingsService.Instance.TaskbarBackdropType;
-            foreach (ComboBoxItem item in TaskbarBackdropComboBox.Items)
-            {
-                if (item.Tag?.ToString() == currentBackdrop)
-                {
-                    TaskbarBackdropComboBox.SelectedItem = item;
-                    break;
-                }
-            }
+            SelectByTag(TaskbarBackdropComboBox, SettingsService.Instance.TaskbarBackgroundMaterial.ToString());
 
             TaskbarTintSlider.Value = SettingsService.Instance.TaskbarTintOpacity;
             TaskbarLuminositySlider.Value = SettingsService.Instance.TaskbarLuminosityOpacity;

@@ -81,16 +81,16 @@ namespace FluentSensors.Persistence.Services
 
         // --- widget window appearance ---
 
-        private string _backdropType = Defaults.BackdropType;
-        public string BackdropType
+        private BackdropMaterial _backgroundMaterial = AppSettingsData.DefaultBackgroundMaterial;
+        public BackdropMaterial BackgroundMaterial
         {
-            get => _backdropType;
+            get => _backgroundMaterial;
             set
             {
-                if (_backdropType != value)
+                if (_backgroundMaterial != value)
                 {
-                    _backdropType = value;
-                    BackdropTypeChanged?.Invoke(_backdropType);
+                    _backgroundMaterial = value;
+                    BackgroundMaterialChanged?.Invoke(_backgroundMaterial);
                     SaveDebounced();
                 }
             }
@@ -155,6 +155,10 @@ namespace FluentSensors.Persistence.Services
                 }
             }
         }
+
+        // the backdrop group of the widget window, as WindowBackdrop reads it
+        public WindowBackdropSettings WidgetBackdrop =>
+            new(_backgroundMaterial, _tintOpacity, _luminosityOpacity, _useAccentColor, _customTintColor);
 
         // the widget graph line colour
         private GraphColorSource _graphColorSource = AppSettingsData.DefaultGraphColorSource;
@@ -341,16 +345,16 @@ namespace FluentSensors.Persistence.Services
 
         // --- taskbar widget and flyout appearance ---
 
-        private string _taskbarBackdropType = Defaults.TaskbarBackdropType;
-        public string TaskbarBackdropType
+        private BackdropMaterial _taskbarBackgroundMaterial = AppSettingsData.DefaultTaskbarBackgroundMaterial;
+        public BackdropMaterial TaskbarBackgroundMaterial
         {
-            get => _taskbarBackdropType;
+            get => _taskbarBackgroundMaterial;
             set
             {
-                if (_taskbarBackdropType != value)
+                if (_taskbarBackgroundMaterial != value)
                 {
-                    _taskbarBackdropType = value;
-                    TaskbarBackdropTypeChanged?.Invoke(_taskbarBackdropType);
+                    _taskbarBackgroundMaterial = value;
+                    TaskbarBackgroundMaterialChanged?.Invoke(_taskbarBackgroundMaterial);
                     SaveDebounced();
                 }
             }
@@ -900,6 +904,87 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // --- csv logger window appearance ---
+
+        private BackdropMaterial _csvBackgroundMaterial = AppSettingsData.DefaultBackgroundMaterial;
+        public BackdropMaterial CsvBackgroundMaterial
+        {
+            get => _csvBackgroundMaterial;
+            set
+            {
+                if (_csvBackgroundMaterial != value)
+                {
+                    _csvBackgroundMaterial = value;
+                    CsvBackgroundMaterialChanged?.Invoke(_csvBackgroundMaterial);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private float _csvTintOpacity = Defaults.TintOpacity;
+        public float CsvTintOpacity
+        {
+            get => _csvTintOpacity;
+            set
+            {
+                if (_csvTintOpacity != value)
+                {
+                    _csvTintOpacity = value;
+                    CsvBackdropChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private float _csvLuminosityOpacity = Defaults.LuminosityOpacity;
+        public float CsvLuminosityOpacity
+        {
+            get => _csvLuminosityOpacity;
+            set
+            {
+                if (_csvLuminosityOpacity != value)
+                {
+                    _csvLuminosityOpacity = value;
+                    CsvBackdropChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _csvUseAccentColor = Defaults.UseAccentColor;
+        public bool CsvUseAccentColor
+        {
+            get => _csvUseAccentColor;
+            set
+            {
+                if (_csvUseAccentColor != value)
+                {
+                    _csvUseAccentColor = value;
+                    CsvBackdropChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private Color _csvCustomTintColor = Defaults.CustomTintColor;
+        public Color CsvCustomTintColor
+        {
+            get => _csvCustomTintColor;
+            set
+            {
+                if (_csvCustomTintColor != value)
+                {
+                    _csvCustomTintColor = value;
+                    CsvBackdropChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // the backdrop group of the csv logger window, as WindowBackdrop reads it
+        public WindowBackdropSettings CsvBackdrop =>
+            new(_csvBackgroundMaterial, _csvTintOpacity, _csvLuminosityOpacity, _csvUseAccentColor, _csvCustomTintColor);
+
         // the separators; no change event, CsvLoggingService snapshots it at the start of a recording
         private CsvNumberFormat _csvNumberFormat = Defaults.CsvNumberFormat;
         public CsvNumberFormat CsvNumberFormat
@@ -975,6 +1060,21 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // the widget window the widget profile shows; read like LastSensorProfile
+        private int _lastWidgetWindowIndex = Defaults.LastWidgetWindowIndex;
+        public int LastWidgetWindowIndex
+        {
+            get => _lastWidgetWindowIndex;
+            set
+            {
+                if (_lastWidgetWindowIndex != value)
+                {
+                    _lastWidgetWindowIndex = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // the saved selector, else the legacy accent/custom bool, else (a fresh install) the default
         private static GraphColorSource ResolveGraphColorSource(
             GraphColorSource? saved, bool? legacyUseAccent, GraphColorSource fallback) =>
@@ -985,6 +1085,18 @@ namespace FluentSensors.Persistence.Services
                 null => fallback
             };
 
+        // the saved material, else the legacy tag mapped so the look stays, else (a fresh install) the default; the
+        // flyout ran its "Mica" through the system acrylic preset, the widget and csv windows through real mica
+        private static BackdropMaterial ResolveBackgroundMaterial(
+            BackdropMaterial? saved, string? legacyTag, BackdropMaterial legacyMica, BackdropMaterial fallback) =>
+            saved ?? legacyTag switch
+            {
+                "Mica" => legacyMica,
+                "Acrylic" => BackdropMaterial.CustomAcrylic,
+                "None" => BackdropMaterial.Solid,
+                _ => fallback
+            };
+
         // persistence
         // straight into the backing fields, no change events and no save; at startup before any listener exists, and
         // after an import right before the restart
@@ -993,7 +1105,8 @@ namespace FluentSensors.Persistence.Services
             _appTheme = data.AppTheme;
             _appLanguage = data.AppLanguage;
             _technicalTermsInEnglish = data.TechnicalTermsInEnglish;
-            _backdropType = data.BackdropType;
+            _backgroundMaterial = ResolveBackgroundMaterial(
+                data.BackgroundMaterial, data.BackdropType, BackdropMaterial.Mica, AppSettingsData.DefaultBackgroundMaterial);
             _tintOpacity = data.TintOpacity;
             _luminosityOpacity = data.LuminosityOpacity;
             _useAccentColor = data.UseAccentColor;
@@ -1016,7 +1129,9 @@ namespace FluentSensors.Persistence.Services
             _performanceGpuExtendedGraphTimeSpanSeconds =
                 data.PerformanceExtendedGraphTimeSpanSeconds ?? data.PerformanceGpuExtendedGraphTimeSpanSeconds;
 
-            _taskbarBackdropType = data.TaskbarBackdropType;
+            _taskbarBackgroundMaterial = ResolveBackgroundMaterial(
+                data.TaskbarBackgroundMaterial, data.TaskbarBackdropType, BackdropMaterial.SystemAcrylic,
+                AppSettingsData.DefaultTaskbarBackgroundMaterial);
             _taskbarTintOpacity = data.TaskbarTintOpacity;
             _taskbarLuminosityOpacity = data.TaskbarLuminosityOpacity;
             _taskbarUseAccentColor = data.TaskbarUseAccentColor;
@@ -1049,7 +1164,13 @@ namespace FluentSensors.Persistence.Services
             _csvDecimalPlaces = data.CsvDecimalPlaces;
             _csvIncludeUnits = data.CsvIncludeUnits;
             _csvPauseSeam = data.CsvPauseSeam;
+            _csvBackgroundMaterial = data.CsvBackgroundMaterial ?? _backgroundMaterial;
+            _csvTintOpacity = data.CsvTintOpacity ?? _tintOpacity;
+            _csvLuminosityOpacity = data.CsvLuminosityOpacity ?? _luminosityOpacity;
+            _csvUseAccentColor = data.CsvUseAccentColor ?? _useAccentColor;
+            _csvCustomTintColor = data.CsvCustomTintColor ?? _customTintColor;
             _lastSensorProfile = data.LastSensorProfile;
+            _lastWidgetWindowIndex = data.LastWidgetWindowIndex;
 
             // lives on HardwareMonitorService at runtime, shares this file
             HardwareMonitorService.Instance.UpdateIntervalMs = data.UpdateIntervalMs;
@@ -1063,7 +1184,7 @@ namespace FluentSensors.Persistence.Services
                 AppTheme = _appTheme,
                 AppLanguage = _appLanguage,
                 TechnicalTermsInEnglish = _technicalTermsInEnglish,
-                BackdropType = _backdropType,
+                BackgroundMaterial = _backgroundMaterial,
                 TintOpacity = _tintOpacity,
                 LuminosityOpacity = _luminosityOpacity,
                 UseAccentColor = _useAccentColor,
@@ -1080,7 +1201,7 @@ namespace FluentSensors.Persistence.Services
                 PerformanceCpuExtendedGraphTimeSpanSeconds = _performanceCpuExtendedGraphTimeSpanSeconds,
                 PerformanceGpuExtendedGraphTimeSpanSeconds = _performanceGpuExtendedGraphTimeSpanSeconds,
 
-                TaskbarBackdropType = _taskbarBackdropType,
+                TaskbarBackgroundMaterial = _taskbarBackgroundMaterial,
                 TaskbarTintOpacity = _taskbarTintOpacity,
                 TaskbarLuminosityOpacity = _taskbarLuminosityOpacity,
                 TaskbarUseAccentColor = _taskbarUseAccentColor,
@@ -1112,7 +1233,13 @@ namespace FluentSensors.Persistence.Services
                 CsvDecimalPlaces = _csvDecimalPlaces,
                 CsvIncludeUnits = _csvIncludeUnits,
                 CsvPauseSeam = _csvPauseSeam,
+                CsvBackgroundMaterial = _csvBackgroundMaterial,
+                CsvTintOpacity = _csvTintOpacity,
+                CsvLuminosityOpacity = _csvLuminosityOpacity,
+                CsvUseAccentColor = _csvUseAccentColor,
+                CsvCustomTintColor = _csvCustomTintColor,
                 LastSensorProfile = _lastSensorProfile,
+                LastWidgetWindowIndex = _lastWidgetWindowIndex,
                 UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
             };
         }
@@ -1134,7 +1261,10 @@ namespace FluentSensors.Persistence.Services
         // === events ===
 
         public event Action<string> ThemeChanged;
-        public event Action<string> BackdropTypeChanged;
+        public event Action<BackdropMaterial> BackgroundMaterialChanged;
+        public event Action<BackdropMaterial> CsvBackgroundMaterialChanged;
+        // no value; the four csv tint values raise it, WindowBackdrop re-reads the group
+        public event Action CsvBackdropChanged;
         public event Action<float, float> OpacityChanged;
         public event Action<bool, Color> TintColorChanged;
         public event Action<GraphColorSource, Windows.UI.Color> GraphColorChanged;
@@ -1151,7 +1281,7 @@ namespace FluentSensors.Persistence.Services
         // no value; both performance time spans raise it
         public event Action PerformanceGraphTimeSpanChanged;
 
-        public event Action<string> TaskbarBackdropTypeChanged;
+        public event Action<BackdropMaterial> TaskbarBackgroundMaterialChanged;
         public event Action<float, float> TaskbarOpacityChanged;
         public event Action<bool, Color> TaskbarTintColorChanged;
         public event Action<GraphColorSource, Windows.UI.Color> TaskbarGraphColorChanged;
