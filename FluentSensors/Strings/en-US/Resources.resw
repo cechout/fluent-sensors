@@ -339,7 +339,7 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
     <value>Widget Window Appearance</value>
   </data>
   <data name="Settings_BackgroundMaterialExpander.Description" xml:space="preserve">
-    <value>Backdrop effect and color for the widget and CSV windows</value>
+    <value>Backdrop effect and color for the widget window</value>
   </data>
   <data name="Settings_BackgroundMaterialExpander.Header" xml:space="preserve">
     <value>Background Material</value>
@@ -583,6 +583,12 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   </data>
   <data name="Settings_CSVFormatExpander.Header" xml:space="preserve">
     <value>CSV Format</value>
+  </data>
+  <data name="Settings_CsvBackgroundMaterialExpander.Description" xml:space="preserve">
+    <value>Backdrop effect and color for the CSV window</value>
+  </data>
+  <data name="Settings_CsvBackgroundMaterialExpander.Header" xml:space="preserve">
+    <value>Background Material</value>
   </data>
   <data name="Settings_CsvNumberFormatComboBox_Local.Content" xml:space="preserve">
     <value>Regional</value>

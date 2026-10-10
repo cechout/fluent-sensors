@@ -71,9 +71,8 @@ namespace FluentSensors.Persistence.Models
 
         // --- widget window appearance ---
 
-        // background material, shared with the csv logger window; the default is a constant, the saved value starts
-        // null (a file without one either predates it and LoadFromData maps the legacy BackdropType, or there is no
-        // file yet)
+        // background material; the default is a constant, the saved value starts null (a file without one either
+        // predates it and LoadFromData maps the legacy BackdropType, or there is no file yet)
         public const BackdropMaterial DefaultBackgroundMaterial = BackdropMaterial.SystemAcrylic;
         public BackdropMaterial? BackgroundMaterial { get; set; } = null;
         public float TintOpacity { get; set; } = 0.4f;
@@ -131,6 +130,14 @@ namespace FluentSensors.Persistence.Models
         // off by default; a value with a unit is text and no longer charts (the header has the unit anyway)
         public bool CsvIncludeUnits { get; set; } = false;
         public CsvPauseSeam CsvPauseSeam { get; set; } = CsvPauseSeam.Gap;
+
+        // csv logger window background material; all null in a file from before it had its own, LoadFromData then
+        // takes the widget values, which the logger shared until then
+        public BackdropMaterial? CsvBackgroundMaterial { get; set; } = null;
+        public float? CsvTintOpacity { get; set; } = null;
+        public float? CsvLuminosityOpacity { get; set; } = null;
+        public bool? CsvUseAccentColor { get; set; } = null;
+        public Color? CsvCustomTintColor { get; set; } = null;
 
 
         // --- set outside the settings page ---

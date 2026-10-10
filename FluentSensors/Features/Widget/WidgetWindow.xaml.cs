@@ -3,6 +3,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -63,6 +64,11 @@ namespace FluentSensors.Features.Widget
         private WindowZOrder _zOrder;
         private readonly WinDesktopPin _desktopPin;
 
+        // the bar of the z-order icon in accent after a click, in ms; held, then faded back
+        private const int ZOrderFlashHoldMs = 250;
+        private const int ZOrderFlashFadeMs = 500;
+        private Storyboard? _zOrderFlash;
+
 
         // === constructor ===
 
@@ -119,7 +125,7 @@ namespace FluentSensors.Features.Widget
             SaveWindowState();
 
             // theming
-            _backdrop = new WindowBackdrop(this, RootGrid);
+            _backdrop = new WindowBackdrop(this, RootGrid, () => SettingsService.Instance.WidgetBackdrop);
             _backdrop.Apply(SettingsService.Instance.BackgroundMaterial);
             ApplyTheme(SettingsService.Instance.AppTheme);
 
@@ -421,9 +427,32 @@ namespace FluentSensors.Features.Widget
                 _ => WindowZOrder.AlwaysOnTop
             });
             SaveWindowState();
+            FlashZOrderBar();
         }
 
-        // glyph, tooltip and name follow the state, like the pause button
+        // the accent copy of the bar shows at once and fades out again; a click during the fade starts it over
+        private void FlashZOrderBar()
+        {
+            _zOrderFlash?.Stop();
+
+            var opacity = new DoubleAnimationUsingKeyFrames();
+            opacity.KeyFrames.Add(new DiscreteDoubleKeyFrame { KeyTime = TimeSpan.Zero, Value = 1 });
+            opacity.KeyFrames.Add(new DiscreteDoubleKeyFrame { KeyTime = TimeSpan.FromMilliseconds(ZOrderFlashHoldMs), Value = 1 });
+            opacity.KeyFrames.Add(new EasingDoubleKeyFrame
+            {
+                KeyTime = TimeSpan.FromMilliseconds(ZOrderFlashHoldMs + ZOrderFlashFadeMs),
+                Value = 0,
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            });
+            Storyboard.SetTarget(opacity, ZOrderBarAccent);
+            Storyboard.SetTargetProperty(opacity, "Opacity");
+
+            _zOrderFlash = new Storyboard();
+            _zOrderFlash.Children.Add(opacity);
+            _zOrderFlash.Begin();
+        }
+
+        // icon, tooltip and name follow the state, like the pause button
         private void ApplyZOrder(WindowZOrder zOrder)
         {
             _zOrder = zOrder;
@@ -445,15 +474,20 @@ namespace FluentSensors.Features.Widget
                 }
             }
 
-            (string labelKey, string glyph) = zOrder switch
+            // the bar on the 15 px icon grid; the arrow makes room for it at the top and the bottom
+            (string labelKey, double barY) = zOrder switch
             {
-                WindowZOrder.Normal => ("Widget_ZOrderNormal", ""),
-                WindowZOrder.Desktop => ("Widget_ZOrderDesktop", ""),
-                _ => ("Widget_ZOrderAlwaysOnTop", "")
+                WindowZOrder.Normal => ("Widget_ZOrderNormal", 7.5),
+                WindowZOrder.Desktop => ("Widget_ZOrderDesktop", 14.5),
+                _ => ("Widget_ZOrderAlwaysOnTop", 0.5)
             };
+            ZOrderArrowBelowBar.Visibility = zOrder == WindowZOrder.AlwaysOnTop ? Visibility.Visible : Visibility.Collapsed;
+            ZOrderArrowThroughBar.Visibility = zOrder == WindowZOrder.Normal ? Visibility.Visible : Visibility.Collapsed;
+            ZOrderArrowAboveBar.Visibility = zOrder == WindowZOrder.Desktop ? Visibility.Visible : Visibility.Collapsed;
+            ZOrderBar.Y1 = ZOrderBar.Y2 = barY;
+            ZOrderBarAccent.Y1 = ZOrderBarAccent.Y2 = barY;
 
             string label = AppStrings.Get(labelKey);
-            ZOrderButtonIcon.Glyph = glyph;
             ToolTipService.SetToolTip(ZOrderButton, label);
             AutomationProperties.SetName(ZOrderButton, label);
         }
@@ -469,7 +503,7 @@ namespace FluentSensors.Features.Widget
         private void ApplyPauseState()
         {
             string label = AppStrings.Get(ViewModel.IsPaused ? "Common_Resume" : "Common_Pause");
-            PauseButtonIcon.Glyph = ViewModel.IsPaused ? "" : "";
+            PauseButtonIcon.Glyph = ViewModel.IsPaused ? "\uE768" : "\uE769";
             ToolTipService.SetToolTip(PauseButton, label);
             AutomationProperties.SetName(PauseButton, label);
         }

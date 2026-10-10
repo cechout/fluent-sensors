@@ -110,15 +110,14 @@ namespace FluentSensors.Features.CsvLogging
             SaveWindowState();
 
             // theming
-            _backdrop = new WindowBackdrop(this, RootGrid);
-            _backdrop.Apply(SettingsService.Instance.BackgroundMaterial);
+            _backdrop = new WindowBackdrop(this, RootGrid, () => SettingsService.Instance.CsvBackdrop);
+            _backdrop.Apply(SettingsService.Instance.CsvBackgroundMaterial);
             ApplyTheme(SettingsService.Instance.AppTheme);
 
             // event routing
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
-            SettingsService.Instance.BackgroundMaterialChanged += OnBackgroundMaterialChanged;
-            SettingsService.Instance.OpacityChanged += OnOpacityChanged;
-            SettingsService.Instance.TintColorChanged += OnTintColorChanged;
+            SettingsService.Instance.CsvBackgroundMaterialChanged += OnBackgroundMaterialChanged;
+            SettingsService.Instance.CsvBackdropChanged += OnBackdropChanged;
 
             try
             {
@@ -209,9 +208,8 @@ namespace FluentSensors.Features.CsvLogging
             try
             {
                 SettingsService.Instance.ThemeChanged -= OnThemeChanged;
-                SettingsService.Instance.BackgroundMaterialChanged -= OnBackgroundMaterialChanged;
-                SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
-                SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
+                SettingsService.Instance.CsvBackgroundMaterialChanged -= OnBackgroundMaterialChanged;
+                SettingsService.Instance.CsvBackdropChanged -= OnBackdropChanged;
             }
             catch { }
 
@@ -306,9 +304,8 @@ namespace FluentSensors.Features.CsvLogging
             SaveWindowState();
 
             // settings events
-            SettingsService.Instance.BackgroundMaterialChanged -= OnBackgroundMaterialChanged;
-            SettingsService.Instance.OpacityChanged -= OnOpacityChanged;
-            SettingsService.Instance.TintColorChanged -= OnTintColorChanged;
+            SettingsService.Instance.CsvBackgroundMaterialChanged -= OnBackgroundMaterialChanged;
+            SettingsService.Instance.CsvBackdropChanged -= OnBackdropChanged;
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
 
             UpperRegion.SizeChanged -= OnRegionSizeChanged;
@@ -472,15 +469,7 @@ namespace FluentSensors.Features.CsvLogging
             });
         }
 
-        private void OnOpacityChanged(float tintOpacity, float luminosityOpacity)
-        {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                _backdrop.Refresh();
-            });
-        }
-
-        private void OnTintColorChanged(bool useAccentColor, Windows.UI.Color customColor)
+        private void OnBackdropChanged()
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {

@@ -744,6 +744,64 @@
                 Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}" />
 
+            <!--  csv logger window background material  -->
+            <!--  (the option and card texts are the ones of the widget window group)  -->
+            <controls:SettingsExpander
+                x:Uid="Settings_CsvBackgroundMaterialExpander"
+                fhUi:FocusGroup.IsEnabled="True"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xEF1F;}"
+                IsExpanded="False">
+
+                <ComboBox
+                    x:Name="CsvBackdropComboBox"
+                    Width="160"
+                    SelectionChanged="CsvBackdropComboBox_SelectionChanged">
+                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_Mica" Tag="Mica" />
+                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_SystemAcrylic" Tag="SystemAcrylic" />
+                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_CustomAcrylic" Tag="CustomAcrylic" />
+                    <ComboBoxItem x:Uid="Settings_BackdropComboBox_Solid" Tag="Solid" />
+                </ComboBox>
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard x:Name="CsvTintOpacityCard" x:Uid="Settings_TintOpacityCard">
+                        <Slider
+                            x:Name="CsvTintSlider"
+                            Width="200"
+                            Maximum="1"
+                            Minimum="0"
+                            StepFrequency="0.05"
+                            TickFrequency="0.1"
+                            ValueChanged="CsvTintSlider_ValueChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Name="CsvLuminosityOpacityCard" x:Uid="Settings_LuminosityOpacityCard">
+                        <Slider
+                            x:Name="CsvLuminositySlider"
+                            Width="200"
+                            Maximum="1"
+                            Minimum="0"
+                            StepFrequency="0.05"
+                            TickFrequency="0.1"
+                            ValueChanged="CsvLuminositySlider_ValueChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Name="CsvBackgroundColorSourceCard" x:Uid="Settings_BackgroundColorSourceCard">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox
+                                x:Name="CsvBackgroundColorSourceComboBox"
+                                x:Uid="Settings_BackgroundColorSourceComboBox"
+                                Width="160"
+                                SelectionChanged="CsvBackgroundColorSourceComboBox_SelectionChanged">
+                                <ComboBoxItem x:Uid="Settings_BackgroundColorSourceComboBox_Accent" Tag="Accent" />
+                                <ComboBoxItem x:Uid="Settings_BackgroundColorSourceComboBox_Custom" Tag="Custom" />
+                            </ComboBox>
+
+                            <controls:ColorPickerButton x:Name="CsvBackgroundColorPicker" x:Uid="Settings_WidgetBackgroundColorPicker" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
             <!--  everything that shapes a recorded row  -->
             <!--
                 (the format sits in the header slot like the backdrop combos; it decides whether the file opens

@@ -81,7 +81,6 @@ namespace FluentSensors.Persistence.Services
 
         // --- widget window appearance ---
 
-        // shared with the csv logger window
         private BackdropMaterial _backgroundMaterial = AppSettingsData.DefaultBackgroundMaterial;
         public BackdropMaterial BackgroundMaterial
         {
@@ -156,6 +155,10 @@ namespace FluentSensors.Persistence.Services
                 }
             }
         }
+
+        // the backdrop group of the widget window, as WindowBackdrop reads it
+        public WindowBackdropSettings WidgetBackdrop =>
+            new(_backgroundMaterial, _tintOpacity, _luminosityOpacity, _useAccentColor, _customTintColor);
 
         // the widget graph line colour
         private GraphColorSource _graphColorSource = AppSettingsData.DefaultGraphColorSource;
@@ -901,6 +904,87 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // --- csv logger window appearance ---
+
+        private BackdropMaterial _csvBackgroundMaterial = AppSettingsData.DefaultBackgroundMaterial;
+        public BackdropMaterial CsvBackgroundMaterial
+        {
+            get => _csvBackgroundMaterial;
+            set
+            {
+                if (_csvBackgroundMaterial != value)
+                {
+                    _csvBackgroundMaterial = value;
+                    CsvBackgroundMaterialChanged?.Invoke(_csvBackgroundMaterial);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private float _csvTintOpacity = Defaults.TintOpacity;
+        public float CsvTintOpacity
+        {
+            get => _csvTintOpacity;
+            set
+            {
+                if (_csvTintOpacity != value)
+                {
+                    _csvTintOpacity = value;
+                    CsvBackdropChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private float _csvLuminosityOpacity = Defaults.LuminosityOpacity;
+        public float CsvLuminosityOpacity
+        {
+            get => _csvLuminosityOpacity;
+            set
+            {
+                if (_csvLuminosityOpacity != value)
+                {
+                    _csvLuminosityOpacity = value;
+                    CsvBackdropChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _csvUseAccentColor = Defaults.UseAccentColor;
+        public bool CsvUseAccentColor
+        {
+            get => _csvUseAccentColor;
+            set
+            {
+                if (_csvUseAccentColor != value)
+                {
+                    _csvUseAccentColor = value;
+                    CsvBackdropChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private Color _csvCustomTintColor = Defaults.CustomTintColor;
+        public Color CsvCustomTintColor
+        {
+            get => _csvCustomTintColor;
+            set
+            {
+                if (_csvCustomTintColor != value)
+                {
+                    _csvCustomTintColor = value;
+                    CsvBackdropChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // the backdrop group of the csv logger window, as WindowBackdrop reads it
+        public WindowBackdropSettings CsvBackdrop =>
+            new(_csvBackgroundMaterial, _csvTintOpacity, _csvLuminosityOpacity, _csvUseAccentColor, _csvCustomTintColor);
+
         // the separators; no change event, CsvLoggingService snapshots it at the start of a recording
         private CsvNumberFormat _csvNumberFormat = Defaults.CsvNumberFormat;
         public CsvNumberFormat CsvNumberFormat
@@ -1080,6 +1164,11 @@ namespace FluentSensors.Persistence.Services
             _csvDecimalPlaces = data.CsvDecimalPlaces;
             _csvIncludeUnits = data.CsvIncludeUnits;
             _csvPauseSeam = data.CsvPauseSeam;
+            _csvBackgroundMaterial = data.CsvBackgroundMaterial ?? _backgroundMaterial;
+            _csvTintOpacity = data.CsvTintOpacity ?? _tintOpacity;
+            _csvLuminosityOpacity = data.CsvLuminosityOpacity ?? _luminosityOpacity;
+            _csvUseAccentColor = data.CsvUseAccentColor ?? _useAccentColor;
+            _csvCustomTintColor = data.CsvCustomTintColor ?? _customTintColor;
             _lastSensorProfile = data.LastSensorProfile;
             _lastWidgetWindowIndex = data.LastWidgetWindowIndex;
 
@@ -1144,6 +1233,11 @@ namespace FluentSensors.Persistence.Services
                 CsvDecimalPlaces = _csvDecimalPlaces,
                 CsvIncludeUnits = _csvIncludeUnits,
                 CsvPauseSeam = _csvPauseSeam,
+                CsvBackgroundMaterial = _csvBackgroundMaterial,
+                CsvTintOpacity = _csvTintOpacity,
+                CsvLuminosityOpacity = _csvLuminosityOpacity,
+                CsvUseAccentColor = _csvUseAccentColor,
+                CsvCustomTintColor = _csvCustomTintColor,
                 LastSensorProfile = _lastSensorProfile,
                 LastWidgetWindowIndex = _lastWidgetWindowIndex,
                 UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
@@ -1168,6 +1262,9 @@ namespace FluentSensors.Persistence.Services
 
         public event Action<string> ThemeChanged;
         public event Action<BackdropMaterial> BackgroundMaterialChanged;
+        public event Action<BackdropMaterial> CsvBackgroundMaterialChanged;
+        // no value; the four csv tint values raise it, WindowBackdrop re-reads the group
+        public event Action CsvBackdropChanged;
         public event Action<float, float> OpacityChanged;
         public event Action<bool, Color> TintColorChanged;
         public event Action<GraphColorSource, Windows.UI.Color> GraphColorChanged;

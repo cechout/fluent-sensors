@@ -65,6 +65,7 @@ namespace FluentSensors.Features.Settings
             RestorePerformanceGraphTimeSpanSelection();
 
             RestoreBackgroundMaterialSettings();
+            RestoreCsvBackgroundMaterialSettings();
             RestoreGraphColorSettings();
 
             RestoreTaskbarBackgroundMaterialSettings();
@@ -85,6 +86,10 @@ namespace FluentSensors.Features.Settings
             WidgetBackgroundColorPicker.RegisterPropertyChangedCallback(
                 CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
                 WidgetBackgroundColorPicker_SelectedColorChanged);
+
+            CsvBackgroundColorPicker.RegisterPropertyChangedCallback(
+                CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
+                CsvBackgroundColorPicker_SelectedColorChanged);
 
             GraphColorPicker.RegisterPropertyChangedCallback(
                 CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
@@ -899,6 +904,75 @@ namespace FluentSensors.Features.Settings
             GraphColorPicker.SelectedColor = SettingsService.Instance.GraphCustomColor;
 
             UpdateGraphColorPickerStates();
+        }
+
+
+        // === csv logger appearance settings ===
+
+        // background material; the same rules as the widget window, its own values
+        private void CsvBackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CsvBackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out BackdropMaterial material))
+            {
+                SettingsService.Instance.CsvBackgroundMaterial = material;
+            }
+
+            UpdateCsvBackgroundMaterialCardStates();
+        }
+
+        private void UpdateCsvBackgroundMaterialCardStates()
+        {
+            ApplyMaterialCardVisibility(SettingsService.Instance.CsvBackgroundMaterial,
+                CsvTintOpacityCard, CsvLuminosityOpacityCard, CsvBackgroundColorSourceCard);
+            CsvBackgroundColorPicker.IsEnabled = !SettingsService.Instance.CsvUseAccentColor;
+        }
+
+        private void CsvBackgroundColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CsvBackgroundColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.CsvUseAccentColor = (tag == "Accent");
+            }
+
+            UpdateCsvBackgroundMaterialCardStates();
+        }
+
+        private void CsvTintSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            SettingsService.Instance.CsvTintOpacity = (float)e.NewValue;
+        }
+
+        private void CsvLuminositySlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            SettingsService.Instance.CsvLuminosityOpacity = (float)e.NewValue;
+        }
+
+        private void CsvBackgroundColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
+        {
+            if (_isLoading) return;
+
+            if (sender is CommunityToolkit.WinUI.Controls.ColorPickerButton colorPicker)
+            {
+                // a picked color switches the source to custom
+                SettingsService.Instance.CsvUseAccentColor = false;
+                CsvBackgroundColorSourceComboBox.SelectedIndex = 1;
+
+                SettingsService.Instance.CsvCustomTintColor = colorPicker.SelectedColor;
+                UpdateCsvBackgroundMaterialCardStates();
+            }
+        }
+
+        private void RestoreCsvBackgroundMaterialSettings()
+        {
+            CsvBackgroundColorSourceComboBox.SelectedIndex = SettingsService.Instance.CsvUseAccentColor ? 0 : 1;
+            SelectByTag(CsvBackdropComboBox, SettingsService.Instance.CsvBackgroundMaterial.ToString());
+
+            CsvTintSlider.Value = SettingsService.Instance.CsvTintOpacity;
+            CsvLuminositySlider.Value = SettingsService.Instance.CsvLuminosityOpacity;
+            CsvBackgroundColorPicker.SelectedColor = SettingsService.Instance.CsvCustomTintColor;
+
+            UpdateCsvBackgroundMaterialCardStates();
         }
 
 

@@ -34,6 +34,10 @@ namespace FluentSensors.Features.Widget
         [LibraryImport("user32.dll")]
         private static partial IntPtr GetWindow(IntPtr hWnd, uint uCmd);
 
+        // https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwm_window_corner_preference
+        [LibraryImport("dwmapi.dll")]
+        private static partial int DwmSetWindowAttribute(IntPtr hwnd, uint dwAttribute, ref int pvAttribute, int cbAttribute);
+
         [StructLayout(LayoutKind.Sequential)]
         private struct WINDOWPOS
         {
@@ -52,6 +56,10 @@ namespace FluentSensors.Features.Widget
         private const uint GW_OWNER = 4;
         private const uint WM_WINDOWPOSCHANGING = 0x0046;
         private static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
+
+        private const uint DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+        private const int DWMWCP_DEFAULT = 0;
+        private const int DWMWCP_ROUND = 2;
 
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_NOMOVE = 0x0002;
@@ -94,6 +102,9 @@ namespace FluentSensors.Features.Widget
             _appWindow.IsShownInSwitchers = false;
             SetToolWindowStyle(true);
 
+            // a tool window gets the small corners of a popup by default; the widget keeps the 8 px of a window
+            SetCornerPreference(DWMWCP_ROUND);
+
             _messageMonitor = new WindowMessageMonitor(_hwnd);
             _messageMonitor.WindowMessageReceived += OnWindowMessageReceived;
 
@@ -115,6 +126,7 @@ namespace FluentSensors.Features.Widget
 
             SetWindowLongPtr(_hwnd, GWLP_HWNDPARENT, IntPtr.Zero);
             SetToolWindowStyle(false);
+            SetCornerPreference(DWMWCP_DEFAULT);
             _appWindow.IsShownInSwitchers = true;
         }
 
@@ -145,6 +157,11 @@ namespace FluentSensors.Features.Widget
 
             SetWindowLongPtr(_hwnd, GWLP_HWNDPARENT, desktop);
             SetWindowPos(_hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        }
+
+        private void SetCornerPreference(int preference)
+        {
+            DwmSetWindowAttribute(_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref preference, sizeof(int));
         }
 
         private void SetToolWindowStyle(bool isToolWindow)

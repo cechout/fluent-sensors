@@ -5,22 +5,26 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
+using Windows.UI;
 using WinRT;
-
-using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Common.UI
 {
+    // one settings group of a window backdrop; the widget and the csv logger window each have their own
+    public readonly record struct WindowBackdropSettings(
+        BackdropMaterial Material, float TintOpacity, float LuminosityOpacity, bool UseAccentColor, Color CustomTintColor);
+
     // the background material of the widget and the csv logger window:
-    // the BackgroundMaterial of the widget settings group on the whole window, the root panel painted to match;
-    // the taskbar flyout paints its card on its own and only shares BackdropMaterials
+    // the material of the windows settings group on the whole window, the root panel painted to match; the taskbar
+    // flyout paints its card on its own and only shares BackdropMaterials
     public sealed class WindowBackdrop
     {
         // === fields ===
 
         private readonly Window _window;
         private readonly Panel _rootPanel;
+        private readonly Func<WindowBackdropSettings> _readSettings;
 
         private DesktopAcrylicController? _acrylicController;
         private MicaController? _micaController;
@@ -30,10 +34,11 @@ namespace FluentSensors.Common.UI
 
         // === constructor ===
 
-        public WindowBackdrop(Window window, Panel rootPanel)
+        public WindowBackdrop(Window window, Panel rootPanel, Func<WindowBackdropSettings> readSettings)
         {
             _window = window;
             _rootPanel = rootPanel;
+            _readSettings = readSettings;
         }
 
 
@@ -108,7 +113,7 @@ namespace FluentSensors.Common.UI
         {
             if (_isDisposed) return;
 
-            BackdropMaterial current = SettingsService.Instance.BackgroundMaterial;
+            BackdropMaterial current = _readSettings().Material;
             if (current == BackdropMaterial.Solid) return;
 
             var timer = _window.DispatcherQueue.CreateTimer();
@@ -149,10 +154,10 @@ namespace FluentSensors.Common.UI
         {
             if (_isDisposed || _acrylicController == null) return;
 
-            var settings = SettingsService.Instance;
+            var settings = _readSettings();
             BackdropMaterials.Configure(
                 _acrylicController,
-                settings.BackgroundMaterial,
+                settings.Material,
                 IsLightTheme(),
                 BackdropMaterials.ResolveTintColor(settings.UseAccentColor, settings.CustomTintColor),
                 settings.TintOpacity,
@@ -163,10 +168,10 @@ namespace FluentSensors.Common.UI
         private void UpdateSolidBackground()
         {
             if (_isDisposed) return;
-            if (SettingsService.Instance.BackgroundMaterial != BackdropMaterial.Solid) return;
+            var settings = _readSettings();
+            if (settings.Material != BackdropMaterial.Solid) return;
 
-            var targetColor = BackdropMaterials.ResolveTintColor(
-                SettingsService.Instance.UseAccentColor, SettingsService.Instance.CustomTintColor);
+            var targetColor = BackdropMaterials.ResolveTintColor(settings.UseAccentColor, settings.CustomTintColor);
             _rootPanel.Background = new SolidColorBrush(targetColor);
         }
 

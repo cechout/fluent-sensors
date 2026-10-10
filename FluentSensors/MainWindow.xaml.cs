@@ -203,6 +203,7 @@ namespace FluentSensors
             {
                 SettingsService.Instance.ThemeChanged -= OnThemeChanged;
                 SettingsService.Instance.StatusReadoutChanged -= OnStatusReadoutChanged;
+                WidgetWindow.WidgetStateChanged -= UpdateWidgetTrayItems;
                 CurrentInstance = null;
             };
             ((FrameworkElement)this.Content).Loaded += MainWindow_Loaded;
@@ -236,6 +237,8 @@ namespace FluentSensors
             WidgetWindow1TrayItem.Text = AppStrings.Format("Main_WidgetWindowTrayItem", 1);
             WidgetWindow2TrayItem.Text = AppStrings.Format("Main_WidgetWindowTrayItem", 2);
             WidgetWindow3TrayItem.Text = AppStrings.Format("Main_WidgetWindowTrayItem", 3);
+            WidgetWindow.WidgetStateChanged += UpdateWidgetTrayItems;
+            UpdateWidgetTrayItems();
 
             // the restores are no-ops for a closed window, so one click brings back whatever is open
             TrayLeftClickCommand.ExecuteRequested += (s, e) =>
@@ -873,6 +876,27 @@ namespace FluentSensors
                     opWidget.Restore();
                 }
                 widget.Activate();
+            }
+        }
+
+        // one tray entry per open widget window, in window order at the top of the menu; H.NotifyIcon builds its native
+        // menu from Items on every open and ignores Visibility, so the entries go in and out of the list instead
+        private void UpdateWidgetTrayItems()
+        {
+            MenuFlyoutItem[] entries = { WidgetWindow1TrayItem, WidgetWindow2TrayItem, WidgetWindow3TrayItem };
+
+            foreach (var entry in entries)
+            {
+                TrayMenu.Items.Remove(entry);
+            }
+
+            int insertAt = 0;
+            for (int index = 0; index < entries.Length; index++)
+            {
+                if (WidgetWindow.GetOpenInstance(index) != null)
+                {
+                    TrayMenu.Items.Insert(insertAt++, entries[index]);
+                }
             }
         }
 
