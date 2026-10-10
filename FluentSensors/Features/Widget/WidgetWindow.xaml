@@ -99,9 +99,9 @@
 
                     <!--  z-order  -->
                     <!--
-                        (on top, normal, pinned to desktop: an arrow up with a bar over it, through it or under it,
-                        drawn on a 15 px grid at half pixels; ApplyZOrder sets arrow, bar, name and tooltip, a click
-                        flashes the accent bar)
+                        (on top, normal, pinned to desktop: a fixed full height arrow up with a bar on its tip, through
+                        its middle or on its end, drawn on a 15 px grid at half pixels; ApplyZOrder places the bar and
+                        sets name and tooltip, a click flashes the accent bar)
                     -->
                     <Button
                         x:Name="ZOrderButton"
@@ -112,24 +112,7 @@
                         Style="{StaticResource SubtleButtonStyle}">
                         <Canvas Width="15" Height="15">
                             <Path
-                                x:Name="ZOrderArrowBelowBar"
-                                Data="M7.5,3.5 L7.5,14.5 M3.5,7.5 L7.5,3.5 L11.5,7.5"
-                                Stroke="{ThemeResource TextFillColorSecondaryBrush}"
-                                StrokeEndLineCap="Round"
-                                StrokeLineJoin="Round"
-                                StrokeStartLineCap="Round"
-                                StrokeThickness="1" />
-                            <Path
-                                x:Name="ZOrderArrowThroughBar"
                                 Data="M7.5,0.5 L7.5,14.5 M3.5,4.5 L7.5,0.5 L11.5,4.5"
-                                Stroke="{ThemeResource TextFillColorSecondaryBrush}"
-                                StrokeEndLineCap="Round"
-                                StrokeLineJoin="Round"
-                                StrokeStartLineCap="Round"
-                                StrokeThickness="1" />
-                            <Path
-                                x:Name="ZOrderArrowAboveBar"
-                                Data="M7.5,0.5 L7.5,11.5 M3.5,4.5 L7.5,0.5 L11.5,4.5"
                                 Stroke="{ThemeResource TextFillColorSecondaryBrush}"
                                 StrokeEndLineCap="Round"
                                 StrokeLineJoin="Round"
@@ -140,18 +123,14 @@
                                 Stroke="{ThemeResource TextFillColorSecondaryBrush}"
                                 StrokeEndLineCap="Round"
                                 StrokeStartLineCap="Round"
-                                StrokeThickness="1"
-                                X1="2.5"
-                                X2="12.5" />
+                                StrokeThickness="1" />
                             <Line
                                 x:Name="ZOrderBarAccent"
                                 Opacity="0"
                                 Stroke="{ThemeResource AccentFillColorDefaultBrush}"
                                 StrokeEndLineCap="Round"
                                 StrokeStartLineCap="Round"
-                                StrokeThickness="1"
-                                X1="2.5"
-                                X2="12.5" />
+                                StrokeThickness="1" />
                         </Canvas>
                     </Button>
                 </StackPanel>

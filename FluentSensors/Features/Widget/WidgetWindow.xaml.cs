@@ -64,9 +64,12 @@ namespace FluentSensors.Features.Widget
         private WindowZOrder _zOrder;
         private readonly WinDesktopPin _desktopPin;
 
-        // the bar of the z-order icon in accent after a click, in ms; held, then faded back
-        private const int ZOrderFlashHoldMs = 250;
-        private const int ZOrderFlashFadeMs = 500;
+        // --- z-order icon ---
+        // in px on its 15 px grid; the bar is centered on the arrow, round caps add half a px at each end
+        private const double ZOrderBarWidth = 10;
+        // the accent flash of the bar after a click, in ms; held, then faded back
+        private const int ZOrderFlashHoldMs = 300;
+        private const int ZOrderFlashFadeMs = 700;
         private Storyboard? _zOrderFlash;
 
 
@@ -474,18 +477,19 @@ namespace FluentSensors.Features.Widget
                 }
             }
 
-            // the bar on the 15 px icon grid; the arrow makes room for it at the top and the bottom
+            // only the bar moves: on the tip, through the middle, on the end of the arrow
             (string labelKey, double barY) = zOrder switch
             {
                 WindowZOrder.Normal => ("Widget_ZOrderNormal", 7.5),
                 WindowZOrder.Desktop => ("Widget_ZOrderDesktop", 14.5),
                 _ => ("Widget_ZOrderAlwaysOnTop", 0.5)
             };
-            ZOrderArrowBelowBar.Visibility = zOrder == WindowZOrder.AlwaysOnTop ? Visibility.Visible : Visibility.Collapsed;
-            ZOrderArrowThroughBar.Visibility = zOrder == WindowZOrder.Normal ? Visibility.Visible : Visibility.Collapsed;
-            ZOrderArrowAboveBar.Visibility = zOrder == WindowZOrder.Desktop ? Visibility.Visible : Visibility.Collapsed;
-            ZOrderBar.Y1 = ZOrderBar.Y2 = barY;
-            ZOrderBarAccent.Y1 = ZOrderBarAccent.Y2 = barY;
+            foreach (var bar in new[] { ZOrderBar, ZOrderBarAccent })
+            {
+                bar.X1 = 7.5 - ZOrderBarWidth / 2;
+                bar.X2 = 7.5 + ZOrderBarWidth / 2;
+                bar.Y1 = bar.Y2 = barY;
+            }
 
             string label = AppStrings.Get(labelKey);
             ToolTipService.SetToolTip(ZOrderButton, label);
