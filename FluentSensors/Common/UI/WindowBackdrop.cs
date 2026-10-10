@@ -185,17 +185,18 @@ namespace FluentSensors.Common.UI
 
         // transparent, so the material shows; system acrylic with Windows transparency on takes the lift of the flyout
         // graphs area (FlyoutGraphsBackground), the surface its preset is matched to the Windows flyouts under
-        // the grain belongs to the acrylic, so it shows whenever the blur does, like on the taskbar flyout
+        // the grain is part of that look too, so it shows in the same case only, like on the taskbar flyout
         private void UpdateGlassSurface()
         {
             if (_isDisposed) return;
 
-            bool isTransparencyEnabled = IsTransparencyEnabled();
-            _grain.Show(_acrylicController != null && isTransparencyEnabled, _rootPanel.ActualWidth, _rootPanel.ActualHeight);
+            bool isSystemGlass = _acrylicController != null
+                && _readSettings().Material == BackdropMaterial.SystemAcrylic && IsTransparencyEnabled();
+            _grain.Show(isSystemGlass, _rootPanel.ActualWidth, _rootPanel.ActualHeight);
 
             if (_acrylicController == null) return;
 
-            if (_readSettings().Material == BackdropMaterial.SystemAcrylic && isTransparencyEnabled)
+            if (isSystemGlass)
             {
                 var themeDictionary = (ResourceDictionary)Application.Current.Resources
                     .ThemeDictionaries[IsLightTheme() ? "Light" : "Default"];

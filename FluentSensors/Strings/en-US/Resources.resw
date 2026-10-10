@@ -316,24 +316,8 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
     <value>Update Interval</value>
   </data>
-  <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
-    <value>Graphs Page Appearance</value>
-  </data>
-  <data name="Settings_PerformanceGraphExpander.Description" xml:space="preserve">
-    <value>Time range of the overview graphs and the denser grids</value>
-  </data>
-  <data name="Settings_PerformanceGraphExpander.Header" xml:space="preserve">
-    <value>Graph</value>
-    <comment>section heading for the graphs of the Graphs page</comment>
-  </data>
   <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
     <value>Time Range</value>
-  </data>
-  <data name="Settings_CPUExtendedTimeRangeCard.Header" xml:space="preserve">
-    <value>CPU Extended Time Range</value>
-  </data>
-  <data name="Settings_GPUExtendedTimeRangeCard.Header" xml:space="preserve">
-    <value>GPU Extended Time Range</value>
   </data>
   <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
     <value>Widget Window Appearance</value>

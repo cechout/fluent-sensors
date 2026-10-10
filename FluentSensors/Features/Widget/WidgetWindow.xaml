@@ -23,7 +23,7 @@
 
         <!--
             acrylic grain: the material paints noise last, the backdrop controller does not; below every fill, so it
-            grains the material and not the text or graphs; shown by WindowBackdrop for acrylic with Windows
+            grains the material and not the text or graphs; shown by WindowBackdrop for system acrylic with Windows
             transparency on, sized from code like the taskbar flyout grain
         -->
         <Canvas

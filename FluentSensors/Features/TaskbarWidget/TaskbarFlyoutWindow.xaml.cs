@@ -1550,8 +1550,10 @@ namespace FluentSensors.Features.TaskbarWidget
             FlyoutBottomBarBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)themeDictionary[
                 onGlass ? "FlyoutBottomBarSeparatorOnGlassBrush" : "FlyoutBottomBarSeparatorBrush"];
 
-            // the grain belongs to the acrylic, so it shows in the blur modes only
-            Grain.Show(_acrylicController != null, FlyoutRootBorder.ActualWidth, FlyoutRootBorder.ActualHeight);
+            // the grain belongs to the system acrylic look, so it shows there only (a controller means Windows
+            // transparency is on)
+            Grain.Show(_acrylicController != null && material == BackdropMaterial.SystemAcrylic,
+                FlyoutRootBorder.ActualWidth, FlyoutRootBorder.ActualHeight);
 
             // the shadow opacities follow the theme
             RenderCardShadow();

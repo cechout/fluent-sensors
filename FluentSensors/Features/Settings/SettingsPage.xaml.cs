@@ -56,13 +56,8 @@ namespace FluentSensors.Features.Settings
             RestoreHardwareIconColorsSelection();
 
             // the time range lists the pickers share; from code, the restores below run before x:Bind would
-            PerformanceGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Performance;
-            PerformanceCpuExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
-            PerformanceGpuExtendedGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.PerformanceExtended;
             TaskbarGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
             TaskbarFlyoutGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
-
-            RestorePerformanceGraphTimeSpanSelection();
 
             RestoreBackgroundMaterialSettings();
             RestoreCsvBackgroundMaterialSettings();
@@ -124,9 +119,8 @@ namespace FluentSensors.Features.Settings
             }
             OnActiveTaskbarEdgeChanged(SettingsService.Instance.ActiveTaskbarEdge);
 
-            // the time range pickers under the graphs and in the flyout write the same settings; (each widget window
-            // keeps its own)
-            SettingsService.Instance.PerformanceGraphTimeSpanChanged += OnTimeRangesChanged;
+            // the time range pickers in the flyout write the same settings; (the performance page and each widget
+            // window keep theirs next to the graphs)
             SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnTimeRangeChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged += OnTimeRangeChanged;
             OnTimeRangesChanged();
@@ -142,7 +136,6 @@ namespace FluentSensors.Features.Settings
         {
             SettingsService.Instance.StatusReadoutChanged -= OnStatusReadoutChanged;
             SettingsService.Instance.ActiveTaskbarEdgeChanged -= OnActiveTaskbarEdgeChanged;
-            SettingsService.Instance.PerformanceGraphTimeSpanChanged -= OnTimeRangesChanged;
             SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnTimeRangeChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnTimeRangeChanged;
         }
@@ -168,7 +161,6 @@ namespace FluentSensors.Features.Settings
         private void OnTimeRangesChanged()
         {
             _isLoading = true;
-            RestorePerformanceGraphTimeSpanSelection();
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarFlyoutGraphSelection();
             _isLoading = false;
@@ -736,53 +728,6 @@ namespace FluentSensors.Features.Settings
         }
 
 
-        // === performance page appearance settings ===
-
-        // the overview range, plus one each for the dense cpu all-threads and gpu extended grids
-        private void PerformanceGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_isLoading) return;
-
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
-            {
-                SettingsService.Instance.PerformanceGraphTimeSpanSeconds = option.Seconds;
-            }
-        }
-
-        private void PerformanceCpuExtendedGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_isLoading) return;
-
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
-            {
-                SettingsService.Instance.PerformanceCpuExtendedGraphTimeSpanSeconds = option.Seconds;
-            }
-        }
-
-        private void PerformanceGpuExtendedGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_isLoading) return;
-
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
-            {
-                SettingsService.Instance.PerformanceGpuExtendedGraphTimeSpanSeconds = option.Seconds;
-            }
-        }
-
-        private void RestorePerformanceGraphTimeSpanSelection()
-        {
-            SelectTimeSpanItem(PerformanceGraphTimeSpanComboBox, SettingsService.Instance.PerformanceGraphTimeSpanSeconds);
-            SelectTimeSpanItem(PerformanceCpuExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceCpuExtendedGraphTimeSpanSeconds);
-            SelectTimeSpanItem(PerformanceGpuExtendedGraphTimeSpanComboBox, SettingsService.Instance.PerformanceGpuExtendedGraphTimeSpanSeconds);
-        }
-
-        // nothing selected for a value the list does not have
-        private static void SelectTimeSpanItem(ComboBox comboBox, double timeSpanSeconds)
-        {
-            comboBox.SelectedItem = GraphTimeRanges.Find(comboBox.ItemsSource as IReadOnlyList<GraphTimeRange>, timeSpanSeconds);
-        }
-
-
         // === widget appearance settings ===
 
         // background material
@@ -797,24 +742,21 @@ namespace FluentSensors.Features.Settings
             UpdateBackgroundMaterialCardStates();
         }
 
-        // the material decides which rows show: the opacity sliders for custom acrylic only, a color source for custom
-        // acrylic and solid (mica and system acrylic bring their own); the picker follows its source
+        // the material decides which rows apply: the opacity sliders are custom acrylic only, a color source only exists
+        // for custom acrylic and solid (mica and system acrylic bring their own); the picker follows its source
         private void UpdateBackgroundMaterialCardStates()
         {
-            ApplyMaterialCardVisibility(SettingsService.Instance.BackgroundMaterial,
+            ApplyMaterialCardStates(SettingsService.Instance.BackgroundMaterial,
                 TintOpacityCard, LuminosityOpacityCard, BackgroundColorSourceCard);
             WidgetBackgroundColorPicker.IsEnabled = !SettingsService.Instance.UseAccentColor;
         }
 
-        private static void ApplyMaterialCardVisibility(
-            BackdropMaterial material, UIElement tintOpacityCard, UIElement luminosityOpacityCard, UIElement colorSourceCard)
+        private static void ApplyMaterialCardStates(
+            BackdropMaterial material, Control tintOpacityCard, Control luminosityOpacityCard, Control colorSourceCard)
         {
-            var sliderVisibility = material == BackdropMaterial.CustomAcrylic ? Visibility.Visible : Visibility.Collapsed;
-            tintOpacityCard.Visibility = sliderVisibility;
-            luminosityOpacityCard.Visibility = sliderVisibility;
-            colorSourceCard.Visibility = material is BackdropMaterial.CustomAcrylic or BackdropMaterial.Solid
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            tintOpacityCard.IsEnabled = material == BackdropMaterial.CustomAcrylic;
+            luminosityOpacityCard.IsEnabled = material == BackdropMaterial.CustomAcrylic;
+            colorSourceCard.IsEnabled = material is BackdropMaterial.CustomAcrylic or BackdropMaterial.Solid;
         }
 
         private void BackgroundColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -923,7 +865,7 @@ namespace FluentSensors.Features.Settings
 
         private void UpdateCsvBackgroundMaterialCardStates()
         {
-            ApplyMaterialCardVisibility(SettingsService.Instance.CsvBackgroundMaterial,
+            ApplyMaterialCardStates(SettingsService.Instance.CsvBackgroundMaterial,
                 CsvTintOpacityCard, CsvLuminosityOpacityCard, CsvBackgroundColorSourceCard);
             CsvBackgroundColorPicker.IsEnabled = !SettingsService.Instance.CsvUseAccentColor;
         }
@@ -978,6 +920,12 @@ namespace FluentSensors.Features.Settings
 
         // === taskbar & flyout appearance settings ===
 
+        // nothing selected for a value the list does not have
+        private static void SelectTimeSpanItem(ComboBox comboBox, double timeSpanSeconds)
+        {
+            comboBox.SelectedItem = GraphTimeRanges.Find(comboBox.ItemsSource as IReadOnlyList<GraphTimeRange>, timeSpanSeconds);
+        }
+
         // background material
         private void TaskbarBackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -993,7 +941,7 @@ namespace FluentSensors.Features.Settings
         // same rule as the widget window, see UpdateBackgroundMaterialCardStates
         private void UpdateTaskbarBackgroundMaterialCardStates()
         {
-            ApplyMaterialCardVisibility(SettingsService.Instance.TaskbarBackgroundMaterial,
+            ApplyMaterialCardStates(SettingsService.Instance.TaskbarBackgroundMaterial,
                 TaskbarTintOpacityCard, TaskbarLuminosityOpacityCard, TaskbarBackgroundColorSourceCard);
             TaskbarBackgroundColorPicker.IsEnabled = !SettingsService.Instance.TaskbarUseAccentColor;
         }
