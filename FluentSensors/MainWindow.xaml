@@ -135,8 +135,8 @@
                     x:Uid="Main_DotNetRuntimeRestartPopup"
                     Margin="8,1,0,0"
                     VerticalAlignment="Center"
-                    ButtonBackground="{ThemeResource SystemFillColorAttentionBackgroundBrush}"
-                    ButtonGlyphForeground="{ThemeResource SystemFillColorAttentionBrush}"
+                    ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                    ButtonGlyphForeground="{ThemeResource SystemFillColorCautionBrush}"
                     PlacementMode="Below"
                     Visibility="{x:Bind BoolToVisibility(AppStatus.IsDotNetRuntimeRestartRequired), Mode=OneWay}" />
 
@@ -163,8 +163,8 @@
                     x:Uid="Main_PawnIoRestartPopup"
                     Margin="8,1,0,0"
                     VerticalAlignment="Center"
-                    ButtonBackground="{ThemeResource SystemFillColorAttentionBackgroundBrush}"
-                    ButtonGlyphForeground="{ThemeResource SystemFillColorAttentionBrush}"
+                    ButtonBackground="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                    ButtonGlyphForeground="{ThemeResource SystemFillColorCautionBrush}"
                     PlacementMode="Below"
                     Visibility="{x:Bind BoolToVisibility(AppStatus.IsPawnIoRestartRequired), Mode=OneWay}" />
             </StackPanel>
