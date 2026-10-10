@@ -11,8 +11,9 @@ namespace FluentSensors.Features.Widget
     // owned by the desktop window (Progman), which Win+D leaves standing together with what it owns, and held at the
     // bottom by turning every z-order change into HWND_BOTTOM; an owned window sits above its owner, so above the
     // icons and below everything else
-    // off the taskbar and Alt+Tab while pinned; an explorer.exe restart brings a new desktop window, so the owner is
-    // checked on a timer and moved over
+    // off the taskbar and Alt+Tab while pinned, and its frame always drawn as inactive: the window still takes the
+    // focus, but keeps the lighter shadow of a window in the background
+    // an explorer.exe restart brings a new desktop window, so the owner is checked on a timer and moved over
     internal sealed partial class WinDesktopPin
     {
         // === win32 api imports ===
@@ -30,6 +31,15 @@ namespace FluentSensors.Features.Widget
         // the desktop window, Progman
         [LibraryImport("user32.dll")]
         private static partial IntPtr GetShellWindow();
+
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr GetForegroundWindow();
+
+        [LibraryImport("user32.dll", EntryPoint = "DefWindowProcW")]
+        private static partial IntPtr DefWindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+        [LibraryImport("user32.dll", EntryPoint = "SendMessageW")]
+        private static partial IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
         [LibraryImport("user32.dll")]
         private static partial IntPtr GetWindow(IntPtr hWnd, uint uCmd);
@@ -55,6 +65,7 @@ namespace FluentSensors.Features.Widget
         private const long WS_EX_TOOLWINDOW = 0x00000080; // off Alt+Tab
         private const uint GW_OWNER = 4;
         private const uint WM_WINDOWPOSCHANGING = 0x0046;
+        private const uint WM_NCACTIVATE = 0x0086; // wParam: draw the frame as active or inactive
         private static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
 
         private const uint DWMWA_WINDOW_CORNER_PREFERENCE = 33;
@@ -110,6 +121,9 @@ namespace FluentSensors.Features.Widget
 
             AttachToDesktop();
 
+            // the click that pinned it left the frame active
+            SendMessage(_hwnd, WM_NCACTIVATE, IntPtr.Zero, IntPtr.Zero);
+
             _ownerCheckTimer = _dispatcherQueue.CreateTimer();
             _ownerCheckTimer.Interval = OwnerCheckInterval;
             _ownerCheckTimer.Tick += (s, e) => AttachToDesktop();
@@ -128,6 +142,9 @@ namespace FluentSensors.Features.Widget
             SetToolWindowStyle(false);
             SetCornerPreference(DWMWCP_DEFAULT);
             _appWindow.IsShownInSwitchers = true;
+
+            // the frame back to what the window really is
+            SendMessage(_hwnd, WM_NCACTIVATE, GetForegroundWindow() == _hwnd ? new IntPtr(1) : IntPtr.Zero, IntPtr.Zero);
         }
 
         // timer and message hook only, for a window that closes for real; its handle is not touched any more
@@ -173,8 +190,16 @@ namespace FluentSensors.Features.Widget
         }
 
         // a click or an activation would raise the window; the change goes through, only at the bottom
+        // and the frame change of an activation is answered as if it were a deactivation
         private void OnWindowMessageReceived(object? sender, WindowMessageEventArgs e)
         {
+            if (e.Message.MessageId == WM_NCACTIVATE)
+            {
+                e.Result = DefWindowProc(_hwnd, WM_NCACTIVATE, IntPtr.Zero, (IntPtr)e.Message.LParam);
+                e.Handled = true;
+                return;
+            }
+
             if (e.Message.MessageId != WM_WINDOWPOSCHANGING) return;
 
             var position = Marshal.PtrToStructure<WINDOWPOS>((IntPtr)e.Message.LParam);
