@@ -51,6 +51,9 @@ namespace FluentSensors.Core
         private const int ReadDurationSampleCount = 8;
         private const double ReadScheduleMarginMs = 5;
 
+        // appended to the id of a sensor whose identifier an earlier one already has, see LoopAsync
+        private const string DuplicateIdSuffix = "#2";
+
         // max age of the network adapter snapshot, events or not
         private const double NetworkAdapterSnapshotMaxAgeMs = 10000;
 
@@ -393,12 +396,24 @@ namespace FluentSensors.Core
                 var payload = new List<SensorData>();
                 List<string>? removedHardwareNames = null;
                 List<string>? removedSensorIds = null;
+                var payloadIds = new HashSet<string>();
 
                 lock (_sensorLock)
                 {
                     foreach (var sensor in _activeSensors)
                     {
                         string id = sensor.Identifier.ToString();
+
+                        // --- workaround: two sensors with one identifier ---
+                        // problem: LHM 0.9.6 gives the NVIDIA "GPU Memory" load the index 3 of the "GPU Bus" load, so
+                        // both report /gpu-nvidia/0/load/3 and the later one overwrote the first for every consumer
+                        // keyed by id; reproduced on an RTX 3080 Ti, and upstream counts the load indices after 0.9.6
+                        // fix: the later sensor gets a suffix; decided before any skip, so it holds from tick to tick
+                        if (!payloadIds.Add(id))
+                        {
+                            id += DuplicateIdSuffix;
+                            payloadIds.Add(id);
+                        }
 
                         // excluded sensors would be skipped here (no payload entry, no UI or graph update)
                         // TEMP: disabled, so PerformancePage sees every sensor
