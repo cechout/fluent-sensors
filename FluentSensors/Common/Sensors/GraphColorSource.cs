@@ -1,6 +1,6 @@
 namespace FluentSensors.Common.Sensors
 {
-    // the line colour source, per surface in the settings
+    // the line colour source: one global setting, and one per surface that follows it or overrides it
     // Hardware falls back to Accent for HardwareGroupKind.Other (a motherboard, a fan controller); grey
     // would read as a broken lookup
     // SensorType does the same for a type without a group colour (see SensorTypeGroupInfo)
@@ -9,6 +9,7 @@ namespace FluentSensors.Common.Sensors
         Accent, // the live Windows accent colour
         Custom, // picked next to the selector
         Hardware, // the category colour
-        SensorType // the colour of the sensor type group
+        SensorType, // the colour of the sensor type group
+        Global // a surface only; the global setting
     }
 }

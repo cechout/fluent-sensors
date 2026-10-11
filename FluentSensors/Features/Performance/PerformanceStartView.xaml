@@ -154,11 +154,11 @@
                             <fhGraph:SensorPanelControl
                                 Grid.Row="1"
                                 Height="130"
-                                FollowSensorTypeColor="False"
                                 GraphHardwareKind="{x:Bind Kind, Mode=OneTime}"
                                 IsGraphHoverEnabled="False"
                                 IsHitTestVisible="False"
                                 ShowCompactStatusRow="True"
+                                SensorTypeColor="Never"
                                 ShowStatusRow="True"
                                 ThresholdLabelAlwaysVisible="False"
                                 ViewModel="{x:Bind PrimaryGraph, Mode=OneWay}" />

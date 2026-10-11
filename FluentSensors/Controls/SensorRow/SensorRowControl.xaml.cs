@@ -146,8 +146,8 @@ namespace FluentSensors.Controls.SensorRow
             UpdateVisualState(useTransitions: false);
             UpdateDisplayState();
 
-            SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
-            SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
+            SettingsService.Instance.GlobalGraphColorChanged -= UpdateCheckBoxColor;
+            SettingsService.Instance.GlobalGraphColorChanged += UpdateCheckBoxColor;
             UpdateCheckBoxColor();
         }
 
@@ -167,13 +167,11 @@ namespace FluentSensors.Controls.SensorRow
             }
             this.Bindings.StopTracking();
 
-            SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
+            SettingsService.Instance.GlobalGraphColorChanged -= UpdateCheckBoxColor;
         }
 
 
         // === event handlers ===
-
-        private void OnGraphColorChanged(GraphColorSource source, Windows.UI.Color customColor) => UpdateCheckBoxColor();
 
         private void RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
@@ -307,13 +305,13 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // the checkbox carries the sensor type colour while that is the graph colour source: the fill when checked,
-        // the border when unchecked; the standard checkbox otherwise, and for a type without a group colour
+        // the checkbox carries the sensor type colour while that is the global graph colour source: the fill when
+        // checked, the border when unchecked; the standard checkbox otherwise, and for a type without a group colour
         private void UpdateCheckBoxColor()
         {
             ThemeColorPair colors = default;
             bool hasTypeColor = ViewModel != null
-                && SettingsService.Instance.GraphColorSource == GraphColorSource.SensorType
+                && SettingsService.Instance.GlobalGraphColorSource == GraphColorSource.SensorType
                 && SensorTypeGroupInfo.TryGetColors(ViewModel.SensorType, out colors);
 
             if (hasTypeColor)

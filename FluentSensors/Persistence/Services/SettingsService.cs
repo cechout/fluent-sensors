@@ -207,6 +207,43 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // the global graph line colour; the performance page and the sensors page read it, and a surface whose own
+        // selector says Global (see ResolveGraphColorSource)
+        private GraphColorSource _globalGraphColorSource = Defaults.GlobalGraphColorSource;
+        public GraphColorSource GlobalGraphColorSource
+        {
+            get => _globalGraphColorSource;
+            set
+            {
+                if (_globalGraphColorSource != value)
+                {
+                    _globalGraphColorSource = value;
+                    GlobalGraphColorChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private Windows.UI.Color _globalGraphCustomColor = Defaults.GlobalGraphCustomColor;
+        public Windows.UI.Color GlobalGraphCustomColor
+        {
+            get => _globalGraphCustomColor;
+            set
+            {
+                if (_globalGraphCustomColor != value)
+                {
+                    _globalGraphCustomColor = value;
+                    GlobalGraphColorChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // the selector and custom colour of a surface, with Global replaced by the global pair
+        public (GraphColorSource Source, Windows.UI.Color CustomColor) ResolveGraphColorSource(
+            GraphColorSource source, Windows.UI.Color customColor) =>
+            source == GraphColorSource.Global ? (_globalGraphColorSource, _globalGraphCustomColor) : (source, customColor);
+
         // stepline or smooth; global, every scope
         private GraphLineStyle _graphLineStyle = Defaults.GraphLineStyle;
         public GraphLineStyle GraphLineStyle
@@ -1116,6 +1153,8 @@ namespace FluentSensors.Persistence.Services
             _graphCustomColor = data.GraphCustomColor;
             _graphTimeSpanSeconds = data.GraphTimeSpanSeconds;
             _graphLineStyle = data.GraphLineStyle;
+            _globalGraphColorSource = data.GlobalGraphColorSource;
+            _globalGraphCustomColor = data.GlobalGraphCustomColor;
             _graphFillFade = data.GraphFillFade;
             _useHardwareIconColors = data.UseHardwareIconColors;
             HardwareColorMode.UseIconColors = _useHardwareIconColors;
@@ -1193,6 +1232,8 @@ namespace FluentSensors.Persistence.Services
                 GraphCustomColor = _graphCustomColor,
                 GraphTimeSpanSeconds = _graphTimeSpanSeconds,
                 GraphLineStyle = _graphLineStyle,
+                GlobalGraphColorSource = _globalGraphColorSource,
+                GlobalGraphCustomColor = _globalGraphCustomColor,
                 GraphFillFade = _graphFillFade,
                 UseHardwareIconColors = _useHardwareIconColors,
                 DataSizeUnitBasis = _dataSizeUnitBasis,
@@ -1270,6 +1311,8 @@ namespace FluentSensors.Persistence.Services
         public event Action<GraphColorSource, Windows.UI.Color> GraphColorChanged;
         public event Action<double> GraphTimeSpanChanged;
         public event Action<GraphLineStyle> GraphLineStyleChanged;
+        // no value; consumers re-read the global colour source
+        public event Action GlobalGraphColorChanged;
         public event Action<bool> GraphFillFadeChanged;
 
         // no value; consumers re-read the switch

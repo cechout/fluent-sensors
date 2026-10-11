@@ -1,7 +1,7 @@
 namespace FluentSensors.Common.UI
 {
     // one colour in its two theme values:
-    // a lighter one for the dark theme and a darker one for the light theme, the way WinUI shows the accent
+    // a slightly lighter one for the dark theme and a slightly darker one for the light theme
     public readonly record struct ThemeColorPair(Windows.UI.Color Dark, Windows.UI.Color Light)
     {
         // the same value in both themes (the accent, a custom colour)
