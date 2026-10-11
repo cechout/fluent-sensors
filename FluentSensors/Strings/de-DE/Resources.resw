@@ -1196,6 +1196,10 @@ Firmware - aktuell aktiviert oder nicht (unzuverlässig)</value>
   <data name="Gpu_ShowExtendedButton.Label" xml:space="preserve">
     <value>Erweitert</value>
   </data>
+  <data name="Gpu_OtherGroupTitle.Text" xml:space="preserve">
+    <value>Weitere Sensoren</value>
+    <comment>group title above the gpu sensors that have no group of their own</comment>
+  </data>
   <data name="Gpu_GeneralPopup.Title" xml:space="preserve">
     <value>Allgemein</value>
   </data>

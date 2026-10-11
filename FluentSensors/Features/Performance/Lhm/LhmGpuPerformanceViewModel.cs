@@ -18,8 +18,9 @@ namespace FluentSensors.Features.Performance.Lhm
     // into its property; the instance stays a data holder
     public class LhmGpuPerformanceViewModel
     {
-        // the preferred start sensor of the two vendor-dependent categories, best first; never a filter, every sensor
+        // the preferred start sensor of the three vendor-dependent categories, best first; never a filter, every sensor
         // of the type is offered (vendors name package power "GPU Package", "GPU Power", "GPU PPT")
+        private static readonly string[] LoadPreference = { "GPU Core", "D3D 3D" };
         private static readonly string[] TemperaturePreference = { "GPU Core", "GPU Hot Spot" };
         private static readonly string[] PowerPreference = { "GPU Package", "GPU Power", "GPU PPT", "GPU Total", "GPU Core" };
 
@@ -74,10 +75,11 @@ namespace FluentSensors.Features.Performance.Lhm
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(gpu, e);
         }
 
-        // once after the first sensor batch, per category: without a saved choice the best pick beats discovery order
-        // (Temperature and Power by name, MemoryUsed by IsDefault); with nothing active, the first candidate
+        // after every sensor batch, per category: without a saved choice the best pick beats discovery order
+        // (Load, Temperature and Power by name, MemoryUsed by IsDefault); with nothing active, the first candidate
         private static void ApplyCategoryFallbacks(LhmGpuInstanceViewModel gpu)
         {
+            ActivateDefault(gpu.HardwareName, "Load", gpu.CoreLoadOptions, () => gpu.CoreLoad, gpu.SetCoreLoadWithoutPersisting, LoadPreference);
             ActivateDefault(gpu.HardwareName, "Temperature", gpu.TemperatureOptions, () => gpu.Temperature, gpu.SetTemperatureWithoutPersisting, TemperaturePreference);
             ActivateDefault(gpu.HardwareName, "Power", gpu.PackagePowerOptions, () => gpu.PackagePower, gpu.SetPackagePowerWithoutPersisting, PowerPreference);
             ActivateDefault(gpu.HardwareName, "ExtendedPower", gpu.ExtendedPackagePowerOptions, () => gpu.ExtendedPackagePower, gpu.SetExtendedPackagePowerWithoutPersisting, PowerPreference);
@@ -122,12 +124,20 @@ namespace FluentSensors.Features.Performance.Lhm
             return null;
         }
 
-        // fills the D3D engine slots once: the saved choice, else the next unclaimed candidate; a slot can stay empty
+        // fills the empty D3D engine slots: the saved choice, else the next unclaimed candidate; a slot can stay empty
         private static void ApplyD3dEngineDefaults(LhmGpuInstanceViewModel gpu)
         {
             var claimed = new HashSet<string>();
             for (int slot = 0; slot < LhmGpuInstanceViewModel.D3dEngineSlotCount; slot++)
             {
+                var filled = gpu.GetD3dEngineSlot(slot);
+                if (filled != null) claimed.Add(filled.SensorId);
+            }
+
+            for (int slot = 0; slot < LhmGpuInstanceViewModel.D3dEngineSlotCount; slot++)
+            {
+                if (gpu.GetD3dEngineSlot(slot) != null) continue;
+
                 string persistedId = SensorSwitchStateService.Instance.GetSelectedSensorId(gpu.HardwareName, LhmGpuInstanceViewModel.D3dEngineCategory(slot));
 
                 var match = persistedId != null
@@ -148,18 +158,24 @@ namespace FluentSensors.Features.Performance.Lhm
             {
                 OnSensorDiscovered(gpu, entry);
             }
+
+            // a sensor that came late can be the first of its category
+            ApplyCategoryFallbacks(gpu);
+            ApplyD3dEngineDefaults(gpu);
         }
 
         // matches on (Name, SensorType); "GPU Core" comes as Load, Clock, Temperature and Voltage
+        // a sensor without a place of its own lands in the Other group, so none is dropped; that goes for the
+        // discrete-only places on an integrated gpu too, its Extended view does not show them
         private void OnSensorDiscovered(LhmGpuInstanceViewModel gpu, LhmSensorEntry entry)
         {
             switch (entry.Name, entry.SensorType)
             {
-                // one graph for the overview and one for the Extended view, see ExtendedCoreLoad
+                // the overview Load slot, and one graph of its own for the Extended view, see ExtendedCoreLoad
                 case ("GPU Core", "Load"):
-                    gpu.CoreLoad = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
-                    PushDataPoint(gpu.CoreLoad, entry);
-                    entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.CoreLoad, entry, e);
+                    RegisterCategoryCandidate(gpu, "Load", entry,
+                        g => g.CoreLoad, (g, v) => g.SetCoreLoadWithoutPersisting(v), gpu.CoreLoadOptions);
+                    if (!gpu.IsDiscrete) { AddOtherSensor(gpu, entry); break; }
                     gpu.ExtendedCoreLoad = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.ExtendedCoreLoad, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.ExtendedCoreLoad, entry, e);
@@ -182,11 +198,12 @@ namespace FluentSensors.Features.Performance.Lhm
                     break;
 
                 case ("GPU Hot Spot", "Temperature"):
+                    RegisterCategoryCandidate(gpu, "Temperature", entry,
+                        g => g.Temperature, (g, v) => g.SetTemperatureWithoutPersisting(v), gpu.TemperatureOptions);
+                    if (!gpu.IsDiscrete) { AddOtherSensor(gpu, entry); break; }
                     gpu.HotSpotTemperature = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.HotSpotTemperature, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.HotSpotTemperature, entry, e);
-                    RegisterCategoryCandidate(gpu, "Temperature", entry,
-                        g => g.Temperature, (g, v) => g.SetTemperatureWithoutPersisting(v), gpu.TemperatureOptions);
                     break;
 
                 // wattage and core voltage share the Power slot; switching is a unit change, the flyout names both
@@ -195,74 +212,88 @@ namespace FluentSensors.Features.Performance.Lhm
                     break;
 
                 // the driver and the D3D figure for VRAM in use, alternatives in the MemoryUsed slot (like CPU
-                // Package and Platform power)
-                case ("GPU Memory Used", "SmallData"):
+                // Package and Platform power); LHM moves gpu memory from SmallData to Data after 0.9.6, so both match
+                case ("GPU Memory Used", "SmallData" or "Data") when gpu.IsDiscrete:
                     RegisterCategoryCandidate(gpu, "MemoryUsed", entry,
                         g => g.MemoryUsed, (g, v) => g.SetMemoryUsedWithoutPersisting(v), gpu.MemoryUsedOptions, isDefault: true);
                     break;
 
-                case ("D3D Dedicated Memory Used", "Data"):
+                case ("D3D Dedicated Memory Used", "SmallData" or "Data") when gpu.IsDiscrete:
                     RegisterCategoryCandidate(gpu, "MemoryUsed", entry,
                         g => g.MemoryUsed, (g, v) => g.SetMemoryUsedWithoutPersisting(v), gpu.MemoryUsedOptions);
                     break;
 
                 // system RAM borrowed by the GPU, not VRAM; no MemoryUsed alternative
-                case ("D3D Shared Memory Used", "SmallData"):
+                case ("D3D Shared Memory Used", "SmallData" or "Data"):
                     gpu.D3dSharedMemoryUsed = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.D3dSharedMemoryUsed, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.D3dSharedMemoryUsed, entry, e);
                     break;
 
                 // the inverse of GPU Memory Used, in the same slot
-                case ("GPU Memory Free", "SmallData"):
+                case ("GPU Memory Free", "SmallData" or "Data") when gpu.IsDiscrete:
                     RegisterCategoryCandidate(gpu, "MemoryUsed", entry,
                         g => g.MemoryUsed, (g, v) => g.SetMemoryUsedWithoutPersisting(v), gpu.MemoryUsedOptions, isDefault: true);
                     break;
 
-                case ("GPU Memory Total", "SmallData"):
+                case ("GPU Memory Total", "SmallData" or "Data") when gpu.IsDiscrete:
+                    gpu.HasDriverMemoryTotal = true;
                     gpu.MemoryTotal = entry.Value;
                     entry.PropertyChanged += (s, e) => OnMemoryTotalChanged(gpu, entry, e);
                     break;
 
-                case ("GPU Memory", "Clock"):
+                // the y-axis maximum where the driver reports no total (amd through D3D only); charted as well
+                case ("D3D Dedicated Memory Total", "SmallData" or "Data") when gpu.IsDiscrete:
+                    if (!gpu.HasDriverMemoryTotal) gpu.MemoryTotal = entry.Value;
+                    entry.PropertyChanged += (s, e) =>
+                    {
+                        if (!gpu.HasDriverMemoryTotal) OnMemoryTotalChanged(gpu, entry, e);
+                    };
+                    AddOtherSensor(gpu, entry);
+                    break;
+
+                case ("GPU Memory", "Clock") when gpu.IsDiscrete:
                     gpu.MemoryClock = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.MemoryClock, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.MemoryClock, entry, e);
                     break;
 
-                case ("GPU Memory Controller", "Load"):
+                case ("GPU Memory Controller", "Load") when gpu.IsDiscrete:
                     gpu.MemoryControllerLoad = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.MemoryControllerLoad, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.MemoryControllerLoad, entry, e);
                     break;
 
-                case ("GPU PCIe Rx", "Throughput"):
+                case ("GPU PCIe Rx", "Throughput") when gpu.IsDiscrete:
                     gpu.PcieRx = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.PcieRx, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.PcieRx, entry, e);
                     break;
 
-                case ("GPU PCIe Tx", "Throughput"):
+                case ("GPU PCIe Tx", "Throughput") when gpu.IsDiscrete:
                     gpu.PcieTx = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.PcieTx, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.PcieTx, entry, e);
                     break;
 
-                case ("GPU Bus", "Load"):
+                case ("GPU Bus", "Load") when gpu.IsDiscrete:
                     gpu.BusLoad = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.BusLoad, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.BusLoad, entry, e);
                     break;
 
-                case ("GPU Video Engine", "Load"):
+                case ("GPU Video Engine", "Load") when gpu.IsDiscrete:
                     gpu.VideoEngineLoad = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
                     PushDataPoint(gpu.VideoEngineLoad, entry);
                     entry.PropertyChanged += (s, e) => OnEntryValueChanged(gpu.VideoEngineLoad, entry, e);
                     break;
 
-                // Windows GPU Engine counters; no fixed set, an instance appears once something uses the engine
+                // Windows GPU Engine counters, one per adapter node; the names are driver text ("D3D 3D",
+                // "D3D Video Decode", "D3D <friendly name>"), so the set is open
                 case (var name, "Load") when name.StartsWith("D3D"):
                     RegisterD3dCandidate(gpu, entry);
+                    RegisterCategoryCandidate(gpu, "Load", entry,
+                        g => g.CoreLoad, (g, v) => g.SetCoreLoadWithoutPersisting(v), gpu.CoreLoadOptions);
                     break;
 
                 // every other temperature and power reading joins its overview switch list, whatever the vendor calls
@@ -270,12 +301,26 @@ namespace FluentSensors.Features.Performance.Lhm
                 case (_, "Temperature"):
                     RegisterCategoryCandidate(gpu, "Temperature", entry,
                         g => g.Temperature, (g, v) => g.SetTemperatureWithoutPersisting(v), gpu.TemperatureOptions);
+                    AddOtherSensor(gpu, entry);
                     break;
 
                 case (_, "Power"):
                     RegisterPowerCandidate(gpu, entry);
+                    AddOtherSensor(gpu, entry);
+                    break;
+
+                default:
+                    AddOtherSensor(gpu, entry);
                     break;
             }
+        }
+
+        private void AddOtherSensor(LhmGpuInstanceViewModel gpu, LhmSensorEntry entry)
+        {
+            var graph = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+            PushDataPoint(graph, entry);
+            entry.PropertyChanged += (s, e) => OnEntryValueChanged(graph, entry, e);
+            gpu.AddOtherSensor(graph);
         }
 
         // adds a candidate, active if nothing is yet and it is the saved choice (or nothing is saved, first found;

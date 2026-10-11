@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Collections.Generic;
 using Windows.Foundation;
 
 
@@ -64,7 +65,8 @@ namespace FluentSensors.Controls
         // every child at the column width and unconstrained height; the desired height sums the tallest child per row
         protected override Size MeasureOverride(Size availableSize)
         {
-            int count = Children.Count;
+            var children = GetVisibleChildren();
+            int count = children.Count;
             if (count == 0) return new Size(0, 0);
 
             double measureWidth = double.IsInfinity(availableSize.Width) ? 0 : availableSize.Width;
@@ -74,7 +76,7 @@ namespace FluentSensors.Controls
             double cellWidth = Math.Max(0, (measureWidth - Spacing * (columns - 1)) / columns);
 
             var cellSize = new Size(cellWidth, double.PositiveInfinity);
-            foreach (var child in Children)
+            foreach (var child in children)
             {
                 child.Measure(cellSize);
             }
@@ -82,7 +84,7 @@ namespace FluentSensors.Controls
             double totalHeight = 0;
             for (int row = 0; row < rows; row++)
             {
-                totalHeight += GetRowHeight(row, columns, count);
+                totalHeight += GetRowHeight(children, row, columns);
             }
             totalHeight += Spacing * Math.Max(0, rows - 1);
 
@@ -92,7 +94,8 @@ namespace FluentSensors.Controls
         // every child into its slot, from its DesiredSize without remeasuring
         protected override Size ArrangeOverride(Size finalSize)
         {
-            int count = Children.Count;
+            var children = GetVisibleChildren();
+            int count = children.Count;
             if (count == 0) return finalSize;
 
             var (rows, columns) = GetGridSize(count, finalSize.Width, MinCellWidth);
@@ -102,7 +105,7 @@ namespace FluentSensors.Controls
             double y = 0;
             for (int row = 0; row < rows; row++)
             {
-                double rowHeight = GetRowHeight(row, columns, count);
+                double rowHeight = GetRowHeight(children, row, columns);
 
                 for (int column = 0; column < columns; column++)
                 {
@@ -110,7 +113,7 @@ namespace FluentSensors.Controls
                     if (index >= count) break;
 
                     double x = column * (cellWidth + Spacing);
-                    Children[index].Arrange(new Rect(x, y, cellWidth, rowHeight));
+                    children[index].Arrange(new Rect(x, y, cellWidth, rowHeight));
                 }
 
                 y += rowHeight + Spacing;
@@ -121,6 +124,17 @@ namespace FluentSensors.Controls
 
 
         // === private helpers ===
+
+        // a collapsed child takes no cell, the rest close the gap
+        private List<UIElement> GetVisibleChildren()
+        {
+            var visible = new List<UIElement>(Children.Count);
+            foreach (var child in Children)
+            {
+                if (child.Visibility == Visibility.Visible) visible.Add(child);
+            }
+            return visible;
+        }
 
         // the columns that fit at minCellWidth, from a single row down, and the rows from that
         private static (int rows, int columns) GetGridSize(int count, double availableWidth, double minCellWidth)
@@ -137,15 +151,15 @@ namespace FluentSensors.Controls
         }
 
         // the tallest child in the row, at least MinCellHeight
-        private double GetRowHeight(int row, int columns, int count)
+        private double GetRowHeight(List<UIElement> children, int row, int columns)
         {
             double tallest = 0;
             for (int column = 0; column < columns; column++)
             {
                 int index = row * columns + column;
-                if (index >= count) break;
+                if (index >= children.Count) break;
 
-                tallest = Math.Max(tallest, Children[index].DesiredSize.Height);
+                tallest = Math.Max(tallest, children[index].DesiredSize.Height);
             }
 
             return Math.Max(tallest, MinCellHeight);

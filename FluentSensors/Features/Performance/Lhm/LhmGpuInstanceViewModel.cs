@@ -38,11 +38,13 @@ namespace FluentSensors.Features.Performance.Lhm
             // never detached; an instance lives for the session
             WinStaticInfoService.Instance.GpusChanged += OnStaticInfoChanged;
 
+            CoreLoadOptions = new ObservableCollection<SensorSwitchCandidate>();
             TemperatureOptions = new ObservableCollection<SensorSwitchCandidate>();
             PackagePowerOptions = new ObservableCollection<SensorSwitchCandidate>();
             ExtendedPackagePowerOptions = new ObservableCollection<SensorSwitchCandidate>();
             MemoryUsedOptions = new ObservableCollection<SensorSwitchCandidate>();
             D3dEngineOptions = new ObservableCollection<SensorSwitchCandidate>();
+            OtherSensors = new ObservableCollection<SensorGraphViewModel>();
         }
 
 
@@ -50,17 +52,31 @@ namespace FluentSensors.Features.Performance.Lhm
 
         public string HardwareName { get; }
 
-        // DiscreteGpu or IntegratedGpu
+        // DiscreteGpu or IntegratedGpu; the Extended view drops the groups an integrated gpu has no sensors for
         public HardwareGroupKind Kind { get; }
+        public bool IsDiscrete => Kind != HardwareGroupKind.IntegratedGpu;
 
         // overview categories; the public setter persists the choice, SetXWithoutPersisting is for the default or
         // restored graph (PackagePower and MemoryUsed alike)
-        // CoreLoad has no switch partner and stays a plain graph
+        // CoreLoad switches between the core load and the D3D engines, an Intel integrated gpu has only the latter
         private SensorGraphViewModel _coreLoad;
         public SensorGraphViewModel CoreLoad
         {
             get => _coreLoad;
-            set { _coreLoad = value; OnPropertyChanged(); }
+            set
+            {
+                if (_coreLoad == value) return;
+                _coreLoad = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "Load", value.SensorId);
+            }
+        }
+        public ObservableCollection<SensorSwitchCandidate> CoreLoadOptions { get; }
+
+        internal void SetCoreLoadWithoutPersisting(SensorGraphViewModel value)
+        {
+            _coreLoad = value;
+            OnPropertyChanged(nameof(CoreLoad));
         }
 
         private SensorGraphViewModel _temperature;
@@ -225,7 +241,8 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _d3dSharedMemoryUsed = value; OnPropertyChanged(); }
         }
 
-        // not charted; the y-axis maximum of MemoryUsed, the reported total
+        // not charted; the y-axis maximum of MemoryUsed, the reported total (the D3D total where the driver has none)
+        internal bool HasDriverMemoryTotal { get; set; } // "GPU Memory Total" exists and wins
         private double _memoryTotal;
         public double MemoryTotal
         {
@@ -270,6 +287,16 @@ namespace FluentSensors.Features.Performance.Lhm
         public SensorGraphViewModel D3dEngineSlot2 { get => _d3dEngineSlots[1]; set => SetD3dEngineSlot(1, value); }
         public SensorGraphViewModel D3dEngineSlot3 { get => _d3dEngineSlots[2]; set => SetD3dEngineSlot(2, value); }
         public SensorGraphViewModel D3dEngineSlot4 { get => _d3dEngineSlots[3]; set => SetD3dEngineSlot(3, value); }
+
+        // Extended Other group; every sensor without a place above, whatever the vendor or the driver calls it
+        public ObservableCollection<SensorGraphViewModel> OtherSensors { get; }
+        public bool HasOtherSensors => OtherSensors.Count > 0;
+
+        internal void AddOtherSensor(SensorGraphViewModel graph)
+        {
+            OtherSensors.Add(graph);
+            if (OtherSensors.Count == 1) OnPropertyChanged(nameof(HasOtherSensors));
+        }
 
         // the persistence key of a slot, shared with LhmGpuPerformanceViewModel
         public static string D3dEngineCategory(int slotIndex) => $"D3DEngine{slotIndex + 1}";

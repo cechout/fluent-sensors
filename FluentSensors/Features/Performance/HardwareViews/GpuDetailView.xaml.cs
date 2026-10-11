@@ -109,6 +109,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === private helpers ===
 
+        private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
+
         // sizes the shown section, Overview or Extended; also from PerformancePage after a panel toggle, whose size
         // change can reach this control late
         public void RecalculateOverviewHeight()
