@@ -42,6 +42,15 @@ namespace FluentSensors.Features.Performance.Lhm
 
         private void OnTreeHardwareGroupsChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (LhmHardwareInstance instance in e.OldItems)
+                {
+                    if (instance.Kind == HardwareGroupKind.Network) DetachFromInstance(instance);
+                }
+                return;
+            }
+
             if (e.Action != NotifyCollectionChangedAction.Add) return;
 
             foreach (LhmHardwareInstance instance in e.NewItems)
@@ -64,6 +73,16 @@ namespace FluentSensors.Features.Performance.Lhm
             }
             ApplyCategoryFallbacks(adapter);
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(adapter, e);
+        }
+
+        // the hardware left; the adapter leaves the page, a replug builds a new one
+        private void DetachFromInstance(LhmHardwareInstance instance)
+        {
+            var adapter = Adapters.FirstOrDefault(item => item.HardwareName == instance.HardwareName);
+            if (adapter == null) return;
+
+            Adapters.Remove(adapter);
+            adapter.Detach();
         }
 
         // once after the first sensor batch, per category: without a saved choice the IsDefault candidate beats

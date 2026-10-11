@@ -27,7 +27,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
             _staticInfo = MatchStaticInfo();
 
-            // never detached; an instance lives for the session
+            // until Detach
             WinStaticInfoService.Instance.DrivesChanged += OnStaticInfoChanged;
 
             TotalActivityOptions = new ObservableCollection<SensorSwitchCandidate>();
@@ -135,6 +135,15 @@ namespace FluentSensors.Features.Performance.Lhm
         public string StorageStartStopCyclesText => HardwareInfoFormatter.FormatCycleCount(_staticInfo?.StartStopCycleCount, _staticInfo?.StartStopCycleCountMax);
         public string StorageLoadUnloadCyclesText => HardwareInfoFormatter.FormatCycleCount(_staticInfo?.LoadUnloadCycleCount, _staticInfo?.LoadUnloadCycleCountMax);
         public string StorageLatencyMaxText => HardwareInfoFormatter.FormatLatencyTriple(_staticInfo?.ReadLatencyMaxMs, _staticInfo?.WriteLatencyMaxMs, _staticInfo?.FlushLatencyMaxMs);
+
+
+        // === public methods ===
+
+        // the hardware left and this instance with it
+        public void Detach()
+        {
+            WinStaticInfoService.Instance.DrivesChanged -= OnStaticInfoChanged;
+        }
 
 
         // === event handlers ===

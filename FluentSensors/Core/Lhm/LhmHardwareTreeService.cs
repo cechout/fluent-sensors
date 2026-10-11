@@ -10,6 +10,8 @@ namespace FluentSensors.Core.Lhm
     // the one HardwareDataUpdated subscriber, a live tree (hardware instance, its sensors) that every page
     // reads instead of the payload
     // discovery, grouping and live values only; thresholds, statistics, sorting, graphs and hiding belong to the pages
+    // an instance leaves again when its hardware does (unplugged, a network adapter down) and is built new when it
+    // comes back
     public class LhmHardwareTreeService
     {
         // === fields ===
@@ -34,6 +36,7 @@ namespace FluentSensors.Core.Lhm
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
             HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
+            HardwareMonitorService.Instance.HardwareRemoved += OnHardwareRemoved;
         }
 
 
@@ -69,6 +72,19 @@ namespace FluentSensors.Core.Lhm
                     {
                         entry.Value = data.Value;
                     }
+                }
+            });
+        }
+
+        // queued behind the payload it came with, so the order of the polling thread holds on the UI thread
+        private void OnHardwareRemoved(List<string> hardwareNames)
+        {
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                foreach (string hardwareName in hardwareNames)
+                {
+                    var instance = HardwareGroups.FirstOrDefault(g => g.HardwareName == hardwareName);
+                    if (instance != null) HardwareGroups.Remove(instance);
                 }
             });
         }

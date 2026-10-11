@@ -308,6 +308,20 @@ namespace FluentSensors.Features.TaskbarWidget
             _ = new TaskbarWidgetWindow(selectedSensors);
         }
 
+        // hardware left or came back: the widget shows the sensors of its saved selection that exist right now; one
+        // whose sensors are all gone keeps what it has
+        public static void RefreshAvailability()
+        {
+            var window = CurrentInstance;
+            if (window == null) return;
+
+            var sensors = ResolveSensors(SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.Taskbar));
+            if (sensors.Count == 0) return;
+            if (sensors.Select(s => s.Id).SequenceEqual(window.ViewModel.PinnedSensors.Select(p => p.SensorId))) return;
+
+            window.ReconfigureFor(sensors);
+        }
+
         // with the sensors saved under the taskbar profile
         public static void ShowWidget()
         {

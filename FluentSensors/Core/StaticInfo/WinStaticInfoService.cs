@@ -76,7 +76,7 @@ namespace FluentSensors.Core.StaticInfo
 
         // each asks Windows again off the calling thread, then swaps its list and raises its event back on it; called
         // from the UI thread only (WinStaticInfoRefresher), so a consumer never sees a list change under it
-        // a device that is gone stays listed with its last values, like its LHM instance stays in the hardware tree
+        // a device that is gone leaves its list, like its LHM instance leaves the hardware tree
 
         public event Action? GpusChanged;
         public event Action? DrivesChanged;
@@ -86,30 +86,30 @@ namespace FluentSensors.Core.StaticInfo
         // the gpu list, the driver versions and the display each gpu drives
         public async Task RefreshGpusAsync()
         {
-            var merged = await QueryMergedAsync(Gpus, QueryGpus, g => string.IsNullOrEmpty(g.PnpDeviceId) ? g.Name : g.PnpDeviceId);
-            if (merged == null) return;
+            var fresh = await QueryChangedAsync(Gpus, QueryGpus);
+            if (fresh == null) return;
 
-            Gpus = merged;
+            Gpus = fresh;
             GpusChanged?.Invoke();
         }
 
         // the drive list and the reliability counters (temperature, power on hours, errors, wear)
         public async Task RefreshDrivesAsync()
         {
-            var merged = await QueryMergedAsync(Drives, QueryDrives, d => string.IsNullOrEmpty(d.SerialNumber) ? d.FriendlyName : d.SerialNumber);
-            if (merged == null) return;
+            var fresh = await QueryChangedAsync(Drives, QueryDrives);
+            if (fresh == null) return;
 
-            Drives = merged;
+            Drives = fresh;
             DrivesChanged?.Invoke();
         }
 
         // the adapters that are up, their link speed and addresses
         public async Task RefreshNetworkAdaptersAsync()
         {
-            var merged = await QueryMergedAsync(NetworkAdapters, QueryNetworkAdapters, a => a.Name);
-            if (merged == null) return;
+            var fresh = await QueryChangedAsync(NetworkAdapters, QueryNetworkAdapters);
+            if (fresh == null) return;
 
-            NetworkAdapters = merged;
+            NetworkAdapters = fresh;
             NetworkAdaptersChanged?.Invoke();
         }
 
@@ -126,9 +126,8 @@ namespace FluentSensors.Core.StaticInfo
             PrerequisitesChanged?.Invoke();
         }
 
-        // the current list with every fresh item in the place of its predecessor and the new ones at the end; null
-        // when the query failed or nothing differs
-        private static async Task<List<T>?> QueryMergedAsync<T>(IReadOnlyList<T> current, Func<List<T>> query, Func<T, string> getKey)
+        // the fresh list; null when the query failed or nothing differs
+        private static async Task<List<T>?> QueryChangedAsync<T>(IReadOnlyList<T> current, Func<List<T>> query)
         {
             List<T> fresh;
             try
@@ -140,17 +139,8 @@ namespace FluentSensors.Core.StaticInfo
                 return null; // a failed WMI query keeps the last list
             }
 
-            var merged = current.ToList();
-            foreach (var item in fresh)
-            {
-                string key = getKey(item);
-                int index = merged.FindIndex(m => getKey(m) == key);
-                if (index >= 0) merged[index] = item;
-                else merged.Add(item);
-            }
-
             // by content; the records hold lists (addresses, displays), which their own equality compares by reference
-            return JsonSerializer.Serialize(merged) == JsonSerializer.Serialize(current.ToList()) ? null : merged;
+            return JsonSerializer.Serialize(fresh) == JsonSerializer.Serialize(current.ToList()) ? null : fresh;
         }
 
 

@@ -380,6 +380,10 @@ namespace FluentSensors
             TryRestoreWidgetWindows();
             TryRestoreTaskbarWidgetWindow();
 
+            // from here they follow hardware that leaves or comes back
+            SensorsViewModel.Instance.SensorAvailabilityChanged += WidgetWindow.RefreshAvailability;
+            SensorsViewModel.Instance.SensorAvailabilityChanged += FluentSensors.Features.TaskbarWidget.TaskbarWidgetWindow.RefreshAvailability;
+
             if (hadForeground)
             {
                 ReclaimForeground();

@@ -217,6 +217,23 @@ namespace FluentSensors.Features.Widget
             newWindow.Activate();
         }
 
+        // hardware left or came back: every open widget shows the sensors of its saved selection that exist right now,
+        // so a graph goes with its device and returns with it; a widget whose sensors are all gone keeps what it has
+        public static void RefreshAvailability()
+        {
+            for (int index = 0; index < MaxWidgetWindows; index++)
+            {
+                var window = _openInstances[index];
+                if (window == null) continue;
+
+                var sensors = ResolveSensors(SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetWindow, index));
+                if (sensors.Count == 0) continue;
+                if (sensors.Select(s => s.Id).SequenceEqual(window.ViewModel.PinnedSensors.Select(p => p.SensorId))) continue;
+
+                window.ReconfigureFor(sensors);
+            }
+        }
+
         // brings the widget back without touching its content, for the tray; a no-op unless it is open
         // one pinned to the desktop becomes a normal window and stays one, or it could not come to the front
         public static void RestoreIfOpen(int index)

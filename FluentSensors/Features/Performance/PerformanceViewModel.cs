@@ -302,6 +302,20 @@ namespace FluentSensors.Features.Performance
         private void OnHardwareCollectionChanged(NotifyCollectionChangedEventArgs e, HardwareGroupKind kind,
             Func<object, string> getHardwareName, Func<object, SensorGraphViewModel> getPrimaryGraph)
         {
+            if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (var oldItem in e.OldItems)
+                {
+                    var navItem = NavItems.FirstOrDefault(item => ReferenceEquals(item.Target, oldItem));
+                    if (navItem == null) continue;
+
+                    // back to the start view first, so the page never shows a view whose hardware is gone
+                    if (ReferenceEquals(SelectedItem, navItem)) SelectedItem = null;
+                    NavItems.Remove(navItem);
+                }
+                return;
+            }
+
             if (e.Action != NotifyCollectionChangedAction.Add) return;
 
             string groupLabel = HardwareGroupInfo.GetProfile(kind).Label;

@@ -28,7 +28,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
             _staticInfo = MatchStaticInfo();
 
-            // never detached; an instance lives for the session
+            // until Detach
             WinStaticInfoService.Instance.NetworkAdaptersChanged += OnStaticInfoChanged;
 
             NetworkUtilizationOptions = new ObservableCollection<SensorSwitchCandidate>();
@@ -93,6 +93,15 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // the header and tile glyph; wi-fi for a wireless adapter, see HardwareGroupInfo.GetNetworkIconGlyph
         public string IconGlyph => HardwareGroupInfo.GetNetworkIconGlyph(_staticInfo?.InterfaceType);
+
+
+        // === public methods ===
+
+        // the hardware left and this instance with it
+        public void Detach()
+        {
+            WinStaticInfoService.Instance.NetworkAdaptersChanged -= OnStaticInfoChanged;
+        }
 
 
         // === event handlers ===

@@ -203,9 +203,22 @@ namespace FluentSensors.Features.Performance
             RecalculateCurrentDetailViewHeight();
         }
 
-        // hardware discovered after construction (a late LHM category) gets its detail view right away too
+        // hardware discovered after construction (a late LHM category) gets its detail view right away too; hardware
+        // that left takes its view along
         private void OnNavItemsChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (PerformanceNavItemViewModel item in e.OldItems)
+                {
+                    if (!_detailViewCache.Remove(item.Target, out UIElement view)) continue;
+
+                    if (ReferenceEquals(view, _currentDetailView)) _currentDetailView = null;
+                    DetailHostGrid.Children.Remove(view);
+                }
+                return;
+            }
+
             if (e.Action != NotifyCollectionChangedAction.Add) return;
 
             foreach (PerformanceNavItemViewModel item in e.NewItems)
