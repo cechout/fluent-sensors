@@ -34,19 +34,46 @@
             <Rectangle x:Name="NoiseOverlay" />
         </Canvas>
 
-        <!--  custom title bar: title  -->
+        <!--  custom title bar: title and more button  -->
         <!--  (26 tall; part of ChromeHeight in code; the text is the window name, set in the constructor)  -->
         <Grid
             x:Name="CustomTitleBar"
             Grid.Row="0"
             Height="26"
             Background="Transparent">
+
+            <!--  title  -->
             <TextBlock
                 x:Name="TitleText"
                 Margin="12,3,0,0"
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 Style="{StaticResource CaptionTextBlockStyle}" />
+
+            <!--  more button: minimize and close  -->
+            <!--  (stands in for the caption buttons; item texts set in the constructor, minimize goes while pinned)  -->
+            <Button
+                x:Name="MoreButton"
+                x:Uid="Widget_MoreButton"
+                Width="32"
+                Height="22"
+                Margin="0,4,4,0"
+                Padding="0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Style="{StaticResource SubtleButtonStyle}">
+                <Button.Flyout>
+                    <MenuFlyout Placement="BottomEdgeAlignedRight">
+                        <MenuFlyoutItem x:Name="MinimizeItem" Click="MinimizeItem_Click" />
+                        <MenuFlyoutItem x:Name="CloseItem" Click="CloseItem_Click" />
+                    </MenuFlyout>
+                </Button.Flyout>
+                <FontIcon
+                    FontSize="14"
+                    FontWeight="SemiLight"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Glyph="&#xE712;" />
+            </Button>
         </Grid>
 
 

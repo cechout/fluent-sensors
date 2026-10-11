@@ -1658,6 +1658,16 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
   <data name="Widget_BackToDashboardButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
     <value>Back to Main Application</value>
   </data>
+  <data name="Widget_MoreButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>More Options</value>
+  </data>
+  <data name="Widget_MoreButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>More Options</value>
+  </data>
+  <data name="Common_Minimize" xml:space="preserve">
+    <value>Minimize</value>
+    <comment>verb; menu entry that minimizes a window</comment>
+  </data>
   <data name="Sensors_GroupCount" xml:space="preserve">
     <value>{0}/{1} sensors</value>
     <comment>header of a hardware group in the sensor list, keep it short; {0} shown sensors, {1} all sensors of this hardware</comment>

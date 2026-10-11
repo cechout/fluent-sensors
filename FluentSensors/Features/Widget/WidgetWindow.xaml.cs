@@ -102,6 +102,12 @@ namespace FluentSensors.Features.Widget
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(CustomTitleBar);
 
+            // the more button sits in the drag region and needs its own passthrough rect
+            CustomTitleBar.Loaded += (s, e) => UpdateTitleBarPassthroughRegions();
+            CustomTitleBar.SizeChanged += (s, e) => UpdateTitleBarPassthroughRegions();
+            MinimizeItem.Text = AppStrings.Get("Common_Minimize");
+            CloseItem.Text = AppStrings.Get("Common_Close");
+
             // "Widget 1" and up, the name the tray and the sensors page use; also the taskbar and Alt+Tab title
             string title = AppStrings.Format("Widget_WindowTitle", index + 1);
             Title = title;
@@ -433,7 +439,12 @@ namespace FluentSensors.Features.Widget
             if (_isClosed) return;
 
             args.Cancel = true;
+            HideAndRetain();
+        }
 
+        // the close of Alt+F4 and of the more menu
+        private void HideAndRetain()
+        {
             SaveWindowState(wasOpen: false);
             _openInstances[Index] = null;
             _retainedInstances[Index] = this;
@@ -449,6 +460,33 @@ namespace FluentSensors.Features.Widget
 
 
         // === user interaction ===
+
+        // at Low priority, after the bar is laid out (like MainWindow)
+        private void UpdateTitleBarPassthroughRegions()
+        {
+            this.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
+                () => TitleBarPassthrough.Apply(this, CustomTitleBar, MoreButton));
+        }
+
+        // both queued, so the menu has closed before its window goes
+        private void MinimizeItem_Click(object sender, RoutedEventArgs e)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_appWindow.Presenter is OverlappedPresenter presenter)
+                {
+                    presenter.Minimize();
+                }
+            });
+        }
+
+        private void CloseItem_Click(object sender, RoutedEventArgs e)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (!_isClosed) HideAndRetain();
+            });
+        }
 
         private void OnTimeRangePicked(DependencyObject sender, DependencyProperty dp)
         {
@@ -512,6 +550,8 @@ namespace FluentSensors.Features.Widget
                     presenter.IsAlwaysOnTop = zOrder == WindowZOrder.AlwaysOnTop; // readable over other apps
                 }
             }
+
+            MinimizeItem.Visibility = zOrder == WindowZOrder.Desktop ? Visibility.Collapsed : Visibility.Visible;
 
             // only the bar moves: over the arrow, through its middle, under it
             (string labelKey, double barY) = zOrder switch
