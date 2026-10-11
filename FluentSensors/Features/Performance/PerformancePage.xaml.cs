@@ -351,6 +351,7 @@ namespace FluentSensors.Features.Performance
                 case GpuDetailView gpu: gpu.SyncSectionRenderingGate(); break;
                 case StorageDetailView storage: storage.SyncLayoutRenderingGate(); break;
                 case NetworkDetailView network: network.SyncLayoutRenderingGate(); break;
+                case BatteryDetailView battery: battery.SyncLayoutRenderingGate(); break;
             }
         }
 
@@ -369,6 +370,7 @@ namespace FluentSensors.Features.Performance
                     LhmMemoryInstanceViewModel memory => new MemoryDetailView { Memory = memory },
                     LhmStorageInstanceViewModel storage => new StorageDetailView { Storage = storage },
                     LhmNetworkInstanceViewModel network => new NetworkDetailView { Network = network },
+                    LhmBatteryInstanceViewModel battery => new BatteryDetailView { Battery = battery },
                     _ => null
                 };
 
@@ -481,6 +483,7 @@ namespace FluentSensors.Features.Performance
                     case MemoryDetailView memory: memory.RecalculateOverviewHeight(); break;
                     case StorageDetailView storage: storage.RecalculateOverviewHeight(); break;
                     case NetworkDetailView network: network.RecalculateOverviewHeight(); break;
+                    case BatteryDetailView battery: battery.RecalculateOverviewHeight(); break;
                 }
             });
         }

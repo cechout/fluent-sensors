@@ -1322,6 +1322,9 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
   </data>
+  <data name="Battery_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Größe der Hardwareinfo ändern</value>
+  </data>
   <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Größe der Hardwareinfo ändern</value>
   </data>

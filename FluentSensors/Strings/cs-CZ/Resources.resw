@@ -1322,6 +1322,9 @@ DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo 
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
   </data>
+  <data name="Battery_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
   <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Změnit velikost informací o hardwaru</value>
   </data>

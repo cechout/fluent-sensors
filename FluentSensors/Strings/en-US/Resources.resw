@@ -1335,6 +1335,9 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
   </data>
+  <data name="Battery_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
   <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Resize Hardware Info</value>
   </data>

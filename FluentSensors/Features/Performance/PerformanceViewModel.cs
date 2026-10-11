@@ -37,6 +37,7 @@ namespace FluentSensors.Features.Performance
             Memory = new LhmMemoryPerformanceViewModel();
             Storage = new LhmStoragePerformanceViewModel();
             Network = new LhmNetworkPerformanceViewModel();
+            Battery = new LhmBatteryPerformanceViewModel();
 
             NavItems = new ObservableCollection<PerformanceNavItemViewModel>();
 
@@ -96,6 +97,14 @@ namespace FluentSensors.Features.Performance
                     return FirstAvailable(adapter.NetworkUtilization, adapter.DownloadSpeed, adapter.UploadSpeed);
                 });
 
+            AttachExistingAndFuture(Battery.Batteries, HardwareGroupKind.Battery,
+                item => ((LhmBatteryInstanceViewModel)item).HardwareName,
+                item =>
+                {
+                    var battery = (LhmBatteryInstanceViewModel)item;
+                    return FirstAvailable(battery.ChargeLevel, battery.Rate, battery.Detail);
+                });
+
             SelectedItem = NavItems.FirstOrDefault(i => i.Kind == HardwareGroupKind.Cpu) ?? NavItems.FirstOrDefault();
         }
 
@@ -107,6 +116,7 @@ namespace FluentSensors.Features.Performance
         public LhmMemoryPerformanceViewModel Memory { get; }
         public LhmStoragePerformanceViewModel Storage { get; }
         public LhmNetworkPerformanceViewModel Network { get; }
+        public LhmBatteryPerformanceViewModel Battery { get; }
 
         // one per hardware instance, in the sidebar
         public ObservableCollection<PerformanceNavItemViewModel> NavItems { get; }

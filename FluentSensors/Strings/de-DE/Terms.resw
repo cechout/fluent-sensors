@@ -211,6 +211,9 @@
   <data name="Storage_Identifiers" xml:space="preserve">
     <value>Kennungen</value>
   </data>
+  <data name="Battery_BatteryInfo" xml:space="preserve">
+    <value>Akkuinfo</value>
+  </data>
   <data name="Network_NetworkInfo" xml:space="preserve">
     <value>Netzwerkinfo</value>
   </data>
