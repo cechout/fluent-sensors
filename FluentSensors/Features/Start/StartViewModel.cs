@@ -548,12 +548,22 @@ namespace FluentSensors.Features.Start
                 if (display.Length > 0) display = AppTerms.Format("Start_GpuDisplay", display);
 
                 rows.Add(Row(
-                    HardwareGroupKind.Gpu,
+                    GetGpuKind(gpu),
                     gpu.Name,
                     HardwareInfoFormatter.FormatVendorName(gpu.VendorId),
                     memory,
                     display));
             }
+        }
+
+        // the role as Windows reports it, so a tile pairs with the LHM group of the same gpu; without an answer the
+        // kernel flag of a hybrid pair decides
+        private static HardwareGroupKind GetGpuKind(WinGpuInfo gpu)
+        {
+            bool isIntegrated = WinDxCoreAdapters.IsIntegrated(gpu.VendorId, gpu.DeviceId)
+                ?? (gpu.AdapterLuid != 0 && WinDisplayTopology.HybridRole(gpu.AdapterLuid) == WinHybridRole.Integrated);
+
+            return isIntegrated ? HardwareGroupKind.IntegratedGpu : HardwareGroupKind.DiscreteGpu;
         }
 
         private static void AddDrives(List<SystemSnapshotEntry> rows, WinStaticInfoService info)

@@ -79,11 +79,41 @@
             YMaxStep = 25
         };
 
+        // battery capacity in mWh, tens of thousands
+        private static readonly SensorTypeProfile Energy = new()
+        {
+            ThresholdDefault = 20000,
+            ThresholdStep = 1000,
+            YMaxDefault = 100000,
+            YMaxStep = 5000
+        };
+
+        // seconds; battery runtime in hours, psu uptime far beyond
+        private static readonly SensorTypeProfile TimeSpan = new()
+        {
+            ThresholdDefault = 1800,
+            ThresholdStep = 300,
+            YMaxDefault = 36000,
+            YMaxStep = 1800
+        };
+
+        // battery and rail currents, a few A
+        private static readonly SensorTypeProfile Current = new()
+        {
+            ThresholdDefault = 5,
+            ThresholdStep = 0.5,
+            YMaxDefault = 10,
+            YMaxStep = 1
+        };
+
         // the raw SensorType.ToString() ("Clock", "Load")
         public static SensorTypeProfile GetProfile(string sensorType)
         {
             return sensorType switch
             {
+                "Energy" => Energy,
+                "TimeSpan" => TimeSpan,
+                "Current" => Current,
                 "Clock" => Clock,
                 "Data" => Data,
                 "SmallData" => SmallData,

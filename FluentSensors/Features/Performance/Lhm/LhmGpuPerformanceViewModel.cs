@@ -34,7 +34,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
             foreach (var instance in tree.HardwareGroups)
             {
-                if (instance.Kind == HardwareGroupKind.Gpu) AttachToInstance(instance);
+                if (HardwareGroupInfo.IsGpu(instance.Kind)) AttachToInstance(instance);
             }
             tree.HardwareGroups.CollectionChanged += OnTreeHardwareGroupsChanged;
         }
@@ -53,7 +53,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
             foreach (LhmHardwareInstance instance in e.NewItems)
             {
-                if (instance.Kind == HardwareGroupKind.Gpu) AttachToInstance(instance);
+                if (HardwareGroupInfo.IsGpu(instance.Kind)) AttachToInstance(instance);
             }
         }
 
@@ -62,7 +62,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         private void AttachToInstance(LhmHardwareInstance instance)
         {
-            var gpu = new LhmGpuInstanceViewModel(instance.HardwareName);
+            var gpu = new LhmGpuInstanceViewModel(instance.HardwareName, instance.Kind);
             Gpus.Add(gpu);
 
             foreach (var entry in instance.Sensors)

@@ -167,6 +167,9 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Main_LoadingControllers" xml:space="preserve">
     <value>Scanning controllers...</value>
   </data>
+  <data name="Main_LoadingPower" xml:space="preserve">
+    <value>Scanning battery and power devices...</value>
+  </data>
   <data name="Main_LoadingNetwork" xml:space="preserve">
     <value>Scanning network adapters...</value>
   </data>

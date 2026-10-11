@@ -71,13 +71,14 @@ namespace FluentSensors.Features.Performance
                 });
 
             // the longest chain: an Intel iGPU can report a single Power sensor and nothing else
-            AttachExistingAndFuture(Gpu.Gpus, HardwareGroupKind.Gpu,
+            AttachExistingAndFuture(Gpu.Gpus, HardwareGroupKind.DiscreteGpu,
                 item => ((LhmGpuInstanceViewModel)item).HardwareName,
                 item =>
                 {
                     var gpu = (LhmGpuInstanceViewModel)item;
                     return FirstAvailable(gpu.CoreLoad, gpu.D3dEngineSlot1, gpu.Temperature, gpu.PackagePower, gpu.MemoryUsed);
-                });
+                },
+                item => ((LhmGpuInstanceViewModel)item).Kind);
 
             AttachExistingAndFuture(Storage.Drives, HardwareGroupKind.Storage,
                 item => ((LhmStorageInstanceViewModel)item).PerformanceDisplayName,
@@ -286,21 +287,29 @@ namespace FluentSensors.Features.Performance
         }
 
         // the instances found before this view model existed, then the later ones; every category takes this path
+        // getKind is for a collection that holds more than one kind (the gpus, discrete and integrated)
         private void AttachExistingAndFuture(IEnumerable collection, HardwareGroupKind kind,
+            Func<object, string> getHardwareName, Func<object, SensorGraphViewModel> getPrimaryGraph,
+            Func<object, HardwareGroupKind> getKind = null)
+        {
+            foreach (var item in collection)
+            {
+                AddNavItem(item, getKind?.Invoke(item) ?? kind, getHardwareName, getPrimaryGraph);
+            }
+
+            ((INotifyCollectionChanged)collection).CollectionChanged += (s, e) => OnHardwareCollectionChanged(e, kind, getHardwareName, getPrimaryGraph, getKind);
+        }
+
+        private void AddNavItem(object item, HardwareGroupKind kind,
             Func<object, string> getHardwareName, Func<object, SensorGraphViewModel> getPrimaryGraph)
         {
             string groupLabel = HardwareGroupInfo.GetProfile(kind).Label;
-
-            foreach (var item in collection)
-            {
-                NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, item, getHardwareName, getPrimaryGraph));
-            }
-
-            ((INotifyCollectionChanged)collection).CollectionChanged += (s, e) => OnHardwareCollectionChanged(e, kind, getHardwareName, getPrimaryGraph);
+            NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, item, getHardwareName, getPrimaryGraph));
         }
 
         private void OnHardwareCollectionChanged(NotifyCollectionChangedEventArgs e, HardwareGroupKind kind,
-            Func<object, string> getHardwareName, Func<object, SensorGraphViewModel> getPrimaryGraph)
+            Func<object, string> getHardwareName, Func<object, SensorGraphViewModel> getPrimaryGraph,
+            Func<object, HardwareGroupKind> getKind)
         {
             if (e.Action == NotifyCollectionChangedAction.Remove)
             {
@@ -318,11 +327,9 @@ namespace FluentSensors.Features.Performance
 
             if (e.Action != NotifyCollectionChangedAction.Add) return;
 
-            string groupLabel = HardwareGroupInfo.GetProfile(kind).Label;
-
             foreach (var newItem in e.NewItems)
             {
-                NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, newItem, getHardwareName, getPrimaryGraph));
+                AddNavItem(newItem, getKind?.Invoke(newItem) ?? kind, getHardwareName, getPrimaryGraph);
             }
         }
 

@@ -312,8 +312,13 @@ namespace FluentSensors
 
             // scan fan and aio controllers (Aquacomputer, Corsair Commander, NZXT Kraken)
             LoadingStatusText.Text = AppStrings.Get("Main_LoadingControllers");
-            LoadingProgressBar.Value = 75;
+            LoadingProgressBar.Value = 70;
             await monitor.InitControllerAsync();
+
+            // scan the battery, usb power supplies and power monitors
+            LoadingStatusText.Text = AppStrings.Get("Main_LoadingPower");
+            LoadingProgressBar.Value = 85;
+            await monitor.InitPowerAsync();
 
             // scan network adapters (virtual ones included)
             LoadingStatusText.Text = AppStrings.Get("Main_LoadingNetwork");

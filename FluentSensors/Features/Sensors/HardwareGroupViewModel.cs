@@ -123,6 +123,21 @@ namespace FluentSensors.Features.Sensors
         }
 
 
+        // takes the row of a sensor that is gone out of whichever list holds it; null when there is none
+        public SensorRowViewModel RemoveSensor(string sensorId)
+        {
+            var row = Sensors.FirstOrDefault(s => s.Id == sensorId) ?? HiddenSensors.FirstOrDefault(s => s.Id == sensorId);
+            if (row == null) return null;
+
+            if (!Sensors.Remove(row)) HiddenSensors.Remove(row);
+
+            OnPropertyChanged(nameof(HasHiddenSensors));
+            OnPropertyChanged(nameof(HiddenPanelVisibility));
+            NotifySensorCountChanged();
+            return row;
+        }
+
+
         // every checked sensor into the hidden list
         public void HideSelectedSensors()
         {

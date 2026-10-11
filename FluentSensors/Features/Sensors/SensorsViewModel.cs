@@ -229,8 +229,39 @@ namespace FluentSensors.Features.Sensors
 
             foreach (LhmSensorEntry entry in e.NewItems)
             {
-                OnSensorDiscovered(group, entry);
+                WatchSensor(group, entry);
             }
+        }
+
+        // the row leaves while LHM has its sensor deactivated and is built new when it is back, like the group of
+        // unplugged hardware
+        private void WatchSensor(HardwareGroupViewModel group, LhmSensorEntry entry)
+        {
+            if (entry.IsActive) OnSensorDiscovered(group, entry);
+
+            entry.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName != nameof(LhmSensorEntry.IsActive)) return;
+
+                if (entry.IsActive) OnSensorDiscovered(group, entry);
+                else OnSensorRemoved(group, entry);
+            };
+        }
+
+        // the saved selection, hidden state and threshold stay in their services
+        private void OnSensorRemoved(HardwareGroupViewModel group, LhmSensorEntry entry)
+        {
+            // a group whose hardware left in the meantime
+            if (!HardwareGroups.Contains(group)) return;
+
+            var row = group.RemoveSensor(entry.Id);
+            if (row == null) return;
+
+            row.PropertyChanged -= OnSensorRowSelectionChanged;
+            row.Cleanup();
+
+            OnPropertyChanged(nameof(HasHiddenSensors));
+            QueueSensorAvailabilityChanged();
         }
 
         // a group hidden-state change into the aggregate
@@ -338,7 +369,7 @@ namespace FluentSensors.Features.Sensors
 
             foreach (var entry in instance.Sensors)
             {
-                OnSensorDiscovered(group, entry);
+                WatchSensor(group, entry);
             }
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(group, e);
         }
@@ -402,6 +433,9 @@ namespace FluentSensors.Features.Sensors
         {
             var persistedState = SensorStateService.Instance.GetState(entry.Id);
             bool isHidden = persistedState.IsHidden;
+
+            // a group whose hardware left in the meantime
+            if (!HardwareGroups.Contains(group)) return;
 
             // IsHidden, then Entry, then IsSelected: the Entry setter syncs the value unless hidden, the IsSelected
             // setter persists and needs Entry.Id

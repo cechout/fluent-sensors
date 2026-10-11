@@ -9,14 +9,40 @@ namespace FluentSensors.Core.Lhm
     public class LhmSensorEntry : INotifyPropertyChanged
     {
         public string Id { get; }
-        public string Name { get; }
         public string SensorType { get; }
 
         public LhmSensorEntry(string id, string name, string sensorType)
         {
             Id = id;
-            Name = name;
+            _name = name;
             SensorType = sensorType;
+        }
+
+        // LHM renames a few sensors while they run (the battery rate reads "Charge Rate" or "Discharge Rate")
+        private string _name;
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                if (_name == value) return;
+                _name = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // false while LHM has the sensor deactivated (a battery on mains reports no remaining time); the entry stays in
+        // its instance and Value keeps the last reading, so only a consumer that lists sensors has to react
+        private bool _isActive = true;
+        public bool IsActive
+        {
+            get => _isActive;
+            set
+            {
+                if (_isActive == value) return;
+                _isActive = value;
+                OnPropertyChanged();
+            }
         }
 
         private double _value;

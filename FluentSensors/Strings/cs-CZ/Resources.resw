@@ -158,6 +158,9 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Main_LoadingControllers" xml:space="preserve">
     <value>Zjišťování řadičů...</value>
   </data>
+  <data name="Main_LoadingPower" xml:space="preserve">
+    <value>Zjišťování baterie a napájení...</value>
+  </data>
   <data name="Main_LoadingNetwork" xml:space="preserve">
     <value>Zjišťování síťových adaptérů...</value>
   </data>

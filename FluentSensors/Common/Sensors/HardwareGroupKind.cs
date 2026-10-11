@@ -5,9 +5,11 @@
     {
         Cpu,
         Ram,
-        Gpu,
+        DiscreteGpu,
+        IntegratedGpu,
         Storage,
         Network,
+        Battery,
 
         // the rest (motherboard, fan and AIO controllers like Aquacomputer or Corsair Commander); keeps GetKind total
         Other

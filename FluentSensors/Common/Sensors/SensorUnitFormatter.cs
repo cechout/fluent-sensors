@@ -4,8 +4,12 @@ namespace FluentSensors.Common.Sensors
     // an LHM SensorType to its display unit, one source for every graph, row, threshold and recording
     public static class SensorUnitFormatter
     {
-        // Clock, SmallData and Throughput step up a unit here
+        // Clock, SmallData, Throughput, Frequency and Energy step up a unit here
         private const double ScaleThreshold = 1000;
+
+        // TimeSpan steps from seconds to minutes to hours
+        private const double SecondsPerMinute = 60;
+        private const double SecondsPerHour = 3600;
 
         // the sensors report binary units (SmallData MiB, Data GiB, Throughput MiB/s via
         // HardwareMonitorService), shown as MB and GB
@@ -43,7 +47,16 @@ namespace FluentSensors.Common.Sensors
                 "Voltage" => "V",
                 "Fan" => "RPM",
                 "Throughput" => "MB/s",
-                _ => ""
+                "Current" => "A",
+                "Frequency" => "Hz",
+                "Flow" => "L/h",
+                "Control" or "Level" or "Humidity" => "%",
+                "TimeSpan" => "s",
+                "Timing" => "ns",
+                "Energy" => "mWh",
+                "Noise" => "dBA",
+                "Conductivity" => "µS/cm",
+                _ => "" // Factor, a bare number
             };
         }
 
@@ -59,6 +72,10 @@ namespace FluentSensors.Common.Sensors
                 "Data" when DataSizeBasis == DataUnitBasis.Bit => (value * GibibytesToGigabits, "Gbit"),
                 "Throughput" when DataSpeedBasis == DataUnitBasis.Bit => ScaleBits(value * MebibytesToMegabits, "Mbit/s", "Gbit/s"),
                 "Throughput" when value >= ScaleThreshold => (value / ScaleThreshold, "GB/s"),
+                "Frequency" when value >= ScaleThreshold => (value / ScaleThreshold, "kHz"),
+                "Energy" when value >= ScaleThreshold => (value / ScaleThreshold, "Wh"),
+                "TimeSpan" when value >= SecondsPerHour => (value / SecondsPerHour, "h"),
+                "TimeSpan" when value >= SecondsPerMinute => (value / SecondsPerMinute, "min"),
                 _ => (value, GetUnit(sensorType))
             };
         }

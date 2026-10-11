@@ -34,18 +34,23 @@ namespace FluentSensors.Common.Sensors
 
 
         // Hardware.HardwareType.ToString() ("Cpu", "GpuNvidia", "Memory"); named apart from SensorData.SensorType
-        public static HardwareGroupKind GetKind(string hardwareType)
+        // LHM has no type for the gpu role, so it comes in beside it
+        public static HardwareGroupKind GetKind(string hardwareType, bool isIntegratedGpu)
         {
             return hardwareType switch
             {
                 "Cpu" => HardwareGroupKind.Cpu,
                 "Memory" => HardwareGroupKind.Ram,
-                "GpuNvidia" or "GpuAmd" or "GpuIntel" => HardwareGroupKind.Gpu,
+                "GpuNvidia" or "GpuAmd" or "GpuIntel" => isIntegratedGpu ? HardwareGroupKind.IntegratedGpu : HardwareGroupKind.DiscreteGpu,
                 "Storage" => HardwareGroupKind.Storage,
                 "Network" => HardwareGroupKind.Network,
-                _ => HardwareGroupKind.Other // e.g. Motherboard, Controller
+                "Battery" => HardwareGroupKind.Battery,
+                _ => HardwareGroupKind.Other // e.g. Motherboard, Controller, Psu
             };
         }
+
+        public static bool IsGpu(HardwareGroupKind kind) =>
+            kind is HardwareGroupKind.DiscreteGpu or HardwareGroupKind.IntegratedGpu;
 
         // the category icon brush: tinted with icon colours on, the plain foreground off; (graph colours come from
         // SensorGraphViewModel, another setting)
@@ -69,10 +74,13 @@ namespace FluentSensors.Common.Sensors
             {
                 HardwareGroupKind.Cpu => new HardwareGroupProfile { Label = "CPU", IconGlyph = HasFluentIconGlyphs ? CpuGlyph : CpuFallbackGlyph, Colors = ThemeColorPair.FromRgb(0x02B3BF, 0x02B3BF) },
                 HardwareGroupKind.Ram => new HardwareGroupProfile { Label = "RAM", IconGlyph = HasFluentIconGlyphs ? RamGlyph : RamFallbackGlyph, Colors = ThemeColorPair.FromRgb(0x4FA2F8, 0x4FA2F8) },
-                HardwareGroupKind.Gpu => new HardwareGroupProfile { Label = "GPU", IconGlyph = "\uF211", Colors = ThemeColorPair.FromRgb(0xC67ED9, 0xC67ED9) },
+                // two categories that share icon and colour
+                HardwareGroupKind.DiscreteGpu => new HardwareGroupProfile { Label = "dGPU", IconGlyph = "\uF211", Colors = ThemeColorPair.FromRgb(0xC67ED9, 0xC67ED9) },
+                HardwareGroupKind.IntegratedGpu => new HardwareGroupProfile { Label = "iGPU", IconGlyph = "\uF211", Colors = ThemeColorPair.FromRgb(0xC67ED9, 0xC67ED9) },
                 HardwareGroupKind.Storage => new HardwareGroupProfile { Label = "Storage", IconGlyph = "\uEDA2", Colors = ThemeColorPair.FromRgb(0x83AF3E, 0x83AF3E) },
                 // the category glyph is the wired one; a wireless adapter swaps it, see GetNetworkIconGlyph
                 HardwareGroupKind.Network => new HardwareGroupProfile { Label = "Network", IconGlyph = WiredNetworkGlyph, Colors = ThemeColorPair.FromRgb(0xE97295, 0xE97295) },
+                HardwareGroupKind.Battery => new HardwareGroupProfile { Label = "Battery", IconGlyph = "\uE83F", Colors = ThemeColorPair.FromRgb(0xD9A441, 0xD9A441) },
                 _ => new HardwareGroupProfile { Label = "Other", IconGlyph = "\uEA1F", Colors = ThemeColorPair.FromRgb(0x9E9E9E, 0x9E9E9E) } // placeholder color
             };
         }

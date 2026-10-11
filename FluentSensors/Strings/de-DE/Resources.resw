@@ -158,6 +158,9 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Main_LoadingControllers" xml:space="preserve">
     <value>Controller werden erkannt...</value>
   </data>
+  <data name="Main_LoadingPower" xml:space="preserve">
+    <value>Akku und Stromversorgung werden erkannt...</value>
+  </data>
   <data name="Main_LoadingNetwork" xml:space="preserve">
     <value>Netzwerkadapter werden erkannt...</value>
   </data>

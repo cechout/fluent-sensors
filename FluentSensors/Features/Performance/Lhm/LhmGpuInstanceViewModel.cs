@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
 using FluentSensors.Persistence.Services;
@@ -27,9 +28,10 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === constructor ===
 
-        public LhmGpuInstanceViewModel(string hardwareName)
+        public LhmGpuInstanceViewModel(string hardwareName, HardwareGroupKind kind)
         {
             HardwareName = hardwareName;
+            Kind = kind;
 
             _staticInfo = MatchStaticInfo();
 
@@ -47,6 +49,9 @@ namespace FluentSensors.Features.Performance.Lhm
         // === bindable properties ===
 
         public string HardwareName { get; }
+
+        // DiscreteGpu or IntegratedGpu
+        public HardwareGroupKind Kind { get; }
 
         // overview categories; the public setter persists the choice, SetXWithoutPersisting is for the default or
         // restored graph (PackagePower and MemoryUsed alike)

@@ -38,12 +38,13 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === bindable properties ===
 
-        // header
-        public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).Label;
-        public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Gpu).IconGlyph;
+        // header; dGPU or iGPU, by the shown instance
+        private HardwareGroupKind GroupKind => Gpu?.Kind ?? HardwareGroupKind.DiscreteGpu;
+        public string GroupLabel => HardwareGroupInfo.GetProfile(GroupKind).Label;
+        public string GroupIconGlyph => HardwareGroupInfo.GetProfile(GroupKind).IconGlyph;
 
         // header icon colour, re-read by HardwareIconColorBinding (the graph colour stays)
-        public SolidColorBrush GroupIconBrush => HardwareGroupInfo.GetIconBrush(HardwareGroupKind.Gpu);
+        public SolidColorBrush GroupIconBrush => HardwareGroupInfo.GetIconBrush(GroupKind);
 
 
         // === dependency properties ===

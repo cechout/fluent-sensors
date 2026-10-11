@@ -265,6 +265,12 @@ namespace FluentSensors.Controls.SensorRow
         // live value ticks from LhmHardwareTreeService
         private void OnEntryPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            if (e.PropertyName == nameof(LhmSensorEntry.Name))
+            {
+                OnPropertyChanged(nameof(Name));
+                return;
+            }
+
             if (e.PropertyName != nameof(LhmSensorEntry.Value)) return;
 
             // hidden and disabled sensors show no live values
