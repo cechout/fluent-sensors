@@ -112,6 +112,8 @@ namespace FluentSensors.Features.Widget
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = true;
             presenter.IsResizable = true;
+            // frame, corners and shadow stay; the system title bar and its caption buttons go
+            presenter.SetBorderAndTitleBar(true, false);
             _appWindow.SetPresenter(presenter);
 
             // resize floor for the pinned sensor count; (ReconfigureFor recalculates it)
