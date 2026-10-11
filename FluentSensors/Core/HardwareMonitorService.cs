@@ -79,6 +79,11 @@ namespace FluentSensors.Core
         // sensors LHM deactivated since the last tick, by id; under _sensorLock, broadcast like _removedHardwareNames
         private readonly List<string> _removedSensorIds = new();
 
+        // deactivated sensors still inside the grace time, with the moment LHM dropped them; under _sensorLock
+        // (an Intel core VID turns off and on again with every read that comes back empty)
+        private readonly Dictionary<ISensor, long> _pendingSensorRemovals = new();
+        private const double SensorRemovalGraceMs = 5000;
+
 
         // === singleton instance ===
 
@@ -242,6 +247,7 @@ namespace FluentSensors.Core
                 }
                 _watchedHardware.Clear();
                 _integratedGpus.Clear();
+                _pendingSensorRemovals.Clear();
             }
 
             _cts = null;
@@ -400,6 +406,8 @@ namespace FluentSensors.Core
 
                 lock (_sensorLock)
                 {
+                    CommitSensorRemovals();
+
                     foreach (var sensor in _activeSensors)
                     {
                         string id = sensor.Identifier.ToString();
@@ -464,7 +472,7 @@ namespace FluentSensors.Core
                         _removedHardwareNames.Clear();
                     }
 
-                    // a sensor that is active again already (off and on within one tick) stays
+                    // a sensor that is in the payload again already stays
                     if (_removedSensorIds.Count > 0)
                     {
                         var present = new HashSet<string>(payload.Select(data => data.Id));
@@ -631,6 +639,7 @@ namespace FluentSensors.Core
             {
                 UnwatchHardware(hardware);
                 _activeSensors.RemoveAll(sensors.Contains);
+                foreach (var sensor in sensors) _pendingSensorRemovals.Remove(sensor);
                 _removedHardwareNames.AddRange(names);
             }
         }
@@ -641,14 +650,36 @@ namespace FluentSensors.Core
         {
             lock (_sensorLock)
             {
+                _pendingSensorRemovals.Remove(sensor);
                 if (!_activeSensors.Contains(sensor)) _activeSensors.Add(sensor);
             }
         }
 
+        // only noted; the sensor stays until it has been off for the grace time, see CommitSensorRemovals
         private void OnSensorRemoved(ISensor sensor)
         {
             lock (_sensorLock)
             {
+                if (_activeSensors.Contains(sensor)) _pendingSensorRemovals[sensor] = Stopwatch.GetTimestamp();
+            }
+        }
+
+        // drops the sensors that stayed deactivated for the grace time; under _sensorLock
+        private void CommitSensorRemovals()
+        {
+            if (_pendingSensorRemovals.Count == 0) return;
+
+            List<ISensor>? expired = null;
+            foreach (var pending in _pendingSensorRemovals)
+            {
+                if (Stopwatch.GetElapsedTime(pending.Value).TotalMilliseconds < SensorRemovalGraceMs) continue;
+                (expired ??= new List<ISensor>()).Add(pending.Key);
+            }
+            if (expired == null) return;
+
+            foreach (var sensor in expired)
+            {
+                _pendingSensorRemovals.Remove(sensor);
                 if (_activeSensors.Remove(sensor)) _removedSensorIds.Add(sensor.Identifier.ToString());
             }
         }
