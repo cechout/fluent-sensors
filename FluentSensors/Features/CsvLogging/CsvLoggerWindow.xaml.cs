@@ -83,15 +83,24 @@ namespace FluentSensors.Features.CsvLogging
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(CustomTitleBar);
 
-            // the back button sits in the drag region and needs its own passthrough rect
+            // the back and more buttons sit in the drag region and need their own passthrough rects
             CustomTitleBar.Loaded += (s, e) => UpdateTitleBarPassthroughRegions();
             CustomTitleBar.SizeChanged += (s, e) => UpdateTitleBarPassthroughRegions();
+            MinimizeItem.Text = AppStrings.Get("Common_Minimize");
+            CloseItem.Text = AppStrings.Get("Common_Close");
+
+            // the title bar text; also the taskbar and Alt+Tab title
+            string title = AppStrings.Get("CsvLogger_WindowTitle");
+            Title = title;
+            TitleText.Text = title;
 
             var presenter = OverlappedPresenter.Create();
             presenter.IsAlwaysOnTop = true; // like the widget, readable over other apps
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = true;
             presenter.IsResizable = true; // width only, see ApplyWindowSize
+            // frame, corners and shadow stay; the system title bar and its caption buttons go
+            presenter.SetBorderAndTitleBar(true, false);
             _appWindow.SetPresenter(presenter);
 
             // content state before the first measure; (status line and expand state change the height)
@@ -331,7 +340,12 @@ namespace FluentSensors.Features.CsvLogging
             if (_isClosed) return;
 
             args.Cancel = true;
+            HideAndRetain();
+        }
 
+        // the close of Alt+F4 and of the more menu
+        private void HideAndRetain()
+        {
             SaveWindowState();
             CurrentInstance = null;
             _retainedInstance = this;
@@ -433,7 +447,27 @@ namespace FluentSensors.Features.CsvLogging
         private void UpdateTitleBarPassthroughRegions()
         {
             this.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low,
-                () => TitleBarPassthrough.Apply(this, CustomTitleBar, BackToDashboardButton));
+                () => TitleBarPassthrough.Apply(this, CustomTitleBar, BackToDashboardButton, MoreButton));
+        }
+
+        // both queued, so the menu has closed before its window goes
+        private void MinimizeItem_Click(object sender, RoutedEventArgs e)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_appWindow.Presenter is OverlappedPresenter presenter)
+                {
+                    presenter.Minimize();
+                }
+            });
+        }
+
+        private void CloseItem_Click(object sender, RoutedEventArgs e)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (!_isClosed) HideAndRetain();
+            });
         }
 
         private void BackToDashboard_Click(object sender, RoutedEventArgs e)

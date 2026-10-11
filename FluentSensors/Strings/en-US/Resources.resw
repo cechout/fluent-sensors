@@ -1664,6 +1664,16 @@ DHCP Enabled - whether this connection's own address was assigned automatically 
   <data name="Widget_MoreButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
     <value>More Options</value>
   </data>
+  <data name="CsvLogger_MoreButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>More Options</value>
+  </data>
+  <data name="CsvLogger_MoreButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>More Options</value>
+  </data>
+  <data name="CsvLogger_WindowTitle" xml:space="preserve">
+    <value>CSV Logging</value>
+    <comment>title of the CSV logger window, in its title bar, on the taskbar and in Alt+Tab</comment>
+  </data>
   <data name="Common_Minimize" xml:space="preserve">
     <value>Minimize</value>
     <comment>verb; menu entry that minimizes a window</comment>
