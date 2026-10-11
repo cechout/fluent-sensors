@@ -69,6 +69,7 @@
                     <FontIcon
                         FontSize="14"
                         FontWeight="SemiLight"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Glyph="&#xE944;" />
                 </Button>
 
@@ -90,6 +91,7 @@
                     <FontIcon
                         FontSize="14"
                         FontWeight="SemiLight"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Glyph="&#xE712;" />
                 </Button>
             </StackPanel>
