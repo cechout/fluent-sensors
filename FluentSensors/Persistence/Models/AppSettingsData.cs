@@ -28,11 +28,12 @@ namespace FluentSensors.Persistence.Models
         // HardwareColorMode (graph colors are per surface, see GraphColorSource)
         public bool UseHardwareIconColors { get; set; } = false;
 
+        // sensor type colors; the graphs of the performance page and the check boxes of the sensors page, instead of
+        // the hardware color (the widget and the taskbar have SensorType in their own GraphColorSource)
+        public bool UseSensorTypeColors { get; set; } = false;
+
         // graph; global, every graph in the app
         public GraphLineStyle GraphLineStyle { get; set; } = GraphLineStyle.Stepline;
-        // the colour source of the performance page and the sensors page, and of a surface that says Global
-        public GraphColorSource GlobalGraphColorSource { get; set; } = Common.Sensors.GraphColorSource.Hardware;
-        public Windows.UI.Color GlobalGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         // the area under the line fades towards the bottom instead of one flat tone
         public bool GraphFillFade { get; set; } = false;
 
@@ -85,7 +86,7 @@ namespace FluentSensors.Persistence.Models
 
         // graph; the color source default is a constant, the saved selector starts null (a file without one either
         // predates it and LoadFromData reads the legacy bool, or there is no file yet)
-        public const GraphColorSource DefaultGraphColorSource = Common.Sensors.GraphColorSource.Global;
+        public const GraphColorSource DefaultGraphColorSource = Common.Sensors.GraphColorSource.Hardware;
         public GraphColorSource? GraphColorSource { get; set; } = null;
         public Windows.UI.Color GraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public double GraphTimeSpanSeconds { get; set; } = 60;
@@ -97,7 +98,7 @@ namespace FluentSensors.Persistence.Models
         public bool TaskbarWidgetPositionLocked { get; set; } = false;
 
         // graph; the color source default works like the widget one
-        public const GraphColorSource DefaultTaskbarGraphColorSource = Common.Sensors.GraphColorSource.Global;
+        public const GraphColorSource DefaultTaskbarGraphColorSource = Common.Sensors.GraphColorSource.Hardware;
         public GraphColorSource? TaskbarGraphColorSource { get; set; } = null;
         public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public bool TaskbarUseTransparentGraphBackground { get; set; } = true;

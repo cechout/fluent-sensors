@@ -146,8 +146,8 @@ namespace FluentSensors.Controls.SensorRow
             UpdateVisualState(useTransitions: false);
             UpdateDisplayState();
 
-            SettingsService.Instance.GlobalGraphColorChanged -= UpdateCheckBoxColor;
-            SettingsService.Instance.GlobalGraphColorChanged += UpdateCheckBoxColor;
+            SettingsService.Instance.SensorTypeColorsChanged -= UpdateCheckBoxColor;
+            SettingsService.Instance.SensorTypeColorsChanged += UpdateCheckBoxColor;
             UpdateCheckBoxColor();
         }
 
@@ -167,7 +167,7 @@ namespace FluentSensors.Controls.SensorRow
             }
             this.Bindings.StopTracking();
 
-            SettingsService.Instance.GlobalGraphColorChanged -= UpdateCheckBoxColor;
+            SettingsService.Instance.SensorTypeColorsChanged -= UpdateCheckBoxColor;
         }
 
 
@@ -305,13 +305,13 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // the checkbox carries the sensor type colour while that is the global graph colour source: the fill when
+        // the checkbox carries the sensor type colour while the sensor type colours switch is on: the fill when
         // checked, the border when unchecked; the standard checkbox otherwise, and for a type without a group colour
         private void UpdateCheckBoxColor()
         {
             ThemeColorPair colors = default;
             bool hasTypeColor = ViewModel != null
-                && SettingsService.Instance.GlobalGraphColorSource == GraphColorSource.SensorType
+                && SettingsService.Instance.UseSensorTypeColors
                 && SensorTypeGroupInfo.TryGetColors(ViewModel.SensorType, out colors);
 
             if (hasTypeColor)

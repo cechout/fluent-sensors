@@ -52,9 +52,9 @@ namespace FluentSensors.Features.Settings
             RestoreCsvFormatSelection();
             RestoreGraphLineStyleSelection();
             RestoreGraphFillFadeSelection();
-            RestoreGlobalGraphColorSettings();
             RestoreDataUnitSelection();
             RestoreHardwareIconColorsSelection();
+            RestoreSensorTypeColorsSelection();
 
             // the time range lists the pickers share; from code, the restores below run before x:Bind would
             TaskbarGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
@@ -86,10 +86,6 @@ namespace FluentSensors.Features.Settings
             CsvBackgroundColorPicker.RegisterPropertyChangedCallback(
                 CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
                 CsvBackgroundColorPicker_SelectedColorChanged);
-
-            GlobalGraphColorPicker.RegisterPropertyChangedCallback(
-                CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
-                GlobalGraphColorPicker_SelectedColorChanged);
 
             GraphColorPicker.RegisterPropertyChangedCallback(
                 CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
@@ -689,41 +685,6 @@ namespace FluentSensors.Features.Settings
             SelectByTag(GraphFillComboBox, SettingsService.Instance.GraphFillFade ? "Fade" : "Solid");
         }
 
-        // graph colour source, the third global graph setting; the widget and taskbar selectors follow it on Global
-        private void GlobalGraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (GlobalGraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
-                && Enum.TryParse(tag, out GraphColorSource source))
-            {
-                SettingsService.Instance.GlobalGraphColorSource = source;
-            }
-
-            UpdateGraphColorPickerStates();
-        }
-
-        private void GlobalGraphColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
-        {
-            if (_isLoading) return;
-
-            if (sender is CommunityToolkit.WinUI.Controls.ColorPickerButton colorPicker)
-            {
-                // a picked color switches the source to custom
-                SettingsService.Instance.GlobalGraphColorSource = GraphColorSource.Custom;
-                SelectByTag(GlobalGraphColorSourceComboBox, nameof(GraphColorSource.Custom));
-
-                SettingsService.Instance.GlobalGraphCustomColor = colorPicker.SelectedColor;
-                UpdateGraphColorPickerStates();
-            }
-        }
-
-        private void RestoreGlobalGraphColorSettings()
-        {
-            SelectByTag(GlobalGraphColorSourceComboBox, SettingsService.Instance.GlobalGraphColorSource.ToString());
-            GlobalGraphColorPicker.SelectedColor = SettingsService.Instance.GlobalGraphCustomColor;
-
-            UpdateGraphColorPickerStates();
-        }
-
         // bytes or bits, separately for sizes and speeds, so a network speed reads Mbit/s while memory stays in MB
         private void DataSizeUnitComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -765,6 +726,20 @@ namespace FluentSensors.Features.Settings
         private void RestoreHardwareIconColorsSelection()
         {
             HardwareIconColorsToggle.IsOn = SettingsService.Instance.UseHardwareIconColors;
+        }
+
+        // the performance page graphs and the sensors page check boxes; (the widget and the taskbar pick the sensor
+        // type color in their own selectors)
+        private void SensorTypeColorsToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            SettingsService.Instance.UseSensorTypeColors = SensorTypeColorsToggle.IsOn;
+        }
+
+        private void RestoreSensorTypeColorsSelection()
+        {
+            SensorTypeColorsToggle.IsOn = SettingsService.Instance.UseSensorTypeColors;
         }
 
 
@@ -862,7 +837,6 @@ namespace FluentSensors.Features.Settings
         // a picker only while its selector says custom
         private void UpdateGraphColorPickerStates()
         {
-            GlobalGraphColorPicker.IsEnabled = SettingsService.Instance.GlobalGraphColorSource == GraphColorSource.Custom;
             GraphColorPicker.IsEnabled = SettingsService.Instance.GraphColorSource == GraphColorSource.Custom;
             TaskbarGraphColorPicker.IsEnabled = SettingsService.Instance.TaskbarGraphColorSource == GraphColorSource.Custom;
         }

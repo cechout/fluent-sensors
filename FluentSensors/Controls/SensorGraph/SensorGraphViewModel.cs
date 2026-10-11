@@ -96,9 +96,6 @@ namespace FluentSensors.Controls.SensorGraph
             GraphLineStyle = SettingsService.Instance.GraphLineStyle;
             GraphFillFade = SettingsService.Instance.GraphFillFade;
 
-            // a surface on Global follows the global colour source
-            SettingsService.Instance.GlobalGraphColorChanged += RefreshGraphColor;
-
             HardwareMonitorService.Instance.UpdateIntervalChanged += OnUpdateIntervalChanged;
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
             SettingsService.Instance.GraphLineStyleChanged += OnGraphLineStyleChanged;
@@ -408,8 +405,6 @@ namespace FluentSensors.Controls.SensorGraph
                 SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
             }
 
-            SettingsService.Instance.GlobalGraphColorChanged -= RefreshGraphColor;
-
             SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
             SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
@@ -630,8 +625,6 @@ namespace FluentSensors.Controls.SensorGraph
         // accent without a category (the performance page passes a GraphHardwareKind instead)
         private ThemeColorPair ResolveGraphColor(GraphColorSource source, Windows.UI.Color customColor)
         {
-            (source, customColor) = SettingsService.Instance.ResolveGraphColorSource(source, customColor);
-
             if (source == GraphColorSource.SensorType && SensorTypeGroupInfo.TryGetColors(SensorType, out var typeColors))
             {
                 return typeColors;

@@ -226,26 +226,11 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Hardware Icon Colors</value>
   </data>
-  <data name="Settings_GlobalGraphColorSourceCard.Header" xml:space="preserve">
-    <value>Graph Color Source</value>
+  <data name="Settings_SensorTypeColorsCard.Header" xml:space="preserve">
+    <value>Sensor Type Colors</value>
   </data>
-  <data name="Settings_GlobalGraphColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
-    <value>Graph Color Source</value>
-  </data>
-  <data name="Settings_GlobalGraphColorSourceComboBox_Accent.Content" xml:space="preserve">
-    <value>Windows Accent</value>
-  </data>
-  <data name="Settings_GlobalGraphColorSourceComboBox_Custom.Content" xml:space="preserve">
-    <value>Custom Color</value>
-  </data>
-  <data name="Settings_GlobalGraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
-    <value>Hardware Color</value>
-  </data>
-  <data name="Settings_GlobalGraphColorSourceComboBox_SensorType.Content" xml:space="preserve">
-    <value>Sensor Type Color</value>
-  </data>
-  <data name="Settings_GlobalGraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
-    <value>Graph Color</value>
+  <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
+    <value>Performance graphs and sensor list</value>
   </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Graphs</value>
@@ -416,9 +401,6 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Settings_GraphColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Graph Color Source</value>
   </data>
-  <data name="Settings_GraphColorSourceComboBox_Global.Content" xml:space="preserve">
-    <value>Global</value>
-  </data>
   <data name="Settings_GraphColorSourceComboBox_Accent.Content" xml:space="preserve">
     <value>Windows Accent</value>
   </data>
@@ -454,9 +436,6 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   </data>
   <data name="Settings_TaskbarGraphColorSourceComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Graph Color Source</value>
-  </data>
-  <data name="Settings_TaskbarGraphColorSourceComboBox_Global.Content" xml:space="preserve">
-    <value>Global</value>
   </data>
   <data name="Settings_TaskbarGraphColorSourceComboBox_Accent.Content" xml:space="preserve">
     <value>Windows Accent</value>

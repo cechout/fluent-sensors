@@ -55,13 +55,25 @@
                     <!--  hardware icon colors  -->
                     <!--
                         (reaches the start page tiles, the sensor list and hidden sensor group headers, and the hardware
-                        views own headers; the graph color source has its own card below)
+                        views own headers; graph colors are a per surface choice and sit in their Graph sections instead)
                     -->
                     <controls:SettingsCard x:Uid="Settings_HardwareIconColorsCard">
                         <ToggleSwitch
                             x:Name="HardwareIconColorsToggle"
                             x:Uid="Common_ToggleSwitch"
                             Toggled="HardwareIconColorsToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <!--  sensor type colors  -->
+                    <!--
+                        (the performance page graphs and the sensors page check boxes by what a sensor measures; the
+                        widget and the taskbar have the same choice in their own graph color selectors)
+                    -->
+                    <controls:SettingsCard x:Uid="Settings_SensorTypeColorsCard">
+                        <ToggleSwitch
+                            x:Name="SensorTypeColorsToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="SensorTypeColorsToggle_Toggled" />
                     </controls:SettingsCard>
 
                     <!--  graph rendering: line style and fill  -->
@@ -88,28 +100,6 @@
                                 <ComboBoxItem x:Uid="Settings_GraphFillComboBox_Fade" Tag="Fade" />
                                 <ComboBoxItem x:Uid="Settings_GraphFillComboBox_Solid" Tag="Solid" />
                             </ComboBox>
-                        </StackPanel>
-                    </controls:SettingsCard>
-
-                    <!--  graph color source  -->
-                    <!--
-                        (the performance page and the sensors page read it directly; the widget and taskbar sections
-                        below follow it or override it)
-                    -->
-                    <controls:SettingsCard x:Uid="Settings_GlobalGraphColorSourceCard">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <ComboBox
-                                x:Name="GlobalGraphColorSourceComboBox"
-                                x:Uid="Settings_GlobalGraphColorSourceComboBox"
-                                Width="160"
-                                SelectionChanged="GlobalGraphColorSourceComboBox_SelectionChanged">
-                                <ComboBoxItem x:Uid="Settings_GlobalGraphColorSourceComboBox_Accent" Tag="Accent" />
-                                <ComboBoxItem x:Uid="Settings_GlobalGraphColorSourceComboBox_Custom" Tag="Custom" />
-                                <ComboBoxItem x:Uid="Settings_GlobalGraphColorSourceComboBox_Hardware" Tag="Hardware" />
-                                <ComboBoxItem x:Uid="Settings_GlobalGraphColorSourceComboBox_SensorType" Tag="SensorType" />
-                            </ComboBox>
-
-                            <controls:ColorPickerButton x:Name="GlobalGraphColorPicker" x:Uid="Settings_GlobalGraphColorPicker" />
                         </StackPanel>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
@@ -445,7 +435,6 @@
                                 x:Uid="Settings_GraphColorSourceComboBox"
                                 Width="160"
                                 SelectionChanged="GraphColorSourceComboBox_SelectionChanged">
-                                <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Global" Tag="Global" />
                                 <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Accent" Tag="Accent" />
                                 <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Custom" Tag="Custom" />
                                 <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Hardware" Tag="Hardware" />
@@ -650,7 +639,6 @@
                                 x:Uid="Settings_TaskbarGraphColorSourceComboBox"
                                 Width="160"
                                 SelectionChanged="TaskbarGraphColorSourceComboBox_SelectionChanged">
-                                <ComboBoxItem x:Uid="Settings_TaskbarGraphColorSourceComboBox_Global" Tag="Global" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarGraphColorSourceComboBox_Accent" Tag="Accent" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarGraphColorSourceComboBox_Custom" Tag="Custom" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarGraphColorSourceComboBox_Hardware" Tag="Hardware" />

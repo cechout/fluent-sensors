@@ -49,15 +49,15 @@ namespace FluentSensors.Controls.SensorGraph
             // x:Bind does not re-run on its own
             ActualThemeChanged += (s, e) => Bindings.Update();
 
-            // a graph with a hardware of its own reads the global color source itself; (re-read on Loaded for a
+            // a graph with a hardware of its own reads the sensor type colors switch itself; (re-read on Loaded for a
             // change while off screen)
             Loaded += (s, e) =>
             {
-                SettingsService.Instance.GlobalGraphColorChanged -= OnGlobalGraphColorChanged;
-                SettingsService.Instance.GlobalGraphColorChanged += OnGlobalGraphColorChanged;
+                SettingsService.Instance.SensorTypeColorsChanged -= OnSensorTypeColorsChanged;
+                SettingsService.Instance.SensorTypeColorsChanged += OnSensorTypeColorsChanged;
                 Bindings.Update();
             };
-            Unloaded += (s, e) => SettingsService.Instance.GlobalGraphColorChanged -= OnGlobalGraphColorChanged;
+            Unloaded += (s, e) => SettingsService.Instance.SensorTypeColorsChanged -= OnSensorTypeColorsChanged;
         }
 
 
@@ -606,7 +606,7 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 SensorTypeColorRule.Always => true,
                 SensorTypeColorRule.Never => false,
-                _ => SettingsService.Instance.GlobalGraphColorSource == GraphColorSource.SensorType
+                _ => SettingsService.Instance.UseSensorTypeColors
             };
 
             // a type without a group color keeps the hardware one
@@ -654,7 +654,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === event handlers ===
 
-        private void OnGlobalGraphColorChanged() => Bindings.Update();
+        private void OnSensorTypeColorsChanged() => Bindings.Update();
 
         // see the workaround in OnOverrideChanged
         private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)

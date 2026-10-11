@@ -67,13 +67,13 @@ namespace FluentSensors.Common.Sensors
         {
             return kind switch
             {
-                HardwareGroupKind.Cpu => new HardwareGroupProfile { Label = "CPU", IconGlyph = HasFluentIconGlyphs ? CpuGlyph : CpuFallbackGlyph, Colors = ThemeColorPair.FromRgb(0x02B3BF, 0x0498A2) },
-                HardwareGroupKind.Ram => new HardwareGroupProfile { Label = "RAM", IconGlyph = HasFluentIconGlyphs ? RamGlyph : RamFallbackGlyph, Colors = ThemeColorPair.FromRgb(0x4FA2F8, 0x3489DD) },
-                HardwareGroupKind.Gpu => new HardwareGroupProfile { Label = "GPU", IconGlyph = "\uF211", Colors = ThemeColorPair.FromRgb(0xC67ED9, 0xAC65BF) },
-                HardwareGroupKind.Storage => new HardwareGroupProfile { Label = "Storage", IconGlyph = "\uEDA2", Colors = ThemeColorPair.FromRgb(0x83AF3E, 0x6B961F) },
+                HardwareGroupKind.Cpu => new HardwareGroupProfile { Label = "CPU", IconGlyph = HasFluentIconGlyphs ? CpuGlyph : CpuFallbackGlyph, Colors = ThemeColorPair.FromRgb(0x02B3BF, 0x02B3BF) },
+                HardwareGroupKind.Ram => new HardwareGroupProfile { Label = "RAM", IconGlyph = HasFluentIconGlyphs ? RamGlyph : RamFallbackGlyph, Colors = ThemeColorPair.FromRgb(0x4FA2F8, 0x4FA2F8) },
+                HardwareGroupKind.Gpu => new HardwareGroupProfile { Label = "GPU", IconGlyph = "\uF211", Colors = ThemeColorPair.FromRgb(0xC67ED9, 0xC67ED9) },
+                HardwareGroupKind.Storage => new HardwareGroupProfile { Label = "Storage", IconGlyph = "\uEDA2", Colors = ThemeColorPair.FromRgb(0x83AF3E, 0x83AF3E) },
                 // the category glyph is the wired one; a wireless adapter swaps it, see GetNetworkIconGlyph
-                HardwareGroupKind.Network => new HardwareGroupProfile { Label = "Network", IconGlyph = WiredNetworkGlyph, Colors = ThemeColorPair.FromRgb(0xE97295, 0xCD597D) },
-                _ => new HardwareGroupProfile { Label = "Other", IconGlyph = "\uEA1F", Colors = ThemeColorPair.FromRgb(0x9E9E9E, 0x868686) } // placeholder color
+                HardwareGroupKind.Network => new HardwareGroupProfile { Label = "Network", IconGlyph = WiredNetworkGlyph, Colors = ThemeColorPair.FromRgb(0xE97295, 0xE97295) },
+                _ => new HardwareGroupProfile { Label = "Other", IconGlyph = "\uEA1F", Colors = ThemeColorPair.FromRgb(0x9E9E9E, 0x9E9E9E) } // placeholder color
             };
         }
 
