@@ -29,9 +29,6 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === bindable properties ===
 
-        // the graph colour of this view, from HardwareGroupInfo
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).Color;
-
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).Label;
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Ram).IconGlyph;

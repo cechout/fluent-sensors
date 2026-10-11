@@ -426,6 +426,7 @@
                                 <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Accent" Tag="Accent" />
                                 <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Custom" Tag="Custom" />
                                 <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Hardware" Tag="Hardware" />
+                                <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_SensorType" Tag="SensorType" />
                             </ComboBox>
 
                             <controls:ColorPickerButton x:Name="GraphColorPicker" x:Uid="Settings_GraphColorPicker" />
@@ -629,6 +630,7 @@
                                 <ComboBoxItem x:Uid="Settings_TaskbarGraphColorSourceComboBox_Accent" Tag="Accent" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarGraphColorSourceComboBox_Custom" Tag="Custom" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarGraphColorSourceComboBox_Hardware" Tag="Hardware" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarGraphColorSourceComboBox_SensorType" Tag="SensorType" />
                             </ComboBox>
 
                             <controls:ColorPickerButton x:Name="TaskbarGraphColorPicker" x:Uid="Settings_TaskbarGraphColorPicker" />

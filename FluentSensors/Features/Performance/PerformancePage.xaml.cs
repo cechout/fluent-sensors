@@ -427,6 +427,10 @@ namespace FluentSensors.Features.Performance
             }
         }
 
+        // the sidebar mini graph color, always the hardware one, in the value of the applied theme
+        private static Windows.UI.Color ResolveHardwareColor(HardwareGroupKind kind, bool isDarkTheme) =>
+            HardwareGroupInfo.GetProfile(kind).Colors.ForTheme(isDarkTheme);
+
         // the sidebar mini graph card background: in dark mode the Checked fill of SidebarNavToggleButtonStyle when
         // selected, in light mode the default
         private static Windows.UI.Color? ResolveSelectedGraphBackground(bool isSelected, bool isDarkTheme) =>

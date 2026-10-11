@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Linq;
 
 using FluentSensors.Common.Localization;
+using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
 
 
@@ -43,7 +44,7 @@ namespace FluentSensors.Controls.SensorGraph
         {
             InitializeComponent();
 
-            // the card background alpha depends on the theme, and the CardBackgroundOverride
+            // the graph color and the card background alpha depend on the theme, and their
             // x:Bind does not re-run on its own
             ActualThemeChanged += (s, e) => Bindings.Update();
         }
@@ -280,6 +281,32 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(Windows.UI.Color),
                 typeof(SensorPanelControl),
                 new PropertyMetadata(Windows.UI.Color.FromArgb(0, 0, 0, 0)));
+
+        // the same as a hardware color, which has a value per theme; Other = no override
+        public HardwareGroupKind GraphHardwareKind
+        {
+            get => (HardwareGroupKind)GetValue(GraphHardwareKindProperty);
+            set => SetValue(GraphHardwareKindProperty, value);
+        }
+        public static readonly DependencyProperty GraphHardwareKindProperty =
+            DependencyProperty.Register(
+                nameof(GraphHardwareKind),
+                typeof(HardwareGroupKind),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(HardwareGroupKind.Other));
+
+        // both overrides give way to the sensor type color while that is the color source
+        public bool FollowSensorTypeColor
+        {
+            get => (bool)GetValue(FollowSensorTypeColorProperty);
+            set => SetValue(FollowSensorTypeColorProperty, value);
+        }
+        public static readonly DependencyProperty FollowSensorTypeColorProperty =
+            DependencyProperty.Register(
+                nameof(FollowSensorTypeColor),
+                typeof(bool),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(true));
 
         // history shown by this graph, independent of the setting; NaN = no override
         public double GraphTimeSpanOverrideSeconds
@@ -570,10 +597,20 @@ namespace FluentSensors.Controls.SensorGraph
             return IsFlyoutModeActive(graphTapAction, buttonTapAction) ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        // the automatic color or this instances override; (alpha 0 = not set, a real accent is never transparent)
-        private Windows.UI.Color GetEffectiveGraphColor(Windows.UI.Color overrideColor, Windows.UI.Color autoColor)
+        // the automatic color or this instances override, in the value of the applied theme; (alpha 0 = not set, a
+        // real accent is never transparent)
+        private Windows.UI.Color GetEffectiveGraphColor(Windows.UI.Color overrideColor, HardwareGroupKind hardwareKind, bool followSensorTypeColor, ThemeColorPair autoColor)
         {
-            return overrideColor.A == 0 ? autoColor : overrideColor;
+            bool isSensorTypeColor = followSensorTypeColor && ViewModel?.IsSensorTypeColor == true;
+            if (isSensorTypeColor) return autoColor.ForTheme(IsDarkTheme());
+
+            if (overrideColor.A != 0) return overrideColor;
+
+            ThemeColorPair colors = hardwareKind == HardwareGroupKind.Other
+                ? autoColor
+                : HardwareGroupInfo.GetProfile(hardwareKind).Colors;
+
+            return colors.ForTheme(IsDarkTheme());
         }
 
         // badge opacity; visibility stays with flyout mode, so the badge keeps its place and ShowFlyout() keeps working
@@ -583,7 +620,7 @@ namespace FluentSensors.Controls.SensorGraph
         // showBackground = false -> transparent
         // useGraphColor = true   -> theme-dependent alpha tint of the graph color
         // default                -> null (the themed card background)
-        private Windows.UI.Color? GetEffectiveCardBackground(bool showBackground, bool useGraphColor, Windows.UI.Color overrideColor, Windows.UI.Color autoColor)
+        private Windows.UI.Color? GetEffectiveCardBackground(bool showBackground, bool useGraphColor, Windows.UI.Color overrideColor, HardwareGroupKind hardwareKind, bool followSensorTypeColor, ThemeColorPair autoColor)
         {
             if (!showBackground)
             {
@@ -592,7 +629,7 @@ namespace FluentSensors.Controls.SensorGraph
 
             if (useGraphColor)
             {
-                Windows.UI.Color effectiveGraphColor = GetEffectiveGraphColor(overrideColor, autoColor);
+                Windows.UI.Color effectiveGraphColor = GetEffectiveGraphColor(overrideColor, hardwareKind, followSensorTypeColor, autoColor);
                 byte alpha = IsDarkTheme() ? GraphColorCardBackgroundAlphaDark : GraphColorCardBackgroundAlphaLight;
                 return Windows.UI.Color.FromArgb(alpha, effectiveGraphColor.R, effectiveGraphColor.G, effectiveGraphColor.B);
             }

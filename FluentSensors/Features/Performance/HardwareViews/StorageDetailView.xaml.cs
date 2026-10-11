@@ -37,8 +37,6 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === bindable properties ===
 
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(HardwareGroupKind.Storage).Color;
-
         // header
         public string GroupLabel => HardwareGroupInfo.GetProfile(HardwareGroupKind.Storage).Label;
         public string GroupIconGlyph => HardwareGroupInfo.GetProfile(HardwareGroupKind.Storage).IconGlyph;

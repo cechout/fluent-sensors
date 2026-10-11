@@ -168,12 +168,17 @@ namespace FluentSensors.Controls.SensorGraph
             get => _currentValueText;
             set { _currentValueText = value; OnPropertyChanged(); }
         }
-        private Windows.UI.Color _graphColor;
-        public Windows.UI.Color GraphColor
+        // both theme values; the view picks by its own theme (see SensorPanelControl.GetEffectiveGraphColor)
+        private ThemeColorPair _graphColor;
+        public ThemeColorPair GraphColor
         {
             get => _graphColor;
             private set { _graphColor = value; OnPropertyChanged(); }
         }
+
+        // GraphColor is the sensor type colour; a view with a hardware colour of its own gives way to it
+        // no notification of its own, the GraphColor one carries it
+        public bool IsSensorTypeColor { get; private set; }
 
         // stepline or smooth; mirrors the global switch like GraphColor
         private GraphLineStyle _graphLineStyle;
@@ -621,20 +626,28 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         // the color source of this surface (widget and taskbar can differ) to a color; Hardware falls back to the
-        // accent without a category (the performance page passes a GraphColorOverride instead)
-        private Windows.UI.Color ResolveGraphColor(GraphColorSource source, Windows.UI.Color customColor)
+        // accent without a category (the performance page passes a GraphHardwareKind instead)
+        private ThemeColorPair ResolveGraphColor(GraphColorSource source, Windows.UI.Color customColor)
         {
+            IsSensorTypeColor = false;
+
+            if (source == GraphColorSource.SensorType && SensorTypeGroupInfo.TryGetColors(SensorType, out var typeColors))
+            {
+                IsSensorTypeColor = true;
+                return typeColors;
+            }
+
             if (source == GraphColorSource.Hardware && HardwareKind != HardwareGroupKind.Other)
             {
-                return HardwareGroupInfo.GetProfile(HardwareKind).Color;
+                return HardwareGroupInfo.GetProfile(HardwareKind).Colors;
             }
 
             if (source == GraphColorSource.Custom)
             {
-                return customColor;
+                return new ThemeColorPair(customColor);
             }
 
-            return (Windows.UI.Color)Application.Current.Resources["SystemAccentColor"];
+            return new ThemeColorPair((Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]);
         }
 
 

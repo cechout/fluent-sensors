@@ -115,11 +115,22 @@
                 </Grid.ColumnDefinitions>
 
                 <CheckBox
+                    x:Name="SelectionCheckBox"
                     MinWidth="0"
                     AutomationProperties.AccessibilityView="Raw"
                     IsChecked="{x:Bind ViewModel.IsSelected, Mode=OneWay}"
                     IsHitTestVisible="False"
                     IsTabStop="False" />
+
+                <!--  the same checkbox in the sensor type colour; one of the two shows  -->
+                <CheckBox
+                    x:Name="TypeColorCheckBox"
+                    MinWidth="0"
+                    AutomationProperties.AccessibilityView="Raw"
+                    IsChecked="{x:Bind ViewModel.IsSelected, Mode=OneWay}"
+                    IsHitTestVisible="False"
+                    IsTabStop="False"
+                    Visibility="Collapsed" />
 
                 <TextBlock
                     Grid.Column="1"

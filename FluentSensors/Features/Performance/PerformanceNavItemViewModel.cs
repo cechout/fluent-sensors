@@ -47,14 +47,11 @@ namespace FluentSensors.Features.Performance
 
         // === bindable properties ===
 
+        // also picks the mini graph color from HardwareGroupInfo
         public HardwareGroupKind Kind { get; }
 
         // "CPU", "GPU"; fixed per Kind
         public string GroupLabel { get; }
-
-        // the mini graph color from HardwareGroupInfo, like the detail views; (the color
-        // setting is for widget and taskbar)
-        public Windows.UI.Color HardwareColor => HardwareGroupInfo.GetProfile(Kind).Color;
 
         // the glyph of the detail view headers; a network adapter picks wired or wireless itself
         public string GroupIconGlyph => Target is LhmNetworkInstanceViewModel network

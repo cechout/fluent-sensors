@@ -129,7 +129,7 @@
                                     Grid.Row="0"
                                     Grid.RowSpan="2"
                                     Grid.Column="0"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="GPU Core"
@@ -143,7 +143,7 @@
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="0"
                                     Grid.Column="1"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="GPU Temperature"
@@ -158,7 +158,7 @@
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="1"
                                     Grid.Column="1"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="GPU Power"
                                     ShowStatusRow="True"
@@ -185,7 +185,7 @@
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="0"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="GPU Core"
@@ -198,7 +198,7 @@
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="1"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="GPU Temperature"
@@ -212,7 +212,7 @@
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="2"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="GPU Power"
                                     ShowStatusRow="True"
@@ -297,7 +297,7 @@
                                 MinCellWidth="260"
                                 Spacing="12">
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="GPU Power"
                                     ShowStatusRow="True"
@@ -307,7 +307,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.ExtendedPackagePower, Mode=TwoWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="GPU Core"
@@ -318,7 +318,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.ExtendedCoreLoad, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="GPU Core"
                                     PlaceholderUnit="MHz"
@@ -328,7 +328,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.CoreClock, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="GPU Core"
@@ -339,7 +339,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.CoreTemperature, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="GPU Hot Spot"
@@ -372,7 +372,7 @@
                                 MinCellWidth="260"
                                 Spacing="12">
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="{x:Bind Gpu.MemoryTotal, Mode=OneWay}"
                                     PlaceholderSensorName="GPU Memory Used"
@@ -384,7 +384,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.MemoryUsed, Mode=TwoWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="GPU Memory"
                                     PlaceholderUnit="MHz"
@@ -394,7 +394,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.MemoryClock, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="GPU Memory Controller"
@@ -405,7 +405,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.MemoryControllerLoad, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="D3D Shared Memory Used"
                                     PlaceholderUnit="MB"
@@ -437,7 +437,7 @@
                                 MinCellWidth="260"
                                 Spacing="12">
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="GPU PCIe Rx"
                                     PlaceholderUnit="MB/s"
@@ -447,7 +447,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.PcieRx, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="GPU PCIe Tx"
                                     PlaceholderUnit="MB/s"
@@ -457,7 +457,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.PcieTx, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="GPU Bus"
@@ -490,7 +490,7 @@
                                 MinCellWidth="260"
                                 Spacing="12">
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="GPU Video Engine"
@@ -501,7 +501,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.VideoEngineLoad, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="D3D Engine"
@@ -513,7 +513,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.D3dEngineSlot1, Mode=TwoWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="D3D Engine"
@@ -525,7 +525,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.D3dEngineSlot2, Mode=TwoWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="D3D Engine"
@@ -537,7 +537,7 @@
                                     ThresholdLabelAlwaysVisible="False"
                                     ViewModel="{x:Bind Gpu.D3dEngineSlot3, Mode=TwoWay}" />
                                 <fhGraph:SensorPanelControl
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Gpu"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="D3D Engine"

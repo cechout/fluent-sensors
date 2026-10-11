@@ -122,7 +122,7 @@
                                     Grid.Row="0"
                                     Grid.RowSpan="2"
                                     Grid.Column="0"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Storage"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="Total Activity"
@@ -137,7 +137,7 @@
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="0"
                                     Grid.Column="1"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Storage"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="Read Rate"
                                     PlaceholderUnit="MB/s"
@@ -151,7 +151,7 @@
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="1"
                                     Grid.Column="1"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Storage"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="Write Rate"
                                     PlaceholderUnit="MB/s"
@@ -177,7 +177,7 @@
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="0"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Storage"
                                     IsAutoScaledOverride="False"
                                     ManualYMaxOverride="100"
                                     PlaceholderSensorName="Total Activity"
@@ -191,7 +191,7 @@
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="1"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Storage"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="Read Rate"
                                     PlaceholderUnit="MB/s"
@@ -204,7 +204,7 @@
 
                                 <fhGraph:SensorPanelControl
                                     Grid.Row="2"
-                                    GraphColorOverride="{x:Bind HardwareColor, Mode=OneTime}"
+                                    GraphHardwareKind="Storage"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="Write Rate"
                                     PlaceholderUnit="MB/s"

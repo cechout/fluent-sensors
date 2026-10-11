@@ -3,7 +3,12 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Windows.System;
+
+using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Controls.SensorRow
@@ -16,12 +21,18 @@ namespace FluentSensors.Controls.SensorRow
         private bool _isPressed = false;
         private bool _isSubscribed = false;
 
+        // the box colors of TypeColorCheckBox, one per theme; recolored in place (see UpdateCheckBoxColor)
+        private readonly SolidColorBrush _typeColorDarkBrush = new();
+        private readonly SolidColorBrush _typeColorLightBrush = new();
+
 
         // === constructor ===
 
         public SensorRowControl()
         {
             this.InitializeComponent();
+
+            TypeColorCheckBox.Resources = BuildTypeColorResources();
 
             this.Loaded += OnLoaded;
             this.Unloaded += OnUnloaded;
@@ -71,6 +82,7 @@ namespace FluentSensors.Controls.SensorRow
             {
                 card.UpdateVisualState(useTransitions: false);
                 card.UpdateDisplayState();
+                card.UpdateCheckBoxColor();
             }
         }
 
@@ -133,6 +145,10 @@ namespace FluentSensors.Controls.SensorRow
             // the card blank mid animation)
             UpdateVisualState(useTransitions: false);
             UpdateDisplayState();
+
+            SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
+            SettingsService.Instance.GraphColorChanged += OnGraphColorChanged;
+            UpdateCheckBoxColor();
         }
 
         // pulled out by the ItemsRepeater; a pointer still over it never fires PointerExited, so the flags are
@@ -150,10 +166,14 @@ namespace FluentSensors.Controls.SensorRow
                 _isSubscribed = false;
             }
             this.Bindings.StopTracking();
+
+            SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
         }
 
 
         // === event handlers ===
+
+        private void OnGraphColorChanged(GraphColorSource source, Windows.UI.Color customColor) => UpdateCheckBoxColor();
 
         private void RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
@@ -285,6 +305,42 @@ namespace FluentSensors.Controls.SensorRow
                 else if (_isHovered) VisualStateManager.GoToState(this, "Hover", useTransitions);
                 else VisualStateManager.GoToState(this, "Normal", useTransitions);
             }
+        }
+
+        // the checkbox carries the sensor type colour while that is the graph colour source: the fill when checked,
+        // the border when unchecked; the standard checkbox otherwise, and for a type without a group colour
+        private void UpdateCheckBoxColor()
+        {
+            ThemeColorPair colors = default;
+            bool hasTypeColor = ViewModel != null
+                && SettingsService.Instance.GraphColorSource == GraphColorSource.SensorType
+                && SensorTypeGroupInfo.TryGetColors(ViewModel.SensorType, out colors);
+
+            if (hasTypeColor)
+            {
+                _typeColorDarkBrush.Color = colors.Dark;
+                _typeColorLightBrush.Color = colors.Light;
+            }
+
+            TypeColorCheckBox.Visibility = hasTypeColor ? Visibility.Visible : Visibility.Collapsed;
+            SelectionCheckBox.Visibility = hasTypeColor ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        // the three box brushes of the CheckBox template, replaced per theme; (no Default dictionary, so high
+        // contrast keeps the system colours)
+        private ResourceDictionary BuildTypeColorResources()
+        {
+            var resources = new ResourceDictionary();
+            resources.ThemeDictionaries["Dark"] = BuildBoxBrushes(_typeColorDarkBrush);
+            resources.ThemeDictionaries["Light"] = BuildBoxBrushes(_typeColorLightBrush);
+            return resources;
+
+            static ResourceDictionary BuildBoxBrushes(SolidColorBrush brush) => new()
+            {
+                ["CheckBoxCheckBackgroundFillChecked"] = brush,
+                ["CheckBoxCheckBackgroundStrokeChecked"] = brush,
+                ["CheckBoxCheckBackgroundStrokeUnchecked"] = brush
+            };
         }
 
         // full details, disabled (dimmed) or name only (HiddenSensorsWindow); (the name-only columns collapse in code,

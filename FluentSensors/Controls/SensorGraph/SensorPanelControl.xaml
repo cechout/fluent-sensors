@@ -390,8 +390,8 @@
             <Grid Grid.Column="1">
                 <fhGraph:SensorGraphControl
                     x:Name="GraphControl"
-                    AccentColor="{x:Bind GetEffectiveGraphColor(GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
-                    CardBackgroundOverride="{x:Bind GetEffectiveCardBackground(ShowGraphCardBackground, UseGraphColorCardBackground, GraphColorOverride, ViewModel.GraphColor), Mode=OneWay}"
+                    AccentColor="{x:Bind GetEffectiveGraphColor(GraphColorOverride, GraphHardwareKind, FollowSensorTypeColor, ViewModel.GraphColor), Mode=OneWay}"
+                    CardBackgroundOverride="{x:Bind GetEffectiveCardBackground(ShowGraphCardBackground, UseGraphColorCardBackground, GraphColorOverride, GraphHardwareKind, FollowSensorTypeColor, ViewModel.GraphColor), Mode=OneWay}"
                     CardBorderOverride="{x:Bind BoolToCardBorderOverride(ShowGraphCardBorder), Mode=OneWay}"
                     CurrentValueText="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}"
                     FillFade="{x:Bind ViewModel.GraphFillFade, Mode=OneWay}"
