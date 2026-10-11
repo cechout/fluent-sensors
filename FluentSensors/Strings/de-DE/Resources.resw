@@ -217,6 +217,12 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Farben der Hardwaresymbole</value>
   </data>
+  <data name="Settings_SensorTypeColorsCard.Header" xml:space="preserve">
+    <value>Sensortypfarben</value>
+  </data>
+  <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
+    <value>Graphen-Seite und Sensorliste</value>
+  </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Graphen</value>
   </data>
@@ -406,6 +412,9 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Settings_GraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
     <value>Hardwarefarbe</value>
   </data>
+  <data name="Settings_GraphColorSourceComboBox_SensorType.Content" xml:space="preserve">
+    <value>Sensortypfarbe</value>
+  </data>
   <data name="Settings_GraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Graphfarbe</value>
   </data>
@@ -438,6 +447,9 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_TaskbarGraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
     <value>Hardwarefarbe</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_SensorType.Content" xml:space="preserve">
+    <value>Sensortypfarbe</value>
   </data>
   <data name="Settings_TaskbarGraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Graphfarbe</value>

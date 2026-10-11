@@ -230,7 +230,7 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
     <value>Sensor Type Colors</value>
   </data>
   <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
-    <value>Performance graphs and sensor list</value>
+    <value>Graphs page and sensor list</value>
   </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Graphs</value>

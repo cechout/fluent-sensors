@@ -217,6 +217,12 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Barvy ikon hardwaru</value>
   </data>
+  <data name="Settings_SensorTypeColorsCard.Header" xml:space="preserve">
+    <value>Barvy typů senzorů</value>
+  </data>
+  <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
+    <value>Stránka Grafy a seznam senzorů</value>
+  </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Grafy</value>
   </data>
@@ -406,6 +412,9 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_GraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
     <value>Barva hardwaru</value>
   </data>
+  <data name="Settings_GraphColorSourceComboBox_SensorType.Content" xml:space="preserve">
+    <value>Barva typu senzoru</value>
+  </data>
   <data name="Settings_GraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Barva grafu</value>
   </data>
@@ -438,6 +447,9 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   </data>
   <data name="Settings_TaskbarGraphColorSourceComboBox_Hardware.Content" xml:space="preserve">
     <value>Barva hardwaru</value>
+  </data>
+  <data name="Settings_TaskbarGraphColorSourceComboBox_SensorType.Content" xml:space="preserve">
+    <value>Barva typu senzoru</value>
   </data>
   <data name="Settings_TaskbarGraphColorPicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Barva grafu</value>
