@@ -86,6 +86,9 @@ namespace FluentSensors
         // the one navigation after the splash, which gets the entrance transition
         private bool _isStartupNavigation = false;
 
+        // the selection following the back button, which must not navigate a second time
+        private bool _isBackNavigation = false;
+
         // profile a caller asked for while the splash was still running; applied once the sensor page exists
         private SensorSelectionProfile? _pendingSensorProfile = null;
 
@@ -661,6 +664,8 @@ namespace FluentSensors
                 return;
             }
 
+            if (_isBackNavigation) return;
+
             // the page that replaces the splash gets the entrance transition, so the reveal reads as one motion; null
             // leaves every other navigation to the frame default
             NavigationTransitionInfo transition = _isStartupNavigation ? new EntranceNavigationTransitionInfo() : null;
@@ -689,6 +694,24 @@ namespace FluentSensors
                         break;
                 }
             }
+        }
+
+        // back through the pages visited, by the back stack of the frame; the menu selection follows
+        private void MainNavigationView_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
+        {
+            if (!contentFrame.CanGoBack) return;
+
+            contentFrame.GoBack();
+
+            _isBackNavigation = true;
+            MainNavigationView.SelectedItem = contentFrame.Content switch
+            {
+                SensorsPage => SensorsNavItem,
+                PerformancePage => PerformanceNavItem,
+                SettingsPage => SettingsNavItem,
+                _ => StartNavItem
+            };
+            _isBackNavigation = false;
         }
 
 

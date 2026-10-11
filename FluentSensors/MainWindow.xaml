@@ -305,7 +305,9 @@
         <NavigationView
             x:Name="MainNavigationView"
             Grid.Row="1"
-            IsBackButtonVisible="Collapsed"
+            BackRequested="MainNavigationView_BackRequested"
+            IsBackButtonVisible="Visible"
+            IsBackEnabled="{x:Bind contentFrame.CanGoBack, Mode=OneWay}"
             IsPaneOpen="False"
             IsSettingsVisible="False"
             Opacity="0"
