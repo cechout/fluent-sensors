@@ -63,6 +63,12 @@ namespace FluentSensors.Persistence.Models
         // update interval; (lives on HardwareMonitorService at runtime)
         public int UpdateIntervalMs { get; set; } = 500;
 
+        // engine; LHM hardware that is not read, by the name the payload gives it
+        public List<string> DisabledLhmHardware { get; set; } = new();
+        // what Windows adds to or replaces in LHM hardware; all off until asked for
+        public bool WinStorageTemperatureEnabled { get; set; } = false;
+        public bool WinWlanSensorsEnabled { get; set; } = false;
+
 
         // --- performance page appearance ---
 

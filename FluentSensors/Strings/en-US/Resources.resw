@@ -333,6 +333,33 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
     <value>Update Interval</value>
   </data>
+  <data name="Settings_EngineText.Text" xml:space="preserve">
+    <value>Engine</value>
+  </data>
+  <data name="Settings_EngineLhmExpander.Header" xml:space="preserve">
+    <value>LibreHardwareMonitor</value>
+  </data>
+  <data name="Settings_EngineLhmExpander.Description" xml:space="preserve">
+    <value>Which hardware is read; switched off hardware leaves every page, widget and recording</value>
+  </data>
+  <data name="Settings_EngineWindowsExpander.Header" xml:space="preserve">
+    <value>Windows</value>
+  </data>
+  <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
+    <value>Values Windows adds to the hardware above or reads in its place</value>
+  </data>
+  <data name="Settings_WinStorageTemperatureCard.Header" xml:space="preserve">
+    <value>Storage Temperature</value>
+  </data>
+  <data name="Settings_WinStorageTemperatureCard.Description" xml:space="preserve">
+    <value>Replaces the LibreHardwareMonitor temperature of every drive</value>
+  </data>
+  <data name="Settings_WinWlanSensorsCard.Header" xml:space="preserve">
+    <value>Wi-Fi Signal</value>
+  </data>
+  <data name="Settings_WinWlanSensorsCard.Description" xml:space="preserve">
+    <value>Adds signal strength, RSSI and link rates to a Wi-Fi adapter</value>
+  </data>
   <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
     <value>Time Range</value>
   </data>

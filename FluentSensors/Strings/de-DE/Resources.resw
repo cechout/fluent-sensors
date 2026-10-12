@@ -324,6 +324,33 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
     <value>Aktualisierungsintervall</value>
   </data>
+  <data name="Settings_EngineText.Text" xml:space="preserve">
+    <value>Engine</value>
+  </data>
+  <data name="Settings_EngineLhmExpander.Header" xml:space="preserve">
+    <value>LibreHardwareMonitor</value>
+  </data>
+  <data name="Settings_EngineLhmExpander.Description" xml:space="preserve">
+    <value>Welche Hardware gelesen wird; abgeschaltete Hardware verschwindet von jeder Seite, jedem Widget und aus der Aufzeichnung</value>
+  </data>
+  <data name="Settings_EngineWindowsExpander.Header" xml:space="preserve">
+    <value>Windows</value>
+  </data>
+  <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
+    <value>Werte, die Windows zur Hardware oben ergänzt oder an ihrer Stelle liest</value>
+  </data>
+  <data name="Settings_WinStorageTemperatureCard.Header" xml:space="preserve">
+    <value>Laufwerkstemperatur</value>
+  </data>
+  <data name="Settings_WinStorageTemperatureCard.Description" xml:space="preserve">
+    <value>Ersetzt die Temperatur von LibreHardwareMonitor bei jedem Laufwerk</value>
+  </data>
+  <data name="Settings_WinWlanSensorsCard.Header" xml:space="preserve">
+    <value>WLAN-Signal</value>
+  </data>
+  <data name="Settings_WinWlanSensorsCard.Description" xml:space="preserve">
+    <value>Ergänzt Signalstärke, RSSI und Verbindungsraten bei einem WLAN-Adapter</value>
+  </data>
   <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
     <value>Darstellung der Graphenseite</value>
   </data>

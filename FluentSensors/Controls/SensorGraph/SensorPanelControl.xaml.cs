@@ -531,7 +531,11 @@ namespace FluentSensors.Controls.SensorGraph
         // a missing sensor keeps its name from PlaceholderSensorName; only value and y-axis fall back to "--"
         private string GetStatusRowTitleOrPlaceholder(bool showUnit, SensorGraphViewModel viewModel, string placeholderName, string placeholderUnit)
         {
-            if (viewModel != null) return GetTextOrPlaceholder(GetStatusRowTitle(showUnit, viewModel.SensorName, viewModel.DisplayNameWithUnit));
+            if (viewModel != null)
+            {
+                string title = GetStatusRowTitle(showUnit, viewModel.SensorName, viewModel.DisplayNameWithUnit);
+                return string.IsNullOrEmpty(title) ? GetTextOrPlaceholder(title) : SensorSourceMarker.Append(title, viewModel.SensorId);
+            }
 
             if (string.IsNullOrEmpty(placeholderName)) return "--";
 

@@ -30,7 +30,7 @@
                 Margin="4,0,0,0"
                 VerticalAlignment="Center"
                 Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
+                Text="{x:Bind ViewModel.TitleWithSource, Mode=OneWay}"
                 TextTrimming="CharacterEllipsis"
                 TextWrapping="NoWrap"
                 Visibility="{x:Bind GetTitleRowVisibility(ShowTitleRow, ViewModel), Mode=OneWay}" />

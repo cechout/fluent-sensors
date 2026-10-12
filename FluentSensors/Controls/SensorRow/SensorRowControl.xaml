@@ -136,7 +136,7 @@
                     Grid.Column="1"
                     VerticalAlignment="Center"
                     Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind ViewModel.Name, Mode=OneWay}"
+                    Text="{x:Bind ViewModel.TitleWithSource, Mode=OneWay}"
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="NoWrap" />
             </Grid>

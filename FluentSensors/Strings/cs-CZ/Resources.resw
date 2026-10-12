@@ -324,6 +324,33 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
     <value>Interval aktualizace</value>
   </data>
+  <data name="Settings_EngineText.Text" xml:space="preserve">
+    <value>Engine</value>
+  </data>
+  <data name="Settings_EngineLhmExpander.Header" xml:space="preserve">
+    <value>LibreHardwareMonitor</value>
+  </data>
+  <data name="Settings_EngineLhmExpander.Description" xml:space="preserve">
+    <value>Který hardware se čte; vypnutý hardware zmizí z každé stránky, widgetu i záznamu</value>
+  </data>
+  <data name="Settings_EngineWindowsExpander.Header" xml:space="preserve">
+    <value>Windows</value>
+  </data>
+  <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
+    <value>Hodnoty, které Windows k hardwaru výše doplní nebo čte místo něj</value>
+  </data>
+  <data name="Settings_WinStorageTemperatureCard.Header" xml:space="preserve">
+    <value>Teplota úložiště</value>
+  </data>
+  <data name="Settings_WinStorageTemperatureCard.Description" xml:space="preserve">
+    <value>Nahradí teplotu z LibreHardwareMonitor u každého disku</value>
+  </data>
+  <data name="Settings_WinWlanSensorsCard.Header" xml:space="preserve">
+    <value>Signál Wi-Fi</value>
+  </data>
+  <data name="Settings_WinWlanSensorsCard.Description" xml:space="preserve">
+    <value>Doplní sílu signálu, RSSI a rychlosti linky u adaptéru Wi-Fi</value>
+  </data>
   <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
     <value>Vzhled stránky Grafy</value>
   </data>

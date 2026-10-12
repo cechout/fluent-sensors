@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Collections.Specialized;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,6 +13,7 @@ using Windows.Foundation;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
+using FluentSensors.Core.Lhm;
 using FluentSensors.Core.Startup;
 using FluentSensors.Core.Taskbar;
 using FluentSensors.Common.Csv;
@@ -34,6 +36,9 @@ namespace FluentSensors.Features.Settings
         // the gear button of the taskbar flyout asked for the taskbar section before the page was loaded
         private bool _isTaskbarSectionScrollPending;
 
+        // the hardware names the LHM expander lists right now, in order; see RebuildEngineHardwareCards
+        private List<string> _engineHardwareNames = new();
+
 
         // === constructor ===
 
@@ -46,6 +51,7 @@ namespace FluentSensors.Features.Settings
             RestoreLanguageSelection();
             RestoreTechnicalTermsSelection();
             RestoreIntervalSelection();
+            RestoreEngineWindowsSelection();
             RestoreMinimizeToTraySelection();
             RestoreStartupSelection();
             RestoreStatusReadoutSelection();
@@ -126,6 +132,10 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged += OnTimeRangeChanged;
             OnTimeRangesChanged();
 
+            // hardware comes and goes while the page sits in the navigation cache
+            LhmHardwareTreeService.Instance.HardwareGroups.CollectionChanged += OnHardwareGroupsChanged;
+            RebuildEngineHardwareCards();
+
             if (_isTaskbarSectionScrollPending)
             {
                 _isTaskbarSectionScrollPending = false;
@@ -139,6 +149,7 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.ActiveTaskbarEdgeChanged -= OnActiveTaskbarEdgeChanged;
             SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnTimeRangeChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnTimeRangeChanged;
+            LhmHardwareTreeService.Instance.HardwareGroups.CollectionChanged -= OnHardwareGroupsChanged;
         }
 
         // the values of the active taskbar edge; the side cards only on the left and right edge
@@ -348,6 +359,80 @@ namespace FluentSensors.Features.Settings
                     break;
                 }
             }
+        }
+
+        // engine; one card per LHM hardware, the switched off ones included (the tree no longer has those)
+        // only rebuilt when the list itself changed, so a switch that makes its hardware leave the tree keeps the focus
+        private void RebuildEngineHardwareCards()
+        {
+            var settings = SettingsService.Instance;
+
+            var entries = HardwareMonitorService.Instance.GetHardwareEntries()
+                .Select(entry => (entry.Name, Kind: (HardwareGroupKind?)HardwareGroupInfo.GetKind(entry.HardwareType, entry.IsIntegratedGpu)))
+                .OrderBy(entry => entry.Kind)
+                .ThenBy(entry => entry.Name, StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+
+            // switched off and not there right now (an unplugged drive); listed so it can be switched back on
+            foreach (string name in settings.DisabledLhmHardware.OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase))
+            {
+                if (!entries.Any(entry => entry.Name == name)) entries.Add((name, null));
+            }
+
+            var names = entries.Select(entry => entry.Name).ToList();
+            if (names.SequenceEqual(_engineHardwareNames)) return;
+            _engineHardwareNames = names;
+
+            EngineLhmExpander.Items.Clear();
+
+            foreach (var (name, kind) in entries)
+            {
+                var toggle = new ToggleSwitch
+                {
+                    IsOn = settings.IsLhmHardwareEnabled(name),
+                    OnContent = AppStrings.Get("Common_ToggleSwitch/OnContent"),
+                    OffContent = AppStrings.Get("Common_ToggleSwitch/OffContent"),
+                    Tag = name
+                };
+                toggle.Toggled += EngineHardwareToggle_Toggled;
+
+                var card = new CommunityToolkit.WinUI.Controls.SettingsCard { Header = name, Content = toggle };
+                if (kind is HardwareGroupKind knownKind)
+                {
+                    var profile = HardwareGroupInfo.GetProfile(knownKind);
+                    card.Description = profile.Label;
+                    card.HeaderIcon = new FontIcon { Glyph = profile.IconGlyph };
+                }
+
+                EngineLhmExpander.Items.Add(card);
+            }
+        }
+
+        private void OnHardwareGroupsChanged(object sender, NotifyCollectionChangedEventArgs e) => RebuildEngineHardwareCards();
+
+        private void EngineHardwareToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is not ToggleSwitch { Tag: string hardwareName } toggle) return;
+
+            SettingsService.Instance.SetLhmHardwareEnabled(hardwareName, toggle.IsOn);
+        }
+
+        private void WinStorageTemperatureToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.WinStorageTemperatureEnabled = WinStorageTemperatureToggle.IsOn;
+        }
+
+        private void WinWlanSensorsToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.WinWlanSensorsEnabled = WinWlanSensorsToggle.IsOn;
+        }
+
+        private void RestoreEngineWindowsSelection()
+        {
+            WinStorageTemperatureToggle.IsOn = SettingsService.Instance.WinStorageTemperatureEnabled;
+            WinWlanSensorsToggle.IsOn = SettingsService.Instance.WinWlanSensorsEnabled;
         }
 
         // minimize to tray

@@ -333,7 +333,13 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
+
             <!--  engine settings  -->
+            <TextBlock
+                x:Uid="Settings_EngineText"
+                Margin="4,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}" />
+
             <controls:SettingsCard
                 x:Uid="Settings_UpdateIntervalCard"
                 fhUi:FocusGroup.IsEnabled="True"
@@ -354,6 +360,40 @@
                     <ComboBoxItem Content="5000ms" Tag="5000" />
                 </ComboBox>
             </controls:SettingsCard>
+
+            <!--  LibreHardwareMonitor: one switch per hardware  -->
+            <!--  (the cards come from code, see RebuildEngineHardwareCards; the hardware is only known at runtime)  -->
+            <controls:SettingsExpander
+                x:Name="EngineLhmExpander"
+                x:Uid="Settings_EngineLhmExpander"
+                fhUi:FocusGroup.IsEnabled="True"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D9;}"
+                IsExpanded="False" />
+
+            <!--  Windows: what it adds to or replaces in LHM hardware  -->
+            <!--  (every switch is off by default)  -->
+            <controls:SettingsExpander
+                x:Uid="Settings_EngineWindowsExpander"
+                fhUi:FocusGroup.IsEnabled="True"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE770;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard x:Uid="Settings_WinStorageTemperatureCard">
+                        <ToggleSwitch
+                            x:Name="WinStorageTemperatureToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="WinStorageTemperatureToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Uid="Settings_WinWlanSensorsCard">
+                        <ToggleSwitch
+                            x:Name="WinWlanSensorsToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="WinWlanSensorsToggle_Toggled" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
 
 
             <!--  widget window settings  -->

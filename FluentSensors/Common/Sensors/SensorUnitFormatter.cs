@@ -55,6 +55,7 @@ namespace FluentSensors.Common.Sensors
                 "Timing" => "ns",
                 "Energy" => "mWh",
                 "Noise" => "dBA",
+                "Signal" => "dBm", // not an LHM type; the RSSI of the Windows source
                 "Conductivity" => "µS/cm",
                 _ => "" // Factor, a bare number
             };

@@ -720,6 +720,58 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // --- engine ---
+
+        // LHM hardware the engine does not read, by payload name; lives on HardwareMonitorService at runtime like the
+        // update interval, this is the persisted copy
+        private readonly HashSet<string> _disabledLhmHardware = new();
+
+        public bool IsLhmHardwareEnabled(string hardwareName) => !_disabledLhmHardware.Contains(hardwareName);
+
+        public IReadOnlyCollection<string> DisabledLhmHardware => _disabledLhmHardware;
+
+        // applies at runtime; the hardware leaves or rejoins every page with the next tick
+        public void SetLhmHardwareEnabled(string hardwareName, bool isEnabled)
+        {
+            bool changed = isEnabled ? _disabledLhmHardware.Remove(hardwareName) : _disabledLhmHardware.Add(hardwareName);
+            if (!changed) return;
+
+            HardwareMonitorService.Instance.SetHardwareEnabled(hardwareName, isEnabled);
+            SaveDebounced();
+        }
+
+        // the drive temperature of Windows instead of the LHM one; mirrored onto the Windows source
+        private bool _winStorageTemperatureEnabled = Defaults.WinStorageTemperatureEnabled;
+        public bool WinStorageTemperatureEnabled
+        {
+            get => _winStorageTemperatureEnabled;
+            set
+            {
+                if (_winStorageTemperatureEnabled != value)
+                {
+                    _winStorageTemperatureEnabled = value;
+                    HardwareMonitorService.Instance.WindowsSource.IsStorageTemperatureEnabled = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // Wi-Fi signal strength, RSSI and link rates as sensors of the adapter; mirrored like above
+        private bool _winWlanSensorsEnabled = Defaults.WinWlanSensorsEnabled;
+        public bool WinWlanSensorsEnabled
+        {
+            get => _winWlanSensorsEnabled;
+            set
+            {
+                if (_winWlanSensorsEnabled != value)
+                {
+                    _winWlanSensorsEnabled = value;
+                    HardwareMonitorService.Instance.WindowsSource.IsWlanEnabled = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // --- startup settings ---
 
         // none of the four raises a change event: they are read at startup, and the autostart pair goes
@@ -1191,6 +1243,18 @@ namespace FluentSensors.Persistence.Services
 
             // lives on HardwareMonitorService at runtime, shares this file
             HardwareMonitorService.Instance.UpdateIntervalMs = data.UpdateIntervalMs;
+
+            // the engine switches, handed to the monitor and its Windows source before the loop starts
+            _disabledLhmHardware.Clear();
+            foreach (string hardwareName in data.DisabledLhmHardware ?? new List<string>())
+            {
+                _disabledLhmHardware.Add(hardwareName);
+            }
+            HardwareMonitorService.Instance.SetDisabledHardware(_disabledLhmHardware);
+            _winStorageTemperatureEnabled = data.WinStorageTemperatureEnabled;
+            _winWlanSensorsEnabled = data.WinWlanSensorsEnabled;
+            HardwareMonitorService.Instance.WindowsSource.IsStorageTemperatureEnabled = _winStorageTemperatureEnabled;
+            HardwareMonitorService.Instance.WindowsSource.IsWlanEnabled = _winWlanSensorsEnabled;
         }
 
         // the live values as a serializable snapshot
@@ -1258,7 +1322,10 @@ namespace FluentSensors.Persistence.Services
                 CsvCustomTintColor = _csvCustomTintColor,
                 LastSensorProfile = _lastSensorProfile,
                 LastWidgetWindowIndex = _lastWidgetWindowIndex,
-                UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
+                UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs,
+                DisabledLhmHardware = new List<string>(_disabledLhmHardware),
+                WinStorageTemperatureEnabled = _winStorageTemperatureEnabled,
+                WinWlanSensorsEnabled = _winWlanSensorsEnabled
             };
         }
 
