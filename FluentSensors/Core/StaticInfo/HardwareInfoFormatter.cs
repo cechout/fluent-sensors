@@ -494,7 +494,108 @@ namespace FluentSensors.Core.StaticInfo
         public static string FormatColorDepth(int bitsPerColorChannel) =>
             bitsPerColorChannel > 0 ? AppTerms.Format("Display_BitsPerChannel", bitsPerColorChannel) : "-";
 
-        public static string FormatYear(int? year) => year?.ToString() ?? "-";
+        // "2021-W07", the year alone when the EDID has no week
+        public static string FormatManufactureDate(int? year, int? week)
+        {
+            if (!year.HasValue) return "-";
+            return week.HasValue ? $"{year}-W{week:00}" : year.ToString();
+        }
+
+        // DISPLAYCONFIG_ROTATION
+        public static string FormatDisplayOrientation(uint rotation)
+        {
+            return rotation switch
+            {
+                1 => AppTerms.Get("Display_OrientationLandscape"),
+                2 => AppTerms.Get("Display_OrientationPortrait"),
+                3 => AppTerms.Get("Display_OrientationLandscapeFlipped"),
+                4 => AppTerms.Get("Display_OrientationPortraitFlipped"),
+                _ => "-"
+            };
+        }
+
+        public static string FormatScale(int scalePercent) => scalePercent > 0 ? $"{scalePercent} %" : "-";
+
+        // "60 / 120 / 165 Hz"
+        public static string FormatRefreshRates(IReadOnlyList<int>? ratesHz) =>
+            ratesHz is { Count: > 0 } ? $"{string.Join(" / ", ratesHz)} Hz" : "-";
+
+        // whole nits above ten, the black level keeps its decimals
+        public static string FormatNits(double? nits)
+        {
+            if (!nits.HasValue) return "-";
+            return nits.Value >= 10 ? $"{nits.Value:0} nits" : $"{nits.Value:0.###} nits";
+        }
+
+        public static string FormatGamma(double? gamma) => gamma.HasValue ? $"{gamma.Value:0.0#}" : "-";
+
+        // from the native resolution and the visible area
+        public static string FormatPixelDensity(int nativeWidthPixels, int nativeHeightPixels, int? widthCentimeters, int? heightCentimeters)
+        {
+            if (nativeWidthPixels <= 0 || nativeHeightPixels <= 0) return "-";
+            if (widthCentimeters is not int width || heightCentimeters is not int height || width <= 0 || height <= 0) return "-";
+
+            double diagonalPixels = System.Math.Sqrt((double)nativeWidthPixels * nativeWidthPixels + (double)nativeHeightPixels * nativeHeightPixels);
+            double diagonalInches = System.Math.Sqrt(width * width + height * height) / 2.54;
+            return $"{diagonalPixels / diagonalInches:0} ppi";
+        }
+
+        // VCP code D6 of the Monitor Control Command Set
+        public static string FormatDdcPowerMode(uint? powerMode)
+        {
+            return powerMode switch
+            {
+                null => "-",
+                1 => AppTerms.Get("Display_PowerOn"),
+                2 => AppTerms.Get("Display_PowerStandby"),
+                3 => AppTerms.Get("Display_PowerSuspend"),
+                4 or 5 => AppTerms.Get("Display_PowerOff"),
+                _ => AppStrings.Format("Info_UnknownValue", powerMode)
+            };
+        }
+
+        // VCP code 60; the standard values, a vendor value (USB-C on many monitors) shows as its number
+        public static string FormatDdcInputSource(uint? inputSource)
+        {
+            return inputSource switch
+            {
+                null => "-",
+                1 => "VGA 1",
+                2 => "VGA 2",
+                3 => "DVI 1",
+                4 => "DVI 2",
+                5 => "Composite 1",
+                6 => "Composite 2",
+                7 => "S-Video 1",
+                8 => "S-Video 2",
+                12 => "Component 1",
+                13 => "Component 2",
+                14 => "Component 3",
+                15 => "DisplayPort 1",
+                16 => "DisplayPort 2",
+                17 => "HDMI 1",
+                18 => "HDMI 2",
+                _ => $"0x{inputSource:X2}"
+            };
+        }
+
+        // VCP code B6
+        public static string FormatDdcTechnology(uint? technology)
+        {
+            return technology switch
+            {
+                null => "-",
+                1 or 2 => "CRT",
+                3 => "LCD",
+                4 => "LCoS",
+                5 => "Plasma",
+                6 => "OLED",
+                7 => "EL",
+                _ => $"0x{technology:X2}"
+            };
+        }
+
+        public static string FormatVersionOrDash(string version) => string.IsNullOrEmpty(version) ? "-" : version;
 
 
         // === motherboard ===

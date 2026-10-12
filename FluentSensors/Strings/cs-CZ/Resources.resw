@@ -1870,20 +1870,43 @@ Zabezpečení - jak je připojení ověřeno a šifrováno</value>
   <data name="Display_GeneralPopup.Description" xml:space="preserve">
     <value>Název - název, který monitor hlásí, nebo náš vlastní, když žádný nehlásí (většina panelů notebooků)
 Výrobce - třípísmenný kód výrobce panelu z EDID (AUO, BOE, DEL, SAM ...)
-Velikost - úhlopříčka a viditelná plocha podle EDID</value>
+Datum výroby - rok a týden
+Velikost - úhlopříčka a viditelná plocha podle EDID
+Nativní rozlišení - režim, který panel sám preferuje
+Hustota pixelů - z nativního rozlišení a viditelné plochy</value>
   </data>
   <data name="Display_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
   </data>
   <data name="Display_ModePopup.Description" xml:space="preserve">
-    <value>Rozlišení - rozlišení plochy, se kterým Windows displej řídí, ne nativní rozlišení panelu
+    <value>Rozlišení - rozlišení plochy, se kterým Windows displej řídí
+Měřítko - jak moc Windows na tomto displeji zvětšuje text a aplikace
 Obnovovací frekvence - aktuální hodnota; mění se s dynamickou obnovovací frekvencí
+Dostupné obnovovací frekvence - co displej nabízí při aktuálním rozlišení
 Konektor - USB-C a Thunderbolt se zobrazí jako DisplayPort, panel notebooku jako Interní nebo eDP
-Barevná hloubka - bity na barevný kanál signálu
-HDR - zda ho displej podporuje a zda ho má Windows zapnuté
 GPU - adaptér, který obraz vysílá; u hybridního notebooku obvykle integrovaný</value>
   </data>
   <data name="Display_ModePopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Display_ColorPopup.Description" xml:space="preserve">
+    <value>Barevná hloubka - bity na barevný kanál signálu
+HDR - zda ho displej podporuje a zda ho má Windows zapnuté
+Úroveň bílé SDR - jas běžného obsahu, když je HDR zapnuté
+Špičkový jas, Minimální jas - co displej o sobě hlásí; když nehlásí nic, Windows doplní výchozí hodnotu
+Gama - přenosová křivka podle EDID</value>
+  </data>
+  <data name="Display_ColorPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Display_DdcPopup.Description" xml:space="preserve">
+    <value>Čteno přímo z monitoru přes kabel displeje (nespolehlivé): monitor odpoví jen na část nebo na nic a dok, adaptér nebo přepínač KVM to může blokovat.
+Režim napájení - zapnuto, pohotovostní nebo vypnuto, jak se vidí monitor sám; svůj příkon monitor nehlásí
+Vstupní zdroj - vstup, který zobrazuje; vstup specifický pro výrobce se zobrazí jako číslo
+Doba provozu - hodiny, po které byl panel zapnutý
+Verze MCCS - verze sady řídicích příkazů, kterou monitor používá</value>
+  </data>
+  <data name="Display_DdcPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
   </data>
   <data name="Display_NameText.Text" xml:space="preserve">

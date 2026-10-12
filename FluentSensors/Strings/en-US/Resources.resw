@@ -1919,20 +1919,43 @@ Security - how the connection is authenticated and encrypted</value>
   <data name="Display_GeneralPopup.Description" xml:space="preserve">
     <value>Name - the name the monitor reports, or a name of ours when it reports none (most laptop panels)
 Manufacturer - the three letter id of the panel maker from the EDID (AUO, BOE, DEL, SAM ...)
-Size - diagonal and visible area as the EDID states them</value>
+Manufacture Date - year and week
+Size - diagonal and visible area as the EDID states them
+Native Resolution - the mode the panel itself prefers
+Pixel Density - from the native resolution and the visible area</value>
   </data>
   <data name="Display_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
   </data>
   <data name="Display_ModePopup.Description" xml:space="preserve">
-    <value>Resolution - the desktop resolution Windows drives the display at, not the native one of the panel
+    <value>Resolution - the desktop resolution Windows drives the display at
+Scale - how much Windows enlarges text and apps on this display
 Refresh Rate - current rate; moves with Dynamic Refresh Rate
+Available Refresh Rates - what the display offers at the current resolution
 Connector - USB-C and Thunderbolt show as DisplayPort, a laptop panel as Internal or eDP
-Color Depth - bits per color channel of the signal
-HDR - whether the display supports it and whether Windows has it on
 GPU - the adapter that scans the display out; on a hybrid laptop usually the integrated one</value>
   </data>
   <data name="Display_ModePopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Display_ColorPopup.Description" xml:space="preserve">
+    <value>Color Depth - bits per color channel of the signal
+HDR - whether the display supports it and whether Windows has it on
+SDR White Level - brightness of ordinary content while HDR is on
+Peak Luminance, Minimum Luminance - what the display reports about itself; Windows fills in a default when it reports nothing
+Gamma - the transfer curve the EDID states</value>
+  </data>
+  <data name="Display_ColorPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Display_DdcPopup.Description" xml:space="preserve">
+    <value>Read from the monitor itself over the display cable (unreliable): a monitor answers only some of these or none, and a dock, an adapter or a KVM switch can block them.
+Power Mode - on, standby or off as the monitor sees itself; the power it draws is not something a monitor reports
+Input Source - the input it shows; a vendor specific input shows as a number
+Usage Time - hours the panel has been on
+MCCS Version - version of the control command set the monitor speaks</value>
+  </data>
+  <data name="Display_DdcPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
   </data>
   <data name="Display_NameText.Text" xml:space="preserve">

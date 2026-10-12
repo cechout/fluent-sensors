@@ -56,8 +56,12 @@ namespace FluentSensors.Features.Performance.Win
                 return new List<HardwareFact>
                 {
                     new(AppTerms.Get("Display_Manufacturer"), HardwareInfoFormatter.FormatTextOrDash(info.ManufacturerId)),
-                    new(AppTerms.Get("Display_ManufactureYear"), HardwareInfoFormatter.FormatYear(info.ManufactureYear)),
-                    new(AppTerms.Get("Display_Size"), HardwareInfoFormatter.FormatDisplaySize(info.WidthCentimeters, info.HeightCentimeters))
+                    new(AppTerms.Get("Display_ProductCode"), HardwareInfoFormatter.FormatTextOrDash(info.ProductCode)),
+                    new(AppTerms.Get("Display_ManufactureDate"), HardwareInfoFormatter.FormatManufactureDate(info.ManufactureYear, info.ManufactureWeek)),
+                    new(AppTerms.Get("Display_Size"), HardwareInfoFormatter.FormatDisplaySize(info.WidthCentimeters, info.HeightCentimeters)),
+                    new(AppTerms.Get("Display_NativeResolution"), HardwareInfoFormatter.FormatResolution(info.NativeWidthPixels, info.NativeHeightPixels)),
+                    new(AppTerms.Get("Display_PixelDensity"), HardwareInfoFormatter.FormatPixelDensity(
+                        info.NativeWidthPixels, info.NativeHeightPixels, info.WidthCentimeters, info.HeightCentimeters))
                 };
             }
         }
@@ -75,14 +79,68 @@ namespace FluentSensors.Features.Performance.Win
                 return new List<HardwareFact>
                 {
                     new(AppTerms.Get("Display_Resolution"), HardwareInfoFormatter.FormatResolution(info.WidthPixels, info.HeightPixels)),
+                    new(AppTerms.Get("Display_Scale"), HardwareInfoFormatter.FormatScale(info.ScalePercent)),
+                    new(AppTerms.Get("Display_Orientation"), HardwareInfoFormatter.FormatDisplayOrientation(info.Rotation)),
                     new(AppTerms.Get("Display_RefreshRate"), HardwareInfoFormatter.FormatRefreshRate(info.RefreshRateHz)),
+                    new(AppTerms.Get("Display_AvailableRefreshRates"), HardwareInfoFormatter.FormatRefreshRates(info.RefreshRatesHz)),
                     new(AppTerms.Get("Display_Connector"), HardwareInfoFormatter.FormatDisplayConnector(info.OutputTechnology)),
-                    new(AppTerms.Get("Display_ColorDepth"), HardwareInfoFormatter.FormatColorDepth(info.BitsPerColorChannel)),
-                    new(AppTerms.Get("Display_Hdr"), HardwareInfoFormatter.FormatHdr(info.IsHdrSupported, info.IsHdrEnabled)),
+                    new(AppTerms.Get("Display_Primary"), HardwareInfoFormatter.FormatYesNo(info.IsPrimary)),
                     new(AppTerms.Get("Display_Gpu"), HardwareInfoFormatter.FormatTextOrDash(gpu))
                 };
             }
         }
+
+        // info panel; color depth, HDR and the luminance the display reports
+        public IReadOnlyList<HardwareFact> ColorFacts
+        {
+            get
+            {
+                var info = MatchStaticInfo();
+                if (info == null) return new List<HardwareFact>();
+
+                var facts = new List<HardwareFact>
+                {
+                    new(AppTerms.Get("Display_ColorDepth"), HardwareInfoFormatter.FormatColorDepth(info.BitsPerColorChannel)),
+                    new(AppTerms.Get("Display_Hdr"), HardwareInfoFormatter.FormatHdr(info.IsHdrSupported, info.IsHdrEnabled))
+                };
+
+                // only means something while HDR is on
+                if (info.SdrWhiteLevelNits.HasValue)
+                {
+                    facts.Add(new(AppTerms.Get("Display_SdrWhiteLevel"), HardwareInfoFormatter.FormatNits(info.SdrWhiteLevelNits)));
+                }
+
+                facts.Add(new(AppTerms.Get("Display_PeakLuminance"), HardwareInfoFormatter.FormatNits(info.MaxLuminanceNits)));
+                facts.Add(new(AppTerms.Get("Display_MinLuminance"), HardwareInfoFormatter.FormatNits(info.MinLuminanceNits)));
+                facts.Add(new(AppTerms.Get("Display_Gamma"), HardwareInfoFormatter.FormatGamma(info.Gamma)));
+
+                return facts;
+            }
+        }
+
+        // info panel; what the monitor itself answers over DDC/CI, empty when it answers nothing (most laptop panels)
+        // KNOWN UNRELIABLE: see WinDisplayReader.QueryDdcLevels
+        public IReadOnlyList<HardwareFact> DdcFacts
+        {
+            get
+            {
+                var ddc = MatchStaticInfo()?.Ddc;
+                if (ddc == null) return new List<HardwareFact>();
+
+                return new List<HardwareFact>
+                {
+                    new(AppTerms.Get("Display_PowerMode"), HardwareInfoFormatter.FormatDdcPowerMode(ddc.PowerMode)),
+                    new(AppTerms.Get("Display_InputSource"), HardwareInfoFormatter.FormatDdcInputSource(ddc.InputSource)),
+                    new(AppTerms.Get("Display_UsageTime"), HardwareInfoFormatter.FormatHours(ddc.UsageHours)),
+                    new(AppTerms.Get("Display_Technology"), HardwareInfoFormatter.FormatDdcTechnology(ddc.Technology)),
+                    new(AppTerms.Get("Display_FirmwareLevel"), HardwareInfoFormatter.FormatVersionOrDash(ddc.FirmwareLevel)),
+                    new(AppTerms.Get("Display_MccsVersion"), HardwareInfoFormatter.FormatVersionOrDash(ddc.MccsVersion))
+                };
+            }
+        }
+
+        public Microsoft.UI.Xaml.Visibility DdcFactsVisibility =>
+            MatchStaticInfo()?.Ddc != null ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
 
 
         // === public methods ===
@@ -102,6 +160,9 @@ namespace FluentSensors.Features.Performance.Win
         {
             OnPropertyChanged(nameof(GeneralFacts));
             OnPropertyChanged(nameof(ModeFacts));
+            OnPropertyChanged(nameof(ColorFacts));
+            OnPropertyChanged(nameof(DdcFacts));
+            OnPropertyChanged(nameof(DdcFactsVisibility));
         }
 
 

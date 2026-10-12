@@ -41,6 +41,9 @@ namespace FluentSensors.Core
         private const int WlanIntervalMs = 2000;
         private const double StorageIntervalMs = 6000;
 
+        // DDC/CI goes over the monitor cable and takes tens of milliseconds per value; a level only moves by hand
+        private const double DdcIntervalMs = 4000;
+
         // the LHM names a Windows drive temperature replaces: the NVMe one and the SATA / USB one
         private static readonly string[] ReplacedStorageTemperatureNames = { "Composite Temperature", "Temperature" };
 
@@ -58,6 +61,10 @@ namespace FluentSensors.Core
 
         private CancellationTokenSource? _cts;
         private Task? _loopTask;
+
+        // the last DDC/CI levels per display key, and when they were read; loop thread only
+        private Dictionary<string, Dictionary<byte, double>> _ddcLevels = new();
+        private long _ddcTimestamp;
 
         // one disk as Windows lists it
         private record PhysicalDiskTemperature(string Number, string FriendlyName, double Celsius);
@@ -256,24 +263,49 @@ namespace FluentSensors.Core
             return result;
         }
 
-        // refresh rate of every active display, and the brightness where Windows can read one (a laptop panel; an
-        // external monitor would need DDC/CI)
-        private static List<WinSensorReading> ReadDisplays()
+        // refresh rate of every active display, and its levels: the brightness of a laptop panel from Windows, the
+        // brightness, contrast and speaker volume of a monitor over DDC/CI
+        private List<WinSensorReading> ReadDisplays()
         {
             var result = new List<WinSensorReading>();
 
             try
             {
-                var displays = WinDisplayReader.QueryDisplays(includeEdid: false);
+                var displays = WinDisplayReader.QueryDisplays(includeDetails: false);
                 if (displays.Count == 0) return result;
 
                 var brightness = ReadBrightness();
+                bool isDdcDue = Stopwatch.GetElapsedTime(_ddcTimestamp).TotalMilliseconds >= DdcIntervalMs;
+                var ddcLevels = isDdcDue ? new Dictionary<string, Dictionary<byte, double>>() : _ddcLevels;
 
                 foreach (var display in displays)
                 {
                     string idRoot = $"{SensorSourceMarker.WindowsIdRoot}display/{display.Key}";
+                    bool hasBrightness = TryMatchBrightness(display, brightness, out double percent);
 
-                    if (TryMatchBrightness(display, brightness, out double percent))
+                    // a panel Windows dims itself is not asked over DDC/CI
+                    if (!hasBrightness)
+                    {
+                        if (isDdcDue) ddcLevels[display.Key] = WinDisplayReader.QueryDdcLevels(displays, display);
+
+                        if (ddcLevels.TryGetValue(display.Key, out var levels))
+                        {
+                            hasBrightness = levels.TryGetValue(WinDisplayReader.VcpBrightness, out percent);
+
+                            if (levels.TryGetValue(WinDisplayReader.VcpContrast, out double contrast))
+                            {
+                                result.Add(new WinSensorReading(
+                                    $"{idRoot}/level/1", "Contrast", display.Name, "Display", "Level", contrast, IsOwnHardware: true));
+                            }
+                            if (levels.TryGetValue(WinDisplayReader.VcpVolume, out double volume))
+                            {
+                                result.Add(new WinSensorReading(
+                                    $"{idRoot}/level/2", "Volume", display.Name, "Display", "Level", volume, IsOwnHardware: true));
+                            }
+                        }
+                    }
+
+                    if (hasBrightness)
                     {
                         result.Add(new WinSensorReading(
                             $"{idRoot}/level/0", "Brightness", display.Name, "Display", "Level", percent, IsOwnHardware: true));
@@ -285,6 +317,12 @@ namespace FluentSensors.Core
                             $"{idRoot}/frequency/0", "Refresh Rate", display.Name, "Display", "Frequency", display.RefreshRateHz,
                             IsOwnHardware: true));
                     }
+                }
+
+                if (isDdcDue)
+                {
+                    _ddcLevels = ddcLevels;
+                    _ddcTimestamp = Stopwatch.GetTimestamp();
                 }
             }
             catch

@@ -1870,20 +1870,43 @@ Sicherheit - wie die Verbindung authentifiziert und verschlüsselt wird</value>
   <data name="Display_GeneralPopup.Description" xml:space="preserve">
     <value>Name - der Name, den der Monitor meldet, oder ein eigener Name, wenn er keinen meldet (die meisten Laptop-Panels)
 Hersteller - dreistellige Kennung des Panel-Herstellers aus der EDID (AUO, BOE, DEL, SAM ...)
-Größe - Diagonale und sichtbare Fläche laut EDID</value>
+Herstellungsdatum - Jahr und Woche
+Größe - Diagonale und sichtbare Fläche laut EDID
+Native Auflösung - der Modus, den das Panel selbst bevorzugt
+Pixeldichte - aus nativer Auflösung und sichtbarer Fläche</value>
   </data>
   <data name="Display_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
   </data>
   <data name="Display_ModePopup.Description" xml:space="preserve">
-    <value>Auflösung - die Desktop-Auflösung, mit der Windows das Display ansteuert, nicht die native des Panels
+    <value>Auflösung - die Desktop-Auflösung, mit der Windows das Display ansteuert
+Skalierung - wie stark Windows Text und Apps auf diesem Display vergrößert
 Bildwiederholrate - aktuelle Rate; ändert sich mit der dynamischen Bildwiederholrate
+Verfügbare Bildwiederholraten - was das Display bei der aktuellen Auflösung anbietet
 Anschluss - USB-C und Thunderbolt erscheinen als DisplayPort, ein Laptop-Panel als Intern oder eDP
-Farbtiefe - Bit pro Farbkanal des Signals
-HDR - ob das Display es unterstützt und ob Windows es eingeschaltet hat
 GPU - der Adapter, der das Bild ausgibt; bei einem Hybrid-Laptop meist die integrierte</value>
   </data>
   <data name="Display_ModePopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Display_ColorPopup.Description" xml:space="preserve">
+    <value>Farbtiefe - Bit pro Farbkanal des Signals
+HDR - ob das Display es unterstützt und ob Windows es eingeschaltet hat
+SDR-Weißpegel - Helligkeit normaler Inhalte, während HDR eingeschaltet ist
+Spitzenhelligkeit, Minimale Helligkeit - was das Display über sich selbst meldet; Windows setzt einen Standardwert ein, wenn es nichts meldet
+Gamma - die Übertragungskurve laut EDID</value>
+  </data>
+  <data name="Display_ColorPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Display_DdcPopup.Description" xml:space="preserve">
+    <value>Über das Displaykabel vom Monitor selbst gelesen (unzuverlässig): ein Monitor beantwortet nur einen Teil davon oder nichts, und ein Dock, ein Adapter oder ein KVM-Switch kann es blockieren.
+Energiemodus - Ein, Standby oder Aus, wie der Monitor sich selbst sieht; seine Leistungsaufnahme meldet ein Monitor nicht
+Eingangsquelle - der Eingang, den er anzeigt; ein herstellerspezifischer Eingang erscheint als Zahl
+Betriebszeit - Stunden, die das Panel eingeschaltet war
+MCCS-Version - Version des Steuerbefehlssatzes, den der Monitor spricht</value>
+  </data>
+  <data name="Display_DdcPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
   </data>
   <data name="Display_NameText.Text" xml:space="preserve">

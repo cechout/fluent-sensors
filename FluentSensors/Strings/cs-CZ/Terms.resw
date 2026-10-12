@@ -518,8 +518,89 @@
   <data name="Display_Manufacturer" xml:space="preserve">
     <value>Výrobce</value>
   </data>
-  <data name="Display_ManufactureYear" xml:space="preserve">
-    <value>Rok výroby</value>
+  <data name="Display_ProductCode" xml:space="preserve">
+    <value>Kód produktu</value>
+  </data>
+  <data name="Display_ManufactureDate" xml:space="preserve">
+    <value>Datum výroby</value>
+  </data>
+  <data name="Display_NativeResolution" xml:space="preserve">
+    <value>Nativní rozlišení</value>
+  </data>
+  <data name="Display_PixelDensity" xml:space="preserve">
+    <value>Hustota pixelů</value>
+  </data>
+  <data name="Display_Scale" xml:space="preserve">
+    <value>Měřítko</value>
+  </data>
+  <data name="Display_Orientation" xml:space="preserve">
+    <value>Orientace</value>
+  </data>
+  <data name="Display_OrientationLandscape" xml:space="preserve">
+    <value>Na šířku</value>
+  </data>
+  <data name="Display_OrientationPortrait" xml:space="preserve">
+    <value>Na výšku</value>
+  </data>
+  <data name="Display_OrientationLandscapeFlipped" xml:space="preserve">
+    <value>Na šířku (převráceně)</value>
+  </data>
+  <data name="Display_OrientationPortraitFlipped" xml:space="preserve">
+    <value>Na výšku (převráceně)</value>
+  </data>
+  <data name="Display_AvailableRefreshRates" xml:space="preserve">
+    <value>Dostupné obnovovací frekvence</value>
+  </data>
+  <data name="Display_Primary" xml:space="preserve">
+    <value>Hlavní displej</value>
+  </data>
+  <data name="Display_Color" xml:space="preserve">
+    <value>Barva</value>
+  </data>
+  <data name="Display_SdrWhiteLevel" xml:space="preserve">
+    <value>Úroveň bílé SDR</value>
+  </data>
+  <data name="Display_PeakLuminance" xml:space="preserve">
+    <value>Špičkový jas</value>
+  </data>
+  <data name="Display_MinLuminance" xml:space="preserve">
+    <value>Minimální jas</value>
+  </data>
+  <data name="Display_Gamma" xml:space="preserve">
+    <value>Gama</value>
+  </data>
+  <data name="Display_Monitor" xml:space="preserve">
+    <value>Monitor (DDC/CI)</value>
+  </data>
+  <data name="Display_PowerMode" xml:space="preserve">
+    <value>Režim napájení</value>
+  </data>
+  <data name="Display_PowerOn" xml:space="preserve">
+    <value>Zapnuto</value>
+  </data>
+  <data name="Display_PowerStandby" xml:space="preserve">
+    <value>Pohotovostní</value>
+  </data>
+  <data name="Display_PowerSuspend" xml:space="preserve">
+    <value>Uspáno</value>
+  </data>
+  <data name="Display_PowerOff" xml:space="preserve">
+    <value>Vypnuto</value>
+  </data>
+  <data name="Display_InputSource" xml:space="preserve">
+    <value>Vstupní zdroj</value>
+  </data>
+  <data name="Display_UsageTime" xml:space="preserve">
+    <value>Doba provozu</value>
+  </data>
+  <data name="Display_Technology" xml:space="preserve">
+    <value>Technologie panelu</value>
+  </data>
+  <data name="Display_FirmwareLevel" xml:space="preserve">
+    <value>Úroveň firmwaru</value>
+  </data>
+  <data name="Display_MccsVersion" xml:space="preserve">
+    <value>Verze MCCS</value>
   </data>
   <data name="Display_Size" xml:space="preserve">
     <value>Velikost</value>

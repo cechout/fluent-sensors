@@ -518,8 +518,89 @@
   <data name="Display_Manufacturer" xml:space="preserve">
     <value>Hersteller</value>
   </data>
-  <data name="Display_ManufactureYear" xml:space="preserve">
-    <value>Herstellungsjahr</value>
+  <data name="Display_ProductCode" xml:space="preserve">
+    <value>Produktcode</value>
+  </data>
+  <data name="Display_ManufactureDate" xml:space="preserve">
+    <value>Herstellungsdatum</value>
+  </data>
+  <data name="Display_NativeResolution" xml:space="preserve">
+    <value>Native Auflösung</value>
+  </data>
+  <data name="Display_PixelDensity" xml:space="preserve">
+    <value>Pixeldichte</value>
+  </data>
+  <data name="Display_Scale" xml:space="preserve">
+    <value>Skalierung</value>
+  </data>
+  <data name="Display_Orientation" xml:space="preserve">
+    <value>Ausrichtung</value>
+  </data>
+  <data name="Display_OrientationLandscape" xml:space="preserve">
+    <value>Querformat</value>
+  </data>
+  <data name="Display_OrientationPortrait" xml:space="preserve">
+    <value>Hochformat</value>
+  </data>
+  <data name="Display_OrientationLandscapeFlipped" xml:space="preserve">
+    <value>Querformat (gedreht)</value>
+  </data>
+  <data name="Display_OrientationPortraitFlipped" xml:space="preserve">
+    <value>Hochformat (gedreht)</value>
+  </data>
+  <data name="Display_AvailableRefreshRates" xml:space="preserve">
+    <value>Verfügbare Bildwiederholraten</value>
+  </data>
+  <data name="Display_Primary" xml:space="preserve">
+    <value>Hauptanzeige</value>
+  </data>
+  <data name="Display_Color" xml:space="preserve">
+    <value>Farbe</value>
+  </data>
+  <data name="Display_SdrWhiteLevel" xml:space="preserve">
+    <value>SDR-Weißpegel</value>
+  </data>
+  <data name="Display_PeakLuminance" xml:space="preserve">
+    <value>Spitzenhelligkeit</value>
+  </data>
+  <data name="Display_MinLuminance" xml:space="preserve">
+    <value>Minimale Helligkeit</value>
+  </data>
+  <data name="Display_Gamma" xml:space="preserve">
+    <value>Gamma</value>
+  </data>
+  <data name="Display_Monitor" xml:space="preserve">
+    <value>Monitor (DDC/CI)</value>
+  </data>
+  <data name="Display_PowerMode" xml:space="preserve">
+    <value>Energiemodus</value>
+  </data>
+  <data name="Display_PowerOn" xml:space="preserve">
+    <value>Ein</value>
+  </data>
+  <data name="Display_PowerStandby" xml:space="preserve">
+    <value>Standby</value>
+  </data>
+  <data name="Display_PowerSuspend" xml:space="preserve">
+    <value>Ruhezustand</value>
+  </data>
+  <data name="Display_PowerOff" xml:space="preserve">
+    <value>Aus</value>
+  </data>
+  <data name="Display_InputSource" xml:space="preserve">
+    <value>Eingangsquelle</value>
+  </data>
+  <data name="Display_UsageTime" xml:space="preserve">
+    <value>Betriebszeit</value>
+  </data>
+  <data name="Display_Technology" xml:space="preserve">
+    <value>Panel-Technologie</value>
+  </data>
+  <data name="Display_FirmwareLevel" xml:space="preserve">
+    <value>Firmware-Stand</value>
+  </data>
+  <data name="Display_MccsVersion" xml:space="preserve">
+    <value>MCCS-Version</value>
   </data>
   <data name="Display_Size" xml:space="preserve">
     <value>Größe</value>

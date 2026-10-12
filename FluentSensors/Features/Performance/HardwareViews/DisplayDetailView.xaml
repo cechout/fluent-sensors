@@ -262,7 +262,7 @@
                         <fhFacts:FactListControl Facts="{x:Bind Display.GeneralFacts, Mode=OneWay}" />
                     </StackPanel>
 
-                    <!--  mode: resolution, refresh rate, connector, color depth, hdr and the gpu behind it  -->
+                    <!--  mode: resolution, scale, refresh rate, connector and the gpu behind it  -->
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
                             x:Uid="Display_ModePopup"
@@ -275,6 +275,38 @@
                         </fhInfoPopup:InfoPopupControl>
 
                         <fhFacts:FactListControl Facts="{x:Bind Display.ModeFacts, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!--  color: depth, hdr and the luminance the display reports  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Display_ColorPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Display_Color')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO" Url="https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-displayconfig_get_advanced_color_info" />
+                                <fhInfoPopup:SourceLink Label="DXGI_OUTPUT_DESC1" Url="https://learn.microsoft.com/en-us/windows/win32/api/dxgi1_6/ns-dxgi1_6-dxgi_output_desc1" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <fhFacts:FactListControl Facts="{x:Bind Display.ColorFacts, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!--  monitor: what it answers itself over ddc/ci  -->
+                    <!--  (gone while it answers nothing, which is the rule for a laptop panel)  -->
+                    <StackPanel Spacing="12" Visibility="{x:Bind Display.DdcFactsVisibility, Mode=OneWay}">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Display_DdcPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Display_Monitor')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="GetVCPFeatureAndVCPFeatureReply" Url="https://learn.microsoft.com/en-us/windows/win32/api/lowlevelmonitorconfigurationapi/nf-lowlevelmonitorconfigurationapi-getvcpfeatureandvcpfeaturereply" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <fhFacts:FactListControl Facts="{x:Bind Display.DdcFacts, Mode=OneWay}" />
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

@@ -132,7 +132,7 @@ namespace FluentSensors.Core.StaticInfo
             BatteriesChanged?.Invoke();
         }
 
-        // the active displays, their mode and HDR state
+        // the active displays, their mode, HDR state and what the monitor says over DDC/CI
         public async Task RefreshDisplaysAsync()
         {
             var fresh = await QueryChangedAsync(Displays, QueryDisplays);
@@ -142,7 +142,7 @@ namespace FluentSensors.Core.StaticInfo
             DisplaysChanged?.Invoke();
         }
 
-        private static List<WinDisplayInfo> QueryDisplays() => WinDisplayReader.QueryDisplays(includeEdid: true);
+        private static List<WinDisplayInfo> QueryDisplays() => WinDisplayReader.QueryDisplays(includeDetails: true);
 
         // looks again for what was missing at startup; found now means installed while the app runs, and LHM needs a
         // restart to use it
