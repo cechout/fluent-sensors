@@ -62,7 +62,7 @@
                     Height="8"
                     Margin="0,5,4,0"
                     VerticalAlignment="Top"
-                    Data="{x:Bind fhUi:SensorSourceIcon.CreateGeometry(ViewModel.SensorId), Mode=OneWay}"
+                    fhUi:SensorSourceIcon.SensorId="{x:Bind ViewModel.SensorId, Mode=OneWay}"
                     Fill="{ThemeResource TextFillColorSecondaryBrush}"
                     Stretch="Uniform" />
             </fhControls:TrailingContentPanel>

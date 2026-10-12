@@ -1,5 +1,7 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Shapes;
 
 using FluentSensors.Common.Sensors;
 
@@ -28,15 +30,30 @@ namespace FluentSensors.Common.UI
             "M11,3.5H12.5V5H11Z " +
             "M11,11H12.5V12.5H11Z";
 
-        // a new geometry per call; a Path does not share one with another Path
-        // null without a sensor, the Path then draws nothing
-        public static Geometry CreateGeometry(string sensorId)
-        {
-            if (string.IsNullOrEmpty(sensorId)) return null;
 
-            string data = SensorSourceMarker.IsWindowsSensor(sensorId) ? WindowsData : LhmData;
-            return (Geometry)XamlBindingHelper.ConvertValue(typeof(Geometry), data);
+        // === attached properties ===
+
+        // on a Path: the sensor whose source it draws; the Path gets a geometry of its own
+        // not a binding on Path.Data: x:Bind evaluates one expression once for all its targets, and a geometry that
+        // sits in one Path already makes the next Path throw (E_INVALIDARG)
+        public static readonly DependencyProperty SensorIdProperty =
+            DependencyProperty.RegisterAttached(
+                "SensorId",
+                typeof(string),
+                typeof(SensorSourceIcon),
+                new PropertyMetadata(null, OnSensorIdChanged));
+
+        public static string GetSensorId(DependencyObject element) => (string)element.GetValue(SensorIdProperty);
+
+        public static void SetSensorId(DependencyObject element, string value) => element.SetValue(SensorIdProperty, value);
+
+        private static void OnSensorIdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is Path path) path.Data = CreateGeometry(e.NewValue as string);
         }
+
+
+        // === public api ===
 
         // for the tooltip; product names, not translated
         public static string GetName(string sensorId)
@@ -44,6 +61,18 @@ namespace FluentSensors.Common.UI
             if (string.IsNullOrEmpty(sensorId)) return "";
 
             return SensorSourceMarker.IsWindowsSensor(sensorId) ? "Windows" : "LibreHardwareMonitor";
+        }
+
+
+        // === private helpers ===
+
+        // a new geometry per call; null without a sensor, the Path then draws nothing
+        private static Geometry CreateGeometry(string sensorId)
+        {
+            if (string.IsNullOrEmpty(sensorId)) return null;
+
+            string data = SensorSourceMarker.IsWindowsSensor(sensorId) ? WindowsData : LhmData;
+            return (Geometry)XamlBindingHelper.ConvertValue(typeof(Geometry), data);
         }
     }
 }

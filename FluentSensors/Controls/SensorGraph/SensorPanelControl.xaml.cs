@@ -540,7 +540,7 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         // the source icon behind the title; nothing while the panel shows a placeholder
-        private Geometry GetSourceIconGeometry(SensorGraphViewModel viewModel) => SensorSourceIcon.CreateGeometry(viewModel?.SensorId);
+        private string GetSourceIconSensorId(SensorGraphViewModel viewModel) => viewModel?.SensorId ?? "";
 
         private string GetSourceIconName(SensorGraphViewModel viewModel) => SensorSourceIcon.GetName(viewModel?.SensorId);
 
