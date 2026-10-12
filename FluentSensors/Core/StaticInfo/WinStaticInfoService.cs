@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Management;
 using Microsoft.Win32;
 using System.Net.NetworkInformation;
+using System.Runtime.Intrinsics.X86;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +21,8 @@ namespace FluentSensors.Core.StaticInfo
     // static hardware info:
     // facts from Windows itself (WMI and Win32), queried once on first access, unlike the live
     // LHM sensors; a lazy singleton
-    // gpus, drives and network adapters can move while the app runs and are asked again, see the refresh section
+    // gpus, drives, network adapters and batteries can move while the app runs and are asked again, see the refresh
+    // section
     // the constructor blocks the first thread that touches Instance through several WMI queries, so it is prewarmed at
     // startup (see MainWindow.StartHardwareServiceAsync)
     public class WinStaticInfoService
@@ -37,6 +40,7 @@ namespace FluentSensors.Core.StaticInfo
             Memory = QueryMemory();
             Drives = QueryDrives();
             NetworkAdapters = QueryNetworkAdapters();
+            Batteries = WinBatteryReader.QueryBatteries();
             Motherboard = QueryMotherboard();
             DotNetRuntimeState = !PretendPrerequisitesMissing && QueryDotNetRuntimeInstalled()
                 ? WinPrerequisiteState.Installed
@@ -55,7 +59,7 @@ namespace FluentSensors.Core.StaticInfo
 
 
         // === public binding surface ===
-        // (no INotifyPropertyChanged; cpu, memory and motherboard never change after construction, the three lists
+        // (no INotifyPropertyChanged; cpu, memory and motherboard never change after construction, the four lists
         // are swapped whole by a refresh, which raises the matching event)
 
         public WinCpuInfo Cpu { get; }
@@ -63,6 +67,7 @@ namespace FluentSensors.Core.StaticInfo
         public WinMemoryInfo Memory { get; }
         public IReadOnlyList<WinStorageDriveInfo> Drives { get; private set; }
         public IReadOnlyList<WinNetworkAdapterInfo> NetworkAdapters { get; private set; }
+        public IReadOnlyList<WinBatteryInfo> Batteries { get; private set; }
         public WinMotherboardInfo Motherboard { get; }
 
         // installed once any Major >= 10 shared framework version is found, see QueryDotNetRuntimeInstalled
@@ -81,6 +86,7 @@ namespace FluentSensors.Core.StaticInfo
         public event Action? GpusChanged;
         public event Action? DrivesChanged;
         public event Action? NetworkAdaptersChanged;
+        public event Action? BatteriesChanged;
         public event Action? PrerequisitesChanged;
 
         // the gpu list, the driver versions and the display each gpu drives
@@ -111,6 +117,16 @@ namespace FluentSensors.Core.StaticInfo
 
             NetworkAdapters = fresh;
             NetworkAdaptersChanged?.Invoke();
+        }
+
+        // the batteries that are present, their full capacity and cycle count
+        public async Task RefreshBatteriesAsync()
+        {
+            var fresh = await QueryChangedAsync(Batteries, WinBatteryReader.QueryBatteries);
+            if (fresh == null) return;
+
+            Batteries = fresh;
+            BatteriesChanged?.Invoke();
         }
 
         // looks again for what was missing at startup; found now means installed while the app runs, and LHM needs a
@@ -185,13 +201,55 @@ namespace FluentSensors.Core.StaticInfo
                     VirtualizationFirmwareEnabled: ToBool(item["VirtualizationFirmwareEnabled"]),
 
                     VirtualizationExtensionsSupported: ToBool(item["VMMonitorModeExtensions"]),
+                    Description: item["Description"]?.ToString() ?? "",
+                    MicrocodeRevision: QueryMicrocodeRevision(),
+                    InstructionSets: QueryInstructionSets(),
                     CoreTopology: topology,
                     CacheEntries: cacheEntries
                 );
             }
 
             // no Win32_Processor row; the topology still goes back
-            return new WinCpuInfo(0, 0, 0, "", false, false, topology, new List<WinCpuCacheEntry>());
+            return new WinCpuInfo(
+                0, 0, 0, "", false, false, "", QueryMicrocodeRevision(), QueryInstructionSets(), topology, new List<WinCpuCacheEntry>());
+        }
+
+        // the "Update Revision" Windows keeps per processor: eight bytes with the revision in the upper half on
+        // Intel and in the lower half on AMD, or only the four of the revision
+        private static uint? QueryMicrocodeRevision()
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
+                if (key?.GetValue("Update Revision") is not byte[] { Length: >= 4 } bytes) return null;
+
+                uint upper = bytes.Length >= 8 ? BitConverter.ToUInt32(bytes, 4) : 0;
+                uint revision = upper != 0 ? upper : BitConverter.ToUInt32(bytes, 0);
+                return revision != 0 ? revision : null;
+            }
+            catch
+            {
+                return null; // no access to the key
+            }
+        }
+
+        // what the .NET runtime found on this cpu; the short list a user compares against the requirements of a game
+        // or an encoder, not every cpuid bit
+        private static List<string> QueryInstructionSets()
+        {
+            var result = new List<string>();
+            void Add(bool isSupported, string name) { if (isSupported) result.Add(name); }
+
+            Add(Sse42.IsSupported, "SSE4.2");
+            Add(Aes.IsSupported, "AES");
+            Add(Avx.IsSupported, "AVX");
+            Add(Fma.IsSupported, "FMA3");
+            Add(Avx2.IsSupported, "AVX2");
+            Add(Bmi2.IsSupported, "BMI2");
+            Add(AvxVnni.IsSupported, "AVX-VNNI");
+            Add(Avx512F.IsSupported, "AVX-512");
+
+            return result;
         }
 
 
@@ -205,6 +263,7 @@ namespace FluentSensors.Core.StaticInfo
             foreach (ManagementObject item in searcher.Get())
             {
                 string name = item["Name"]?.ToString() ?? "";
+                string pnpDeviceId = item["PNPDeviceID"]?.ToString() ?? "";
 
                 // best-effort match against DXGI; its Description is near-identical to the WMI Name but not
                 // byte-identical, so HardwareNameMatcher
@@ -213,7 +272,9 @@ namespace FluentSensors.Core.StaticInfo
                 result.Add(new WinGpuInfo(
                     Name: name,
                     DriverVersion: item["DriverVersion"]?.ToString() ?? "",
-                    PnpDeviceId: item["PNPDeviceID"]?.ToString() ?? "",
+                    DriverDate: ToIsoDate(item["DriverDate"]),
+                    PnpDeviceId: pnpDeviceId,
+                    PciLink: WinPciLinkReader.Query(pnpDeviceId),
                     VendorId: dxgiMatch?.VendorId ?? 0,
                     DeviceId: dxgiMatch?.DeviceId ?? 0,
                     DedicatedVideoMemoryBytes: dxgiMatch?.DedicatedVideoMemory ?? 0,
@@ -305,11 +366,19 @@ namespace FluentSensors.Core.StaticInfo
         private static WinMemoryInfo QueryMemory()
         {
             int totalSlots = 0;
+            ulong maxCapacityKb = 0;
+            uint errorCorrection = 0;
             using (var arraySearcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMemoryArray"))
             {
                 foreach (ManagementObject item in arraySearcher.Get())
                 {
                     totalSlots += ToInt(item["MemoryDevices"]);
+
+                    // MaxCapacity is 32 bit and ends at 2 TB; the Ex field is newer and can be missing
+                    ulong capacityKb = ToULong(item["MaxCapacityEx"]);
+                    maxCapacityKb += capacityKb > 0 ? capacityKb : ToULong(item["MaxCapacity"]);
+
+                    if (errorCorrection == 0) errorCorrection = (uint)ToInt(item["MemoryErrorCorrection"]);
                 }
             }
 
@@ -339,7 +408,7 @@ namespace FluentSensors.Core.StaticInfo
                 }
             }
 
-            return new WinMemoryInfo(totalSlots, modules);
+            return new WinMemoryInfo(totalSlots, maxCapacityKb * 1024, errorCorrection, modules);
         }
 
         // MSFT_PhysicalDisk and its MSFT_StorageReliabilityCounter, keyed by serial and matched to Win32_DiskDrive
@@ -347,6 +416,9 @@ namespace FluentSensors.Core.StaticInfo
         private record PhysicalDiskExtraInfo(
             string FriendlyName,
             string BusType,
+            uint? MediaType,
+            uint? SpindleSpeedRpm,
+            uint? HealthStatus,
             uint? TemperatureCelsius,
             uint? TemperatureMaxCelsius,
             uint? WearPercent,
@@ -436,8 +508,14 @@ namespace FluentSensors.Core.StaticInfo
                         // no reliability counter for this disk (some drivers expose none); everything stays null
                     }
 
+                    // the spindle speed is all ones when the drive does not tell
+                    uint? spindleSpeed = ToNullableUInt(item["SpindleSpeed"]);
+                    if (spindleSpeed == uint.MaxValue) spindleSpeed = null;
+
                     physicalDiskInfo[serial] = new PhysicalDiskExtraInfo(
-                        friendly, busType, temperature, temperatureMax, wear, powerOnHours,
+                        friendly, busType,
+                        ToNullableUInt(item["MediaType"]), spindleSpeed, ToNullableUInt(item["HealthStatus"]),
+                        temperature, temperatureMax, wear, powerOnHours,
                         readErrorsTotal, readErrorsCorrected, readErrorsUncorrected,
                         writeErrorsTotal, writeErrorsCorrected, writeErrorsUncorrected,
                         startStopCycleCount, startStopCycleCountMax,
@@ -450,22 +528,40 @@ namespace FluentSensors.Core.StaticInfo
                 // no Storage namespace; Win32_DiskDrive names and bus type only
             }
 
+            var disks = QueryDisks();
+
             using var driveSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_DiskDrive");
             foreach (ManagementObject item in driveSearcher.Get())
             {
                 string serial = item["SerialNumber"]?.ToString()?.Trim() ?? "";
                 string legacyModel = item["Model"]?.ToString()?.Trim() ?? "";
                 string legacyBusType = item["InterfaceType"]?.ToString() ?? "";
+                string pnpDeviceId = item["PNPDeviceID"]?.ToString() ?? "";
 
                 physicalDiskInfo.TryGetValue(serial, out var modern);
+                disks.TryGetValue(ToInt(item["Index"]), out var disk);
+
+                string busType = !string.IsNullOrEmpty(modern?.BusType) ? modern.BusType : legacyBusType;
 
                 result.Add(new WinStorageDriveInfo(
                     FriendlyName: !string.IsNullOrEmpty(modern?.FriendlyName) ? modern.FriendlyName : legacyModel,
                     SerialNumber: serial,
                     FirmwareRevision: item["FirmwareRevision"]?.ToString()?.Trim() ?? "",
-                    BusType: !string.IsNullOrEmpty(modern?.BusType) ? modern.BusType : legacyBusType,
+                    BusType: busType,
                     SizeBytes: ToULong(item["Size"]),
-                    PnpDeviceId: item["PNPDeviceID"]?.ToString() ?? "",
+                    PnpDeviceId: pnpDeviceId,
+                    MediaType: modern?.MediaType,
+                    SpindleSpeedRpm: modern?.SpindleSpeedRpm,
+                    HealthStatus: modern?.HealthStatus,
+                    PartitionStyle: disk?.PartitionStyle,
+                    PartitionCount: disk?.PartitionCount,
+                    IsBootDisk: disk?.IsBoot ?? false,
+                    IsSystemDisk: disk?.IsSystem ?? false,
+                    Volumes: disk?.Volumes ?? new List<WinVolumeInfo>(),
+
+                    // the disk is a child of its controller, which holds the link; only asked for NVMe, the link of a
+                    // SATA controller says nothing about the drive
+                    PciLink: busType == "NVMe" ? WinPciLinkReader.Query(pnpDeviceId, parentLevels: 1) : null,
                     TemperatureCelsius: modern?.TemperatureCelsius,
                     TemperatureMaxCelsius: modern?.TemperatureMaxCelsius,
                     WearPercent: modern?.WearPercent,
@@ -490,6 +586,72 @@ namespace FluentSensors.Core.StaticInfo
             return result;
         }
 
+        // MSFT_Disk and the lettered volumes of its MSFT_Partition entries, keyed by disk number
+        // (Win32_DiskDrive.Index); an intermediate step like PhysicalDiskExtraInfo
+        private record DiskLayoutInfo(
+            uint? PartitionStyle,
+            uint? PartitionCount,
+            bool IsBoot,
+            bool IsSystem,
+            List<WinVolumeInfo> Volumes);
+
+        private static Dictionary<int, DiskLayoutInfo> QueryDisks()
+        {
+            var result = new Dictionary<int, DiskLayoutInfo>();
+
+            try
+            {
+                using (var diskSearcher = new ManagementObjectSearcher(
+                    @"root\Microsoft\Windows\Storage", "SELECT * FROM MSFT_Disk"))
+                {
+                    foreach (ManagementObject item in diskSearcher.Get())
+                    {
+                        result[ToInt(item["Number"])] = new DiskLayoutInfo(
+                            ToNullableUInt(item["PartitionStyle"]),
+                            ToNullableUInt(item["NumberOfPartitions"]),
+                            ToBool(item["IsBoot"]),
+                            ToBool(item["IsSystem"]),
+                            new List<WinVolumeInfo>());
+                    }
+                }
+
+                using var partitionSearcher = new ManagementObjectSearcher(
+                    @"root\Microsoft\Windows\Storage", "SELECT DiskNumber, DriveLetter FROM MSFT_Partition");
+                foreach (ManagementObject item in partitionSearcher.Get())
+                {
+                    // the letter is a character, 0 for a partition without one (recovery, EFI)
+                    char letter = item["DriveLetter"] is char c ? c : '\0';
+                    if (!char.IsLetter(letter)) continue;
+                    if (!result.TryGetValue(ToInt(item["DiskNumber"]), out var disk)) continue;
+
+                    var volume = QueryVolume(letter);
+                    if (volume != null) disk.Volumes.Add(volume);
+                }
+            }
+            catch
+            {
+                // no Storage namespace; the drives keep no layout
+            }
+
+            return result;
+        }
+
+        // file system, size and free space of one drive letter; null while the volume is locked or not ready
+        private static WinVolumeInfo? QueryVolume(char letter)
+        {
+            try
+            {
+                var drive = new DriveInfo(letter.ToString());
+                if (!drive.IsReady) return null;
+
+                return new WinVolumeInfo($"{letter}:", drive.DriveFormat, (ulong)drive.TotalSize, (ulong)drive.TotalFreeSpace);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         // STORAGE_BUS_TYPE (Windows Driver Kit) to a label; the common consumer values only
         private static string MapBusType(object rawValue)
         {
@@ -512,6 +674,7 @@ namespace FluentSensors.Core.StaticInfo
         private static List<WinNetworkAdapterInfo> QueryNetworkAdapters()
         {
             var result = new List<WinNetworkAdapterInfo>();
+            List<WinWlanConnection>? wlanConnections = null; // asked once, and only with a Wi-Fi adapter up
 
             foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
             {
@@ -540,19 +703,71 @@ namespace FluentSensors.Core.StaticInfo
                     .Select(a => a.ToString())
                     .ToList();
 
+                WinWlanConnection? wlan = null;
+                if (nic.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 && Guid.TryParse(nic.Id, out Guid interfaceId))
+                {
+                    wlanConnections ??= WinWlanReader.QueryConnections();
+                    wlan = wlanConnections.FirstOrDefault(c => c.InterfaceId == interfaceId);
+                }
+
                 result.Add(new WinNetworkAdapterInfo(
                     Name: nic.Name,
                     Description: nic.Description,
                     MacAddress: nic.GetPhysicalAddress().ToString(),
                     SpeedBitsPerSecond: nic.Speed,
+                    ReceiveSpeedBitsPerSecond: wlan != null ? wlan.ReceiveRateKbps * 1000L : nic.Speed,
+                    TransmitSpeedBitsPerSecond: wlan != null ? wlan.TransmitRateKbps * 1000L : nic.Speed,
                     InterfaceType: nic.NetworkInterfaceType,
                     IPv4Addresses: ipv4Addresses,
                     IPv6Addresses: ipv6Addresses,
-                    DhcpEnabled: ipProps.DhcpServerAddresses.Count > 0
+                    DhcpEnabled: ipProps.DhcpServerAddresses.Count > 0,
+                    Gateways: ipProps.GatewayAddresses.Select(g => g.Address.ToString()).ToList(),
+                    DnsServers: ipProps.DnsAddresses.Select(a => a.ToString()).ToList(),
+                    DhcpServers: ipProps.DhcpServerAddresses.Select(a => a.ToString()).ToList(),
+                    Driver: QueryNetworkDriver(nic.Id),
+                    Wlan: wlan != null ? new WinWlanInfo(wlan.PhyType, wlan.AuthAlgorithm, wlan.Channel, wlan.FrequencyMhz) : null
                 ));
             }
 
             return result;
+        }
+
+        // the driver per adapter id, kept for the session: the adapter list is asked every few seconds and a WMI
+        // round trip each time would be wasted on facts that only move with a driver update
+        private static readonly Dictionary<string, WinNetworkDriverInfo?> _networkDrivers = new(StringComparer.OrdinalIgnoreCase);
+
+        private static WinNetworkDriverInfo? QueryNetworkDriver(string adapterId)
+        {
+            lock (_networkDrivers)
+            {
+                if (_networkDrivers.TryGetValue(adapterId, out var known)) return known;
+
+                // an adapter not seen before; MSFT_NetAdapter lists them all, so one query fills the rest too
+                try
+                {
+                    using var searcher = new ManagementObjectSearcher(
+                        @"root\StandardCimv2", "SELECT InterfaceGuid, DriverVersionString, DriverDate, DriverProvider FROM MSFT_NetAdapter");
+                    foreach (ManagementObject item in searcher.Get())
+                    {
+                        string id = item["InterfaceGuid"]?.ToString() ?? "";
+                        if (id.Length == 0) continue;
+
+                        // DriverDate is plain text here ("2026-05-20"), not a WMI datetime
+                        _networkDrivers[id] = new WinNetworkDriverInfo(
+                            item["DriverVersionString"]?.ToString()?.Trim() ?? "",
+                            item["DriverDate"]?.ToString()?.Trim() ?? "",
+                            item["DriverProvider"]?.ToString()?.Trim() ?? "");
+                    }
+                }
+                catch
+                {
+                    // no StandardCimv2 namespace; the adapters keep no driver line
+                }
+
+                // also an adapter the class does not list, so it is not asked for again
+                if (!_networkDrivers.ContainsKey(adapterId)) _networkDrivers[adapterId] = null;
+                return _networkDrivers[adapterId];
+            }
         }
 
 
@@ -571,18 +786,92 @@ namespace FluentSensors.Core.StaticInfo
                 }
             }
 
-            string biosVersion = "", biosDate = "";
+            string biosVersion = "", biosDate = "", embeddedControllerVersion = "";
             using (var biosSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_BIOS"))
             {
                 foreach (ManagementObject item in biosSearcher.Get())
                 {
                     biosVersion = item["SMBIOSBIOSVersion"]?.ToString()?.Trim() ?? "";
-                    biosDate = item["ReleaseDate"]?.ToString() ?? "";
+                    biosDate = ToIsoDate(item["ReleaseDate"]);
+
+                    // both 255 on a board without an embedded controller (SMBIOS Type 0)
+                    int major = item["EmbeddedControllerMajorVersion"] == null ? 255 : ToInt(item["EmbeddedControllerMajorVersion"]);
+                    int minor = item["EmbeddedControllerMinorVersion"] == null ? 255 : ToInt(item["EmbeddedControllerMinorVersion"]);
+                    if (major != 255 || minor != 255) embeddedControllerVersion = $"{major}.{minor}";
                     break;
                 }
             }
 
-            return new WinMotherboardInfo(manufacturer, product, version, biosVersion, biosDate);
+            string systemFamily = "", systemModel = "";
+            try
+            {
+                using var systemSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_ComputerSystem");
+                foreach (ManagementObject item in systemSearcher.Get())
+                {
+                    systemFamily = item["SystemFamily"]?.ToString()?.Trim() ?? "";
+                    systemModel = item["Model"]?.ToString()?.Trim() ?? "";
+                    break;
+                }
+            }
+            catch
+            {
+                // no SystemFamily before Windows 10; both stay blank
+            }
+
+            uint chassisType = 0;
+            try
+            {
+                using var enclosureSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_SystemEnclosure");
+                foreach (ManagementObject item in enclosureSearcher.Get())
+                {
+                    if (item["ChassisTypes"] is ushort[] { Length: > 0 } types) chassisType = types[0];
+                    break;
+                }
+            }
+            catch
+            {
+                // stays unknown
+            }
+
+            return new WinMotherboardInfo(
+                manufacturer, product, version, biosVersion, biosDate,
+                systemFamily, systemModel, chassisType, embeddedControllerVersion,
+                QuerySecureBootEnabled(), QueryTpmVersion());
+        }
+
+        // the state Windows keeps of the UEFI variable; the key is missing on a legacy BIOS
+        private static bool? QuerySecureBootEnabled()
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\SecureBoot\State");
+                return key?.GetValue("UEFISecureBootEnabled") is int value ? value != 0 : null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // the first part of Win32_Tpm.SpecVersion ("2.0, 0, 1.38"); "" without a TPM or without the right to ask
+        private static string QueryTpmVersion()
+        {
+            try
+            {
+                using var searcher = new ManagementObjectSearcher(
+                    @"root\cimv2\Security\MicrosoftTpm", "SELECT SpecVersion FROM Win32_Tpm");
+                foreach (ManagementObject item in searcher.Get())
+                {
+                    string specVersion = item["SpecVersion"]?.ToString() ?? "";
+                    return specVersion.Split(',')[0].Trim();
+                }
+            }
+            catch
+            {
+                // no TPM namespace
+            }
+
+            return "";
         }
 
         // every reading that needs ring 0 goes through PawnIO (cpu temperature and power, motherboard and SuperIO
@@ -670,5 +959,14 @@ namespace FluentSensors.Core.StaticInfo
         private static bool ToBool(object value) => value != null && Convert.ToBoolean(value);
         private static uint? ToNullableUInt(object value) => value == null ? (uint?)null : Convert.ToUInt32(value);
         private static ulong? ToNullableULong(object value) => value == null ? (ulong?)null : Convert.ToUInt64(value);
+
+        // a WMI datetime ("20260917000000.000000-000") as "2026-09-17"; only its date part, so no time zone shifts it
+        private static string ToIsoDate(object value)
+        {
+            string text = value?.ToString() ?? "";
+            if (text.Length < 8 || !text.AsSpan(0, 8).ToString().All(char.IsDigit)) return "";
+
+            return $"{text[..4]}-{text[4..6]}-{text[6..8]}";
+        }
     }
 }

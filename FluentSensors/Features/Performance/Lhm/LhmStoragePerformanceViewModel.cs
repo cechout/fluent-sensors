@@ -7,6 +7,7 @@ using System.Linq;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.Lhm;
+using FluentSensors.Core.StaticInfo;
 using FluentSensors.Persistence.Services;
 
 
@@ -168,7 +169,28 @@ namespace FluentSensors.Features.Performance.Lhm
                     RegisterCategoryCandidate(drive, "Read", entry,
                         d => d.ReadRate, (d, v) => d.SetReadRateWithoutPersisting(v), drive.ReadRateOptions, yMaxOverride: () => 100);
                     break;
+
+                // fixed for the life of the drive, so facts of the info panel and never a graph
+                case "Warning Temperature":
+                case "Critical Temperature":
+                    AttachFact(drive, entry);
+                    break;
             }
+        }
+
+        // guard like RegisterCategoryCandidate; the label is the LHM sensor name
+        private static void AttachFact(LhmStorageInstanceViewModel drive, LhmSensorEntry entry)
+        {
+            if (drive.TemperatureLimitFacts.Any(f => f.Name == entry.Name)) return;
+
+            var fact = new HardwareFact(entry.Name, SensorUnitFormatter.Format(entry.Value, entry.SensorType));
+            drive.AddTemperatureLimitFact(fact);
+
+            entry.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName != nameof(LhmSensorEntry.Value)) return;
+                fact.ValueText = SensorUnitFormatter.Format(entry.Value, entry.SensorType);
+            };
         }
 
         // adds a candidate, active when nothing is yet and it is the saved choice (or none was saved, first found;

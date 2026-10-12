@@ -10,7 +10,11 @@ namespace FluentSensors.Core.StaticInfo
     public record WinGpuInfo(
         string Name,
         string DriverVersion,
+        string DriverDate, // "2026-09-17", "" when not reported
         string PnpDeviceId,
+
+        // null for a gpu without a PCI Express link of its own (an integrated one sits on the cpu)
+        WinPciLink? PciLink,
 
         // from DXGI (IDXGIAdapter1.Description1), not WMI
         uint VendorId,

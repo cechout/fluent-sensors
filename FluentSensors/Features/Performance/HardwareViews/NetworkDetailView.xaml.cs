@@ -63,6 +63,11 @@ namespace FluentSensors.Features.Performance.HardwareViews
         }
 
 
+        // === binding helpers ===
+
+        private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
+
+
         // === event handlers ===
 
         // after a drag the content column fills the rest again, and the width goes to the view model, which every

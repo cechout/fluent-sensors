@@ -11,7 +11,7 @@ namespace FluentSensors.Core.StaticInfo
 {
     // decides when WinStaticInfoService asks Windows again:
     // on an event where Windows has one (network change, device change, display change, the main window coming
-    // back), on a slow timer for what has none (link speed, storage counters)
+    // back), on a slow timer for what has none (link speed, storage counters, battery wear)
     // the prerequisites (PawnIO, .NET) only when the main window comes back
     // lives on the UI thread of the main window and only starts the queries; the service runs them off it
     public sealed class WinStaticInfoRefresher
@@ -25,6 +25,7 @@ namespace FluentSensors.Core.StaticInfo
         // the timer; only while the main window is shown, nothing reads these values from the tray
         private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(10); // network: link speed has no event
         // a WMI round trip to each drive; can reading the counters this often keep a sleeping hdd awake? unmeasured
+        // the batteries are asked with them, their capacity and cycle count move over days
         private static readonly TimeSpan DrivePollInterval = TimeSpan.FromSeconds(60);
 
         // the prerequisite look starts a process (dotnet --list-runtimes), so not on every activation in a row
@@ -48,6 +49,7 @@ namespace FluentSensors.Core.StaticInfo
         private Task? _gpuRefresh;
         private Task? _driveRefresh;
         private Task? _networkRefresh;
+        private Task? _batteryRefresh;
         private Task? _prerequisiteRefresh;
         private long _driveRefreshTimestamp;
         private long _prerequisiteRefreshTimestamp;
@@ -78,6 +80,7 @@ namespace FluentSensors.Core.StaticInfo
             {
                 RefreshGpus();
                 RefreshDrives();
+                RefreshBatteries();
             });
 
             _pollTimer = _dispatcherQueue.CreateTimer();
@@ -122,14 +125,18 @@ namespace FluentSensors.Core.StaticInfo
 
         // === private helpers ===
 
-        // the network every time, the drives once their interval has passed
+        // the network every time, the drives and batteries once their interval has passed
         private void RefreshWhatIsDue()
         {
             if (_mainWindow?.AppWindow.IsVisible != true) return;
 
             RefreshNetworkAdapters();
 
-            if (Stopwatch.GetElapsedTime(_driveRefreshTimestamp) >= DrivePollInterval) RefreshDrives();
+            if (Stopwatch.GetElapsedTime(_driveRefreshTimestamp) >= DrivePollInterval)
+            {
+                RefreshDrives();
+                RefreshBatteries();
+            }
         }
 
         private void RefreshGpus()
@@ -149,6 +156,12 @@ namespace FluentSensors.Core.StaticInfo
         {
             if (_networkRefresh is { IsCompleted: false }) return;
             _networkRefresh = WinStaticInfoService.Instance.RefreshNetworkAdaptersAsync();
+        }
+
+        private void RefreshBatteries()
+        {
+            if (_batteryRefresh is { IsCompleted: false }) return;
+            _batteryRefresh = WinStaticInfoService.Instance.RefreshBatteriesAsync();
         }
 
         // only while one is missing; nothing to find otherwise

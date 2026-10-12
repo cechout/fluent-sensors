@@ -543,6 +543,7 @@
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
                                 <fhInfoPopup:SourceLink Label="Win32_Processor" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-processor" />
                                 <fhInfoPopup:SourceLink Label="GetLogicalProcessorInformationEx" Url="https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformationex" />
+                                <fhInfoPopup:SourceLink Label="System.Runtime.Intrinsics.X86 (.NET)" Url="https://learn.microsoft.com/en-us/dotnet/api/system.runtime.intrinsics.x86" />
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
@@ -608,6 +609,43 @@
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </controls:WrapPanel>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_FamilyModelStepping')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Cpu.CpuSignatureText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Cpu_Microcode')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Cpu.CpuMicrocodeText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Cpu_InstructionSets')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Cpu.CpuInstructionSetsText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
                     </StackPanel>
 
                     <!--  cache  -->

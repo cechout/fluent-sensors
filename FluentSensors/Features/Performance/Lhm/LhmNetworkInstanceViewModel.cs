@@ -86,6 +86,20 @@ namespace FluentSensors.Features.Performance.Lhm
         public string NetworkIPv4AddressesText => _staticInfo != null ? HardwareInfoFormatter.FormatIpAddresses(_staticInfo.IPv4Addresses) : "-";
         public string NetworkIPv6AddressesText => _staticInfo != null ? HardwareInfoFormatter.FormatIpAddresses(_staticInfo.IPv6Addresses) : "-";
         public string NetworkDhcpEnabledText => _staticInfo != null ? HardwareInfoFormatter.FormatYesNo(_staticInfo.DhcpEnabled) : "-";
+        public string NetworkSpeedPairText => _staticInfo != null ? HardwareInfoFormatter.FormatBitsPerSecondPair(_staticInfo.ReceiveSpeedBitsPerSecond, _staticInfo.TransmitSpeedBitsPerSecond) : "-";
+        public string NetworkGatewaysText => HardwareInfoFormatter.FormatIpAddresses(_staticInfo?.Gateways);
+        public string NetworkDnsServersText => HardwareInfoFormatter.FormatIpAddresses(_staticInfo?.DnsServers);
+        public string NetworkDhcpServersText => HardwareInfoFormatter.FormatIpAddresses(_staticInfo?.DhcpServers);
+        public string NetworkDriverVersionText => HardwareInfoFormatter.FormatTextOrDash(_staticInfo?.Driver?.Version);
+        public string NetworkDriverDateText => HardwareInfoFormatter.FormatTextOrDash(_staticInfo?.Driver?.Date);
+        public string NetworkDriverProviderText => HardwareInfoFormatter.FormatTextOrDash(_staticInfo?.Driver?.Provider);
+
+        // the Wi-Fi section only shows for a wireless adapter that is connected
+        public bool IsWlan => _staticInfo?.Wlan != null;
+        public string NetworkWlanStandardText => _staticInfo?.Wlan is { } wlan ? HardwareInfoFormatter.FormatWlanStandard(wlan.PhyType, wlan.FrequencyMhz) : "-";
+        public string NetworkWlanBandText => _staticInfo?.Wlan is { } wlan ? HardwareInfoFormatter.FormatWlanBand(wlan.FrequencyMhz, wlan.Channel) : "-";
+        public string NetworkWlanChannelText => _staticInfo?.Wlan is { } wlan ? HardwareInfoFormatter.FormatWlanChannel(wlan.Channel) : "-";
+        public string NetworkWlanSecurityText => _staticInfo?.Wlan is { } wlan ? HardwareInfoFormatter.FormatWlanSecurity(wlan.AuthAlgorithm) : "-";
 
         // the performance page name, the description over the raw connection name ("WLAN", "Ethernet");
         // HardwareName stays raw everywhere else
@@ -118,7 +132,11 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             nameof(NetworkNameText), nameof(NetworkMacAddressText), nameof(NetworkSpeedText),
             nameof(NetworkInterfaceTypeText), nameof(NetworkIPv4AddressesText), nameof(NetworkIPv6AddressesText),
-            nameof(NetworkDhcpEnabledText), nameof(PerformanceDisplayName), nameof(IconGlyph)
+            nameof(NetworkDhcpEnabledText), nameof(PerformanceDisplayName), nameof(IconGlyph),
+            nameof(NetworkSpeedPairText), nameof(NetworkGatewaysText), nameof(NetworkDnsServersText),
+            nameof(NetworkDhcpServersText), nameof(NetworkDriverVersionText), nameof(NetworkDriverDateText),
+            nameof(NetworkDriverProviderText), nameof(IsWlan), nameof(NetworkWlanStandardText),
+            nameof(NetworkWlanBandText), nameof(NetworkWlanChannelText), nameof(NetworkWlanSecurityText)
         };
 
 

@@ -7,6 +7,7 @@ using System.Linq;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.Lhm;
+using FluentSensors.Core.StaticInfo;
 using FluentSensors.Persistence.Services;
 
 
@@ -79,7 +80,10 @@ namespace FluentSensors.Features.Performance.Lhm
         private void DetachFromInstance(LhmHardwareInstance instance)
         {
             var battery = Batteries.FirstOrDefault(item => item.HardwareName == instance.HardwareName);
-            if (battery != null) Batteries.Remove(battery);
+            if (battery == null) return;
+
+            Batteries.Remove(battery);
+            battery.Detach();
         }
 
         // after every sensor batch: without a saved choice the IsDefault candidate (the voltage) beats discovery order;
@@ -199,10 +203,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         private static void AttachFact(LhmBatteryInstanceViewModel battery, LhmSensorEntry entry)
         {
-            var fact = new LhmBatteryFact(entry.Name)
-            {
-                ValueText = SensorUnitFormatter.Format(entry.Value, entry.SensorType)
-            };
+            var fact = new HardwareFact(entry.Name, SensorUnitFormatter.Format(entry.Value, entry.SensorType));
             battery.Facts.Add(fact);
 
             entry.PropertyChanged += (s, e) =>

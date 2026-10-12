@@ -1157,7 +1157,10 @@ V nastavení grafiky Windows zvolte pro FluentSensors úsporný režim a aplikac
   <data name="Cpu_GeneralPopup.Description" xml:space="preserve">
     <value>Fyzická jádra - skutečné výpočetní jednotky na čipu
 Logické procesory - celkový počet vláken (SMT/Hyper-Threading zdvojnásobuje na jádro)
-Topologie jader - rozdělení na výkonná a úsporná jádra u hybridních CPU</value>
+Topologie jader - rozdělení na výkonná a úsporná jádra u hybridních CPU
+Rodina / Model / Stepping - určuje přesný návrh CPU a jeho revizi, jak je hlásí Windows
+Mikrokód - revize interního firmwaru CPU; aktualizuje ho BIOS nebo Windows, opravuje chyby a bezpečnostní problémy
+Instrukční sady - volitelná rozšíření CPU, která může software vyžadovat (AVX2, AVX-512, ...); výběr, jak je rozpozná běhové prostředí .NET</value>
   </data>
   <data name="Cpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1205,7 +1208,10 @@ Firmware - aktuálně zapnuto nebo ne (nespolehlivé)</value>
   </data>
   <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
     <value>Verze ovladače - interní číslo ovladače Windows, liší se od schématu verzí výrobce
-Displej - displeje, které tato GPU ovládá, nebo u hybridního notebooku GPU, přes kterou jde její obraz</value>
+Displej - displeje, které tato GPU ovládá, nebo u hybridního notebooku GPU, přes kterou jde její obraz
+Typ - dedikovaná (vlastní čip a VRAM) nebo integrovaná (v CPU, využívá systémovou RAM)
+Výrobce karty - výrobce karty nebo notebooku, z ID subsystému zařízení
+Datum ovladače - datum vydání, které ovladač hlásí</value>
   </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1240,7 +1246,10 @@ Rychlost RAM - nastavená (aktivní) oproti jmenovité (specifikace)
 Napětí - provozní napětí; XMP/EXPO ho může zvýšit
 Banka - fyzická skupina bank/slotů na základní desce, do které modul patří
 Rank - počet nezávislých sad čipů na samotném modulu (nespolehlivé)
-Šířka - data (využitelné bity) oproti celkem (včetně bitů ECC)</value>
+Šířka - data (využitelné bity) oproti celkem (včetně bitů ECC)
+Časování (tAA, tRCD, ...) - zpoždění, pro která je modul určen, v nanosekundách, přečtená z jeho čipu SPD; ne hodnoty, které BIOS skutečně nastavil
+Thermal Sensor Limits - teplotní prahy uložené v modulu
+Tyto hodnoty hlásí jen modul s čitelným čipem SPD; připájená paměť zobrazí -</value>
   </data>
   <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1261,7 +1270,9 @@ Rank - počet nezávislých sad čipů na samotném modulu (nespolehlivé)
     <value>Obecné</value>
   </data>
   <data name="Storage_GeneralPopup.Description" xml:space="preserve">
-    <value>Typ sběrnice - rozhraní připojení (NVMe, SATA, USB, ...), omezuje reálnou maximální rychlost disku; čte se z moderního Storage API, protože starší API Windows hlásí disky NVMe chybně jako SCSI</value>
+    <value>Typ sběrnice - rozhraní připojení (NVMe, SATA, USB, ...), omezuje reálnou maximální rychlost disku; čte se z moderního Storage API, protože starší API Windows hlásí disky NVMe chybně jako SCSI
+Typ média - SSD nebo HDD (s otáčkami)
+Stav - hodnocení Windows podle předpovědi selhání disku</value>
   </data>
   <data name="Storage_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1307,7 +1318,10 @@ Typ - jeho médium (Wi-Fi, Ethernet, ...)</value>
   <data name="Network_IPAddressesPopup.Description" xml:space="preserve">
     <value>IPv4 a IPv6 jsou nezávislé systémy adres, oba aktivní současně.
 IPv4 - obvykle jedna adresa
-IPv6 - často několik současně (stabilní a střídající se adresy pro ochranu soukromí)</value>
+IPv6 - často několik současně (stabilní a střídající se adresy pro ochranu soukromí)
+Brána - směrovač, kterému toto připojení posílá data pro jiné sítě
+Server(y) DNS - překládají názvy na adresy
+Server DHCP - přidělil adresu tohoto připojení</value>
   </data>
   <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1317,7 +1331,8 @@ IPv6 - často několik současně (stabilní a střídající se adresy pro ochr
   </data>
   <data name="Network_GeneralPopup.Description" xml:space="preserve">
     <value>Rychlost linky - vyjednaná rychlost právě tohoto připojení, ne maximální jmenovitá rychlost adaptéru; může být nižší a u Wi-Fi se mění podle podmínek signálu
-DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo nastavena staticky; vlastnost tohoto připojení, ne nastavení celé sítě</value>
+DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo nastavena staticky; vlastnost tohoto připojení, ne nastavení celé sítě
+Rychlost linky (příjem / odesílání) - oba směry zvlášť; u Wi-Fi se liší</value>
   </data>
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1731,5 +1746,81 @@ DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo 
   </data>
   <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
     <value>Technické pojmy v angličtině</value>
+  </data>
+  <data name="Info_Volume" xml:space="preserve">
+    <value>{0} {1}, {2} ({3} volných)</value>
+    <comment>one volume of a drive; {0} the drive letter like C:, {1} the file system like NTFS, {2} the size, {3} the free space</comment>
+  </data>
+  <data name="Gpu_PciPopup.Description" xml:space="preserve">
+    <value>Linka (aktuální) - generace PCIe a počet linek, které GPU vyjednala se slotem
+Linka (maximální) - co GPU sama podporuje; nižší aktuální hodnota znamená, že omezuje slot, riser nebo zapojení notebooku, nebo linka právě šetří energii</value>
+  </data>
+  <data name="Gpu_PciPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Memory_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Memory_GeneralPopup.Description" xml:space="preserve">
+    <value>Sloty celkem - paměťové sloty, které uvádí firmware základní desky; připájená paměť se počítá jako slot
+Maximální kapacita - nejvíce paměti, kolik deska podle firmwaru přijme
+Oprava chyb - zda paměť rozpozná a opraví bitové chyby (ECC); vyžaduje odpovídající moduly, desku a CPU</value>
+  </data>
+  <data name="Memory_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Storage_PartitionsPopup.Description" xml:space="preserve">
+    <value>Styl oddílů - GPT (moderní, nutný pro spuštění UEFI) nebo MBR (starší)
+Počet - všechny oddíly včetně skrytých (EFI, obnovení)
+Role - Boot obsahuje běžící Windows, Systém zavaděč
+Svazky - oddíly s písmenem jednotky: systém souborů, velikost a volné místo</value>
+  </data>
+  <data name="Storage_PartitionsPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Storage_PciPopup.Description" xml:space="preserve">
+    <value>Linka (aktuální) - generace PCIe a počet linek, které vyjednal řadič disku
+Linka (maximální) - co disk podporuje; nižší aktuální hodnota znamená, že omezuje slot</value>
+  </data>
+  <data name="Storage_PciPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Storage_TemperatureLimitsPopup.Description" xml:space="preserve">
+    <value>Warning Temperature - práh, od kterého disk hlásí přehřátí
+Critical Temperature - práh, od kterého disk silně omezí výkon nebo se pro ochranu vypne
+Uloženo v disku výrobcem</value>
+    <comment>Warning Temperature and Critical Temperature are sensor names and stay English</comment>
+  </data>
+  <data name="Storage_TemperatureLimitsPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Network_WiFiPopup.Description" xml:space="preserve">
+    <value>Standard - generace Wi-Fi aktuálního připojení, nižší z toho, co podporuje adaptér a přístupový bod
+Pásmo - frekvenční rozsah (2,4, 5 nebo 6 GHz); vyšší je rychlejší, ale má kratší dosah
+Kanál - část pásma, na které přístupový bod vysílá
+Zabezpečení - jak je připojení ověřeno a šifrováno</value>
+  </data>
+  <data name="Network_WiFiPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Network_DriverPopup.Description" xml:space="preserve">
+    <value>Verze, Datum, Poskytovatel - ovladač, který Windows pro tento adaptér načetl</value>
+  </data>
+  <data name="Network_DriverPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Battery_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Battery_GeneralPopup.Description" xml:space="preserve">
+    <value>Chemie - technologie článků, kterou baterie hlásí
+Počet cyklů - plné nabíjecí cykly počítané elektronikou baterie
+Designed Capacity - energie, kterou baterie pojala jako nová
+Fully-Charged Capacity - energie, kterou pojme dnes při 100 %
+Degradation Level - ztracený podíl původní kapacity</value>
+    <comment>Designed Capacity, Fully-Charged Capacity and Degradation Level are sensor names and stay English</comment>
+  </data>
+  <data name="Battery_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
   </data>
 </root>

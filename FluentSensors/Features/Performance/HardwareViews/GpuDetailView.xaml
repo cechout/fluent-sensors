@@ -734,6 +734,7 @@
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
                                 <fhInfoPopup:SourceLink Label="Win32_VideoController" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-videocontroller" />
                                 <fhInfoPopup:SourceLink Label="QueryDisplayConfig" Url="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-querydisplayconfig" />
+                                <fhInfoPopup:SourceLink Label="DXCoreAdapterProperty" Url="https://learn.microsoft.com/en-us/windows/win32/dxcore/dxcore_interface/ne-dxcore_interface-dxcoreadapterproperty" />
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
@@ -759,6 +760,32 @@
                                 TextWrapping="Wrap" />
                         </StackPanel>
 
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_Type')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Gpu.GpuTypeText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_BoardVendor')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Gpu.GpuBoardVendorText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+
                         <StackPanel Spacing="2">
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -767,6 +794,17 @@
                             <TextBlock
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Gpu.GpuDriverVersionText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Gpu_DriverDate')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Gpu.GpuDriverDateText, Mode=OneWay}"
                                 TextWrapping="Wrap" />
                         </StackPanel>
 
@@ -817,6 +855,45 @@
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
                                     Text="{x:Bind Gpu.GpuSharedMemoryText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
+
+                    <!--  pci express link; only a gpu with a link of its own, an integrated one sits on the cpu  -->
+                    <StackPanel Spacing="12" Visibility="{x:Bind BoolToVisibility(Gpu.HasPciLink), Mode=OneWay}">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Gpu_PciPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Info_PciExpress')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="CM_Get_DevNode_Property (DEVPKEY_PciDevice)" Url="https://learn.microsoft.com/en-us/windows/win32/api/cfgmgr32/nf-cfgmgr32-cm_get_devnode_propertyw" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Info_PciLinkCurrent')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Gpu.GpuPciLinkCurrentText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Info_PciLinkMax')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Gpu.GpuPciLinkMaxText, Mode=OneWay}"
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </controls:WrapPanel>

@@ -182,6 +182,9 @@ namespace FluentSensors.Features.Performance.Lhm
         public string CpuVirtualizationFirmwareText => FormatBool(WinStaticInfoService.Instance.Cpu.VirtualizationFirmwareEnabled);
         public string CpuVirtualizationExtensionsText => FormatBool(WinStaticInfoService.Instance.Cpu.VirtualizationExtensionsSupported);
         public string CpuCoreTopologyText => FormatCoreTopology(WinStaticInfoService.Instance.Cpu);
+        public string CpuSignatureText => HardwareInfoFormatter.FormatCpuSignature(WinStaticInfoService.Instance.Cpu.Description);
+        public string CpuMicrocodeText => HardwareInfoFormatter.FormatMicrocode(WinStaticInfoService.Instance.Cpu.MicrocodeRevision);
+        public string CpuInstructionSetsText => HardwareInfoFormatter.FormatList(WinStaticInfoService.Instance.Cpu.InstructionSets);
 
 
         // === public methods ===

@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhCommon="using:FluentSensors.Common.Sensors"
     xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhFacts="using:FluentSensors.Controls.FactList"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhPerf="using:FluentSensors.Features.Performance"
@@ -325,6 +326,32 @@
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </controls:WrapPanel>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_MediaType')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageMediaTypeText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_Health')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageHealthText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
                     </StackPanel>
 
                     <!--  identifiers  -->
@@ -376,6 +403,123 @@
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </controls:WrapPanel>
+                    </StackPanel>
+
+                    <!--  partitions and volumes  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Storage_PartitionsPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Storage_Partitions')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="MSFT_Disk" Url="https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-disk" />
+                                <fhInfoPopup:SourceLink Label="MSFT_Partition" Url="https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partition" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_PartitionStyle')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StoragePartitionStyleText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_PartitionCount')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StoragePartitionCountText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_DiskRole')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageDiskRoleText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Storage_Volumes')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Storage.StorageVolumesText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  pci express link of the controller; nvme only, and not behind intel vmd  -->
+                    <StackPanel Spacing="12" Visibility="{x:Bind BoolToVisibility(Storage.HasPciLink), Mode=OneWay}">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Storage_PciPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Info_PciExpress')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="CM_Get_DevNode_Property (DEVPKEY_PciDevice)" Url="https://learn.microsoft.com/en-us/windows/win32/api/cfgmgr32/nf-cfgmgr32-cm_get_devnode_propertyw" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Info_PciLinkCurrent')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StoragePciLinkCurrentText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Info_PciLinkMax')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StoragePciLinkMaxText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
+
+                    <!--  temperature limits the drive stores, lhm sensors read as facts  -->
+                    <StackPanel Spacing="12" Visibility="{x:Bind BoolToVisibility(Storage.HasTemperatureLimitFacts), Mode=OneWay}">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Storage_TemperatureLimitsPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Storage_TemperatureLimits')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="LibreHardwareMonitor" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <fhFacts:FactListControl Facts="{x:Bind Storage.TemperatureLimitFacts, Mode=OneWay}" />
                     </StackPanel>
 
                     <!--<StackPanel Spacing="2">

@@ -87,6 +87,7 @@ namespace FluentSensors.Features.Start
             WinStaticInfoService.Instance.GpusChanged += RefreshSnapshot;
             WinStaticInfoService.Instance.DrivesChanged += RefreshSnapshot;
             WinStaticInfoService.Instance.NetworkAdaptersChanged += RefreshSnapshot;
+            WinStaticInfoService.Instance.BatteriesChanged += RefreshSnapshot;
             WinStaticInfoService.Instance.PrerequisitesChanged += () => OnPropertyChanged(nameof(PawnIoTileValue));
         }
 
@@ -421,6 +422,7 @@ namespace FluentSensors.Features.Start
             AddGpus(rows, info);
             AddDrives(rows, info);
             AddAdapters(rows, info);
+            AddBatteries(rows, info);
             AddMotherboard(rows, info);
 
             return rows;
@@ -597,7 +599,24 @@ namespace FluentSensors.Features.Start
             }
         }
 
-        // LHM files a motherboard under Other; the row gets the label "Motherboard"
+        private static void AddBatteries(List<SystemSnapshotEntry> rows, WinStaticInfoService info)
+        {
+            foreach (var battery in info.Batteries)
+            {
+                string cycles = battery.CycleCount.HasValue
+                    ? AppTerms.Plural("Start_Cycles", (int)battery.CycleCount.Value)
+                    : "";
+
+                rows.Add(Row(
+                    HardwareGroupKind.Battery,
+                    battery.Name,
+                    HardwareInfoFormatter.FormatBatteryChemistry(battery.Chemistry),
+                    HardwareInfoFormatter.FormatMilliwattHours(battery.DesignedCapacityMilliwattHours),
+                    cycles));
+            }
+        }
+
+        // LHM files a motherboard under Other; the row gets its own label
         private static void AddMotherboard(List<SystemSnapshotEntry> rows, WinStaticInfoService info)
         {
             var board = info.Motherboard;
@@ -605,15 +624,42 @@ namespace FluentSensors.Features.Start
             string name = $"{board.Manufacturer} {board.Product}".Trim();
             if (string.IsNullOrWhiteSpace(name)) return;
 
+            // the device the board sits in, where its maker named one
+            string device = IsFirmwareDefault(board.SystemFamily) ? board.SystemModel : board.SystemFamily;
+            if (IsFirmwareDefault(device) || name.Contains(device, StringComparison.OrdinalIgnoreCase)) device = "";
+
             string bios = string.IsNullOrWhiteSpace(board.BiosVersion) ? "" : $"BIOS {board.BiosVersion}";
+            string embeddedController = board.EmbeddedControllerVersion.Length > 0
+                ? AppTerms.Format("Start_EmbeddedController", board.EmbeddedControllerVersion)
+                : "";
+            string secureBoot = board.SecureBootEnabled.HasValue
+                ? AppTerms.Get(board.SecureBootEnabled.Value ? "Start_SecureBootOn" : "Start_SecureBootOff")
+                : "";
+            string tpm = board.TpmVersion.Length > 0 ? AppTerms.Format("Start_Tpm", board.TpmVersion) : "";
 
             rows.Add(LabelledRow(
                 HardwareGroupKind.Other,
                 HardwareGroupInfo.GetProfile(HardwareGroupKind.Other).IconGlyph,
-                "Motherboard",
+                AppTerms.Get("Start_Motherboard"),
                 name,
+                device,
+                HardwareInfoFormatter.FormatChassisType(board.ChassisType),
                 bios,
-                board.BiosReleaseDate));
+                board.BiosReleaseDate,
+                embeddedController,
+                secureBoot,
+                tpm));
+        }
+
+        // what a board maker leaves in a field nobody filled in
+        private static bool IsFirmwareDefault(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return true;
+
+            return text.Contains("O.E.M.", StringComparison.OrdinalIgnoreCase)
+                || text.StartsWith("Default", StringComparison.OrdinalIgnoreCase)
+                || text.StartsWith("System ", StringComparison.OrdinalIgnoreCase)
+                || text.Equals("Not Applicable", StringComparison.OrdinalIgnoreCase);
         }
 
 

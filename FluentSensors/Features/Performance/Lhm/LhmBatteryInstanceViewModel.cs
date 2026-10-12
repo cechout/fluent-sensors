@@ -1,38 +1,17 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Controls.SensorGraph;
+using FluentSensors.Core.StaticInfo;
 using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Features.Performance.Lhm
 {
-    // one fact of the battery info panel; the label is the LHM sensor name, never translated
-    public class LhmBatteryFact : INotifyPropertyChanged
-    {
-        public LhmBatteryFact(string name)
-        {
-            Name = name;
-        }
-
-        public string Name { get; }
-
-        private string _valueText = "-";
-        public string ValueText
-        {
-            get => _valueText;
-            set
-            {
-                if (_valueText == value) return;
-                _valueText = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ValueText)));
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-    }
-
     // one battery:
     // a data holder, LhmBatteryPerformanceViewModel parses; a graph is null while LHM has its sensor deactivated (no
     // rate without a reading from the firmware)
@@ -44,8 +23,11 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             HardwareName = hardwareName;
 
+            // until Detach
+            WinStaticInfoService.Instance.BatteriesChanged += OnStaticInfoChanged;
+
             DetailOptions = new ObservableCollection<SensorSwitchCandidate>();
-            Facts = new ObservableCollection<LhmBatteryFact>();
+            Facts = new ObservableCollection<HardwareFact>();
         }
 
 
@@ -90,7 +72,46 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
         // info panel; the readings that only move with the age of the battery (designed and full capacity, degradation)
-        public ObservableCollection<LhmBatteryFact> Facts { get; }
+        public ObservableCollection<HardwareFact> Facts { get; }
+
+        // info panel; what the firmware says about the pack and LHM has no sensor for
+        // matched by name, LHM lists a battery under the device name of its driver; a single battery needs no match
+        public IReadOnlyList<HardwareFact> StaticFacts
+        {
+            get
+            {
+                var batteries = WinStaticInfoService.Instance.Batteries;
+                var info = batteries.FirstOrDefault(b => b.Name == HardwareName) ?? (batteries.Count == 1 ? batteries[0] : null);
+                if (info == null) return new List<HardwareFact>();
+
+                var facts = new List<HardwareFact>
+                {
+                    new(AppTerms.Get("Battery_Manufacturer"), info.Manufacturer),
+                    new(AppTerms.Get("Battery_Chemistry"), HardwareInfoFormatter.FormatBatteryChemistry(info.Chemistry)),
+                    new(AppTerms.Get("Battery_CycleCount"), HardwareInfoFormatter.FormatCount(info.CycleCount))
+                };
+
+                // most firmware reports none; the line only shows with one
+                if (info.ManufactureDate.Length > 0) facts.Add(new(AppTerms.Get("Battery_ManufactureDate"), info.ManufactureDate));
+
+                return facts;
+            }
+        }
+
+
+        // === public methods ===
+
+        // the hardware left and this instance with it
+        public void Detach()
+        {
+            WinStaticInfoService.Instance.BatteriesChanged -= OnStaticInfoChanged;
+        }
+
+
+        // === event handlers ===
+
+        // Windows was asked again (the cycle count moved, a pack was swapped)
+        private void OnStaticInfoChanged() => OnPropertyChanged(nameof(StaticFacts));
 
 
         // === INotifyPropertyChanged implementation ===

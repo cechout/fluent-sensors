@@ -7,8 +7,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhCommon="using:FluentSensors.Common.Sensors"
     xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhFacts="using:FluentSensors.Controls.FactList"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
-    xmlns:fhLhm="using:FluentSensors.Features.Performance.Lhm"
+    xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhPerf="using:FluentSensors.Features.Performance"
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
@@ -259,7 +260,7 @@
         </ScrollViewer>
 
 
-        <!--  info panel: the readings that only move with the age of the battery  -->
+        <!--  info panel: what the firmware says about the pack and the readings that only move with its age  -->
         <Border
             Grid.Column="1"
             VerticalAlignment="Stretch"
@@ -276,29 +277,22 @@
                         Style="{ThemeResource BodyStrongTextBlockStyle}"
                         Text="{x:Bind loc:AppTerms.Get('Battery_BatteryInfo')}" />
 
-                    <!--  one fact per sensor, labelled with its LHM name  -->
-                    <ItemsControl ItemsSource="{x:Bind Battery.Facts, Mode=OneWay}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="fhLhm:LhmBatteryFact">
-                                <StackPanel Width="Auto" Spacing="2">
-                                    <TextBlock
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Text="{x:Bind Name}"
-                                        TextWrapping="Wrap" />
-                                    <TextBlock
-                                        Style="{ThemeResource BodyTextBlockStyle}"
-                                        Text="{x:Bind ValueText, Mode=OneWay}"
-                                        TextWrapping="Wrap" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <!--  the pack as its firmware describes it, then the lhm readings labelled with their sensor name  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Battery_GeneralPopup"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="IOCTL_BATTERY_QUERY_INFORMATION" Url="https://learn.microsoft.com/en-us/windows/win32/power/ioctl-battery-query-information" />
+                                <fhInfoPopup:SourceLink Label="LibreHardwareMonitor" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <fhFacts:FactListControl Facts="{x:Bind Battery.StaticFacts, Mode=OneWay}" />
+
+                        <fhFacts:FactListControl Facts="{x:Bind Battery.Facts, Mode=OneWay}" />
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
         </Border>

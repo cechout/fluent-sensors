@@ -320,7 +320,7 @@
                             Margin="0,0,0,-4"
                             PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
-                                <fhInfoPopup:SourceLink Label="IPInterfaceProperties.UnicastAddresses" Url="https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ipinterfaceproperties.unicastaddresses" />
+                                <fhInfoPopup:SourceLink Label="IPInterfaceProperties (.NET)" Url="https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ipinterfaceproperties" />
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
@@ -345,6 +345,39 @@
                                 Text="{x:Bind Network.NetworkIPv6AddressesText, Mode=OneWay}"
                                 TextWrapping="Wrap" />
                         </StackPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Network_Gateway')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Network.NetworkGatewaysText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Network_DnsServers')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Network.NetworkDnsServersText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Network_DhcpServer')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Network.NetworkDhcpServersText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
                     </StackPanel>
 
                     <!--  general  -->
@@ -356,6 +389,7 @@
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
                                 <fhInfoPopup:SourceLink Label="NetworkInterface.Speed" Url="https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.networkinterface.speed" />
                                 <fhInfoPopup:SourceLink Label="IPInterfaceProperties.DhcpServerAddresses" Url="https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ipinterfaceproperties.dhcpserveraddresses" />
+                                <fhInfoPopup:SourceLink Label="WlanQueryInterface" Url="https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/nf-wlanapi-wlanqueryinterface" />
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
@@ -393,6 +427,131 @@
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
                                     Text="{x:Bind Network.NetworkDhcpEnabledText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Network_LinkSpeedReceiveTransmit')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Network.NetworkSpeedPairText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  wi-fi; only a wireless adapter that is connected  -->
+                    <StackPanel Spacing="12" Visibility="{x:Bind BoolToVisibility(Network.IsWlan), Mode=OneWay}">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Network_WiFiPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Network_WiFi')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="WlanQueryInterface" Url="https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/nf-wlanapi-wlanqueryinterface" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Network_WlanStandard')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkWlanStandardText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Network_WlanBand')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkWlanBandText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Network_WlanChannel')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkWlanChannelText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Network_WlanSecurity')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkWlanSecurityText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
+
+                    <!--  driver  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Network_DriverPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Network_Driver')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="MSFT_NetAdapter" Url="https://learn.microsoft.com/en-us/windows/win32/fwp/wmi/netadaptercimprov/msft-netadapter" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Network_DriverVersion')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkDriverVersionText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Network_DriverDate')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkDriverDateText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Network_DriverProvider')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Network.NetworkDriverProviderText, Mode=OneWay}"
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </controls:WrapPanel>

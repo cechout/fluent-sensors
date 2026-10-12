@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
@@ -400,11 +401,19 @@ namespace FluentSensors.Features.Performance.Lhm
         public string GpuNameText => _staticInfo?.Name ?? "-";
         public string GpuVendorText => _staticInfo != null ? HardwareInfoFormatter.FormatVendorName(_staticInfo.VendorId) : "-";
         public string GpuDriverVersionText => _staticInfo?.DriverVersion ?? "-";
+        public string GpuDriverDateText => HardwareInfoFormatter.FormatTextOrDash(_staticInfo?.DriverDate);
+        public string GpuTypeText => AppTerms.Get(IsIntegrated ? "Gpu_TypeIntegrated" : "Gpu_TypeDiscrete");
+        public string GpuBoardVendorText => _staticInfo != null ? HardwareInfoFormatter.FormatBoardVendor(_staticInfo.PnpDeviceId) : "-";
         public string GpuDisplayText => _staticInfo != null && HardwareInfoFormatter.FormatGpuDisplay(_staticInfo) is { Length: > 0 } display ? display : "-";
         public string GpuDedicatedMemoryText => _staticInfo != null ? HardwareInfoFormatter.FormatBytesAsGb(_staticInfo.DedicatedVideoMemoryBytes) : "-";
         public string GpuSharedMemoryText => _staticInfo != null ? HardwareInfoFormatter.FormatBytesAsGb(_staticInfo.SharedSystemMemoryBytes) : "-";
         public string GpuDeviceIdText => _staticInfo != null ? HardwareInfoFormatter.FormatPciId(_staticInfo.DeviceId) : "-";
         public string GpuPnpDeviceIdText => _staticInfo?.PnpDeviceId ?? "-";
+
+        // the PCI Express link; the section only shows for a gpu that has one
+        public bool HasPciLink => _staticInfo?.PciLink != null;
+        public string GpuPciLinkCurrentText => _staticInfo?.PciLink is { } link ? HardwareInfoFormatter.FormatPciLink(link.CurrentSpeed, link.CurrentWidth) : "-";
+        public string GpuPciLinkMaxText => _staticInfo?.PciLink is { } link ? HardwareInfoFormatter.FormatPciLink(link.MaxSpeed, link.MaxWidth) : "-";
 
 
         // === event handlers ===
@@ -421,7 +430,9 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             nameof(GpuNameText), nameof(GpuVendorText), nameof(GpuDriverVersionText),
             nameof(GpuDisplayText), nameof(GpuDedicatedMemoryText), nameof(GpuSharedMemoryText),
-            nameof(GpuDeviceIdText), nameof(GpuPnpDeviceIdText), nameof(SharedMemoryTotal)
+            nameof(GpuDeviceIdText), nameof(GpuPnpDeviceIdText), nameof(SharedMemoryTotal),
+            nameof(GpuDriverDateText), nameof(GpuBoardVendorText), nameof(HasPciLink),
+            nameof(GpuPciLinkCurrentText), nameof(GpuPciLinkMaxText)
         };
 
 

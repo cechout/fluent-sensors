@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
 
 using FluentSensors.Common.Localization;
 
@@ -20,6 +21,14 @@ namespace FluentSensors.Core.StaticInfo
             double gb = bytes / 1024.0 / 1024.0 / 1024.0;
             return $"{gb:0.#} GB";
         }
+
+        public static string FormatList(IReadOnlyList<string> items) =>
+            items == null || items.Count == 0 ? "-" : string.Join(", ", items);
+
+        public static string FormatTextOrDash(string text) => string.IsNullOrWhiteSpace(text) ? "-" : text;
+
+        // "PCIe 4.0 x8"; the speed is the generation, see WinPciLink
+        public static string FormatPciLink(uint speed, uint width) => speed > 0 && width > 0 ? $"PCIe {speed}.0 x{width}" : "-";
 
 
         // === cpu ===
@@ -45,6 +54,15 @@ namespace FluentSensors.Core.StaticInfo
 
         private static string FormatCacheSizeKb(uint sizeKb) =>
             sizeKb >= 1024 ? $"{sizeKb / 1024.0:0.##} MB" : $"{sizeKb} KB";
+
+        // "Intel64 Family 6 Model 154 Stepping 3" as "6 / 154 / 3"; decimal, as Windows writes it
+        public static string FormatCpuSignature(string description)
+        {
+            var match = Regex.Match(description ?? "", @"Family (\d+) Model (\d+) Stepping (\d+)");
+            return match.Success ? $"{match.Groups[1].Value} / {match.Groups[2].Value} / {match.Groups[3].Value}" : "-";
+        }
+
+        public static string FormatMicrocode(uint? revision) => revision.HasValue ? $"0x{revision.Value:X}" : "-";
 
         // Win32_CacheMemory.CacheType; unlike Level (see WinCpuCacheEntry) documented by Microsoft
         public static string FormatCacheType(uint cacheType)
@@ -72,6 +90,45 @@ namespace FluentSensors.Core.StaticInfo
             {
                 0x10DE => "NVIDIA",
                 0x1002 => "AMD",
+                0x8086 => "Intel",
+                _ => AppStrings.Format("Info_UnknownValue", $"0x{vendorId:X4}")
+            };
+        }
+
+        // the maker of the card or laptop, from the subsystem vendor in the PnP id ("SUBSYS_1C621043", the last four
+        // digits); PCI-SIG vendor IDs, the common graphics board partners only
+        public static string FormatBoardVendor(string pnpDeviceId)
+        {
+            var match = Regex.Match(pnpDeviceId ?? "", "SUBSYS_[0-9A-Fa-f]{4}([0-9A-Fa-f]{4})");
+            if (!match.Success) return "-";
+
+            uint vendorId = System.Convert.ToUInt32(match.Groups[1].Value, 16);
+            return vendorId switch
+            {
+                0x1002 => "AMD",
+                0x1025 => "Acer",
+                0x1028 => "Dell",
+                0x103C => "HP",
+                0x1043 => "ASUS",
+                0x10B0 => "Gainward",
+                0x10DE => "NVIDIA",
+                0x1414 => "Microsoft",
+                0x144D => "Samsung",
+                0x1458 => "Gigabyte",
+                0x1462 => "MSI",
+                0x148C => "PowerColor",
+                0x1558 => "Clevo",
+                0x1569 => "Palit",
+                0x1682 => "XFX",
+                0x17AA => "Lenovo",
+                0x1849 => "ASRock",
+                0x196E => "PNY",
+                0x19DA => "Zotac",
+                0x1B4C => "KFA2 / Galax",
+                0x1D05 => "Tongfang",
+                0x1DA2 => "Sapphire",
+                0x3842 => "EVGA",
+                0x7377 => "Colorful",
                 0x8086 => "Intel",
                 _ => AppStrings.Format("Info_UnknownValue", $"0x{vendorId:X4}")
             };
@@ -112,6 +169,22 @@ namespace FluentSensors.Core.StaticInfo
                 26 => "DDR4",
                 34 => "DDR5",
                 _ => AppStrings.Format("Info_UnknownValue", smbiosType)
+            };
+        }
+
+        // the SMBIOS Physical Memory Array "Memory Error Correction" (DMTF SMBIOS spec, Type 16)
+        public static string FormatErrorCorrection(uint errorCorrection)
+        {
+            return errorCorrection switch
+            {
+                1 => AppStrings.Get("Info_Other"),
+                2 => AppStrings.Get("Info_Unknown"),
+                3 => AppTerms.Get("Info_EccNone"),
+                4 => AppTerms.Get("Info_EccParity"),
+                5 => AppTerms.Get("Info_EccSingleBit"),
+                6 => AppTerms.Get("Info_EccMultiBit"),
+                7 => "CRC",
+                _ => "-"
             };
         }
 
@@ -184,6 +257,62 @@ namespace FluentSensors.Core.StaticInfo
             return max.HasValue && max.Value > 0 ? AppStrings.Format("Info_CycleCount", count, max) : count.Value.ToString();
         }
 
+        // MSFT_PhysicalDisk.MediaType, with the spindle speed of a drive that has platters
+        public static string FormatMediaType(uint? mediaType, uint? spindleSpeedRpm)
+        {
+            string type = mediaType switch
+            {
+                3 => "HDD",
+                4 => "SSD",
+                5 => "SCM",
+                _ => "-"
+            };
+
+            return type != "-" && spindleSpeedRpm > 0 ? $"{type}, {spindleSpeedRpm} rpm" : type;
+        }
+
+        // MSFT_PhysicalDisk.HealthStatus
+        public static string FormatHealthStatus(uint? healthStatus)
+        {
+            return healthStatus switch
+            {
+                0 => AppTerms.Get("Info_HealthHealthy"),
+                1 => AppTerms.Get("Info_HealthWarning"),
+                2 => AppTerms.Get("Info_HealthUnhealthy"),
+                5 => AppStrings.Get("Info_Unknown"),
+                _ => "-"
+            };
+        }
+
+        // MSFT_Disk.PartitionStyle; 0 is a disk without a partition table
+        public static string FormatPartitionStyle(uint? partitionStyle)
+        {
+            return partitionStyle switch
+            {
+                1 => "MBR",
+                2 => "GPT",
+                _ => "-"
+            };
+        }
+
+        // what Windows starts from on this disk
+        public static string FormatDiskRole(bool isBootDisk, bool isSystemDisk)
+        {
+            var roles = new List<string>();
+            if (isBootDisk) roles.Add(AppTerms.Get("Info_DiskRoleBoot"));
+            if (isSystemDisk) roles.Add(AppTerms.Get("Info_DiskRoleSystem"));
+            return FormatList(roles);
+        }
+
+        // one line per volume with a drive letter
+        public static string FormatVolumes(IReadOnlyList<WinVolumeInfo> volumes)
+        {
+            if (volumes == null || volumes.Count == 0) return "-";
+
+            return string.Join("\n", volumes.Select(v =>
+                AppStrings.Format("Info_Volume", v.Letter, v.FileSystem, FormatBytesAsGb(v.SizeBytes), FormatBytesAsGb(v.FreeBytes))));
+        }
+
         public static string FormatLatencyTriple(ulong? readMs, ulong? writeMs, ulong? flushMs)
         {
             if (!readMs.HasValue && !writeMs.HasValue && !flushMs.HasValue) return "-";
@@ -203,6 +332,65 @@ namespace FluentSensors.Core.StaticInfo
 
             double mbps = bitsPerSecond / 1_000_000.0;
             return $"{mbps:0.#} Mbps";
+        }
+
+        // combined, like FormatVoltageRange
+        public static string FormatBitsPerSecondPair(long receiveBitsPerSecond, long transmitBitsPerSecond) =>
+            $"{FormatBitsPerSecond(receiveBitsPerSecond)} / {FormatBitsPerSecond(transmitBitsPerSecond)}";
+
+        // DOT11_PHY_TYPE with the marketing name; 6E is ax on the 6 GHz band
+        public static string FormatWlanStandard(uint phyType, uint frequencyMhz)
+        {
+            return phyType switch
+            {
+                4 => "802.11a",
+                5 => "802.11b",
+                6 => "802.11g",
+                7 => "Wi-Fi 4 (802.11n)",
+                8 => "Wi-Fi 5 (802.11ac)",
+                9 => "802.11ad",
+                10 => frequencyMhz >= SixGhzBandStartMhz ? "Wi-Fi 6E (802.11ax)" : "Wi-Fi 6 (802.11ax)",
+                11 => "Wi-Fi 7 (802.11be)",
+                _ => AppStrings.Format("Info_UnknownValue", phyType)
+            };
+        }
+
+        private const uint SixGhzBandStartMhz = 5925;
+
+        // from the channel center frequency; without one (the access point was not in the last scan) from the channel
+        // number, which cannot tell 6 GHz apart and so only answers for the two older bands
+        public static string FormatWlanBand(uint frequencyMhz, uint channel)
+        {
+            if (frequencyMhz == 0)
+            {
+                if (channel == 0) return "-";
+                return channel <= 14 ? "2.4 GHz" : "5 GHz";
+            }
+
+            if (frequencyMhz < 3000) return "2.4 GHz";
+            if (frequencyMhz < SixGhzBandStartMhz) return "5 GHz";
+            return frequencyMhz < 7200 ? "6 GHz" : "60 GHz";
+        }
+
+        public static string FormatWlanChannel(uint channel) => channel > 0 ? channel.ToString() : "-";
+
+        // DOT11_AUTH_ALGORITHM
+        public static string FormatWlanSecurity(uint authAlgorithm)
+        {
+            return authAlgorithm switch
+            {
+                1 => AppTerms.Get("Info_WlanOpen"),
+                2 => "WEP",
+                3 => "WPA-Enterprise",
+                4 => "WPA-Personal",
+                6 => "WPA2-Enterprise",
+                7 => "WPA2-Personal",
+                8 => "WPA3-Enterprise (192-bit)",
+                9 => "WPA3-Personal",
+                10 => "OWE",
+                11 => "WPA3-Enterprise",
+                _ => AppStrings.Format("Info_UnknownValue", authAlgorithm)
+            };
         }
 
         // "A1B2C3D4E5F6" with colons
@@ -228,6 +416,54 @@ namespace FluentSensors.Core.StaticInfo
         public static string FormatInterfaceType(NetworkInterfaceType type)
         {
             return type == NetworkInterfaceType.Wireless80211 ? "Wi-Fi" : type.ToString();
+        }
+
+
+        // === battery ===
+
+        // the four characters of BATTERY_INFORMATION.Chemistry; an unknown code stays as the firmware wrote it
+        public static string FormatBatteryChemistry(string chemistry)
+        {
+            return (chemistry ?? "").ToUpperInvariant() switch
+            {
+                "" => "-",
+                "LION" => "Li-ion",
+                "LIP" or "LIPO" => "Li-polymer",
+                "NIMH" => "NiMH",
+                "NICD" => "NiCd",
+                "NIZN" => "NiZn",
+                "PBAC" => AppTerms.Get("Info_ChemistryLeadAcid"),
+                "RAM" => AppTerms.Get("Info_ChemistryAlkaline"),
+                _ => chemistry
+            };
+        }
+
+        public static string FormatMilliwattHours(uint? milliwattHours) =>
+            milliwattHours.HasValue ? $"{milliwattHours.Value / 1000.0:0.#} Wh" : "-";
+
+        public static string FormatCount(uint? count) => count?.ToString() ?? "-";
+
+
+        // === motherboard ===
+
+        // the SMBIOS System Enclosure "Type" (DMTF SMBIOS spec, Type 3); the cases a user would name, "" for the rest
+        public static string FormatChassisType(uint chassisType)
+        {
+            return chassisType switch
+            {
+                3 => AppTerms.Get("Info_ChassisDesktop"),
+                4 => AppTerms.Get("Info_ChassisLowProfileDesktop"),
+                6 => AppTerms.Get("Info_ChassisMiniTower"),
+                7 => AppTerms.Get("Info_ChassisTower"),
+                9 => AppTerms.Get("Info_ChassisLaptop"),
+                10 => AppTerms.Get("Info_ChassisNotebook"),
+                13 => AppTerms.Get("Info_ChassisAllInOne"),
+                30 => AppTerms.Get("Info_ChassisTablet"),
+                31 => AppTerms.Get("Info_ChassisConvertible"),
+                32 => AppTerms.Get("Info_ChassisDetachable"),
+                35 => AppTerms.Get("Info_ChassisMiniPc"),
+                _ => ""
+            };
         }
     }
 }

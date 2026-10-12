@@ -352,4 +352,251 @@
     <value>{0} total</value>
     <comment>{0} the memory size, like 32 GB</comment>
   </data>
+  <data name="Cpu_FamilyModelStepping" xml:space="preserve">
+    <value>Family / Model / Stepping</value>
+  </data>
+  <data name="Cpu_Microcode" xml:space="preserve">
+    <value>Microcode</value>
+  </data>
+  <data name="Cpu_InstructionSets" xml:space="preserve">
+    <value>Instruction Sets</value>
+  </data>
+  <data name="Gpu_DriverDate" xml:space="preserve">
+    <value>Driver Date</value>
+  </data>
+  <data name="Gpu_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Gpu_TypeDiscrete" xml:space="preserve">
+    <value>Discrete</value>
+    <comment>a graphics card with its own chip and memory</comment>
+  </data>
+  <data name="Gpu_TypeIntegrated" xml:space="preserve">
+    <value>Integrated</value>
+    <comment>graphics inside the CPU</comment>
+  </data>
+  <data name="Gpu_BoardVendor" xml:space="preserve">
+    <value>Board Vendor</value>
+    <comment>the company that built the graphics card or the laptop</comment>
+  </data>
+  <data name="Info_PciExpress" xml:space="preserve">
+    <value>PCI Express</value>
+  </data>
+  <data name="Info_PciLinkCurrent" xml:space="preserve">
+    <value>Link (Current)</value>
+    <comment>the negotiated PCI Express link, like PCIe 4.0 x8</comment>
+  </data>
+  <data name="Info_PciLinkMax" xml:space="preserve">
+    <value>Link (Maximum)</value>
+    <comment>the best PCI Express link the device supports</comment>
+  </data>
+  <data name="Memory_MaxCapacity" xml:space="preserve">
+    <value>Maximum Capacity</value>
+  </data>
+  <data name="Memory_ErrorCorrection" xml:space="preserve">
+    <value>Error Correction</value>
+  </data>
+  <data name="Info_EccNone" xml:space="preserve">
+    <value>None</value>
+    <comment>memory error correction type</comment>
+  </data>
+  <data name="Info_EccParity" xml:space="preserve">
+    <value>Parity</value>
+    <comment>memory error correction type</comment>
+  </data>
+  <data name="Info_EccSingleBit" xml:space="preserve">
+    <value>Single-bit ECC</value>
+    <comment>memory error correction type</comment>
+  </data>
+  <data name="Info_EccMultiBit" xml:space="preserve">
+    <value>Multi-bit ECC</value>
+    <comment>memory error correction type</comment>
+  </data>
+  <data name="Storage_MediaType" xml:space="preserve">
+    <value>Media Type</value>
+  </data>
+  <data name="Storage_Health" xml:space="preserve">
+    <value>Health</value>
+  </data>
+  <data name="Info_HealthHealthy" xml:space="preserve">
+    <value>Healthy</value>
+    <comment>drive health as Windows reports it</comment>
+  </data>
+  <data name="Info_HealthWarning" xml:space="preserve">
+    <value>Warning</value>
+    <comment>drive health as Windows reports it</comment>
+  </data>
+  <data name="Info_HealthUnhealthy" xml:space="preserve">
+    <value>Unhealthy</value>
+    <comment>drive health as Windows reports it</comment>
+  </data>
+  <data name="Storage_Partitions" xml:space="preserve">
+    <value>Partitions</value>
+  </data>
+  <data name="Storage_PartitionStyle" xml:space="preserve">
+    <value>Partition Style</value>
+  </data>
+  <data name="Storage_PartitionCount" xml:space="preserve">
+    <value>Count</value>
+    <comment>number of partitions on a drive</comment>
+  </data>
+  <data name="Storage_DiskRole" xml:space="preserve">
+    <value>Role</value>
+    <comment>what Windows uses a drive for: boot, system</comment>
+  </data>
+  <data name="Info_DiskRoleBoot" xml:space="preserve">
+    <value>Boot</value>
+    <comment>the drive that holds the running Windows</comment>
+  </data>
+  <data name="Info_DiskRoleSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>the drive that holds the boot loader</comment>
+  </data>
+  <data name="Storage_Volumes" xml:space="preserve">
+    <value>Volumes</value>
+  </data>
+  <data name="Storage_TemperatureLimits" xml:space="preserve">
+    <value>Temperature Limits</value>
+  </data>
+  <data name="Network_LinkSpeedReceiveTransmit" xml:space="preserve">
+    <value>Link Speed (Receive / Transmit)</value>
+  </data>
+  <data name="Network_Gateway" xml:space="preserve">
+    <value>Gateway</value>
+  </data>
+  <data name="Network_DnsServers" xml:space="preserve">
+    <value>DNS Server(s)</value>
+  </data>
+  <data name="Network_DhcpServer" xml:space="preserve">
+    <value>DHCP Server</value>
+  </data>
+  <data name="Network_Driver" xml:space="preserve">
+    <value>Driver</value>
+  </data>
+  <data name="Network_DriverVersion" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="Network_DriverDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Network_DriverProvider" xml:space="preserve">
+    <value>Provider</value>
+    <comment>the company that published a driver</comment>
+  </data>
+  <data name="Network_WiFi" xml:space="preserve">
+    <value>Wi-Fi</value>
+  </data>
+  <data name="Network_WlanStandard" xml:space="preserve">
+    <value>Standard</value>
+    <comment>the Wi-Fi generation, like Wi-Fi 6 (802.11ax)</comment>
+  </data>
+  <data name="Network_WlanBand" xml:space="preserve">
+    <value>Band</value>
+    <comment>the Wi-Fi frequency band, like 5 GHz</comment>
+  </data>
+  <data name="Network_WlanChannel" xml:space="preserve">
+    <value>Channel</value>
+  </data>
+  <data name="Network_WlanSecurity" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Info_WlanOpen" xml:space="preserve">
+    <value>Open</value>
+    <comment>a Wi-Fi network without a password</comment>
+  </data>
+  <data name="Battery_Manufacturer" xml:space="preserve">
+    <value>Manufacturer</value>
+  </data>
+  <data name="Battery_Chemistry" xml:space="preserve">
+    <value>Chemistry</value>
+    <comment>the cell technology of a battery, like Li-ion</comment>
+  </data>
+  <data name="Battery_CycleCount" xml:space="preserve">
+    <value>Cycle Count</value>
+  </data>
+  <data name="Battery_ManufactureDate" xml:space="preserve">
+    <value>Manufacture Date</value>
+  </data>
+  <data name="Info_ChemistryLeadAcid" xml:space="preserve">
+    <value>Lead acid</value>
+    <comment>battery chemistry</comment>
+  </data>
+  <data name="Info_ChemistryAlkaline" xml:space="preserve">
+    <value>Alkaline</value>
+    <comment>battery chemistry</comment>
+  </data>
+  <data name="Info_ChassisDesktop" xml:space="preserve">
+    <value>Desktop</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisLowProfileDesktop" xml:space="preserve">
+    <value>Low Profile Desktop</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisMiniTower" xml:space="preserve">
+    <value>Mini Tower</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisTower" xml:space="preserve">
+    <value>Tower</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisLaptop" xml:space="preserve">
+    <value>Laptop</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisNotebook" xml:space="preserve">
+    <value>Notebook</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisAllInOne" xml:space="preserve">
+    <value>All in One</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisTablet" xml:space="preserve">
+    <value>Tablet</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisConvertible" xml:space="preserve">
+    <value>Convertible</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisDetachable" xml:space="preserve">
+    <value>Detachable</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisMiniPc" xml:space="preserve">
+    <value>Mini PC</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Start_Cycles_One" xml:space="preserve">
+    <value>{0} cycle</value>
+    <comment>battery charge cycles; {0} the number; count form for exactly one</comment>
+  </data>
+  <data name="Start_Cycles_Few" xml:space="preserve">
+    <value>{0} cycles</value>
+    <comment>battery charge cycles; {0} the number; count form for two to four; a language without a separate few form repeats the many text</comment>
+  </data>
+  <data name="Start_Cycles_Many" xml:space="preserve">
+    <value>{0} cycles</value>
+    <comment>battery charge cycles; {0} the number; count form for everything else, zero included</comment>
+  </data>
+  <data name="Start_SecureBootOn" xml:space="preserve">
+    <value>Secure Boot on</value>
+  </data>
+  <data name="Start_SecureBootOff" xml:space="preserve">
+    <value>Secure Boot off</value>
+  </data>
+  <data name="Start_Tpm" xml:space="preserve">
+    <value>TPM {0}</value>
+    <comment>{0} the TPM version, like 2.0</comment>
+  </data>
+  <data name="Start_EmbeddedController" xml:space="preserve">
+    <value>EC {0}</value>
+    <comment>{0} the embedded controller firmware version, like 3.10</comment>
+  </data>
+  <data name="Start_Motherboard" xml:space="preserve">
+    <value>Motherboard</value>
+    <comment>tile label on the start page</comment>
+  </data>
 </root>
