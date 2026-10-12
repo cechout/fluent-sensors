@@ -360,6 +360,12 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Settings_WinWlanSensorsCard.Description" xml:space="preserve">
     <value>Adds signal strength, RSSI and link rates to a Wi-Fi adapter</value>
   </data>
+  <data name="Settings_WinDisplayCard.Header" xml:space="preserve">
+    <value>Display</value>
+  </data>
+  <data name="Settings_WinDisplayCard.Description" xml:space="preserve">
+    <value>Adds every display as hardware of its own, with brightness and refresh rate</value>
+  </data>
   <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
     <value>Time Range</value>
   </data>
@@ -1392,6 +1398,9 @@ Link Speed (Receive / Transmit) - negotiated rate of this specific connection, n
   <data name="Battery_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Resize Hardware Info</value>
   </data>
+  <data name="Display_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Resize Hardware Info</value>
+  </data>
   <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Resize Hardware Info</value>
   </data>
@@ -1906,6 +1915,31 @@ Security - how the connection is authenticated and encrypted</value>
   </data>
   <data name="Battery_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
+  </data>
+  <data name="Display_GeneralPopup.Title" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Display_GeneralPopup.Description" xml:space="preserve">
+    <value>Name - the name the monitor reports, or a name of ours when it reports none (most laptop panels)
+Manufacturer - the three letter id of the panel maker from the EDID (AUO, BOE, DEL, SAM ...)
+Size - diagonal and visible area as the EDID states them</value>
+  </data>
+  <data name="Display_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Display_ModePopup.Description" xml:space="preserve">
+    <value>Resolution - the desktop resolution Windows drives the display at, not the native one of the panel
+Refresh Rate - current rate; moves with Dynamic Refresh Rate
+Connector - USB-C and Thunderbolt show as DisplayPort, a laptop panel as Internal or eDP
+Color Depth - bits per color channel of the signal
+HDR - whether the display supports it and whether Windows has it on
+GPU - the adapter that scans the display out; on a hybrid laptop usually the integrated one</value>
+  </data>
+  <data name="Display_ModePopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Display_NameText.Text" xml:space="preserve">
+    <value>Name</value>
   </data>
   <data name="Battery_HealthPopup.Description" xml:space="preserve">
     <value>Designed Capacity - energy the battery held when new

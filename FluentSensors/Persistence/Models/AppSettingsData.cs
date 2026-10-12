@@ -68,6 +68,8 @@ namespace FluentSensors.Persistence.Models
         // what Windows adds to or replaces in LHM hardware; all off until asked for
         public bool WinStorageTemperatureEnabled { get; set; } = false;
         public bool WinWlanSensorsEnabled { get; set; } = false;
+        // hardware only Windows has
+        public bool WinDisplayEnabled { get; set; } = false;
 
 
         // --- performance page appearance ---

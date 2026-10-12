@@ -351,6 +351,12 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_WinWlanSensorsCard.Description" xml:space="preserve">
     <value>Doplní sílu signálu, RSSI a rychlosti linky u adaptéru Wi-Fi</value>
   </data>
+  <data name="Settings_WinDisplayCard.Header" xml:space="preserve">
+    <value>Displej</value>
+  </data>
+  <data name="Settings_WinDisplayCard.Description" xml:space="preserve">
+    <value>Přidá každý displej jako vlastní hardware, s jasem a obnovovací frekvencí</value>
+  </data>
   <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
     <value>Vzhled stránky Grafy</value>
   </data>
@@ -1379,6 +1385,9 @@ Rychlost linky (příjem / odesílání) - vyjednaná rychlost právě tohoto p�
   <data name="Battery_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Změnit velikost informací o hardwaru</value>
   </data>
+  <data name="Display_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
   <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Změnit velikost informací o hardwaru</value>
   </data>
@@ -1857,6 +1866,31 @@ Zabezpečení - jak je připojení ověřeno a šifrováno</value>
   </data>
   <data name="Battery_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
+  </data>
+  <data name="Display_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Display_GeneralPopup.Description" xml:space="preserve">
+    <value>Název - název, který monitor hlásí, nebo náš vlastní, když žádný nehlásí (většina panelů notebooků)
+Výrobce - třípísmenný kód výrobce panelu z EDID (AUO, BOE, DEL, SAM ...)
+Velikost - úhlopříčka a viditelná plocha podle EDID</value>
+  </data>
+  <data name="Display_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Display_ModePopup.Description" xml:space="preserve">
+    <value>Rozlišení - rozlišení plochy, se kterým Windows displej řídí, ne nativní rozlišení panelu
+Obnovovací frekvence - aktuální hodnota; mění se s dynamickou obnovovací frekvencí
+Konektor - USB-C a Thunderbolt se zobrazí jako DisplayPort, panel notebooku jako Interní nebo eDP
+Barevná hloubka - bity na barevný kanál signálu
+HDR - zda ho displej podporuje a zda ho má Windows zapnuté
+GPU - adaptér, který obraz vysílá; u hybridního notebooku obvykle integrovaný</value>
+  </data>
+  <data name="Display_ModePopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Display_NameText.Text" xml:space="preserve">
+    <value>Název</value>
   </data>
   <data name="Battery_HealthPopup.Description" xml:space="preserve">
     <value>Designed Capacity - energie, kterou baterie pojala jako nová

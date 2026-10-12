@@ -104,6 +104,9 @@ namespace FluentSensors.Core
         private HashSet<string> _lastWindowsSensorIds = new();
         private HashSet<string> _lastReplacedSensorIds = new();
 
+        // the hardware only Windows has (a display) in the last payload, by name; polling loop only
+        private HashSet<string> _lastWindowsHardwareNames = new();
+
 
         // === singleton instance ===
 
@@ -596,12 +599,14 @@ namespace FluentSensors.Core
         // _sensorLock
         // an id that left since the last tick (a switch turned off, Wi-Fi disconnected, an LHM sensor newly replaced)
         // is queued in _removedSensorIds like a sensor LHM deactivated
+        // hardware only Windows has leaves through _removedHardwareNames once none of its readings is left
         private void MergeWindowsSensors(List<SensorData> payload)
         {
             var readings = _windowsSource.Readings;
             if (readings.Count == 0 && _lastWindowsSensorIds.Count == 0 && _lastReplacedSensorIds.Count == 0) return;
 
             var windowsSensorIds = new HashSet<string>();
+            var windowsHardwareNames = new HashSet<string>();
             var replacedSensorIds = new HashSet<string>();
 
             if (readings.Count > 0)
@@ -611,7 +616,8 @@ namespace FluentSensors.Core
                 foreach (var reading in readings)
                 {
                     // its hardware is down, unplugged or switched off
-                    if (!hardwareNames.Contains(reading.HardwareName)) continue;
+                    if (reading.IsOwnHardware) windowsHardwareNames.Add(reading.HardwareName);
+                    else if (!hardwareNames.Contains(reading.HardwareName)) continue;
 
                     if (reading.ReplacedSensorNames != null)
                     {
@@ -647,7 +653,13 @@ namespace FluentSensors.Core
                 if (!_lastReplacedSensorIds.Contains(id)) _removedSensorIds.Add(id);
             }
 
+            foreach (string name in _lastWindowsHardwareNames)
+            {
+                if (!windowsHardwareNames.Contains(name)) _removedHardwareNames.Add(name);
+            }
+
             _lastWindowsSensorIds = windowsSensorIds;
+            _lastWindowsHardwareNames = windowsHardwareNames;
             _lastReplacedSensorIds = replacedSensorIds;
         }
 

@@ -11,6 +11,9 @@
         Network,
         Battery,
 
+        // not LHM hardware; its sensors come from the Windows source
+        Display,
+
         // the rest (motherboard, fan and AIO controllers like Aquacomputer or Corsair Commander); keeps GetKind total
         Other
     }

@@ -17,11 +17,12 @@ namespace FluentSensors.Core
     public record WinSensorReading(
         string Id, // under SensorSourceMarker.WindowsIdRoot, e.g. "/win/storage/0/temperature/0"
         string Name, // ours, english and never translated, like an LHM name
-        string HardwareName, // the LHM hardware it joins, by its payload name
+        string HardwareName, // the LHM hardware it joins, by its payload name, or the name of its own hardware
         string HardwareType,
         string SensorType,
         double Value,
-        string[]? ReplacedSensorNames = null // the LHM sensors of that hardware and type it stands in for
+        string[]? ReplacedSensorNames = null, // the LHM sensors of that hardware and type it stands in for
+        bool IsOwnHardware = false // hardware LHM does not have (a display); it exists as long as it has a reading
     );
 
 
@@ -36,6 +37,7 @@ namespace FluentSensors.Core
         // === fields ===
 
         // cadence in ms; a drive temperature moves slowly and its WMI round trip is the expensive one
+        // Wi-Fi and the displays share the fast one
         private const int WlanIntervalMs = 2000;
         private const double StorageIntervalMs = 6000;
 
@@ -97,6 +99,19 @@ namespace FluentSensors.Core
             }
         }
 
+        // the displays as hardware of their own, with brightness and refresh rate
+        private volatile bool _isDisplayEnabled;
+        public bool IsDisplayEnabled
+        {
+            get => _isDisplayEnabled;
+            set
+            {
+                if (_isDisplayEnabled == value) return;
+                _isDisplayEnabled = value;
+                SignalSettingsChanged();
+            }
+        }
+
         // empty while everything is off
         public IReadOnlyList<WinSensorReading> Readings => _readings;
 
@@ -144,6 +159,7 @@ namespace FluentSensors.Core
             {
                 bool isStorageEnabled = _isStorageTemperatureEnabled;
                 bool isWlanEnabled = _isWlanEnabled;
+                bool isDisplayEnabled = _isDisplayEnabled;
 
                 if (!isStorageEnabled)
                 {
@@ -158,12 +174,14 @@ namespace FluentSensors.Core
 
                 wlanReadings = isWlanEnabled ? ReadWlan() : new List<WinSensorReading>();
 
-                _readings = storageReadings.Concat(wlanReadings).ToList();
+                var displayReadings = isDisplayEnabled ? ReadDisplays() : new List<WinSensorReading>();
+
+                _readings = storageReadings.Concat(wlanReadings).Concat(displayReadings).ToList();
 
                 try
                 {
                     // nothing to read: sleeps until a switch turns on
-                    int waitMs = isStorageEnabled || isWlanEnabled ? WlanIntervalMs : Timeout.Infinite;
+                    int waitMs = isStorageEnabled || isWlanEnabled || isDisplayEnabled ? WlanIntervalMs : Timeout.Infinite;
                     await _settingsChangedSignal.WaitAsync(waitMs, token);
                 }
                 catch (OperationCanceledException)
@@ -236,6 +254,98 @@ namespace FluentSensors.Core
             }
 
             return result;
+        }
+
+        // refresh rate of every active display, and the brightness where Windows can read one (a laptop panel; an
+        // external monitor would need DDC/CI)
+        private static List<WinSensorReading> ReadDisplays()
+        {
+            var result = new List<WinSensorReading>();
+
+            try
+            {
+                var displays = WinDisplayReader.QueryDisplays(includeEdid: false);
+                if (displays.Count == 0) return result;
+
+                var brightness = ReadBrightness();
+
+                foreach (var display in displays)
+                {
+                    string idRoot = $"{SensorSourceMarker.WindowsIdRoot}display/{display.Key}";
+
+                    if (TryMatchBrightness(display, brightness, out double percent))
+                    {
+                        result.Add(new WinSensorReading(
+                            $"{idRoot}/level/0", "Brightness", display.Name, "Display", "Level", percent, IsOwnHardware: true));
+                    }
+
+                    if (display.RefreshRateHz > 0)
+                    {
+                        result.Add(new WinSensorReading(
+                            $"{idRoot}/frequency/0", "Refresh Rate", display.Name, "Display", "Frequency", display.RefreshRateHz,
+                            IsOwnHardware: true));
+                    }
+                }
+            }
+            catch
+            {
+                // the display config changed mid query; nothing this pass
+            }
+
+            return result;
+        }
+
+        // percent per monitor, by the upper case InstanceName of root\wmi; empty on a desktop, the class has no
+        // instance there and the query throws
+        private static Dictionary<string, double> ReadBrightness()
+        {
+            var result = new Dictionary<string, double>();
+
+            try
+            {
+                using var searcher = new ManagementObjectSearcher(
+                    @"root\wmi", "SELECT InstanceName, CurrentBrightness, Active FROM WmiMonitorBrightness");
+                foreach (ManagementObject item in searcher.Get())
+                {
+                    if (item["Active"] is false) continue;
+
+                    string instanceName = item["InstanceName"]?.ToString()?.ToUpperInvariant() ?? "";
+                    if (instanceName.Length > 0 && item["CurrentBrightness"] is { } value)
+                    {
+                        result[instanceName] = Convert.ToDouble(value);
+                    }
+                }
+            }
+            catch
+            {
+                // not supported: no panel whose backlight Windows controls
+            }
+
+            return result;
+        }
+
+        // by the device path; a single value without one belongs to the laptop panel
+        private static bool TryMatchBrightness(WinDisplayInfo display, Dictionary<string, double> brightness, out double percent)
+        {
+            if (display.InstancePath.Length > 0)
+            {
+                foreach (var pair in brightness)
+                {
+                    if (!pair.Key.StartsWith(display.InstancePath, StringComparison.Ordinal)) continue;
+
+                    percent = pair.Value;
+                    return true;
+                }
+            }
+
+            if (display.IsBuiltIn && brightness.Count == 1)
+            {
+                percent = brightness.Values.First();
+                return true;
+            }
+
+            percent = 0;
+            return false;
         }
 
         // signal and link rates of every connected Wi-Fi adapter, on the LHM adapter of the same interface

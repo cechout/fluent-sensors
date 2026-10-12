@@ -772,6 +772,22 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // the displays as hardware, with brightness and refresh rate; mirrored like above
+        private bool _winDisplayEnabled = Defaults.WinDisplayEnabled;
+        public bool WinDisplayEnabled
+        {
+            get => _winDisplayEnabled;
+            set
+            {
+                if (_winDisplayEnabled != value)
+                {
+                    _winDisplayEnabled = value;
+                    HardwareMonitorService.Instance.WindowsSource.IsDisplayEnabled = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // --- startup settings ---
 
         // none of the four raises a change event: they are read at startup, and the autostart pair goes
@@ -1255,6 +1271,8 @@ namespace FluentSensors.Persistence.Services
             _winWlanSensorsEnabled = data.WinWlanSensorsEnabled;
             HardwareMonitorService.Instance.WindowsSource.IsStorageTemperatureEnabled = _winStorageTemperatureEnabled;
             HardwareMonitorService.Instance.WindowsSource.IsWlanEnabled = _winWlanSensorsEnabled;
+            _winDisplayEnabled = data.WinDisplayEnabled;
+            HardwareMonitorService.Instance.WindowsSource.IsDisplayEnabled = _winDisplayEnabled;
         }
 
         // the live values as a serializable snapshot
@@ -1325,7 +1343,8 @@ namespace FluentSensors.Persistence.Services
                 UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs,
                 DisabledLhmHardware = new List<string>(_disabledLhmHardware),
                 WinStorageTemperatureEnabled = _winStorageTemperatureEnabled,
-                WinWlanSensorsEnabled = _winWlanSensorsEnabled
+                WinWlanSensorsEnabled = _winWlanSensorsEnabled,
+                WinDisplayEnabled = _winDisplayEnabled
             };
         }
 

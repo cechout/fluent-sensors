@@ -214,6 +214,9 @@
   <data name="Battery_BatteryInfo" xml:space="preserve">
     <value>Battery Info</value>
   </data>
+  <data name="Display_DisplayInfo" xml:space="preserve">
+    <value>Display Info</value>
+  </data>
   <data name="Network_NetworkInfo" xml:space="preserve">
     <value>Network Info</value>
   </data>
@@ -511,6 +514,54 @@
   </data>
   <data name="Battery_Health" xml:space="preserve">
     <value>Health</value>
+  </data>
+  <data name="Display_Manufacturer" xml:space="preserve">
+    <value>Manufacturer</value>
+  </data>
+  <data name="Display_ManufactureYear" xml:space="preserve">
+    <value>Manufacture Year</value>
+  </data>
+  <data name="Display_Size" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="Display_Mode" xml:space="preserve">
+    <value>Mode</value>
+  </data>
+  <data name="Display_Resolution" xml:space="preserve">
+    <value>Resolution</value>
+  </data>
+  <data name="Display_RefreshRate" xml:space="preserve">
+    <value>Refresh Rate</value>
+  </data>
+  <data name="Display_Connector" xml:space="preserve">
+    <value>Connector</value>
+  </data>
+  <data name="Display_ColorDepth" xml:space="preserve">
+    <value>Color Depth</value>
+  </data>
+  <data name="Display_BitsPerChannel" xml:space="preserve">
+    <value>{0} bit per channel</value>
+  </data>
+  <data name="Display_Hdr" xml:space="preserve">
+    <value>HDR</value>
+  </data>
+  <data name="Display_Gpu" xml:space="preserve">
+    <value>GPU</value>
+  </data>
+  <data name="Display_HdrOn" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="Display_HdrOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Display_HdrNotSupported" xml:space="preserve">
+    <value>Not Supported</value>
+  </data>
+  <data name="Display_ConnectorInternal" xml:space="preserve">
+    <value>Internal</value>
+  </data>
+  <data name="Display_ConnectorIndirect" xml:space="preserve">
+    <value>Indirect</value>
   </data>
   <data name="Battery_ManufactureDate" xml:space="preserve">
     <value>Manufacture Date</value>

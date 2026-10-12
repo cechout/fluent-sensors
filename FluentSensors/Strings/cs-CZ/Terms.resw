@@ -214,6 +214,9 @@
   <data name="Battery_BatteryInfo" xml:space="preserve">
     <value>Informace o baterii</value>
   </data>
+  <data name="Display_DisplayInfo" xml:space="preserve">
+    <value>Informace o displeji</value>
+  </data>
   <data name="Network_NetworkInfo" xml:space="preserve">
     <value>Informace o síti</value>
   </data>
@@ -511,6 +514,54 @@
   </data>
   <data name="Battery_Health" xml:space="preserve">
     <value>Stav</value>
+  </data>
+  <data name="Display_Manufacturer" xml:space="preserve">
+    <value>Výrobce</value>
+  </data>
+  <data name="Display_ManufactureYear" xml:space="preserve">
+    <value>Rok výroby</value>
+  </data>
+  <data name="Display_Size" xml:space="preserve">
+    <value>Velikost</value>
+  </data>
+  <data name="Display_Mode" xml:space="preserve">
+    <value>Režim</value>
+  </data>
+  <data name="Display_Resolution" xml:space="preserve">
+    <value>Rozlišení</value>
+  </data>
+  <data name="Display_RefreshRate" xml:space="preserve">
+    <value>Obnovovací frekvence</value>
+  </data>
+  <data name="Display_Connector" xml:space="preserve">
+    <value>Konektor</value>
+  </data>
+  <data name="Display_ColorDepth" xml:space="preserve">
+    <value>Barevná hloubka</value>
+  </data>
+  <data name="Display_BitsPerChannel" xml:space="preserve">
+    <value>{0} bitů na kanál</value>
+  </data>
+  <data name="Display_Hdr" xml:space="preserve">
+    <value>HDR</value>
+  </data>
+  <data name="Display_Gpu" xml:space="preserve">
+    <value>GPU</value>
+  </data>
+  <data name="Display_HdrOn" xml:space="preserve">
+    <value>Zapnuto</value>
+  </data>
+  <data name="Display_HdrOff" xml:space="preserve">
+    <value>Vypnuto</value>
+  </data>
+  <data name="Display_HdrNotSupported" xml:space="preserve">
+    <value>Nepodporováno</value>
+  </data>
+  <data name="Display_ConnectorInternal" xml:space="preserve">
+    <value>Interní</value>
+  </data>
+  <data name="Display_ConnectorIndirect" xml:space="preserve">
+    <value>Nepřímý</value>
   </data>
   <data name="Battery_ManufactureDate" xml:space="preserve">
     <value>Datum výroby</value>

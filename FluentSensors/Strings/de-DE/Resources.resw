@@ -351,6 +351,12 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Settings_WinWlanSensorsCard.Description" xml:space="preserve">
     <value>Ergänzt Signalstärke, RSSI und Verbindungsraten bei einem WLAN-Adapter</value>
   </data>
+  <data name="Settings_WinDisplayCard.Header" xml:space="preserve">
+    <value>Display</value>
+  </data>
+  <data name="Settings_WinDisplayCard.Description" xml:space="preserve">
+    <value>Ergänzt jedes Display als eigene Hardware, mit Helligkeit und Bildwiederholrate</value>
+  </data>
   <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
     <value>Darstellung der Graphenseite</value>
   </data>
@@ -1379,6 +1385,9 @@ Verbindungsgeschwindigkeit (Empfangen / Senden) - ausgehandelte Rate genau diese
   <data name="Battery_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Größe der Hardwareinfo ändern</value>
   </data>
+  <data name="Display_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Größe der Hardwareinfo ändern</value>
+  </data>
   <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Größe der Hardwareinfo ändern</value>
   </data>
@@ -1857,6 +1866,31 @@ Sicherheit - wie die Verbindung authentifiziert und verschlüsselt wird</value>
   </data>
   <data name="Battery_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
+  </data>
+  <data name="Display_GeneralPopup.Title" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="Display_GeneralPopup.Description" xml:space="preserve">
+    <value>Name - der Name, den der Monitor meldet, oder ein eigener Name, wenn er keinen meldet (die meisten Laptop-Panels)
+Hersteller - dreistellige Kennung des Panel-Herstellers aus der EDID (AUO, BOE, DEL, SAM ...)
+Größe - Diagonale und sichtbare Fläche laut EDID</value>
+  </data>
+  <data name="Display_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Display_ModePopup.Description" xml:space="preserve">
+    <value>Auflösung - die Desktop-Auflösung, mit der Windows das Display ansteuert, nicht die native des Panels
+Bildwiederholrate - aktuelle Rate; ändert sich mit der dynamischen Bildwiederholrate
+Anschluss - USB-C und Thunderbolt erscheinen als DisplayPort, ein Laptop-Panel als Intern oder eDP
+Farbtiefe - Bit pro Farbkanal des Signals
+HDR - ob das Display es unterstützt und ob Windows es eingeschaltet hat
+GPU - der Adapter, der das Bild ausgibt; bei einem Hybrid-Laptop meist die integrierte</value>
+  </data>
+  <data name="Display_ModePopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Display_NameText.Text" xml:space="preserve">
+    <value>Name</value>
   </data>
   <data name="Battery_HealthPopup.Description" xml:space="preserve">
     <value>Designed Capacity - Energie, die der Akku im Neuzustand fasste

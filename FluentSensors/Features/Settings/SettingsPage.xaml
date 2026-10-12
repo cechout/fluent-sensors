@@ -392,6 +392,14 @@
                             x:Uid="Common_ToggleSwitch"
                             Toggled="WinWlanSensorsToggle_Toggled" />
                     </controls:SettingsCard>
+
+                    <!--  hardware LHM does not have at all  -->
+                    <controls:SettingsCard x:Uid="Settings_WinDisplayCard">
+                        <ToggleSwitch
+                            x:Name="WinDisplayToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="WinDisplayToggle_Toggled" />
+                    </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 

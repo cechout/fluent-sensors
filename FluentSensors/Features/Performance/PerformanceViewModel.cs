@@ -2,6 +2,7 @@
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
 using FluentSensors.Features.Performance.Lhm;
+using FluentSensors.Features.Performance.Win;
 using FluentSensors.Persistence.Services;
 using Microsoft.UI.Xaml;
 using System;
@@ -16,8 +17,8 @@ using System.Runtime.CompilerServices;
 namespace FluentSensors.Features.Performance
 {
     // the performance view model:
-    // the data context of PerformancePage over the engine view models; LHM is the only engine (a HWiNFO set would sit
-    // beside it in its own folder)
+    // the data context of PerformancePage over the engine view models; LHM is the engine of every category but the
+    // display, which only Windows has (a HWiNFO set would sit beside them in its own folder)
     public class PerformanceViewModel : INotifyPropertyChanged
     {
         // === singleton instance ===
@@ -38,6 +39,7 @@ namespace FluentSensors.Features.Performance
             Storage = new LhmStoragePerformanceViewModel();
             Network = new LhmNetworkPerformanceViewModel();
             Battery = new LhmBatteryPerformanceViewModel();
+            Display = new WinDisplayPerformanceViewModel();
 
             NavItems = new ObservableCollection<PerformanceNavItemViewModel>();
 
@@ -105,6 +107,14 @@ namespace FluentSensors.Features.Performance
                     return FirstAvailable(battery.ChargeLevel, battery.Rate, battery.Detail);
                 });
 
+            AttachExistingAndFuture(Display.Displays, HardwareGroupKind.Display,
+                item => ((WinDisplayInstanceViewModel)item).HardwareName,
+                item =>
+                {
+                    var display = (WinDisplayInstanceViewModel)item;
+                    return FirstAvailable(display.Brightness, display.RefreshRate);
+                });
+
             SelectedItem = NavItems.FirstOrDefault(i => i.Kind == HardwareGroupKind.Cpu) ?? NavItems.FirstOrDefault();
         }
 
@@ -117,6 +127,7 @@ namespace FluentSensors.Features.Performance
         public LhmStoragePerformanceViewModel Storage { get; }
         public LhmNetworkPerformanceViewModel Network { get; }
         public LhmBatteryPerformanceViewModel Battery { get; }
+        public WinDisplayPerformanceViewModel Display { get; }
 
         // one per hardware instance, in the sidebar
         public ObservableCollection<PerformanceNavItemViewModel> NavItems { get; }

@@ -429,8 +429,15 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.WinWlanSensorsEnabled = WinWlanSensorsToggle.IsOn;
         }
 
+        private void WinDisplayToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.WinDisplayEnabled = WinDisplayToggle.IsOn;
+        }
+
         private void RestoreEngineWindowsSelection()
         {
+            WinDisplayToggle.IsOn = SettingsService.Instance.WinDisplayEnabled;
             WinStorageTemperatureToggle.IsOn = SettingsService.Instance.WinStorageTemperatureEnabled;
             WinWlanSensorsToggle.IsOn = SettingsService.Instance.WinWlanSensorsEnabled;
         }

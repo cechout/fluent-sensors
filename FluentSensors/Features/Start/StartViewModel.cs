@@ -88,6 +88,7 @@ namespace FluentSensors.Features.Start
             WinStaticInfoService.Instance.DrivesChanged += RefreshSnapshot;
             WinStaticInfoService.Instance.NetworkAdaptersChanged += RefreshSnapshot;
             WinStaticInfoService.Instance.BatteriesChanged += RefreshSnapshot;
+            WinStaticInfoService.Instance.DisplaysChanged += RefreshSnapshot;
             WinStaticInfoService.Instance.PrerequisitesChanged += () => OnPropertyChanged(nameof(PawnIoTileValue));
         }
 
@@ -423,6 +424,7 @@ namespace FluentSensors.Features.Start
             AddDrives(rows, info);
             AddAdapters(rows, info);
             AddBatteries(rows, info);
+            AddDisplays(rows, info);
             AddMotherboard(rows, info);
 
             return rows;
@@ -613,6 +615,21 @@ namespace FluentSensors.Features.Start
                     HardwareInfoFormatter.FormatBatteryChemistry(battery.Chemistry),
                     HardwareInfoFormatter.FormatMilliwattHours(battery.DesignedCapacityMilliwattHours),
                     cycles));
+            }
+        }
+
+        // its sensors come from the Windows source, so the tile only pairs with a group while that switch is on
+        private static void AddDisplays(List<SystemSnapshotEntry> rows, WinStaticInfoService info)
+        {
+            foreach (var display in info.Displays)
+            {
+                rows.Add(Row(
+                    HardwareGroupKind.Display,
+                    display.Name,
+                    HardwareInfoFormatter.FormatResolution(display.WidthPixels, display.HeightPixels),
+                    HardwareInfoFormatter.FormatRefreshRate(display.RefreshRateHz),
+                    HardwareInfoFormatter.FormatDisplayConnector(display.OutputTechnology),
+                    HardwareInfoFormatter.FormatDisplaySize(display.WidthCentimeters, display.HeightCentimeters)));
             }
         }
 

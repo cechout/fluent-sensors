@@ -41,6 +41,7 @@ namespace FluentSensors.Core.StaticInfo
             Drives = QueryDrives();
             NetworkAdapters = QueryNetworkAdapters();
             Batteries = WinBatteryReader.QueryBatteries();
+            Displays = QueryDisplays();
             Motherboard = QueryMotherboard();
             DotNetRuntimeState = !PretendPrerequisitesMissing && QueryDotNetRuntimeInstalled()
                 ? WinPrerequisiteState.Installed
@@ -59,7 +60,7 @@ namespace FluentSensors.Core.StaticInfo
 
 
         // === public binding surface ===
-        // (no INotifyPropertyChanged; cpu, memory and motherboard never change after construction, the four lists
+        // (no INotifyPropertyChanged; cpu, memory and motherboard never change after construction, the five lists
         // are swapped whole by a refresh, which raises the matching event)
 
         public WinCpuInfo Cpu { get; }
@@ -68,6 +69,7 @@ namespace FluentSensors.Core.StaticInfo
         public IReadOnlyList<WinStorageDriveInfo> Drives { get; private set; }
         public IReadOnlyList<WinNetworkAdapterInfo> NetworkAdapters { get; private set; }
         public IReadOnlyList<WinBatteryInfo> Batteries { get; private set; }
+        public IReadOnlyList<WinDisplayInfo> Displays { get; private set; }
         public WinMotherboardInfo Motherboard { get; }
 
         // installed once any Major >= 10 shared framework version is found, see QueryDotNetRuntimeInstalled
@@ -87,6 +89,7 @@ namespace FluentSensors.Core.StaticInfo
         public event Action? DrivesChanged;
         public event Action? NetworkAdaptersChanged;
         public event Action? BatteriesChanged;
+        public event Action? DisplaysChanged;
         public event Action? PrerequisitesChanged;
 
         // the gpu list, the driver versions and the display each gpu drives
@@ -128,6 +131,18 @@ namespace FluentSensors.Core.StaticInfo
             Batteries = fresh;
             BatteriesChanged?.Invoke();
         }
+
+        // the active displays, their mode and HDR state
+        public async Task RefreshDisplaysAsync()
+        {
+            var fresh = await QueryChangedAsync(Displays, QueryDisplays);
+            if (fresh == null) return;
+
+            Displays = fresh;
+            DisplaysChanged?.Invoke();
+        }
+
+        private static List<WinDisplayInfo> QueryDisplays() => WinDisplayReader.QueryDisplays(includeEdid: true);
 
         // looks again for what was missing at startup; found now means installed while the app runs, and LHM needs a
         // restart to use it

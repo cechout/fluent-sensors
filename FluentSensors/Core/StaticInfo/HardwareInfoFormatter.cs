@@ -450,6 +450,53 @@ namespace FluentSensors.Core.StaticInfo
         public static string FormatCount(uint? count) => count?.ToString() ?? "-";
 
 
+        // === display ===
+
+        // DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY; USB-C alt mode and Thunderbolt show as DisplayPort
+        public static string FormatDisplayConnector(uint outputTechnology)
+        {
+            return outputTechnology switch
+            {
+                0 => "VGA",
+                4 => "DVI",
+                5 => "HDMI",
+                6 => "LVDS",
+                10 => "DisplayPort",
+                11 => "eDP",
+                15 => "Miracast",
+                16 or 17 => AppTerms.Get("Display_ConnectorIndirect"),
+                0x80000000 => AppTerms.Get("Display_ConnectorInternal"),
+                _ => "-"
+            };
+        }
+
+        public static string FormatResolution(int widthPixels, int heightPixels) =>
+            widthPixels > 0 && heightPixels > 0 ? $"{widthPixels} x {heightPixels}" : "-";
+
+        // a whole number without decimals, 59.94 with them
+        public static string FormatRefreshRate(double hertz) => hertz > 0 ? $"{hertz:0.##} Hz" : "-";
+
+        // the diagonal in inches, then the visible area
+        public static string FormatDisplaySize(int? widthCentimeters, int? heightCentimeters)
+        {
+            if (widthCentimeters is not int width || heightCentimeters is not int height) return "-";
+
+            double diagonalInches = System.Math.Sqrt(width * width + height * height) / 2.54;
+            return $"{diagonalInches:0.#}\" ({width} x {height} cm)";
+        }
+
+        public static string FormatHdr(bool isSupported, bool isEnabled)
+        {
+            if (!isSupported) return AppTerms.Get("Display_HdrNotSupported");
+            return AppTerms.Get(isEnabled ? "Display_HdrOn" : "Display_HdrOff");
+        }
+
+        public static string FormatColorDepth(int bitsPerColorChannel) =>
+            bitsPerColorChannel > 0 ? AppTerms.Format("Display_BitsPerChannel", bitsPerColorChannel) : "-";
+
+        public static string FormatYear(int? year) => year?.ToString() ?? "-";
+
+
         // === motherboard ===
 
         // the SMBIOS System Enclosure "Type" (DMTF SMBIOS spec, Type 3); the cases a user would name, "" for the rest
