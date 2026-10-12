@@ -131,8 +131,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // the PCI Express link of the controller; the section only shows for a drive that has one to read
         public bool HasPciLink => _staticInfo?.PciLink != null;
-        public string StoragePciLinkCurrentText => _staticInfo?.PciLink is { } link ? HardwareInfoFormatter.FormatPciLink(link.CurrentSpeed, link.CurrentWidth) : "-";
-        public string StoragePciLinkMaxText => _staticInfo?.PciLink is { } link ? HardwareInfoFormatter.FormatPciLink(link.MaxSpeed, link.MaxWidth) : "-";
+        public string StoragePciLinkText => HardwareInfoFormatter.FormatPciLinkPair(_staticInfo?.PciLink);
 
         // the limits the drive stores for itself (warning and critical temperature), LHM sensors read as facts; their
         // section only shows once one arrived
@@ -189,7 +188,7 @@ namespace FluentSensors.Features.Performance.Lhm
             nameof(StorageLoadUnloadCyclesText), nameof(StorageLatencyMaxText), nameof(StorageMediaTypeText),
             nameof(StorageHealthText), nameof(StoragePartitionStyleText), nameof(StoragePartitionCountText),
             nameof(StorageDiskRoleText), nameof(StorageVolumesText), nameof(HasPciLink),
-            nameof(StoragePciLinkCurrentText), nameof(StoragePciLinkMaxText)
+            nameof(StoragePciLinkText)
         };
 
 

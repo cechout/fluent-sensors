@@ -304,18 +304,6 @@
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Storage_SizeText"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                    TextWrapping="Wrap" />
-                                <TextBlock
-                                    Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Storage.StorageSizeText, Mode=OneWay}"
-                                    TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <StackPanel Width="Auto" Spacing="2">
-                                <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
                                     Text="{x:Bind loc:AppTerms.Get('Storage_BusType')}"
@@ -325,9 +313,7 @@
                                     Text="{x:Bind Storage.StorageBusTypeText, Mode=OneWay}"
                                     TextWrapping="Wrap" />
                             </StackPanel>
-                        </controls:WrapPanel>
 
-                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -342,6 +328,18 @@
 
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
+                                    x:Uid="Storage_SizeText"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageSizeText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
                                     Text="{x:Bind loc:AppTerms.Get('Storage_Health')}"
@@ -349,57 +347,6 @@
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
                                     Text="{x:Bind Storage.StorageHealthText, Mode=OneWay}"
-                                    TextWrapping="Wrap" />
-                            </StackPanel>
-                        </controls:WrapPanel>
-                    </StackPanel>
-
-                    <!--  identifiers  -->
-                    <StackPanel Spacing="12">
-                        <fhInfoPopup:InfoPopupControl
-                            x:Uid="Storage_IdentifiersPopup"
-                            Title="{x:Bind loc:AppTerms.Get('Storage_Identifiers')}"
-                            Margin="0,0,0,-4"
-                            PlacementMode="TitleAnchored">
-                            <fhInfoPopup:InfoPopupControl.SourceLinks>
-                                <fhInfoPopup:SourceLink Label="Win32_DiskDrive" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-diskdrive" />
-                            </fhInfoPopup:InfoPopupControl.SourceLinks>
-                        </fhInfoPopup:InfoPopupControl>
-
-                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
-                            <StackPanel Width="Auto" Spacing="2">
-                                <TextBlock
-                                    x:Uid="Storage_SerialNumberText"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                    TextWrapping="Wrap" />
-                                <TextBlock
-                                    Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Storage.StorageSerialNumberText, Mode=OneWay}"
-                                    TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <StackPanel Width="Auto" Spacing="2">
-                                <TextBlock
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind loc:AppTerms.Get('Storage_FirmwareRevision')}"
-                                    TextWrapping="Wrap" />
-                                <TextBlock
-                                    Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Storage.StorageFirmwareRevisionText, Mode=OneWay}"
-                                    TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <StackPanel Width="Auto" Spacing="2">
-                                <TextBlock
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind loc:AppTerms.Get('Storage_DeviceID')}"
-                                    TextWrapping="Wrap" />
-                                <TextBlock
-                                    Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Storage.StoragePnpDeviceIdText, Mode=OneWay}"
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </controls:WrapPanel>
@@ -480,31 +427,16 @@
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
-                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
-                            <StackPanel Width="Auto" Spacing="2">
-                                <TextBlock
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind loc:AppTerms.Get('Info_PciLinkCurrent')}"
-                                    TextWrapping="Wrap" />
-                                <TextBlock
-                                    Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Storage.StoragePciLinkCurrentText, Mode=OneWay}"
-                                    TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <StackPanel Width="Auto" Spacing="2">
-                                <TextBlock
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind loc:AppTerms.Get('Info_PciLinkMax')}"
-                                    TextWrapping="Wrap" />
-                                <TextBlock
-                                    Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Storage.StoragePciLinkMaxText, Mode=OneWay}"
-                                    TextWrapping="Wrap" />
-                            </StackPanel>
-                        </controls:WrapPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Info_PciLinkCurrentMax')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Storage.StoragePciLinkText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
                     </StackPanel>
 
                     <!--  temperature limits the drive stores, lhm sensors read as facts  -->
@@ -611,6 +543,56 @@
                 <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Storage.StorageLatencyMaxText, Mode=OneWay}" />
             </StackPanel>-->
 
+                    <!--  identifiers  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Storage_IdentifiersPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Storage_Identifiers')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="Win32_DiskDrive" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-diskdrive" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    x:Uid="Storage_SerialNumberText"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageSerialNumberText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_FirmwareRevision')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageFirmwareRevisionText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_DeviceID')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StoragePnpDeviceIdText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
         </Border>

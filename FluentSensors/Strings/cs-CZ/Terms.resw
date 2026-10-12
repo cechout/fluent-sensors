@@ -223,9 +223,6 @@
   <data name="Network_IPv6Addresses" xml:space="preserve">
     <value>Adresy IPv6</value>
   </data>
-  <data name="Network_LinkSpeed" xml:space="preserve">
-    <value>Rychlost linky</value>
-  </data>
   <data name="Network_MACAddress" xml:space="preserve">
     <value>Adresa MAC</value>
   </data>
@@ -364,6 +361,9 @@
   <data name="Gpu_DriverDate" xml:space="preserve">
     <value>Datum ovladače</value>
   </data>
+  <data name="Gpu_Driver" xml:space="preserve">
+    <value>Ovladač</value>
+  </data>
   <data name="Gpu_Type" xml:space="preserve">
     <value>Typ</value>
   </data>
@@ -382,13 +382,8 @@
   <data name="Info_PciExpress" xml:space="preserve">
     <value>PCI Express</value>
   </data>
-  <data name="Info_PciLinkCurrent" xml:space="preserve">
-    <value>Linka (aktuální)</value>
-    <comment>the negotiated PCI Express link, like PCIe 4.0 x8</comment>
-  </data>
-  <data name="Info_PciLinkMax" xml:space="preserve">
-    <value>Linka (maximální)</value>
-    <comment>the best PCI Express link the device supports</comment>
+  <data name="Info_PciLinkCurrentMax" xml:space="preserve">
+    <value>Linka (aktuální / maximální)</value>
   </data>
   <data name="Memory_MaxCapacity" xml:space="preserve">
     <value>Maximální kapacita</value>
@@ -513,6 +508,9 @@
   </data>
   <data name="Battery_CycleCount" xml:space="preserve">
     <value>Počet cyklů</value>
+  </data>
+  <data name="Battery_Health" xml:space="preserve">
+    <value>Stav</value>
   </data>
   <data name="Battery_ManufactureDate" xml:space="preserve">
     <value>Datum výroby</value>

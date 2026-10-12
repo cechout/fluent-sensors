@@ -81,7 +81,6 @@ namespace FluentSensors.Features.Performance.Lhm
         // 160MHz"), the connection name ("WLAN") only serves the matching
         public string NetworkNameText => _staticInfo?.Description ?? "-";
         public string NetworkMacAddressText => _staticInfo != null ? HardwareInfoFormatter.FormatMacAddress(_staticInfo.MacAddress) : "-";
-        public string NetworkSpeedText => _staticInfo != null ? HardwareInfoFormatter.FormatBitsPerSecond(_staticInfo.SpeedBitsPerSecond) : "-";
         public string NetworkInterfaceTypeText => _staticInfo != null ? HardwareInfoFormatter.FormatInterfaceType(_staticInfo.InterfaceType) : "-";
         public string NetworkIPv4AddressesText => _staticInfo != null ? HardwareInfoFormatter.FormatIpAddresses(_staticInfo.IPv4Addresses) : "-";
         public string NetworkIPv6AddressesText => _staticInfo != null ? HardwareInfoFormatter.FormatIpAddresses(_staticInfo.IPv6Addresses) : "-";
@@ -130,7 +129,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         private static readonly string[] StaticInfoPropertyNames =
         {
-            nameof(NetworkNameText), nameof(NetworkMacAddressText), nameof(NetworkSpeedText),
+            nameof(NetworkNameText), nameof(NetworkMacAddressText),
             nameof(NetworkInterfaceTypeText), nameof(NetworkIPv4AddressesText), nameof(NetworkIPv6AddressesText),
             nameof(NetworkDhcpEnabledText), nameof(PerformanceDisplayName), nameof(IconGlyph),
             nameof(NetworkSpeedPairText), nameof(NetworkGatewaysText), nameof(NetworkDnsServersText),

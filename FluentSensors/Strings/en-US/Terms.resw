@@ -223,9 +223,6 @@
   <data name="Network_IPv6Addresses" xml:space="preserve">
     <value>IPv6 Address(es)</value>
   </data>
-  <data name="Network_LinkSpeed" xml:space="preserve">
-    <value>Link Speed</value>
-  </data>
   <data name="Network_MACAddress" xml:space="preserve">
     <value>MAC Address</value>
   </data>
@@ -364,6 +361,9 @@
   <data name="Gpu_DriverDate" xml:space="preserve">
     <value>Driver Date</value>
   </data>
+  <data name="Gpu_Driver" xml:space="preserve">
+    <value>Driver</value>
+  </data>
   <data name="Gpu_Type" xml:space="preserve">
     <value>Type</value>
   </data>
@@ -382,13 +382,8 @@
   <data name="Info_PciExpress" xml:space="preserve">
     <value>PCI Express</value>
   </data>
-  <data name="Info_PciLinkCurrent" xml:space="preserve">
-    <value>Link (Current)</value>
-    <comment>the negotiated PCI Express link, like PCIe 4.0 x8</comment>
-  </data>
-  <data name="Info_PciLinkMax" xml:space="preserve">
-    <value>Link (Maximum)</value>
-    <comment>the best PCI Express link the device supports</comment>
+  <data name="Info_PciLinkCurrentMax" xml:space="preserve">
+    <value>Link (Current / Maximum)</value>
   </data>
   <data name="Memory_MaxCapacity" xml:space="preserve">
     <value>Maximum Capacity</value>
@@ -513,6 +508,9 @@
   </data>
   <data name="Battery_CycleCount" xml:space="preserve">
     <value>Cycle Count</value>
+  </data>
+  <data name="Battery_Health" xml:space="preserve">
+    <value>Health</value>
   </data>
   <data name="Battery_ManufactureDate" xml:space="preserve">
     <value>Manufacture Date</value>

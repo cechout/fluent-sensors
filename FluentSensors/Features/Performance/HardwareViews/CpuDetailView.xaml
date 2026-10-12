@@ -547,6 +547,17 @@
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                x:Uid="Cpu_NameText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Cpu.HardwareName, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock

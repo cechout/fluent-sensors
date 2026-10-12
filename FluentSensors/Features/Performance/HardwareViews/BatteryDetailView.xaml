@@ -277,7 +277,7 @@
                         Style="{ThemeResource BodyStrongTextBlockStyle}"
                         Text="{x:Bind loc:AppTerms.Get('Battery_BatteryInfo')}" />
 
-                    <!--  the pack as its firmware describes it, then the lhm readings labelled with their sensor name  -->
+                    <!--  general: the pack as its firmware describes it  -->
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
                             x:Uid="Battery_GeneralPopup"
@@ -285,13 +285,48 @@
                             PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
                                 <fhInfoPopup:SourceLink Label="IOCTL_BATTERY_QUERY_INFORMATION" Url="https://learn.microsoft.com/en-us/windows/win32/power/ioctl-battery-query-information" />
-                                <fhInfoPopup:SourceLink Label="LibreHardwareMonitor" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                x:Uid="Battery_NameText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Battery.HardwareName, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
                         <fhFacts:FactListControl Facts="{x:Bind Battery.StaticFacts, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!--  health: the lhm readings that only move with the age of the pack, labelled with their sensor name  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Battery_HealthPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Battery_Health')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="LibreHardwareMonitor" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
+                                <fhInfoPopup:SourceLink Label="IOCTL_BATTERY_QUERY_INFORMATION" Url="https://learn.microsoft.com/en-us/windows/win32/power/ioctl-battery-query-information" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
 
                         <fhFacts:FactListControl Facts="{x:Bind Battery.Facts, Mode=OneWay}" />
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Battery_CycleCount')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Battery.CycleCountText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

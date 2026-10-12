@@ -1207,16 +1207,27 @@ Firmware - aktuell aktiviert oder nicht (unzuverlässig)</value>
     <value>Allgemein</value>
   </data>
   <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Treiberversion - interne Windows-Treibernummer, weicht vom Versionsschema des Herstellers ab
-Bildschirm - die Bildschirme, die diese GPU ansteuert, oder bei einem Hybrid-Laptop die GPU, über die ihr Bild läuft
-Typ - dediziert (eigener Chip und VRAM) oder integriert (in der CPU, nutzt den Arbeitsspeicher)
+    <value>Typ - dediziert (eigener Chip und VRAM) oder integriert (in der CPU, nutzt den Arbeitsspeicher)
 Kartenhersteller - Hersteller der Karte oder des Laptops, aus der Subsystem-ID des Geräts
-Treiberdatum - Veröffentlichungsdatum, das der Treiber meldet</value>
+Bildschirm - die Bildschirme, die diese GPU ansteuert, oder bei einem Hybrid-Laptop die GPU, über die ihr Bild läuft</value>
   </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
   </data>
+  <data name="Gpu_DriverPopup.Description" xml:space="preserve">
+    <value>Treiberversion - interne Windows-Treibernummer, weicht vom Versionsschema des Herstellers ab
+Treiberdatum - Veröffentlichungsdatum, das der Treiber meldet</value>
+  </data>
+  <data name="Gpu_DriverPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
   <data name="Gpu_NameText.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Cpu_NameText.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Battery_NameText.Text" xml:space="preserve">
     <value>Name</value>
   </data>
   <data name="Gpu_MemoryPopup.Description" xml:space="preserve">
@@ -1247,8 +1258,18 @@ Spannung - Betriebsspannung; XMP/EXPO kann sie erhöhen
 Bank - physische Bank- bzw. Steckplatzgruppe auf dem Mainboard, zu der dieses Modul gehört
 Rank - Anzahl unabhängiger Chipgruppen auf dem Modul selbst (unzuverlässig)
 Breite - Daten (nutzbare Bits) gegenüber gesamt (inklusive ECC-Bits)
-Timings (tAA, tRCD, ...) - Verzögerungen, für die das Modul spezifiziert ist, in Nanosekunden, aus seinem SPD-Chip gelesen; nicht die Werte, die das BIOS tatsächlich eingestellt hat
-Thermal Sensor Limits - im Modul hinterlegte Temperaturschwellen
+Thermal Sensor Limit - im Modul hinterlegte Temperaturschwellen
+Timings - Verzögerungen, für die das Modul spezifiziert ist, in Nanosekunden, aus seinem SPD-Chip gelesen; nicht die Werte, die das BIOS tatsächlich eingestellt hat
+tCKAVGmin, tCKAVGmax - kürzester und längster Taktzyklus
+tAA - CAS-Latenz, von der Spaltenadresse bis zu den Daten
+tRCD - RAS-zu-CAS-Verzögerung, vom Öffnen einer Zeile bis zur Spaltenadresse
+tRP - Row Precharge, das Schließen einer Zeile
+tRAS - kürzeste Zeit, die eine Zeile offen bleibt
+tRC - von einer Zeilenaktivierung bis zur nächsten oder zu einem Refresh
+tRFC1, tRFC2, tRFC4, tRFCsb - Erholzeit nach einem Refresh (normal, feine Granularität, gleiche Bank); _dlr für gestapelte Chips (3DS)
+tFAW - Fenster, in das höchstens vier Zeilenaktivierungen fallen
+tRRD - zwischen zwei Zeilenaktivierungen; tCCD - zwischen zwei Spaltenbefehlen; tWTR - vom Schreiben bis zum Lesen (_S andere, _L gleiche Bankgruppe)
+tWR - Write Recovery, von den letzten geschriebenen Daten bis zum Schließen der Zeile
 Nur ein Modul mit lesbarem SPD-Chip meldet diese Werte; verlöteter Speicher zeigt -</value>
   </data>
   <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
@@ -1298,17 +1319,6 @@ Zustand - Einschätzung von Windows aus der Ausfallvorhersage des Laufwerks</val
   <data name="Storage_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Größe der Hardwareinfo ändern</value>
   </data>
-  <data name="Network_ConnectionPopup.Title" xml:space="preserve">
-    <value>Verbindung</value>
-  </data>
-  <data name="Network_ConnectionPopup.Description" xml:space="preserve">
-    <value>Steht für eine aktive Verbindung, nicht für alle möglichen Verbindungen des Adapters. Mehrere aktive Verbindungen (z. B. WLAN + Ethernet) erhalten jeweils einen eigenen Eintrag.
-Hardware - physischer Adapter hinter dieser Verbindung
-Typ - ihr Medium (WLAN, Ethernet, ...)</value>
-  </data>
-  <data name="Network_ConnectionPopup.SourceIntro" xml:space="preserve">
-    <value>Quelle:</value>
-  </data>
   <data name="Network_HardwareText.Text" xml:space="preserve">
     <value>Hardware</value>
   </data>
@@ -1321,6 +1331,7 @@ IPv4 - meist eine Adresse
 IPv6 - oft mehrere gleichzeitig (stabile und wechselnde Datenschutzadressen)
 Gateway - Router, an den diese Verbindung Daten für andere Netze schickt
 DNS-Server - lösen Namen in Adressen auf
+DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder statisch festgelegt wurde; eine Eigenschaft dieser Verbindung, keine netzwerkweite Einstellung
 DHCP-Server - hat die Adresse dieser Verbindung vergeben</value>
   </data>
   <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
@@ -1330,9 +1341,10 @@ DHCP-Server - hat die Adresse dieser Verbindung vergeben</value>
     <value>Allgemein</value>
   </data>
   <data name="Network_GeneralPopup.Description" xml:space="preserve">
-    <value>Verbindungsgeschwindigkeit - ausgehandelte Rate genau dieser Verbindung, nicht die maximale Nenngeschwindigkeit des Adapters; kann niedriger sein und schwankt bei WLAN mit den Signalbedingungen
-DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder statisch festgelegt wurde; eine Eigenschaft dieser Verbindung, keine netzwerkweite Einstellung
-Verbindungsgeschwindigkeit (Empfangen / Senden) - beide Richtungen getrennt; bei WLAN unterscheiden sie sich</value>
+    <value>Steht für eine aktive Verbindung, nicht für alle möglichen Verbindungen des Adapters. Mehrere aktive Verbindungen (z. B. WLAN + Ethernet) erhalten jeweils einen eigenen Eintrag.
+Hardware - physischer Adapter hinter dieser Verbindung
+Typ - ihr Medium (WLAN, Ethernet, ...)
+Verbindungsgeschwindigkeit (Empfangen / Senden) - ausgehandelte Rate genau dieser Verbindung, nicht die maximale Nenngeschwindigkeit des Adapters; bei WLAN unterscheiden sich beide Richtungen und schwanken mit den Signalbedingungen</value>
   </data>
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -1752,8 +1764,8 @@ Verbindungsgeschwindigkeit (Empfangen / Senden) - beide Richtungen getrennt; bei
     <comment>one volume of a drive; {0} the drive letter like C:, {1} the file system like NTFS, {2} the size, {3} the free space</comment>
   </data>
   <data name="Gpu_PciPopup.Description" xml:space="preserve">
-    <value>Link (aktuell) - PCIe-Generation und Anzahl der Lanes, die die GPU mit ihrem Steckplatz ausgehandelt hat
-Link (maximal) - was die GPU selbst unterstützt; ein niedrigerer aktueller Wert bedeutet, dass Steckplatz, Riser oder die Laptop-Verdrahtung begrenzen oder der Link gerade Strom spart</value>
+    <value>Link (aktuell / maximal) - PCIe-Generation und Anzahl der Lanes; aktuell ist, was die GPU mit ihrem Steckplatz ausgehandelt hat, maximal, was die GPU selbst unterstützt
+Ein niedrigerer aktueller Wert bedeutet, dass Steckplatz, Riser oder die Laptop-Verdrahtung begrenzen oder der Link gerade Strom spart</value>
   </data>
   <data name="Gpu_PciPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -1779,8 +1791,8 @@ Volumes - Partitionen mit Laufwerksbuchstaben: Dateisystem, Größe und freier P
     <value>Quelle:</value>
   </data>
   <data name="Storage_PciPopup.Description" xml:space="preserve">
-    <value>Link (aktuell) - PCIe-Generation und Anzahl der Lanes, die der Controller des Laufwerks ausgehandelt hat
-Link (maximal) - was das Laufwerk unterstützt; ein niedrigerer aktueller Wert bedeutet, dass der Steckplatz begrenzt</value>
+    <value>Link (aktuell / maximal) - PCIe-Generation und Anzahl der Lanes; aktuell ist, was der Controller des Laufwerks ausgehandelt hat, maximal, was das Laufwerk unterstützt
+Ein niedrigerer aktueller Wert bedeutet, dass der Steckplatz begrenzt</value>
   </data>
   <data name="Storage_PciPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -1813,14 +1825,19 @@ Sicherheit - wie die Verbindung authentifiziert und verschlüsselt wird</value>
     <value>Allgemein</value>
   </data>
   <data name="Battery_GeneralPopup.Description" xml:space="preserve">
-    <value>Zellchemie - Zelltechnologie, die der Akku meldet
-Ladezyklen - volle Ladezyklen, von der Elektronik des Akkus gezählt
-Designed Capacity - Energie, die der Akku im Neuzustand fasste
-Fully-Charged Capacity - Energie, die er heute bei 100 % fasst
-Degradation Level - verlorener Anteil der ursprünglichen Kapazität</value>
+    <value>Zellchemie - Zelltechnologie, die der Akku meldet</value>
     <comment>Designed Capacity, Fully-Charged Capacity and Degradation Level are sensor names and stay English</comment>
   </data>
   <data name="Battery_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Battery_HealthPopup.Description" xml:space="preserve">
+    <value>Designed Capacity - Energie, die der Akku im Neuzustand fasste
+Fully-Charged Capacity - Energie, die er heute bei 100 % fasst
+Degradation Level - verlorener Anteil der ursprünglichen Kapazität
+Ladezyklen - volle Ladezyklen, von der Elektronik des Akkus gezählt</value>
+  </data>
+  <data name="Battery_HealthPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
   </data>
 </root>

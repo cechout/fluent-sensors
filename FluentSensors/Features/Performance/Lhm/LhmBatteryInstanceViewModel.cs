@@ -75,20 +75,17 @@ namespace FluentSensors.Features.Performance.Lhm
         public ObservableCollection<HardwareFact> Facts { get; }
 
         // info panel; what the firmware says about the pack and LHM has no sensor for
-        // matched by name, LHM lists a battery under the device name of its driver; a single battery needs no match
         public IReadOnlyList<HardwareFact> StaticFacts
         {
             get
             {
-                var batteries = WinStaticInfoService.Instance.Batteries;
-                var info = batteries.FirstOrDefault(b => b.Name == HardwareName) ?? (batteries.Count == 1 ? batteries[0] : null);
+                var info = MatchStaticInfo();
                 if (info == null) return new List<HardwareFact>();
 
                 var facts = new List<HardwareFact>
                 {
                     new(AppTerms.Get("Battery_Manufacturer"), info.Manufacturer),
-                    new(AppTerms.Get("Battery_Chemistry"), HardwareInfoFormatter.FormatBatteryChemistry(info.Chemistry)),
-                    new(AppTerms.Get("Battery_CycleCount"), HardwareInfoFormatter.FormatCount(info.CycleCount))
+                    new(AppTerms.Get("Battery_Chemistry"), HardwareInfoFormatter.FormatBatteryChemistry(info.Chemistry))
                 };
 
                 // most firmware reports none; the line only shows with one
@@ -97,6 +94,9 @@ namespace FluentSensors.Features.Performance.Lhm
                 return facts;
             }
         }
+
+        // info panel; sits with the LHM readings about the age of the pack
+        public string CycleCountText => HardwareInfoFormatter.FormatCount(MatchStaticInfo()?.CycleCount);
 
 
         // === public methods ===
@@ -111,7 +111,21 @@ namespace FluentSensors.Features.Performance.Lhm
         // === event handlers ===
 
         // Windows was asked again (the cycle count moved, a pack was swapped)
-        private void OnStaticInfoChanged() => OnPropertyChanged(nameof(StaticFacts));
+        private void OnStaticInfoChanged()
+        {
+            OnPropertyChanged(nameof(StaticFacts));
+            OnPropertyChanged(nameof(CycleCountText));
+        }
+
+
+        // === private helpers ===
+
+        // matched by name, LHM lists a battery under the device name of its driver; a single battery needs no match
+        private WinBatteryInfo MatchStaticInfo()
+        {
+            var batteries = WinStaticInfoService.Instance.Batteries;
+            return batteries.FirstOrDefault(b => b.Name == HardwareName) ?? (batteries.Count == 1 ? batteries[0] : null);
+        }
 
 
         // === INotifyPropertyChanged implementation ===

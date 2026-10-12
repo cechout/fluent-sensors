@@ -27,9 +27,13 @@ namespace FluentSensors.Features.Performance.Lhm
         // created by whichever of the groups comes first
         private LhmMemoryInstanceViewModel _memory;
 
-        // the module instances in discovery order, and the fact each of their static sensors feeds right now
+        // the module instances in discovery order, and how each of their static sensors writes its fact right now
         private readonly List<LhmHardwareInstance> _moduleInstances = new();
-        private readonly Dictionary<string, HardwareFact> _factsBySensorId = new();
+        private readonly Dictionary<string, Action> _factRefreshBySensorId = new();
+
+        // what the thermal limit names share ("Thermal Sensor Critical Low Limit"); the rest tells them apart
+        private const string ThermalLimitPrefix = "Thermal Sensor ";
+        private const string ThermalLimitSuffix = " Limit";
 
 
         // === constructor ===
@@ -146,7 +150,7 @@ namespace FluentSensors.Features.Performance.Lhm
                 entry.PropertyChanged += (s, e) =>
                 {
                     if (e.PropertyName != nameof(LhmSensorEntry.Value)) return;
-                    if (_factsBySensorId.TryGetValue(entry.Id, out var fact)) fact.ValueText = FormatValue(entry);
+                    if (_factRefreshBySensorId.TryGetValue(entry.Id, out var refresh)) refresh();
                 };
             }
             else if (entry.SensorType == "Temperature" && !entry.Name.Contains("Resolution"))
@@ -156,8 +160,12 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
         // "Capacity" is left out on purpose: LHM 0.9.6 reads 32 GB for a 16 GB module, and Windows has the right one
-        private static bool IsModuleFact(LhmSensorEntry entry) =>
-            entry.SensorType == "Timing" || (entry.SensorType == "Temperature" && entry.Name.Contains("Limit"));
+        private static bool IsModuleFact(LhmSensorEntry entry) => IsTiming(entry) || IsThermalLimit(entry);
+
+        private static bool IsTiming(LhmSensorEntry entry) => entry.SensorType == "Timing";
+
+        private static bool IsThermalLimit(LhmSensorEntry entry) =>
+            entry.SensorType == "Temperature" && entry.Name.Contains("Limit");
 
         // adds a candidate, active when nothing is yet and it is the saved choice (or none was saved, or the saved one
         // is a module that is gone; first found)
@@ -191,32 +199,67 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // every module card gets the same fact labels, the ones any module reports; a card whose module LHM does not
         // reach shows "-" for each
+        // the thermal limits share one fact, the way the voltages of a module do; a timing keeps the short name of its
+        // sensor ("tAA"), the info popup explains them
         private void RebuildModuleFacts(LhmMemoryInstanceViewModel memory)
         {
-            var names = _moduleInstances
-                .SelectMany(instance => instance.Sensors)
-                .Where(IsModuleFact)
-                .Select(entry => entry.Name)
-                .Distinct()
-                .ToList();
+            var sensors = _moduleInstances.SelectMany(instance => instance.Sensors).ToList();
+            var limitNames = sensors.Where(IsThermalLimit).Select(entry => entry.Name).Distinct().ToList();
+            var timingNames = sensors.Where(IsTiming).Select(entry => entry.Name).Distinct().ToList();
 
             var instanceByModule = MatchModules(memory.MemoryModules);
-            _factsBySensorId.Clear();
+            _factRefreshBySensorId.Clear();
 
             foreach (var module in memory.MemoryModules)
             {
                 instanceByModule.TryGetValue(module, out var instance);
 
                 var facts = new List<HardwareFact>();
-                foreach (string name in names)
+
+                if (limitNames.Count > 0)
                 {
-                    var entry = instance?.Sensors.FirstOrDefault(s => s.Name == name && IsModuleFact(s));
-                    var fact = new HardwareFact(name, entry != null ? FormatValue(entry) : "-");
-                    if (entry != null) _factsBySensorId[entry.Id] = fact;
+                    var limits = limitNames
+                        .Select(name => instance?.Sensors.FirstOrDefault(s => s.Name == name && IsThermalLimit(s)))
+                        .ToList();
+
+                    var fact = new HardwareFact(FormatThermalLimitLabel(limitNames), FormatThermalLimits(limits));
+                    foreach (var entry in limits)
+                    {
+                        if (entry != null) _factRefreshBySensorId[entry.Id] = () => fact.ValueText = FormatThermalLimits(limits);
+                    }
                     facts.Add(fact);
                 }
+
+                foreach (string name in timingNames)
+                {
+                    var entry = instance?.Sensors.FirstOrDefault(s => s.Name == name && IsTiming(s));
+                    var fact = new HardwareFact(ShortTimingName(name), entry != null ? FormatValue(entry) : "-");
+                    if (entry != null) _factRefreshBySensorId[entry.Id] = () => fact.ValueText = FormatValue(entry);
+                    facts.Add(fact);
+                }
+
                 module.SpdFacts = facts;
             }
+        }
+
+        // "Thermal Sensor Limit (Low / High / Critical Low / Critical High)", from the sensor names; DDR4 has three
+        private static string FormatThermalLimitLabel(IReadOnlyList<string> names)
+        {
+            var parts = names.Select(name => name.Replace(ThermalLimitPrefix, "").Replace(ThermalLimitSuffix, ""));
+            return $"{ThermalLimitPrefix}{ThermalLimitSuffix.Trim()} ({string.Join(" / ", parts)})";
+        }
+
+        private static string FormatThermalLimits(IReadOnlyList<LhmSensorEntry> limits)
+        {
+            if (limits.All(entry => entry == null)) return "-";
+            return string.Join(" / ", limits.Select(entry => entry != null ? FormatValue(entry) : "-"));
+        }
+
+        // "tAA (CAS Latency Time)" to "tAA"
+        private static string ShortTimingName(string name)
+        {
+            int index = name.IndexOf(" (", StringComparison.Ordinal);
+            return index > 0 ? name[..index] : name;
         }
 
         // which LHM module belongs to which module of Windows: by the part number in the LHM name, each instance taken

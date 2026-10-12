@@ -1220,16 +1220,27 @@ Firmware - currently enabled or not (unreliable)</value>
     <value>General</value>
   </data>
   <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Driver Version - internal Windows driver number, differs from vendor's own version scheme
-Display - the displays this GPU drives, or the GPU its picture goes through on a hybrid laptop
-Type - Discrete (own chip and VRAM) or Integrated (inside the CPU, uses system RAM)
+    <value>Type - Discrete (own chip and VRAM) or Integrated (inside the CPU, uses system RAM)
 Board Vendor - maker of the card or the laptop, from the subsystem ID of the device
-Driver Date - release date the driver reports</value>
+Display - the displays this GPU drives, or the GPU its picture goes through on a hybrid laptop</value>
   </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
   </data>
+  <data name="Gpu_DriverPopup.Description" xml:space="preserve">
+    <value>Driver Version - internal Windows driver number, differs from vendor's own version scheme
+Driver Date - release date the driver reports</value>
+  </data>
+  <data name="Gpu_DriverPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
   <data name="Gpu_NameText.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Cpu_NameText.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Battery_NameText.Text" xml:space="preserve">
     <value>Name</value>
   </data>
   <data name="Gpu_MemoryPopup.Description" xml:space="preserve">
@@ -1260,8 +1271,18 @@ Voltage - operating voltage; XMP/EXPO can raise it
 Bank - physical bank/slot grouping on the motherboard this module belongs to
 Rank - number of independent chip sets on the module itself (unreliable)
 Width - Data (usable bits) vs Total (includes ECC bits)
-Timings (tAA, tRCD, ...) - delays the module is rated for, in nanoseconds, read from its SPD chip; not the values the BIOS actually set
-Thermal Sensor Limits - temperature thresholds stored in the module
+Thermal Sensor Limit - temperature thresholds stored in the module
+Timings - delays the module is rated for, in nanoseconds, read from its SPD chip; not the values the BIOS actually set
+tCKAVGmin, tCKAVGmax - shortest and longest clock cycle
+tAA - CAS latency, from the column address to the data
+tRCD - RAS to CAS delay, from opening a row to addressing a column
+tRP - row precharge, closing a row
+tRAS - shortest time a row stays open
+tRC - from one row activation to the next or to a refresh
+tRFC1, tRFC2, tRFC4, tRFCsb - recovery after a refresh (normal, fine granularity, same bank); _dlr for stacked chips (3DS)
+tFAW - window that holds at most four row activations
+tRRD - between two row activations; tCCD - between two column commands; tWTR - from a write to a read (_S other, _L same bank group)
+tWR - write recovery, from the last written data to closing the row
 Only a module with a readable SPD chip reports these; soldered memory shows -</value>
   </data>
   <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
@@ -1311,17 +1332,6 @@ Health - the verdict of Windows, from the failure prediction of the drive</value
   <data name="Storage_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Resize Hardware Info</value>
   </data>
-  <data name="Network_ConnectionPopup.Title" xml:space="preserve">
-    <value>Connection</value>
-  </data>
-  <data name="Network_ConnectionPopup.Description" xml:space="preserve">
-    <value>Represents one active connection, not the adapter's full range of possible connections. Multiple active connections (e.g. Wi-Fi + Ethernet) each get their own separate entry.
-Hardware - physical adapter behind this connection
-Type - its medium (Wi-Fi, Ethernet, ...)</value>
-  </data>
-  <data name="Network_ConnectionPopup.SourceIntro" xml:space="preserve">
-    <value>Source:</value>
-  </data>
   <data name="Network_HardwareText.Text" xml:space="preserve">
     <value>Hardware</value>
   </data>
@@ -1334,6 +1344,7 @@ IPv4 - usually one address
 IPv6 - often several at once (stable + rotating privacy addresses)
 Gateway - router this connection sends traffic for other networks to
 DNS Server(s) - resolve names to addresses
+DHCP Enabled - whether this connection's own address was assigned automatically or set statically; a property of this connection, not a general network-wide setting
 DHCP Server - assigned the address of this connection</value>
   </data>
   <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
@@ -1343,9 +1354,10 @@ DHCP Server - assigned the address of this connection</value>
     <value>General</value>
   </data>
   <data name="Network_GeneralPopup.Description" xml:space="preserve">
-    <value>Link Speed - negotiated rate of this specific connection, not the adapter's maximum rated speed; can be lower, and shifts over time on Wi-Fi as signal conditions change
-DHCP Enabled - whether this connection's own address was assigned automatically or set statically; a property of this connection, not a general network-wide setting
-Link Speed (Receive / Transmit) - both directions apart; they differ on Wi-Fi</value>
+    <value>Represents one active connection, not the adapter's full range of possible connections. Multiple active connections (e.g. Wi-Fi + Ethernet) each get their own separate entry.
+Hardware - physical adapter behind this connection
+Type - its medium (Wi-Fi, Ethernet, ...)
+Link Speed (Receive / Transmit) - negotiated rate of this specific connection, not the adapter's maximum rated speed; the two directions differ on Wi-Fi and shift as signal conditions change</value>
   </data>
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
@@ -1801,8 +1813,8 @@ Link Speed (Receive / Transmit) - both directions apart; they differ on Wi-Fi</v
     <comment>one volume of a drive; {0} the drive letter like C:, {1} the file system like NTFS, {2} the size, {3} the free space</comment>
   </data>
   <data name="Gpu_PciPopup.Description" xml:space="preserve">
-    <value>Link (Current) - PCIe generation and number of lanes the GPU negotiated with its slot
-Link (Maximum) - what the GPU itself supports; a lower current value means the slot, a riser or the laptop wiring limits it, or the link is saving power</value>
+    <value>Link (Current / Maximum) - PCIe generation and number of lanes; current is what the GPU negotiated with its slot, maximum what the GPU itself supports
+A lower current value means the slot, a riser or the laptop wiring limits it, or the link is saving power</value>
   </data>
   <data name="Gpu_PciPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
@@ -1828,8 +1840,8 @@ Volumes - partitions with a drive letter: file system, size and free space</valu
     <value>Source:</value>
   </data>
   <data name="Storage_PciPopup.Description" xml:space="preserve">
-    <value>Link (Current) - PCIe generation and number of lanes the controller of the drive negotiated
-Link (Maximum) - what the drive supports; a lower current value means the slot limits it</value>
+    <value>Link (Current / Maximum) - PCIe generation and number of lanes; current is what the controller of the drive negotiated, maximum what the drive supports
+A lower current value means the slot limits it</value>
   </data>
   <data name="Storage_PciPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
@@ -1862,14 +1874,19 @@ Security - how the connection is authenticated and encrypted</value>
     <value>General</value>
   </data>
   <data name="Battery_GeneralPopup.Description" xml:space="preserve">
-    <value>Chemistry - cell technology the battery reports
-Cycle Count - full charge cycles counted by the electronics of the battery
-Designed Capacity - energy the battery held when new
-Fully-Charged Capacity - energy it holds today at 100 %
-Degradation Level - share of the designed capacity that is lost</value>
+    <value>Chemistry - cell technology the battery reports</value>
     <comment>Designed Capacity, Fully-Charged Capacity and Degradation Level are sensor names and stay English</comment>
   </data>
   <data name="Battery_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
+  </data>
+  <data name="Battery_HealthPopup.Description" xml:space="preserve">
+    <value>Designed Capacity - energy the battery held when new
+Fully-Charged Capacity - energy it holds today at 100 %
+Degradation Level - share of the designed capacity that is lost
+Cycle Count - full charge cycles counted by the electronics of the battery</value>
+  </data>
+  <data name="Battery_HealthPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
   </data>
 </root>

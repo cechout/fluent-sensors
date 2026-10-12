@@ -749,17 +749,6 @@
                                 TextWrapping="Wrap" />
                         </StackPanel>
 
-                        <StackPanel Spacing="2">
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="{x:Bind loc:AppTerms.Get('Gpu_Vendor')}" />
-                            <TextBlock
-                                Style="{ThemeResource BodyTextBlockStyle}"
-                                Text="{x:Bind Gpu.GpuVendorText, Mode=OneWay}"
-                                TextWrapping="Wrap" />
-                        </StackPanel>
-
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
@@ -777,6 +766,18 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_Vendor')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Gpu.GpuVendorText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
                                     Text="{x:Bind loc:AppTerms.Get('Gpu_BoardVendor')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
@@ -785,28 +786,6 @@
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </controls:WrapPanel>
-
-                        <StackPanel Spacing="2">
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="{x:Bind loc:AppTerms.Get('Gpu_DriverVersion')}" />
-                            <TextBlock
-                                Style="{ThemeResource BodyTextBlockStyle}"
-                                Text="{x:Bind Gpu.GpuDriverVersionText, Mode=OneWay}"
-                                TextWrapping="Wrap" />
-                        </StackPanel>
-
-                        <StackPanel Spacing="2">
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="{x:Bind loc:AppTerms.Get('Gpu_DriverDate')}" />
-                            <TextBlock
-                                Style="{ThemeResource BodyTextBlockStyle}"
-                                Text="{x:Bind Gpu.GpuDriverDateText, Mode=OneWay}"
-                                TextWrapping="Wrap" />
-                        </StackPanel>
 
                         <!--  (the displays it drives, or the integrated gpu a hybrid discrete one renders through)  -->
                         <StackPanel Spacing="2">
@@ -872,16 +851,40 @@
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Info_PciLinkCurrentMax')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Gpu.GpuPciLinkText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  driver  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Gpu_DriverPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Gpu_Driver')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="Win32_VideoController" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-videocontroller" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind loc:AppTerms.Get('Info_PciLinkCurrent')}"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_DriverVersion')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Gpu.GpuPciLinkCurrentText, Mode=OneWay}"
+                                    Text="{x:Bind Gpu.GpuDriverVersionText, Mode=OneWay}"
                                     TextWrapping="Wrap" />
                             </StackPanel>
 
@@ -889,11 +892,11 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind loc:AppTerms.Get('Info_PciLinkMax')}"
+                                    Text="{x:Bind loc:AppTerms.Get('Gpu_DriverDate')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Gpu.GpuPciLinkMaxText, Mode=OneWay}"
+                                    Text="{x:Bind Gpu.GpuDriverDateText, Mode=OneWay}"
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </controls:WrapPanel>

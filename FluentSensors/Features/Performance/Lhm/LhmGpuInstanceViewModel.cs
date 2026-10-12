@@ -412,8 +412,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // the PCI Express link; the section only shows for a gpu that has one
         public bool HasPciLink => _staticInfo?.PciLink != null;
-        public string GpuPciLinkCurrentText => _staticInfo?.PciLink is { } link ? HardwareInfoFormatter.FormatPciLink(link.CurrentSpeed, link.CurrentWidth) : "-";
-        public string GpuPciLinkMaxText => _staticInfo?.PciLink is { } link ? HardwareInfoFormatter.FormatPciLink(link.MaxSpeed, link.MaxWidth) : "-";
+        public string GpuPciLinkText => HardwareInfoFormatter.FormatPciLinkPair(_staticInfo?.PciLink);
 
 
         // === event handlers ===
@@ -432,7 +431,7 @@ namespace FluentSensors.Features.Performance.Lhm
             nameof(GpuDisplayText), nameof(GpuDedicatedMemoryText), nameof(GpuSharedMemoryText),
             nameof(GpuDeviceIdText), nameof(GpuPnpDeviceIdText), nameof(SharedMemoryTotal),
             nameof(GpuDriverDateText), nameof(GpuBoardVendorText), nameof(HasPciLink),
-            nameof(GpuPciLinkCurrentText), nameof(GpuPciLinkMaxText)
+            nameof(GpuPciLinkText)
         };
 
 

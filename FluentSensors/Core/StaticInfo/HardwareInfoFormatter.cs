@@ -30,6 +30,12 @@ namespace FluentSensors.Core.StaticInfo
         // "PCIe 4.0 x8"; the speed is the generation, see WinPciLink
         public static string FormatPciLink(uint speed, uint width) => speed > 0 && width > 0 ? $"PCIe {speed}.0 x{width}" : "-";
 
+        // current and maximum combined, like FormatVoltageRange
+        public static string FormatPciLinkPair(WinPciLink? link) =>
+            link != null
+                ? $"{FormatPciLink(link.CurrentSpeed, link.CurrentWidth)} / {FormatPciLink(link.MaxSpeed, link.MaxWidth)}"
+                : "-";
+
 
         // === cpu ===
 
