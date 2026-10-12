@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -40,6 +42,8 @@ namespace FluentSensors.Features.Performance.Lhm
 
             CoreLoadOptions = new ObservableCollection<SensorSwitchCandidate>();
             TemperatureOptions = new ObservableCollection<SensorSwitchCandidate>();
+            ExtendedTemperatureOptions = new ObservableCollection<SensorSwitchCandidate>();
+            SharedMemoryOptions = new ObservableCollection<SensorSwitchCandidate>();
             PackagePowerOptions = new ObservableCollection<SensorSwitchCandidate>();
             ExtendedPackagePowerOptions = new ObservableCollection<SensorSwitchCandidate>();
             MemoryUsedOptions = new ObservableCollection<SensorSwitchCandidate>();
@@ -55,6 +59,7 @@ namespace FluentSensors.Features.Performance.Lhm
         // DiscreteGpu or IntegratedGpu; the Extended view drops the groups an integrated gpu has no sensors for
         public HardwareGroupKind Kind { get; }
         public bool IsDiscrete => Kind != HardwareGroupKind.IntegratedGpu;
+        public bool IsIntegrated => !IsDiscrete;
 
         // overview categories; the public setter persists the choice, SetXWithoutPersisting is for the default or
         // restored graph (PackagePower and MemoryUsed alike)
@@ -184,19 +189,25 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _coreClock = value; OnPropertyChanged(); }
         }
 
-        // Extended Core group; beside HotSpotTemperature, whatever the overview slot shows
-        private SensorGraphViewModel _coreTemperature;
-        public SensorGraphViewModel CoreTemperature
+        // Extended Core group; a Temperature slot with its own candidates and choice, like ExtendedPackagePower
+        private SensorGraphViewModel _extendedTemperature;
+        public SensorGraphViewModel ExtendedTemperature
         {
-            get => _coreTemperature;
-            set { _coreTemperature = value; OnPropertyChanged(); }
+            get => _extendedTemperature;
+            set
+            {
+                if (_extendedTemperature == value) return;
+                _extendedTemperature = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "ExtendedTemperature", value.SensorId);
+            }
         }
+        public ObservableCollection<SensorSwitchCandidate> ExtendedTemperatureOptions { get; }
 
-        private SensorGraphViewModel _hotSpotTemperature;
-        public SensorGraphViewModel HotSpotTemperature
+        internal void SetExtendedTemperatureWithoutPersisting(SensorGraphViewModel value)
         {
-            get => _hotSpotTemperature;
-            set { _hotSpotTemperature = value; OnPropertyChanged(); }
+            _extendedTemperature = value;
+            OnPropertyChanged(nameof(ExtendedTemperature));
         }
 
         // Extended Memory group; the LHM reading, the D3D figure or the free complement
@@ -234,11 +245,63 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _memoryControllerLoad = value; OnPropertyChanged(); }
         }
 
-        private SensorGraphViewModel _d3dSharedMemoryUsed;
-        public SensorGraphViewModel D3dSharedMemoryUsed
+        // how full the vram is, in percent; (discrete only)
+        private SensorGraphViewModel _memoryLoad;
+        public SensorGraphViewModel MemoryLoad
         {
-            get => _d3dSharedMemoryUsed;
-            set { _d3dSharedMemoryUsed = value; OnPropertyChanged(); }
+            get => _memoryLoad;
+            set { _memoryLoad = value; OnPropertyChanged(); }
+        }
+
+        // Extended Memory group; system RAM lent to the gpu, used or its free complement
+        private SensorGraphViewModel _sharedMemory;
+        public SensorGraphViewModel SharedMemory
+        {
+            get => _sharedMemory;
+            set
+            {
+                if (_sharedMemory == value) return;
+                _sharedMemory = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "SharedMemory", value.SensorId);
+            }
+        }
+        public ObservableCollection<SensorSwitchCandidate> SharedMemoryOptions { get; }
+
+        internal void SetSharedMemoryWithoutPersisting(SensorGraphViewModel value)
+        {
+            _sharedMemory = value;
+            OnPropertyChanged(nameof(SharedMemory));
+        }
+
+        // not charted; the y-axis maximum of SharedMemory, in the unit of its sensors
+        // the D3D total where LHM reports one (Intel, amd), else what DXGI lists for the adapter (NVIDIA)
+        public double SharedMemoryTotal
+        {
+            get
+            {
+                if (_reportedSharedMemoryTotal > 0) return _reportedSharedMemoryTotal;
+                // NaN leaves the panel its own maximum
+                if (_staticInfo == null || _staticInfo.SharedSystemMemoryBytes == 0) return double.NaN;
+
+                double megabytes = _staticInfo.SharedSystemMemoryBytes / 1_048_576.0;
+                return IsSharedMemoryInGigabytes ? megabytes / 1024.0 : megabytes;
+            }
+        }
+
+        private double _reportedSharedMemoryTotal;
+        internal double ReportedSharedMemoryTotal
+        {
+            get => _reportedSharedMemoryTotal;
+            set { _reportedSharedMemoryTotal = value; OnPropertyChanged(nameof(SharedMemoryTotal)); }
+        }
+
+        // LHM reports gpu memory in MB up to 0.9.6 and in GB after it
+        private bool _isSharedMemoryInGigabytes;
+        internal bool IsSharedMemoryInGigabytes
+        {
+            get => _isSharedMemoryInGigabytes;
+            set { _isSharedMemoryInGigabytes = value; OnPropertyChanged(nameof(SharedMemoryTotal)); }
         }
 
         // not charted; the y-axis maximum of MemoryUsed, the reported total (the D3D total where the driver has none)
@@ -298,6 +361,28 @@ namespace FluentSensors.Features.Performance.Lhm
             if (OtherSensors.Count == 1) OnPropertyChanged(nameof(HasOtherSensors));
         }
 
+        // the display names of the D3D nodes by their sensor name, each a setter; a name that occurs more than
+        // once gets a number ("D3D Copy [2]"), the first one too as soon as a second arrives
+        private readonly Dictionary<string, List<Action<string>>> _d3dDisplayNameSetters = new();
+
+        internal void TrackD3dDisplayName(string sensorName, Action<string> setDisplayName)
+        {
+            if (!_d3dDisplayNameSetters.TryGetValue(sensorName, out var setters))
+            {
+                setters = new List<Action<string>>();
+                _d3dDisplayNameSetters[sensorName] = setters;
+            }
+            setters.Add(setDisplayName);
+
+            if (setters.Count < 2) return;
+
+            // the Intel driver names some nodes "D3D " with a trailing space
+            string baseName = sensorName.Trim();
+            int number = setters.Count;
+            if (number == 2) setters[0]($"{baseName} [1]");
+            setDisplayName($"{baseName} [{number}]");
+        }
+
         // the persistence key of a slot, shared with LhmGpuPerformanceViewModel
         public static string D3dEngineCategory(int slotIndex) => $"D3DEngine{slotIndex + 1}";
 
@@ -336,7 +421,7 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             nameof(GpuNameText), nameof(GpuVendorText), nameof(GpuDriverVersionText),
             nameof(GpuDisplayText), nameof(GpuDedicatedMemoryText), nameof(GpuSharedMemoryText),
-            nameof(GpuDeviceIdText), nameof(GpuPnpDeviceIdText)
+            nameof(GpuDeviceIdText), nameof(GpuPnpDeviceIdText), nameof(SharedMemoryTotal)
         };
 
 

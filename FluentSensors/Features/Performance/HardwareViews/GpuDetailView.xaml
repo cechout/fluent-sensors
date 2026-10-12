@@ -283,8 +283,11 @@
                         Opacity="{x:Bind Gpu.ExtendedOpacity, Mode=OneWay}"
                         Spacing="24">
 
-                        <!--  core; (Power and Voltage at the top, they have no group of their own)  -->
-                        <!--  (core load and hot spot are discrete only)  -->
+                        <!--  core; in the order of the overview: load, temperature, power, then the clock  -->
+                        <!--
+                            (an integrated gpu has no core load and shows temperature, clock, power; the power panel is
+                            there twice, one per order, and a view only ever shows one of them)
+                        -->
                         <StackPanel Spacing="8">
                             <TextBlock
                                 Margin="4,0,0,0"
@@ -295,17 +298,6 @@
                                 MinCellHeight="90"
                                 MinCellWidth="260"
                                 Spacing="12">
-                                <fhGraph:SensorPanelControl
-                                    GraphHardwareKind="{x:Bind Gpu.Kind, Mode=OneWay}"
-                                    IsAutoScaledOverride="True"
-                                    PlaceholderSensorName="GPU Power"
-                                    SensorTypeColor="Always"
-                                    ShowStatusRow="True"
-                                    ShowThresholdControls="True"
-                                    ShowYAxisControls="True"
-                                    SwitchCandidates="{x:Bind Gpu.ExtendedPackagePowerOptions, Mode=OneWay}"
-                                    ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.ExtendedPackagePower, Mode=TwoWay}" />
                                 <fhGraph:SensorPanelControl
                                     GraphHardwareKind="{x:Bind Gpu.Kind, Mode=OneWay}"
                                     IsAutoScaledOverride="False"
@@ -321,6 +313,31 @@
                                     Visibility="{x:Bind BoolToVisibility(Gpu.IsDiscrete), Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
                                     GraphHardwareKind="{x:Bind Gpu.Kind, Mode=OneWay}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="GPU Temperature"
+                                    PlaceholderUnit="°C"
+                                    SensorTypeColor="Always"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.ExtendedTemperatureOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.ExtendedTemperature, Mode=TwoWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="{x:Bind Gpu.Kind, Mode=OneWay}"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="GPU Power"
+                                    SensorTypeColor="Always"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.ExtendedPackagePowerOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.ExtendedPackagePower, Mode=TwoWay}"
+                                    Visibility="{x:Bind BoolToVisibility(Gpu.IsDiscrete), Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="{x:Bind Gpu.Kind, Mode=OneWay}"
                                     IsAutoScaledOverride="True"
                                     PlaceholderSensorName="GPU Core"
                                     PlaceholderUnit="MHz"
@@ -332,29 +349,16 @@
                                     ViewModel="{x:Bind Gpu.CoreClock, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
                                     GraphHardwareKind="{x:Bind Gpu.Kind, Mode=OneWay}"
-                                    IsAutoScaledOverride="False"
-                                    ManualYMaxOverride="100"
-                                    PlaceholderSensorName="GPU Core"
-                                    PlaceholderUnit="°C"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="GPU Power"
                                     SensorTypeColor="Always"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.ExtendedPackagePowerOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.CoreTemperature, Mode=OneWay}" />
-                                <fhGraph:SensorPanelControl
-                                    GraphHardwareKind="{x:Bind Gpu.Kind, Mode=OneWay}"
-                                    IsAutoScaledOverride="False"
-                                    ManualYMaxOverride="100"
-                                    PlaceholderSensorName="GPU Hot Spot"
-                                    PlaceholderUnit="°C"
-                                    SensorTypeColor="Always"
-                                    ShowStatusRow="True"
-                                    ShowThresholdControls="True"
-                                    ShowYAxisControls="True"
-                                    ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.HotSpotTemperature, Mode=OneWay}"
-                                    Visibility="{x:Bind BoolToVisibility(Gpu.IsDiscrete), Mode=OneWay}" />
+                                    ViewModel="{x:Bind Gpu.ExtendedPackagePower, Mode=TwoWay}"
+                                    Visibility="{x:Bind BoolToVisibility(Gpu.IsIntegrated), Mode=OneWay}" />
                             </fhControls:SquareGridPanel>
 
                             <!--  graph time range  -->
@@ -366,7 +370,7 @@
                                 TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
 
-                        <!--  memory; (Memory Free is part of the MemoryUsed switch)  -->
+                        <!--  memory: vram (used, free), its clock, controller and fill level, then the shared system ram  -->
                         <!--  (an integrated gpu has the shared memory only)  -->
                         <StackPanel Spacing="8">
                             <TextBlock
@@ -419,15 +423,30 @@
                                     Visibility="{x:Bind BoolToVisibility(Gpu.IsDiscrete), Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
                                     GraphHardwareKind="{x:Bind Gpu.Kind, Mode=OneWay}"
-                                    IsAutoScaledOverride="True"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="GPU Memory"
+                                    PlaceholderUnit="%"
+                                    SensorTypeColor="Always"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Gpu.MemoryLoad, Mode=OneWay}"
+                                    Visibility="{x:Bind BoolToVisibility(Gpu.IsDiscrete), Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="{x:Bind Gpu.Kind, Mode=OneWay}"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="{x:Bind Gpu.SharedMemoryTotal, Mode=OneWay}"
                                     PlaceholderSensorName="D3D Shared Memory Used"
                                     PlaceholderUnit="MB"
                                     SensorTypeColor="Always"
                                     ShowStatusRow="True"
                                     ShowThresholdControls="True"
                                     ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Gpu.SharedMemoryOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.D3dSharedMemoryUsed, Mode=OneWay}" />
+                                    ViewModel="{x:Bind Gpu.SharedMemory, Mode=TwoWay}" />
                             </fhControls:SquareGridPanel>
 
                             <!--  graph time range  -->
