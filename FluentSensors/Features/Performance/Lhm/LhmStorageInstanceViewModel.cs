@@ -33,6 +33,7 @@ namespace FluentSensors.Features.Performance.Lhm
             TotalActivityOptions = new ObservableCollection<SensorSwitchCandidate>();
             ReadRateOptions = new ObservableCollection<SensorSwitchCandidate>();
             WriteRateOptions = new ObservableCollection<SensorSwitchCandidate>();
+            UsedSpaceOptions = new ObservableCollection<SensorSwitchCandidate>();
             TemperatureLimitFacts = new ObservableCollection<HardwareFact>();
         }
 
@@ -110,6 +111,66 @@ namespace FluentSensors.Features.Performance.Lhm
             _readRate = value;
             OnPropertyChanged(nameof(ReadRate));
         }
+
+
+        // extended view; the used space in percent (LHM) or in bytes (the Windows source, while its switch is on)
+        private SensorGraphViewModel _usedSpace;
+        public SensorGraphViewModel UsedSpace
+        {
+            get => _usedSpace;
+            set
+            {
+                if (_usedSpace == value) return;
+                _usedSpace = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "UsedSpace", value.SensorId);
+            }
+        }
+        public ObservableCollection<SensorSwitchCandidate> UsedSpaceOptions { get; }
+
+        internal void SetUsedSpaceWithoutPersisting(SensorGraphViewModel value)
+        {
+            _usedSpace = value;
+            OnPropertyChanged(nameof(UsedSpace));
+        }
+
+        // extended view; the cumulative totals, where the drive reports them
+        private SensorGraphViewModel _dataRead;
+        public SensorGraphViewModel DataRead
+        {
+            get => _dataRead;
+            set { _dataRead = value; OnPropertyChanged(); }
+        }
+
+        private SensorGraphViewModel _dataWritten;
+        public SensorGraphViewModel DataWritten
+        {
+            get => _dataWritten;
+            set { _dataWritten = value; OnPropertyChanged(); }
+        }
+
+        // the second view of the tab, see StorageDetailView
+        private bool _isShowingExtended;
+        public bool IsShowingExtended
+        {
+            get => _isShowingExtended;
+            set
+            {
+                if (_isShowingExtended != value)
+                {
+                    _isShowingExtended = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ExtendedOpacity));
+                    OnPropertyChanged(nameof(ExtendedIsHitTestVisible));
+                }
+            }
+        }
+
+        // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
+        // problem and fix: see GpuDetailView.SetLayoutActive; the Overall/Extended switch hides by
+        // Opacity and IsHitTestVisible too
+        public double ExtendedOpacity => IsShowingExtended ? 1 : 0;
+        public bool ExtendedIsHitTestVisible => IsShowingExtended;
 
 
         // === static info text properties ===

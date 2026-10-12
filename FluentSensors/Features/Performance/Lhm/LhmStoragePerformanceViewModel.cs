@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -18,6 +19,10 @@ namespace FluentSensors.Features.Performance.Lhm
     // property; the instance stays a data holder
     public class LhmStoragePerformanceViewModel
     {
+        // the sensors that got a fixed graph through AttachGraph
+        private readonly HashSet<string> _attachedSensorIds = new();
+
+
         // === constructor ===
 
         public LhmStoragePerformanceViewModel()
@@ -93,6 +98,7 @@ namespace FluentSensors.Features.Performance.Lhm
             ActivateDefault(drive.HardwareName, "TotalActivity", drive.TotalActivityOptions, () => drive.TotalActivity, drive.SetTotalActivityWithoutPersisting);
             ActivateDefault(drive.HardwareName, "Read", drive.ReadRateOptions, () => drive.ReadRate, drive.SetReadRateWithoutPersisting);
             ActivateDefault(drive.HardwareName, "Write", drive.WriteRateOptions, () => drive.WriteRate, drive.SetWriteRateWithoutPersisting);
+            ActivateDefault(drive.HardwareName, "UsedSpace", drive.UsedSpaceOptions, () => drive.UsedSpace, drive.SetUsedSpaceWithoutPersisting);
         }
 
         private static void ActivateDefault(
@@ -170,6 +176,26 @@ namespace FluentSensors.Features.Performance.Lhm
                         d => d.ReadRate, (d, v) => d.SetReadRateWithoutPersisting(v), drive.ReadRateOptions, yMaxOverride: () => 100);
                     break;
 
+                // two sensors of one name: the LHM percentage (Load) and the bytes of the Windows source (Data); the
+                // unit tells them apart in the switch
+                case "Used Space":
+                    bool isPercent = entry.SensorType == "Load";
+                    RegisterCategoryCandidate(drive, "UsedSpace", entry,
+                        d => d.UsedSpace, (d, v) => d.SetUsedSpaceWithoutPersisting(v), drive.UsedSpaceOptions,
+                        isDefault: isPercent,
+                        yMaxOverride: isPercent ? () => 100 : () => drive.TotalSpace > 0 ? drive.TotalSpace : (double?)null,
+                        displayName: $"{entry.Name} ({SensorUnitFormatter.GetUnit(entry.SensorType)})",
+                        followsActiveState: true);
+                    break;
+
+                case "Data Read":
+                    AttachGraph(entry, graph => drive.DataRead = graph);
+                    break;
+
+                case "Data Written":
+                    AttachGraph(entry, graph => drive.DataWritten = graph);
+                    break;
+
                 // fixed for the life of the drive, so facts of the info panel and never a graph
                 case "Warning Temperature":
                 case "Critical Temperature":
@@ -205,7 +231,9 @@ namespace FluentSensors.Features.Performance.Lhm
             Action<LhmStorageInstanceViewModel, SensorGraphViewModel> setActiveWithoutPersisting,
             ObservableCollection<SensorSwitchCandidate> options,
             bool isDefault = false,
-            Func<double?> yMaxOverride = null)
+            Func<double?> yMaxOverride = null,
+            string displayName = null,
+            bool followsActiveState = false)
         {
             if (options.Any(c => c.SensorId == entry.Id)) return;
 
@@ -219,7 +247,32 @@ namespace FluentSensors.Features.Performance.Lhm
                 return cached;
             }
 
-            options.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve, isDefault, yMaxOverride));
+            var candidate = new SensorSwitchCandidate(entry.Id, displayName ?? entry.Name, Resolve, isDefault, yMaxOverride);
+            if (entry.IsActive || !followsActiveState) options.Add(candidate);
+
+            // a Windows sensor leaves the switch while its engine switch is off, and the slot falls back to what is left
+            if (followsActiveState)
+            {
+                entry.PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName != nameof(LhmSensorEntry.IsActive)) return;
+
+                    if (entry.IsActive)
+                    {
+                        if (!options.Contains(candidate)) options.Add(candidate);
+                        if (getActive(drive) == null) setActiveWithoutPersisting(drive, Resolve());
+                        return;
+                    }
+
+                    options.Remove(candidate);
+                    if (getActive(drive)?.SensorId == entry.Id)
+                    {
+                        setActiveWithoutPersisting(drive, options.FirstOrDefault()?.Resolve());
+                    }
+                };
+
+                if (!entry.IsActive) return;
+            }
 
             if (getActive(drive) != null) return; // resolved, one more alternative
 
@@ -228,6 +281,28 @@ namespace FluentSensors.Features.Performance.Lhm
             {
                 setActiveWithoutPersisting(drive, Resolve());
             }
+        }
+
+        // a graph in a fixed place; it leaves its place while the sensor is inactive (a Windows sensor whose switch
+        // is off) and takes it again when the sensor is back
+        // guarded by the sensor id; OnSensorDiscovered can rerun for a known sensor
+        private void AttachGraph(LhmSensorEntry entry, Action<SensorGraphViewModel> setGraph)
+        {
+            if (!_attachedSensorIds.Add(entry.Id)) return;
+
+            var graph = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+            PushDataPoint(graph, entry);
+
+            entry.PropertyChanged += (s, e) =>
+            {
+                switch (e.PropertyName)
+                {
+                    case nameof(LhmSensorEntry.Value): PushDataPoint(graph, entry); break;
+                    case nameof(LhmSensorEntry.IsActive): setGraph(entry.IsActive ? graph : null); break;
+                }
+            };
+
+            setGraph(entry.IsActive ? graph : null);
         }
 
         private static void OnEntryValueChanged(SensorGraphViewModel graph, LhmSensorEntry entry, PropertyChangedEventArgs e)

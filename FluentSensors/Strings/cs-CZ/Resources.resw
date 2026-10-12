@@ -339,6 +339,12 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_WinStorageTemperatureCard.Description" xml:space="preserve">
     <value>Nahradí teplotu z LibreHardwareMonitor u každého disku</value>
   </data>
+  <data name="Settings_WinStorageSpaceCard.Header" xml:space="preserve">
+    <value>Využité místo úložiště</value>
+  </data>
+  <data name="Settings_WinStorageSpaceCard.Description" xml:space="preserve">
+    <value>Doplní využité místo každého disku v bajtech</value>
+  </data>
   <data name="Settings_WinWlanSensorsCard.Header" xml:space="preserve">
     <value>Signál Wi-Fi</value>
   </data>
@@ -1227,6 +1233,18 @@ Firmware - aktuálně zapnuto nebo ne (nespolehlivé)</value>
     <value>Celkově</value>
   </data>
   <data name="Gpu_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Rozšířené</value>
+  </data>
+  <data name="Network_ShowOverallButton.Label" xml:space="preserve">
+    <value>Celkově</value>
+  </data>
+  <data name="Network_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Rozšířené</value>
+  </data>
+  <data name="Storage_ShowOverallButton.Label" xml:space="preserve">
+    <value>Celkově</value>
+  </data>
+  <data name="Storage_ShowExtendedButton.Label" xml:space="preserve">
     <value>Rozšířené</value>
   </data>
   <data name="Gpu_OtherGroupTitle.Text" xml:space="preserve">

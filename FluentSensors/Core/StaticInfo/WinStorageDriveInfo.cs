@@ -59,6 +59,8 @@ namespace FluentSensors.Core.StaticInfo
         string ManufactureDate, // "" when not reported
         ulong? ReadLatencyMaxMs,
         ulong? WriteLatencyMaxMs,
-        ulong? FlushLatencyMaxMs
+        ulong? FlushLatencyMaxMs,
+
+        int DiskNumber = -1 // Win32_DiskDrive.Index, the number Disk Management shows
     );
 }

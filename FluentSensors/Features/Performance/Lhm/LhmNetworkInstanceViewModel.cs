@@ -75,6 +75,80 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
 
+        // extended view; the cumulative totals as graphs of their own (both are candidates of the utilization slot too)
+        private SensorGraphViewModel _dataUploaded;
+        public SensorGraphViewModel DataUploaded
+        {
+            get => _dataUploaded;
+            set { _dataUploaded = value; OnPropertyChanged(); }
+        }
+
+        private SensorGraphViewModel _dataDownloaded;
+        public SensorGraphViewModel DataDownloaded
+        {
+            get => _dataDownloaded;
+            set { _dataDownloaded = value; OnPropertyChanged(); }
+        }
+
+        // extended view; the Wi-Fi sensors of the Windows source, null while its switch is off or the adapter is wired
+        private SensorGraphViewModel _receiveLinkRate;
+        public SensorGraphViewModel ReceiveLinkRate
+        {
+            get => _receiveLinkRate;
+            set { _receiveLinkRate = value; OnPropertyChanged(); OnPropertyChanged(nameof(WifiSectionVisibility)); }
+        }
+
+        private SensorGraphViewModel _transmitLinkRate;
+        public SensorGraphViewModel TransmitLinkRate
+        {
+            get => _transmitLinkRate;
+            set { _transmitLinkRate = value; OnPropertyChanged(); OnPropertyChanged(nameof(WifiSectionVisibility)); }
+        }
+
+        private SensorGraphViewModel _signalStrength;
+        public SensorGraphViewModel SignalStrength
+        {
+            get => _signalStrength;
+            set { _signalStrength = value; OnPropertyChanged(); OnPropertyChanged(nameof(WifiSectionVisibility)); }
+        }
+
+        private SensorGraphViewModel _rssi;
+        public SensorGraphViewModel Rssi
+        {
+            get => _rssi;
+            set { _rssi = value; OnPropertyChanged(); OnPropertyChanged(nameof(WifiSectionVisibility)); }
+        }
+
+        // the Wi-Fi group only shows while one of its sensors is there
+        public Microsoft.UI.Xaml.Visibility WifiSectionVisibility =>
+            ReceiveLinkRate != null || TransmitLinkRate != null || SignalStrength != null || Rssi != null
+                ? Microsoft.UI.Xaml.Visibility.Visible
+                : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        // the second view of the tab, see NetworkDetailView
+        private bool _isShowingExtended;
+        public bool IsShowingExtended
+        {
+            get => _isShowingExtended;
+            set
+            {
+                if (_isShowingExtended != value)
+                {
+                    _isShowingExtended = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ExtendedOpacity));
+                    OnPropertyChanged(nameof(ExtendedIsHitTestVisible));
+                }
+            }
+        }
+
+        // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
+        // problem and fix: see GpuDetailView.SetLayoutActive; the Overall/Extended switch hides by
+        // Opacity and IsHitTestVisible too
+        public double ExtendedOpacity => IsShowingExtended ? 1 : 0;
+        public bool ExtendedIsHitTestVisible => IsShowingExtended;
+
+
         // === static info text properties ===
 
         // static info from the matched WinNetworkAdapterInfo; the hardware description ("Intel(R) Wi-Fi 6E AX211

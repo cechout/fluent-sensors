@@ -58,8 +58,8 @@
 
                 <!--  who measured it, see SensorSourceIcon  -->
                 <Path
-                    Width="8"
-                    Height="8"
+                    Width="7.5"
+                    Height="7.5"
                     Margin="0,5,4,0"
                     VerticalAlignment="Top"
                     fhUi:SensorSourceIcon.SensorId="{x:Bind ViewModel.SensorId, Mode=OneWay}"

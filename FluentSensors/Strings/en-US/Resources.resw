@@ -348,6 +348,12 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Settings_WinStorageTemperatureCard.Description" xml:space="preserve">
     <value>Replaces the LibreHardwareMonitor temperature of every drive</value>
   </data>
+  <data name="Settings_WinStorageSpaceCard.Header" xml:space="preserve">
+    <value>Storage Used Space</value>
+  </data>
+  <data name="Settings_WinStorageSpaceCard.Description" xml:space="preserve">
+    <value>Adds the used space of every drive in bytes</value>
+  </data>
   <data name="Settings_WinWlanSensorsCard.Header" xml:space="preserve">
     <value>Wi-Fi Signal</value>
   </data>
@@ -1240,6 +1246,18 @@ Firmware - currently enabled or not (unreliable)</value>
     <value>Overall</value>
   </data>
   <data name="Gpu_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Extended</value>
+  </data>
+  <data name="Network_ShowOverallButton.Label" xml:space="preserve">
+    <value>Overall</value>
+  </data>
+  <data name="Network_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Extended</value>
+  </data>
+  <data name="Storage_ShowOverallButton.Label" xml:space="preserve">
+    <value>Overall</value>
+  </data>
+  <data name="Storage_ShowExtendedButton.Label" xml:space="preserve">
     <value>Extended</value>
   </data>
   <data name="Gpu_OtherGroupTitle.Text" xml:space="preserve">

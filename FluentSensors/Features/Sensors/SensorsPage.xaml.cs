@@ -473,7 +473,8 @@ namespace FluentSensors.Features.Sensors
         {
             _forcedOverflowElements = new HashSet<ICommandBarElement>
             {
-                ShowHiddenSensorsButton
+                ShowHiddenSensorsButton,
+                SensorTypeColorsButton
             };
 
             RebuildCommandBarOverflow();
@@ -618,6 +619,7 @@ namespace FluentSensors.Features.Sensors
             order.Add(ButtonSeparator);
             order.Add(ResetValuesButton);
             order.Add(ShowHiddenSensorsButton);
+            order.Add(SensorTypeColorsButton);
 
             return order.ToArray();
         }

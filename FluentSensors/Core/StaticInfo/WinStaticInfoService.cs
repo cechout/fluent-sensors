@@ -594,7 +594,8 @@ namespace FluentSensors.Core.StaticInfo
                     ManufactureDate: modern?.ManufactureDate ?? "",
                     ReadLatencyMaxMs: modern?.ReadLatencyMaxMs,
                     WriteLatencyMaxMs: modern?.WriteLatencyMaxMs,
-                    FlushLatencyMaxMs: modern?.FlushLatencyMaxMs
+                    FlushLatencyMaxMs: modern?.FlushLatencyMaxMs,
+                    DiskNumber: ToInt(item["Index"])
                 ));
             }
 

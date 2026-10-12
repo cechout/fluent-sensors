@@ -149,8 +149,8 @@
 
                     <!--  who measured it, see SensorSourceIcon  -->
                     <Path
-                        Width="12"
-                        Height="12"
+                        Width="11.25"
+                        Height="11.25"
                         VerticalAlignment="Center"
                         fhUi:SensorSourceIcon.SensorId="{x:Bind ViewModel.Id, Mode=OneWay}"
                         Fill="{ThemeResource TextFillColorSecondaryBrush}"

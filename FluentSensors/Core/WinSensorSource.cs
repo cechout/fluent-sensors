@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
@@ -47,6 +48,9 @@ namespace FluentSensors.Core
         // the LHM names a Windows drive temperature replaces: the NVMe one and the SATA / USB one
         private static readonly string[] ReplacedStorageTemperatureNames = { "Composite Temperature", "Temperature" };
 
+        // bytes to the GiB every Data sensor is in
+        private const double BytesPerGibibyte = 1_073_741_824.0;
+
         // kbit/s to the MiB/s every Throughput sensor is in, see HardwareMonitorService
         private const double KilobitsToMebibytes = 1000.0 / 8 / 1_048_576.0;
 
@@ -89,6 +93,19 @@ namespace FluentSensors.Core
             {
                 if (_isStorageTemperatureEnabled == value) return;
                 _isStorageTemperatureEnabled = value;
+                SignalSettingsChanged();
+            }
+        }
+
+        // the used space of a drive in bytes; LHM only has it in percent
+        private volatile bool _isStorageSpaceEnabled;
+        public bool IsStorageSpaceEnabled
+        {
+            get => _isStorageSpaceEnabled;
+            set
+            {
+                if (_isStorageSpaceEnabled == value) return;
+                _isStorageSpaceEnabled = value;
                 SignalSettingsChanged();
             }
         }
@@ -159,12 +176,17 @@ namespace FluentSensors.Core
         {
             var storageReadings = new List<WinSensorReading>();
             var wlanReadings = new List<WinSensorReading>();
-            bool wasStorageEnabled = false;
+            int lastStorageSwitches = 0;
             long storageTimestamp = 0;
 
             while (!token.IsCancellationRequested)
             {
-                bool isStorageEnabled = _isStorageTemperatureEnabled;
+                bool isStorageTemperatureEnabled = _isStorageTemperatureEnabled;
+                bool isStorageSpaceEnabled = _isStorageSpaceEnabled;
+                bool isStorageEnabled = isStorageTemperatureEnabled || isStorageSpaceEnabled;
+
+                // a switch that changed reads at once instead of waiting for the interval
+                int storageSwitches = (isStorageTemperatureEnabled ? 1 : 0) | (isStorageSpaceEnabled ? 2 : 0);
                 bool isWlanEnabled = _isWlanEnabled;
                 bool isDisplayEnabled = _isDisplayEnabled;
 
@@ -172,12 +194,14 @@ namespace FluentSensors.Core
                 {
                     storageReadings = new List<WinSensorReading>();
                 }
-                else if (!wasStorageEnabled || Stopwatch.GetElapsedTime(storageTimestamp).TotalMilliseconds >= StorageIntervalMs)
+                else if (storageSwitches != lastStorageSwitches || Stopwatch.GetElapsedTime(storageTimestamp).TotalMilliseconds >= StorageIntervalMs)
                 {
-                    storageReadings = ReadStorageTemperatures();
+                    storageReadings = new List<WinSensorReading>();
+                    if (isStorageTemperatureEnabled) storageReadings.AddRange(ReadStorageTemperatures());
+                    if (isStorageSpaceEnabled) storageReadings.AddRange(ReadStorageSpace());
                     storageTimestamp = Stopwatch.GetTimestamp();
                 }
-                wasStorageEnabled = isStorageEnabled;
+                lastStorageSwitches = storageSwitches;
 
                 wlanReadings = isWlanEnabled ? ReadWlan() : new List<WinSensorReading>();
 
@@ -258,6 +282,59 @@ namespace FluentSensors.Core
                     SensorType: "Temperature",
                     Value: disk.Celsius,
                     ReplacedSensorNames: ReplacedStorageTemperatureNames));
+            }
+
+            return result;
+        }
+
+        // the used space of every drive in GiB, summed over its volumes with a letter, on the LHM drive of the same name
+        // LHM computes its "Used Space" percentage from the same volumes
+        private List<WinSensorReading> ReadStorageSpace()
+        {
+            var result = new List<WinSensorReading>();
+
+            try
+            {
+                var hardwareNames = _getStorageHardwareNames();
+                var drives = WinStaticInfoService.Instance.Drives; // which letters sit on which disk; the sizes are read fresh
+
+                var usedNumbers = new HashSet<int>();
+                foreach (string hardwareName in hardwareNames)
+                {
+                    var drive = HardwareNameMatcher.FindBestMatch(hardwareName, drives, d => d.FriendlyName);
+                    if (drive == null || drive.DiskNumber < 0 || !usedNumbers.Add(drive.DiskNumber)) continue;
+
+                    double usedBytes = 0;
+                    bool hasVolume = false;
+                    foreach (var volume in drive.Volumes)
+                    {
+                        try
+                        {
+                            var info = new DriveInfo(volume.Letter);
+                            if (!info.IsReady) continue;
+
+                            usedBytes += info.TotalSize - info.TotalFreeSpace;
+                            hasVolume = true;
+                        }
+                        catch
+                        {
+                            // a volume that was locked or removed since the drive list was read
+                        }
+                    }
+                    if (!hasVolume) continue;
+
+                    result.Add(new WinSensorReading(
+                        Id: $"{SensorSourceMarker.WindowsIdRoot}storage/{drive.DiskNumber}/data/0",
+                        Name: "Used Space",
+                        HardwareName: hardwareName,
+                        HardwareType: "Storage",
+                        SensorType: "Data",
+                        Value: usedBytes / BytesPerGibibyte));
+                }
+            }
+            catch
+            {
+                // the drive list is not there yet; nothing this pass
             }
 
             return result;

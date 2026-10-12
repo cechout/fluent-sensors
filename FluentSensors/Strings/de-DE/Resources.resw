@@ -339,6 +339,12 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Settings_WinStorageTemperatureCard.Description" xml:space="preserve">
     <value>Ersetzt die Temperatur von LibreHardwareMonitor bei jedem Laufwerk</value>
   </data>
+  <data name="Settings_WinStorageSpaceCard.Header" xml:space="preserve">
+    <value>Belegter Speicherplatz</value>
+  </data>
+  <data name="Settings_WinStorageSpaceCard.Description" xml:space="preserve">
+    <value>Ergänzt den belegten Speicherplatz jedes Laufwerks in Bytes</value>
+  </data>
   <data name="Settings_WinWlanSensorsCard.Header" xml:space="preserve">
     <value>WLAN-Signal</value>
   </data>
@@ -1227,6 +1233,18 @@ Firmware - aktuell aktiviert oder nicht (unzuverlässig)</value>
     <value>Gesamt</value>
   </data>
   <data name="Gpu_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Erweitert</value>
+  </data>
+  <data name="Network_ShowOverallButton.Label" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="Network_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Erweitert</value>
+  </data>
+  <data name="Storage_ShowOverallButton.Label" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="Storage_ShowExtendedButton.Label" xml:space="preserve">
     <value>Erweitert</value>
   </data>
   <data name="Gpu_OtherGroupTitle.Text" xml:space="preserve">

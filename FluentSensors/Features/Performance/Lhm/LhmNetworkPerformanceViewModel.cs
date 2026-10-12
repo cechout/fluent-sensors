@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -17,6 +18,10 @@ namespace FluentSensors.Features.Performance.Lhm
     // its property; the instance stays a data holder
     public class LhmNetworkPerformanceViewModel
     {
+        // the sensors that got a fixed graph through AttachGraph
+        private readonly HashSet<string> _attachedSensorIds = new();
+
+
         // === constructor ===
 
         public LhmNetworkPerformanceViewModel()
@@ -151,11 +156,30 @@ namespace FluentSensors.Features.Performance.Lhm
                 case "Data Uploaded":
                     RegisterCategoryCandidate(adapter, "Utilization", entry,
                         a => a.NetworkUtilization, (a, v) => a.SetNetworkUtilizationWithoutPersisting(v), adapter.NetworkUtilizationOptions);
+                    AttachGraph(entry, graph => adapter.DataUploaded = graph);
                     break;
 
                 case "Data Downloaded":
                     RegisterCategoryCandidate(adapter, "Utilization", entry,
                         a => a.NetworkUtilization, (a, v) => a.SetNetworkUtilizationWithoutPersisting(v), adapter.NetworkUtilizationOptions);
+                    AttachGraph(entry, graph => adapter.DataDownloaded = graph);
+                    break;
+
+                // the Wi-Fi sensors of the Windows source, by the names WinSensorSource gives them
+                case "Receive Link Rate":
+                    AttachGraph(entry, graph => adapter.ReceiveLinkRate = graph);
+                    break;
+
+                case "Transmit Link Rate":
+                    AttachGraph(entry, graph => adapter.TransmitLinkRate = graph);
+                    break;
+
+                case "Signal Strength":
+                    AttachGraph(entry, graph => adapter.SignalStrength = graph);
+                    break;
+
+                case "RSSI":
+                    AttachGraph(entry, graph => adapter.Rssi = graph);
                     break;
             }
         }
@@ -194,6 +218,28 @@ namespace FluentSensors.Features.Performance.Lhm
             {
                 setActiveWithoutPersisting(adapter, Resolve());
             }
+        }
+
+        // a graph in a fixed place; it leaves its place while the sensor is inactive (a Windows sensor whose switch
+        // is off) and takes it again when the sensor is back
+        // guarded by the sensor id; OnSensorDiscovered can rerun for a known sensor
+        private void AttachGraph(LhmSensorEntry entry, Action<SensorGraphViewModel> setGraph)
+        {
+            if (!_attachedSensorIds.Add(entry.Id)) return;
+
+            var graph = new SensorGraphViewModel(entry.Id, entry.Name, entry.SensorType);
+            PushDataPoint(graph, entry);
+
+            entry.PropertyChanged += (s, e) =>
+            {
+                switch (e.PropertyName)
+                {
+                    case nameof(LhmSensorEntry.Value): PushDataPoint(graph, entry); break;
+                    case nameof(LhmSensorEntry.IsActive): setGraph(entry.IsActive ? graph : null); break;
+                }
+            };
+
+            setGraph(entry.IsActive ? graph : null);
         }
 
         private static void OnEntryValueChanged(SensorGraphViewModel graph, LhmSensorEntry entry, PropertyChangedEventArgs e)

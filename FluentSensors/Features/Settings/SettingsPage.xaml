@@ -374,6 +374,13 @@
                             Toggled="WinStorageTemperatureToggle_Toggled" />
                     </controls:SettingsCard>
 
+                    <controls:SettingsCard x:Uid="Settings_WinStorageSpaceCard">
+                        <ToggleSwitch
+                            x:Name="WinStorageSpaceToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="WinStorageSpaceToggle_Toggled" />
+                    </controls:SettingsCard>
+
                     <controls:SettingsCard x:Uid="Settings_WinWlanSensorsCard">
                         <ToggleSwitch
                             x:Name="WinWlanSensorsToggle"

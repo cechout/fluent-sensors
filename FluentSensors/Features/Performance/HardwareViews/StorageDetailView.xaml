@@ -19,6 +19,10 @@
     mc:Ignorable="d">
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="ContentColumn" Width="4*" />
             <ColumnDefinition
@@ -32,6 +36,7 @@
         <!--  view content with header, graphs and tiles  -->
         <ScrollViewer
             x:Name="ContentScrollViewer"
+            Grid.Row="0"
             Grid.Column="0"
             fhUi:FocusSkip.IsEnabled="True"
             HorizontalScrollBarVisibility="Disabled"
@@ -256,13 +261,172 @@
                             </controls:WrapPanel>
                         </Grid>
                     </Grid>
+
+                    <!--  view 2: extended, one graph per row in groups  -->
+                    <!--
+                        (no sensor tiles in this view; within a group the value that depends on the others sits on
+                        top and what it rests on at the bottom, like the overview)
+                    -->
+                    <StackPanel
+                        x:Name="ExtendedGrid"
+                        Grid.Row="0"
+                        Margin="0,0,0,4"
+                        x:Load="False"
+                        IsHitTestVisible="{x:Bind Storage.ExtendedIsHitTestVisible, Mode=OneWay}"
+                        Opacity="{x:Bind Storage.ExtendedOpacity, Mode=OneWay}"
+                        Spacing="24">
+
+                        <!--  activity: the three graphs of the overview  -->
+                        <StackPanel Spacing="8">
+                            <TextBlock
+                                Margin="4,0,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Storage_SectionActivity')}" />
+                            <fhGraph:SensorPanelControl
+                                Height="120"
+                                GraphHardwareKind="Storage"
+                                IsAutoScaledOverride="True"
+                                PlaceholderSensorName="Total Activity"
+                                PlaceholderUnit="%"
+                                ShowStatusRow="True"
+                                ShowThresholdControls="True"
+                                ShowYAxisControls="True"
+                                SwitchCandidates="{x:Bind Storage.TotalActivityOptions, Mode=OneWay}"
+                                ThresholdLabelAlwaysVisible="False"
+                                ViewModel="{x:Bind Storage.TotalActivity, Mode=TwoWay}" />
+
+                            <fhGraph:SensorPanelControl
+                                Height="120"
+                                GraphHardwareKind="Storage"
+                                IsAutoScaledOverride="True"
+                                PlaceholderSensorName="Read Rate"
+                                PlaceholderUnit="MB/s"
+                                ShowStatusRow="True"
+                                ShowThresholdControls="True"
+                                ShowYAxisControls="True"
+                                SwitchCandidates="{x:Bind Storage.ReadRateOptions, Mode=OneWay}"
+                                ThresholdLabelAlwaysVisible="False"
+                                ViewModel="{x:Bind Storage.ReadRate, Mode=TwoWay}" />
+
+                            <fhGraph:SensorPanelControl
+                                Height="120"
+                                GraphHardwareKind="Storage"
+                                IsAutoScaledOverride="True"
+                                PlaceholderSensorName="Write Rate"
+                                PlaceholderUnit="MB/s"
+                                ShowStatusRow="True"
+                                ShowThresholdControls="True"
+                                ShowYAxisControls="True"
+                                SwitchCandidates="{x:Bind Storage.WriteRateOptions, Mode=OneWay}"
+                                ThresholdLabelAlwaysVisible="False"
+                                ViewModel="{x:Bind Storage.WriteRate, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <!--  space and data: how full the drive is, then the totals read and written  -->
+                        <!--  (used space in percent from LHM or in bytes from the Windows source, the unit names which)  -->
+                        <StackPanel Spacing="8">
+                            <TextBlock
+                                Margin="4,0,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Storage_SectionSpace')}" />
+                            <fhGraph:SensorPanelControl
+                                Height="120"
+                                GraphHardwareKind="Storage"
+                                IsAutoScaledOverride="True"
+                                PlaceholderSensorName="Used Space"
+                                PlaceholderUnit="%"
+                                ShowStatusRow="True"
+                                ShowThresholdControls="True"
+                                ShowUnitInStatusRow="True"
+                                ShowYAxisControls="True"
+                                SwitchCandidates="{x:Bind Storage.UsedSpaceOptions, Mode=OneWay}"
+                                ThresholdLabelAlwaysVisible="False"
+                                ViewModel="{x:Bind Storage.UsedSpace, Mode=TwoWay}" />
+
+                            <fhGraph:SensorPanelControl
+                                Height="120"
+                                GraphHardwareKind="Storage"
+                                IsAutoScaledOverride="True"
+                                PlaceholderSensorName="Data Read"
+                                PlaceholderUnit="GB"
+                                ShowStatusRow="True"
+                                ShowThresholdControls="True"
+                                ShowYAxisControls="True"
+                                ThresholdLabelAlwaysVisible="False"
+                                ViewModel="{x:Bind Storage.DataRead, Mode=OneWay}" />
+
+                            <fhGraph:SensorPanelControl
+                                Height="120"
+                                GraphHardwareKind="Storage"
+                                IsAutoScaledOverride="True"
+                                PlaceholderSensorName="Data Written"
+                                PlaceholderUnit="GB"
+                                ShowStatusRow="True"
+                                ShowThresholdControls="True"
+                                ShowYAxisControls="True"
+                                ThresholdLabelAlwaysVisible="False"
+                                ViewModel="{x:Bind Storage.DataWritten, Mode=OneWay}" />
+                        </StackPanel>
+
+                        <!--  graph time range  -->
+                        <fhTimeRange:TimeRangePickerControl
+                            Margin="0,-12,0,0"
+                            Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
+                            SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
+                            TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
                 </Grid>
             </StackPanel>
         </ScrollViewer>
 
+        <!--  bottom bar: overall and extended  -->
+        <Border
+            Grid.Row="1"
+            Grid.Column="0"
+            Padding="16,0,10,1"
+            Background="Transparent"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+
+            <CommandBar
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                fhUi:FocusGroup.IsEnabled="True"
+                Background="Transparent"
+                DefaultLabelPosition="Right"
+                IsDynamicOverflowEnabled="False"
+                IsOpen="False">
+
+                <CommandBar.Resources>
+                    <SolidColorBrush x:Key="CommandBarBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="CommandBarBackgroundOpen" Color="Transparent" />
+                    <SolidColorBrush x:Key="CommandBarBorderBrushOpen" Color="Transparent" />
+
+                    <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
+                </CommandBar.Resources>
+
+                <AppBarButton x:Uid="Storage_ShowOverallButton" Click="ShowOverall_Click">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xF16B;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+
+                <AppBarButton x:Uid="Storage_ShowExtendedButton" Click="ShowExtended_Click">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xF0E2;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+            </CommandBar>
+        </Border>
+
+
 
         <!--  info panel: static hardware facts for the selected drive  -->
         <Border
+            Grid.Row="0"
+            Grid.RowSpan="2"
             Grid.Column="1"
             VerticalAlignment="Stretch"
             fhUi:FocusSkip.IsEnabled="True"
@@ -601,6 +765,8 @@
         <!--  (a 9px band centered on the divider line; it resizes the content column before it)  -->
         <fhControls:ClampedGridSplitter
             x:Uid="Storage_ResizeHardwareInfoSplitter"
+            Grid.Row="0"
+            Grid.RowSpan="2"
             Grid.Column="1"
             Width="9"
             Margin="-4,0,0,0"

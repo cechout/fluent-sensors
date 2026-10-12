@@ -756,6 +756,22 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // the used space of every drive in bytes; mirrored like above
+        private bool _winStorageSpaceEnabled = Defaults.WinStorageSpaceEnabled;
+        public bool WinStorageSpaceEnabled
+        {
+            get => _winStorageSpaceEnabled;
+            set
+            {
+                if (_winStorageSpaceEnabled != value)
+                {
+                    _winStorageSpaceEnabled = value;
+                    HardwareMonitorService.Instance.WindowsSource.IsStorageSpaceEnabled = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // Wi-Fi signal strength, RSSI and link rates as sensors of the adapter; mirrored like above
         private bool _winWlanSensorsEnabled = Defaults.WinWlanSensorsEnabled;
         public bool WinWlanSensorsEnabled
@@ -1271,6 +1287,8 @@ namespace FluentSensors.Persistence.Services
             _winWlanSensorsEnabled = data.WinWlanSensorsEnabled;
             HardwareMonitorService.Instance.WindowsSource.IsStorageTemperatureEnabled = _winStorageTemperatureEnabled;
             HardwareMonitorService.Instance.WindowsSource.IsWlanEnabled = _winWlanSensorsEnabled;
+            _winStorageSpaceEnabled = data.WinStorageSpaceEnabled;
+            HardwareMonitorService.Instance.WindowsSource.IsStorageSpaceEnabled = _winStorageSpaceEnabled;
             _winDisplayEnabled = data.WinDisplayEnabled;
             HardwareMonitorService.Instance.WindowsSource.IsDisplayEnabled = _winDisplayEnabled;
         }
@@ -1344,7 +1362,8 @@ namespace FluentSensors.Persistence.Services
                 DisabledLhmHardware = new List<string>(_disabledLhmHardware),
                 WinStorageTemperatureEnabled = _winStorageTemperatureEnabled,
                 WinWlanSensorsEnabled = _winWlanSensorsEnabled,
-                WinDisplayEnabled = _winDisplayEnabled
+                WinDisplayEnabled = _winDisplayEnabled,
+                WinStorageSpaceEnabled = _winStorageSpaceEnabled
             };
         }
 

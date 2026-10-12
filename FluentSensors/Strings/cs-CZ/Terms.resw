@@ -484,6 +484,18 @@
   <data name="Network_WiFi" xml:space="preserve">
     <value>Wi-Fi</value>
   </data>
+  <data name="Network_SectionTraffic" xml:space="preserve">
+    <value>Provoz</value>
+  </data>
+  <data name="Network_SectionData" xml:space="preserve">
+    <value>Objem dat</value>
+  </data>
+  <data name="Storage_SectionActivity" xml:space="preserve">
+    <value>Aktivita</value>
+  </data>
+  <data name="Storage_SectionSpace" xml:space="preserve">
+    <value>Místo a data</value>
+  </data>
   <data name="Network_WlanStandard" xml:space="preserve">
     <value>Standard</value>
     <comment>the Wi-Fi generation, like Wi-Fi 6 (802.11ax)</comment>
