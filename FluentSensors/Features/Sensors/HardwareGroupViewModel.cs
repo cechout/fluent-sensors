@@ -104,19 +104,24 @@ namespace FluentSensors.Features.Sensors
         }
 
 
+        // the place of a sensor in its group, taken once per sensor; a row that left and is built new keeps it
+        private int _nextSortOrder;
+        public int TakeSortOrder() => _nextSortOrder++;
+
         // a new sensor into its list by its saved hidden state, notified right away for the
-        // "Show Hidden Sensors" button
+        // "Show Hidden Sensors" button; by SortOrder, a sensor that is back goes where it was
         public void AddDiscoveredSensor(SensorRowViewModel sensor, bool isHidden)
         {
+            var list = isHidden ? HiddenSensors : Sensors;
+
+            var insertBeforeSensor = list.FirstOrDefault(s => s.SortOrder > sensor.SortOrder);
+            if (insertBeforeSensor != null) list.Insert(list.IndexOf(insertBeforeSensor), sensor);
+            else list.Add(sensor);
+
             if (isHidden)
             {
-                HiddenSensors.Add(sensor);
                 OnPropertyChanged(nameof(HasHiddenSensors));
                 OnPropertyChanged(nameof(HiddenPanelVisibility));
-            }
-            else
-            {
-                Sensors.Add(sensor);
             }
 
             NotifySensorCountChanged();

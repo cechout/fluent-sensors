@@ -181,7 +181,12 @@ namespace FluentSensors.Features.Performance.Lhm
                 return cached;
             }
 
-            battery.DetailOptions.Add(new SensorSwitchCandidate(entry.Id, entry.Name, Resolve, isDefault));
+            var candidate = new SensorSwitchCandidate(entry.Id, entry.Name, Resolve, isDefault);
+            battery.DetailOptions.Add(candidate);
+            entry.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(LhmSensorEntry.Name)) candidate.DisplayName = entry.Name;
+            };
 
             if (battery.Detail != null) return; // resolved, one more alternative
 

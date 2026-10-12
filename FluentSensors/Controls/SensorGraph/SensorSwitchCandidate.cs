@@ -1,14 +1,29 @@
 using System;
+using System.ComponentModel;
 
 
 namespace FluentSensors.Controls.SensorGraph
 {
     // one switch candidate:
     // an option of the SensorPanelControl switch combobox; Resolve builds the graph on the first pick and caches it
-    public class SensorSwitchCandidate
+    public class SensorSwitchCandidate : INotifyPropertyChanged
     {
         public string SensorId { get; }
-        public string DisplayName { get; }
+
+        // settable for the few sensors LHM renames while they run
+        private string _displayName;
+        public string DisplayName
+        {
+            get => _displayName;
+            set
+            {
+                if (_displayName == value) return;
+                _displayName = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         // the default without a saved choice; set at registration, not by discovery order
         public bool IsDefault { get; }
@@ -23,7 +38,7 @@ namespace FluentSensors.Controls.SensorGraph
         public SensorSwitchCandidate(string sensorId, string displayName, Func<SensorGraphViewModel> resolve, bool isDefault = false, Func<double?> yMaxOverride = null)
         {
             SensorId = sensorId;
-            DisplayName = displayName;
+            _displayName = displayName;
             _resolve = resolve;
             IsDefault = isDefault;
             _yMaxOverride = yMaxOverride;

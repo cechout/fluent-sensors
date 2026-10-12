@@ -237,13 +237,15 @@ namespace FluentSensors.Features.Sensors
         // unplugged hardware
         private void WatchSensor(HardwareGroupViewModel group, LhmSensorEntry entry)
         {
-            if (entry.IsActive) OnSensorDiscovered(group, entry);
+            int sortOrder = group.TakeSortOrder();
+
+            if (entry.IsActive) OnSensorDiscovered(group, entry, sortOrder);
 
             entry.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName != nameof(LhmSensorEntry.IsActive)) return;
 
-                if (entry.IsActive) OnSensorDiscovered(group, entry);
+                if (entry.IsActive) OnSensorDiscovered(group, entry, sortOrder);
                 else OnSensorRemoved(group, entry);
             };
         }
@@ -429,7 +431,7 @@ namespace FluentSensors.Features.Sensors
         }
 
         // the row of a newly discovered sensor; (it may carry state from an earlier run, hidden or selected)
-        private void OnSensorDiscovered(HardwareGroupViewModel group, LhmSensorEntry entry)
+        private void OnSensorDiscovered(HardwareGroupViewModel group, LhmSensorEntry entry, int sortOrder)
         {
             var persistedState = SensorStateService.Instance.GetState(entry.Id);
             bool isHidden = persistedState.IsHidden;
@@ -442,7 +444,7 @@ namespace FluentSensors.Features.Sensors
             // the checkbox seeds from the active profile selection, not from persistedState.IsSelected
             var newRow = new SensorRowViewModel
             {
-                SortOrder = group.Sensors.Count + group.HiddenSensors.Count,
+                SortOrder = sortOrder,
                 HardwareKind = group.Kind,
                 IsHidden = isHidden,
                 Entry = entry,
