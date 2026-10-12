@@ -93,9 +93,6 @@ namespace FluentSensors.Controls.SensorRow
 
         public string Id => _entry?.Id;
         public string Name => _entry?.Name ?? "Unknown Sensor";
-
-        // the name with its source marker, what the row shows
-        public string TitleWithSource => SensorSourceMarker.Append(Name, Id);
         public string SensorType => _entry?.SensorType ?? "";
         public int SortOrder { get; set; } // creation order
         private string _unit = "";
@@ -271,7 +268,6 @@ namespace FluentSensors.Controls.SensorRow
             if (e.PropertyName == nameof(LhmSensorEntry.Name))
             {
                 OnPropertyChanged(nameof(Name));
-                OnPropertyChanged(nameof(TitleWithSource));
                 return;
             }
 

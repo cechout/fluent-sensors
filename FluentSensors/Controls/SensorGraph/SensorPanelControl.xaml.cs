@@ -531,17 +531,21 @@ namespace FluentSensors.Controls.SensorGraph
         // a missing sensor keeps its name from PlaceholderSensorName; only value and y-axis fall back to "--"
         private string GetStatusRowTitleOrPlaceholder(bool showUnit, SensorGraphViewModel viewModel, string placeholderName, string placeholderUnit)
         {
-            if (viewModel != null)
-            {
-                string title = GetStatusRowTitle(showUnit, viewModel.SensorName, viewModel.DisplayNameWithUnit);
-                return string.IsNullOrEmpty(title) ? GetTextOrPlaceholder(title) : SensorSourceMarker.Append(title, viewModel.SensorId);
-            }
+            if (viewModel != null) return GetTextOrPlaceholder(GetStatusRowTitle(showUnit, viewModel.SensorName, viewModel.DisplayNameWithUnit));
 
             if (string.IsNullOrEmpty(placeholderName)) return "--";
 
             string placeholderNameWithUnit = string.IsNullOrEmpty(placeholderUnit) ? placeholderName : $"{placeholderName} ({placeholderUnit})";
             return GetStatusRowTitle(showUnit, placeholderName, placeholderNameWithUnit);
         }
+
+        // the source icon behind the title; nothing while the panel shows a placeholder
+        private Geometry GetSourceIconGeometry(SensorGraphViewModel viewModel) => SensorSourceIcon.CreateGeometry(viewModel?.SensorId);
+
+        private string GetSourceIconName(SensorGraphViewModel viewModel) => SensorSourceIcon.GetName(viewModel?.SensorId);
+
+        private Visibility GetSourceIconVisibility(SensorGraphViewModel viewModel) =>
+            viewModel != null ? Visibility.Visible : Visibility.Collapsed;
 
         private Brush GetBrushOrDefault(Brush value) => value ?? DefaultTextColor.Resolve();
 

@@ -30,6 +30,7 @@ namespace FluentSensors.Persistence.Models
 
         // sensor type colors; the graphs of the performance page and the check boxes of the sensors page, instead of
         // the hardware color (the widget and the taskbar have SensorType in their own GraphColorSource)
+        // switched on the two pages themselves, not on the settings page
         public bool UseSensorTypeColors { get; set; } = false;
 
         // graph; global, every graph in the app

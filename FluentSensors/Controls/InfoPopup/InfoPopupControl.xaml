@@ -135,7 +135,6 @@
                 <Border
                     x:Name="PopupContentBorder"
                     MaxWidth="280"
-                    Padding="12"
                     x:Load="False"
                     Background="{ThemeResource SolidBackgroundFillColorQuarternaryBrush}"
                     BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
@@ -144,13 +143,12 @@
                     SizeChanged="PopupContent_SizeChanged">
 
                     <!--  top to bottom: source intro, source links (or the plain source line), description  -->
-                    <!--  (scrolls once it is taller than the window, see UpdatePopupPlacement; the bar sits in the padding)  -->
-                    <ScrollViewer
-                        Margin="0,0,-10,0"
-                        Padding="0,0,10,0"
-                        HorizontalScrollMode="Disabled"
-                        VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="4">
+                    <!--
+                        (scrolls once it is taller than the window, see UpdatePopupPlacement; the scrolling child carries
+                        the margin, so the bar sits at the border and the text scrolls up to it)
+                    -->
+                    <ScrollViewer HorizontalScrollMode="Disabled" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="12" Spacing="4">
 
                             <!--  source intro  -->
                             <!--  (collapsed by default)  -->

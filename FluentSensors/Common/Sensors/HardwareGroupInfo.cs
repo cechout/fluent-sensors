@@ -82,7 +82,7 @@ namespace FluentSensors.Common.Sensors
                 // the category glyph is the wired one; a wireless adapter swaps it, see GetNetworkIconGlyph
                 HardwareGroupKind.Network => new HardwareGroupProfile { Label = "Network", IconGlyph = WiredNetworkGlyph, Colors = ThemeColorPair.FromRgb(0xE97295, 0xE97295) },
                 HardwareGroupKind.Battery => new HardwareGroupProfile { Label = "Battery", IconGlyph = "\uE83F", Colors = ThemeColorPair.FromRgb(0xD98B09, 0xD98B09) },
-                HardwareGroupKind.Display => new HardwareGroupProfile { Label = "Display", IconGlyph = "\uE7F4", Colors = ThemeColorPair.FromRgb(0x7C8FE8, 0x7C8FE8) },
+                HardwareGroupKind.Display => new HardwareGroupProfile { Label = "Display", IconGlyph = "\uE7F4", Colors = ThemeColorPair.FromRgb(0x3DB46D, 0x3DB46D) },
                 _ => new HardwareGroupProfile { Label = "Other", IconGlyph = "\uEA1F", Colors = ThemeColorPair.FromRgb(0x9E9E9E, 0x9E9E9E) } // placeholder color
             };
         }

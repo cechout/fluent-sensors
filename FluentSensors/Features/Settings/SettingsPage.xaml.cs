@@ -60,7 +60,6 @@ namespace FluentSensors.Features.Settings
             RestoreGraphFillFadeSelection();
             RestoreDataUnitSelection();
             RestoreHardwareIconColorsSelection();
-            RestoreSensorTypeColorsSelection();
 
             // the time range lists the pickers share; from code, the restores below run before x:Bind would
             TaskbarGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
@@ -818,20 +817,6 @@ namespace FluentSensors.Features.Settings
         private void RestoreHardwareIconColorsSelection()
         {
             HardwareIconColorsToggle.IsOn = SettingsService.Instance.UseHardwareIconColors;
-        }
-
-        // the performance page graphs and the sensors page check boxes; (the widget and the taskbar pick the sensor
-        // type color in their own selectors)
-        private void SensorTypeColorsToggle_Toggled(object sender, RoutedEventArgs e)
-        {
-            if (_isLoading) return;
-
-            SettingsService.Instance.UseSensorTypeColors = SensorTypeColorsToggle.IsOn;
-        }
-
-        private void RestoreSensorTypeColorsSelection()
-        {
-            SensorTypeColorsToggle.IsOn = SettingsService.Instance.UseSensorTypeColors;
         }
 
 

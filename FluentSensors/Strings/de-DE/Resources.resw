@@ -220,12 +220,6 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Farben der Hardwaresymbole</value>
   </data>
-  <data name="Settings_SensorTypeColorsCard.Header" xml:space="preserve">
-    <value>Sensortypfarben</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
-    <value>Graphen-Seite und Sensorliste</value>
-  </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Graphen</value>
   </data>
@@ -1172,6 +1166,9 @@ Wähle in den Windows-Grafikeinstellungen Energiesparmodus für FluentSensors un
   <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
     <value>Hardwareübersicht</value>
   </data>
+  <data name="Performance_SensorTypeColorsButton.Label" xml:space="preserve">
+    <value>Sensortypfarben</value>
+  </data>
   <data name="Performance_HardwareListButton.Label" xml:space="preserve">
     <value>Hardwareliste</value>
   </data>
@@ -1292,16 +1289,13 @@ Bank - physische Bank- bzw. Steckplatzgruppe auf dem Mainboard, zu der dieses Mo
 Rank - Anzahl unabhängiger Chipgruppen auf dem Modul selbst (unzuverlässig)
 Breite - Daten (nutzbare Bits) gegenüber gesamt (inklusive ECC-Bits)
 Thermal Sensor Limit - im Modul hinterlegte Temperaturschwellen
-Timings - Verzögerungen, für die das Modul spezifiziert ist, in Nanosekunden, aus seinem SPD-Chip gelesen; nicht die Werte, die das BIOS tatsächlich eingestellt hat
-tCKAVGmin, tCKAVGmax - kürzester und längster Taktzyklus
+Timings - die wichtigsten Verzögerungen, für die das Modul spezifiziert ist, in Nanosekunden, aus seinem SPD-Chip gelesen; nicht die Werte, die das BIOS tatsächlich eingestellt hat. Die Sensorliste zeigt alle Timings
 tAA - CAS-Latenz, von der Spaltenadresse bis zu den Daten
 tRCD - RAS-zu-CAS-Verzögerung, vom Öffnen einer Zeile bis zur Spaltenadresse
 tRP - Row Precharge, das Schließen einer Zeile
 tRAS - kürzeste Zeit, die eine Zeile offen bleibt
 tRC - von einer Zeilenaktivierung bis zur nächsten oder zu einem Refresh
-tRFC1, tRFC2, tRFC4, tRFCsb - Erholzeit nach einem Refresh (normal, feine Granularität, gleiche Bank); _dlr für gestapelte Chips (3DS)
-tFAW - Fenster, in das höchstens vier Zeilenaktivierungen fallen
-tRRD - zwischen zwei Zeilenaktivierungen; tCCD - zwischen zwei Spaltenbefehlen; tWTR - vom Schreiben bis zum Lesen (_S andere, _L gleiche Bankgruppe)
+tRFC1 - Erholzeit nach einem Refresh
 tWR - Write Recovery, von den letzten geschriebenen Daten bis zum Schließen der Zeile
 Nur ein Modul mit lesbarem SPD-Chip meldet diese Werte; verlöteter Speicher zeigt -</value>
   </data>
@@ -1625,6 +1619,9 @@ Verbindungsgeschwindigkeit (Empfangen / Senden) - ausgehandelte Rate genau diese
   </data>
   <data name="Sensors_ShowHiddenSensorsButton.Label" xml:space="preserve">
     <value>Ausgeblendete Sensoren</value>
+  </data>
+  <data name="Sensors_SensorTypeColorsButton.Label" xml:space="preserve">
+    <value>Sensortypfarben</value>
   </data>
   <data name="Sensors_NoSensorsInfoBar.Title" xml:space="preserve">
     <value>Keine Sensoren ausgewählt</value>

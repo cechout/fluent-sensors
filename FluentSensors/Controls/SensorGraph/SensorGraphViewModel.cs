@@ -149,12 +149,8 @@ namespace FluentSensors.Controls.SensorGraph
                 _sensorName = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayNameWithUnit));
-                OnPropertyChanged(nameof(TitleWithSource));
             }
         }
-
-        // the name with its source marker, for a title; SensorName stays the bare name
-        public string TitleWithSource => SensorSourceMarker.Append(SensorName, SensorId);
 
         private string _unit = "";
         public string Unit

@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhThreshold="using:FluentSensors.Controls.Threshold"
     xmlns:fhUi="using:FluentSensors.Common.UI"
@@ -25,15 +26,31 @@
         <Grid Grid.Row="0">
 
 
-            <!--  title row, the sensor name  -->
-            <TextBlock
+            <!--  title row, the sensor name and its source icon  -->
+            <fhControls:TrailingContentPanel
                 Margin="4,0,0,0"
+                HorizontalAlignment="Left"
                 VerticalAlignment="Center"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.TitleWithSource, Mode=OneWay}"
-                TextTrimming="CharacterEllipsis"
-                TextWrapping="NoWrap"
-                Visibility="{x:Bind GetTitleRowVisibility(ShowTitleRow, ViewModel), Mode=OneWay}" />
+                Spacing="5"
+                Visibility="{x:Bind GetTitleRowVisibility(ShowTitleRow, ViewModel), Mode=OneWay}">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap" />
+
+                <!--  who measured it, see SensorSourceIcon  -->
+                <Path
+                    Width="12"
+                    Height="12"
+                    VerticalAlignment="Center"
+                    Data="{x:Bind GetSourceIconGeometry(ViewModel), Mode=OneWay}"
+                    Fill="{ThemeResource TextFillColorSecondaryBrush}"
+                    Stretch="Uniform"
+                    ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}"
+                    Visibility="{x:Bind GetSourceIconVisibility(ViewModel), Mode=OneWay}" />
+            </fhControls:TrailingContentPanel>
 
 
             <!--  status row: toggle button, y-max, name (and unit), value  -->
@@ -96,6 +113,18 @@
                     Visibility="{x:Bind GetSwitchButtonVisibility(SwitchCandidates), Mode=OneWay}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel, PlaceholderSensorName, PlaceholderUnit), Mode=OneWay}" />
+
+                        <!--  who measured it, see SensorSourceIcon  -->
+                        <Path
+                            Width="12"
+                            Height="12"
+                            VerticalAlignment="Center"
+                            Data="{x:Bind GetSourceIconGeometry(ViewModel), Mode=OneWay}"
+                            Fill="{ThemeResource TextFillColorSecondaryBrush}"
+                            Stretch="Uniform"
+                            ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}"
+                            Visibility="{x:Bind GetSourceIconVisibility(ViewModel), Mode=OneWay}" />
+
                         <FontIcon FontSize="10" Glyph="&#xE70D;" />
                     </StackPanel>
                 </Button>
@@ -116,14 +145,30 @@
                     Visibility="{x:Bind GetSwitchButtonVisibility(SwitchCandidates), Mode=OneWay}" />
 
                 <!--  a single candidate  -->
-                <TextBlock
+                <StackPanel
                     Grid.Column="2"
                     Margin="4,0,0,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel, PlaceholderSensorName, PlaceholderUnit), Mode=OneWay}"
-                    Visibility="{x:Bind GetSwitchTextVisibility(SwitchCandidates), Mode=OneWay}" />
+                    Orientation="Horizontal"
+                    Spacing="5"
+                    Visibility="{x:Bind GetSwitchTextVisibility(SwitchCandidates), Mode=OneWay}">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel, PlaceholderSensorName, PlaceholderUnit), Mode=OneWay}" />
+
+                    <!--  who measured it, see SensorSourceIcon  -->
+                    <Path
+                        Width="12"
+                        Height="12"
+                        VerticalAlignment="Center"
+                        Data="{x:Bind GetSourceIconGeometry(ViewModel), Mode=OneWay}"
+                        Fill="{ThemeResource TextFillColorSecondaryBrush}"
+                        Stretch="Uniform"
+                        ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}"
+                        Visibility="{x:Bind GetSourceIconVisibility(ViewModel), Mode=OneWay}" />
+                </StackPanel>
 
                 <!--  current value  -->
                 <TextBlock
@@ -164,14 +209,29 @@
                     Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
                     Typography.NumeralAlignment="Tabular" />
 
-                <!--  name (and unit with ShowUnitInStatusRow)  -->
-                <TextBlock
+                <!--  name (and unit with ShowUnitInStatusRow), then the source icon  -->
+                <fhControls:TrailingContentPanel
                     Grid.Column="1"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel, PlaceholderSensorName, PlaceholderUnit), Mode=OneWay}"
-                    TextTrimming="CharacterEllipsis" />
+                    Spacing="5">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind GetStatusRowTitleOrPlaceholder(ShowUnitInStatusRow, ViewModel, PlaceholderSensorName, PlaceholderUnit), Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis" />
+
+                    <!--  who measured it, see SensorSourceIcon  -->
+                    <Path
+                        Width="12"
+                        Height="12"
+                        VerticalAlignment="Center"
+                        Data="{x:Bind GetSourceIconGeometry(ViewModel), Mode=OneWay}"
+                        Fill="{ThemeResource TextFillColorSecondaryBrush}"
+                        Stretch="Uniform"
+                        ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}"
+                        Visibility="{x:Bind GetSourceIconVisibility(ViewModel), Mode=OneWay}" />
+                </fhControls:TrailingContentPanel>
 
                 <!--  current value  -->
                 <TextBlock

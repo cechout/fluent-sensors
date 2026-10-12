@@ -18,7 +18,8 @@ namespace FluentSensors.Features.Performance.Lhm
 
         public WinMemoryModuleInfo Info { get; }
 
-        // swapped whole by LhmMemoryPerformanceViewModel when a module arrives; empty while no module reports any
+        // the thermal limits; swapped whole by LhmMemoryPerformanceViewModel when a module arrives, empty while no
+        // module reports any
         private IReadOnlyList<HardwareFact> _spdFacts = new List<HardwareFact>();
         public IReadOnlyList<HardwareFact> SpdFacts
         {
@@ -27,6 +28,18 @@ namespace FluentSensors.Features.Performance.Lhm
             {
                 _spdFacts = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SpdFacts)));
+            }
+        }
+
+        // the timings of the module, a line of their own under the thermal limits
+        private IReadOnlyList<HardwareFact> _timingFacts = new List<HardwareFact>();
+        public IReadOnlyList<HardwareFact> TimingFacts
+        {
+            get => _timingFacts;
+            set
+            {
+                _timingFacts = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TimingFacts)));
             }
         }
 

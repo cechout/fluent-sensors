@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
@@ -37,18 +38,34 @@
             the name down to
         -->
         <Grid x:Name="NameHost" VerticalAlignment="Top">
-            <TextBlock
-                x:Name="NameText"
-                Margin="4,3,4,0"
+            <!--  (the name trims or wraps, the source icon stays on its first line)  -->
+            <fhControls:TrailingContentPanel
+                HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                FontSize="10"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                LineHeight="11"
-                LineStackingStrategy="BlockLineHeight"
-                MaxLines="1"
-                Text="{x:Bind ViewModel.TitleWithSource, Mode=OneWay}"
-                TextTrimming="CharacterEllipsis"
-                TextWrapping="NoWrap" />
+                Spacing="3">
+                <TextBlock
+                    x:Name="NameText"
+                    Margin="4,3,0,0"
+                    VerticalAlignment="Top"
+                    FontSize="10"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    LineHeight="11"
+                    LineStackingStrategy="BlockLineHeight"
+                    MaxLines="1"
+                    Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap" />
+
+                <!--  who measured it, see SensorSourceIcon  -->
+                <Path
+                    Width="8"
+                    Height="8"
+                    Margin="0,5,4,0"
+                    VerticalAlignment="Top"
+                    Data="{x:Bind fhUi:SensorSourceIcon.CreateGeometry(ViewModel.SensorId), Mode=OneWay}"
+                    Fill="{ThemeResource TextFillColorSecondaryBrush}"
+                    Stretch="Uniform" />
+            </fhControls:TrailingContentPanel>
         </Grid>
 
         <!--  value and unit  -->

@@ -201,11 +201,15 @@ namespace FluentSensors.Features.Performance.Lhm
         // reach shows "-" for each
         // the thermal limits share one fact, the way the voltages of a module do; a timing keeps the short name of its
         // sensor ("tAA"), the info popup explains them
+        // only the timings of PanelTimingNames get a fact; the sensors page has all of them
         private void RebuildModuleFacts(LhmMemoryInstanceViewModel memory)
         {
             var sensors = _moduleInstances.SelectMany(instance => instance.Sensors).ToList();
             var limitNames = sensors.Where(IsThermalLimit).Select(entry => entry.Name).Distinct().ToList();
-            var timingNames = sensors.Where(IsTiming).Select(entry => entry.Name).Distinct().ToList();
+            var timingNames = sensors.Where(IsTiming).Select(entry => entry.Name).Distinct()
+                .Where(name => PanelTimingNames.Contains(ShortTimingName(name)))
+                .OrderBy(name => Array.IndexOf(PanelTimingNames, ShortTimingName(name)))
+                .ToList();
 
             var instanceByModule = MatchModules(memory.MemoryModules);
             _factRefreshBySensorId.Clear();
@@ -215,6 +219,7 @@ namespace FluentSensors.Features.Performance.Lhm
                 instanceByModule.TryGetValue(module, out var instance);
 
                 var facts = new List<HardwareFact>();
+                var timingFacts = new List<HardwareFact>();
 
                 if (limitNames.Count > 0)
                 {
@@ -235,12 +240,17 @@ namespace FluentSensors.Features.Performance.Lhm
                     var entry = instance?.Sensors.FirstOrDefault(s => s.Name == name && IsTiming(s));
                     var fact = new HardwareFact(ShortTimingName(name), entry != null ? FormatValue(entry) : "-");
                     if (entry != null) _factRefreshBySensorId[entry.Id] = () => fact.ValueText = FormatValue(entry);
-                    facts.Add(fact);
+                    timingFacts.Add(fact);
                 }
 
                 module.SpdFacts = facts;
+                module.TimingFacts = timingFacts;
             }
         }
+
+        // the timings a module is compared by, in the order they are quoted (CL, tRCD, tRP, tRAS), then the row cycle,
+        // the refresh recovery and the write recovery; LHM reads up to fifteen, the rest only bloats the card
+        private static readonly string[] PanelTimingNames = { "tAA", "tRCD", "tRP", "tRAS", "tRC", "tRFC1", "tWR" };
 
         // "Thermal Sensor Limit (Low / High / Critical Low / Critical High)", from the sensor names; DDR4 has three
         private static string FormatThermalLimitLabel(IReadOnlyList<string> names)

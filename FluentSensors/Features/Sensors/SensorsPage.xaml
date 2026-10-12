@@ -287,6 +287,13 @@
                                     <FontIcon Glyph="&#xE8A7;" />
                                 </AppBarButton.Icon>
                             </AppBarButton>
+
+                            <!--  check boxes by sensor type instead of by hardware; a checked entry of the overflow menu  -->
+                            <AppBarToggleButton x:Uid="Sensors_SensorTypeColorsButton" IsChecked="{x:Bind ViewModel.UseSensorTypeColors, Mode=TwoWay}">
+                                <AppBarToggleButton.Icon>
+                                    <FontIcon Glyph="&#xE790;" />
+                                </AppBarToggleButton.Icon>
+                            </AppBarToggleButton>
                         </CommandBar.SecondaryCommands>
                     </CommandBar>
 

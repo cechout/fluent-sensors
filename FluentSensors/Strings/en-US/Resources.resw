@@ -229,12 +229,6 @@ RAM Usage - physical memory currently mapped by this app (working set)</value>
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Hardware Icon Colors</value>
   </data>
-  <data name="Settings_SensorTypeColorsCard.Header" xml:space="preserve">
-    <value>Sensor Type Colors</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
-    <value>Graphs page and sensor list</value>
-  </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Graphs</value>
   </data>
@@ -1185,6 +1179,9 @@ Choose Power saving for FluentSensors in the Windows graphics settings and resta
   <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
     <value>Hardware Overview</value>
   </data>
+  <data name="Performance_SensorTypeColorsButton.Label" xml:space="preserve">
+    <value>Sensor Type Colors</value>
+  </data>
   <data name="Performance_HardwareListButton.Label" xml:space="preserve">
     <value>Hardware List</value>
   </data>
@@ -1305,16 +1302,13 @@ Bank - physical bank/slot grouping on the motherboard this module belongs to
 Rank - number of independent chip sets on the module itself (unreliable)
 Width - Data (usable bits) vs Total (includes ECC bits)
 Thermal Sensor Limit - temperature thresholds stored in the module
-Timings - delays the module is rated for, in nanoseconds, read from its SPD chip; not the values the BIOS actually set
-tCKAVGmin, tCKAVGmax - shortest and longest clock cycle
+Timings - the main delays the module is rated for, in nanoseconds, read from its SPD chip; not the values the BIOS actually set. The sensor list has every timing
 tAA - CAS latency, from the column address to the data
 tRCD - RAS to CAS delay, from opening a row to addressing a column
 tRP - row precharge, closing a row
 tRAS - shortest time a row stays open
 tRC - from one row activation to the next or to a refresh
-tRFC1, tRFC2, tRFC4, tRFCsb - recovery after a refresh (normal, fine granularity, same bank); _dlr for stacked chips (3DS)
-tFAW - window that holds at most four row activations
-tRRD - between two row activations; tCCD - between two column commands; tWTR - from a write to a read (_S other, _L same bank group)
+tRFC1 - recovery after a refresh
 tWR - write recovery, from the last written data to closing the row
 Only a module with a readable SPD chip reports these; soldered memory shows -</value>
   </data>
@@ -1642,6 +1636,9 @@ Link Speed (Receive / Transmit) - negotiated rate of this specific connection, n
   </data>
   <data name="Sensors_ShowHiddenSensorsButton.Label" xml:space="preserve">
     <value>Hidden Sensors</value>
+  </data>
+  <data name="Sensors_SensorTypeColorsButton.Label" xml:space="preserve">
+    <value>Sensor Type Colors</value>
   </data>
   <data name="Sensors_NoSensorsInfoBar.Title" xml:space="preserve">
     <value>No sensors selected</value>

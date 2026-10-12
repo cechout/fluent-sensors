@@ -405,8 +405,11 @@
                                         <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatBitsWidth(Info.TotalWidthBits, Info.DataWidthBits)}" />
                                     </StackPanel>
 
-                                    <!--  thermal limits (one fact) and timings from the SPD chip, labelled with their short LHM sensor name  -->
+                                    <!--  thermal limits from the SPD chip, one fact  -->
                                     <fhFacts:FactListControl Facts="{x:Bind SpdFacts, Mode=OneWay}" />
+
+                                    <!--  the main timings, a line of their own, labelled with their short LHM sensor name  -->
+                                    <fhFacts:FactListControl Facts="{x:Bind TimingFacts, Mode=OneWay}" />
 
                                     <Border Height="0" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                                 </StackPanel>

@@ -220,12 +220,6 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Barvy ikon hardwaru</value>
   </data>
-  <data name="Settings_SensorTypeColorsCard.Header" xml:space="preserve">
-    <value>Barvy typů senzorů</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
-    <value>Stránka Grafy a seznam senzorů</value>
-  </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Grafy</value>
   </data>
@@ -1172,6 +1166,9 @@ V nastavení grafiky Windows zvolte pro FluentSensors úsporný režim a aplikac
   <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
     <value>Přehled hardwaru</value>
   </data>
+  <data name="Performance_SensorTypeColorsButton.Label" xml:space="preserve">
+    <value>Barvy typů senzorů</value>
+  </data>
   <data name="Performance_HardwareListButton.Label" xml:space="preserve">
     <value>Seznam hardwaru</value>
   </data>
@@ -1292,16 +1289,13 @@ Banka - fyzická skupina bank/slotů na základní desce, do které modul patř�
 Rank - počet nezávislých sad čipů na samotném modulu (nespolehlivé)
 Šířka - data (využitelné bity) oproti celkem (včetně bitů ECC)
 Thermal Sensor Limit - teplotní prahy uložené v modulu
-Časování - zpoždění, pro která je modul určen, v nanosekundách, přečtená z jeho čipu SPD; ne hodnoty, které BIOS skutečně nastavil
-tCKAVGmin, tCKAVGmax - nejkratší a nejdelší hodinový cyklus
+Časování - hlavní zpoždění, pro která je modul určen, v nanosekundách, přečtená z jeho čipu SPD; ne hodnoty, které BIOS skutečně nastavil. Seznam senzorů má všechna časování
 tAA - latence CAS, od adresy sloupce k datům
 tRCD - zpoždění RAS až CAS, od otevření řádku k adrese sloupce
 tRP - přednabití řádku, zavření řádku
 tRAS - nejkratší doba, po kterou zůstává řádek otevřený
 tRC - od jedné aktivace řádku k další nebo k obnovení
-tRFC1, tRFC2, tRFC4, tRFCsb - zotavení po obnovení (normální, jemná granularita, stejná banka); _dlr pro vrstvené čipy (3DS)
-tFAW - okno, do kterého se vejdou nejvýše čtyři aktivace řádku
-tRRD - mezi dvěma aktivacemi řádku; tCCD - mezi dvěma příkazy sloupce; tWTR - od zápisu ke čtení (_S jiná, _L stejná skupina bank)
+tRFC1 - zotavení po obnovení
 tWR - zotavení po zápisu, od posledních zapsaných dat k zavření řádku
 Tyto hodnoty hlásí jen modul s čitelným čipem SPD; připájená paměť zobrazí -</value>
   </data>
@@ -1625,6 +1619,9 @@ Rychlost linky (příjem / odesílání) - vyjednaná rychlost právě tohoto p�
   </data>
   <data name="Sensors_ShowHiddenSensorsButton.Label" xml:space="preserve">
     <value>Skryté senzory</value>
+  </data>
+  <data name="Sensors_SensorTypeColorsButton.Label" xml:space="preserve">
+    <value>Barvy typů senzorů</value>
   </data>
   <data name="Sensors_NoSensorsInfoBar.Title" xml:space="preserve">
     <value>Nejsou vybrány žádné senzory</value>

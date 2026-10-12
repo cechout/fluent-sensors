@@ -64,18 +64,6 @@
                             Toggled="HardwareIconColorsToggle_Toggled" />
                     </controls:SettingsCard>
 
-                    <!--  sensor type colors  -->
-                    <!--
-                        (the performance page graphs and the sensors page check boxes by what a sensor measures; the
-                        widget and the taskbar have the same choice in their own graph color selectors)
-                    -->
-                    <controls:SettingsCard x:Uid="Settings_SensorTypeColorsCard">
-                        <ToggleSwitch
-                            x:Name="SensorTypeColorsToggle"
-                            x:Uid="Common_ToggleSwitch"
-                            Toggled="SensorTypeColorsToggle_Toggled" />
-                    </controls:SettingsCard>
-
                     <!--  graph rendering: line style and fill  -->
                     <!--
                         (both apply to every graph in the app, the per-surface sections below only add color and range;

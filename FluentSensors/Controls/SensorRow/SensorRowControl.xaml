@@ -4,7 +4,9 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhThreshold="using:FluentSensors.Controls.Threshold"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     HorizontalAlignment="Stretch"
     HorizontalContentAlignment="Stretch"
@@ -132,13 +134,29 @@
                     IsTabStop="False"
                     Visibility="Collapsed" />
 
-                <TextBlock
+                <!--  the name trims, the source icon behind it stays  -->
+                <fhControls:TrailingContentPanel
                     Grid.Column="1"
+                    HorizontalAlignment="Left"
                     VerticalAlignment="Center"
-                    Style="{ThemeResource CaptionTextBlockStyle}"
-                    Text="{x:Bind ViewModel.TitleWithSource, Mode=OneWay}"
-                    TextTrimming="CharacterEllipsis"
-                    TextWrapping="NoWrap" />
+                    Spacing="6">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Text="{x:Bind ViewModel.Name, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap" />
+
+                    <!--  who measured it, see SensorSourceIcon  -->
+                    <Path
+                        Width="12"
+                        Height="12"
+                        VerticalAlignment="Center"
+                        Data="{x:Bind fhUi:SensorSourceIcon.CreateGeometry(ViewModel.Id), Mode=OneWay}"
+                        Fill="{ThemeResource TextFillColorSecondaryBrush}"
+                        Stretch="Uniform"
+                        ToolTipService.ToolTip="{x:Bind fhUi:SensorSourceIcon.GetName(ViewModel.Id), Mode=OneWay}" />
+                </fhControls:TrailingContentPanel>
             </Grid>
 
             <!--  threshold indicator and flyout, shared with SensorPanelControl  -->

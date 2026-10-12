@@ -83,6 +83,7 @@ namespace FluentSensors.Features.Sensors
 
             // never detached; this view model lives for the whole session
             SettingsService.Instance.HardwareIconColorsChanged += RefreshGroupIconBrushes;
+            SettingsService.Instance.SensorTypeColorsChanged += () => OnPropertyChanged(nameof(UseSensorTypeColors));
             WinStaticInfoService.Instance.DrivesChanged += RefreshGroupDisplayNames;
             WinStaticInfoService.Instance.NetworkAdaptersChanged += RefreshGroupDisplayNames;
         }
@@ -92,6 +93,14 @@ namespace FluentSensors.Features.Sensors
 
         public ObservableCollection<HardwareGroupViewModel> HardwareGroups { get; set; }
         public bool HasHiddenSensors => HardwareGroups.Any(g => g.HasHiddenSensors);
+
+        // graphs and check boxes by what a sensor measures instead of by hardware; one setting, toggled here and on the
+        // graphs page
+        public bool UseSensorTypeColors
+        {
+            get => SettingsService.Instance.UseSensorTypeColors;
+            set => SettingsService.Instance.UseSensorTypeColors = value;
+        }
 
         // the profile the checkboxes reflect and persist to
         private SensorSelectionProfile _activeProfile = SensorSelectionProfile.WidgetWindow;
