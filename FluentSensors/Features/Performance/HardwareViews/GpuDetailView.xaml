@@ -283,11 +283,8 @@
                         Opacity="{x:Bind Gpu.ExtendedOpacity, Mode=OneWay}"
                         Spacing="24">
 
-                        <!--  core; in the order of the overview: load, temperature, power, then the clock  -->
-                        <!--
-                            (an integrated gpu has no core load and shows temperature, clock, power; the power panel is
-                            there twice, one per order, and a view only ever shows one of them)
-                        -->
+                        <!--  core: load, temperature, clock, power; the power follows from the clock and sits at the bottom  -->
+                        <!--  (an integrated gpu has no core load)  -->
                         <StackPanel Spacing="8">
                             <TextBlock
                                 Margin="4,0,0,0"
@@ -327,18 +324,6 @@
                                 <fhGraph:SensorPanelControl
                                     GraphHardwareKind="{x:Bind Gpu.Kind, Mode=OneWay}"
                                     IsAutoScaledOverride="True"
-                                    PlaceholderSensorName="GPU Power"
-                                    SensorTypeColor="Always"
-                                    ShowStatusRow="True"
-                                    ShowThresholdControls="True"
-                                    ShowYAxisControls="True"
-                                    SwitchCandidates="{x:Bind Gpu.ExtendedPackagePowerOptions, Mode=OneWay}"
-                                    ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.ExtendedPackagePower, Mode=TwoWay}"
-                                    Visibility="{x:Bind BoolToVisibility(Gpu.IsDiscrete), Mode=OneWay}" />
-                                <fhGraph:SensorPanelControl
-                                    GraphHardwareKind="{x:Bind Gpu.Kind, Mode=OneWay}"
-                                    IsAutoScaledOverride="True"
                                     PlaceholderSensorName="GPU Core"
                                     PlaceholderUnit="MHz"
                                     SensorTypeColor="Always"
@@ -357,8 +342,7 @@
                                     ShowYAxisControls="True"
                                     SwitchCandidates="{x:Bind Gpu.ExtendedPackagePowerOptions, Mode=OneWay}"
                                     ThresholdLabelAlwaysVisible="False"
-                                    ViewModel="{x:Bind Gpu.ExtendedPackagePower, Mode=TwoWay}"
-                                    Visibility="{x:Bind BoolToVisibility(Gpu.IsIntegrated), Mode=OneWay}" />
+                                    ViewModel="{x:Bind Gpu.ExtendedPackagePower, Mode=TwoWay}" />
                             </fhControls:SquareGridPanel>
 
                             <!--  graph time range  -->

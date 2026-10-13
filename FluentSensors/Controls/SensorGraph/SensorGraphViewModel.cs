@@ -630,7 +630,7 @@ namespace FluentSensors.Controls.SensorGraph
         // accent without a category (the performance page passes a GraphHardwareKind instead)
         private ThemeColorPair ResolveGraphColor(GraphColorSource source, Windows.UI.Color customColor)
         {
-            if (source == GraphColorSource.SensorType && SensorTypeGroupInfo.TryGetColors(SensorType, out var typeColors))
+            if (source == GraphColorSource.SensorType && SensorTypeGroupInfo.TryGetColors(SensorType, SensorName, out var typeColors))
             {
                 return typeColors;
             }

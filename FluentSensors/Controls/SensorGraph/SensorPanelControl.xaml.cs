@@ -618,7 +618,7 @@ namespace FluentSensors.Controls.SensorGraph
             };
 
             // a type without a group color keeps the hardware one
-            ThemeColorPair colors = useSensorTypeColor && SensorTypeGroupInfo.TryGetColors(ViewModel?.SensorType ?? "", out var typeColors)
+            ThemeColorPair colors = useSensorTypeColor && SensorTypeGroupInfo.TryGetColors(ViewModel?.SensorType ?? "", ViewModel?.SensorName, out var typeColors)
                 ? typeColors
                 : HardwareGroupInfo.GetProfile(hardwareKind).Colors;
 

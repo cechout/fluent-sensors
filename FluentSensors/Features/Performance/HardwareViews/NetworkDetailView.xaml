@@ -317,7 +317,7 @@
                                 ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
                         </StackPanel>
 
-                        <!--  wi-fi: what the link can carry on top, the signal it rests on below  -->
+                        <!--  wi-fi: what the link can carry on top (transmit, receive), the signal it rests on below  -->
                         <!--  (the sensors of the Windows source; the group is gone while its switch is off or the adapter is wired)  -->
                         <StackPanel Spacing="8" Visibility="{x:Bind Network.WifiSectionVisibility, Mode=OneWay}">
                             <TextBlock
@@ -329,18 +329,6 @@
                                 Height="120"
                                 GraphHardwareKind="Network"
                                 IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Receive Link Rate"
-                                PlaceholderUnit="MB/s"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.ReceiveLinkRate, Mode=OneWay}" />
-
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Network"
-                                IsAutoScaledOverride="True"
                                 PlaceholderSensorName="Transmit Link Rate"
                                 PlaceholderUnit="MB/s"
                                 ShowStatusRow="True"
@@ -348,6 +336,18 @@
                                 ShowYAxisControls="True"
                                 ThresholdLabelAlwaysVisible="False"
                                 ViewModel="{x:Bind Network.TransmitLinkRate, Mode=OneWay}" />
+
+                            <fhGraph:SensorPanelControl
+                                Height="120"
+                                GraphHardwareKind="Network"
+                                IsAutoScaledOverride="True"
+                                PlaceholderSensorName="Receive Link Rate"
+                                PlaceholderUnit="MB/s"
+                                ShowStatusRow="True"
+                                ShowThresholdControls="True"
+                                ShowYAxisControls="True"
+                                ThresholdLabelAlwaysVisible="False"
+                                ViewModel="{x:Bind Network.ReceiveLinkRate, Mode=OneWay}" />
 
                             <fhGraph:SensorPanelControl
                                 Height="120"
