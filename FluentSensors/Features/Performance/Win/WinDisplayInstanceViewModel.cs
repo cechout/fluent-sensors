@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using FluentSensors.Common.Localization;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Features.Performance.Win
@@ -24,6 +25,9 @@ namespace FluentSensors.Features.Performance.Win
             // until Detach; the gpu list names the adapter of the display
             WinStaticInfoService.Instance.DisplaysChanged += OnStaticInfoChanged;
             WinStaticInfoService.Instance.GpusChanged += OnStaticInfoChanged;
+
+            // the data rate is written in the data speed unit
+            SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
         }
 
 
@@ -66,7 +70,7 @@ namespace FluentSensors.Features.Performance.Win
             }
         }
 
-        // info panel; how Windows drives it right now
+        // info panel; how Windows drives it right now: the short facts as a group, the long ones on lines of their own
         public IReadOnlyList<HardwareFact> ModeFacts
         {
             get
@@ -74,21 +78,67 @@ namespace FluentSensors.Features.Performance.Win
                 var info = MatchStaticInfo();
                 if (info == null) return new List<HardwareFact>();
 
-                string gpu = WinStaticInfoService.Instance.Gpus.FirstOrDefault(g => g.AdapterLuid != 0 && g.AdapterLuid == info.AdapterLuid)?.Name;
-
                 return new List<HardwareFact>
                 {
                     new(AppTerms.Get("Display_Resolution"), HardwareInfoFormatter.FormatResolution(info.WidthPixels, info.HeightPixels)),
                     new(AppTerms.Get("Display_Scale"), HardwareInfoFormatter.FormatScale(info.ScalePercent)),
-                    new(AppTerms.Get("Display_Orientation"), HardwareInfoFormatter.FormatDisplayOrientation(info.Rotation)),
-                    new(AppTerms.Get("Display_RefreshRate"), HardwareInfoFormatter.FormatRefreshRate(info.RefreshRateHz)),
-                    new(AppTerms.Get("Display_AvailableRefreshRates"), HardwareInfoFormatter.FormatRefreshRates(info.RefreshRatesHz)),
-                    new(AppTerms.Get("Display_Connector"), HardwareInfoFormatter.FormatDisplayConnector(info.OutputTechnology)),
-                    new(AppTerms.Get("Display_Primary"), HardwareInfoFormatter.FormatYesNo(info.IsPrimary)),
-                    new(AppTerms.Get("Display_Gpu"), HardwareInfoFormatter.FormatTextOrDash(gpu))
+                    new(AppTerms.Get("Display_Connector"), HardwareInfoFormatter.FormatDisplayConnector(info.OutputTechnology))
                 };
             }
         }
+
+        // the current rate with the time one frame stays up
+        public string RefreshRateText => MatchStaticInfo() is { } info
+            ? HardwareInfoFormatter.FormatRefreshRateWithFrameTime(info.RefreshRateHz)
+            : "-";
+
+        public string AvailableRefreshRatesText => HardwareInfoFormatter.FormatRefreshRates(MatchStaticInfo()?.RefreshRatesHz);
+
+        // the adapter that scans the display out
+        public string GpuText
+        {
+            get
+            {
+                var info = MatchStaticInfo();
+                if (info == null) return "-";
+
+                string gpu = WinStaticInfoService.Instance.Gpus.FirstOrDefault(g => g.AdapterLuid != 0 && g.AdapterLuid == info.AdapterLuid)?.Name;
+                return HardwareInfoFormatter.FormatTextOrDash(gpu);
+            }
+        }
+
+        // info panel; what the mode amounts to on the cable, computed from the mode (see HardwareInfoFormatter.FrameBytes
+        // for what is left out)
+        public IReadOnlyList<HardwareFact> SignalFacts
+        {
+            get
+            {
+                var info = MatchStaticInfo();
+                if (info == null) return new List<HardwareFact>();
+
+                return new List<HardwareFact>
+                {
+                    new(AppTerms.Get("Display_FrameSize"), HardwareInfoFormatter.FormatFrameSize(info.WidthPixels, info.HeightPixels, info.BitsPerColorChannel)),
+                    new(AppTerms.Get("Display_BitsPerPixel"), HardwareInfoFormatter.FormatBitsPerPixel(info.BitsPerColorChannel))
+                };
+            }
+        }
+
+        // at the current rate and at 60 Hz, the rate a comparison usually takes
+        public string DataRateText
+        {
+            get
+            {
+                var info = MatchStaticInfo();
+                if (info == null) return "-";
+
+                string current = HardwareInfoFormatter.FormatFrameDataRate(info.WidthPixels, info.HeightPixels, info.BitsPerColorChannel, info.RefreshRateHz);
+                string reference = HardwareInfoFormatter.FormatFrameDataRate(info.WidthPixels, info.HeightPixels, info.BitsPerColorChannel, ReferenceRefreshRateHz);
+                return current == "-" ? "-" : $"{current} / {reference}";
+            }
+        }
+
+        private const double ReferenceRefreshRateHz = 60;
 
         // info panel; color depth, HDR and the luminance the display reports
         public IReadOnlyList<HardwareFact> ColorFacts
@@ -150,6 +200,7 @@ namespace FluentSensors.Features.Performance.Win
         {
             WinStaticInfoService.Instance.DisplaysChanged -= OnStaticInfoChanged;
             WinStaticInfoService.Instance.GpusChanged -= OnStaticInfoChanged;
+            SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
         }
 
 
@@ -160,10 +211,18 @@ namespace FluentSensors.Features.Performance.Win
         {
             OnPropertyChanged(nameof(GeneralFacts));
             OnPropertyChanged(nameof(ModeFacts));
+            OnPropertyChanged(nameof(RefreshRateText));
+            OnPropertyChanged(nameof(AvailableRefreshRatesText));
+            OnPropertyChanged(nameof(GpuText));
+            OnPropertyChanged(nameof(SignalFacts));
+            OnPropertyChanged(nameof(DataRateText));
             OnPropertyChanged(nameof(ColorFacts));
             OnPropertyChanged(nameof(DdcFacts));
             OnPropertyChanged(nameof(DdcFactsVisibility));
         }
+
+
+        private void OnDataUnitBasisChanged() => OnPropertyChanged(nameof(DataRateText));
 
 
         // === private helpers ===

@@ -262,7 +262,7 @@
                         <fhFacts:FactListControl Facts="{x:Bind Display.GeneralFacts, Mode=OneWay}" />
                     </StackPanel>
 
-                    <!--  mode: resolution, scale, refresh rate, connector and the gpu behind it  -->
+                    <!--  mode: resolution, scale and connector as a group, then refresh rate, its choices and the gpu behind it  -->
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
                             x:Uid="Display_ModePopup"
@@ -275,6 +275,61 @@
                         </fhInfoPopup:InfoPopupControl>
 
                         <fhFacts:FactListControl Facts="{x:Bind Display.ModeFacts, Mode=OneWay}" />
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Display_RefreshRate')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Display.RefreshRateText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Display_AvailableRefreshRates')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Display.AvailableRefreshRatesText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Display_Gpu')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Display.GpuText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  signal: what the mode amounts to on the cable, computed from it  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Display_SignalPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Display_Signal')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored" />
+
+                        <fhFacts:FactListControl Facts="{x:Bind Display.SignalFacts, Mode=OneWay}" />
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Display_DataRate')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Display.DataRateText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
                     </StackPanel>
 
                     <!--  color: depth, hdr and the luminance the display reports  -->

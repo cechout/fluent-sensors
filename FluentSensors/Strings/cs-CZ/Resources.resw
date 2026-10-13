@@ -1902,13 +1902,19 @@ Hustota pixelů - z nativního rozlišení a viditelné plochy</value>
   <data name="Display_ModePopup.Description" xml:space="preserve">
     <value>Rozlišení - rozlišení plochy, se kterým Windows displej řídí
 Měřítko - jak moc Windows na tomto displeji zvětšuje text a aplikace
-Obnovovací frekvence - aktuální hodnota; mění se s dynamickou obnovovací frekvencí
+Obnovovací frekvence - aktuální hodnota a doba jednoho snímku; mění se s dynamickou obnovovací frekvencí
 Dostupné obnovovací frekvence - co displej nabízí při aktuálním rozlišení
 Konektor - USB-C a Thunderbolt se zobrazí jako DisplayPort, panel notebooku jako Interní nebo eDP
 GPU - adaptér, který obraz vysílá; u hybridního notebooku obvykle integrovaný</value>
   </data>
   <data name="Display_ModePopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
+  </data>
+  <data name="Display_SignalPopup.Description" xml:space="preserve">
+    <value>Velikost snímku - jeden nekomprimovaný snímek: rozlišení x bity na pixel
+Bity na pixel - tři barevné kanály v dané barevné hloubce
+Datový tok - velikost snímku x obnovovací frekvence, při aktuální frekvenci a při 60 Hz
+Pouze viditelné pixely: bez zatemňovacího intervalu, bez komprese (DSC), bez podvzorkování barev</value>
   </data>
   <data name="Display_ColorPopup.Description" xml:space="preserve">
     <value>Barevná hloubka - bity na barevný kanál signálu

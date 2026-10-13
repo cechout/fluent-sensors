@@ -1902,13 +1902,19 @@ Pixeldichte - aus nativer Auflösung und sichtbarer Fläche</value>
   <data name="Display_ModePopup.Description" xml:space="preserve">
     <value>Auflösung - die Desktop-Auflösung, mit der Windows das Display ansteuert
 Skalierung - wie stark Windows Text und Apps auf diesem Display vergrößert
-Bildwiederholrate - aktuelle Rate; ändert sich mit der dynamischen Bildwiederholrate
+Bildwiederholrate - aktuelle Rate und die Dauer eines Bildes; ändert sich mit der dynamischen Bildwiederholrate
 Verfügbare Bildwiederholraten - was das Display bei der aktuellen Auflösung anbietet
 Anschluss - USB-C und Thunderbolt erscheinen als DisplayPort, ein Laptop-Panel als Intern oder eDP
 GPU - der Adapter, der das Bild ausgibt; bei einem Hybrid-Laptop meist die integrierte</value>
   </data>
   <data name="Display_ModePopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
+  </data>
+  <data name="Display_SignalPopup.Description" xml:space="preserve">
+    <value>Frame-Größe - ein unkomprimiertes Bild: Auflösung x Bit pro Pixel
+Bit pro Pixel - drei Farbkanäle in der Farbtiefe
+Datenrate - Frame-Größe x Bildwiederholrate, bei der aktuellen Rate und bei 60 Hz
+Nur die sichtbaren Pixel: ohne Austastlücke, ohne Kompression (DSC), ohne Farbunterabtastung</value>
   </data>
   <data name="Display_ColorPopup.Description" xml:space="preserve">
     <value>Farbtiefe - Bit pro Farbkanal des Signals

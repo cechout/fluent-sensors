@@ -617,6 +617,21 @@
   <data name="Display_Size" xml:space="preserve">
     <value>Velikost</value>
   </data>
+  <data name="Display_Signal" xml:space="preserve">
+    <value>Signál</value>
+  </data>
+  <data name="Display_FrameSize" xml:space="preserve">
+    <value>Velikost snímku</value>
+  </data>
+  <data name="Display_BitsPerPixel" xml:space="preserve">
+    <value>Bity na pixel</value>
+  </data>
+  <data name="Display_DataRate" xml:space="preserve">
+    <value>Datový tok (aktuální / 60 Hz)</value>
+  </data>
+  <data name="Display_Bits" xml:space="preserve">
+    <value>{0} bitů</value>
+  </data>
   <data name="Display_Mode" xml:space="preserve">
     <value>Režim</value>
   </data>

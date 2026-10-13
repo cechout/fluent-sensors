@@ -4,6 +4,7 @@ using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
 
 using FluentSensors.Common.Localization;
+using FluentSensors.Common.Sensors;
 
 namespace FluentSensors.Core.StaticInfo
 {
@@ -475,6 +476,44 @@ namespace FluentSensors.Core.StaticInfo
 
         // a whole number without decimals, 59.94 with them
         public static string FormatRefreshRate(double hertz) => hertz > 0 ? $"{hertz:0.##} Hz" : "-";
+
+        // with the time one frame stays up, "165.04 Hz (6.06 ms)"
+        public static string FormatRefreshRateWithFrameTime(double hertz) =>
+            hertz > 0 ? $"{hertz:0.##} Hz ({1000.0 / hertz:0.##} ms)" : "-";
+
+        // red, green and blue at the color depth
+        public static string FormatBitsPerPixel(int bitsPerColorChannel) =>
+            bitsPerColorChannel > 0 ? AppTerms.Format("Display_Bits", bitsPerColorChannel * ColorChannelCount) : "-";
+
+        // one frame as it leaves the gpu, "11.7 MB"
+        public static string FormatFrameSize(int widthPixels, int heightPixels, int bitsPerColorChannel)
+        {
+            double bytes = FrameBytes(widthPixels, heightPixels, bitsPerColorChannel);
+            return bytes > 0 ? $"{bytes / BytesPerMebibyte:0.#} MB" : "-";
+        }
+
+        // the frames of one second, in the data speed unit of the settings: "1.89 GB/s" or "16.2 Gbit/s"
+        public static string FormatFrameDataRate(int widthPixels, int heightPixels, int bitsPerColorChannel, double hertz)
+        {
+            double bytes = FrameBytes(widthPixels, heightPixels, bitsPerColorChannel);
+            if (bytes <= 0 || hertz <= 0) return "-";
+
+            var (value, unit) = SensorUnitFormatter.Scale(bytes * hertz / BytesPerMebibyte, "Throughput");
+
+            // three significant digits
+            string format = value >= 100 ? "0" : value >= 10 ? "0.#" : "0.##";
+            return $"{value.ToString(format)} {unit}";
+        }
+
+        private const int ColorChannelCount = 3;
+        private const double BytesPerMebibyte = 1_048_576.0;
+
+        // the visible pixels only: no blanking interval, no compression, no chroma subsampling
+        private static double FrameBytes(int widthPixels, int heightPixels, int bitsPerColorChannel)
+        {
+            if (widthPixels <= 0 || heightPixels <= 0 || bitsPerColorChannel <= 0) return 0;
+            return (double)widthPixels * heightPixels * bitsPerColorChannel * ColorChannelCount / 8;
+        }
 
         // the diagonal in inches, then the visible area
         public static string FormatDisplaySize(int? widthCentimeters, int? heightCentimeters)

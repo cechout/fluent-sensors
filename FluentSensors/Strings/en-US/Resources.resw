@@ -1951,13 +1951,19 @@ Pixel Density - from the native resolution and the visible area</value>
   <data name="Display_ModePopup.Description" xml:space="preserve">
     <value>Resolution - the desktop resolution Windows drives the display at
 Scale - how much Windows enlarges text and apps on this display
-Refresh Rate - current rate; moves with Dynamic Refresh Rate
+Refresh Rate - current rate and the time one frame stays up; moves with Dynamic Refresh Rate
 Available Refresh Rates - what the display offers at the current resolution
 Connector - USB-C and Thunderbolt show as DisplayPort, a laptop panel as Internal or eDP
 GPU - the adapter that scans the display out; on a hybrid laptop usually the integrated one</value>
   </data>
   <data name="Display_ModePopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
+  </data>
+  <data name="Display_SignalPopup.Description" xml:space="preserve">
+    <value>Frame Size - one uncompressed frame: resolution x bits per pixel
+Bits per Pixel - three color channels at the color depth
+Data Rate - frame size x refresh rate, at the current rate and at 60 Hz
+Visible pixels only: no blanking interval, no compression (DSC), no chroma subsampling</value>
   </data>
   <data name="Display_ColorPopup.Description" xml:space="preserve">
     <value>Color Depth - bits per color channel of the signal

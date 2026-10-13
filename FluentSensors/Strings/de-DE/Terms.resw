@@ -617,6 +617,21 @@
   <data name="Display_Size" xml:space="preserve">
     <value>Größe</value>
   </data>
+  <data name="Display_Signal" xml:space="preserve">
+    <value>Signal</value>
+  </data>
+  <data name="Display_FrameSize" xml:space="preserve">
+    <value>Frame-Größe</value>
+  </data>
+  <data name="Display_BitsPerPixel" xml:space="preserve">
+    <value>Bit pro Pixel</value>
+  </data>
+  <data name="Display_DataRate" xml:space="preserve">
+    <value>Datenrate (aktuell / 60 Hz)</value>
+  </data>
+  <data name="Display_Bits" xml:space="preserve">
+    <value>{0} Bit</value>
+  </data>
   <data name="Display_Mode" xml:space="preserve">
     <value>Modus</value>
   </data>
