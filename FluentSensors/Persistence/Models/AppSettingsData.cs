@@ -67,8 +67,7 @@ namespace FluentSensors.Persistence.Models
         // engine; LHM hardware that is not read, by the name the payload gives it
         public List<string> DisabledLhmHardware { get; set; } = new();
         // what Windows adds to or replaces in LHM hardware; all off until asked for
-        public bool WinStorageTemperatureEnabled { get; set; } = false;
-        public bool WinStorageSpaceEnabled { get; set; } = false;
+        public bool WinStorageSensorsEnabled { get; set; } = false;
         public bool WinWlanSensorsEnabled { get; set; } = false;
         // hardware only Windows has
         public bool WinDisplayEnabled { get; set; } = false;

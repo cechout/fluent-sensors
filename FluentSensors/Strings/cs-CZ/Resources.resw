@@ -326,37 +326,39 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
     <value>LibreHardwareMonitor</value>
   </data>
   <data name="Settings_EngineLhmExpander.Description" xml:space="preserve">
-    <value>Který hardware se čte; vypnutý hardware zmizí z každé stránky, widgetu i záznamu</value>
+    <value>Hardware, který čte LibreHardwareMonitor</value>
   </data>
   <data name="Settings_EngineWindowsExpander.Header" xml:space="preserve">
     <value>Windows</value>
   </data>
   <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
-    <value>Hodnoty, které Windows k hardwaru výše doplní nebo čte místo něj</value>
+    <value>Senzory, které rozhraní Windows API doplní nebo nahradí</value>
   </data>
-  <data name="Settings_WinStorageTemperatureCard.Header" xml:space="preserve">
-    <value>Teplota úložiště</value>
+  <data name="Settings_WinStorageSensorsCard.Header" xml:space="preserve">
+    <value>Úložiště</value>
   </data>
-  <data name="Settings_WinStorageTemperatureCard.Description" xml:space="preserve">
-    <value>Nahradí teplotu z LibreHardwareMonitor u každého disku</value>
-  </data>
-  <data name="Settings_WinStorageSpaceCard.Header" xml:space="preserve">
-    <value>Využité místo úložiště</value>
-  </data>
-  <data name="Settings_WinStorageSpaceCard.Description" xml:space="preserve">
-    <value>Doplní využité místo každého disku v bajtech</value>
+  <data name="Settings_WinStorageSensorsCard.Description" xml:space="preserve">
+    <value>Doplní a nahradí senzory hardwaru úložiště</value>
   </data>
   <data name="Settings_WinWlanSensorsCard.Header" xml:space="preserve">
-    <value>Signál Wi-Fi</value>
+    <value>Wi-Fi</value>
   </data>
   <data name="Settings_WinWlanSensorsCard.Description" xml:space="preserve">
-    <value>Doplní sílu signálu, RSSI a rychlosti linky u adaptéru Wi-Fi</value>
+    <value>Doplní senzory hardwaru Wi-Fi</value>
+  </data>
+  <data name="Settings_WinWlanSensorsPopup.Description" xml:space="preserve">
+    <value>Od Windows 11 24H2 vyžaduje přístup k poloze
+Bez něj Windows aplikaci nedá žádná data o Wi-Fi a všechny čtyři senzory chybí
+Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování polohy a Povolit desktopovým aplikacím přístup k poloze</value>
+  </data>
+  <data name="Settings_WinWlanSensorsPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
   </data>
   <data name="Settings_WinDisplayCard.Header" xml:space="preserve">
     <value>Displej</value>
   </data>
   <data name="Settings_WinDisplayCard.Description" xml:space="preserve">
-    <value>Přidá každý displej jako vlastní hardware, s jasem a obnovovací frekvencí</value>
+    <value>Přidá hardware displeje</value>
   </data>
   <data name="Settings_PerformancePageAppearanceText.Text" xml:space="preserve">
     <value>Vzhled stránky Grafy</value>

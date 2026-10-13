@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
@@ -67,6 +68,13 @@ namespace FluentSensors.Common.UI
         }
 
 
+        // the same mark as an icon element, for a place that names the source itself (a settings header)
+        public static PathIcon CreateIcon(bool isWindows)
+        {
+            return new PathIcon { Data = ParseGeometry(isWindows ? WindowsData : LhmData) };
+        }
+
+
         // === private helpers ===
 
         // a new geometry per call; null without a sensor, the Path then draws nothing
@@ -74,8 +82,9 @@ namespace FluentSensors.Common.UI
         {
             if (string.IsNullOrEmpty(sensorId)) return null;
 
-            string data = SensorSourceMarker.IsWindowsSensor(sensorId) ? WindowsData : LhmData;
-            return (Geometry)XamlBindingHelper.ConvertValue(typeof(Geometry), data);
+            return ParseGeometry(SensorSourceMarker.IsWindowsSensor(sensorId) ? WindowsData : LhmData);
         }
+
+        private static Geometry ParseGeometry(string data) => (Geometry)XamlBindingHelper.ConvertValue(typeof(Geometry), data);
     }
 }

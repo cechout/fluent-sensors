@@ -740,33 +740,18 @@ namespace FluentSensors.Persistence.Services
             SaveDebounced();
         }
 
-        // the drive temperature of Windows instead of the LHM one; mirrored onto the Windows source
-        private bool _winStorageTemperatureEnabled = Defaults.WinStorageTemperatureEnabled;
-        public bool WinStorageTemperatureEnabled
+        // the drive temperature of Windows instead of the LHM one and the used space of every drive in bytes; mirrored
+        // onto the Windows source
+        private bool _winStorageSensorsEnabled = Defaults.WinStorageSensorsEnabled;
+        public bool WinStorageSensorsEnabled
         {
-            get => _winStorageTemperatureEnabled;
+            get => _winStorageSensorsEnabled;
             set
             {
-                if (_winStorageTemperatureEnabled != value)
+                if (_winStorageSensorsEnabled != value)
                 {
-                    _winStorageTemperatureEnabled = value;
-                    HardwareMonitorService.Instance.WindowsSource.IsStorageTemperatureEnabled = value;
-                    SaveDebounced();
-                }
-            }
-        }
-
-        // the used space of every drive in bytes; mirrored like above
-        private bool _winStorageSpaceEnabled = Defaults.WinStorageSpaceEnabled;
-        public bool WinStorageSpaceEnabled
-        {
-            get => _winStorageSpaceEnabled;
-            set
-            {
-                if (_winStorageSpaceEnabled != value)
-                {
-                    _winStorageSpaceEnabled = value;
-                    HardwareMonitorService.Instance.WindowsSource.IsStorageSpaceEnabled = value;
+                    _winStorageSensorsEnabled = value;
+                    HardwareMonitorService.Instance.WindowsSource.IsStorageEnabled = value;
                     SaveDebounced();
                 }
             }
@@ -1283,12 +1268,10 @@ namespace FluentSensors.Persistence.Services
                 _disabledLhmHardware.Add(hardwareName);
             }
             HardwareMonitorService.Instance.SetDisabledHardware(_disabledLhmHardware);
-            _winStorageTemperatureEnabled = data.WinStorageTemperatureEnabled;
+            _winStorageSensorsEnabled = data.WinStorageSensorsEnabled;
             _winWlanSensorsEnabled = data.WinWlanSensorsEnabled;
-            HardwareMonitorService.Instance.WindowsSource.IsStorageTemperatureEnabled = _winStorageTemperatureEnabled;
+            HardwareMonitorService.Instance.WindowsSource.IsStorageEnabled = _winStorageSensorsEnabled;
             HardwareMonitorService.Instance.WindowsSource.IsWlanEnabled = _winWlanSensorsEnabled;
-            _winStorageSpaceEnabled = data.WinStorageSpaceEnabled;
-            HardwareMonitorService.Instance.WindowsSource.IsStorageSpaceEnabled = _winStorageSpaceEnabled;
             _winDisplayEnabled = data.WinDisplayEnabled;
             HardwareMonitorService.Instance.WindowsSource.IsDisplayEnabled = _winDisplayEnabled;
         }
@@ -1360,10 +1343,9 @@ namespace FluentSensors.Persistence.Services
                 LastWidgetWindowIndex = _lastWidgetWindowIndex,
                 UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs,
                 DisabledLhmHardware = new List<string>(_disabledLhmHardware),
-                WinStorageTemperatureEnabled = _winStorageTemperatureEnabled,
+                WinStorageSensorsEnabled = _winStorageSensorsEnabled,
                 WinWlanSensorsEnabled = _winWlanSensorsEnabled,
-                WinDisplayEnabled = _winDisplayEnabled,
-                WinStorageSpaceEnabled = _winStorageSpaceEnabled
+                WinDisplayEnabled = _winDisplayEnabled
             };
         }
 

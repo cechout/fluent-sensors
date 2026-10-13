@@ -335,37 +335,39 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
     <value>LibreHardwareMonitor</value>
   </data>
   <data name="Settings_EngineLhmExpander.Description" xml:space="preserve">
-    <value>Which hardware is read; switched off hardware leaves every page, widget and recording</value>
+    <value>Hardware LibreHardwareMonitor reads</value>
   </data>
   <data name="Settings_EngineWindowsExpander.Header" xml:space="preserve">
     <value>Windows</value>
   </data>
   <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
-    <value>Values Windows adds to the hardware above or reads in its place</value>
+    <value>Sensors the Windows API adds or replaces</value>
   </data>
-  <data name="Settings_WinStorageTemperatureCard.Header" xml:space="preserve">
-    <value>Storage Temperature</value>
+  <data name="Settings_WinStorageSensorsCard.Header" xml:space="preserve">
+    <value>Storage</value>
   </data>
-  <data name="Settings_WinStorageTemperatureCard.Description" xml:space="preserve">
-    <value>Replaces the LibreHardwareMonitor temperature of every drive</value>
-  </data>
-  <data name="Settings_WinStorageSpaceCard.Header" xml:space="preserve">
-    <value>Storage Used Space</value>
-  </data>
-  <data name="Settings_WinStorageSpaceCard.Description" xml:space="preserve">
-    <value>Adds the used space of every drive in bytes</value>
+  <data name="Settings_WinStorageSensorsCard.Description" xml:space="preserve">
+    <value>Adds and replaces sensors of storage hardware</value>
   </data>
   <data name="Settings_WinWlanSensorsCard.Header" xml:space="preserve">
-    <value>Wi-Fi Signal</value>
+    <value>Wi-Fi</value>
   </data>
   <data name="Settings_WinWlanSensorsCard.Description" xml:space="preserve">
-    <value>Adds signal strength, RSSI and link rates to a Wi-Fi adapter</value>
+    <value>Adds sensors to Wi-Fi hardware</value>
+  </data>
+  <data name="Settings_WinWlanSensorsPopup.Description" xml:space="preserve">
+    <value>Needs location access on Windows 11 24H2 and newer
+Without it Windows gives an app no Wi-Fi data, so all four sensors are missing
+Settings &gt; Privacy &amp; security &gt; Location: Location services and Let desktop apps access your location</value>
+  </data>
+  <data name="Settings_WinWlanSensorsPopup.SourceIntro" xml:space="preserve">
+    <value>Source:</value>
   </data>
   <data name="Settings_WinDisplayCard.Header" xml:space="preserve">
     <value>Display</value>
   </data>
   <data name="Settings_WinDisplayCard.Description" xml:space="preserve">
-    <value>Adds every display as hardware of its own, with brightness and refresh rate</value>
+    <value>Adds display hardware</value>
   </data>
   <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
     <value>Time Range</value>

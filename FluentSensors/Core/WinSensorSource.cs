@@ -84,28 +84,16 @@ namespace FluentSensors.Core
 
         // === public api ===
 
-        // the drive temperature of Windows instead of the LHM one
-        private volatile bool _isStorageTemperatureEnabled;
-        public bool IsStorageTemperatureEnabled
+        // the drive temperature of Windows instead of the LHM one, and the used space of a drive in bytes, which LHM only
+        // has in percent
+        private volatile bool _isStorageEnabled;
+        public bool IsStorageEnabled
         {
-            get => _isStorageTemperatureEnabled;
+            get => _isStorageEnabled;
             set
             {
-                if (_isStorageTemperatureEnabled == value) return;
-                _isStorageTemperatureEnabled = value;
-                SignalSettingsChanged();
-            }
-        }
-
-        // the used space of a drive in bytes; LHM only has it in percent
-        private volatile bool _isStorageSpaceEnabled;
-        public bool IsStorageSpaceEnabled
-        {
-            get => _isStorageSpaceEnabled;
-            set
-            {
-                if (_isStorageSpaceEnabled == value) return;
-                _isStorageSpaceEnabled = value;
+                if (_isStorageEnabled == value) return;
+                _isStorageEnabled = value;
                 SignalSettingsChanged();
             }
         }
@@ -176,17 +164,12 @@ namespace FluentSensors.Core
         {
             var storageReadings = new List<WinSensorReading>();
             var wlanReadings = new List<WinSensorReading>();
-            int lastStorageSwitches = 0;
+            bool wasStorageEnabled = false;
             long storageTimestamp = 0;
 
             while (!token.IsCancellationRequested)
             {
-                bool isStorageTemperatureEnabled = _isStorageTemperatureEnabled;
-                bool isStorageSpaceEnabled = _isStorageSpaceEnabled;
-                bool isStorageEnabled = isStorageTemperatureEnabled || isStorageSpaceEnabled;
-
-                // a switch that changed reads at once instead of waiting for the interval
-                int storageSwitches = (isStorageTemperatureEnabled ? 1 : 0) | (isStorageSpaceEnabled ? 2 : 0);
+                bool isStorageEnabled = _isStorageEnabled;
                 bool isWlanEnabled = _isWlanEnabled;
                 bool isDisplayEnabled = _isDisplayEnabled;
 
@@ -194,14 +177,15 @@ namespace FluentSensors.Core
                 {
                     storageReadings = new List<WinSensorReading>();
                 }
-                else if (storageSwitches != lastStorageSwitches || Stopwatch.GetElapsedTime(storageTimestamp).TotalMilliseconds >= StorageIntervalMs)
+                else if (!wasStorageEnabled || Stopwatch.GetElapsedTime(storageTimestamp).TotalMilliseconds >= StorageIntervalMs)
                 {
+                    // just switched on reads at once instead of waiting for the interval
                     storageReadings = new List<WinSensorReading>();
-                    if (isStorageTemperatureEnabled) storageReadings.AddRange(ReadStorageTemperatures());
-                    if (isStorageSpaceEnabled) storageReadings.AddRange(ReadStorageSpace());
+                    storageReadings.AddRange(ReadStorageTemperatures());
+                    storageReadings.AddRange(ReadStorageSpace());
                     storageTimestamp = Stopwatch.GetTimestamp();
                 }
-                lastStorageSwitches = storageSwitches;
+                wasStorageEnabled = isStorageEnabled;
 
                 wlanReadings = isWlanEnabled ? ReadWlan() : new List<WinSensorReading>();
 

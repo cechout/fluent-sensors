@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
@@ -351,41 +352,47 @@
 
             <!--  LibreHardwareMonitor: one switch per hardware  -->
             <!--  (the cards come from code, see RebuildEngineHardwareCards; the hardware is only known at runtime)  -->
+            <!--  (both expanders get the source icon as header icon from code, see ApplyEngineHeaderIcons)  -->
             <controls:SettingsExpander
                 x:Name="EngineLhmExpander"
                 x:Uid="Settings_EngineLhmExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D9;}"
                 IsExpanded="False" />
 
             <!--  Windows: what it adds to or replaces in LHM hardware  -->
             <!--  (every switch is off by default)  -->
             <controls:SettingsExpander
+                x:Name="EngineWindowsExpander"
                 x:Uid="Settings_EngineWindowsExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE770;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard x:Uid="Settings_WinStorageTemperatureCard">
+                    <!--  the temperature in place of the LHM one, and the used space in bytes  -->
+                    <controls:SettingsCard x:Uid="Settings_WinStorageSensorsCard">
                         <ToggleSwitch
-                            x:Name="WinStorageTemperatureToggle"
+                            x:Name="WinStorageSensorsToggle"
                             x:Uid="Common_ToggleSwitch"
-                            Toggled="WinStorageTemperatureToggle_Toggled" />
+                            Toggled="WinStorageSensorsToggle_Toggled" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard x:Uid="Settings_WinStorageSpaceCard">
-                        <ToggleSwitch
-                            x:Name="WinStorageSpaceToggle"
-                            x:Uid="Common_ToggleSwitch"
-                            Toggled="WinStorageSpaceToggle_Toggled" />
-                    </controls:SettingsCard>
-
+                    <!--  (the popup says that Windows wants location access for it)  -->
                     <controls:SettingsCard x:Uid="Settings_WinWlanSensorsCard">
-                        <ToggleSwitch
-                            x:Name="WinWlanSensorsToggle"
-                            x:Uid="Common_ToggleSwitch"
-                            Toggled="WinWlanSensorsToggle_Toggled" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <fhInfoPopup:InfoPopupControl
+                                x:Uid="Settings_WinWlanSensorsPopup"
+                                VerticalAlignment="Center"
+                                PlacementMode="Above">
+                                <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                    <fhInfoPopup:SourceLink Label="Wi-Fi access and location" Url="https://learn.microsoft.com/en-us/windows/win32/nativewifi/wi-fi-access-location-changes" />
+                                </fhInfoPopup:InfoPopupControl.SourceLinks>
+                            </fhInfoPopup:InfoPopupControl>
+                            <ToggleSwitch
+                                x:Name="WinWlanSensorsToggle"
+                                x:Uid="Common_ToggleSwitch"
+                                VerticalAlignment="Center"
+                                Toggled="WinWlanSensorsToggle_Toggled" />
+                        </StackPanel>
                     </controls:SettingsCard>
 
                     <!--  hardware LHM does not have at all  -->

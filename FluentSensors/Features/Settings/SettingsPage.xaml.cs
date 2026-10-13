@@ -52,6 +52,7 @@ namespace FluentSensors.Features.Settings
             RestoreTechnicalTermsSelection();
             RestoreIntervalSelection();
             RestoreEngineWindowsSelection();
+            ApplyEngineHeaderIcons();
             RestoreMinimizeToTraySelection();
             RestoreStartupSelection();
             RestoreStatusReadoutSelection();
@@ -416,22 +417,23 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.SetLhmHardwareEnabled(hardwareName, toggle.IsOn);
         }
 
-        private void WinStorageTemperatureToggle_Toggled(object sender, RoutedEventArgs e)
+        // the two sources carry the icon that marks their sensors everywhere else
+        private void ApplyEngineHeaderIcons()
+        {
+            EngineLhmExpander.HeaderIcon = SensorSourceIcon.CreateIcon(isWindows: false);
+            EngineWindowsExpander.HeaderIcon = SensorSourceIcon.CreateIcon(isWindows: true);
+        }
+
+        private void WinStorageSensorsToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
-            SettingsService.Instance.WinStorageTemperatureEnabled = WinStorageTemperatureToggle.IsOn;
+            SettingsService.Instance.WinStorageSensorsEnabled = WinStorageSensorsToggle.IsOn;
         }
 
         private void WinWlanSensorsToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
             SettingsService.Instance.WinWlanSensorsEnabled = WinWlanSensorsToggle.IsOn;
-        }
-
-        private void WinStorageSpaceToggle_Toggled(object sender, RoutedEventArgs e)
-        {
-            if (_isLoading) return;
-            SettingsService.Instance.WinStorageSpaceEnabled = WinStorageSpaceToggle.IsOn;
         }
 
         private void WinDisplayToggle_Toggled(object sender, RoutedEventArgs e)
@@ -443,8 +445,7 @@ namespace FluentSensors.Features.Settings
         private void RestoreEngineWindowsSelection()
         {
             WinDisplayToggle.IsOn = SettingsService.Instance.WinDisplayEnabled;
-            WinStorageSpaceToggle.IsOn = SettingsService.Instance.WinStorageSpaceEnabled;
-            WinStorageTemperatureToggle.IsOn = SettingsService.Instance.WinStorageTemperatureEnabled;
+            WinStorageSensorsToggle.IsOn = SettingsService.Instance.WinStorageSensorsEnabled;
             WinWlanSensorsToggle.IsOn = SettingsService.Instance.WinWlanSensorsEnabled;
         }
 
