@@ -97,14 +97,14 @@
                     <Grid
                         x:Name="OverviewBlockGrid"
                         Grid.Row="0"
-                        Margin="0,0,0,8"
+                        Margin="0,0,0,4"
                         RowSpacing="4">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  total activity, read and write rate  -->
+                        <!--  total activity (big, switchable to the space sensors), read and write rate  -->
                         <Grid
                             x:Name="GraphsAreaGrid"
                             Grid.Row="0"
@@ -112,7 +112,7 @@
 
                             <Grid
                                 x:Name="WideGraphsGrid"
-                                MinHeight="200"
+                                MinHeight="190"
                                 ColumnSpacing="8"
                                 RowSpacing="8">
                                 <Grid.RowDefinitions>
@@ -262,10 +262,11 @@
                         </Grid>
                     </Grid>
 
-                    <!--  view 2: extended, one graph per row in groups  -->
+                    <!--  view 2: extended, in groups like the gpu extended view  -->
                     <!--
-                        (no sensor tiles in this view; within a group the value that depends on the others sits on
-                        top and what it rests on at the bottom, like the overview)
+                        (no sensor tiles in this view; a group lays its graphs out in a grid and has a time range
+                        picker of its own; in reading order the value that depends on the others comes first and
+                        what it rests on last, like the overview)
                     -->
                     <StackPanel
                         x:Name="ExtendedGrid"
@@ -276,51 +277,58 @@
                         Opacity="{x:Bind Storage.ExtendedOpacity, Mode=OneWay}"
                         Spacing="24">
 
-                        <!--  activity: the three graphs of the overview  -->
+                        <!--  activity: the three graphs of the overview, the total activity without its switch  -->
                         <StackPanel Spacing="8">
                             <TextBlock
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="{x:Bind loc:AppTerms.Get('Storage_SectionActivity')}" />
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Storage"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Total Activity"
-                                PlaceholderUnit="%"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                SwitchCandidates="{x:Bind Storage.TotalActivityOptions, Mode=OneWay}"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.TotalActivity, Mode=TwoWay}" />
+                            <fhControls:SquareGridPanel
+                                MinCellHeight="90"
+                                MinCellWidth="260"
+                                Spacing="12">
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="Total Activity"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.ExtendedTotalActivity, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Read Rate"
+                                    PlaceholderUnit="MB/s"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.ReadRateOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.ReadRate, Mode=TwoWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Write Rate"
+                                    PlaceholderUnit="MB/s"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.WriteRateOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.WriteRate, Mode=TwoWay}" />
+                            </fhControls:SquareGridPanel>
 
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Storage"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Read Rate"
-                                PlaceholderUnit="MB/s"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                SwitchCandidates="{x:Bind Storage.ReadRateOptions, Mode=OneWay}"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.ReadRate, Mode=TwoWay}" />
-
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Storage"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Write Rate"
-                                PlaceholderUnit="MB/s"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                SwitchCandidates="{x:Bind Storage.WriteRateOptions, Mode=OneWay}"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.WriteRate, Mode=TwoWay}" />
+                            <!--  graph time range  -->
+                            <fhTimeRange:TimeRangePickerControl
+                                Margin="0,-4,0,0"
+                                Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
+                                TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
 
                         <!--  space and data: how full the drive is, then the totals read and written  -->
@@ -331,51 +339,51 @@
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="{x:Bind loc:AppTerms.Get('Storage_SectionSpace')}" />
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Storage"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Used Space"
-                                PlaceholderUnit="%"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowUnitInStatusRow="True"
-                                ShowYAxisControls="True"
-                                SwitchCandidates="{x:Bind Storage.UsedSpaceOptions, Mode=OneWay}"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.UsedSpace, Mode=TwoWay}" />
+                            <fhControls:SquareGridPanel
+                                MinCellHeight="90"
+                                MinCellWidth="260"
+                                Spacing="12">
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Used Space"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowUnitInStatusRow="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.UsedSpaceOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.UsedSpace, Mode=TwoWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Data Read"
+                                    PlaceholderUnit="GB"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.DataRead, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Data Written"
+                                    PlaceholderUnit="GB"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.DataWritten, Mode=OneWay}" />
+                            </fhControls:SquareGridPanel>
 
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Storage"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Data Read"
-                                PlaceholderUnit="GB"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.DataRead, Mode=OneWay}" />
-
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Storage"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Data Written"
-                                PlaceholderUnit="GB"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Storage.DataWritten, Mode=OneWay}" />
+                            <!--  graph time range  -->
+                            <fhTimeRange:TimeRangePickerControl
+                                Margin="0,-4,0,0"
+                                Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
+                                TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
-
-                        <!--  graph time range  -->
-                        <fhTimeRange:TimeRangePickerControl
-                            Margin="0,-12,0,0"
-                            Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
-                            SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
-                            TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </StackPanel>
                 </Grid>
             </StackPanel>

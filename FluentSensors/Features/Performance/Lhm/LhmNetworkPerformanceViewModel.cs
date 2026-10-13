@@ -151,6 +151,7 @@ namespace FluentSensors.Features.Performance.Lhm
                 case "Network Utilization":
                     RegisterCategoryCandidate(adapter, "Utilization", entry,
                         a => a.NetworkUtilization, (a, v) => a.SetNetworkUtilizationWithoutPersisting(v), adapter.NetworkUtilizationOptions, isDefault: true);
+                    AttachGraph(entry, graph => adapter.ExtendedNetworkUtilization = graph);
                     break;
 
                 case "Data Uploaded":

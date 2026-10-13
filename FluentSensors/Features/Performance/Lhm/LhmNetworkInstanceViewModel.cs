@@ -75,6 +75,14 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
 
+        // extended view; the plain utilization, the slot above without its switch
+        private SensorGraphViewModel _extendedNetworkUtilization;
+        public SensorGraphViewModel ExtendedNetworkUtilization
+        {
+            get => _extendedNetworkUtilization;
+            set { _extendedNetworkUtilization = value; OnPropertyChanged(); }
+        }
+
         // extended view; the cumulative totals as graphs of their own (both are candidates of the utilization slot too)
         private SensorGraphViewModel _dataUploaded;
         public SensorGraphViewModel DataUploaded

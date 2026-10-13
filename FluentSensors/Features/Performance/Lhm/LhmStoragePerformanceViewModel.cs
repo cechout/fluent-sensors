@@ -142,6 +142,7 @@ namespace FluentSensors.Features.Performance.Lhm
                 case "Total Activity":
                     RegisterCategoryCandidate(drive, "TotalActivity", entry,
                         d => d.TotalActivity, (d, v) => d.SetTotalActivityWithoutPersisting(v), drive.TotalActivityOptions, isDefault: true);
+                    AttachGraph(entry, graph => drive.ExtendedTotalActivity = graph);
                     break;
 
                 case "Free Space":
@@ -178,13 +179,22 @@ namespace FluentSensors.Features.Performance.Lhm
 
                 // two sensors of one name: the LHM percentage (Load) and the bytes of the Windows source (Data); the
                 // unit tells them apart in the switch
+                // both in the slot of their own in the extended view and behind the big graph of the overview
                 case "Used Space":
                     bool isPercent = entry.SensorType == "Load";
+                    Func<double?> usedSpaceYMax = isPercent ? () => 100 : () => drive.TotalSpace > 0 ? drive.TotalSpace : (double?)null;
+                    string usedSpaceName = $"{entry.Name} ({SensorUnitFormatter.GetUnit(entry.SensorType)})";
+
                     RegisterCategoryCandidate(drive, "UsedSpace", entry,
                         d => d.UsedSpace, (d, v) => d.SetUsedSpaceWithoutPersisting(v), drive.UsedSpaceOptions,
                         isDefault: isPercent,
-                        yMaxOverride: isPercent ? () => 100 : () => drive.TotalSpace > 0 ? drive.TotalSpace : (double?)null,
-                        displayName: $"{entry.Name} ({SensorUnitFormatter.GetUnit(entry.SensorType)})",
+                        yMaxOverride: usedSpaceYMax,
+                        displayName: usedSpaceName,
+                        followsActiveState: true);
+                    RegisterCategoryCandidate(drive, "TotalActivity", entry,
+                        d => d.TotalActivity, (d, v) => d.SetTotalActivityWithoutPersisting(v), drive.TotalActivityOptions,
+                        yMaxOverride: usedSpaceYMax,
+                        displayName: usedSpaceName,
                         followsActiveState: true);
                     break;
 

@@ -96,7 +96,7 @@
                     <Grid
                         x:Name="OverviewBlockGrid"
                         Grid.Row="0"
-                        Margin="0,0,0,8"
+                        Margin="0,0,0,4"
                         RowSpacing="4">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -258,10 +258,11 @@
                         </Grid>
                     </Grid>
 
-                    <!--  view 2: extended, one graph per row in groups  -->
+                    <!--  view 2: extended, in groups like the gpu extended view  -->
                     <!--
-                        (no sensor tiles in this view; within a group the value that depends on the others sits on
-                        top and what it rests on at the bottom, like the overview)
+                        (no sensor tiles in this view; a group lays its graphs out in a grid and has a time range
+                        picker of its own; in reading order the value that depends on the others comes first and
+                        what it rests on last, like the overview)
                     -->
                     <StackPanel
                         x:Name="ExtendedGrid"
@@ -272,52 +273,58 @@
                         Opacity="{x:Bind Network.ExtendedOpacity, Mode=OneWay}"
                         Spacing="24">
 
-                        <!--  traffic: the three graphs of the overview  -->
+                        <!--  traffic: the three graphs of the overview, the utilization without its switch  -->
                         <StackPanel Spacing="8">
                             <TextBlock
                                 Margin="4,0,0,0"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="{x:Bind loc:AppTerms.Get('Network_SectionTraffic')}" />
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Network"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Network Utilization"
-                                PlaceholderUnit="%"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                SwitchCandidates="{x:Bind Network.NetworkUtilizationOptions, Mode=OneWay}"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.NetworkUtilization, Mode=TwoWay}" />
+                            <fhControls:SquareGridPanel
+                                MinCellHeight="90"
+                                MinCellWidth="260"
+                                Spacing="12">
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Network"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Network Utilization"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.ExtendedNetworkUtilization, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Network"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Upload Speed"
+                                    PlaceholderUnit="MB/s"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Network"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Download Speed"
+                                    PlaceholderUnit="MB/s"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
+                            </fhControls:SquareGridPanel>
 
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Network"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Upload Speed"
-                                PlaceholderUnit="MB/s"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.UploadSpeed, Mode=OneWay}" />
-
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Network"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Download Speed"
-                                PlaceholderUnit="MB/s"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.DownloadSpeed, Mode=OneWay}" />
+                            <!--  graph time range  -->
+                            <fhTimeRange:TimeRangePickerControl
+                                Margin="0,-4,0,0"
+                                Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
+                                TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
 
-                        <!--  wi-fi: what the link can carry on top (transmit, receive), the signal it rests on below  -->
+                        <!--  wi-fi: what the link can carry first (transmit, receive), then the signal it rests on  -->
                         <!--  (the sensors of the Windows source; the group is gone while its switch is off or the adapter is wired)  -->
                         <StackPanel Spacing="8" Visibility="{x:Bind Network.WifiSectionVisibility, Mode=OneWay}">
                             <TextBlock
@@ -325,54 +332,59 @@
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="{x:Bind loc:AppTerms.Get('Network_WiFi')}" />
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Network"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Transmit Link Rate"
-                                PlaceholderUnit="MB/s"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.TransmitLinkRate, Mode=OneWay}" />
+                            <fhControls:SquareGridPanel
+                                MinCellHeight="90"
+                                MinCellWidth="260"
+                                Spacing="12">
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Network"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Transmit Link Rate"
+                                    PlaceholderUnit="MB/s"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.TransmitLinkRate, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Network"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Receive Link Rate"
+                                    PlaceholderUnit="MB/s"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.ReceiveLinkRate, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Network"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="Signal Strength"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.SignalStrength, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Network"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="RSSI"
+                                    PlaceholderUnit="dBm"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.Rssi, Mode=OneWay}" />
+                            </fhControls:SquareGridPanel>
 
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Network"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Receive Link Rate"
-                                PlaceholderUnit="MB/s"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.ReceiveLinkRate, Mode=OneWay}" />
-
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Network"
-                                IsAutoScaledOverride="False"
-                                ManualYMaxOverride="100"
-                                PlaceholderSensorName="Signal Strength"
-                                PlaceholderUnit="%"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.SignalStrength, Mode=OneWay}" />
-
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Network"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="RSSI"
-                                PlaceholderUnit="dBm"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.Rssi, Mode=OneWay}" />
+                            <!--  graph time range  -->
+                            <fhTimeRange:TimeRangePickerControl
+                                Margin="0,-4,0,0"
+                                Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
+                                TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
 
                         <!--  data: the totals since the adapter came up  -->
@@ -382,37 +394,39 @@
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="{x:Bind loc:AppTerms.Get('Network_SectionData')}" />
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Network"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Data Uploaded"
-                                PlaceholderUnit="GB"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.DataUploaded, Mode=OneWay}" />
+                            <fhControls:SquareGridPanel
+                                MinCellHeight="90"
+                                MinCellWidth="260"
+                                Spacing="12">
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Network"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Data Uploaded"
+                                    PlaceholderUnit="GB"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.DataUploaded, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Network"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Data Downloaded"
+                                    PlaceholderUnit="GB"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Network.DataDownloaded, Mode=OneWay}" />
+                            </fhControls:SquareGridPanel>
 
-                            <fhGraph:SensorPanelControl
-                                Height="120"
-                                GraphHardwareKind="Network"
-                                IsAutoScaledOverride="True"
-                                PlaceholderSensorName="Data Downloaded"
-                                PlaceholderUnit="GB"
-                                ShowStatusRow="True"
-                                ShowThresholdControls="True"
-                                ShowYAxisControls="True"
-                                ThresholdLabelAlwaysVisible="False"
-                                ViewModel="{x:Bind Network.DataDownloaded, Mode=OneWay}" />
+                            <!--  graph time range  -->
+                            <fhTimeRange:TimeRangePickerControl
+                                Margin="0,-4,0,0"
+                                Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
+                                TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
-
-                        <!--  graph time range  -->
-                        <fhTimeRange:TimeRangePickerControl
-                            Margin="0,-12,0,0"
-                            Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
-                            SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
-                            TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </StackPanel>
                 </Grid>
             </StackPanel>

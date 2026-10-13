@@ -64,7 +64,15 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(TotalActivity));
         }
 
-        // not charted; the TotalActivity y-max for its Free Space candidate, the reported total
+        // extended view; the plain Total Activity, the slot above without its switch
+        private SensorGraphViewModel _extendedTotalActivity;
+        public SensorGraphViewModel ExtendedTotalActivity
+        {
+            get => _extendedTotalActivity;
+            set { _extendedTotalActivity = value; OnPropertyChanged(); }
+        }
+
+        // not charted; the y-max of the space candidates of TotalActivity and UsedSpace, the reported total
         private double _totalSpace;
         public double TotalSpace
         {
