@@ -284,11 +284,17 @@
                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                 Text="{x:Bind AppStatus.RamUsageText, Mode=OneWay}"
                                 Typography.NumeralAlignment="Tabular" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind AppStatus.GpuUsageText, Mode=OneWay}"
+                                Typography.NumeralAlignment="Tabular" />
                         </StackPanel>
                     </fhInfoPopup:InfoPopupControl.TitleContent>
 
                     <fhInfoPopup:InfoPopupControl.SourceLinks>
                         <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
+                        <fhInfoPopup:SourceLink Label="Windows GPU performance counters" Url="https://devblogs.microsoft.com/directx/gpus-in-the-task-manager/" />
                     </fhInfoPopup:InfoPopupControl.SourceLinks>
                 </fhInfoPopup:InfoPopupControl>
             </StackPanel>

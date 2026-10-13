@@ -107,7 +107,8 @@ Dotaz (aktuální/cílový) - naměřená obnovovací frekvence oproti frekvenci
   </data>
   <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
     <value>Využití CPU - vlastní čas CPU této aplikace vzhledem k celkové kapacitě všech jader
-Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovní sada)</value>
+Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovní sada)
+Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží, jako ve Správci úloh</value>
   </data>
   <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>

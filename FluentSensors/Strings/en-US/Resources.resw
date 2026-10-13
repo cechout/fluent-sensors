@@ -115,7 +115,8 @@ Read - duration of one full sensor pass, close to the poll rate means no headroo
   </data>
   <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
     <value>CPU Usage - this app's own CPU time relative to total capacity across all cores
-RAM Usage - physical memory currently mapped by this app (working set)</value>
+RAM Usage - physical memory currently mapped by this app (working set)
+GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
   </data>
   <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>

@@ -590,14 +590,23 @@ namespace FluentSensors.Features.Start
                     ? HardwareInfoFormatter.FormatBitsPerSecond(adapter.SpeedBitsPerSecond)
                     : "";
 
+                // a connected wi-fi adapter says its standard and band, which tell more than the type the icon shows
+                string[] details = adapter.Wlan is { } wlan
+                    ? new[]
+                    {
+                        HardwareInfoFormatter.FormatWlanStandard(wlan.PhyType, wlan.FrequencyMhz),
+                        HardwareInfoFormatter.FormatWlanBand(wlan.FrequencyMhz, wlan.Channel),
+                        speed
+                    }
+                    : new[] { HardwareInfoFormatter.FormatInterfaceType(adapter.InterfaceType), speed };
+
                 // the glyph depends on the device, wi-fi for a wireless adapter
                 rows.Add(LabelledRow(
                     HardwareGroupKind.Network,
                     HardwareGroupInfo.GetNetworkIconGlyph(adapter.InterfaceType),
                     HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).Label,
                     adapter.Name,
-                    HardwareInfoFormatter.FormatInterfaceType(adapter.InterfaceType),
-                    speed));
+                    details));
             }
         }
 

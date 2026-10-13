@@ -22,6 +22,7 @@ namespace FluentSensors.Features.AppStatus
         private string _sensorsText = "";
         private string _pollText = "";
         private string _cpuUsageText = "";
+        private string _gpuUsageText = "";
         private string _ramUsageText = "";
         private string _handleCountText = "";
         private string _gcMemoryText = "";
@@ -95,6 +96,13 @@ namespace FluentSensors.Features.AppStatus
             private set { _ramUsageText = value; OnPropertyChanged(); }
         }
 
+        // read only while the Windows group shows, see IsWindowsGroupVisible
+        public string GpuUsageText
+        {
+            get => _gpuUsageText;
+            private set { _gpuUsageText = value; OnPropertyChanged(); }
+        }
+
         public string HandleCountText
         {
             get => _handleCountText;
@@ -148,7 +156,12 @@ namespace FluentSensors.Features.AppStatus
         public bool IsWindowsGroupVisible
         {
             get => _isWindowsGroupVisible;
-            private set { _isWindowsGroupVisible = value; OnPropertyChanged(); }
+            private set
+            {
+                _isWindowsGroupVisible = value;
+                AppStatusService.Instance.IsGpuUsageWanted = value; // the gpu usage is in this group
+                OnPropertyChanged();
+            }
         }
 
         // gone with the readout off, or with no group left to show
@@ -261,6 +274,7 @@ namespace FluentSensors.Features.AppStatus
                 PollText = AppStrings.Format("Status_Poll", data.ActualUpdateIntervalMs, data.AimedUpdateIntervalMs, data.ReadDurationMs);
                 CpuUsageText = $"CPU: {data.CpuUsagePercent:0.0}%";
                 RamUsageText = $"RAM: {data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
+                GpuUsageText = data.GpuUsagePercent is double gpu ? $"GPU: {gpu:0.0}%" : "GPU: -";
                 HandleCountText = AppStrings.Format("Status_Handles", data.HandleCount);
                 GcMemoryText = $"GC: {data.GcMemoryBytes / 1024.0 / 1024.0:0.0} MB";
             });

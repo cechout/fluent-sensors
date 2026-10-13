@@ -179,6 +179,8 @@
                 Foreground="{x:Bind ViewModel.CurrentValueColor, Mode=OneWay}"
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="{x:Bind ViewModel.CurrentValue, Mode=OneWay}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap"
                 Typography.NumeralAlignment="Tabular" />
 
             <!--  minimum value  -->
@@ -191,6 +193,8 @@
                 Foreground="{x:Bind ViewModel.MinimumValueColor, Mode=OneWay}"
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="{x:Bind ViewModel.MinimumValue, Mode=OneWay}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap"
                 Typography.NumeralAlignment="Tabular" />
 
             <!--  maximum value  -->
@@ -203,6 +207,8 @@
                 Foreground="{x:Bind ViewModel.MaximumValueColor, Mode=OneWay}"
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="{x:Bind ViewModel.MaximumValue, Mode=OneWay}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap"
                 Typography.NumeralAlignment="Tabular" />
 
             <!--  average value  -->
@@ -215,6 +221,8 @@
                 Foreground="{x:Bind ViewModel.AverageValueColor, Mode=OneWay}"
                 Style="{ThemeResource CaptionTextBlockStyle}"
                 Text="{x:Bind ViewModel.AverageValue, Mode=OneWay}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap"
                 Typography.NumeralAlignment="Tabular" />
 
             <!--  unit  -->

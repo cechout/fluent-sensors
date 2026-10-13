@@ -107,7 +107,8 @@ Lesen - Dauer eines vollständigen Sensordurchlaufs, nahe an der Abfragerate hei
   </data>
   <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
     <value>CPU-Auslastung - die eigene CPU-Zeit dieser App im Verhältnis zur Gesamtkapazität aller Kerne
-RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Working Set)</value>
+RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Working Set)
+GPU-Auslastung - die am stärksten ausgelastete GPU-Engine, auf der diese App läuft, wie im Task-Manager</value>
   </data>
   <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
