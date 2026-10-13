@@ -369,7 +369,8 @@
                                     ViewModel="{x:Bind Network.SignalStrength, Mode=OneWay}" />
                                 <fhGraph:SensorPanelControl
                                     GraphHardwareKind="Network"
-                                    IsAutoScaledOverride="True"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="-100"
                                     PlaceholderSensorName="RSSI"
                                     PlaceholderUnit="dBm"
                                     ShowStatusRow="True"

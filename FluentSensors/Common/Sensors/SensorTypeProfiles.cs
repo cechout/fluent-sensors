@@ -11,6 +11,9 @@
         public double ThresholdStep { get; init; }
         public double YMaxDefault { get; init; }
         public double YMaxStep { get; init; }
+
+        // the values lie below zero, so the y limit may be negative; the graph then hangs from the 0 line
+        public bool CanBeNegative { get; init; }
     }
 
     public static class SensorTypeProfiles
@@ -106,6 +109,16 @@
             YMaxStep = 1
         };
 
+        // the RSSI in dBm (ours, not an LHM type): 0 is the strongest, around -90 the link is gone
+        private static readonly SensorTypeProfile Signal = new()
+        {
+            ThresholdDefault = -70,
+            ThresholdStep = 5,
+            YMaxDefault = -100,
+            YMaxStep = 10,
+            CanBeNegative = true
+        };
+
         // the raw SensorType.ToString() ("Clock", "Load")
         public static SensorTypeProfile GetProfile(string sensorType)
         {
@@ -120,6 +133,7 @@
                 "Fan" => Fan,
                 "Voltage" => Voltage,
                 "Throughput" => Throughput,
+                "Signal" => Signal,
                 _ => Default
             };
         }

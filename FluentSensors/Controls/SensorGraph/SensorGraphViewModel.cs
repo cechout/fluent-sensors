@@ -28,6 +28,7 @@ namespace FluentSensors.Controls.SensorGraph
         // both in the displayed base unit, see SensorTypeProfile
         private readonly double _yMaxStep;
         private readonly double _yMaxDefault;
+        private readonly bool _canYMaxBeNegative; // see SensorTypeProfile.CanBeNegative
 
         // a view override owns ManualYMax (see ApplyViewOverrides); a data unit switch leaves it alone
         private bool _hasManualYMaxOverride;
@@ -110,6 +111,7 @@ namespace FluentSensors.Controls.SensorGraph
             var profile = SensorTypeProfiles.GetProfile(sensorType);
             _yMaxStep = profile.YMaxStep;
             _yMaxDefault = profile.YMaxDefault;
+            _canYMaxBeNegative = profile.CanBeNegative;
 
             // the saved Y-axis state of this scope
             var existingState = SensorStateService.Instance.GetState(SensorId);
@@ -527,19 +529,26 @@ namespace FluentSensors.Controls.SensorGraph
         public void IncreaseYMax()
         {
             IsAutoScaled = false; // turns the auto button off
-            ManualYMax += SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
+
+            double step = SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
+            double next = ManualYMax + step;
+
+            // a negative limit on its way back up skips 0, the range would be empty
+            if (Math.Abs(next) < step / 2) next = step;
+            ManualYMax = next;
         }
 
         public void DecreaseYMax()
         {
             IsAutoScaled = false; // turns the auto button off
 
-            // never down to 0 or below
             double step = SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
-            if (ManualYMax > step)
-            {
-                ManualYMax -= step;
-            }
+            double next = ManualYMax - step;
+
+            // never 0, and below it only for a type whose values lie there
+            if (Math.Abs(next) < step / 2) next = -step;
+            if (next < 0 && !_canYMaxBeNegative) return;
+            ManualYMax = next;
         }
 
 
@@ -611,8 +620,9 @@ namespace FluentSensors.Controls.SensorGraph
         {
             if (IsAutoScaled)
             {
-                // the highest point, 0 while empty
+                // the highest point, 0 while empty; the lowest for a series below zero, the end of its range
                 double currentHighestPoint = SensorData.Max() ?? 0;
+                if (currentHighestPoint <= 0) currentHighestPoint = Math.Min(SensorData.Min() ?? 0, 0);
                 var (scaledValue, _) = SensorUnitFormatter.Scale(currentHighestPoint, SensorType);
                 ActualYMaxText = $"{scaledValue:0.0}";
             }

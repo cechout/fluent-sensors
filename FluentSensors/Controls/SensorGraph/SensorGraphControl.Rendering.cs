@@ -29,13 +29,18 @@ namespace FluentSensors.Controls.SensorGraph
         // them, the flat fill cuts holes
         private const int AlarmSectionZIndex = 1;
 
+        // the top of the range while auto scaled and every value is 0; any positive number keeps the line at the bottom
+        private const double FlatZeroYMax = 1;
+
         // repaint guard; the inputs of the last ApplyStroke, an unchanged signature without an alarm run is a no-op
         private readonly record struct StrokeSignature(
             Windows.UI.Color AccentColor,
             double? ThresholdValue,
             ThresholdDirection ThresholdDirection,
             Windows.UI.Color ThresholdColor,
-            double YMax,
+            double YBottom,
+            double YTop,
+            bool IsHangingRange,
             bool HasAnyRun,
             bool FillFade);
 
@@ -61,6 +66,55 @@ namespace FluentSensors.Controls.SensorGraph
             RebuildSections();
         }
 
+
+        // the y range of the axis; 0 is the base line the fill runs to
+        // positive values: 0 at the bottom, the limit or the highest point at the top
+        // a series below zero (a signal in dBm): 0 at the top, the negative limit or the lowest point at the bottom, so
+        // it hangs from the base line
+        // every value 0 while auto scaled: an open range has no extent to scale to and the line leaves the bottom edge,
+        // so the top is fixed until the first value above 0 opens the range again
+        private void ApplyYRange()
+        {
+            double? bottom = 0;
+            double? top;
+
+            if (!IsAutoScaled)
+            {
+                if (ManualYMax < 0)
+                {
+                    bottom = ManualYMax;
+                    top = 0;
+                }
+                else
+                {
+                    top = ManualYMax;
+                }
+            }
+            else
+            {
+                var (lowest, highest) = ComputeValueExtent();
+
+                if (highest > 0)
+                {
+                    top = null;
+                }
+                else if (lowest < 0)
+                {
+                    bottom = null;
+                    top = 0;
+                }
+                else
+                {
+                    top = FlatZeroYMax;
+                }
+            }
+
+            _isHangingRange = top == 0;
+
+            // only on a change; a set limit makes the chart measure again
+            if (_yAxis.MinLimit != bottom) _yAxis.MinLimit = bottom;
+            if (_yAxis.MaxLimit != top) _yAxis.MaxLimit = top;
+        }
 
         // threshold label position; on (re)appearing and on every tick while visible, so it stays on
         // the line under auto-scaling
@@ -120,12 +174,12 @@ namespace FluentSensors.Controls.SensorGraph
             var line = (IStrokedAndFilled)_lineSeries;
 
             bool hasThreshold = ThresholdValue is not null;
-            double yMax = hasThreshold ? ComputeCurrentYMax() : 0;
+            var (yBottom, yTop) = hasThreshold ? ComputeCurrentYRange() : (0.0, 0.0);
 
             // only the flat fill follows the alarm runs, so only it repaints per tick while one is on screen
             bool hasAnyRun = !FillFade && hasThreshold && ComputeHasAnyRun();
 
-            var signature = new StrokeSignature(AccentColor, ThresholdValue, ThresholdDirection, ThresholdColor, yMax, hasAnyRun, FillFade);
+            var signature = new StrokeSignature(AccentColor, ThresholdValue, ThresholdDirection, ThresholdColor, yBottom, yTop, _isHangingRange, hasAnyRun, FillFade);
             if (!hasAnyRun && _lastStrokeSignature == signature) return;
             _lastStrokeSignature = signature;
 
@@ -133,8 +187,11 @@ namespace FluentSensors.Controls.SensorGraph
 
             // a gradient has one axis: the fade runs top to bottom and cannot cut alarm holes (RebuildSections draws
             // the boxes on top), the flat fill runs left to right and cuts itself away over the zones
+            // (the fade thins out towards the base line, which a hanging range has at the top)
             line.Fill = FillFade
-                ? BuildVerticalFill(accent, NormalFillAlphaFadeTop, NormalFillAlphaFadeBottom)
+                ? _isHangingRange
+                    ? BuildVerticalFill(accent, NormalFillAlphaFadeBottom, NormalFillAlphaFadeTop)
+                    : BuildVerticalFill(accent, NormalFillAlphaFadeTop, NormalFillAlphaFadeBottom)
                 : BuildFlatFillWithAlarmHoles(accent);
 
             // no threshold: one line color
@@ -147,11 +204,12 @@ namespace FluentSensors.Controls.SensorGraph
             // the line color splits at the threshold height
             var threshold = new SKColor(ThresholdColor.R, ThresholdColor.G, ThresholdColor.B);
 
-            if (yMax <= 0) yMax = 1; // from the signature above
+            double ySpan = yTop - yBottom; // from the signature above
+            if (ySpan <= 0) ySpan = 1;
 
             const double strokeOffsetPixels = 0.6; // lifts the color change point
             double chartHeight = Chart?.ActualHeight ?? 80.0;
-            double yRatio = 1.0 - (ThresholdValue.Value / yMax) + (strokeOffsetPixels / chartHeight);
+            double yRatio = ((yTop - ThresholdValue.Value) / ySpan) + (strokeOffsetPixels / chartHeight);
             yRatio = System.Math.Clamp(yRatio, 0.0, 1.0);
 
             SKColor topColor, bottomColor;
@@ -302,20 +360,34 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         // shared calculation helpers
-        // the y-axis maximum: ManualYMax, or the highest point when auto-scaled
-        private double ComputeCurrentYMax()
+        // the y range as numbers, the way ApplyYRange sets it: the manual limit, or the extent when auto-scaled
+        private (double Bottom, double Top) ComputeCurrentYRange()
         {
-            if (!IsAutoScaled) return ManualYMax;
+            if (!IsAutoScaled) return ManualYMax < 0 ? (ManualYMax, 0.0) : (0.0, ManualYMax);
 
-            if (Values == null || Values.Count == 0) return 100;
+            var (lowest, highest) = ComputeValueExtent();
 
-            double max = 0;
+            if (highest > 0) return (0, highest);
+            if (lowest < 0) return (lowest, 0);
+            return (0, FlatZeroYMax); // all zero
+        }
+
+        // the lowest and the highest point, both 0 without one beyond it
+        private (double Lowest, double Highest) ComputeValueExtent()
+        {
+            double lowest = 0;
+            double highest = 0;
+
+            if (Values == null) return (lowest, highest);
+
             foreach (var v in Values)
             {
-                if (v.HasValue && v.Value > max) max = v.Value;
+                if (!v.HasValue) continue;
+                if (v.Value > highest) highest = v.Value;
+                else if (v.Value < lowest) lowest = v.Value;
             }
 
-            return max <= 0 ? 100 : max;  // all zero
+            return (lowest, highest);
         }
 
         // the cheap check for the repaint guard; stops at the first alarm sample
