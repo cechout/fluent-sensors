@@ -35,9 +35,15 @@ How it currently looks performance-wise:
 
 Installer and portable are on the [releases page](https://github.com/cechout/fluent-sensors/releases), run on Windows 10 as well and update themselves from inside the app. Every build is x64 and needs administrator rights to read the hardware. CPU temperatures, motherboard sensors and RAM timings also need the [PawnIO](https://pawnio.eu) driver, which is installed separately; without it everything else still works.
 
-## 🔒 Privacy
+## 🔏 Code signing policy
 
-The app collects nothing, has no telemetry and no account. It only goes online for updates: to check whether a newer version exists, on GitHub or in the Microsoft Store, and to load the release notes. One switch in the settings keeps it from going online on its own. [PRIVACY.md](PRIVACY.md) explains exactly what is sent and when.
+Fluent Sensors needs administrator rights, so every release is signed: Windows shows who published it and that the files were not changed since.
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+- Signed: `FluentSensors.exe`, `FluentSensors.dll` and the installer of every GitHub release, built by GitHub Actions from this repository. Third-party libraries ship as their authors publish them.
+- Authors, reviewers and approvers: [Daniel Čech](https://github.com/cechout). Every signing request is approved by hand.
+- Privacy: the app collects nothing, has no telemetry and no account. It only goes online to check for updates and load the release notes, and one switch in the settings turns that off. [PRIVACY.md](PRIVACY.md) explains exactly what is sent and when.
 
 ## 🛠️ How to Build
 

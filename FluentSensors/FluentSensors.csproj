@@ -5,6 +5,8 @@
 	  
 	  <!-- the one version to bump; AssemblyVersion, FileVersion and InformationalVersion derive from it -->
 	  <Version>1.7.0</Version>
+	  <!-- no "+<commit>" suffix on the product version; the code signing metadata check compares it to the plain version -->
+	  <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 
 	  <Authors>Daniel Čech</Authors>
 	  <Product>Fluent Sensors</Product>
