@@ -544,9 +544,6 @@ namespace FluentSensors.Controls.SensorGraph
 
         private string GetSourceIconName(SensorGraphViewModel viewModel) => SensorSourceIcon.GetName(viewModel?.SensorId);
 
-        private Visibility GetSourceIconVisibility(SensorGraphViewModel viewModel) =>
-            viewModel != null ? Visibility.Visible : Visibility.Collapsed;
-
         private Brush GetBrushOrDefault(Brush value) => value ?? DefaultTextColor.Resolve();
 
         // the two status row variants are exclusive; compact wins

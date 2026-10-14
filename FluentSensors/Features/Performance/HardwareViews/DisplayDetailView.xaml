@@ -262,7 +262,7 @@
                         <fhFacts:FactListControl Facts="{x:Bind Display.GeneralFacts, Mode=OneWay}" />
                     </StackPanel>
 
-                    <!--  mode: resolution, scale and connector as a group, then refresh rate, its choices and the gpu behind it  -->
+                    <!--  mode: resolution, scale and connector as a group, then the refresh rate and the gpu behind it  -->
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
                             x:Uid="Display_ModePopup"
@@ -287,7 +287,7 @@
                                 TextWrapping="Wrap" />
                         </StackPanel>
 
-                        <StackPanel Spacing="2">
+                        <!--<StackPanel Spacing="2">
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
@@ -296,7 +296,7 @@
                                 Style="{ThemeResource BodyTextBlockStyle}"
                                 Text="{x:Bind Display.AvailableRefreshRatesText, Mode=OneWay}"
                                 TextWrapping="Wrap" />
-                        </StackPanel>
+                        </StackPanel>-->
 
                         <StackPanel Spacing="2">
                             <TextBlock

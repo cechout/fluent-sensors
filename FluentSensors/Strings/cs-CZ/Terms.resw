@@ -456,9 +456,6 @@
   <data name="Storage_TemperatureLimits" xml:space="preserve">
     <value>Teplotní limity</value>
   </data>
-  <data name="Network_LinkSpeedReceiveTransmit" xml:space="preserve">
-    <value>Rychlost linky (příjem / odesílání)</value>
-  </data>
   <data name="Network_Gateway" xml:space="preserve">
     <value>Brána</value>
   </data>

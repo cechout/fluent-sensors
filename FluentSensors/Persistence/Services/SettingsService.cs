@@ -257,6 +257,37 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // the source icon behind a sensor name, per source; mirrored onto SensorSourceIcon, which updates every icon
+        private bool _showLhmSourceIcon = Defaults.ShowLhmSourceIcon;
+        public bool ShowLhmSourceIcon
+        {
+            get => _showLhmSourceIcon;
+            set
+            {
+                if (_showLhmSourceIcon != value)
+                {
+                    _showLhmSourceIcon = value;
+                    SensorSourceIcon.SetVisibility(_showLhmSourceIcon, _showWindowsSourceIcon);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _showWindowsSourceIcon = Defaults.ShowWindowsSourceIcon;
+        public bool ShowWindowsSourceIcon
+        {
+            get => _showWindowsSourceIcon;
+            set
+            {
+                if (_showWindowsSourceIcon != value)
+                {
+                    _showWindowsSourceIcon = value;
+                    SensorSourceIcon.SetVisibility(_showLhmSourceIcon, _showWindowsSourceIcon);
+                    SaveDebounced();
+                }
+            }
+        }
+
         // the performance page graphs and the sensors page check boxes by sensor type instead of by hardware
         private bool _useSensorTypeColors = Defaults.UseSensorTypeColors;
         public bool UseSensorTypeColors
@@ -1205,6 +1236,9 @@ namespace FluentSensors.Persistence.Services
             _useHardwareIconColors = data.UseHardwareIconColors;
             HardwareColorMode.UseIconColors = _useHardwareIconColors;
             _useSensorTypeColors = data.UseSensorTypeColors;
+            _showLhmSourceIcon = data.ShowLhmSourceIcon;
+            _showWindowsSourceIcon = data.ShowWindowsSourceIcon;
+            SensorSourceIcon.SetVisibility(_showLhmSourceIcon, _showWindowsSourceIcon);
             _dataSizeUnitBasis = data.DataSizeUnitBasis;
             _dataSpeedUnitBasis = data.DataSpeedUnitBasis;
             SensorUnitFormatter.DataSizeBasis = _dataSizeUnitBasis;
@@ -1296,6 +1330,8 @@ namespace FluentSensors.Persistence.Services
                 GraphFillFade = _graphFillFade,
                 UseHardwareIconColors = _useHardwareIconColors,
                 UseSensorTypeColors = _useSensorTypeColors,
+                ShowLhmSourceIcon = _showLhmSourceIcon,
+                ShowWindowsSourceIcon = _showWindowsSourceIcon,
                 DataSizeUnitBasis = _dataSizeUnitBasis,
                 DataSpeedUnitBasis = _dataSpeedUnitBasis,
                 PerformanceGraphTimeSpanSeconds = _performanceGraphTimeSpanSeconds,

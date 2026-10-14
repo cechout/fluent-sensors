@@ -334,6 +334,12 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
     <value>Senzory, které rozhraní Windows API doplní nebo nahradí</value>
   </data>
+  <data name="Settings_SourceIconCard.Header" xml:space="preserve">
+    <value>Ikona zdroje</value>
+  </data>
+  <data name="Settings_SourceIconCard.Description" xml:space="preserve">
+    <value>Za názvem každého senzoru tohoto zdroje</value>
+  </data>
   <data name="Settings_WinStorageSensorsCard.Header" xml:space="preserve">
     <value>Úložiště</value>
   </data>
@@ -1391,8 +1397,7 @@ Server DHCP - přidělil adresu tohoto připojení</value>
   <data name="Network_GeneralPopup.Description" xml:space="preserve">
     <value>Představuje jedno aktivní připojení, ne všechna možná připojení adaptéru. Více aktivních připojení (např. Wi-Fi + Ethernet) má každé vlastní položku.
 Hardware - fyzický adaptér za tímto připojením
-Typ - jeho médium (Wi-Fi, Ethernet, ...)
-Rychlost linky (příjem / odesílání) - vyjednaná rychlost právě tohoto připojení, ne maximální jmenovitá rychlost adaptéru; u Wi-Fi se oba směry liší a mění se podle podmínek signálu</value>
+Typ - jeho médium (Wi-Fi, Ethernet, ...)</value>
   </data>
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1903,7 +1908,6 @@ Hustota pixelů - z nativního rozlišení a viditelné plochy</value>
     <value>Rozlišení - rozlišení plochy, se kterým Windows displej řídí
 Měřítko - jak moc Windows na tomto displeji zvětšuje text a aplikace
 Obnovovací frekvence - aktuální hodnota a doba jednoho snímku; mění se s dynamickou obnovovací frekvencí
-Dostupné obnovovací frekvence - co displej nabízí při aktuálním rozlišení
 Konektor - USB-C a Thunderbolt se zobrazí jako DisplayPort, panel notebooku jako Interní nebo eDP
 GPU - adaptér, který obraz vysílá; u hybridního notebooku obvykle integrovaný</value>
   </data>

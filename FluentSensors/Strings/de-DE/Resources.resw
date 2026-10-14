@@ -334,6 +334,12 @@ GPU-Auslastung - die am stärksten ausgelastete GPU-Engine, auf der diese App l�
   <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
     <value>Sensoren, die die Windows-API ergänzt oder ersetzt</value>
   </data>
+  <data name="Settings_SourceIconCard.Header" xml:space="preserve">
+    <value>Quellsymbol</value>
+  </data>
+  <data name="Settings_SourceIconCard.Description" xml:space="preserve">
+    <value>Hinter dem Namen jedes Sensors dieser Quelle</value>
+  </data>
   <data name="Settings_WinStorageSensorsCard.Header" xml:space="preserve">
     <value>Datenträger</value>
   </data>
@@ -1391,8 +1397,7 @@ DHCP-Server - hat die Adresse dieser Verbindung vergeben</value>
   <data name="Network_GeneralPopup.Description" xml:space="preserve">
     <value>Steht für eine aktive Verbindung, nicht für alle möglichen Verbindungen des Adapters. Mehrere aktive Verbindungen (z. B. WLAN + Ethernet) erhalten jeweils einen eigenen Eintrag.
 Hardware - physischer Adapter hinter dieser Verbindung
-Typ - ihr Medium (WLAN, Ethernet, ...)
-Verbindungsgeschwindigkeit (Empfangen / Senden) - ausgehandelte Rate genau dieser Verbindung, nicht die maximale Nenngeschwindigkeit des Adapters; bei WLAN unterscheiden sich beide Richtungen und schwanken mit den Signalbedingungen</value>
+Typ - ihr Medium (WLAN, Ethernet, ...)</value>
   </data>
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -1903,7 +1908,6 @@ Pixeldichte - aus nativer Auflösung und sichtbarer Fläche</value>
     <value>Auflösung - die Desktop-Auflösung, mit der Windows das Display ansteuert
 Skalierung - wie stark Windows Text und Apps auf diesem Display vergrößert
 Bildwiederholrate - aktuelle Rate und die Dauer eines Bildes; ändert sich mit der dynamischen Bildwiederholrate
-Verfügbare Bildwiederholraten - was das Display bei der aktuellen Auflösung anbietet
 Anschluss - USB-C und Thunderbolt erscheinen als DisplayPort, ein Laptop-Panel als Intern oder eDP
 GPU - der Adapter, der das Bild ausgibt; bei einem Hybrid-Laptop meist die integrierte</value>
   </data>

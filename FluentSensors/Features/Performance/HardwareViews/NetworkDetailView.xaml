@@ -542,17 +542,6 @@
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </controls:WrapPanel>
-
-                        <StackPanel Spacing="2">
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="{x:Bind loc:AppTerms.Get('Network_LinkSpeedReceiveTransmit')}" />
-                            <TextBlock
-                                Style="{ThemeResource BodyTextBlockStyle}"
-                                Text="{x:Bind Network.NetworkSpeedPairText, Mode=OneWay}"
-                                TextWrapping="Wrap" />
-                        </StackPanel>
                     </StackPanel>
 
                     <!--  wi-fi; only a wireless adapter that is connected  -->

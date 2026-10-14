@@ -456,9 +456,6 @@
   <data name="Storage_TemperatureLimits" xml:space="preserve">
     <value>Temperaturgrenzen</value>
   </data>
-  <data name="Network_LinkSpeedReceiveTransmit" xml:space="preserve">
-    <value>Verbindungsgeschwindigkeit (Empfangen / Senden)</value>
-  </data>
   <data name="Network_Gateway" xml:space="preserve">
     <value>Gateway</value>
   </data>

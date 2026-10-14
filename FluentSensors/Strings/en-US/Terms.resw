@@ -456,9 +456,6 @@
   <data name="Storage_TemperatureLimits" xml:space="preserve">
     <value>Temperature Limits</value>
   </data>
-  <data name="Network_LinkSpeedReceiveTransmit" xml:space="preserve">
-    <value>Link Speed (Receive / Transmit)</value>
-  </data>
   <data name="Network_Gateway" xml:space="preserve">
     <value>Gateway</value>
   </data>

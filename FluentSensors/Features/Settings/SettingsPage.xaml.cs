@@ -39,6 +39,10 @@ namespace FluentSensors.Features.Settings
         // the hardware names the LHM expander lists right now, in order; see RebuildEngineHardwareCards
         private List<string> _engineHardwareNames = new();
 
+        // the first card of the LHM expander, kept across the rebuilds of the hardware cards
+        private CommunityToolkit.WinUI.Controls.SettingsCard _lhmSourceIconCard;
+        private ToggleSwitch _lhmSourceIconToggle;
+
 
         // === constructor ===
 
@@ -384,6 +388,7 @@ namespace FluentSensors.Features.Settings
             _engineHardwareNames = names;
 
             EngineLhmExpander.Items.Clear();
+            EngineLhmExpander.Items.Add(GetLhmSourceIconCard());
 
             foreach (var (name, kind) in entries)
             {
@@ -417,11 +422,41 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.SetLhmHardwareEnabled(hardwareName, toggle.IsOn);
         }
 
-        // the two sources carry the icon that marks their sensors everywhere else
+        // the two sources carry the icon that marks their sensors everywhere else; so does the card that switches it
         private void ApplyEngineHeaderIcons()
         {
             EngineLhmExpander.HeaderIcon = SensorSourceIcon.CreateIcon(isWindows: false);
             EngineWindowsExpander.HeaderIcon = SensorSourceIcon.CreateIcon(isWindows: true);
+            WinSourceIconCard.HeaderIcon = SensorSourceIcon.CreateIcon(isWindows: true);
+        }
+
+        // built once from code, the LHM expander has only code built cards
+        private CommunityToolkit.WinUI.Controls.SettingsCard GetLhmSourceIconCard()
+        {
+            if (_lhmSourceIconCard != null) return _lhmSourceIconCard;
+
+            _lhmSourceIconToggle = new ToggleSwitch
+            {
+                IsOn = SettingsService.Instance.ShowLhmSourceIcon,
+                OnContent = AppStrings.Get("Common_ToggleSwitch/OnContent"),
+                OffContent = AppStrings.Get("Common_ToggleSwitch/OffContent")
+            };
+            _lhmSourceIconToggle.Toggled += (s, e) => SettingsService.Instance.ShowLhmSourceIcon = _lhmSourceIconToggle.IsOn;
+
+            _lhmSourceIconCard = new CommunityToolkit.WinUI.Controls.SettingsCard
+            {
+                Header = AppStrings.Get("Settings_SourceIconCard/Header"),
+                Description = AppStrings.Get("Settings_SourceIconCard/Description"),
+                HeaderIcon = SensorSourceIcon.CreateIcon(isWindows: false),
+                Content = _lhmSourceIconToggle
+            };
+            return _lhmSourceIconCard;
+        }
+
+        private void WinSourceIconToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.ShowWindowsSourceIcon = WinSourceIconToggle.IsOn;
         }
 
         private void WinStorageSensorsToggle_Toggled(object sender, RoutedEventArgs e)
@@ -446,6 +481,7 @@ namespace FluentSensors.Features.Settings
         {
             WinDisplayToggle.IsOn = SettingsService.Instance.WinDisplayEnabled;
             WinStorageSensorsToggle.IsOn = SettingsService.Instance.WinStorageSensorsEnabled;
+            WinSourceIconToggle.IsOn = SettingsService.Instance.ShowWindowsSourceIcon;
             WinWlanSensorsToggle.IsOn = SettingsService.Instance.WinWlanSensorsEnabled;
         }
 

@@ -341,10 +341,6 @@ namespace FluentSensors.Core.StaticInfo
             return $"{mbps:0.#} Mbps";
         }
 
-        // combined, like FormatVoltageRange
-        public static string FormatBitsPerSecondPair(long receiveBitsPerSecond, long transmitBitsPerSecond) =>
-            $"{FormatBitsPerSecond(receiveBitsPerSecond)} / {FormatBitsPerSecond(transmitBitsPerSecond)}";
-
         // DOT11_PHY_TYPE with the marketing name; 6E is ax on the 6 GHz band
         public static string FormatWlanStandard(uint phyType, uint frequencyMhz)
         {

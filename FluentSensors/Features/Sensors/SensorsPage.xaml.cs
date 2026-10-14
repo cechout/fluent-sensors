@@ -36,6 +36,9 @@ namespace FluentSensors.Features.Sensors
         private ICommandBarElement[] _commandBarPriorityOrder;
         private readonly Dictionary<ICommandBarElement, double> _commandBarButtonWidths = new();
         private HashSet<ICommandBarElement> _forcedOverflowElements;
+
+        // an icon only toggle in the bar, the width of the one on the graphs page
+        private const double IconOnlyButtonWidth = 42;
         private bool _commandBarWidthsCached = false;
         private const double OverflowButtonReservedWidth = 48;
         private const double LeftSectionMinWidth = 300; // from SensorListTitleText
@@ -473,8 +476,7 @@ namespace FluentSensors.Features.Sensors
         {
             _forcedOverflowElements = new HashSet<ICommandBarElement>
             {
-                ShowHiddenSensorsButton,
-                SensorTypeColorsButton
+                ShowHiddenSensorsButton
             };
 
             RebuildCommandBarOverflow();
@@ -618,8 +620,12 @@ namespace FluentSensors.Features.Sensors
             order.Add(HideSensorsButton);
             order.Add(ButtonSeparator);
             order.Add(ResetValuesButton);
-            order.Add(ShowHiddenSensorsButton);
+            order.Add(SensorTypeColorsSeparator);
             order.Add(SensorTypeColorsButton);
+            order.Add(ShowHiddenSensorsButton);
+
+            // every element starts in the bar, so its width is cached icon only
+            ApplySensorTypeColorsButtonPlacement(isInBar: true);
 
             return order.ToArray();
         }
@@ -716,22 +722,44 @@ namespace FluentSensors.Features.Sensors
                     SensorListCommandBar.SecondaryCommands.Add(element);
                 }
             }
+
+            // a separator that would open the menu has nothing above it to set apart
+            if (SensorListCommandBar.SecondaryCommands.FirstOrDefault() is AppBarSeparator leadingSeparator)
+            {
+                SensorListCommandBar.SecondaryCommands.Remove(leadingSeparator);
+            }
+
+            ApplySensorTypeColorsButtonPlacement(SensorListCommandBar.PrimaryCommands.Contains(SensorTypeColorsButton));
         }
 
-        // a separator joins the unit of the element before it, so the fit never cuts between them
-        private static List<ICommandBarElement[]> GroupIntoOverflowUnits(IEnumerable<ICommandBarElement> elements)
+        // in the bar only its icon, like on the graphs page; in the menu an entry with its label
+        private void ApplySensorTypeColorsButtonPlacement(bool isInBar)
+        {
+            SensorTypeColorsButton.LabelPosition = isInBar ? CommandBarLabelPosition.Collapsed : CommandBarLabelPosition.Default;
+            SensorTypeColorsButton.Width = isInBar ? IconOnlyButtonWidth : double.NaN;
+        }
+
+        // a separator joins the unit of the element before it, so the fit never cuts between them; the one in front of
+        // the sensor type colors button opens a group on the right and goes with the button instead
+        private List<ICommandBarElement[]> GroupIntoOverflowUnits(IEnumerable<ICommandBarElement> elements)
         {
             var units = new List<ICommandBarElement[]>();
+            ICommandBarElement leadingSeparator = null;
 
             foreach (var element in elements)
             {
-                if (element is AppBarSeparator && units.Count > 0)
+                if (ReferenceEquals(element, SensorTypeColorsSeparator))
+                {
+                    leadingSeparator = element;
+                }
+                else if (element is AppBarSeparator && units.Count > 0)
                 {
                     units[^1] = units[^1].Append(element).ToArray();
                 }
                 else
                 {
-                    units.Add(new[] { element });
+                    units.Add(leadingSeparator != null ? new[] { leadingSeparator, element } : new[] { element });
+                    leadingSeparator = null;
                 }
             }
 

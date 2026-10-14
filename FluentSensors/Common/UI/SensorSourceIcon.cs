@@ -3,6 +3,8 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
+using System;
+using System.Collections.Generic;
 
 using FluentSensors.Common.Sensors;
 
@@ -17,12 +19,12 @@ namespace FluentSensors.Common.UI
     {
         // both drawn on a 16 x 16 grid and filling 1 to 15, so they come out the same size
 
-        // four panes, their corners rounded by about half a pixel at the drawn size
+        // four panes; only the four outer corners of the logo are rounded, by about half a pixel at the drawn size
         private const string WindowsData =
-            "M1.7,1H6.8A0.7,0.7 0 0 1 7.5,1.7V6.8A0.7,0.7 0 0 1 6.8,7.5H1.7A0.7,0.7 0 0 1 1,6.8V1.7A0.7,0.7 0 0 1 1.7,1Z " +
-            "M9.2,1H14.3A0.7,0.7 0 0 1 15,1.7V6.8A0.7,0.7 0 0 1 14.3,7.5H9.2A0.7,0.7 0 0 1 8.5,6.8V1.7A0.7,0.7 0 0 1 9.2,1Z " +
-            "M1.7,8.5H6.8A0.7,0.7 0 0 1 7.5,9.2V14.3A0.7,0.7 0 0 1 6.8,15H1.7A0.7,0.7 0 0 1 1,14.3V9.2A0.7,0.7 0 0 1 1.7,8.5Z " +
-            "M9.2,8.5H14.3A0.7,0.7 0 0 1 15,9.2V14.3A0.7,0.7 0 0 1 14.3,15H9.2A0.7,0.7 0 0 1 8.5,14.3V9.2A0.7,0.7 0 0 1 9.2,8.5Z";
+            "M1.7,1H7.5V7.5H1V1.7A0.7,0.7 0 0 1 1.7,1Z " +
+            "M8.5,1H14.3A0.7,0.7 0 0 1 15,1.7V7.5H8.5Z " +
+            "M1,8.5H7.5V15H1.7A0.7,0.7 0 0 1 1,14.3Z " +
+            "M8.5,8.5H15V14.3A0.7,0.7 0 0 1 14.3,15H8.5Z";
 
         // a chip seen from above: the package as a frame, the die in its middle, the pin 1 corner bottom left and two
         // contacts on the right; even-odd, so the inner square of the frame is a hole the other parts sit in
@@ -35,9 +37,50 @@ namespace FluentSensors.Common.UI
             "M11.35,11H12.15A0.35,0.35 0 0 1 12.5,11.35V12.15A0.35,0.35 0 0 1 12.15,12.5H11.35A0.35,0.35 0 0 1 11,12.15V11.35A0.35,0.35 0 0 1 11.35,11Z";
 
 
+        // every Path that got a sensor, so a switched setting reaches the ones on screen; weak, panels come and go,
+        // and from every window thread
+        private static readonly List<WeakReference<Path>> _paths = new();
+        private static readonly object _pathsLock = new();
+        private const int PruneEvery = 256;
+        private static int _registrationsSincePrune;
+
+
+        // === settings mirror ===
+
+        // whether the icon shows for the sensors of each source; SettingsService persists them and mirrors them in
+        // here, like SensorUnitFormatter.DataSizeBasis
+        public static bool IsLhmIconVisible { get; private set; } = true;
+        public static bool IsWindowsIconVisible { get; private set; } = true;
+
+        public static void SetVisibility(bool isLhmIconVisible, bool isWindowsIconVisible)
+        {
+            if (IsLhmIconVisible == isLhmIconVisible && IsWindowsIconVisible == isWindowsIconVisible) return;
+
+            IsLhmIconVisible = isLhmIconVisible;
+            IsWindowsIconVisible = isWindowsIconVisible;
+
+            List<Path> paths;
+            lock (_pathsLock)
+            {
+                paths = new List<Path>();
+                foreach (var reference in _paths)
+                {
+                    if (reference.TryGetTarget(out var path)) paths.Add(path);
+                }
+            }
+
+            // each on the thread of its window
+            foreach (var path in paths)
+            {
+                path.DispatcherQueue?.TryEnqueue(() => Apply(path));
+            }
+        }
+
+
         // === attached properties ===
 
-        // on a Path: the sensor whose source it draws; the Path gets a geometry of its own
+        // on a Path: the sensor whose source it draws; the Path gets a geometry of its own, and collapses without a
+        // sensor or while the icon of its source is switched off (the panel around it drops the gap then)
         // not a binding on Path.Data: x:Bind evaluates one expression once for all its targets, and a geometry that
         // sits in one Path already makes the next Path throw (E_INVALIDARG)
         public static readonly DependencyProperty SensorIdProperty =
@@ -53,7 +96,10 @@ namespace FluentSensors.Common.UI
 
         private static void OnSensorIdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is Path path) path.Data = CreateGeometry(e.NewValue as string);
+            if (d is not Path path) return;
+
+            if (e.OldValue == null) Register(path);
+            Apply(path);
         }
 
 
@@ -77,13 +123,31 @@ namespace FluentSensors.Common.UI
 
         // === private helpers ===
 
-        // a new geometry per call; null without a sensor, the Path then draws nothing
-        private static Geometry CreateGeometry(string sensorId)
+        private static void Apply(Path path)
         {
-            if (string.IsNullOrEmpty(sensorId)) return null;
+            string sensorId = GetSensorId(path);
+            bool isVisible = !string.IsNullOrEmpty(sensorId)
+                && (SensorSourceMarker.IsWindowsSensor(sensorId) ? IsWindowsIconVisible : IsLhmIconVisible);
 
-            return ParseGeometry(SensorSourceMarker.IsWindowsSensor(sensorId) ? WindowsData : LhmData);
+            path.Data = isVisible ? CreateGeometry(sensorId) : null;
+            path.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        private static void Register(Path path)
+        {
+            lock (_pathsLock)
+            {
+                _paths.Add(new WeakReference<Path>(path));
+
+                if (++_registrationsSincePrune < PruneEvery) return;
+                _registrationsSincePrune = 0;
+                _paths.RemoveAll(reference => !reference.TryGetTarget(out _));
+            }
+        }
+
+        // a new geometry per call
+        private static Geometry CreateGeometry(string sensorId) =>
+            ParseGeometry(SensorSourceMarker.IsWindowsSensor(sensorId) ? WindowsData : LhmData);
 
         private static Geometry ParseGeometry(string data) => (Geometry)XamlBindingHelper.ConvertValue(typeof(Geometry), data);
     }

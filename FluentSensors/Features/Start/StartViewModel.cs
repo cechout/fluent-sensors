@@ -574,10 +574,14 @@ namespace FluentSensors.Features.Start
         {
             foreach (var drive in info.Drives)
             {
+                // size, then SSD or HDD, then the bus; an unknown media type leaves its place empty
+                string mediaType = HardwareInfoFormatter.FormatMediaType(drive.MediaType, drive.SpindleSpeedRpm);
+
                 rows.Add(Row(
                     HardwareGroupKind.Storage,
                     drive.FriendlyName,
                     HardwareInfoFormatter.FormatBytesAsGb(drive.SizeBytes),
+                    mediaType == "-" ? "" : mediaType,
                     drive.BusType));
             }
         }

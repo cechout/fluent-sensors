@@ -33,6 +33,10 @@ namespace FluentSensors.Persistence.Models
         // switched on the two pages themselves, not on the settings page
         public bool UseSensorTypeColors { get; set; } = false;
 
+        // the source icon behind a sensor name, per source (see SensorSourceIcon)
+        public bool ShowLhmSourceIcon { get; set; } = true;
+        public bool ShowWindowsSourceIcon { get; set; } = true;
+
         // graph; global, every graph in the app
         public GraphLineStyle GraphLineStyle { get; set; } = GraphLineStyle.Stepline;
         // the area under the line fades towards the bottom instead of one flat tone

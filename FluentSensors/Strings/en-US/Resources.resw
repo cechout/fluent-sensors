@@ -343,6 +343,12 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
   <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
     <value>Sensors the Windows API adds or replaces</value>
   </data>
+  <data name="Settings_SourceIconCard.Header" xml:space="preserve">
+    <value>Source Icon</value>
+  </data>
+  <data name="Settings_SourceIconCard.Description" xml:space="preserve">
+    <value>Behind the name of every sensor of this source</value>
+  </data>
   <data name="Settings_WinStorageSensorsCard.Header" xml:space="preserve">
     <value>Storage</value>
   </data>
@@ -1404,8 +1410,7 @@ DHCP Server - assigned the address of this connection</value>
   <data name="Network_GeneralPopup.Description" xml:space="preserve">
     <value>Represents one active connection, not the adapter's full range of possible connections. Multiple active connections (e.g. Wi-Fi + Ethernet) each get their own separate entry.
 Hardware - physical adapter behind this connection
-Type - its medium (Wi-Fi, Ethernet, ...)
-Link Speed (Receive / Transmit) - negotiated rate of this specific connection, not the adapter's maximum rated speed; the two directions differ on Wi-Fi and shift as signal conditions change</value>
+Type - its medium (Wi-Fi, Ethernet, ...)</value>
   </data>
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
@@ -1952,7 +1957,6 @@ Pixel Density - from the native resolution and the visible area</value>
     <value>Resolution - the desktop resolution Windows drives the display at
 Scale - how much Windows enlarges text and apps on this display
 Refresh Rate - current rate and the time one frame stays up; moves with Dynamic Refresh Rate
-Available Refresh Rates - what the display offers at the current resolution
 Connector - USB-C and Thunderbolt show as DisplayPort, a laptop panel as Internal or eDP
 GPU - the adapter that scans the display out; on a hybrid laptop usually the integrated one</value>
   </data>

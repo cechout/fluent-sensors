@@ -731,8 +731,6 @@ namespace FluentSensors.Core.StaticInfo
                     Description: nic.Description,
                     MacAddress: nic.GetPhysicalAddress().ToString(),
                     SpeedBitsPerSecond: nic.Speed,
-                    ReceiveSpeedBitsPerSecond: wlan != null ? wlan.ReceiveRateKbps * 1000L : nic.Speed,
-                    TransmitSpeedBitsPerSecond: wlan != null ? wlan.TransmitRateKbps * 1000L : nic.Speed,
                     InterfaceType: nic.NetworkInterfaceType,
                     IPv4Addresses: ipv4Addresses,
                     IPv6Addresses: ipv6Addresses,

@@ -48,8 +48,7 @@
                     fhUi:SensorSourceIcon.SensorId="{x:Bind GetSourceIconSensorId(ViewModel), Mode=OneWay}"
                     Fill="{ThemeResource TextFillColorSecondaryBrush}"
                     Stretch="Uniform"
-                    ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}"
-                    Visibility="{x:Bind GetSourceIconVisibility(ViewModel), Mode=OneWay}" />
+                    ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}" />
             </fhControls:TrailingContentPanel>
 
 
@@ -122,8 +121,7 @@
                             fhUi:SensorSourceIcon.SensorId="{x:Bind GetSourceIconSensorId(ViewModel), Mode=OneWay}"
                             Fill="{ThemeResource TextFillColorSecondaryBrush}"
                             Stretch="Uniform"
-                            ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}"
-                            Visibility="{x:Bind GetSourceIconVisibility(ViewModel), Mode=OneWay}" />
+                            ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}" />
 
                         <FontIcon FontSize="10" Glyph="&#xE70D;" />
                     </StackPanel>
@@ -166,8 +164,7 @@
                         fhUi:SensorSourceIcon.SensorId="{x:Bind GetSourceIconSensorId(ViewModel), Mode=OneWay}"
                         Fill="{ThemeResource TextFillColorSecondaryBrush}"
                         Stretch="Uniform"
-                        ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}"
-                        Visibility="{x:Bind GetSourceIconVisibility(ViewModel), Mode=OneWay}" />
+                        ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}" />
                 </StackPanel>
 
                 <!--  current value  -->
@@ -229,8 +226,7 @@
                         fhUi:SensorSourceIcon.SensorId="{x:Bind GetSourceIconSensorId(ViewModel), Mode=OneWay}"
                         Fill="{ThemeResource TextFillColorSecondaryBrush}"
                         Stretch="Uniform"
-                        ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}"
-                        Visibility="{x:Bind GetSourceIconVisibility(ViewModel), Mode=OneWay}" />
+                        ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}" />
                 </fhControls:TrailingContentPanel>
 
                 <!--  current value  -->

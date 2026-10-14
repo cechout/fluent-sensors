@@ -368,6 +368,14 @@
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
+                    <!--  the icon behind the names of the sensors Windows measures; its header icon comes from code  -->
+                    <controls:SettingsCard x:Name="WinSourceIconCard" x:Uid="Settings_SourceIconCard">
+                        <ToggleSwitch
+                            x:Name="WinSourceIconToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="WinSourceIconToggle_Toggled" />
+                    </controls:SettingsCard>
+
                     <!--  the temperature in place of the LHM one, and the used space in bytes  -->
                     <controls:SettingsCard x:Uid="Settings_WinStorageSensorsCard">
                         <ToggleSwitch

@@ -24,10 +24,6 @@ namespace FluentSensors.Core.StaticInfo
         string Description,
         string MacAddress,
         long SpeedBitsPerSecond,
-
-        // both directions apart; they differ on Wi-Fi, on a cable both equal SpeedBitsPerSecond
-        long ReceiveSpeedBitsPerSecond,
-        long TransmitSpeedBitsPerSecond,
         NetworkInterfaceType InterfaceType,
         IReadOnlyList<string> IPv4Addresses,
         IReadOnlyList<string> IPv6Addresses,

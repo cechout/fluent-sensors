@@ -167,7 +167,6 @@ namespace FluentSensors.Features.Performance.Lhm
         public string NetworkIPv4AddressesText => _staticInfo != null ? HardwareInfoFormatter.FormatIpAddresses(_staticInfo.IPv4Addresses) : "-";
         public string NetworkIPv6AddressesText => _staticInfo != null ? HardwareInfoFormatter.FormatIpAddresses(_staticInfo.IPv6Addresses) : "-";
         public string NetworkDhcpEnabledText => _staticInfo != null ? HardwareInfoFormatter.FormatYesNo(_staticInfo.DhcpEnabled) : "-";
-        public string NetworkSpeedPairText => _staticInfo != null ? HardwareInfoFormatter.FormatBitsPerSecondPair(_staticInfo.ReceiveSpeedBitsPerSecond, _staticInfo.TransmitSpeedBitsPerSecond) : "-";
         public string NetworkGatewaysText => HardwareInfoFormatter.FormatIpAddresses(_staticInfo?.Gateways);
         public string NetworkDnsServersText => HardwareInfoFormatter.FormatIpAddresses(_staticInfo?.DnsServers);
         public string NetworkDhcpServersText => HardwareInfoFormatter.FormatIpAddresses(_staticInfo?.DhcpServers);
@@ -214,7 +213,7 @@ namespace FluentSensors.Features.Performance.Lhm
             nameof(NetworkNameText), nameof(NetworkMacAddressText),
             nameof(NetworkInterfaceTypeText), nameof(NetworkIPv4AddressesText), nameof(NetworkIPv6AddressesText),
             nameof(NetworkDhcpEnabledText), nameof(PerformanceDisplayName), nameof(IconGlyph),
-            nameof(NetworkSpeedPairText), nameof(NetworkGatewaysText), nameof(NetworkDnsServersText),
+            nameof(NetworkGatewaysText), nameof(NetworkDnsServersText),
             nameof(NetworkDhcpServersText), nameof(NetworkDriverVersionText), nameof(NetworkDriverDateText),
             nameof(NetworkDriverProviderText), nameof(IsWlan), nameof(NetworkWlanStandardText),
             nameof(NetworkWlanBandText), nameof(NetworkWlanChannelText), nameof(NetworkWlanSecurityText)
