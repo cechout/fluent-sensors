@@ -262,6 +262,7 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         private Brush _currentValueColor;
+        private Windows.UI.Color _currentValueThresholdColor; // the threshold color behind CurrentValueColor, see RecalculateColor
         public Brush CurrentValueColor
         {
             get => _currentValueColor;
@@ -298,7 +299,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         private void OnThemeChanged(string newTheme)
         {
-            RecalculateColor();
+            RecalculateColor(force: true); // the default brush depends on the theme
         }
 
         // the value color follows the threshold
@@ -605,12 +606,19 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        // the value color against the threshold
-        private void RecalculateColor()
+        // the value color against the threshold; a new brush only when the color changes
+        // (one per tick for every graph of the app piled up native brushes the GC collects late, and every new one made
+        // each panel showing the graph re-run all its bindings)
+        private void RecalculateColor(bool force = false)
         {
-            IsThresholdColorActive = Threshold.IsBreached(_currentRaw);
+            bool isActive = Threshold.IsBreached(_currentRaw);
+            Windows.UI.Color thresholdColor = isActive ? Threshold.Color : default;
 
-            CurrentValueColor = IsThresholdColorActive
+            if (!force && _currentValueColor != null && isActive == IsThresholdColorActive && thresholdColor == _currentValueThresholdColor) return;
+
+            IsThresholdColorActive = isActive;
+            _currentValueThresholdColor = thresholdColor;
+            CurrentValueColor = isActive
                 ? new SolidColorBrush(Threshold.Color)
                 : DefaultTextColor.Resolve();
         }

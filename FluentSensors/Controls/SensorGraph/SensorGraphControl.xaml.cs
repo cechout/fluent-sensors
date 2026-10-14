@@ -206,6 +206,11 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === live rendering gate ===
 
+        public bool IsRenderingActive => _isRenderingActive;
+
+        // for the panel around the graph, which pauses its own per-tick work with it
+        public event EventHandler RenderingActiveChanged;
+
         // switches live rendering without destroying the graph:
         // off - detached from the live values, no LiveCharts work and no repaint per tick
         // on - rejoined, with one catch-up repaint
@@ -214,6 +219,7 @@ namespace FluentSensors.Controls.SensorGraph
             if (_isRenderingActive == active) return;
             _isRenderingActive = active;
             _activeRenderingCount += active ? 1 : -1;
+            RenderingActiveChanged?.Invoke(this, EventArgs.Empty);
 
             if (active)
             {
