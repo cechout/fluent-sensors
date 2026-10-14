@@ -21,6 +21,10 @@ namespace FluentSensors.Common.Localization
             ("en-US", "English"),
             ("de-DE", "Deutsch"),
             ("cs-CZ", "Čeština"),
+            ("fr-FR", "Français"),
+            ("es-ES", "Español"),
+            ("pl-PL", "Polski"),
+            ("tr-TR", "Türkçe"),
         };
 
         // the setting the running process applied; the settings page compares against it to offer a restart
