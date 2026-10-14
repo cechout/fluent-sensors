@@ -334,11 +334,8 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
     <value>Senzory, které rozhraní Windows API doplní nebo nahradí</value>
   </data>
-  <data name="Settings_SourceIconCard.Header" xml:space="preserve">
-    <value>Ikona zdroje</value>
-  </data>
-  <data name="Settings_SourceIconCard.Description" xml:space="preserve">
-    <value>Za názvem každého senzoru tohoto zdroje</value>
+  <data name="Settings_ShowSourceIconCard.Header" xml:space="preserve">
+    <value>Zobrazit ikonu zdroje</value>
   </data>
   <data name="Settings_WinStorageSensorsCard.Header" xml:space="preserve">
     <value>Úložiště</value>

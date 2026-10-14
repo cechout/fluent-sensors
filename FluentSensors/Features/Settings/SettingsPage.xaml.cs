@@ -422,12 +422,11 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.SetLhmHardwareEnabled(hardwareName, toggle.IsOn);
         }
 
-        // the two sources carry the icon that marks their sensors everywhere else; so does the card that switches it
+        // the two sources carry the icon that marks their sensors everywhere else
         private void ApplyEngineHeaderIcons()
         {
             EngineLhmExpander.HeaderIcon = SensorSourceIcon.CreateIcon(isWindows: false);
             EngineWindowsExpander.HeaderIcon = SensorSourceIcon.CreateIcon(isWindows: true);
-            WinSourceIconCard.HeaderIcon = SensorSourceIcon.CreateIcon(isWindows: true);
         }
 
         // built once from code, the LHM expander has only code built cards
@@ -445,9 +444,7 @@ namespace FluentSensors.Features.Settings
 
             _lhmSourceIconCard = new CommunityToolkit.WinUI.Controls.SettingsCard
             {
-                Header = AppStrings.Get("Settings_SourceIconCard/Header"),
-                Description = AppStrings.Get("Settings_SourceIconCard/Description"),
-                HeaderIcon = SensorSourceIcon.CreateIcon(isWindows: false),
+                Header = AppStrings.Get("Settings_ShowSourceIconCard/Header"),
                 Content = _lhmSourceIconToggle
             };
             return _lhmSourceIconCard;

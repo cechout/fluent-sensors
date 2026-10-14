@@ -620,8 +620,8 @@ namespace FluentSensors.Features.Sensors
             order.Add(HideSensorsButton);
             order.Add(ButtonSeparator);
             order.Add(ResetValuesButton);
-            order.Add(SensorTypeColorsSeparator);
             order.Add(SensorTypeColorsButton);
+            order.Add(SensorTypeColorsSeparator);
             order.Add(ShowHiddenSensorsButton);
 
             // every element starts in the bar, so its width is cached icon only
@@ -723,12 +723,6 @@ namespace FluentSensors.Features.Sensors
                 }
             }
 
-            // a separator that would open the menu has nothing above it to set apart
-            if (SensorListCommandBar.SecondaryCommands.FirstOrDefault() is AppBarSeparator leadingSeparator)
-            {
-                SensorListCommandBar.SecondaryCommands.Remove(leadingSeparator);
-            }
-
             ApplySensorTypeColorsButtonPlacement(SensorListCommandBar.PrimaryCommands.Contains(SensorTypeColorsButton));
         }
 
@@ -739,27 +733,20 @@ namespace FluentSensors.Features.Sensors
             SensorTypeColorsButton.Width = isInBar ? IconOnlyButtonWidth : double.NaN;
         }
 
-        // a separator joins the unit of the element before it, so the fit never cuts between them; the one in front of
-        // the sensor type colors button opens a group on the right and goes with the button instead
-        private List<ICommandBarElement[]> GroupIntoOverflowUnits(IEnumerable<ICommandBarElement> elements)
+        // a separator joins the unit of the element before it, so the fit never cuts between them
+        private static List<ICommandBarElement[]> GroupIntoOverflowUnits(IEnumerable<ICommandBarElement> elements)
         {
             var units = new List<ICommandBarElement[]>();
-            ICommandBarElement leadingSeparator = null;
 
             foreach (var element in elements)
             {
-                if (ReferenceEquals(element, SensorTypeColorsSeparator))
-                {
-                    leadingSeparator = element;
-                }
-                else if (element is AppBarSeparator && units.Count > 0)
+                if (element is AppBarSeparator && units.Count > 0)
                 {
                     units[^1] = units[^1].Append(element).ToArray();
                 }
                 else
                 {
-                    units.Add(leadingSeparator != null ? new[] { leadingSeparator, element } : new[] { element });
-                    leadingSeparator = null;
+                    units.Add(new[] { element });
                 }
             }
 

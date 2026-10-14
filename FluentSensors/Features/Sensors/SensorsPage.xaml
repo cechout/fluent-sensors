@@ -275,8 +275,6 @@
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
-                            <AppBarSeparator x:Name="SensorTypeColorsSeparator" />
-
                             <!--  check boxes by sensor type instead of by hardware; in the bar only its icon, like on the graphs page  -->
                             <AppBarToggleButton
                                 x:Name="SensorTypeColorsButton"
@@ -286,6 +284,9 @@
                                     <FontIcon Glyph="&#xE790;" />
                                 </AppBarToggleButton.Icon>
                             </AppBarToggleButton>
+
+                            <!--  sets the toggle apart from the overflow button; leaves with it  -->
+                            <AppBarSeparator x:Name="SensorTypeColorsSeparator" />
                         </CommandBar.PrimaryCommands>
 
                         <CommandBar.SecondaryCommands>

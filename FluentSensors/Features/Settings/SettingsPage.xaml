@@ -357,7 +357,51 @@
                 x:Name="EngineLhmExpander"
                 x:Uid="Settings_EngineLhmExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                IsExpanded="False" />
+                IsExpanded="False">
+
+                <!--  (an example row like the csv format expander; the icon in it follows the switch below)  -->
+                <controls:SettingsExpander.ItemsHeader>
+                    <controls:SettingsCard
+                        MinHeight="0"
+                        Padding="58,12,16,8"
+                        HorizontalContentAlignment="Stretch"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderThickness="0"
+                        ContentAlignment="Vertical"
+                        CornerRadius="0">
+
+                        <Grid HorizontalAlignment="Stretch" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                x:Uid="Settings_ExampleRowText"
+                                Grid.Column="0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}" />
+
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="6">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="CPU Package" />
+                                <Path
+                                    Width="11.25"
+                                    Height="11.25"
+                                    VerticalAlignment="Center"
+                                    fhUi:SensorSourceIcon.SensorId="/lpc/example/temperature/0"
+                                    Fill="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Stretch="Uniform" />
+                            </StackPanel>
+                        </Grid>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.ItemsHeader>
+            </controls:SettingsExpander>
 
             <!--  Windows: what it adds to or replaces in LHM hardware  -->
             <!--  (every switch is off by default)  -->
@@ -367,9 +411,52 @@
                 fhUi:FocusGroup.IsEnabled="True"
                 IsExpanded="False">
 
+                <!--  (an example row like the csv format expander; the icon in it follows the switch below)  -->
+                <controls:SettingsExpander.ItemsHeader>
+                    <controls:SettingsCard
+                        MinHeight="0"
+                        Padding="58,12,16,8"
+                        HorizontalContentAlignment="Stretch"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderThickness="0"
+                        ContentAlignment="Vertical"
+                        CornerRadius="0">
+
+                        <Grid HorizontalAlignment="Stretch" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                x:Uid="Settings_ExampleRowText"
+                                Grid.Column="0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}" />
+
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="6">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Signal Strength" />
+                                <Path
+                                    Width="11.25"
+                                    Height="11.25"
+                                    VerticalAlignment="Center"
+                                    fhUi:SensorSourceIcon.SensorId="/win/example/level/0"
+                                    Fill="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Stretch="Uniform" />
+                            </StackPanel>
+                        </Grid>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.ItemsHeader>
+
                 <controls:SettingsExpander.Items>
-                    <!--  the icon behind the names of the sensors Windows measures; its header icon comes from code  -->
-                    <controls:SettingsCard x:Name="WinSourceIconCard" x:Uid="Settings_SourceIconCard">
+                    <!--  the icon behind the names of the sensors Windows measures  -->
+                    <controls:SettingsCard x:Uid="Settings_ShowSourceIconCard">
                         <ToggleSwitch
                             x:Name="WinSourceIconToggle"
                             x:Uid="Common_ToggleSwitch"

@@ -121,7 +121,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             bool hasTemperature = Memory?.HasModuleTemperature == true;
 
             // half as tall as a memory graph, like the stacked graphs beside the big one on the cpu and gpu tab
-            ModuleTemperatureRow.Height = hasTemperature ? new GridLength(0.5, GridUnitType.Star) : new GridLength(0);
+            ModuleTemperatureRow.Height = hasTemperature ? new GridLength(0.7, GridUnitType.Star) : new GridLength(0);
             ModuleTemperaturePanel.Opacity = hasTemperature ? 1 : 0;
             ModuleTemperaturePanel.IsHitTestVisible = hasTemperature;
             ModuleTemperatureTile.Visibility = hasTemperature ? Visibility.Visible : Visibility.Collapsed;

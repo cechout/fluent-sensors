@@ -334,11 +334,8 @@ GPU-Auslastung - die am stärksten ausgelastete GPU-Engine, auf der diese App l�
   <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
     <value>Sensoren, die die Windows-API ergänzt oder ersetzt</value>
   </data>
-  <data name="Settings_SourceIconCard.Header" xml:space="preserve">
-    <value>Quellsymbol</value>
-  </data>
-  <data name="Settings_SourceIconCard.Description" xml:space="preserve">
-    <value>Hinter dem Namen jedes Sensors dieser Quelle</value>
+  <data name="Settings_ShowSourceIconCard.Header" xml:space="preserve">
+    <value>Quellsymbol anzeigen</value>
   </data>
   <data name="Settings_WinStorageSensorsCard.Header" xml:space="preserve">
     <value>Datenträger</value>
