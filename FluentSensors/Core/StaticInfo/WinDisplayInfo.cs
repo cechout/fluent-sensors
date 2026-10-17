@@ -42,7 +42,6 @@ namespace FluentSensors.Core.StaticInfo
         int NativeWidthPixels = 0, // the preferred mode of the panel
         int NativeHeightPixels = 0,
         int ScalePercent = 0, // 150 for 150 %
-        IReadOnlyList<int>? RefreshRatesHz = null, // what the display offers at the current resolution
         int? SdrWhiteLevelNits = null, // brightness of SDR content while HDR is on
         double? MaxLuminanceNits = null, // as the display reports it to DXGI
         double? MinLuminanceNits = null,

@@ -557,9 +557,6 @@
   <data name="Display_OrientationPortraitFlipped" xml:space="preserve">
     <value>Na výšku (převráceně)</value>
   </data>
-  <data name="Display_AvailableRefreshRates" xml:space="preserve">
-    <value>Dostupné obnovovací frekvence</value>
-  </data>
   <data name="Display_Primary" xml:space="preserve">
     <value>Hlavní displej</value>
   </data>

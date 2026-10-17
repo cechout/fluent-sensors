@@ -77,14 +77,6 @@ namespace FluentSensors.Core.StaticInfo
         private const uint OutputTechnologyDisplayPortEmbedded = 11;
         private const uint OutputTechnologyUdiEmbedded = 13;
 
-        // DEVMODEW: the size field, then width, height and frequency of the mode
-        private const int DevModeSize = 220;
-        private const int DevModeSizeOffset = 68;
-        private const int DevModeWidthOffset = 172;
-        private const int DevModeHeightOffset = 176;
-        private const int DevModeFrequencyOffset = 184;
-        private const int DevModeEnumLimit = 4000; // a display lists a few hundred modes at most
-
         private const uint MonitorDefaultToNull = 0;
         private const int MdtEffectiveDpi = 0;
 
@@ -232,7 +224,6 @@ namespace FluentSensors.Core.StaticInfo
                     NativeWidthPixels = nativeWidth,
                     NativeHeightPixels = nativeHeight,
                     ScalePercent = QueryScalePercent(display),
-                    RefreshRatesHz = QueryRefreshRates(display),
                     SdrWhiteLevelNits = display.IsHdrSupported && display.IsHdrEnabled ? QuerySdrWhiteLevel(paths, targetOffset) : null,
                     MaxLuminanceNits = nits.Max > 0 ? nits.Max : null,
                     MinLuminanceNits = nits.Max > 0 ? nits.Min : null,
@@ -404,35 +395,6 @@ namespace FluentSensors.Core.StaticInfo
             if (display.WidthPixels == 0) return IntPtr.Zero;
 
             return MonitorFromPoint(new POINT { X = display.PositionX, Y = display.PositionY }, MonitorDefaultToNull);
-        }
-
-        // every refresh rate the display offers at its current resolution, ascending
-        private static List<int> QueryRefreshRates(WinDisplayInfo display)
-        {
-            var rates = new SortedSet<int>();
-            if (display.GdiDeviceName.Length == 0 || display.WidthPixels == 0) return rates.ToList();
-
-            // a rotated display lists its modes unrotated
-            bool isTurned = display.Rotation is 2 or 4;
-            int width = isTurned ? display.HeightPixels : display.WidthPixels;
-            int height = isTurned ? display.WidthPixels : display.HeightPixels;
-
-            var devMode = new byte[DevModeSize];
-            for (int i = 0; i < DevModeEnumLimit; i++)
-            {
-                Array.Clear(devMode);
-                BitConverter.TryWriteBytes(devMode.AsSpan(DevModeSizeOffset), (ushort)DevModeSize);
-                if (!EnumDisplaySettingsW(display.GdiDeviceName, i, devMode)) break;
-
-                if (BitConverter.ToUInt32(devMode, DevModeWidthOffset) != width) continue;
-                if (BitConverter.ToUInt32(devMode, DevModeHeightOffset) != height) continue;
-
-                // 0 and 1 stand for "the default of the hardware"
-                int rate = (int)BitConverter.ToUInt32(devMode, DevModeFrequencyOffset);
-                if (rate > 1) rates.Add(rate);
-            }
-
-            return rates.ToList();
         }
 
         // peak and black level in nits per GDI device name, as the display reports them; DXGI fills in a default for a
@@ -658,11 +620,6 @@ namespace FluentSensors.Core.StaticInfo
         // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-displayconfiggetdeviceinfo
         [LibraryImport("user32.dll")]
         private static unsafe partial int DisplayConfigGetDeviceInfo(byte* requestPacket);
-
-        // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdisplaysettingsw
-        [LibraryImport("user32.dll", StringMarshalling = StringMarshalling.Utf16)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static partial bool EnumDisplaySettingsW(string deviceName, int modeNumber, [In, Out] byte[] devMode);
 
         // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-monitorfrompoint
         [LibraryImport("user32.dll")]

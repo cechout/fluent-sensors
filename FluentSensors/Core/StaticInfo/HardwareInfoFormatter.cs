@@ -560,10 +560,6 @@ namespace FluentSensors.Core.StaticInfo
 
         public static string FormatScale(int scalePercent) => scalePercent > 0 ? $"{scalePercent} %" : "-";
 
-        // "60 / 120 / 165 Hz"
-        public static string FormatRefreshRates(IReadOnlyList<int>? ratesHz) =>
-            ratesHz is { Count: > 0 } ? $"{string.Join(" / ", ratesHz)} Hz" : "-";
-
         // whole nits above ten, the black level keeps its decimals
         public static string FormatNits(double? nits)
         {

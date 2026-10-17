@@ -287,17 +287,6 @@
                                 TextWrapping="Wrap" />
                         </StackPanel>
 
-                        <!--<StackPanel Spacing="2">
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Text="{x:Bind loc:AppTerms.Get('Display_AvailableRefreshRates')}" />
-                            <TextBlock
-                                Style="{ThemeResource BodyTextBlockStyle}"
-                                Text="{x:Bind Display.AvailableRefreshRatesText, Mode=OneWay}"
-                                TextWrapping="Wrap" />
-                        </StackPanel>-->
-
                         <StackPanel Spacing="2">
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"

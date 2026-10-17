@@ -92,8 +92,6 @@ namespace FluentSensors.Features.Performance.Win
             ? HardwareInfoFormatter.FormatRefreshRateWithFrameTime(info.RefreshRateHz)
             : "-";
 
-        public string AvailableRefreshRatesText => HardwareInfoFormatter.FormatRefreshRates(MatchStaticInfo()?.RefreshRatesHz);
-
         // the adapter that scans the display out
         public string GpuText
         {
@@ -213,7 +211,6 @@ namespace FluentSensors.Features.Performance.Win
             OnPropertyChanged(nameof(GeneralFacts));
             OnPropertyChanged(nameof(ModeFacts));
             OnPropertyChanged(nameof(RefreshRateText));
-            OnPropertyChanged(nameof(AvailableRefreshRatesText));
             OnPropertyChanged(nameof(GpuText));
             OnPropertyChanged(nameof(SignalFacts));
             OnPropertyChanged(nameof(DataRateText));

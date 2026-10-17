@@ -557,9 +557,6 @@
   <data name="Display_OrientationPortraitFlipped" xml:space="preserve">
     <value>Hochformat (gedreht)</value>
   </data>
-  <data name="Display_AvailableRefreshRates" xml:space="preserve">
-    <value>Verfügbare Bildwiederholraten</value>
-  </data>
   <data name="Display_Primary" xml:space="preserve">
     <value>Hauptanzeige</value>
   </data>
