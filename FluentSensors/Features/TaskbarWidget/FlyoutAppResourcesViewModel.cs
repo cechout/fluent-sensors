@@ -3,15 +3,14 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-using FluentSensors.Common.Localization;
 using FluentSensors.Core;
 
 
 namespace FluentSensors.Features.TaskbarWidget
 {
     // the app resources of the flyout drawer:
-    // the app status of the start page, from AppStatusService and an own WinAppGpuMonitor; live only between
-    // Start and Stop, so a collapsed drawer costs nothing
+    // cpu, ram and gpu usage of this app as the start page shows them, from AppStatusService and an own
+    // WinAppGpuMonitor; live only between Start and Stop, so a closed drawer costs nothing
     public class FlyoutAppResourcesViewModel : INotifyPropertyChanged
     {
         // === fields ===
@@ -23,11 +22,6 @@ namespace FluentSensors.Features.TaskbarWidget
         private string _cpuValue = "-";
         private string _ramValue = "-";
         private string _gpuUsageValue = "-";
-        private string _gpuMemoryValue = "-";
-        private string _sensorsFoundValue = "-";
-        private string _sensorsRenderedValue = "-";
-        private string _updateIntervalValue = "-";
-        private string _readTimeValue = "-";
 
 
         // === bindable properties ===
@@ -48,36 +42,6 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             get => _gpuUsageValue;
             private set { _gpuUsageValue = value; OnPropertyChanged(); }
-        }
-
-        public string GpuMemoryValue
-        {
-            get => _gpuMemoryValue;
-            private set { _gpuMemoryValue = value; OnPropertyChanged(); }
-        }
-
-        public string SensorsFoundValue
-        {
-            get => _sensorsFoundValue;
-            private set { _sensorsFoundValue = value; OnPropertyChanged(); }
-        }
-
-        public string SensorsRenderedValue
-        {
-            get => _sensorsRenderedValue;
-            private set { _sensorsRenderedValue = value; OnPropertyChanged(); }
-        }
-
-        public string UpdateIntervalValue
-        {
-            get => _updateIntervalValue;
-            private set { _updateIntervalValue = value; OnPropertyChanged(); }
-        }
-
-        public string ReadTimeValue
-        {
-            get => _readTimeValue;
-            private set { _readTimeValue = value; OnPropertyChanged(); }
         }
 
 
@@ -107,10 +71,6 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             CpuValue = $"{data.CpuUsagePercent:0.0} %";
             RamValue = $"{data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
-            SensorsFoundValue = data.SensorsFound.ToString();
-            SensorsRenderedValue = data.SensorsRendered.ToString();
-            UpdateIntervalValue = AppStrings.Format("Start_UpdateIntervalValue", data.ActualUpdateIntervalMs, data.AimedUpdateIntervalMs);
-            ReadTimeValue = $"{data.ReadDurationMs:0} ms";
 
             ReadGpu();
         }
@@ -131,10 +91,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 _dispatcherQueue.TryEnqueue(() =>
                 {
                     _isGpuReadRunning = false;
-                    if (data == null || monitor != _gpuMonitor) return;
-
-                    GpuUsageValue = $"{data.UsagePercent:0.0} %";
-                    GpuMemoryValue = $"{data.MemoryBytes / 1024.0 / 1024.0:0} MB";
+                    if (data != null && monitor == _gpuMonitor) GpuUsageValue = $"{data.UsagePercent:0.0} %";
                 });
             });
         }
