@@ -1912,8 +1912,9 @@ GPU - adaptér, který obraz vysílá; u hybridního notebooku obvykle integrova
     <value>Zdroj:</value>
   </data>
   <data name="Display_SignalPopup.Description" xml:space="preserve">
-    <value>Velikost snímku - jeden nekomprimovaný snímek: rozlišení x bity na pixel
+    <value>Pixely - šířka x výška rozlišení
 Bity na pixel - tři barevné kanály v dané barevné hloubce
+Velikost snímku - jeden nekomprimovaný snímek: pixely x bity na pixel
 Datový tok - velikost snímku x obnovovací frekvence, při aktuální frekvenci a při 60 Hz
 Pouze viditelné pixely: bez zatemňovacího intervalu, bez komprese (DSC), bez podvzorkování barev</value>
   </data>

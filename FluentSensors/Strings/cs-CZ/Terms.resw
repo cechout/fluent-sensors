@@ -617,6 +617,9 @@
   <data name="Display_Signal" xml:space="preserve">
     <value>Signál</value>
   </data>
+  <data name="Display_Pixels" xml:space="preserve">
+    <value>Pixely</value>
+  </data>
   <data name="Display_FrameSize" xml:space="preserve">
     <value>Velikost snímku</value>
   </data>

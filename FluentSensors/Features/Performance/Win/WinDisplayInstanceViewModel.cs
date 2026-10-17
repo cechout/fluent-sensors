@@ -108,7 +108,7 @@ namespace FluentSensors.Features.Performance.Win
         }
 
         // info panel; what the mode amounts to on the cable, computed from the mode (see HardwareInfoFormatter.FrameBytes
-        // for what is left out)
+        // for what is left out); in the order of the calculation, each line built from the ones above, the data rate last
         public IReadOnlyList<HardwareFact> SignalFacts
         {
             get
@@ -118,8 +118,9 @@ namespace FluentSensors.Features.Performance.Win
 
                 return new List<HardwareFact>
                 {
-                    new(AppTerms.Get("Display_FrameSize"), HardwareInfoFormatter.FormatFrameSize(info.WidthPixels, info.HeightPixels, info.BitsPerColorChannel)),
-                    new(AppTerms.Get("Display_BitsPerPixel"), HardwareInfoFormatter.FormatBitsPerPixel(info.BitsPerColorChannel))
+                    new(AppTerms.Get("Display_Pixels"), HardwareInfoFormatter.FormatPixelCount(info.WidthPixels, info.HeightPixels)),
+                    new(AppTerms.Get("Display_BitsPerPixel"), HardwareInfoFormatter.FormatBitsPerPixel(info.BitsPerColorChannel)),
+                    new(AppTerms.Get("Display_FrameSize"), HardwareInfoFormatter.FormatFrameSize(info.WidthPixels, info.HeightPixels, info.BitsPerColorChannel))
                 };
             }
         }

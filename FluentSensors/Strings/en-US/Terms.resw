@@ -617,6 +617,9 @@
   <data name="Display_Signal" xml:space="preserve">
     <value>Signal</value>
   </data>
+  <data name="Display_Pixels" xml:space="preserve">
+    <value>Pixels</value>
+  </data>
   <data name="Display_FrameSize" xml:space="preserve">
     <value>Frame Size</value>
   </data>

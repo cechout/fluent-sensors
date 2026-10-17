@@ -1961,8 +1961,9 @@ GPU - the adapter that scans the display out; on a hybrid laptop usually the int
     <value>Source:</value>
   </data>
   <data name="Display_SignalPopup.Description" xml:space="preserve">
-    <value>Frame Size - one uncompressed frame: resolution x bits per pixel
+    <value>Pixels - width x height of the resolution
 Bits per Pixel - three color channels at the color depth
+Frame Size - one uncompressed frame: pixels x bits per pixel
 Data Rate - frame size x refresh rate, at the current rate and at 60 Hz
 Visible pixels only: no blanking interval, no compression (DSC), no chroma subsampling</value>
   </data>

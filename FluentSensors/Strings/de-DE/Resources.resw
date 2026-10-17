@@ -1912,8 +1912,9 @@ GPU - der Adapter, der das Bild ausgibt; bei einem Hybrid-Laptop meist die integ
     <value>Quelle:</value>
   </data>
   <data name="Display_SignalPopup.Description" xml:space="preserve">
-    <value>Frame-Größe - ein unkomprimiertes Bild: Auflösung x Bit pro Pixel
+    <value>Pixel - Breite x Höhe der Auflösung
 Bit pro Pixel - drei Farbkanäle in der Farbtiefe
+Frame-Größe - ein unkomprimiertes Bild: Pixel x Bit pro Pixel
 Datenrate - Frame-Größe x Bildwiederholrate, bei der aktuellen Rate und bei 60 Hz
 Nur die sichtbaren Pixel: ohne Austastlücke, ohne Kompression (DSC), ohne Farbunterabtastung</value>
   </data>

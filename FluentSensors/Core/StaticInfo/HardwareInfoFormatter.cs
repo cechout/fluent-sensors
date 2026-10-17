@@ -477,6 +477,15 @@ namespace FluentSensors.Core.StaticInfo
         public static string FormatRefreshRateWithFrameTime(double hertz) =>
             hertz > 0 ? $"{hertz:0.##} Hz ({1000.0 / hertz:0.##} ms)" : "-";
 
+        // every pixel of the mode, "8,294,400 (8.29 MP)"
+        public static string FormatPixelCount(int widthPixels, int heightPixels)
+        {
+            if (widthPixels <= 0 || heightPixels <= 0) return "-";
+
+            long pixels = (long)widthPixels * heightPixels;
+            return $"{pixels:N0} ({pixels / 1_000_000.0:0.##} MP)";
+        }
+
         // red, green and blue at the color depth
         public static string FormatBitsPerPixel(int bitsPerColorChannel) =>
             bitsPerColorChannel > 0 ? AppTerms.Format("Display_Bits", bitsPerColorChannel * ColorChannelCount) : "-";
