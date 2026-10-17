@@ -220,9 +220,6 @@
   <data name="Network_IPv6Addresses" xml:space="preserve">
     <value>Dirección(es) IPv6</value>
   </data>
-  <data name="Network_LinkSpeed" xml:space="preserve">
-    <value>Velocidad de vínculo</value>
-  </data>
   <data name="Network_MACAddress" xml:space="preserve">
     <value>Dirección MAC</value>
   </data>
