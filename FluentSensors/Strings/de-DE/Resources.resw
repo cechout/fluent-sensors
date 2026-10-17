@@ -352,6 +352,7 @@ GPU-Auslastung - die am stärksten ausgelastete GPU-Engine, auf der diese App l�
   <data name="Settings_WinWlanSensorsPopup.Description" xml:space="preserve">
     <value>Benötigt ab Windows 11 24H2 den Standortzugriff
 Ohne ihn gibt Windows einer App keine WLAN-Daten, dann fehlen alle vier Sensoren
+Auch WLAN-Standard, Band, Kanal und Sicherheit im Info-Panel
 Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und Desktop-Apps den Zugriff auf Ihren Standort erlauben</value>
   </data>
   <data name="Settings_WinWlanSensorsPopup.SourceIntro" xml:space="preserve">

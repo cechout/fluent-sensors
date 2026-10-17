@@ -361,6 +361,7 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
   <data name="Settings_WinWlanSensorsPopup.Description" xml:space="preserve">
     <value>Needs location access on Windows 11 24H2 and newer
 Without it Windows gives an app no Wi-Fi data, so all four sensors are missing
+Also the Wi-Fi standard, band, channel and security in the info panel
 Settings &gt; Privacy &amp; security &gt; Location: Location services and Let desktop apps access your location</value>
   </data>
   <data name="Settings_WinWlanSensorsPopup.SourceIntro" xml:space="preserve">

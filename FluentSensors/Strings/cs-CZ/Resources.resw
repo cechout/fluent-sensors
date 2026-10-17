@@ -352,6 +352,7 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   <data name="Settings_WinWlanSensorsPopup.Description" xml:space="preserve">
     <value>Od Windows 11 24H2 vyžaduje přístup k poloze
 Bez něj Windows aplikaci nedá žádná data o Wi-Fi a všechny čtyři senzory chybí
+Také standard Wi-Fi, pásmo, kanál a zabezpečení v informačním panelu
 Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování polohy a Povolit desktopovým aplikacím přístup k poloze</value>
   </data>
   <data name="Settings_WinWlanSensorsPopup.SourceIntro" xml:space="preserve">

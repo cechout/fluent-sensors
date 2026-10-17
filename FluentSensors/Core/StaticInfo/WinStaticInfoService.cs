@@ -692,6 +692,10 @@ namespace FluentSensors.Core.StaticInfo
             var result = new List<WinNetworkAdapterInfo>();
             List<WinWlanConnection>? wlanConnections = null; // asked once, and only with a Wi-Fi adapter up
 
+            // the wlan api counts as a location access on Windows 11 24H2 and newer, so the Wi-Fi facts come only with the
+            // Wi-Fi switch of the Windows engine; off, the app never touches it
+            bool isWlanAllowed = HardwareMonitorService.Instance.WindowsSource.IsWlanEnabled;
+
             foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (nic.OperationalStatus != OperationalStatus.Up) continue;
@@ -720,7 +724,7 @@ namespace FluentSensors.Core.StaticInfo
                     .ToList();
 
                 WinWlanConnection? wlan = null;
-                if (nic.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 && Guid.TryParse(nic.Id, out Guid interfaceId))
+                if (isWlanAllowed && nic.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 && Guid.TryParse(nic.Id, out Guid interfaceId))
                 {
                     wlanConnections ??= WinWlanReader.QueryConnections();
                     wlan = wlanConnections.FirstOrDefault(c => c.InterfaceId == interfaceId);

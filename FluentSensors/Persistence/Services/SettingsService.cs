@@ -4,6 +4,7 @@ using Windows.UI;
 
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
+using FluentSensors.Core.StaticInfo;
 using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
@@ -799,6 +800,7 @@ namespace FluentSensors.Persistence.Services
                 {
                     _winWlanSensorsEnabled = value;
                     HardwareMonitorService.Instance.WindowsSource.IsWlanEnabled = value;
+                    _ = WinStaticInfoService.Instance.RefreshNetworkAdaptersAsync(); // the Wi-Fi facts of the info panels follow the switch
                     SaveDebounced();
                 }
             }
