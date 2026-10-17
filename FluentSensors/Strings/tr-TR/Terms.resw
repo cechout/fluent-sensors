@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string"/>
+              <xsd:attribute name="type" type="xsd:string"/>
+              <xsd:attribute name="mimetype" type="xsd:string"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string"/>
+              <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1"/>
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Cpu_CoresWithThreads" xml:space="preserve">
+    <value>İş parçacıklı çekirdekler</value>
+  </data>
+  <data name="Cpu_CoresWithoutThreads" xml:space="preserve">
+    <value>İş parçacıksız çekirdekler</value>
+  </data>
+  <data name="Cpu_AverageLoad" xml:space="preserve">
+    <value>Ortalama yük</value>
+  </data>
+  <data name="Cpu_AverageTemperature" xml:space="preserve">
+    <value>Ortalama sıcaklık</value>
+  </data>
+  <data name="Cpu_AverageClock" xml:space="preserve">
+    <value>Ortalama saat hızı</value>
+  </data>
+  <data name="Cpu_CPUInfo" xml:space="preserve">
+    <value>İşlemci bilgisi</value>
+  </data>
+  <data name="Cpu_PhysicalCores" xml:space="preserve">
+    <value>Fiziksel çekirdekler</value>
+  </data>
+  <data name="Cpu_LogicalProcessors" xml:space="preserve">
+    <value>Mantıksal işlemciler</value>
+  </data>
+  <data name="Cpu_CoreTopology" xml:space="preserve">
+    <value>Çekirdek topolojisi</value>
+  </data>
+  <data name="Cpu_Socket" xml:space="preserve">
+    <value>Soket</value>
+  </data>
+  <data name="Cpu_MaxClockSpeed" xml:space="preserve">
+    <value>Maks. saat hızı</value>
+  </data>
+  <data name="Cpu_L1Cache" xml:space="preserve">
+    <value>L1 önbellek</value>
+  </data>
+  <data name="Cpu_L2Cache" xml:space="preserve">
+    <value>L2 önbellek</value>
+  </data>
+  <data name="Cpu_L3Cache" xml:space="preserve">
+    <value>L3 önbellek</value>
+  </data>
+  <data name="Cpu_Cache" xml:space="preserve">
+    <value>Önbellek</value>
+  </data>
+  <data name="Cpu_Virtualization" xml:space="preserve">
+    <value>Sanallaştırma</value>
+  </data>
+  <data name="Cpu_Firmware" xml:space="preserve">
+    <value>Üretici yazılımı</value>
+  </data>
+  <data name="Cpu_Extensions" xml:space="preserve">
+    <value>Uzantılar</value>
+  </data>
+  <data name="Gpu_Core" xml:space="preserve">
+    <value>Çekirdek</value>
+  </data>
+  <data name="Gpu_Memory" xml:space="preserve">
+    <value>Bellek</value>
+  </data>
+  <data name="Gpu_PCIeBus" xml:space="preserve">
+    <value>PCIe / Veri yolu</value>
+  </data>
+  <data name="Gpu_Engines" xml:space="preserve">
+    <value>Motorlar</value>
+  </data>
+  <data name="Gpu_GPUInfo" xml:space="preserve">
+    <value>GPU bilgisi</value>
+  </data>
+  <data name="Gpu_Vendor" xml:space="preserve">
+    <value>Üretici</value>
+  </data>
+  <data name="Gpu_DriverVersion" xml:space="preserve">
+    <value>Sürücü sürümü</value>
+  </data>
+  <data name="Gpu_Display" xml:space="preserve">
+    <value>Ekran</value>
+  </data>
+  <data name="Start_GpuDisplay" xml:space="preserve">
+    <value>Ekran: {0}</value>
+  </data>
+  <data name="Gpu_DedicatedMemory" xml:space="preserve">
+    <value>Ayrılmış bellek</value>
+  </data>
+  <data name="Gpu_SharedMemory" xml:space="preserve">
+    <value>Paylaşılan bellek</value>
+  </data>
+  <data name="Gpu_PCIDeviceID" xml:space="preserve">
+    <value>PCI aygıt kimliği</value>
+  </data>
+  <data name="Gpu_PnPDeviceID" xml:space="preserve">
+    <value>PnP aygıt kimliği</value>
+  </data>
+  <data name="Gpu_Identifiers" xml:space="preserve">
+    <value>Tanımlayıcılar</value>
+  </data>
+  <data name="Memory_MemoryUsedPhysical" xml:space="preserve">
+    <value>Kullanılan bellek (fiziksel)</value>
+  </data>
+  <data name="Memory_MemoryUsedVirtual" xml:space="preserve">
+    <value>Kullanılan bellek (sanal)</value>
+  </data>
+  <data name="Memory_RAMInfo" xml:space="preserve">
+    <value>RAM bilgisi</value>
+  </data>
+  <data name="Memory_TotalSlots" xml:space="preserve">
+    <value>Toplam yuva sayısı</value>
+  </data>
+  <data name="Memory_PartNumber" xml:space="preserve">
+    <value>Parça numarası</value>
+  </data>
+  <data name="Memory_Capacity" xml:space="preserve">
+    <value>Kapasite</value>
+  </data>
+  <data name="Memory_FormFactor" xml:space="preserve">
+    <value>Biçim faktörü</value>
+  </data>
+  <data name="Memory_RAMSpeedConfiguredRated" xml:space="preserve">
+    <value>RAM hızı (yapılandırılmış / nominal)</value>
+  </data>
+  <data name="Memory_VoltageConfiguredMinMax" xml:space="preserve">
+    <value>Voltaj (yapılandırılmış / min / maks)</value>
+  </data>
+  <data name="Memory_Bank" xml:space="preserve">
+    <value>Bank</value>
+  </data>
+  <data name="Memory_Rank" xml:space="preserve">
+    <value>Sıra</value>
+  </data>
+  <data name="Memory_WidthTotalData" xml:space="preserve">
+    <value>Genişlik (toplam / veri)</value>
+  </data>
+  <data name="Storage_StorageInfo" xml:space="preserve">
+    <value>Depolama bilgisi</value>
+  </data>
+  <data name="Storage_BusType" xml:space="preserve">
+    <value>Veri yolu türü</value>
+  </data>
+  <data name="Storage_FirmwareRevision" xml:space="preserve">
+    <value>Üretici yazılımı revizyonu</value>
+  </data>
+  <data name="Storage_DeviceID" xml:space="preserve">
+    <value>Aygıt kimliği</value>
+  </data>
+  <data name="Storage_Identifiers" xml:space="preserve">
+    <value>Tanımlayıcılar</value>
+  </data>
+  <data name="Network_NetworkInfo" xml:space="preserve">
+    <value>Ağ bilgisi</value>
+  </data>
+  <data name="Network_IPv4Addresses" xml:space="preserve">
+    <value>IPv4 adresi / adresleri</value>
+  </data>
+  <data name="Network_IPv6Addresses" xml:space="preserve">
+    <value>IPv6 adresi / adresleri</value>
+  </data>
+  <data name="Network_LinkSpeed" xml:space="preserve">
+    <value>Bağlantı hızı</value>
+  </data>
+  <data name="Network_MACAddress" xml:space="preserve">
+    <value>MAC adresi</value>
+  </data>
+  <data name="Network_DHCPEnabled" xml:space="preserve">
+    <value>DHCP etkin</value>
+  </data>
+  <data name="Network_IPAddresses" xml:space="preserve">
+    <value>IP adresleri</value>
+  </data>
+  <data name="SensorRowHeader_Sensor" xml:space="preserve">
+    <value>Sensör</value>
+  </data>
+  <data name="SensorRowHeader_Current" xml:space="preserve">
+    <value>Güncel</value>
+  </data>
+  <data name="SensorRowHeader_Minimum" xml:space="preserve">
+    <value>Min</value>
+  </data>
+  <data name="SensorRowHeader_Maximum" xml:space="preserve">
+    <value>Maks</value>
+  </data>
+  <data name="SensorRowHeader_Average" xml:space="preserve">
+    <value>Ort.</value>
+  </data>
+  <data name="SensorRowHeader_Unit" xml:space="preserve">
+    <value>Birim</value>
+  </data>
+  <data name="Cpu_TopologySymmetricSmt" xml:space="preserve">
+    <value>Simetrik, Hyper-Threading etkin</value>
+  </data>
+  <data name="Cpu_TopologySymmetric" xml:space="preserve">
+    <value>Simetrik, Hyper-Threading yok</value>
+  </data>
+  <data name="Cpu_TopologyPerformance" xml:space="preserve">
+    <value>Performans</value>
+  </data>
+  <data name="Cpu_TopologyEfficient" xml:space="preserve">
+    <value>Verimlilik</value>
+  </data>
+  <data name="Cpu_TopologyClass" xml:space="preserve">
+    <value>Sınıf {0}</value>
+  </data>
+  <data name="Info_CacheInstruction" xml:space="preserve">
+    <value>Komut</value>
+  </data>
+  <data name="Info_CacheData" xml:space="preserve">
+    <value>Veri</value>
+  </data>
+  <data name="Info_CacheUnified" xml:space="preserve">
+    <value>Birleşik</value>
+  </data>
+  <data name="Info_FormChip" xml:space="preserve">
+    <value>Çip</value>
+  </data>
+  <data name="Info_FormProprietaryCard" xml:space="preserve">
+    <value>Özel kart</value>
+  </data>
+  <data name="Info_FormRowOfChips" xml:space="preserve">
+    <value>Çip dizisi</value>
+  </data>
+  <data name="Info_FormDie" xml:space="preserve">
+    <value>Yonga (Die)</value>
+  </data>
+  <data name="Info_Rank" xml:space="preserve">
+    <value>Sıra {0}</value>
+  </data>
+  <data name="Start_Cores_One" xml:space="preserve">
+    <value>{0} çekirdek</value>
+  </data>
+  <data name="Start_Cores_Few" xml:space="preserve">
+    <value>{0} çekirdek</value>
+  </data>
+  <data name="Start_Cores_Many" xml:space="preserve">
+    <value>{0} çekirdek</value>
+  </data>
+  <data name="Start_Threads_One" xml:space="preserve">
+    <value>{0} iş parçacığı</value>
+  </data>
+  <data name="Start_Threads_Few" xml:space="preserve">
+    <value>{0} iş parçacığı</value>
+  </data>
+  <data name="Start_Threads_Many" xml:space="preserve">
+    <value>{0} iş parçacığı</value>
+  </data>
+  <data name="Start_Modules_One" xml:space="preserve">
+    <value>{0} modül</value>
+  </data>
+  <data name="Start_Modules_Few" xml:space="preserve">
+    <value>{0} modül</value>
+  </data>
+  <data name="Start_Modules_Many" xml:space="preserve">
+    <value>{0} modül</value>
+  </data>
+  <data name="Start_SlotsUsed" xml:space="preserve">
+    <value>{0} / {1} yuva</value>
+  </data>
+  <data name="Start_MemoryTotal" xml:space="preserve">
+    <value>Toplam {0}</value>
+  </data>
+</root>
