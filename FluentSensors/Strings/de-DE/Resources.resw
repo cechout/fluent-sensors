@@ -107,7 +107,8 @@ Lesen - Dauer eines vollständigen Sensordurchlaufs, nahe an der Abfragerate hei
   </data>
   <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
     <value>CPU-Auslastung - die eigene CPU-Zeit dieser App im Verhältnis zur Gesamtkapazität aller Kerne
-RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Working Set)</value>
+RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Working Set)
+GPU-Auslastung - die am stärksten ausgelastete GPU-Engine, auf der diese App läuft, wie im Task-Manager</value>
   </data>
   <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -154,6 +155,9 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Main_LoadingControllers" xml:space="preserve">
     <value>Controller werden erkannt...</value>
+  </data>
+  <data name="Main_LoadingPower" xml:space="preserve">
+    <value>Akku und Stromversorgung werden erkannt...</value>
   </data>
   <data name="Main_LoadingNetwork" xml:space="preserve">
     <value>Netzwerkadapter werden erkannt...</value>
@@ -213,12 +217,6 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Farben der Hardwaresymbole</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Header" xml:space="preserve">
-    <value>Sensortypfarben</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
-    <value>Graphen-Seite und Sensorliste</value>
   </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Graphen</value>
@@ -317,6 +315,51 @@ RAM-Auslastung - physischer Speicher, der dieser App aktuell zugeordnet ist (Wor
   </data>
   <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
     <value>Aktualisierungsintervall</value>
+  </data>
+  <data name="Settings_EngineText.Text" xml:space="preserve">
+    <value>Engine</value>
+  </data>
+  <data name="Settings_EngineLhmExpander.Header" xml:space="preserve">
+    <value>LibreHardwareMonitor</value>
+  </data>
+  <data name="Settings_EngineLhmExpander.Description" xml:space="preserve">
+    <value>Hardware, die LibreHardwareMonitor liest</value>
+  </data>
+  <data name="Settings_EngineWindowsExpander.Header" xml:space="preserve">
+    <value>Windows</value>
+  </data>
+  <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
+    <value>Sensoren, die die Windows-API ergänzt oder ersetzt</value>
+  </data>
+  <data name="Settings_ShowSourceIconCard.Header" xml:space="preserve">
+    <value>Quellsymbol anzeigen</value>
+  </data>
+  <data name="Settings_WinStorageSensorsCard.Header" xml:space="preserve">
+    <value>Datenträger</value>
+  </data>
+  <data name="Settings_WinStorageSensorsCard.Description" xml:space="preserve">
+    <value>Ergänzt und ersetzt Sensoren der Datenträger-Hardware</value>
+  </data>
+  <data name="Settings_WinWlanSensorsCard.Header" xml:space="preserve">
+    <value>WLAN</value>
+  </data>
+  <data name="Settings_WinWlanSensorsCard.Description" xml:space="preserve">
+    <value>Ergänzt Sensoren der WLAN-Hardware</value>
+  </data>
+  <data name="Settings_WinWlanSensorsPopup.Description" xml:space="preserve">
+    <value>Benötigt ab Windows 11 24H2 den Standortzugriff
+Ohne ihn gibt Windows einer App keine WLAN-Daten, dann fehlen alle vier Sensoren
+Auch WLAN-Standard, Band, Kanal und Sicherheit im Info-Panel
+Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und Desktop-Apps den Zugriff auf Ihren Standort erlauben</value>
+  </data>
+  <data name="Settings_WinWlanSensorsPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Settings_WinDisplayCard.Header" xml:space="preserve">
+    <value>Display</value>
+  </data>
+  <data name="Settings_WinDisplayCard.Description" xml:space="preserve">
+    <value>Ergänzt Display-Hardware</value>
   </data>
   <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
     <value>Zeitraum</value>
@@ -1082,6 +1125,9 @@ Wähle in den Windows-Grafikeinstellungen Energiesparmodus für FluentSensors un
   <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
     <value>Hardwareübersicht</value>
   </data>
+  <data name="Performance_SensorTypeColorsButton.Label" xml:space="preserve">
+    <value>Sensortypfarben</value>
+  </data>
   <data name="Performance_HardwareListButton.Label" xml:space="preserve">
     <value>Hardwareliste</value>
   </data>
@@ -1100,7 +1146,10 @@ Wähle in den Windows-Grafikeinstellungen Energiesparmodus für FluentSensors un
   <data name="Cpu_GeneralPopup.Description" xml:space="preserve">
     <value>Physische Kerne - tatsächliche Recheneinheiten auf dem Chip
 Logische Prozessoren - Ausführungsthreads insgesamt (SMT/Hyper-Threading verdoppelt pro Kern)
-Kerntopologie - Aufteilung in Performance- und Effizienzkerne bei Hybrid-CPUs</value>
+Kerntopologie - Aufteilung in Performance- und Effizienzkerne bei Hybrid-CPUs
+Familie / Modell / Stepping - bezeichnet das genaue CPU-Design und dessen Revision, wie Windows es meldet
+Mikrocode - Revision der internen CPU-Firmware; wird von BIOS oder Windows aktualisiert, behebt Fehler und Sicherheitslücken
+Befehlssätze - optionale CPU-Erweiterungen, die Software voraussetzen kann (AVX2, AVX-512, ...); eine Auswahl, wie die .NET-Laufzeit sie erkennt</value>
   </data>
   <data name="Cpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -1139,17 +1188,47 @@ Firmware - aktuell aktiviert oder nicht (unzuverlässig)</value>
   <data name="Gpu_ShowExtendedButton.Label" xml:space="preserve">
     <value>Erweitert</value>
   </data>
+  <data name="Network_ShowOverallButton.Label" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="Network_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Erweitert</value>
+  </data>
+  <data name="Storage_ShowOverallButton.Label" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="Storage_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Erweitert</value>
+  </data>
+  <data name="Gpu_OtherGroupTitle.Text" xml:space="preserve">
+    <value>Weitere Sensoren</value>
+    <comment>group title above the gpu sensors that have no group of their own</comment>
+  </data>
   <data name="Gpu_GeneralPopup.Title" xml:space="preserve">
     <value>Allgemein</value>
   </data>
   <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Treiberversion - interne Windows-Treibernummer, weicht vom Versionsschema des Herstellers ab
+    <value>Typ - dediziert (eigener Chip und VRAM) oder integriert (in der CPU, nutzt den Arbeitsspeicher)
+Kartenhersteller - Hersteller der Karte oder des Laptops, aus der Subsystem-ID des Geräts
 Bildschirm - die Bildschirme, die diese GPU ansteuert, oder bei einem Hybrid-Laptop die GPU, über die ihr Bild läuft</value>
   </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
   </data>
+  <data name="Gpu_DriverPopup.Description" xml:space="preserve">
+    <value>Treiberversion - interne Windows-Treibernummer, weicht vom Versionsschema des Herstellers ab
+Treiberdatum - Veröffentlichungsdatum, das der Treiber meldet</value>
+  </data>
+  <data name="Gpu_DriverPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
   <data name="Gpu_NameText.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Cpu_NameText.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Battery_NameText.Text" xml:space="preserve">
     <value>Name</value>
   </data>
   <data name="Gpu_MemoryPopup.Description" xml:space="preserve">
@@ -1179,7 +1258,17 @@ RAM-Takt - konfiguriert (aktiv) gegenüber spezifiziert (Datenblatt)
 Spannung - Betriebsspannung; XMP/EXPO kann sie erhöhen
 Bank - physische Bank- bzw. Steckplatzgruppe auf dem Mainboard, zu der dieses Modul gehört
 Rank - Anzahl unabhängiger Chipgruppen auf dem Modul selbst (unzuverlässig)
-Breite - Daten (nutzbare Bits) gegenüber gesamt (inklusive ECC-Bits)</value>
+Breite - Daten (nutzbare Bits) gegenüber gesamt (inklusive ECC-Bits)
+Thermal Sensor Limit - im Modul hinterlegte Temperaturschwellen
+Timings - die wichtigsten Verzögerungen, für die das Modul spezifiziert ist, in Nanosekunden, aus seinem SPD-Chip gelesen; nicht die Werte, die das BIOS tatsächlich eingestellt hat. Die Sensorliste zeigt alle Timings
+tAA - CAS-Latenz, von der Spaltenadresse bis zu den Daten
+tRCD - RAS-zu-CAS-Verzögerung, vom Öffnen einer Zeile bis zur Spaltenadresse
+tRP - Row Precharge, das Schließen einer Zeile
+tRAS - kürzeste Zeit, die eine Zeile offen bleibt
+tRC - von einer Zeilenaktivierung bis zur nächsten oder zu einem Refresh
+tRFC1 - Erholzeit nach einem Refresh
+tWR - Write Recovery, von den letzten geschriebenen Daten bis zum Schließen der Zeile
+Nur ein Modul mit lesbarem SPD-Chip meldet diese Werte; verlöteter Speicher zeigt -</value>
   </data>
   <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -1200,7 +1289,9 @@ Breite - Daten (nutzbare Bits) gegenüber gesamt (inklusive ECC-Bits)</value>
     <value>Allgemein</value>
   </data>
   <data name="Storage_GeneralPopup.Description" xml:space="preserve">
-    <value>Bustyp - Anschlussschnittstelle (NVMe, SATA, USB, ...), begrenzt die realistische Höchstgeschwindigkeit des Laufwerks; aus der modernen Storage-API gelesen, da die ältere Windows-API NVMe-Laufwerke fälschlich als SCSI meldet</value>
+    <value>Bustyp - Anschlussschnittstelle (NVMe, SATA, USB, ...), begrenzt die realistische Höchstgeschwindigkeit des Laufwerks; aus der modernen Storage-API gelesen, da die ältere Windows-API NVMe-Laufwerke fälschlich als SCSI meldet
+Medientyp - SSD oder HDD (mit Drehzahl)
+Zustand - Einschätzung von Windows aus der Ausfallvorhersage des Laufwerks</value>
   </data>
   <data name="Storage_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -1226,17 +1317,6 @@ Breite - Daten (nutzbare Bits) gegenüber gesamt (inklusive ECC-Bits)</value>
   <data name="Storage_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Größe der Hardwareinfo ändern</value>
   </data>
-  <data name="Network_ConnectionPopup.Title" xml:space="preserve">
-    <value>Verbindung</value>
-  </data>
-  <data name="Network_ConnectionPopup.Description" xml:space="preserve">
-    <value>Steht für eine aktive Verbindung, nicht für alle möglichen Verbindungen des Adapters. Mehrere aktive Verbindungen (z. B. WLAN + Ethernet) erhalten jeweils einen eigenen Eintrag.
-Hardware - physischer Adapter hinter dieser Verbindung
-Typ - ihr Medium (WLAN, Ethernet, ...)</value>
-  </data>
-  <data name="Network_ConnectionPopup.SourceIntro" xml:space="preserve">
-    <value>Quelle:</value>
-  </data>
   <data name="Network_HardwareText.Text" xml:space="preserve">
     <value>Hardware</value>
   </data>
@@ -1246,7 +1326,11 @@ Typ - ihr Medium (WLAN, Ethernet, ...)</value>
   <data name="Network_IPAddressesPopup.Description" xml:space="preserve">
     <value>IPv4 und IPv6 sind unabhängige Adresssysteme, beide gleichzeitig aktiv.
 IPv4 - meist eine Adresse
-IPv6 - oft mehrere gleichzeitig (stabile und wechselnde Datenschutzadressen)</value>
+IPv6 - oft mehrere gleichzeitig (stabile und wechselnde Datenschutzadressen)
+Gateway - Router, an den diese Verbindung Daten für andere Netze schickt
+DNS-Server - lösen Namen in Adressen auf
+DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder statisch festgelegt wurde; eine Eigenschaft dieser Verbindung, keine netzwerkweite Einstellung
+DHCP-Server - hat die Adresse dieser Verbindung vergeben</value>
   </data>
   <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
@@ -1255,11 +1339,18 @@ IPv6 - oft mehrere gleichzeitig (stabile und wechselnde Datenschutzadressen)</va
     <value>Allgemein</value>
   </data>
   <data name="Network_GeneralPopup.Description" xml:space="preserve">
-    <value>Verbindungsgeschwindigkeit - ausgehandelte Rate genau dieser Verbindung, nicht die maximale Nenngeschwindigkeit des Adapters; kann niedriger sein und schwankt bei WLAN mit den Signalbedingungen
-DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder statisch festgelegt wurde; eine Eigenschaft dieser Verbindung, keine netzwerkweite Einstellung</value>
+    <value>Steht für eine aktive Verbindung, nicht für alle möglichen Verbindungen des Adapters. Mehrere aktive Verbindungen (z. B. WLAN + Ethernet) erhalten jeweils einen eigenen Eintrag.
+Hardware - physischer Adapter hinter dieser Verbindung
+Typ - ihr Medium (WLAN, Ethernet, ...)</value>
   </data>
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Quelle:</value>
+  </data>
+  <data name="Battery_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Größe der Hardwareinfo ändern</value>
+  </data>
+  <data name="Display_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Größe der Hardwareinfo ändern</value>
   </data>
   <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Größe der Hardwareinfo ändern</value>
@@ -1499,6 +1590,9 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   <data name="Sensors_ShowHiddenSensorsButton.Label" xml:space="preserve">
     <value>Ausgeblendete Sensoren</value>
   </data>
+  <data name="Sensors_SensorTypeColorsButton.Label" xml:space="preserve">
+    <value>Sensortypfarben</value>
+  </data>
   <data name="Sensors_NoSensorsInfoBar.Title" xml:space="preserve">
     <value>Keine Sensoren ausgewählt</value>
   </data>
@@ -1664,5 +1758,140 @@ DHCP aktiviert - ob die Adresse dieser Verbindung automatisch zugewiesen oder st
   </data>
   <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
     <value>Fachbegriffe auf Englisch</value>
+  </data>
+  <data name="Info_Volume" xml:space="preserve">
+    <value>{0} {1}, {2} ({3} frei)</value>
+    <comment>one volume of a drive; {0} the drive letter like C:, {1} the file system like NTFS, {2} the size, {3} the free space</comment>
+  </data>
+  <data name="Gpu_PciPopup.Description" xml:space="preserve">
+    <value>Link (aktuell / maximal) - PCIe-Generation und Anzahl der Lanes; aktuell ist, was die GPU mit ihrem Steckplatz ausgehandelt hat, maximal, was die GPU selbst unterstützt
+Ein niedrigerer aktueller Wert bedeutet, dass Steckplatz, Riser oder die Laptop-Verdrahtung begrenzen oder der Link gerade Strom spart</value>
+  </data>
+  <data name="Gpu_PciPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Memory_GeneralPopup.Title" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="Memory_GeneralPopup.Description" xml:space="preserve">
+    <value>Steckplätze gesamt - Speichersteckplätze, die die Mainboard-Firmware aufführt; verlöteter Speicher zählt als Steckplatz
+Maximale Kapazität - der größte Speicherausbau, den das Board laut Firmware annimmt
+Fehlerkorrektur - ob der Speicher Bitfehler erkennt und korrigiert (ECC); setzt passende Module, Board und CPU voraus</value>
+  </data>
+  <data name="Memory_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Storage_PartitionsPopup.Description" xml:space="preserve">
+    <value>Partitionsstil - GPT (modern, für UEFI-Start nötig) oder MBR (älter)
+Anzahl - alle Partitionen, auch versteckte (EFI, Wiederherstellung)
+Rolle - Boot enthält das laufende Windows, System den Bootloader
+Volumes - Partitionen mit Laufwerksbuchstaben: Dateisystem, Größe und freier Platz</value>
+  </data>
+  <data name="Storage_PartitionsPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Storage_PciPopup.Description" xml:space="preserve">
+    <value>Link (aktuell / maximal) - PCIe-Generation und Anzahl der Lanes; aktuell ist, was der Controller des Laufwerks ausgehandelt hat, maximal, was das Laufwerk unterstützt
+Ein niedrigerer aktueller Wert bedeutet, dass der Steckplatz begrenzt</value>
+  </data>
+  <data name="Storage_PciPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Storage_TemperatureLimitsPopup.Description" xml:space="preserve">
+    <value>Warning Temperature - Schwelle, ab der das Laufwerk Überhitzung meldet
+Critical Temperature - Schwelle, ab der das Laufwerk stark drosselt oder sich zum Schutz abschaltet
+Vom Hersteller im Laufwerk hinterlegt</value>
+    <comment>Warning Temperature and Critical Temperature are sensor names and stay English</comment>
+  </data>
+  <data name="Storage_TemperatureLimitsPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Network_WiFiPopup.Description" xml:space="preserve">
+    <value>Standard - WLAN-Generation der aktuellen Verbindung, die niedrigere von Adapter und Access Point
+Band - Frequenzbereich (2,4, 5 oder 6 GHz); höher ist schneller, reicht aber weniger weit
+Kanal - Abschnitt des Bands, auf dem der Access Point sendet
+Sicherheit - wie die Verbindung authentifiziert und verschlüsselt wird</value>
+  </data>
+  <data name="Network_WiFiPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Network_DriverPopup.Description" xml:space="preserve">
+    <value>Version, Datum, Anbieter - der Treiber, den Windows für diesen Adapter geladen hat</value>
+  </data>
+  <data name="Network_DriverPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Battery_GeneralPopup.Title" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="Battery_GeneralPopup.Description" xml:space="preserve">
+    <value>Zellchemie - Zelltechnologie, die der Akku meldet</value>
+    <comment>Designed Capacity, Fully-Charged Capacity and Degradation Level are sensor names and stay English</comment>
+  </data>
+  <data name="Battery_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Display_GeneralPopup.Title" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="Display_GeneralPopup.Description" xml:space="preserve">
+    <value>Name - der Name, den der Monitor meldet, oder ein eigener Name, wenn er keinen meldet (die meisten Laptop-Panels)
+Hersteller - dreistellige Kennung des Panel-Herstellers aus der EDID (AUO, BOE, DEL, SAM ...)
+Herstellungsdatum - Jahr und Woche
+Größe - Diagonale und sichtbare Fläche laut EDID
+Native Auflösung - der Modus, den das Panel selbst bevorzugt
+Pixeldichte - aus nativer Auflösung und sichtbarer Fläche</value>
+  </data>
+  <data name="Display_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Display_ModePopup.Description" xml:space="preserve">
+    <value>Auflösung - die Desktop-Auflösung, mit der Windows das Display ansteuert
+Skalierung - wie stark Windows Text und Apps auf diesem Display vergrößert
+Bildwiederholrate - aktuelle Rate und die Dauer eines Bildes; ändert sich mit der dynamischen Bildwiederholrate
+Anschluss - USB-C und Thunderbolt erscheinen als DisplayPort, ein Laptop-Panel als Intern oder eDP
+GPU - der Adapter, der das Bild ausgibt; bei einem Hybrid-Laptop meist die integrierte</value>
+  </data>
+  <data name="Display_ModePopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Display_SignalPopup.Description" xml:space="preserve">
+    <value>Pixel - Breite x Höhe der Auflösung
+Bit pro Pixel - drei Farbkanäle in der Farbtiefe
+Frame-Größe - ein unkomprimiertes Bild: Pixel x Bit pro Pixel
+Datenrate - Frame-Größe x Bildwiederholrate, bei der aktuellen Rate und bei 60 Hz
+Nur die sichtbaren Pixel: ohne Austastlücke, ohne Kompression (DSC), ohne Farbunterabtastung</value>
+  </data>
+  <data name="Display_ColorPopup.Description" xml:space="preserve">
+    <value>Farbtiefe - Bit pro Farbkanal des Signals
+HDR - ob das Display es unterstützt und ob Windows es eingeschaltet hat
+SDR-Weißpegel - Helligkeit normaler Inhalte, während HDR eingeschaltet ist
+Spitzenhelligkeit, Minimale Helligkeit - was das Display über sich selbst meldet; Windows setzt einen Standardwert ein, wenn es nichts meldet
+Gamma - die Übertragungskurve laut EDID</value>
+  </data>
+  <data name="Display_ColorPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Display_DdcPopup.Description" xml:space="preserve">
+    <value>Über das Displaykabel vom Monitor selbst gelesen (unzuverlässig): ein Monitor beantwortet nur einen Teil davon oder nichts, und ein Dock, ein Adapter oder ein KVM-Switch kann es blockieren.
+Energiemodus - Ein, Standby oder Aus, wie der Monitor sich selbst sieht; seine Leistungsaufnahme meldet ein Monitor nicht
+Eingangsquelle - der Eingang, den er anzeigt; ein herstellerspezifischer Eingang erscheint als Zahl
+Betriebszeit - Stunden, die das Panel eingeschaltet war
+MCCS-Version - Version des Steuerbefehlssatzes, den der Monitor spricht</value>
+  </data>
+  <data name="Display_DdcPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
+  </data>
+  <data name="Display_NameText.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Battery_HealthPopup.Description" xml:space="preserve">
+    <value>Designed Capacity - Energie, die der Akku im Neuzustand fasste
+Fully-Charged Capacity - Energie, die er heute bei 100 % fasst
+Degradation Level - verlorener Anteil der ursprünglichen Kapazität
+Ladezyklen - volle Ladezyklen, von der Elektronik des Akkus gezählt</value>
+  </data>
+  <data name="Battery_HealthPopup.SourceIntro" xml:space="preserve">
+    <value>Quelle:</value>
   </data>
 </root>
