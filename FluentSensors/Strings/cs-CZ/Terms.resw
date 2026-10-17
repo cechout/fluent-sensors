@@ -211,6 +211,12 @@
   <data name="Storage_Identifiers" xml:space="preserve">
     <value>Identifikátory</value>
   </data>
+  <data name="Battery_BatteryInfo" xml:space="preserve">
+    <value>Informace o baterii</value>
+  </data>
+  <data name="Display_DisplayInfo" xml:space="preserve">
+    <value>Informace o displeji</value>
+  </data>
   <data name="Network_NetworkInfo" xml:space="preserve">
     <value>Informace o síti</value>
   </data>
@@ -219,9 +225,6 @@
   </data>
   <data name="Network_IPv6Addresses" xml:space="preserve">
     <value>Adresy IPv6</value>
-  </data>
-  <data name="Network_LinkSpeed" xml:space="preserve">
-    <value>Rychlost linky</value>
   </data>
   <data name="Network_MACAddress" xml:space="preserve">
     <value>Adresa MAC</value>
@@ -348,5 +351,406 @@
   <data name="Start_MemoryTotal" xml:space="preserve">
     <value>{0} celkem</value>
     <comment>{0} the memory size, like 32 GB</comment>
+  </data>
+  <data name="Cpu_FamilyModelStepping" xml:space="preserve">
+    <value>Rodina / Model / Stepping</value>
+  </data>
+  <data name="Cpu_Microcode" xml:space="preserve">
+    <value>Mikrokód</value>
+  </data>
+  <data name="Cpu_InstructionSets" xml:space="preserve">
+    <value>Instrukční sady</value>
+  </data>
+  <data name="Gpu_DriverDate" xml:space="preserve">
+    <value>Datum ovladače</value>
+  </data>
+  <data name="Gpu_Driver" xml:space="preserve">
+    <value>Ovladač</value>
+  </data>
+  <data name="Gpu_Type" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="Gpu_TypeDiscrete" xml:space="preserve">
+    <value>Dedikovaná</value>
+    <comment>a graphics card with its own chip and memory</comment>
+  </data>
+  <data name="Gpu_TypeIntegrated" xml:space="preserve">
+    <value>Integrovaná</value>
+    <comment>graphics inside the CPU</comment>
+  </data>
+  <data name="Gpu_BoardVendor" xml:space="preserve">
+    <value>Výrobce karty</value>
+    <comment>the company that built the graphics card or the laptop</comment>
+  </data>
+  <data name="Info_PciExpress" xml:space="preserve">
+    <value>PCI Express</value>
+  </data>
+  <data name="Info_PciLinkCurrentMax" xml:space="preserve">
+    <value>Linka (aktuální / maximální)</value>
+  </data>
+  <data name="Memory_MaxCapacity" xml:space="preserve">
+    <value>Maximální kapacita</value>
+  </data>
+  <data name="Memory_ErrorCorrection" xml:space="preserve">
+    <value>Oprava chyb</value>
+  </data>
+  <data name="Info_EccNone" xml:space="preserve">
+    <value>Žádná</value>
+    <comment>memory error correction type</comment>
+  </data>
+  <data name="Info_EccParity" xml:space="preserve">
+    <value>Parita</value>
+    <comment>memory error correction type</comment>
+  </data>
+  <data name="Info_EccSingleBit" xml:space="preserve">
+    <value>Jednobitové ECC</value>
+    <comment>memory error correction type</comment>
+  </data>
+  <data name="Info_EccMultiBit" xml:space="preserve">
+    <value>Vícebitové ECC</value>
+    <comment>memory error correction type</comment>
+  </data>
+  <data name="Storage_MediaType" xml:space="preserve">
+    <value>Typ média</value>
+  </data>
+  <data name="Storage_Health" xml:space="preserve">
+    <value>Stav</value>
+  </data>
+  <data name="Info_HealthHealthy" xml:space="preserve">
+    <value>V pořádku</value>
+    <comment>drive health as Windows reports it</comment>
+  </data>
+  <data name="Info_HealthWarning" xml:space="preserve">
+    <value>Varování</value>
+    <comment>drive health as Windows reports it</comment>
+  </data>
+  <data name="Info_HealthUnhealthy" xml:space="preserve">
+    <value>Vadný</value>
+    <comment>drive health as Windows reports it</comment>
+  </data>
+  <data name="Storage_Partitions" xml:space="preserve">
+    <value>Oddíly</value>
+  </data>
+  <data name="Storage_PartitionStyle" xml:space="preserve">
+    <value>Styl oddílů</value>
+  </data>
+  <data name="Storage_PartitionCount" xml:space="preserve">
+    <value>Počet</value>
+    <comment>number of partitions on a drive</comment>
+  </data>
+  <data name="Storage_DiskRole" xml:space="preserve">
+    <value>Role</value>
+    <comment>what Windows uses a drive for: boot, system</comment>
+  </data>
+  <data name="Info_DiskRoleBoot" xml:space="preserve">
+    <value>Boot</value>
+    <comment>the drive that holds the running Windows</comment>
+  </data>
+  <data name="Info_DiskRoleSystem" xml:space="preserve">
+    <value>Systém</value>
+    <comment>the drive that holds the boot loader</comment>
+  </data>
+  <data name="Storage_Volumes" xml:space="preserve">
+    <value>Svazky</value>
+  </data>
+  <data name="Storage_TemperatureLimits" xml:space="preserve">
+    <value>Teplotní limity</value>
+  </data>
+  <data name="Network_Gateway" xml:space="preserve">
+    <value>Brána</value>
+  </data>
+  <data name="Network_DnsServers" xml:space="preserve">
+    <value>Server(y) DNS</value>
+  </data>
+  <data name="Network_DhcpServer" xml:space="preserve">
+    <value>Server DHCP</value>
+  </data>
+  <data name="Network_Driver" xml:space="preserve">
+    <value>Ovladač</value>
+  </data>
+  <data name="Network_DriverVersion" xml:space="preserve">
+    <value>Verze</value>
+  </data>
+  <data name="Network_DriverDate" xml:space="preserve">
+    <value>Datum</value>
+  </data>
+  <data name="Network_DriverProvider" xml:space="preserve">
+    <value>Poskytovatel</value>
+    <comment>the company that published a driver</comment>
+  </data>
+  <data name="Network_WiFi" xml:space="preserve">
+    <value>Wi-Fi</value>
+  </data>
+  <data name="Network_SectionTraffic" xml:space="preserve">
+    <value>Provoz</value>
+  </data>
+  <data name="Network_SectionData" xml:space="preserve">
+    <value>Objem dat</value>
+  </data>
+  <data name="Storage_SectionActivity" xml:space="preserve">
+    <value>Aktivita</value>
+  </data>
+  <data name="Storage_SectionSpace" xml:space="preserve">
+    <value>Místo a data</value>
+  </data>
+  <data name="Network_WlanStandard" xml:space="preserve">
+    <value>Standard</value>
+    <comment>the Wi-Fi generation, like Wi-Fi 6 (802.11ax)</comment>
+  </data>
+  <data name="Network_WlanBand" xml:space="preserve">
+    <value>Pásmo</value>
+    <comment>the Wi-Fi frequency band, like 5 GHz</comment>
+  </data>
+  <data name="Network_WlanChannel" xml:space="preserve">
+    <value>Kanál</value>
+  </data>
+  <data name="Network_WlanSecurity" xml:space="preserve">
+    <value>Zabezpečení</value>
+  </data>
+  <data name="Info_WlanOpen" xml:space="preserve">
+    <value>Otevřená</value>
+    <comment>a Wi-Fi network without a password</comment>
+  </data>
+  <data name="Battery_Manufacturer" xml:space="preserve">
+    <value>Výrobce</value>
+  </data>
+  <data name="Battery_Chemistry" xml:space="preserve">
+    <value>Chemie</value>
+    <comment>the cell technology of a battery, like Li-ion</comment>
+  </data>
+  <data name="Battery_CycleCount" xml:space="preserve">
+    <value>Počet cyklů</value>
+  </data>
+  <data name="Battery_Health" xml:space="preserve">
+    <value>Stav</value>
+  </data>
+  <data name="Display_Manufacturer" xml:space="preserve">
+    <value>Výrobce</value>
+  </data>
+  <data name="Display_ProductCode" xml:space="preserve">
+    <value>Kód produktu</value>
+  </data>
+  <data name="Display_ManufactureDate" xml:space="preserve">
+    <value>Datum výroby</value>
+  </data>
+  <data name="Display_NativeResolution" xml:space="preserve">
+    <value>Nativní rozlišení</value>
+  </data>
+  <data name="Display_PixelDensity" xml:space="preserve">
+    <value>Hustota pixelů</value>
+  </data>
+  <data name="Display_Scale" xml:space="preserve">
+    <value>Měřítko</value>
+  </data>
+  <data name="Display_Orientation" xml:space="preserve">
+    <value>Orientace</value>
+  </data>
+  <data name="Display_OrientationLandscape" xml:space="preserve">
+    <value>Na šířku</value>
+  </data>
+  <data name="Display_OrientationPortrait" xml:space="preserve">
+    <value>Na výšku</value>
+  </data>
+  <data name="Display_OrientationLandscapeFlipped" xml:space="preserve">
+    <value>Na šířku (převráceně)</value>
+  </data>
+  <data name="Display_OrientationPortraitFlipped" xml:space="preserve">
+    <value>Na výšku (převráceně)</value>
+  </data>
+  <data name="Display_Primary" xml:space="preserve">
+    <value>Hlavní displej</value>
+  </data>
+  <data name="Display_Color" xml:space="preserve">
+    <value>Barva</value>
+  </data>
+  <data name="Display_SdrWhiteLevel" xml:space="preserve">
+    <value>Úroveň bílé SDR</value>
+  </data>
+  <data name="Display_PeakLuminance" xml:space="preserve">
+    <value>Špičkový jas</value>
+  </data>
+  <data name="Display_MinLuminance" xml:space="preserve">
+    <value>Minimální jas</value>
+  </data>
+  <data name="Display_Gamma" xml:space="preserve">
+    <value>Gama</value>
+  </data>
+  <data name="Display_Monitor" xml:space="preserve">
+    <value>Monitor (DDC/CI)</value>
+  </data>
+  <data name="Display_PowerMode" xml:space="preserve">
+    <value>Režim napájení</value>
+  </data>
+  <data name="Display_PowerOn" xml:space="preserve">
+    <value>Zapnuto</value>
+  </data>
+  <data name="Display_PowerStandby" xml:space="preserve">
+    <value>Pohotovostní</value>
+  </data>
+  <data name="Display_PowerSuspend" xml:space="preserve">
+    <value>Uspáno</value>
+  </data>
+  <data name="Display_PowerOff" xml:space="preserve">
+    <value>Vypnuto</value>
+  </data>
+  <data name="Display_InputSource" xml:space="preserve">
+    <value>Vstupní zdroj</value>
+  </data>
+  <data name="Display_UsageTime" xml:space="preserve">
+    <value>Doba provozu</value>
+  </data>
+  <data name="Display_Technology" xml:space="preserve">
+    <value>Technologie panelu</value>
+  </data>
+  <data name="Display_FirmwareLevel" xml:space="preserve">
+    <value>Úroveň firmwaru</value>
+  </data>
+  <data name="Display_MccsVersion" xml:space="preserve">
+    <value>Verze MCCS</value>
+  </data>
+  <data name="Display_Size" xml:space="preserve">
+    <value>Velikost</value>
+  </data>
+  <data name="Display_Signal" xml:space="preserve">
+    <value>Signál</value>
+  </data>
+  <data name="Display_Pixels" xml:space="preserve">
+    <value>Pixely</value>
+  </data>
+  <data name="Display_FrameSize" xml:space="preserve">
+    <value>Velikost snímku</value>
+  </data>
+  <data name="Display_BitsPerPixel" xml:space="preserve">
+    <value>Bity na pixel</value>
+  </data>
+  <data name="Display_DataRate" xml:space="preserve">
+    <value>Datový tok (aktuální / 60 Hz)</value>
+  </data>
+  <data name="Display_Bits" xml:space="preserve">
+    <value>{0} bitů</value>
+  </data>
+  <data name="Display_Mode" xml:space="preserve">
+    <value>Režim</value>
+  </data>
+  <data name="Display_Resolution" xml:space="preserve">
+    <value>Rozlišení</value>
+  </data>
+  <data name="Display_RefreshRate" xml:space="preserve">
+    <value>Obnovovací frekvence</value>
+  </data>
+  <data name="Display_Connector" xml:space="preserve">
+    <value>Konektor</value>
+  </data>
+  <data name="Display_ColorDepth" xml:space="preserve">
+    <value>Barevná hloubka</value>
+  </data>
+  <data name="Display_BitsPerChannel" xml:space="preserve">
+    <value>{0} bitů na kanál</value>
+  </data>
+  <data name="Display_Hdr" xml:space="preserve">
+    <value>HDR</value>
+  </data>
+  <data name="Display_Gpu" xml:space="preserve">
+    <value>GPU</value>
+  </data>
+  <data name="Display_HdrOn" xml:space="preserve">
+    <value>Zapnuto</value>
+  </data>
+  <data name="Display_HdrOff" xml:space="preserve">
+    <value>Vypnuto</value>
+  </data>
+  <data name="Display_HdrNotSupported" xml:space="preserve">
+    <value>Nepodporováno</value>
+  </data>
+  <data name="Display_ConnectorInternal" xml:space="preserve">
+    <value>Interní</value>
+  </data>
+  <data name="Display_ConnectorIndirect" xml:space="preserve">
+    <value>Nepřímý</value>
+  </data>
+  <data name="Battery_ManufactureDate" xml:space="preserve">
+    <value>Datum výroby</value>
+  </data>
+  <data name="Info_ChemistryLeadAcid" xml:space="preserve">
+    <value>Olověná</value>
+    <comment>battery chemistry</comment>
+  </data>
+  <data name="Info_ChemistryAlkaline" xml:space="preserve">
+    <value>Alkalická</value>
+    <comment>battery chemistry</comment>
+  </data>
+  <data name="Info_ChassisDesktop" xml:space="preserve">
+    <value>Stolní počítač</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisLowProfileDesktop" xml:space="preserve">
+    <value>Nízký stolní počítač</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisMiniTower" xml:space="preserve">
+    <value>Mini Tower</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisTower" xml:space="preserve">
+    <value>Tower</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisLaptop" xml:space="preserve">
+    <value>Laptop</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisNotebook" xml:space="preserve">
+    <value>Notebook</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisAllInOne" xml:space="preserve">
+    <value>All-in-One</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisTablet" xml:space="preserve">
+    <value>Tablet</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisConvertible" xml:space="preserve">
+    <value>Konvertibilní</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisDetachable" xml:space="preserve">
+    <value>Odnímatelný</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Info_ChassisMiniPc" xml:space="preserve">
+    <value>Mini PC</value>
+    <comment>computer case type as the firmware reports it</comment>
+  </data>
+  <data name="Start_Cycles_One" xml:space="preserve">
+    <value>{0} cyklus</value>
+    <comment>battery charge cycles; {0} the number; count form for exactly one</comment>
+  </data>
+  <data name="Start_Cycles_Few" xml:space="preserve">
+    <value>{0} cykly</value>
+    <comment>battery charge cycles; {0} the number; count form for two to four; a language without a separate few form repeats the many text</comment>
+  </data>
+  <data name="Start_Cycles_Many" xml:space="preserve">
+    <value>{0} cyklů</value>
+    <comment>battery charge cycles; {0} the number; count form for everything else, zero included</comment>
+  </data>
+  <data name="Start_SecureBootOn" xml:space="preserve">
+    <value>Secure Boot zapnutý</value>
+  </data>
+  <data name="Start_SecureBootOff" xml:space="preserve">
+    <value>Secure Boot vypnutý</value>
+  </data>
+  <data name="Start_Tpm" xml:space="preserve">
+    <value>TPM {0}</value>
+    <comment>{0} the TPM version, like 2.0</comment>
+  </data>
+  <data name="Start_EmbeddedController" xml:space="preserve">
+    <value>EC {0}</value>
+    <comment>{0} the embedded controller firmware version, like 3.10</comment>
+  </data>
+  <data name="Start_Motherboard" xml:space="preserve">
+    <value>Základní deska</value>
+    <comment>tile label on the start page</comment>
   </data>
 </root>
