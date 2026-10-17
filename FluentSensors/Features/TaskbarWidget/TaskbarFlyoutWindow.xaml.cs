@@ -166,6 +166,9 @@ namespace FluentSensors.Features.TaskbarWidget
         // keeps the graphs rendering while hidden, so they are current the moment the flyout opens
         public const bool KeepFlyoutGraphsActiveInBackground = true;
 
+        // app resources drawer: ease-out cubic like the open, the window grows with it frame by frame
+        public const int ResourcesDrawerDurationMs = 250;
+
 
         // === fields ===
 
@@ -239,7 +242,18 @@ namespace FluentSensors.Features.TaskbarWidget
         private CompositionScopedBatch? _exitBatch;
         private bool _isSlideTurningAround;
 
+        // --- app resources drawer ---
+        // in dip; the reveal is the drawer height the window is placed for, it runs from and to the others
+        private bool _isResourcesExpanded;
+        private double _resourcesRevealDip;
+        private double _resourcesFromDip;
+        private double _resourcesToDip;
+        private double _resourcesPanelHeightDip; // measured on each open
+        private bool _isResourcesAnimating;
+        private readonly Stopwatch _resourcesAnimationClock = new();
+
         public TaskbarWidgetViewModel ViewModel { get; }
+        public FlyoutAppResourcesViewModel ResourcesViewModel { get; } = new();
         public static TaskbarFlyoutWindow? CurrentInstance { get; private set; }
         private static TaskbarFlyoutWindow? _retainedInstance;
 
@@ -345,6 +359,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             // a rebuilt window takes over a running snapshot with the view model
             ApplyPauseState();
+            ApplyResourcesButtonState();
 
             FlyoutShortcutRegistration.RegistrationChanged += OnShortcutRegistrationChanged;
             ApplyShortcutHint();
@@ -655,6 +670,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 _isHiding = false;
                 SetGraphsRenderingActive(false);
+                ResourcesViewModel.Stop();
                 SaveWindowState();
                 _appWindow.Hide();
                 TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
@@ -829,6 +845,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 CancelSlideOut();
                 SetGraphsRenderingActive(false);
+                ResourcesViewModel.Stop();
                 _appWindow.Hide();
             }
 
@@ -860,6 +877,8 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(true);
             CancelSlideOut();
+
+            if (_isResourcesExpanded) ResourcesViewModel.Start();
 
             var compositor = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot).Compositor;
             var easing = compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 1f), new Vector2(2f / 3f, 1f));
@@ -966,7 +985,11 @@ namespace FluentSensors.Features.TaskbarWidget
             var widgetHwnd = WinRT.Interop.WindowNative.GetWindowHandle(widgetWindow);
             NativeMethods.GetWindowRect(widgetHwnd, out var widgetRect);
 
-            var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
+            // the drawer places the window on every frame, from the taskbars found when it started
+            IReadOnlyList<WinTaskbarInfo> taskbars = _isResourcesAnimating
+                ? WinTaskbarService.Instance.CurrentTaskbars
+                : WinTaskbarService.Instance.DiscoverNow();
+            var primaryTaskbar = taskbars.FirstOrDefault();
             double scale = primaryTaskbar != null ? (primaryTaskbar.Dpi / 96.0) : GetScaleFactor();
 
             // without a taskbar the widget rect stands in for it, on the default bottom edge
@@ -1081,7 +1104,16 @@ namespace FluentSensors.Features.TaskbarWidget
             _isAdjustingPosition = false;
 
             UpdateShadowPolicy();
-            RenderCardShadow();
+
+            // the drawer stretches the last bitmap and renders once it stands
+            if (_isResourcesAnimating)
+            {
+                FlyoutShadowImage.Height = windowHeightPx / scale;
+            }
+            else
+            {
+                RenderCardShadow();
+            }
         }
 
         private double GetScaleFactor()
@@ -1107,9 +1139,9 @@ namespace FluentSensors.Features.TaskbarWidget
             return Math.Max(1, slots);
         }
 
-        // the title row, the time range row and the bar strip, everything but the graphs
+        // the title row, the drawer, the time range row and the bar strip, everything but the graphs
         private double FlyoutRowsHeightDip =>
-            FlyoutTitleRowHeightDip + FlyoutTimeRangeRowHeightDip + FlyoutBottomBarHeightDip;
+            FlyoutTitleRowHeightDip + _resourcesRevealDip + FlyoutTimeRangeRowHeightDip + FlyoutBottomBarHeightDip;
 
         // window height for n graph slots: the rows around them, the graphs margin, n slots and the n-1 gaps
         private double CalculateFlyoutContentHeight(int sensorCount, double graphHeightDip)
@@ -1312,6 +1344,78 @@ namespace FluentSensors.Features.TaskbarWidget
             PauseButtonIcon.Glyph = ViewModel.IsFlyoutPaused ? "\uE768" : "\uE769";
             ToolTipService.SetToolTip(PauseButton, label);
             AutomationProperties.SetName(PauseButton, label);
+        }
+
+        // the drawer arrow; a second click while it runs turns it around from where it is
+        private void ResourcesButton_Click(object sender, RoutedEventArgs e)
+        {
+            _isResourcesExpanded = !_isResourcesExpanded;
+            ApplyResourcesButtonState();
+
+            if (_isResourcesExpanded)
+            {
+                ResourcesViewModel.Start();
+                _resourcesPanelHeightDip = MeasureResourcesPanelHeight();
+            }
+
+            _resourcesFromDip = _resourcesRevealDip;
+            _resourcesToDip = _isResourcesExpanded ? _resourcesPanelHeightDip : 0;
+            _resourcesAnimationClock.Restart();
+
+            if (!_isResourcesAnimating)
+            {
+                _isResourcesAnimating = true;
+                Microsoft.UI.Xaml.Media.CompositionTarget.Rendering += OnResourcesDrawerFrame;
+            }
+        }
+
+        // name and tooltip follow the state, like the pause button
+        private void ApplyResourcesButtonState()
+        {
+            string label = AppStrings.Get(_isResourcesExpanded ? "TaskbarFlyout_HideAppResources" : "TaskbarFlyout_ShowAppResources");
+            ToolTipService.SetToolTip(ResourcesButton, label);
+            AutomationProperties.SetName(ResourcesButton, label);
+        }
+
+        // one step of the drawer per rendered frame; the last one renders the shadow and ends the live values of a
+        // closed drawer
+        private void OnResourcesDrawerFrame(object? sender, object e)
+        {
+            double t = Math.Min(1.0, _resourcesAnimationClock.Elapsed.TotalMilliseconds / ResourcesDrawerDurationMs);
+            double eased = 1.0 - Math.Pow(1.0 - t, 3);
+
+            if (t >= 1.0)
+            {
+                Microsoft.UI.Xaml.Media.CompositionTarget.Rendering -= OnResourcesDrawerFrame;
+                _isResourcesAnimating = false;
+                if (!_isResourcesExpanded) ResourcesViewModel.Stop();
+            }
+
+            ApplyResourcesReveal(_resourcesFromDip + ((_resourcesToDip - _resourcesFromDip) * eased));
+        }
+
+        // the drawer height, the arrow turning with it and the window around both
+        private void ApplyResourcesReveal(double revealDip)
+        {
+            _resourcesRevealDip = revealDip;
+            ResourcesDrawerHost.Height = revealDip;
+
+            if (_resourcesPanelHeightDip > 0)
+            {
+                ResourcesButtonIconRotation.Angle = 180 * (revealDip / _resourcesPanelHeightDip);
+            }
+
+            if (TaskbarWidgetWindow.CurrentInstance is TaskbarWidgetWindow widgetWindow)
+            {
+                PositionNextToTaskbar(widgetWindow);
+            }
+        }
+
+        // the drawer content at the card width, before the drawer has any height to lay it out in
+        private double MeasureResourcesPanelHeight()
+        {
+            ResourcesPanel.Measure(new Windows.Foundation.Size(FlyoutDefaultWidthDip - (2 * CardBorderDip), double.PositiveInfinity));
+            return ResourcesPanel.DesiredSize.Height;
         }
 
         // [Ctrl]+[Alt]+[S]: a bordered key per part, a plain plus between them

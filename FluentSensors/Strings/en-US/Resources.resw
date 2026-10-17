@@ -1734,6 +1734,12 @@ Type - its medium (Wi-Fi, Ethernet, ...)</value>
     <value>Taskbar</value>
     <comment>label of the time range picker for the taskbar graphs, keep it short</comment>
   </data>
+  <data name="TaskbarFlyout_ShowAppResources" xml:space="preserve">
+    <value>Show App Resources</value>
+  </data>
+  <data name="TaskbarFlyout_HideAppResources" xml:space="preserve">
+    <value>Hide App Resources</value>
+  </data>
   <data name="TaskbarFlyout_BackToDashboardButton.Content" xml:space="preserve">
     <value>Manage Taskbar Sensors</value>
   </data>
