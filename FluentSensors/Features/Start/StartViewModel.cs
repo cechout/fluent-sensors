@@ -87,6 +87,8 @@ namespace FluentSensors.Features.Start
             WinStaticInfoService.Instance.GpusChanged += RefreshSnapshot;
             WinStaticInfoService.Instance.DrivesChanged += RefreshSnapshot;
             WinStaticInfoService.Instance.NetworkAdaptersChanged += RefreshSnapshot;
+            WinStaticInfoService.Instance.BatteriesChanged += RefreshSnapshot;
+            WinStaticInfoService.Instance.DisplaysChanged += RefreshSnapshot;
             WinStaticInfoService.Instance.PrerequisitesChanged += () => OnPropertyChanged(nameof(PawnIoTileValue));
         }
 
@@ -421,6 +423,8 @@ namespace FluentSensors.Features.Start
             AddGpus(rows, info);
             AddDrives(rows, info);
             AddAdapters(rows, info);
+            AddBatteries(rows, info);
+            AddDisplays(rows, info);
             AddMotherboard(rows, info);
 
             return rows;
@@ -548,7 +552,7 @@ namespace FluentSensors.Features.Start
                 if (display.Length > 0) display = AppTerms.Format("Start_GpuDisplay", display);
 
                 rows.Add(Row(
-                    HardwareGroupKind.Gpu,
+                    GetGpuKind(gpu),
                     gpu.Name,
                     HardwareInfoFormatter.FormatVendorName(gpu.VendorId),
                     memory,
@@ -556,14 +560,28 @@ namespace FluentSensors.Features.Start
             }
         }
 
+        // the role as Windows reports it, so a tile pairs with the LHM group of the same gpu; without an answer the
+        // kernel flag of a hybrid pair decides
+        private static HardwareGroupKind GetGpuKind(WinGpuInfo gpu)
+        {
+            bool isIntegrated = WinDxCoreAdapters.IsIntegrated(gpu.VendorId, gpu.DeviceId)
+                ?? (gpu.AdapterLuid != 0 && WinDisplayTopology.HybridRole(gpu.AdapterLuid) == WinHybridRole.Integrated);
+
+            return isIntegrated ? HardwareGroupKind.IntegratedGpu : HardwareGroupKind.DiscreteGpu;
+        }
+
         private static void AddDrives(List<SystemSnapshotEntry> rows, WinStaticInfoService info)
         {
             foreach (var drive in info.Drives)
             {
+                // size, then SSD or HDD, then the bus; an unknown media type leaves its place empty
+                string mediaType = HardwareInfoFormatter.FormatMediaType(drive.MediaType, drive.SpindleSpeedRpm);
+
                 rows.Add(Row(
                     HardwareGroupKind.Storage,
                     drive.FriendlyName,
                     HardwareInfoFormatter.FormatBytesAsGb(drive.SizeBytes),
+                    mediaType == "-" ? "" : mediaType,
                     drive.BusType));
             }
         }
@@ -576,18 +594,59 @@ namespace FluentSensors.Features.Start
                     ? HardwareInfoFormatter.FormatBitsPerSecond(adapter.SpeedBitsPerSecond)
                     : "";
 
+                // a connected wi-fi adapter says its standard and band, which tell more than the type the icon shows
+                string[] details = adapter.Wlan is { } wlan
+                    ? new[]
+                    {
+                        HardwareInfoFormatter.FormatWlanStandard(wlan.PhyType, wlan.FrequencyMhz),
+                        HardwareInfoFormatter.FormatWlanBand(wlan.FrequencyMhz, wlan.Channel),
+                        speed
+                    }
+                    : new[] { HardwareInfoFormatter.FormatInterfaceType(adapter.InterfaceType), speed };
+
                 // the glyph depends on the device, wi-fi for a wireless adapter
                 rows.Add(LabelledRow(
                     HardwareGroupKind.Network,
                     HardwareGroupInfo.GetNetworkIconGlyph(adapter.InterfaceType),
                     HardwareGroupInfo.GetProfile(HardwareGroupKind.Network).Label,
                     adapter.Name,
-                    HardwareInfoFormatter.FormatInterfaceType(adapter.InterfaceType),
-                    speed));
+                    details));
             }
         }
 
-        // LHM files a motherboard under Other; the row gets the label "Motherboard"
+        private static void AddBatteries(List<SystemSnapshotEntry> rows, WinStaticInfoService info)
+        {
+            foreach (var battery in info.Batteries)
+            {
+                string cycles = battery.CycleCount.HasValue
+                    ? AppTerms.Plural("Start_Cycles", (int)battery.CycleCount.Value)
+                    : "";
+
+                rows.Add(Row(
+                    HardwareGroupKind.Battery,
+                    battery.Name,
+                    HardwareInfoFormatter.FormatBatteryChemistry(battery.Chemistry),
+                    HardwareInfoFormatter.FormatMilliwattHours(battery.DesignedCapacityMilliwattHours),
+                    cycles));
+            }
+        }
+
+        // its sensors come from the Windows source, so the tile only pairs with a group while that switch is on
+        private static void AddDisplays(List<SystemSnapshotEntry> rows, WinStaticInfoService info)
+        {
+            foreach (var display in info.Displays)
+            {
+                rows.Add(Row(
+                    HardwareGroupKind.Display,
+                    display.Name,
+                    HardwareInfoFormatter.FormatResolution(display.WidthPixels, display.HeightPixels),
+                    HardwareInfoFormatter.FormatRefreshRate(display.RefreshRateHz),
+                    HardwareInfoFormatter.FormatDisplayConnector(display.OutputTechnology),
+                    HardwareInfoFormatter.FormatDisplaySize(display.WidthCentimeters, display.HeightCentimeters)));
+            }
+        }
+
+        // LHM files a motherboard under Other; the row gets its own label
         private static void AddMotherboard(List<SystemSnapshotEntry> rows, WinStaticInfoService info)
         {
             var board = info.Motherboard;
@@ -595,15 +654,42 @@ namespace FluentSensors.Features.Start
             string name = $"{board.Manufacturer} {board.Product}".Trim();
             if (string.IsNullOrWhiteSpace(name)) return;
 
+            // the device the board sits in, where its maker named one
+            string device = IsFirmwareDefault(board.SystemFamily) ? board.SystemModel : board.SystemFamily;
+            if (IsFirmwareDefault(device) || name.Contains(device, StringComparison.OrdinalIgnoreCase)) device = "";
+
             string bios = string.IsNullOrWhiteSpace(board.BiosVersion) ? "" : $"BIOS {board.BiosVersion}";
+            string embeddedController = board.EmbeddedControllerVersion.Length > 0
+                ? AppTerms.Format("Start_EmbeddedController", board.EmbeddedControllerVersion)
+                : "";
+            string secureBoot = board.SecureBootEnabled.HasValue
+                ? AppTerms.Get(board.SecureBootEnabled.Value ? "Start_SecureBootOn" : "Start_SecureBootOff")
+                : "";
+            string tpm = board.TpmVersion.Length > 0 ? AppTerms.Format("Start_Tpm", board.TpmVersion) : "";
 
             rows.Add(LabelledRow(
                 HardwareGroupKind.Other,
                 HardwareGroupInfo.GetProfile(HardwareGroupKind.Other).IconGlyph,
-                "Motherboard",
+                AppTerms.Get("Start_Motherboard"),
                 name,
+                device,
+                HardwareInfoFormatter.FormatChassisType(board.ChassisType),
                 bios,
-                board.BiosReleaseDate));
+                board.BiosReleaseDate,
+                embeddedController,
+                secureBoot,
+                tpm));
+        }
+
+        // what a board maker leaves in a field nobody filled in
+        private static bool IsFirmwareDefault(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return true;
+
+            return text.Contains("O.E.M.", StringComparison.OrdinalIgnoreCase)
+                || text.StartsWith("Default", StringComparison.OrdinalIgnoreCase)
+                || text.StartsWith("System ", StringComparison.OrdinalIgnoreCase)
+                || text.Equals("Not Applicable", StringComparison.OrdinalIgnoreCase);
         }
 
 

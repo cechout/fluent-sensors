@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
@@ -62,18 +63,6 @@
                             x:Name="HardwareIconColorsToggle"
                             x:Uid="Common_ToggleSwitch"
                             Toggled="HardwareIconColorsToggle_Toggled" />
-                    </controls:SettingsCard>
-
-                    <!--  sensor type colors  -->
-                    <!--
-                        (the performance page graphs and the sensors page check boxes by what a sensor measures; the
-                        widget and the taskbar have the same choice in their own graph color selectors)
-                    -->
-                    <controls:SettingsCard x:Uid="Settings_SensorTypeColorsCard">
-                        <ToggleSwitch
-                            x:Name="SensorTypeColorsToggle"
-                            x:Uid="Common_ToggleSwitch"
-                            Toggled="SensorTypeColorsToggle_Toggled" />
                     </controls:SettingsCard>
 
                     <!--  graph rendering: line style and fill  -->
@@ -333,7 +322,13 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
+
             <!--  engine settings  -->
+            <TextBlock
+                x:Uid="Settings_EngineText"
+                Margin="4,20,0,6"
+                Style="{StaticResource BodyStrongTextBlockStyle}" />
+
             <controls:SettingsCard
                 x:Uid="Settings_UpdateIntervalCard"
                 fhUi:FocusGroup.IsEnabled="True"
@@ -354,6 +349,156 @@
                     <ComboBoxItem Content="5000ms" Tag="5000" />
                 </ComboBox>
             </controls:SettingsCard>
+
+            <!--  LibreHardwareMonitor: one switch per hardware  -->
+            <!--  (the cards come from code, see RebuildEngineHardwareCards; the hardware is only known at runtime)  -->
+            <!--  (both expanders get the source icon as header icon from code, see ApplyEngineHeaderIcons)  -->
+            <controls:SettingsExpander
+                x:Name="EngineLhmExpander"
+                x:Uid="Settings_EngineLhmExpander"
+                fhUi:FocusGroup.IsEnabled="True"
+                IsExpanded="False">
+
+                <!--  (an example row like the csv format expander; the icon in it follows the switch below)  -->
+                <controls:SettingsExpander.ItemsHeader>
+                    <controls:SettingsCard
+                        MinHeight="0"
+                        Padding="58,12,16,8"
+                        HorizontalContentAlignment="Stretch"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderThickness="0"
+                        ContentAlignment="Vertical"
+                        CornerRadius="0">
+
+                        <Grid HorizontalAlignment="Stretch" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                x:Uid="Settings_ExampleRowText"
+                                Grid.Column="0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}" />
+
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="6">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="CPU Package" />
+                                <Path
+                                    Width="11.25"
+                                    Height="11.25"
+                                    VerticalAlignment="Center"
+                                    fhUi:SensorSourceIcon.SensorId="/lpc/example/temperature/0"
+                                    Fill="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Stretch="Uniform" />
+                            </StackPanel>
+                        </Grid>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.ItemsHeader>
+            </controls:SettingsExpander>
+
+            <!--  Windows: what it adds to or replaces in LHM hardware  -->
+            <!--  (every switch is off by default)  -->
+            <controls:SettingsExpander
+                x:Name="EngineWindowsExpander"
+                x:Uid="Settings_EngineWindowsExpander"
+                fhUi:FocusGroup.IsEnabled="True"
+                IsExpanded="False">
+
+                <!--  (an example row like the csv format expander; the icon in it follows the switch below)  -->
+                <controls:SettingsExpander.ItemsHeader>
+                    <controls:SettingsCard
+                        MinHeight="0"
+                        Padding="58,12,16,8"
+                        HorizontalContentAlignment="Stretch"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderThickness="0"
+                        ContentAlignment="Vertical"
+                        CornerRadius="0">
+
+                        <Grid HorizontalAlignment="Stretch" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                x:Uid="Settings_ExampleRowText"
+                                Grid.Column="0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}" />
+
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="6">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="Signal Strength" />
+                                <Path
+                                    Width="11.25"
+                                    Height="11.25"
+                                    VerticalAlignment="Center"
+                                    fhUi:SensorSourceIcon.SensorId="/win/example/level/0"
+                                    Fill="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Stretch="Uniform" />
+                            </StackPanel>
+                        </Grid>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.ItemsHeader>
+
+                <controls:SettingsExpander.Items>
+                    <!--  the icon behind the names of the sensors Windows measures  -->
+                    <controls:SettingsCard x:Uid="Settings_ShowSourceIconCard">
+                        <ToggleSwitch
+                            x:Name="WinSourceIconToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="WinSourceIconToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <!--  the temperature in place of the LHM one, and the used space in bytes  -->
+                    <controls:SettingsCard x:Uid="Settings_WinStorageSensorsCard">
+                        <ToggleSwitch
+                            x:Name="WinStorageSensorsToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="WinStorageSensorsToggle_Toggled" />
+                    </controls:SettingsCard>
+
+                    <!--  (the popup says that Windows wants location access for it)  -->
+                    <controls:SettingsCard x:Uid="Settings_WinWlanSensorsCard">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <fhInfoPopup:InfoPopupControl
+                                x:Uid="Settings_WinWlanSensorsPopup"
+                                VerticalAlignment="Center"
+                                PlacementMode="Above">
+                                <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                    <fhInfoPopup:SourceLink Label="Wi-Fi access and location" Url="https://learn.microsoft.com/en-us/windows/win32/nativewifi/wi-fi-access-location-changes" />
+                                </fhInfoPopup:InfoPopupControl.SourceLinks>
+                            </fhInfoPopup:InfoPopupControl>
+                            <ToggleSwitch
+                                x:Name="WinWlanSensorsToggle"
+                                x:Uid="Common_ToggleSwitch"
+                                VerticalAlignment="Center"
+                                Toggled="WinWlanSensorsToggle_Toggled" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                    <!--  hardware LHM does not have at all  -->
+                    <controls:SettingsCard x:Uid="Settings_WinDisplayCard">
+                        <ToggleSwitch
+                            x:Name="WinDisplayToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="WinDisplayToggle_Toggled" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
 
 
             <!--  widget window settings  -->

@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhCommon="using:FluentSensors.Common.Sensors"
     xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhFacts="using:FluentSensors.Controls.FactList"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhPerf="using:FluentSensors.Features.Performance"
@@ -18,6 +19,10 @@
     mc:Ignorable="d">
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="ContentColumn" Width="4*" />
             <ColumnDefinition
@@ -31,6 +36,7 @@
         <!--  view content with header, graphs and tiles  -->
         <ScrollViewer
             x:Name="ContentScrollViewer"
+            Grid.Row="0"
             Grid.Column="0"
             fhUi:FocusSkip.IsEnabled="True"
             HorizontalScrollBarVisibility="Disabled"
@@ -91,14 +97,14 @@
                     <Grid
                         x:Name="OverviewBlockGrid"
                         Grid.Row="0"
-                        Margin="0,0,0,8"
+                        Margin="0,0,0,4"
                         RowSpacing="4">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  total activity, read and write rate  -->
+                        <!--  total activity (big, switchable to the space sensors), read and write rate  -->
                         <Grid
                             x:Name="GraphsAreaGrid"
                             Grid.Row="0"
@@ -106,7 +112,7 @@
 
                             <Grid
                                 x:Name="WideGraphsGrid"
-                                MinHeight="200"
+                                MinHeight="190"
                                 ColumnSpacing="8"
                                 RowSpacing="8">
                                 <Grid.RowDefinitions>
@@ -255,13 +261,180 @@
                             </controls:WrapPanel>
                         </Grid>
                     </Grid>
+
+                    <!--  view 2: extended, in groups like the gpu extended view  -->
+                    <!--
+                        (no sensor tiles in this view; a group lays its graphs out in a grid and has a time range
+                        picker of its own; in reading order the value that depends on the others comes first and
+                        what it rests on last, like the overview)
+                    -->
+                    <StackPanel
+                        x:Name="ExtendedGrid"
+                        Grid.Row="0"
+                        Margin="0,0,0,4"
+                        x:Load="False"
+                        IsHitTestVisible="{x:Bind Storage.ExtendedIsHitTestVisible, Mode=OneWay}"
+                        Opacity="{x:Bind Storage.ExtendedOpacity, Mode=OneWay}"
+                        Spacing="24">
+
+                        <!--  activity: the three graphs of the overview, the total activity without its switch  -->
+                        <StackPanel Spacing="8">
+                            <TextBlock
+                                Margin="4,0,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Storage_SectionActivity')}" />
+                            <fhControls:SquareGridPanel
+                                MinCellHeight="90"
+                                MinCellWidth="260"
+                                Spacing="12">
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="Total Activity"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.ExtendedTotalActivity, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Read Rate"
+                                    PlaceholderUnit="MB/s"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.ReadRateOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.ReadRate, Mode=TwoWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Write Rate"
+                                    PlaceholderUnit="MB/s"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.WriteRateOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.WriteRate, Mode=TwoWay}" />
+                            </fhControls:SquareGridPanel>
+
+                            <!--  graph time range  -->
+                            <fhTimeRange:TimeRangePickerControl
+                                Margin="0,-4,0,0"
+                                Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
+                                TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+
+                        <!--  space and data: how full the drive is, then the totals read and written  -->
+                        <!--  (used space in percent from LHM or in bytes from the Windows source, the unit names which)  -->
+                        <StackPanel Spacing="8">
+                            <TextBlock
+                                Margin="4,0,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Storage_SectionSpace')}" />
+                            <fhControls:SquareGridPanel
+                                MinCellHeight="90"
+                                MinCellWidth="260"
+                                Spacing="12">
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Used Space"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowUnitInStatusRow="True"
+                                    ShowYAxisControls="True"
+                                    SwitchCandidates="{x:Bind Storage.UsedSpaceOptions, Mode=OneWay}"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.UsedSpace, Mode=TwoWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Data Read"
+                                    PlaceholderUnit="GB"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.DataRead, Mode=OneWay}" />
+                                <fhGraph:SensorPanelControl
+                                    GraphHardwareKind="Storage"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Data Written"
+                                    PlaceholderUnit="GB"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Storage.DataWritten, Mode=OneWay}" />
+                            </fhControls:SquareGridPanel>
+
+                            <!--  graph time range  -->
+                            <fhTimeRange:TimeRangePickerControl
+                                Margin="0,-4,0,0"
+                                Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
+                                TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </StackPanel>
                 </Grid>
             </StackPanel>
         </ScrollViewer>
 
+        <!--  bottom bar: overall and extended  -->
+        <Border
+            Grid.Row="1"
+            Grid.Column="0"
+            Padding="16,0,10,1"
+            Background="Transparent"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+
+            <CommandBar
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                fhUi:FocusGroup.IsEnabled="True"
+                Background="Transparent"
+                DefaultLabelPosition="Right"
+                IsDynamicOverflowEnabled="False"
+                IsOpen="False">
+
+                <CommandBar.Resources>
+                    <SolidColorBrush x:Key="CommandBarBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="CommandBarBackgroundOpen" Color="Transparent" />
+                    <SolidColorBrush x:Key="CommandBarBorderBrushOpen" Color="Transparent" />
+
+                    <Thickness x:Key="AppBarButtonPadding">0,0,0,0</Thickness>
+                </CommandBar.Resources>
+
+                <AppBarButton x:Uid="Storage_ShowOverallButton" Click="ShowOverall_Click">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xF16B;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+
+                <AppBarButton x:Uid="Storage_ShowExtendedButton" Click="ShowExtended_Click">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xF0E2;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+            </CommandBar>
+        </Border>
+
+
 
         <!--  info panel: static hardware facts for the selected drive  -->
         <Border
+            Grid.Row="0"
+            Grid.RowSpan="2"
             Grid.Column="1"
             VerticalAlignment="Stretch"
             fhUi:FocusSkip.IsEnabled="True"
@@ -303,6 +476,30 @@
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_BusType')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageBusTypeText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_MediaType')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageMediaTypeText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
                                     x:Uid="Storage_SizeText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
@@ -317,38 +514,39 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind loc:AppTerms.Get('Storage_BusType')}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_Health')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Storage.StorageBusTypeText, Mode=OneWay}"
+                                    Text="{x:Bind Storage.StorageHealthText, Mode=OneWay}"
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </controls:WrapPanel>
                     </StackPanel>
 
-                    <!--  identifiers  -->
+                    <!--  partitions and volumes  -->
                     <StackPanel Spacing="12">
                         <fhInfoPopup:InfoPopupControl
-                            x:Uid="Storage_IdentifiersPopup"
-                            Title="{x:Bind loc:AppTerms.Get('Storage_Identifiers')}"
+                            x:Uid="Storage_PartitionsPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Storage_Partitions')}"
                             Margin="0,0,0,-4"
                             PlacementMode="TitleAnchored">
                             <fhInfoPopup:InfoPopupControl.SourceLinks>
-                                <fhInfoPopup:SourceLink Label="Win32_DiskDrive" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-diskdrive" />
+                                <fhInfoPopup:SourceLink Label="MSFT_Disk" Url="https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-disk" />
+                                <fhInfoPopup:SourceLink Label="MSFT_Partition" Url="https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partition" />
                             </fhInfoPopup:InfoPopupControl.SourceLinks>
                         </fhInfoPopup:InfoPopupControl>
 
                         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
                             <StackPanel Width="Auto" Spacing="2">
                                 <TextBlock
-                                    x:Uid="Storage_SerialNumberText"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_PartitionStyle')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Storage.StorageSerialNumberText, Mode=OneWay}"
+                                    Text="{x:Bind Storage.StoragePartitionStyleText, Mode=OneWay}"
                                     TextWrapping="Wrap" />
                             </StackPanel>
 
@@ -356,11 +554,11 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind loc:AppTerms.Get('Storage_FirmwareRevision')}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_PartitionCount')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Storage.StorageFirmwareRevisionText, Mode=OneWay}"
+                                    Text="{x:Bind Storage.StoragePartitionCountText, Mode=OneWay}"
                                     TextWrapping="Wrap" />
                             </StackPanel>
 
@@ -368,14 +566,64 @@
                                 <TextBlock
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind loc:AppTerms.Get('Storage_DeviceID')}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_DiskRole')}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Style="{ThemeResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Storage.StoragePnpDeviceIdText, Mode=OneWay}"
+                                    Text="{x:Bind Storage.StorageDiskRoleText, Mode=OneWay}"
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </controls:WrapPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Storage_Volumes')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Storage.StorageVolumesText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  pci express link of the controller; nvme only, and not behind intel vmd  -->
+                    <StackPanel Spacing="12" Visibility="{x:Bind BoolToVisibility(Storage.HasPciLink), Mode=OneWay}">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Storage_PciPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Info_PciExpress')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="CM_Get_DevNode_Property (DEVPKEY_PciDevice)" Url="https://learn.microsoft.com/en-us/windows/win32/api/cfgmgr32/nf-cfgmgr32-cm_get_devnode_propertyw" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Info_PciLinkCurrentMax')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Storage.StoragePciLinkText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  temperature limits the drive stores, lhm sensors read as facts  -->
+                    <StackPanel Spacing="12" Visibility="{x:Bind BoolToVisibility(Storage.HasTemperatureLimitFacts), Mode=OneWay}">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Storage_TemperatureLimitsPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Storage_TemperatureLimits')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="LibreHardwareMonitor" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <fhFacts:FactListControl Facts="{x:Bind Storage.TemperatureLimitFacts, Mode=OneWay}" />
                     </StackPanel>
 
                     <!--<StackPanel Spacing="2">
@@ -467,6 +715,56 @@
                 <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Storage.StorageLatencyMaxText, Mode=OneWay}" />
             </StackPanel>-->
 
+                    <!--  identifiers  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Storage_IdentifiersPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Storage_Identifiers')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="Win32_DiskDrive" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-diskdrive" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    x:Uid="Storage_SerialNumberText"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageSerialNumberText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_FirmwareRevision')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StorageFirmwareRevisionText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Storage_DeviceID')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Storage.StoragePnpDeviceIdText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
         </Border>
@@ -475,6 +773,8 @@
         <!--  (a 9px band centered on the divider line; it resizes the content column before it)  -->
         <fhControls:ClampedGridSplitter
             x:Uid="Storage_ResizeHardwareInfoSplitter"
+            Grid.Row="0"
+            Grid.RowSpan="2"
             Grid.Column="1"
             Width="9"
             Margin="-4,0,0,0"

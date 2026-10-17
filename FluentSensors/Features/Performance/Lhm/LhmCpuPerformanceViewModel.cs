@@ -218,7 +218,9 @@ namespace FluentSensors.Features.Performance.Lhm
                     };
                 }
             }
-            else if (entry.SensorType == "Power")
+            // wattage and the voltages of the whole cpu share the Power slot; switching is a unit change, like on the
+            // gpu view (the per-core VIDs stay out)
+            else if (entry.SensorType == "Power" || entry.SensorType == "Voltage")
             {
                 if (!isPerCoreName)
                 {

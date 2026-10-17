@@ -19,6 +19,15 @@ namespace FluentSensors.Core.StaticInfo
         bool VirtualizationFirmwareEnabled,
         bool VirtualizationExtensionsSupported,
 
+        // "Intel64 Family 6 Model 154 Stepping 3", see HardwareInfoFormatter.FormatCpuSignature
+        string Description,
+
+        // the microcode the cpu runs, as the firmware or Windows loaded it; null when the registry has none
+        uint? MicrocodeRevision,
+
+        // the extensions the cpu can run ("AVX2"), in the order of their age; empty on a cpu that is not x86
+        IReadOnlyList<string> InstructionSets,
+
         IReadOnlyList<WinCpuCoreTopologyEntry> CoreTopology,
         IReadOnlyList<WinCpuCacheEntry> CacheEntries // raw per instance, see WinCpuCacheEntry for the levels
     );

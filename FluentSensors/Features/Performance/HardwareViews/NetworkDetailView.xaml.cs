@@ -20,6 +20,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
         // below it the wide layout (a big graph beside two stacked) turns narrow (all three stacked)
         private const double NarrowGraphsLayoutThreshold = 700;
         private bool _isNarrowLayoutActive;
+        private bool _extendedTimeSpanHookAttached;
 
 
         // === constructor ===
@@ -63,7 +64,26 @@ namespace FluentSensors.Features.Performance.HardwareViews
         }
 
 
+        // === binding helpers ===
+
+        private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
+
+
         // === event handlers ===
+
+        private void ShowOverall_Click(object sender, RoutedEventArgs e)
+        {
+            if (Network != null) Network.IsShowingExtended = false;
+            RecalculateOverviewHeight();
+            SyncLayoutRenderingGate();
+        }
+
+        private void ShowExtended_Click(object sender, RoutedEventArgs e)
+        {
+            if (Network != null) Network.IsShowingExtended = true;
+            RecalculateOverviewHeight();
+            SyncLayoutRenderingGate();
+        }
 
         // after a drag the content column fills the rest again, and the width goes to the view model, which every
         // hardware view sizes its info panel from
@@ -80,10 +100,29 @@ namespace FluentSensors.Features.Performance.HardwareViews
             RecalculateOverviewHeight();
         }
 
-        // OverviewBlockGrid.Height from the scroll viewer size; also from PerformancePage after a panel toggle, whose
-        // size change can reach this control late
+        // sizes the shown section, Overview or Extended (like GpuDetailView); also from PerformancePage after a panel
+        // toggle, whose size change can reach this control late
         public void RecalculateOverviewHeight()
         {
+            if (Network != null && Network.IsShowingExtended)
+            {
+                OverviewBlockGrid.Height = 0;
+
+                // x:Load="False", FindName builds it on the first visit
+                FindName(nameof(ExtendedGrid));
+                ExtendedGrid.Height = double.NaN;
+
+                if (!_extendedTimeSpanHookAttached)
+                {
+                    _extendedTimeSpanHookAttached = true;
+                    PerformanceGraphDefaults.BindTimeSpan(ExtendedGrid, PerformanceGraphKind.Standard);
+                }
+                return;
+            }
+
+            // null until Extended was shown once
+            if (ExtendedGrid != null) ExtendedGrid.Height = 0;
+
             // read off the live tree, see OverviewBlockSizing
             double contentWidth = OverviewBlockSizing.ContentWidth(ContentScrollViewer, ContentStackPanel, OverviewBlockGrid);
             TilesGrid.Measure(new Size(contentWidth, double.PositiveInfinity));
@@ -107,9 +146,24 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // back down to the shown layout after PerformancePage.ActivateCurrentDetailViewRendering woke the whole view
         // (like CpuDetailView, without the section split)
+        // the section split works like GpuDetailView.SyncSectionRenderingGate
         public void SyncLayoutRenderingGate()
         {
-            SensorGraphRenderingGate.SetActive(_isNarrowLayoutActive ? WideGraphsGrid : NarrowGraphsPanel, false);
+            bool isShowingExtended = Network != null && Network.IsShowingExtended;
+
+            SensorGraphRenderingGate.SetActive(OverviewBlockGrid, !isShowingExtended);
+
+            // null until Extended was shown once
+            if (ExtendedGrid != null)
+            {
+                SensorGraphRenderingGate.SetActive(ExtendedGrid, isShowingExtended);
+            }
+
+            // the walk woke the hidden layout of Wide and Narrow too; back down to the shown one
+            if (!isShowingExtended)
+            {
+                SensorGraphRenderingGate.SetActive(_isNarrowLayoutActive ? WideGraphsGrid : NarrowGraphsPanel, false);
+            }
         }
 
 
@@ -126,7 +180,7 @@ namespace FluentSensors.Features.Performance.HardwareViews
             narrowLayout.Opacity = useNarrow ? 1 : 0;
             narrowLayout.IsHitTestVisible = useNarrow;
 
-            if (!IsHitTestVisible) return;
+            if (!IsHitTestVisible || (Network != null && Network.IsShowingExtended)) return;
 
             SensorGraphRenderingGate.SetActive(wideLayout, !useNarrow);
             SensorGraphRenderingGate.SetActive(narrowLayout, useNarrow);

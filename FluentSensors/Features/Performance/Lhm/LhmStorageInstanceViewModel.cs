@@ -33,6 +33,8 @@ namespace FluentSensors.Features.Performance.Lhm
             TotalActivityOptions = new ObservableCollection<SensorSwitchCandidate>();
             ReadRateOptions = new ObservableCollection<SensorSwitchCandidate>();
             WriteRateOptions = new ObservableCollection<SensorSwitchCandidate>();
+            UsedSpaceOptions = new ObservableCollection<SensorSwitchCandidate>();
+            TemperatureLimitFacts = new ObservableCollection<HardwareFact>();
         }
 
 
@@ -62,7 +64,15 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(TotalActivity));
         }
 
-        // not charted; the TotalActivity y-max for its Free Space candidate, the reported total
+        // extended view; the plain Total Activity, the slot above without its switch
+        private SensorGraphViewModel _extendedTotalActivity;
+        public SensorGraphViewModel ExtendedTotalActivity
+        {
+            get => _extendedTotalActivity;
+            set { _extendedTotalActivity = value; OnPropertyChanged(); }
+        }
+
+        // not charted; the y-max of the space candidates of TotalActivity and UsedSpace, the reported total
         private double _totalSpace;
         public double TotalSpace
         {
@@ -111,6 +121,66 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
 
+        // extended view; the used space in percent (LHM) or in bytes (the Windows source, while its switch is on)
+        private SensorGraphViewModel _usedSpace;
+        public SensorGraphViewModel UsedSpace
+        {
+            get => _usedSpace;
+            set
+            {
+                if (_usedSpace == value) return;
+                _usedSpace = value;
+                OnPropertyChanged();
+                if (value != null) SensorSwitchStateService.Instance.SetSelectedSensorId(HardwareName, "UsedSpace", value.SensorId);
+            }
+        }
+        public ObservableCollection<SensorSwitchCandidate> UsedSpaceOptions { get; }
+
+        internal void SetUsedSpaceWithoutPersisting(SensorGraphViewModel value)
+        {
+            _usedSpace = value;
+            OnPropertyChanged(nameof(UsedSpace));
+        }
+
+        // extended view; the cumulative totals, where the drive reports them
+        private SensorGraphViewModel _dataRead;
+        public SensorGraphViewModel DataRead
+        {
+            get => _dataRead;
+            set { _dataRead = value; OnPropertyChanged(); }
+        }
+
+        private SensorGraphViewModel _dataWritten;
+        public SensorGraphViewModel DataWritten
+        {
+            get => _dataWritten;
+            set { _dataWritten = value; OnPropertyChanged(); }
+        }
+
+        // the second view of the tab, see StorageDetailView
+        private bool _isShowingExtended;
+        public bool IsShowingExtended
+        {
+            get => _isShowingExtended;
+            set
+            {
+                if (_isShowingExtended != value)
+                {
+                    _isShowingExtended = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ExtendedOpacity));
+                    OnPropertyChanged(nameof(ExtendedIsHitTestVisible));
+                }
+            }
+        }
+
+        // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
+        // problem and fix: see GpuDetailView.SetLayoutActive; the Overall/Extended switch hides by
+        // Opacity and IsHitTestVisible too
+        public double ExtendedOpacity => IsShowingExtended ? 1 : 0;
+        public bool ExtendedIsHitTestVisible => IsShowingExtended;
+
+
         // === static info text properties ===
 
         // static info from the matched WinStorageDriveInfo
@@ -121,6 +191,27 @@ namespace FluentSensors.Features.Performance.Lhm
         public string StorageSizeText => _staticInfo != null ? HardwareInfoFormatter.FormatBytesAsGb(_staticInfo.SizeBytes) : "-";
         public string StoragePnpDeviceIdText => _staticInfo?.PnpDeviceId ?? "-";
         public string StorageManufactureDateText => !string.IsNullOrEmpty(_staticInfo?.ManufactureDate) ? _staticInfo.ManufactureDate : "-";
+        public string StorageMediaTypeText => HardwareInfoFormatter.FormatMediaType(_staticInfo?.MediaType, _staticInfo?.SpindleSpeedRpm);
+        public string StorageHealthText => HardwareInfoFormatter.FormatHealthStatus(_staticInfo?.HealthStatus);
+        public string StoragePartitionStyleText => HardwareInfoFormatter.FormatPartitionStyle(_staticInfo?.PartitionStyle);
+        public string StoragePartitionCountText => HardwareInfoFormatter.FormatCount(_staticInfo?.PartitionCount);
+        public string StorageDiskRoleText => _staticInfo != null ? HardwareInfoFormatter.FormatDiskRole(_staticInfo.IsBootDisk, _staticInfo.IsSystemDisk) : "-";
+        public string StorageVolumesText => HardwareInfoFormatter.FormatVolumes(_staticInfo?.Volumes);
+
+        // the PCI Express link of the controller; the section only shows for a drive that has one to read
+        public bool HasPciLink => _staticInfo?.PciLink != null;
+        public string StoragePciLinkText => HardwareInfoFormatter.FormatPciLinkPair(_staticInfo?.PciLink);
+
+        // the limits the drive stores for itself (warning and critical temperature), LHM sensors read as facts; their
+        // section only shows once one arrived
+        public ObservableCollection<HardwareFact> TemperatureLimitFacts { get; }
+        public bool HasTemperatureLimitFacts => TemperatureLimitFacts.Count > 0;
+
+        internal void AddTemperatureLimitFact(HardwareFact fact)
+        {
+            TemperatureLimitFacts.Add(fact);
+            OnPropertyChanged(nameof(HasTemperatureLimitFacts));
+        }
 
         // the performance page name, the model over the raw LHM name; HardwareName stays raw everywhere else
         public string PerformanceDisplayName => _staticInfo?.FriendlyName ?? HardwareName;
@@ -163,7 +254,10 @@ namespace FluentSensors.Features.Performance.Lhm
             nameof(StorageManufactureDateText), nameof(PerformanceDisplayName), nameof(StorageTemperatureText),
             nameof(StorageTemperatureMaxText), nameof(StorageWearText), nameof(StoragePowerOnHoursText),
             nameof(StorageReadErrorsText), nameof(StorageWriteErrorsText), nameof(StorageStartStopCyclesText),
-            nameof(StorageLoadUnloadCyclesText), nameof(StorageLatencyMaxText)
+            nameof(StorageLoadUnloadCyclesText), nameof(StorageLatencyMaxText), nameof(StorageMediaTypeText),
+            nameof(StorageHealthText), nameof(StoragePartitionStyleText), nameof(StoragePartitionCountText),
+            nameof(StorageDiskRoleText), nameof(StorageVolumesText), nameof(HasPciLink),
+            nameof(StoragePciLinkText)
         };
 
 

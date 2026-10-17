@@ -30,7 +30,12 @@ namespace FluentSensors.Persistence.Models
 
         // sensor type colors; the graphs of the performance page and the check boxes of the sensors page, instead of
         // the hardware color (the widget and the taskbar have SensorType in their own GraphColorSource)
+        // switched on the two pages themselves, not on the settings page
         public bool UseSensorTypeColors { get; set; } = false;
+
+        // the source icon behind a sensor name, per source (see SensorSourceIcon)
+        public bool ShowLhmSourceIcon { get; set; } = true;
+        public bool ShowWindowsSourceIcon { get; set; } = true;
 
         // graph; global, every graph in the app
         public GraphLineStyle GraphLineStyle { get; set; } = GraphLineStyle.Stepline;
@@ -62,6 +67,14 @@ namespace FluentSensors.Persistence.Models
 
         // update interval; (lives on HardwareMonitorService at runtime)
         public int UpdateIntervalMs { get; set; } = 500;
+
+        // engine; LHM hardware that is not read, by the name the payload gives it
+        public List<string> DisabledLhmHardware { get; set; } = new();
+        // what Windows adds to or replaces in LHM hardware; all off until asked for
+        public bool WinStorageSensorsEnabled { get; set; } = false;
+        public bool WinWlanSensorsEnabled { get; set; } = false;
+        // hardware only Windows has
+        public bool WinDisplayEnabled { get; set; } = false;
 
 
         // --- performance page appearance ---

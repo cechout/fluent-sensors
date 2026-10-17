@@ -8,6 +8,18 @@
         string Product,
         string Version,
         string BiosVersion,
-        string BiosReleaseDate
+        string BiosReleaseDate,
+
+        // the device the board sits in, as its maker names it ("ROG Zephyrus M16"); often a firmware default on a
+        // self-built desktop
+        string SystemFamily,
+        string SystemModel,
+
+        // raw SMBIOS Type 3 "Chassis Type", 0 when not reported; see HardwareInfoFormatter.FormatChassisType
+        uint ChassisType,
+
+        string EmbeddedControllerVersion, // "3.10", "" on a board without one
+        bool? SecureBootEnabled, // null on a legacy BIOS, which has no secure boot
+        string TpmVersion // "2.0", "" without a TPM
     );
 }

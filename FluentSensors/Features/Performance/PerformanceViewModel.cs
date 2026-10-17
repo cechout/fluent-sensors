@@ -2,6 +2,7 @@
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
 using FluentSensors.Features.Performance.Lhm;
+using FluentSensors.Features.Performance.Win;
 using FluentSensors.Persistence.Services;
 using Microsoft.UI.Xaml;
 using System;
@@ -16,8 +17,8 @@ using System.Runtime.CompilerServices;
 namespace FluentSensors.Features.Performance
 {
     // the performance view model:
-    // the data context of PerformancePage over the engine view models; LHM is the only engine (a HWiNFO set would sit
-    // beside it in its own folder)
+    // the data context of PerformancePage over the engine view models; LHM is the engine of every category but the
+    // display, which only Windows has (a HWiNFO set would sit beside them in its own folder)
     public class PerformanceViewModel : INotifyPropertyChanged
     {
         // === singleton instance ===
@@ -37,12 +38,17 @@ namespace FluentSensors.Features.Performance
             Memory = new LhmMemoryPerformanceViewModel();
             Storage = new LhmStoragePerformanceViewModel();
             Network = new LhmNetworkPerformanceViewModel();
+            Battery = new LhmBatteryPerformanceViewModel();
+            Display = new WinDisplayPerformanceViewModel();
 
             NavItems = new ObservableCollection<PerformanceNavItemViewModel>();
 
             // the nav items only re-read their brush on an icon colour change; never
             // detached, this lives for the session
             SettingsService.Instance.HardwareIconColorsChanged += RefreshNavItemIconBrushes;
+
+            // toggled on the sensors page too
+            SettingsService.Instance.SensorTypeColorsChanged += () => OnPropertyChanged(nameof(UseSensorTypeColors));
 
             // no value, any range; all pickers re-read
             SettingsService.Instance.PerformanceGraphTimeSpanChanged += () =>
@@ -71,13 +77,14 @@ namespace FluentSensors.Features.Performance
                 });
 
             // the longest chain: an Intel iGPU can report a single Power sensor and nothing else
-            AttachExistingAndFuture(Gpu.Gpus, HardwareGroupKind.Gpu,
+            AttachExistingAndFuture(Gpu.Gpus, HardwareGroupKind.DiscreteGpu,
                 item => ((LhmGpuInstanceViewModel)item).HardwareName,
                 item =>
                 {
                     var gpu = (LhmGpuInstanceViewModel)item;
                     return FirstAvailable(gpu.CoreLoad, gpu.D3dEngineSlot1, gpu.Temperature, gpu.PackagePower, gpu.MemoryUsed);
-                });
+                },
+                item => ((LhmGpuInstanceViewModel)item).Kind);
 
             AttachExistingAndFuture(Storage.Drives, HardwareGroupKind.Storage,
                 item => ((LhmStorageInstanceViewModel)item).PerformanceDisplayName,
@@ -95,6 +102,22 @@ namespace FluentSensors.Features.Performance
                     return FirstAvailable(adapter.NetworkUtilization, adapter.DownloadSpeed, adapter.UploadSpeed);
                 });
 
+            AttachExistingAndFuture(Battery.Batteries, HardwareGroupKind.Battery,
+                item => ((LhmBatteryInstanceViewModel)item).HardwareName,
+                item =>
+                {
+                    var battery = (LhmBatteryInstanceViewModel)item;
+                    return FirstAvailable(battery.ChargeLevel, battery.Rate, battery.Detail);
+                });
+
+            AttachExistingAndFuture(Display.Displays, HardwareGroupKind.Display,
+                item => ((WinDisplayInstanceViewModel)item).HardwareName,
+                item =>
+                {
+                    var display = (WinDisplayInstanceViewModel)item;
+                    return FirstAvailable(display.Brightness, display.RefreshRate);
+                });
+
             SelectedItem = NavItems.FirstOrDefault(i => i.Kind == HardwareGroupKind.Cpu) ?? NavItems.FirstOrDefault();
         }
 
@@ -106,6 +129,8 @@ namespace FluentSensors.Features.Performance
         public LhmMemoryPerformanceViewModel Memory { get; }
         public LhmStoragePerformanceViewModel Storage { get; }
         public LhmNetworkPerformanceViewModel Network { get; }
+        public LhmBatteryPerformanceViewModel Battery { get; }
+        public WinDisplayPerformanceViewModel Display { get; }
 
         // one per hardware instance, in the sidebar
         public ObservableCollection<PerformanceNavItemViewModel> NavItems { get; }
@@ -149,6 +174,14 @@ namespace FluentSensors.Features.Performance
                     OnPropertyChanged();
                 }
             }
+        }
+
+        // graphs and check boxes by what a sensor measures instead of by hardware; one setting, toggled here and on the
+        // sensors page
+        public bool UseSensorTypeColors
+        {
+            get => SettingsService.Instance.UseSensorTypeColors;
+            set => SettingsService.Instance.UseSensorTypeColors = value;
         }
 
         // info panel
@@ -286,21 +319,29 @@ namespace FluentSensors.Features.Performance
         }
 
         // the instances found before this view model existed, then the later ones; every category takes this path
+        // getKind is for a collection that holds more than one kind (the gpus, discrete and integrated)
         private void AttachExistingAndFuture(IEnumerable collection, HardwareGroupKind kind,
+            Func<object, string> getHardwareName, Func<object, SensorGraphViewModel> getPrimaryGraph,
+            Func<object, HardwareGroupKind> getKind = null)
+        {
+            foreach (var item in collection)
+            {
+                AddNavItem(item, getKind?.Invoke(item) ?? kind, getHardwareName, getPrimaryGraph);
+            }
+
+            ((INotifyCollectionChanged)collection).CollectionChanged += (s, e) => OnHardwareCollectionChanged(e, kind, getHardwareName, getPrimaryGraph, getKind);
+        }
+
+        private void AddNavItem(object item, HardwareGroupKind kind,
             Func<object, string> getHardwareName, Func<object, SensorGraphViewModel> getPrimaryGraph)
         {
             string groupLabel = HardwareGroupInfo.GetProfile(kind).Label;
-
-            foreach (var item in collection)
-            {
-                NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, item, getHardwareName, getPrimaryGraph));
-            }
-
-            ((INotifyCollectionChanged)collection).CollectionChanged += (s, e) => OnHardwareCollectionChanged(e, kind, getHardwareName, getPrimaryGraph);
+            NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, item, getHardwareName, getPrimaryGraph));
         }
 
         private void OnHardwareCollectionChanged(NotifyCollectionChangedEventArgs e, HardwareGroupKind kind,
-            Func<object, string> getHardwareName, Func<object, SensorGraphViewModel> getPrimaryGraph)
+            Func<object, string> getHardwareName, Func<object, SensorGraphViewModel> getPrimaryGraph,
+            Func<object, HardwareGroupKind> getKind)
         {
             if (e.Action == NotifyCollectionChangedAction.Remove)
             {
@@ -318,11 +359,9 @@ namespace FluentSensors.Features.Performance
 
             if (e.Action != NotifyCollectionChangedAction.Add) return;
 
-            string groupLabel = HardwareGroupInfo.GetProfile(kind).Label;
-
             foreach (var newItem in e.NewItems)
             {
-                NavItems.Add(new PerformanceNavItemViewModel(kind, groupLabel, newItem, getHardwareName, getPrimaryGraph));
+                AddNavItem(newItem, getKind?.Invoke(newItem) ?? kind, getHardwareName, getPrimaryGraph);
             }
         }
 

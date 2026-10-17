@@ -36,6 +36,9 @@ namespace FluentSensors.Features.Sensors
         private ICommandBarElement[] _commandBarPriorityOrder;
         private readonly Dictionary<ICommandBarElement, double> _commandBarButtonWidths = new();
         private HashSet<ICommandBarElement> _forcedOverflowElements;
+
+        // an icon only toggle in the bar, the width of the one on the graphs page
+        private const double IconOnlyButtonWidth = 42;
         private bool _commandBarWidthsCached = false;
         private const double OverflowButtonReservedWidth = 48;
         private const double LeftSectionMinWidth = 300; // from SensorListTitleText
@@ -617,7 +620,12 @@ namespace FluentSensors.Features.Sensors
             order.Add(HideSensorsButton);
             order.Add(ButtonSeparator);
             order.Add(ResetValuesButton);
+            order.Add(SensorTypeColorsButton);
+            order.Add(SensorTypeColorsSeparator);
             order.Add(ShowHiddenSensorsButton);
+
+            // every element starts in the bar, so its width is cached icon only
+            ApplySensorTypeColorsButtonPlacement(isInBar: true);
 
             return order.ToArray();
         }
@@ -714,6 +722,15 @@ namespace FluentSensors.Features.Sensors
                     SensorListCommandBar.SecondaryCommands.Add(element);
                 }
             }
+
+            ApplySensorTypeColorsButtonPlacement(SensorListCommandBar.PrimaryCommands.Contains(SensorTypeColorsButton));
+        }
+
+        // in the bar only its icon, like on the graphs page; in the menu an entry with its label
+        private void ApplySensorTypeColorsButtonPlacement(bool isInBar)
+        {
+            SensorTypeColorsButton.LabelPosition = isInBar ? CommandBarLabelPosition.Collapsed : CommandBarLabelPosition.Default;
+            SensorTypeColorsButton.Width = isInBar ? IconOnlyButtonWidth : double.NaN;
         }
 
         // a separator joins the unit of the element before it, so the fit never cuts between them

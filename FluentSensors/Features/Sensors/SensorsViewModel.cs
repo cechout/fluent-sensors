@@ -83,6 +83,7 @@ namespace FluentSensors.Features.Sensors
 
             // never detached; this view model lives for the whole session
             SettingsService.Instance.HardwareIconColorsChanged += RefreshGroupIconBrushes;
+            SettingsService.Instance.SensorTypeColorsChanged += () => OnPropertyChanged(nameof(UseSensorTypeColors));
             WinStaticInfoService.Instance.DrivesChanged += RefreshGroupDisplayNames;
             WinStaticInfoService.Instance.NetworkAdaptersChanged += RefreshGroupDisplayNames;
         }
@@ -92,6 +93,14 @@ namespace FluentSensors.Features.Sensors
 
         public ObservableCollection<HardwareGroupViewModel> HardwareGroups { get; set; }
         public bool HasHiddenSensors => HardwareGroups.Any(g => g.HasHiddenSensors);
+
+        // graphs and check boxes by what a sensor measures instead of by hardware; one setting, toggled here and on the
+        // graphs page
+        public bool UseSensorTypeColors
+        {
+            get => SettingsService.Instance.UseSensorTypeColors;
+            set => SettingsService.Instance.UseSensorTypeColors = value;
+        }
 
         // the profile the checkboxes reflect and persist to
         private SensorSelectionProfile _activeProfile = SensorSelectionProfile.WidgetWindow;
@@ -229,8 +238,41 @@ namespace FluentSensors.Features.Sensors
 
             foreach (LhmSensorEntry entry in e.NewItems)
             {
-                OnSensorDiscovered(group, entry);
+                WatchSensor(group, entry);
             }
+        }
+
+        // the row leaves while LHM has its sensor deactivated and is built new when it is back, like the group of
+        // unplugged hardware
+        private void WatchSensor(HardwareGroupViewModel group, LhmSensorEntry entry)
+        {
+            int sortOrder = group.TakeSortOrder();
+
+            if (entry.IsActive) OnSensorDiscovered(group, entry, sortOrder);
+
+            entry.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName != nameof(LhmSensorEntry.IsActive)) return;
+
+                if (entry.IsActive) OnSensorDiscovered(group, entry, sortOrder);
+                else OnSensorRemoved(group, entry);
+            };
+        }
+
+        // the saved selection, hidden state and threshold stay in their services
+        private void OnSensorRemoved(HardwareGroupViewModel group, LhmSensorEntry entry)
+        {
+            // a group whose hardware left in the meantime
+            if (!HardwareGroups.Contains(group)) return;
+
+            var row = group.RemoveSensor(entry.Id);
+            if (row == null) return;
+
+            row.PropertyChanged -= OnSensorRowSelectionChanged;
+            row.Cleanup();
+
+            OnPropertyChanged(nameof(HasHiddenSensors));
+            QueueSensorAvailabilityChanged();
         }
 
         // a group hidden-state change into the aggregate
@@ -338,7 +380,7 @@ namespace FluentSensors.Features.Sensors
 
             foreach (var entry in instance.Sensors)
             {
-                OnSensorDiscovered(group, entry);
+                WatchSensor(group, entry);
             }
             instance.Sensors.CollectionChanged += (s, e) => OnInstanceSensorsChanged(group, e);
         }
@@ -398,17 +440,20 @@ namespace FluentSensors.Features.Sensors
         }
 
         // the row of a newly discovered sensor; (it may carry state from an earlier run, hidden or selected)
-        private void OnSensorDiscovered(HardwareGroupViewModel group, LhmSensorEntry entry)
+        private void OnSensorDiscovered(HardwareGroupViewModel group, LhmSensorEntry entry, int sortOrder)
         {
             var persistedState = SensorStateService.Instance.GetState(entry.Id);
             bool isHidden = persistedState.IsHidden;
+
+            // a group whose hardware left in the meantime
+            if (!HardwareGroups.Contains(group)) return;
 
             // IsHidden, then Entry, then IsSelected: the Entry setter syncs the value unless hidden, the IsSelected
             // setter persists and needs Entry.Id
             // the checkbox seeds from the active profile selection, not from persistedState.IsSelected
             var newRow = new SensorRowViewModel
             {
-                SortOrder = group.Sensors.Count + group.HiddenSensors.Count,
+                SortOrder = sortOrder,
                 HardwareKind = group.Kind,
                 IsHidden = isHidden,
                 Entry = entry,

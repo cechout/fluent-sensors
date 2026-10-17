@@ -11,7 +11,7 @@ namespace FluentSensors.Core.Lhm
     // reads instead of the payload
     // discovery, grouping and live values only; thresholds, statistics, sorting, graphs and hiding belong to the pages
     // an instance leaves again when its hardware does (unplugged, a network adapter down) and is built new when it
-    // comes back
+    // comes back; a single sensor LHM deactivates stays and only turns inactive
     public class LhmHardwareTreeService
     {
         // === fields ===
@@ -37,6 +37,7 @@ namespace FluentSensors.Core.Lhm
 
             HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
             HardwareMonitorService.Instance.HardwareRemoved += OnHardwareRemoved;
+            HardwareMonitorService.Instance.SensorsRemoved += OnSensorsRemoved;
         }
 
 
@@ -56,7 +57,7 @@ namespace FluentSensors.Core.Lhm
                     var instance = HardwareGroups.FirstOrDefault(g => g.HardwareName == data.HardwareName);
                     if (instance == null)
                     {
-                        instance = new LhmHardwareInstance(data.HardwareName, HardwareGroupInfo.GetKind(data.HardwareType));
+                        instance = new LhmHardwareInstance(data.HardwareName, HardwareGroupInfo.GetKind(data.HardwareType, data.IsIntegratedGpu));
                         HardwareGroups.Add(instance);
                     }
 
@@ -70,7 +71,28 @@ namespace FluentSensors.Core.Lhm
                     }
                     else
                     {
+                        entry.Name = data.Name;
+                        entry.IsActive = true;
                         entry.Value = data.Value;
+                    }
+                }
+            });
+        }
+
+        // queued behind the payload it came with, like OnHardwareRemoved; the entry stays, see LhmSensorEntry.IsActive
+        private void OnSensorsRemoved(List<string> sensorIds)
+        {
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                foreach (string sensorId in sensorIds)
+                {
+                    foreach (var instance in HardwareGroups)
+                    {
+                        var entry = instance.Sensors.FirstOrDefault(s => s.Id == sensorId);
+                        if (entry == null) continue;
+
+                        entry.IsActive = false;
+                        break;
                     }
                 }
             });

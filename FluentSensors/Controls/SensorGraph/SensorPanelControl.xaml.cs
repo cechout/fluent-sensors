@@ -55,9 +55,50 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 SettingsService.Instance.SensorTypeColorsChanged -= OnSensorTypeColorsChanged;
                 SettingsService.Instance.SensorTypeColorsChanged += OnSensorTypeColorsChanged;
+                SubscribeToViewModel(ViewModel);
                 Bindings.Update();
             };
-            Unloaded += (s, e) => SettingsService.Instance.SensorTypeColorsChanged -= OnSensorTypeColorsChanged;
+            Unloaded += (s, e) =>
+            {
+                SettingsService.Instance.SensorTypeColorsChanged -= OnSensorTypeColorsChanged;
+                UnsubscribeFromViewModel();
+            };
+
+            // a gated graph (a hidden view, a minimized window) takes the per-tick binding refresh with it; one refresh
+            // catches up when it renders again
+            GraphControl.RenderingActiveChanged += (s, e) =>
+            {
+                if (!GraphControl.IsRenderingActive || !_hasMissedBindingsUpdate) return;
+
+                _hasMissedBindingsUpdate = false;
+                Bindings.Update();
+            };
+        }
+
+        // the ViewModel this panel listens to; only while loaded, or a long lived sensor would keep a panel that left
+        // the tree alive and refreshing for good
+        private SensorGraphViewModel _subscribedViewModel;
+
+        // a refresh skipped while the graph was gated, see OnViewModelPropertyChanged
+        private bool _hasMissedBindingsUpdate;
+
+        private void SubscribeToViewModel(SensorGraphViewModel viewModel)
+        {
+            if (ReferenceEquals(_subscribedViewModel, viewModel)) return;
+
+            UnsubscribeFromViewModel();
+            if (viewModel == null) return;
+
+            viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            _subscribedViewModel = viewModel;
+        }
+
+        private void UnsubscribeFromViewModel()
+        {
+            if (_subscribedViewModel == null) return;
+
+            _subscribedViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            _subscribedViewModel = null;
         }
 
 
@@ -444,11 +485,11 @@ namespace FluentSensors.Controls.SensorGraph
             // problem: the GetXOrPlaceholder functions take ViewModel itself (to survive a null one), so x:Bind reruns
             // them only when ViewModel is swapped, never when its values change on every tick
             // fix: Bindings.Update() on the ViewModels PropertyChanged; the old one is unsubscribed, so a switched-away
-            // sensor does not keep this control alive
+            // sensor does not keep this control alive (and a panel off the tree listens to none, see SubscribeToViewModel)
             if (e.Property == ViewModelProperty)
             {
-                if (e.OldValue is SensorGraphViewModel oldViewModel) oldViewModel.PropertyChanged -= panel.OnViewModelPropertyChanged;
-                if (e.NewValue is SensorGraphViewModel newViewModel) newViewModel.PropertyChanged += panel.OnViewModelPropertyChanged;
+                if (panel.IsLoaded) panel.SubscribeToViewModel(e.NewValue as SensorGraphViewModel);
+                else panel.UnsubscribeFromViewModel();
             }
         }
 
@@ -539,6 +580,11 @@ namespace FluentSensors.Controls.SensorGraph
             return GetStatusRowTitle(showUnit, placeholderName, placeholderNameWithUnit);
         }
 
+        // the source icon behind the title; nothing while the panel shows a placeholder
+        private string GetSourceIconSensorId(SensorGraphViewModel viewModel) => viewModel?.SensorId ?? "";
+
+        private string GetSourceIconName(SensorGraphViewModel viewModel) => SensorSourceIcon.GetName(viewModel?.SensorId);
+
         private Brush GetBrushOrDefault(Brush value) => value ?? DefaultTextColor.Resolve();
 
         // the two status row variants are exclusive; compact wins
@@ -610,7 +656,7 @@ namespace FluentSensors.Controls.SensorGraph
             };
 
             // a type without a group color keeps the hardware one
-            ThemeColorPair colors = useSensorTypeColor && SensorTypeGroupInfo.TryGetColors(ViewModel?.SensorType ?? "", out var typeColors)
+            ThemeColorPair colors = useSensorTypeColor && SensorTypeGroupInfo.TryGetColors(ViewModel?.SensorType ?? "", ViewModel?.SensorName, out var typeColors)
                 ? typeColors
                 : HardwareGroupInfo.GetProfile(hardwareKind).Colors;
 
@@ -657,14 +703,21 @@ namespace FluentSensors.Controls.SensorGraph
         private void OnSensorTypeColorsChanged() => Bindings.Update();
 
         // see the workaround in OnOverrideChanged
+        // every tick, several times; skipped while the graph is gated off, nobody sees the panel then
         private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            Bindings.Update();
-
             if (e.PropertyName == nameof(SensorGraphViewModel.ControlPanelVisibility))
             {
                 ApplyControlPanelState(animate: IsLoaded);
             }
+
+            if (!GraphControl.IsRenderingActive)
+            {
+                _hasMissedBindingsUpdate = true;
+                return;
+            }
+
+            Bindings.Update();
         }
 
         // the part of the panel outside the host is cut off; the left panel keeps its right edge on the graph, so

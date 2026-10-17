@@ -28,6 +28,7 @@ namespace FluentSensors.Controls.SensorGraph
         // both in the displayed base unit, see SensorTypeProfile
         private readonly double _yMaxStep;
         private readonly double _yMaxDefault;
+        private readonly bool _canYMaxBeNegative; // see SensorTypeProfile.CanBeNegative
 
         // a view override owns ManualYMax (see ApplyViewOverrides); a data unit switch leaves it alone
         private bool _hasManualYMaxOverride;
@@ -110,6 +111,7 @@ namespace FluentSensors.Controls.SensorGraph
             var profile = SensorTypeProfiles.GetProfile(sensorType);
             _yMaxStep = profile.YMaxStep;
             _yMaxDefault = profile.YMaxDefault;
+            _canYMaxBeNegative = profile.CanBeNegative;
 
             // the saved Y-axis state of this scope
             var existingState = SensorStateService.Instance.GetState(SensorId);
@@ -144,7 +146,12 @@ namespace FluentSensors.Controls.SensorGraph
         public string SensorName
         {
             get => _sensorName;
-            set { _sensorName = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayNameWithUnit)); }
+            set
+            {
+                _sensorName = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayNameWithUnit));
+            }
         }
 
         private string _unit = "";
@@ -255,6 +262,7 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         private Brush _currentValueColor;
+        private Windows.UI.Color _currentValueThresholdColor; // the threshold color behind CurrentValueColor, see RecalculateColor
         public Brush CurrentValueColor
         {
             get => _currentValueColor;
@@ -291,7 +299,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         private void OnThemeChanged(string newTheme)
         {
-            RecalculateColor();
+            RecalculateColor(force: true); // the default brush depends on the theme
         }
 
         // the value color follows the threshold
@@ -522,19 +530,26 @@ namespace FluentSensors.Controls.SensorGraph
         public void IncreaseYMax()
         {
             IsAutoScaled = false; // turns the auto button off
-            ManualYMax += SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
+
+            double step = SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
+            double next = ManualYMax + step;
+
+            // a negative limit on its way back up skips 0, the range would be empty
+            if (Math.Abs(next) < step / 2) next = step;
+            ManualYMax = next;
         }
 
         public void DecreaseYMax()
         {
             IsAutoScaled = false; // turns the auto button off
 
-            // never down to 0 or below
             double step = SensorUnitFormatter.ToRawValue(_yMaxStep, SensorType);
-            if (ManualYMax > step)
-            {
-                ManualYMax -= step;
-            }
+            double next = ManualYMax - step;
+
+            // never 0, and below it only for a type whose values lie there
+            if (Math.Abs(next) < step / 2) next = -step;
+            if (next < 0 && !_canYMaxBeNegative) return;
+            ManualYMax = next;
         }
 
 
@@ -591,12 +606,19 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        // the value color against the threshold
-        private void RecalculateColor()
+        // the value color against the threshold; a new brush only when the color changes
+        // (one per tick for every graph of the app piled up native brushes the GC collects late, and every new one made
+        // each panel showing the graph re-run all its bindings)
+        private void RecalculateColor(bool force = false)
         {
-            IsThresholdColorActive = Threshold.IsBreached(_currentRaw);
+            bool isActive = Threshold.IsBreached(_currentRaw);
+            Windows.UI.Color thresholdColor = isActive ? Threshold.Color : default;
 
-            CurrentValueColor = IsThresholdColorActive
+            if (!force && _currentValueColor != null && isActive == IsThresholdColorActive && thresholdColor == _currentValueThresholdColor) return;
+
+            IsThresholdColorActive = isActive;
+            _currentValueThresholdColor = thresholdColor;
+            CurrentValueColor = isActive
                 ? new SolidColorBrush(Threshold.Color)
                 : DefaultTextColor.Resolve();
         }
@@ -606,8 +628,9 @@ namespace FluentSensors.Controls.SensorGraph
         {
             if (IsAutoScaled)
             {
-                // the highest point, 0 while empty
+                // the highest point, 0 while empty; the lowest for a series below zero, the end of its range
                 double currentHighestPoint = SensorData.Max() ?? 0;
+                if (currentHighestPoint <= 0) currentHighestPoint = Math.Min(SensorData.Min() ?? 0, 0);
                 var (scaledValue, _) = SensorUnitFormatter.Scale(currentHighestPoint, SensorType);
                 ActualYMaxText = $"{scaledValue:0.0}";
             }
@@ -625,7 +648,7 @@ namespace FluentSensors.Controls.SensorGraph
         // accent without a category (the performance page passes a GraphHardwareKind instead)
         private ThemeColorPair ResolveGraphColor(GraphColorSource source, Windows.UI.Color customColor)
         {
-            if (source == GraphColorSource.SensorType && SensorTypeGroupInfo.TryGetColors(SensorType, out var typeColors))
+            if (source == GraphColorSource.SensorType && SensorTypeGroupInfo.TryGetColors(SensorType, SensorName, out var typeColors))
             {
                 return typeColors;
             }

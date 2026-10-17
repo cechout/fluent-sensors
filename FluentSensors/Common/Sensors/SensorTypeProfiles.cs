@@ -11,6 +11,9 @@
         public double ThresholdStep { get; init; }
         public double YMaxDefault { get; init; }
         public double YMaxStep { get; init; }
+
+        // the values lie below zero, so the y limit may be negative; the graph then hangs from the 0 line
+        public bool CanBeNegative { get; init; }
     }
 
     public static class SensorTypeProfiles
@@ -79,17 +82,58 @@
             YMaxStep = 25
         };
 
+        // battery capacity in mWh, tens of thousands
+        private static readonly SensorTypeProfile Energy = new()
+        {
+            ThresholdDefault = 20000,
+            ThresholdStep = 1000,
+            YMaxDefault = 100000,
+            YMaxStep = 5000
+        };
+
+        // seconds; battery runtime in hours, psu uptime far beyond
+        private static readonly SensorTypeProfile TimeSpan = new()
+        {
+            ThresholdDefault = 1800,
+            ThresholdStep = 300,
+            YMaxDefault = 36000,
+            YMaxStep = 1800
+        };
+
+        // battery and rail currents, a few A
+        private static readonly SensorTypeProfile Current = new()
+        {
+            ThresholdDefault = 5,
+            ThresholdStep = 0.5,
+            YMaxDefault = 10,
+            YMaxStep = 1
+        };
+
+        // the RSSI in dBm (ours, not an LHM type): 0 is the strongest, around -90 the link is gone
+        private static readonly SensorTypeProfile Signal = new()
+        {
+            ThresholdDefault = -70,
+            ThresholdStep = 5,
+            YMaxDefault = -100,
+            YMaxStep = 10,
+            CanBeNegative = true
+        };
+
         // the raw SensorType.ToString() ("Clock", "Load")
         public static SensorTypeProfile GetProfile(string sensorType)
         {
             return sensorType switch
             {
+                "Energy" => Energy,
+                "TimeSpan" => TimeSpan,
+                "Current" => Current,
                 "Clock" => Clock,
                 "Data" => Data,
                 "SmallData" => SmallData,
                 "Fan" => Fan,
                 "Voltage" => Voltage,
                 "Throughput" => Throughput,
+                "Signal" => Signal,
                 _ => Default
             };
         }

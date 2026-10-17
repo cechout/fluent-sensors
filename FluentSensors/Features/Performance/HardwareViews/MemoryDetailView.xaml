@@ -7,8 +7,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhCommon="using:FluentSensors.Common.Sensors"
     xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhFacts="using:FluentSensors.Controls.FactList"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
+    xmlns:fhLhm="using:FluentSensors.Features.Performance.Lhm"
     xmlns:fhPerf="using:FluentSensors.Features.Performance"
     xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
     xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
@@ -99,15 +101,19 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  physical memory above virtual memory  -->
+                        <!--
+                            physical memory above virtual memory, then the temperature of a module
+                            (the third row has no height until a module reports one, see ApplyModuleTemperatureLayout;
+                            the gaps are margins, a row spacing would leave one below the last graph)
+                        -->
                         <Grid
                             x:Name="GraphsAreaGrid"
                             Grid.Row="0"
-                            MinHeight="300"
-                            RowSpacing="8">
+                            MinHeight="300">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="*" />
+                                <RowDefinition x:Name="ModuleTemperatureRow" Height="0" />
                             </Grid.RowDefinitions>
 
                             <fhGraph:SensorPanelControl
@@ -125,6 +131,7 @@
 
                             <fhGraph:SensorPanelControl
                                 Grid.Row="1"
+                                Margin="0,8,0,0"
                                 GraphHardwareKind="Ram"
                                 IsAutoScaledOverride="False"
                                 ManualYMaxOverride="{x:Bind Memory.VirtualMemoryTotal, Mode=OneWay}"
@@ -135,6 +142,23 @@
                                 ShowYAxisControls="True"
                                 ThresholdLabelAlwaysVisible="False"
                                 ViewModel="{x:Bind Memory.VirtualMemoryUsed, Mode=OneWay}" />
+
+                            <fhGraph:SensorPanelControl
+                                x:Name="ModuleTemperaturePanel"
+                                Grid.Row="2"
+                                Margin="0,8,0,0"
+                                GraphHardwareKind="Ram"
+                                IsAutoScaledOverride="True"
+                                IsHitTestVisible="False"
+                                Opacity="0"
+                                PlaceholderSensorName="DIMM Temperature"
+                                PlaceholderUnit="°C"
+                                ShowStatusRow="True"
+                                ShowThresholdControls="True"
+                                ShowYAxisControls="True"
+                                SwitchCandidates="{x:Bind Memory.ModuleTemperatureOptions, Mode=OneWay}"
+                                ThresholdLabelAlwaysVisible="False"
+                                ViewModel="{x:Bind Memory.ModuleTemperature, Mode=TwoWay}" />
                         </Grid>
 
                         <!--  current value tiles  -->
@@ -170,6 +194,13 @@
                                     Width="Auto"
                                     ShowInfoButton="True"
                                     ViewModel="{x:Bind Memory.VirtualMemoryUsed, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    x:Name="ModuleTemperatureTile"
+                                    Title="{x:Bind Memory.ModuleTemperature.SensorName, Mode=OneWay}"
+                                    Width="Auto"
+                                    MaxValueText="000,0 °C"
+                                    ViewModel="{x:Bind Memory.ModuleTemperature, Mode=OneWay}"
+                                    Visibility="Collapsed" />
                             </controls:WrapPanel>
                         </Grid>
                     </Grid>
@@ -192,27 +223,70 @@
                 <StackPanel Margin="16" Spacing="24">
                     <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Text="{x:Bind loc:AppTerms.Get('Memory_RAMInfo')}" />
 
-                    <StackPanel Spacing="2">
-                        <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Text="{x:Bind loc:AppTerms.Get('Memory_TotalSlots')}" />
-                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind Memory.MemoryTotalSlotsText, Mode=OneWay}" />
+                    <!--  the board: slots, what it takes at most, error correction  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Memory_GeneralPopup"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="Win32_PhysicalMemoryArray" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-physicalmemoryarray" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Memory_TotalSlots')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Memory.MemoryTotalSlotsText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Memory_MaxCapacity')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Memory.MemoryMaxCapacityText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Width="Auto" Spacing="2">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind loc:AppTerms.Get('Memory_ErrorCorrection')}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{ThemeResource BodyTextBlockStyle}"
+                                    Text="{x:Bind Memory.MemoryErrorCorrectionText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </controls:WrapPanel>
                     </StackPanel>
 
                     <!--  one card per physical module  -->
                     <ItemsControl ItemsSource="{x:Bind Memory.MemoryModules, Mode=OneWay}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="staticInfo:WinMemoryModuleInfo">
+                            <DataTemplate x:DataType="fhLhm:LhmMemoryModuleViewModel">
                                 <StackPanel Margin="0,0,0,12" Spacing="12">
                                     <fhInfoPopup:InfoPopupControl
                                         x:Uid="Memory_RamInfoPopup"
-                                        Title="{x:Bind DeviceLocator}"
+                                        Title="{x:Bind Info.DeviceLocator}"
                                         Margin="0,0,0,-4"
                                         PlacementMode="TitleAnchored"
                                         TitleTextTrimming="CharacterEllipsis">
                                         <fhInfoPopup:InfoPopupControl.SourceLinks>
                                             <fhInfoPopup:SourceLink Label="Win32_PhysicalMemory" Url="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-physicalmemory" />
+                                            <fhInfoPopup:SourceLink Label="LibreHardwareMonitor (SPD)" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
                                         </fhInfoPopup:InfoPopupControl.SourceLinks>
                                     </fhInfoPopup:InfoPopupControl>
 
@@ -223,7 +297,7 @@
                                             Style="{ThemeResource CaptionTextBlockStyle}" />
                                         <TextBlock
                                             Style="{ThemeResource BodyTextBlockStyle}"
-                                            Text="{x:Bind Manufacturer}"
+                                            Text="{x:Bind Info.Manufacturer}"
                                             TextWrapping="Wrap" />
                                     </StackPanel>
 
@@ -236,7 +310,7 @@
                                                 TextWrapping="Wrap" />
                                             <TextBlock
                                                 Style="{ThemeResource BodyTextBlockStyle}"
-                                                Text="{x:Bind PartNumber}"
+                                                Text="{x:Bind Info.PartNumber}"
                                                 TextWrapping="Wrap" />
                                         </StackPanel>
 
@@ -248,7 +322,7 @@
                                                 TextWrapping="Wrap" />
                                             <TextBlock
                                                 Style="{ThemeResource BodyTextBlockStyle}"
-                                                Text="{x:Bind SerialNumber}"
+                                                Text="{x:Bind Info.SerialNumber}"
                                                 TextWrapping="Wrap" />
                                         </StackPanel>
                                     </controls:WrapPanel>
@@ -258,7 +332,7 @@
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Style="{ThemeResource CaptionTextBlockStyle}"
                                             Text="{x:Bind loc:AppTerms.Get('Memory_Capacity')}" />
-                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatBytesAsGb(CapacityBytes)}" />
+                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatBytesAsGb(Info.CapacityBytes)}" />
                                     </StackPanel>
 
                                     <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
@@ -268,7 +342,7 @@
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                                 TextWrapping="Wrap" />
-                                            <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatMemoryType(SmbiosMemoryType)}" />
+                                            <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatMemoryType(Info.SmbiosMemoryType)}" />
                                         </StackPanel>
 
                                         <StackPanel Width="Auto" Spacing="2">
@@ -277,7 +351,7 @@
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                                 Text="{x:Bind loc:AppTerms.Get('Memory_FormFactor')}"
                                                 TextWrapping="Wrap" />
-                                            <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatFormFactor(FormFactor)}" />
+                                            <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatFormFactor(Info.FormFactor)}" />
                                         </StackPanel>
                                     </controls:WrapPanel>
 
@@ -286,7 +360,7 @@
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Style="{ThemeResource CaptionTextBlockStyle}"
                                             Text="{x:Bind loc:AppTerms.Get('Memory_RAMSpeedConfiguredRated')}" />
-                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatSpeedPair(ConfiguredClockSpeedMhz, RatedSpeedMhz)}" />
+                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatSpeedPair(Info.ConfiguredClockSpeedMhz, Info.RatedSpeedMhz)}" />
                                     </StackPanel>
 
                                     <StackPanel Spacing="2">
@@ -294,7 +368,7 @@
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Style="{ThemeResource CaptionTextBlockStyle}"
                                             Text="{x:Bind loc:AppTerms.Get('Memory_VoltageConfiguredMinMax')}" />
-                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatVoltageRange(ConfiguredVoltageMillivolts, MinVoltageMillivolts, MaxVoltageMillivolts)}" />
+                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatVoltageRange(Info.ConfiguredVoltageMillivolts, Info.MinVoltageMillivolts, Info.MaxVoltageMillivolts)}" />
                                     </StackPanel>
 
                                     <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
@@ -306,7 +380,7 @@
                                                 TextWrapping="Wrap" />
                                             <TextBlock
                                                 Style="{ThemeResource BodyTextBlockStyle}"
-                                                Text="{x:Bind BankLabel}"
+                                                Text="{x:Bind Info.BankLabel}"
                                                 TextWrapping="Wrap" />
                                         </StackPanel>
 
@@ -319,7 +393,7 @@
                                             <TextBlock
                                                 Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                                 Style="{ThemeResource BodyTextBlockStyle}"
-                                                Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatRank(Rank)}" />
+                                                Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatRank(Info.Rank)}" />
                                         </StackPanel>
                                     </controls:WrapPanel>
 
@@ -328,8 +402,14 @@
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Style="{ThemeResource CaptionTextBlockStyle}"
                                             Text="{x:Bind loc:AppTerms.Get('Memory_WidthTotalData')}" />
-                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatBitsWidth(TotalWidthBits, DataWidthBits)}" />
+                                        <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind staticInfo:HardwareInfoFormatter.FormatBitsWidth(Info.TotalWidthBits, Info.DataWidthBits)}" />
                                     </StackPanel>
+
+                                    <!--  thermal limits from the SPD chip, one fact  -->
+                                    <fhFacts:FactListControl Facts="{x:Bind SpdFacts, Mode=OneWay}" />
+
+                                    <!--  the main timings, a line of their own, labelled with their short LHM sensor name  -->
+                                    <fhFacts:FactListControl Facts="{x:Bind TimingFacts, Mode=OneWay}" />
 
                                     <Border Height="0" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                                 </StackPanel>

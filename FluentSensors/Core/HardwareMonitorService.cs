@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net.NetworkInformation;
 
+using FluentSensors.Core.Lhm;
+
 namespace FluentSensors.Core
 {
     // one sensor reading
@@ -16,21 +18,38 @@ namespace FluentSensors.Core
         string HardwareName, // e.g. "Intel Core i9-12900H"
         string HardwareType, // e.g. "Cpu", "GpuNvidia", "Memory"
         string SensorType, // e.g. "Power", "Temperature", "Load"
-        double Value
+        double Value,
+        bool IsIntegratedGpu = false // LHM has no hardware type for it, see LhmGpuRole
+    );
+
+    // one piece of LHM hardware that has sensors, read or not; what the engine settings list
+    public record LhmHardwareEntry(
+        string Name, // the payload name
+        string HardwareType,
+        bool IsIntegratedGpu
     );
 
 
     // the hardware monitor:
     // owns the one polling loop every sensor value comes from, plus the LHM discovery behind it; the timing is the
     // non-obvious part, see LoopAsync
+    // LHM is read inside the loop; the Windows values come from WinSensorSource, which reads on its own thread and is
+    // only merged here
     public class HardwareMonitorService
     {
         // === fields ===
 
         private readonly Computer _computer;
 
-        // every discovered sensor, read each tick
+        // every sensor LHM has active right now, read each tick; follows SensorAdded and SensorRemoved, since some
+        // hardware activates its sensors in the first Update() or drops one at runtime (a battery on mains has no rate)
         private readonly List<ISensor> _activeSensors = new();
+
+        // hardware and sub-hardware the sensor events are subscribed on; under _sensorLock
+        private readonly HashSet<IHardware> _watchedHardware = new();
+
+        // the gpus that are integrated; resolved once per hardware, under _sensorLock
+        private readonly HashSet<IHardware> _integratedGpus = new();
 
         private readonly object _sensorLock = new object();
         private CancellationTokenSource? _cts;
@@ -40,6 +59,9 @@ namespace FluentSensors.Core
         // read durations the schedule plans against, and the slack on top (for run-to-run noise)
         private const int ReadDurationSampleCount = 8;
         private const double ReadScheduleMarginMs = 5;
+
+        // appended to the id of a sensor whose identifier an earlier one already has, see LoopAsync
+        private const string DuplicateIdSuffix = "#2";
 
         // max age of the network adapter snapshot, events or not
         private const double NetworkAdapterSnapshotMaxAgeMs = 10000;
@@ -55,13 +77,35 @@ namespace FluentSensors.Core
         // set by the NetworkChange handler; the rebuild runs on the polling loop, see RefreshNetworkAdapters
         private volatile bool _networkAdaptersDirty = true;
 
-        // currently "up" network adapters, see RefreshNetworkAdapters; touched only by the polling loop
+        // currently "up" network adapters, see RefreshNetworkAdapters; replaced as a whole by the polling loop
         private HashSet<string> _activeNetworkAdapters = new();
         private long _networkAdapterRefreshTimestamp;
 
         // hardware that left since the last tick (unplugged, or a network adapter that is no longer up), by the name
         // the payload gives it; under _sensorLock, broadcast right after the first payload without it
         private readonly List<string> _removedHardwareNames = new();
+
+        // sensors LHM deactivated since the last tick, by id; under _sensorLock, broadcast like _removedHardwareNames
+        private readonly List<string> _removedSensorIds = new();
+
+        // deactivated sensors still inside the grace time, with the moment LHM dropped them; under _sensorLock
+        // (an Intel core VID turns off and on again with every read that comes back empty)
+        private readonly Dictionary<ISensor, long> _pendingSensorRemovals = new();
+        private const double SensorRemovalGraceMs = 5000;
+
+        // hardware the engine settings switched off, by payload name: never updated and left out of the payload
+        // replaced as a whole under _sensorLock, so the loop reads it without one
+        private volatile HashSet<string> _disabledHardwareNames = new();
+
+        // the second source, see WinSensorSource
+        private readonly WinSensorSource _windowsSource;
+
+        // the Windows sensors and the LHM sensors they replaced in the last payload, by id; polling loop only
+        private HashSet<string> _lastWindowsSensorIds = new();
+        private HashSet<string> _lastReplacedSensorIds = new();
+
+        // the hardware only Windows has (a display) in the last payload, by name; polling loop only
+        private HashSet<string> _lastWindowsHardwareNames = new();
 
 
         // === singleton instance ===
@@ -84,10 +128,15 @@ namespace FluentSensors.Core
                 IsMotherboardEnabled = false,
                 IsControllerEnabled = false,
                 IsNetworkEnabled = false,
+                IsBatteryEnabled = false,
+                IsPsuEnabled = false,
+                IsPowerMonitorEnabled = false,
 
             };
 
             _computer.Open();
+
+            _windowsSource = new WinSensorSource(GetStorageHardwareNames);
         }
 
 
@@ -134,6 +183,9 @@ namespace FluentSensors.Core
             private set => Interlocked.Exchange(ref _lastReadDurationMs, value);
         }
 
+        // the Windows values the engine settings switch on
+        public WinSensorSource WindowsSource => _windowsSource;
+
         // init pipeline; enabling a component blocks for a long time, so each step runs on a background thread
         public Task InitMotherboardAsync()
         {
@@ -169,6 +221,17 @@ namespace FluentSensors.Core
             return Task.Run(() => { _computer.IsNetworkEnabled = true; });
         }
 
+        // the battery, usb power supplies (Corsair, MSI) and the WireView power monitor
+        public Task InitPowerAsync()
+        {
+            return Task.Run(() =>
+            {
+                _computer.IsBatteryEnabled = true;
+                _computer.IsPsuEnabled = true;
+                _computer.IsPowerMonitorEnabled = true;
+            });
+        }
+
         // starts the polling loop, once the init pipeline has completed
         public void StartMonitoring()
         {
@@ -187,11 +250,15 @@ namespace FluentSensors.Core
 
             // kept, so StopMonitoring can wait for the loop to finish
             _loopTask = Task.Run(() => LoopAsync(_cts.Token));
+
+            _windowsSource.Start();
         }
 
         public void StopMonitoring()
         {
             if (_cts == null) return;
+
+            _windowsSource.Stop();
 
             NetworkChange.NetworkAddressChanged -= OnNetworkAddressChanged;
             _computer.HardwareAdded -= OnHardwareAdded;
@@ -203,6 +270,18 @@ namespace FluentSensors.Core
             // HardwareDataUpdated does not fire after this
             _loopTask?.Wait(2000);
 
+            lock (_sensorLock)
+            {
+                foreach (var hardware in _watchedHardware)
+                {
+                    hardware.SensorAdded -= OnSensorAdded;
+                    hardware.SensorRemoved -= OnSensorRemoved;
+                }
+                _watchedHardware.Clear();
+                _integratedGpus.Clear();
+                _pendingSensorRemovals.Clear();
+            }
+
             _cts = null;
             _loopTask = null;
         }
@@ -211,6 +290,45 @@ namespace FluentSensors.Core
         {
             StopMonitoring();
             _computer.Close();
+        }
+
+        // hardware api; the engine settings switch whole hardware off, by the name the payload gives it
+        // every piece of LHM hardware that has sensors, the switched off ones included; network adapters only while up
+        public List<LhmHardwareEntry> GetHardwareEntries()
+        {
+            var result = new List<LhmHardwareEntry>();
+            var activeNetworkAdapters = _activeNetworkAdapters;
+
+            foreach (var hardware in _computer.Hardware)
+            {
+                CollectHardwareEntries(hardware, activeNetworkAdapters, result);
+            }
+
+            return result;
+        }
+
+        // the startup set, before the loop runs
+        public void SetDisabledHardware(IEnumerable<string> hardwareNames)
+        {
+            lock (_sensorLock)
+            {
+                _disabledHardwareNames = new HashSet<string>(hardwareNames);
+            }
+        }
+
+        // applies with the next tick; switched off hardware leaves every page like an unplugged one, switched on it
+        // comes back with the next payload
+        public void SetHardwareEnabled(string hardwareName, bool isEnabled)
+        {
+            lock (_sensorLock)
+            {
+                var names = new HashSet<string>(_disabledHardwareNames);
+                bool changed = isEnabled ? names.Remove(hardwareName) : names.Add(hardwareName);
+                if (!changed) return;
+
+                _disabledHardwareNames = names;
+                if (!isEnabled) _removedHardwareNames.Add(hardwareName);
+            }
         }
 
         // exclusion api; the service does not care what excluded means (hidden, disabled), it skips these ids (the skip
@@ -252,6 +370,9 @@ namespace FluentSensors.Core
 
         // hardware that is gone, by its payload name; after the first payload without it, on the polling thread
         public event Action<List<string>>? HardwareRemoved;
+
+        // sensors LHM deactivated, by id; after the first payload without them, on the polling thread
+        public event Action<List<string>>? SensorsRemoved;
 
         // the polling interval changed; graphs keep their time span with it (point count = span / interval)
         public event Action<int>? UpdateIntervalChanged;
@@ -295,9 +416,12 @@ namespace FluentSensors.Core
 
                 long readStartTimestamp = Stopwatch.GetTimestamp();
 
-                // LHM reads the hardware
+                // LHM reads the hardware; what the engine settings switched off is not read at all
+                var disabledHardware = _disabledHardwareNames;
                 foreach (var hardware in _computer.Hardware)
                 {
+                    if (disabledHardware.Count > 0 && IsDisabled(hardware, disabledHardware)) continue;
+
                     hardware.Update();
                 }
 
@@ -351,12 +475,31 @@ namespace FluentSensors.Core
                 // a fresh payload per tick
                 var payload = new List<SensorData>();
                 List<string>? removedHardwareNames = null;
+                List<string>? removedSensorIds = null;
+                var payloadIds = new HashSet<string>();
 
                 lock (_sensorLock)
                 {
+                    CommitSensorRemovals();
+
+                    // read again under the lock SetHardwareEnabled writes it in, so a name it queued as removed is
+                    // never still in this payload
+                    disabledHardware = _disabledHardwareNames;
+
                     foreach (var sensor in _activeSensors)
                     {
                         string id = sensor.Identifier.ToString();
+
+                        // --- workaround: two sensors with one identifier ---
+                        // problem: LHM 0.9.6 gives the NVIDIA "GPU Memory" load the index 3 of the "GPU Bus" load, so
+                        // both report /gpu-nvidia/0/load/3 and the later one overwrote the first for every consumer
+                        // keyed by id; reproduced on an RTX 3080 Ti, and upstream counts the load indices after 0.9.6
+                        // fix: the later sensor gets a suffix; decided before any skip, so it holds from tick to tick
+                        if (!payloadIds.Add(id))
+                        {
+                            id += DuplicateIdSuffix;
+                            payloadIds.Add(id);
+                        }
 
                         // excluded sensors would be skipped here (no payload entry, no UI or graph update)
                         // TEMP: disabled, so PerformancePage sees every sensor
@@ -369,6 +512,9 @@ namespace FluentSensors.Core
                         {
                             continue;
                         }
+
+                        string hardwareName = GetHardwareName(sensor.Hardware);
+                        if (disabledHardware.Contains(hardwareName)) continue;
 
                         if (sensor.Value.HasValue) // no value right now
                         {
@@ -389,13 +535,16 @@ namespace FluentSensors.Core
                             payload.Add(new SensorData(
                                 Id: id,
                                 Name: sensor.Name,
-                                HardwareName: GetHardwareName(sensor.Hardware),
+                                HardwareName: hardwareName,
                                 HardwareType: sensor.Hardware.HardwareType.ToString(),
                                 SensorType: sensor.SensorType.ToString(),
-                                Value: value
+                                Value: value,
+                                IsIntegratedGpu: _integratedGpus.Contains(sensor.Hardware)
                             ));
                         }
                     }
+
+                    MergeWindowsSensors(payload);
 
                     // taken with the payload, so the two never disagree; a name that is back in it already (an
                     // adapter that only dropped for a moment) stays
@@ -404,6 +553,14 @@ namespace FluentSensors.Core
                         var present = new HashSet<string>(payload.Select(data => data.HardwareName));
                         removedHardwareNames = _removedHardwareNames.Where(name => !present.Contains(name)).Distinct().ToList();
                         _removedHardwareNames.Clear();
+                    }
+
+                    // a sensor that is in the payload again already stays
+                    if (_removedSensorIds.Count > 0)
+                    {
+                        var present = new HashSet<string>(payload.Select(data => data.Id));
+                        removedSensorIds = _removedSensorIds.Where(id => !present.Contains(id)).Distinct().ToList();
+                        _removedSensorIds.Clear();
                     }
                 }
 
@@ -429,11 +586,81 @@ namespace FluentSensors.Core
 
                 HardwareDataUpdated?.Invoke(payload);
 
+                if (removedSensorIds is { Count: > 0 }) SensorsRemoved?.Invoke(removedSensorIds);
+
                 if (removedHardwareNames is { Count: > 0 }) HardwareRemoved?.Invoke(removedHardwareNames);
 
                 // the idle gap after a broadcast, where a rebuild costs nothing
                 RefreshNetworkAdapters();
             }
+        }
+
+        // adds the Windows readings whose hardware is in the payload and takes out the LHM sensors they replace; under
+        // _sensorLock
+        // an id that left since the last tick (a switch turned off, Wi-Fi disconnected, an LHM sensor newly replaced)
+        // is queued in _removedSensorIds like a sensor LHM deactivated
+        // hardware only Windows has leaves through _removedHardwareNames once none of its readings is left
+        private void MergeWindowsSensors(List<SensorData> payload)
+        {
+            var readings = _windowsSource.Readings;
+            if (readings.Count == 0 && _lastWindowsSensorIds.Count == 0 && _lastReplacedSensorIds.Count == 0) return;
+
+            var windowsSensorIds = new HashSet<string>();
+            var windowsHardwareNames = new HashSet<string>();
+            var replacedSensorIds = new HashSet<string>();
+
+            if (readings.Count > 0)
+            {
+                var hardwareNames = new HashSet<string>(payload.Select(data => data.HardwareName));
+
+                foreach (var reading in readings)
+                {
+                    // its hardware is down, unplugged or switched off
+                    if (reading.IsOwnHardware) windowsHardwareNames.Add(reading.HardwareName);
+                    else if (!hardwareNames.Contains(reading.HardwareName)) continue;
+
+                    if (reading.ReplacedSensorNames != null)
+                    {
+                        for (int i = payload.Count - 1; i >= 0; i--)
+                        {
+                            var data = payload[i];
+                            if (data.HardwareName != reading.HardwareName || data.SensorType != reading.SensorType) continue;
+                            if (Array.IndexOf(reading.ReplacedSensorNames, data.Name) < 0) continue;
+
+                            replacedSensorIds.Add(data.Id);
+                            payload.RemoveAt(i);
+                        }
+                    }
+
+                    windowsSensorIds.Add(reading.Id);
+                    payload.Add(new SensorData(
+                        Id: reading.Id,
+                        Name: reading.Name,
+                        HardwareName: reading.HardwareName,
+                        HardwareType: reading.HardwareType,
+                        SensorType: reading.SensorType,
+                        Value: reading.Value
+                    ));
+                }
+            }
+
+            foreach (string id in _lastWindowsSensorIds)
+            {
+                if (!windowsSensorIds.Contains(id)) _removedSensorIds.Add(id);
+            }
+            foreach (string id in replacedSensorIds)
+            {
+                if (!_lastReplacedSensorIds.Contains(id)) _removedSensorIds.Add(id);
+            }
+
+            foreach (string name in _lastWindowsHardwareNames)
+            {
+                if (!windowsHardwareNames.Contains(name)) _removedHardwareNames.Add(name);
+            }
+
+            _lastWindowsSensorIds = windowsSensorIds;
+            _lastWindowsHardwareNames = windowsHardwareNames;
+            _lastReplacedSensorIds = replacedSensorIds;
         }
 
         // RateChanged: cut short by a rate change, the target has to be recomputed
@@ -536,11 +763,13 @@ namespace FluentSensors.Core
         // its own thread, the sensors join the next tick
         private void OnHardwareAdded(IHardware hardware)
         {
-            var sensors = new List<ISensor>();
-            DiscoverSensors(hardware, sensors);
-
             lock (_sensorLock)
             {
+                WatchHardware(hardware);
+
+                var sensors = new List<ISensor>();
+                DiscoverSensors(hardware, sensors);
+
                 foreach (var sensor in sensors)
                 {
                     if (!_activeSensors.Contains(sensor)) _activeSensors.Add(sensor);
@@ -559,9 +788,123 @@ namespace FluentSensors.Core
 
             lock (_sensorLock)
             {
+                UnwatchHardware(hardware);
                 _activeSensors.RemoveAll(sensors.Contains);
+                foreach (var sensor in sensors) _pendingSensorRemovals.Remove(sensor);
                 _removedHardwareNames.AddRange(names);
             }
+        }
+
+        // a sensor LHM activated after the flatten; raised inside hardware.Update() on the polling thread (before the
+        // payload is built), or on the LHM thread that adds hardware
+        private void OnSensorAdded(ISensor sensor)
+        {
+            lock (_sensorLock)
+            {
+                _pendingSensorRemovals.Remove(sensor);
+                if (!_activeSensors.Contains(sensor)) _activeSensors.Add(sensor);
+            }
+        }
+
+        // only noted; the sensor stays until it has been off for the grace time, see CommitSensorRemovals
+        private void OnSensorRemoved(ISensor sensor)
+        {
+            lock (_sensorLock)
+            {
+                if (_activeSensors.Contains(sensor)) _pendingSensorRemovals[sensor] = Stopwatch.GetTimestamp();
+            }
+        }
+
+        // drops the sensors that stayed deactivated for the grace time; under _sensorLock
+        private void CommitSensorRemovals()
+        {
+            if (_pendingSensorRemovals.Count == 0) return;
+
+            List<ISensor>? expired = null;
+            foreach (var pending in _pendingSensorRemovals)
+            {
+                if (Stopwatch.GetElapsedTime(pending.Value).TotalMilliseconds < SensorRemovalGraceMs) continue;
+                (expired ??= new List<ISensor>()).Add(pending.Key);
+            }
+            if (expired == null) return;
+
+            foreach (var sensor in expired)
+            {
+                _pendingSensorRemovals.Remove(sensor);
+                if (_activeSensors.Remove(sensor)) _removedSensorIds.Add(sensor.Identifier.ToString());
+            }
+        }
+
+        // subscribes the sensor events of a piece of hardware and everything under it; under _sensorLock
+        private void WatchHardware(IHardware hardware)
+        {
+            if (_watchedHardware.Add(hardware))
+            {
+                hardware.SensorAdded += OnSensorAdded;
+                hardware.SensorRemoved += OnSensorRemoved;
+
+                if (LhmGpuRole.IsIntegrated(hardware)) _integratedGpus.Add(hardware);
+            }
+
+            foreach (var subHardware in hardware.SubHardware)
+            {
+                WatchHardware(subHardware);
+            }
+        }
+
+        private void UnwatchHardware(IHardware hardware)
+        {
+            if (_watchedHardware.Remove(hardware))
+            {
+                hardware.SensorAdded -= OnSensorAdded;
+                hardware.SensorRemoved -= OnSensorRemoved;
+                _integratedGpus.Remove(hardware);
+            }
+
+            foreach (var subHardware in hardware.SubHardware)
+            {
+                UnwatchHardware(subHardware);
+            }
+        }
+
+        // switched off with everything under it; a parent is still updated while one of its children is on
+        private static bool IsDisabled(IHardware hardware, HashSet<string> disabledHardware)
+        {
+            if (!disabledHardware.Contains(GetHardwareName(hardware))) return false;
+
+            foreach (var subHardware in hardware.SubHardware)
+            {
+                if (!IsDisabled(subHardware, disabledHardware)) return false;
+            }
+
+            return true;
+        }
+
+        private static void CollectHardwareEntries(IHardware hardware, HashSet<string> activeNetworkAdapters, List<LhmHardwareEntry> target)
+        {
+            // hardware without sensors of its own never shows as a group (a motherboard is only the parent of its chips)
+            bool isListed = hardware.Sensors.Length > 0 &&
+                (hardware.HardwareType != HardwareType.Network || activeNetworkAdapters.Contains(hardware.Name));
+
+            string name = GetHardwareName(hardware);
+            if (isListed && !target.Any(entry => entry.Name == name))
+            {
+                target.Add(new LhmHardwareEntry(name, hardware.HardwareType.ToString(), LhmGpuRole.IsIntegrated(hardware)));
+            }
+
+            foreach (var subHardware in hardware.SubHardware)
+            {
+                CollectHardwareEntries(subHardware, activeNetworkAdapters, target);
+            }
+        }
+
+        // the LHM drives by payload name, for the Windows source; on its thread
+        private IReadOnlyList<string> GetStorageHardwareNames()
+        {
+            return _computer.Hardware
+                .Where(hardware => hardware.HardwareType == HardwareType.Storage)
+                .Select(GetHardwareName)
+                .ToList();
         }
 
         private static void CollectHardwareNames(IHardware hardware, List<string> target)
@@ -594,8 +937,10 @@ namespace FluentSensors.Core
             {
                 _activeSensors.Clear();
 
+                // watched first, so a sensor activated between the two is not lost
                 foreach (var hardware in _computer.Hardware)
                 {
+                    WatchHardware(hardware);
                     DiscoverSensors(hardware, _activeSensors);
                 }
             }

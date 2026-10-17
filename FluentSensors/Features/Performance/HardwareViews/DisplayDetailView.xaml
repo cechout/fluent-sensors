@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="FluentSensors.Features.Performance.HardwareViews.DisplayDetailView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhCommon="using:FluentSensors.Common.Sensors"
+    xmlns:fhControls="using:FluentSensors.Controls"
+    xmlns:fhFacts="using:FluentSensors.Controls.FactList"
+    xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
+    xmlns:fhPerf="using:FluentSensors.Features.Performance"
+    xmlns:fhTile="using:FluentSensors.Controls.SensorTile"
+    xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
+    xmlns:fhUi="using:FluentSensors.Common.UI"
+    xmlns:loc="using:FluentSensors.Common.Localization"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="ContentColumn" Width="4*" />
+            <ColumnDefinition
+                x:Name="InfoPanelColumn"
+                Width="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnWidth, Mode=OneWay}"
+                MinWidth="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnMinWidth, Mode=OneWay}"
+                MaxWidth="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelColumnMaxWidth, Mode=OneWay}" />
+        </Grid.ColumnDefinitions>
+
+
+        <!--  view content with header, graphs and tiles  -->
+        <ScrollViewer
+            x:Name="ContentScrollViewer"
+            Grid.Column="0"
+            fhUi:FocusSkip.IsEnabled="True"
+            HorizontalScrollBarVisibility="Disabled"
+            SizeChanged="ContentScrollViewer_SizeChanged"
+            VerticalScrollBarVisibility="Auto"
+            VerticalScrollMode="Auto">
+            <StackPanel
+                x:Name="ContentStackPanel"
+                Padding="16,16,16,16"
+                Spacing="14">
+
+
+                <!--  header  -->
+                <Grid
+                    x:Name="HeaderGrid"
+                    Background="Transparent"
+                    ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel
+                        Grid.Column="0"
+                        Margin="4,0,0,0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="12">
+                        <FontIcon
+                            Margin="0,0,0,-2"
+                            FontSize="20"
+                            Foreground="{x:Bind GroupIconBrush, Mode=OneWay}"
+                            Glyph="{x:Bind GroupIconGlyph, Mode=OneTime}" />
+                        <TextBlock
+                            Margin="0,0,0,0"
+                            Style="{ThemeResource BodyLargeTextBlockStyle}"
+                            Text="{x:Bind GroupLabel, Mode=OneTime}" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="0,0,4,2"
+                        VerticalAlignment="Bottom"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Text="{x:Bind Display.HardwareName, Mode=OneWay}"
+                        TextAlignment="Right"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap" />
+                </Grid>
+
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid
+                        x:Name="OverviewBlockGrid"
+                        Grid.Row="0"
+                        Margin="0,0,0,8"
+                        RowSpacing="4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!--  brightness beside the refresh rate; narrow: stacked  -->
+                        <Grid
+                            x:Name="GraphsAreaGrid"
+                            Grid.Row="0"
+                            SizeChanged="GraphsAreaGrid_SizeChanged">
+
+                            <Grid
+                                x:Name="WideGraphsGrid"
+                                MinHeight="190"
+                                ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <fhGraph:SensorPanelControl
+                                    Grid.Column="0"
+                                    GraphHardwareKind="Display"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="Brightness"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Display.Brightness, Mode=OneWay}" />
+
+                                <fhGraph:SensorPanelControl
+                                    Grid.Column="1"
+                                    GraphHardwareKind="Display"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Refresh Rate"
+                                    PlaceholderUnit="Hz"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Display.RefreshRate, Mode=OneWay}" />
+                            </Grid>
+
+                            <Grid
+                                x:Name="NarrowGraphsPanel"
+                                MinHeight="300"
+                                IsHitTestVisible="False"
+                                Opacity="0"
+                                RowSpacing="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <fhGraph:SensorPanelControl
+                                    Grid.Row="0"
+                                    GraphHardwareKind="Display"
+                                    IsAutoScaledOverride="False"
+                                    ManualYMaxOverride="100"
+                                    PlaceholderSensorName="Brightness"
+                                    PlaceholderUnit="%"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Display.Brightness, Mode=OneWay}" />
+
+                                <fhGraph:SensorPanelControl
+                                    Grid.Row="1"
+                                    GraphHardwareKind="Display"
+                                    IsAutoScaledOverride="True"
+                                    PlaceholderSensorName="Refresh Rate"
+                                    PlaceholderUnit="Hz"
+                                    ShowStatusRow="True"
+                                    ShowThresholdControls="True"
+                                    ShowYAxisControls="True"
+                                    ThresholdLabelAlwaysVisible="False"
+                                    ViewModel="{x:Bind Display.RefreshRate, Mode=OneWay}" />
+                            </Grid>
+                        </Grid>
+
+                        <!--  current value tiles  -->
+                        <Grid
+                            x:Name="TilesGrid"
+                            Grid.Row="1"
+                            RowSpacing="12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!--  graph time range  -->
+                            <!--  (inside this grid so RecalculateOverviewHeight measures it together with the tiles)  -->
+                            <fhTimeRange:TimeRangePickerControl
+                                Grid.Row="0"
+                                Options="{x:Bind fhCommon:GraphTimeRanges.Performance}"
+                                SelectedSeconds="{x:Bind fhPerf:PerformanceViewModel.Instance.StandardGraphTimeSpanSeconds, Mode=TwoWay}"
+                                TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                            <controls:WrapPanel
+                                Grid.Row="1"
+                                Margin="4,0,4,0"
+                                HorizontalSpacing="16"
+                                VerticalSpacing="0">
+                                <fhTile:SensorTileControl
+                                    Title="{x:Bind Display.Brightness.SensorName, Mode=OneWay}"
+                                    Width="Auto"
+                                    MaxValueText="000,0 %"
+                                    ViewModel="{x:Bind Display.Brightness, Mode=OneWay}" />
+                                <fhTile:SensorTileControl
+                                    Title="{x:Bind Display.RefreshRate.SensorName, Mode=OneWay}"
+                                    Width="Auto"
+                                    MaxValueText="000,0 Hz"
+                                    ViewModel="{x:Bind Display.RefreshRate, Mode=OneWay}" />
+                            </controls:WrapPanel>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+
+        <!--  info panel: the panel as its EDID describes it and how Windows drives it right now  -->
+        <Border
+            Grid.Column="1"
+            VerticalAlignment="Stretch"
+            fhUi:FocusSkip.IsEnabled="True"
+            Background="Transparent"
+            BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
+            BorderThickness="1,0,0,0"
+            Visibility="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelVisibility, Mode=OneWay}">
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+                <StackPanel Margin="16" Spacing="24">
+                    <TextBlock
+                        Margin="0,0,0,0"
+                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                        Text="{x:Bind loc:AppTerms.Get('Display_DisplayInfo')}" />
+
+                    <!--  general: the panel itself  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Display_GeneralPopup"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="DISPLAYCONFIG_TARGET_DEVICE_NAME" Url="https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-displayconfig_target_device_name" />
+                                <fhInfoPopup:SourceLink Label="WmiMonitorID" Url="https://learn.microsoft.com/en-us/windows/win32/wmicoreprov/wmimonitorid" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                x:Uid="Display_NameText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Display.HardwareName, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <fhFacts:FactListControl Facts="{x:Bind Display.GeneralFacts, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!--  mode: resolution, scale and connector as a group, then the refresh rate and the gpu behind it  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Display_ModePopup"
+                            Title="{x:Bind loc:AppTerms.Get('Display_Mode')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="QueryDisplayConfig" Url="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-querydisplayconfig" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <fhFacts:FactListControl Facts="{x:Bind Display.ModeFacts, Mode=OneWay}" />
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Display_RefreshRate')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Display.RefreshRateText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Display_Gpu')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Display.GpuText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  signal: what the mode amounts to on the cable, computed from it  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Display_SignalPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Display_Signal')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored" />
+
+                        <fhFacts:FactListControl Facts="{x:Bind Display.SignalFacts, Mode=OneWay}" />
+
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="{x:Bind loc:AppTerms.Get('Display_DataRate')}" />
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                Text="{x:Bind Display.DataRateText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  color: depth, hdr and the luminance the display reports  -->
+                    <StackPanel Spacing="12">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Display_ColorPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Display_Color')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO" Url="https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-displayconfig_get_advanced_color_info" />
+                                <fhInfoPopup:SourceLink Label="DXGI_OUTPUT_DESC1" Url="https://learn.microsoft.com/en-us/windows/win32/api/dxgi1_6/ns-dxgi1_6-dxgi_output_desc1" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <fhFacts:FactListControl Facts="{x:Bind Display.ColorFacts, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!--  monitor: what it answers itself over ddc/ci  -->
+                    <!--  (gone while it answers nothing, which is the rule for a laptop panel)  -->
+                    <StackPanel Spacing="12" Visibility="{x:Bind Display.DdcFactsVisibility, Mode=OneWay}">
+                        <fhInfoPopup:InfoPopupControl
+                            x:Uid="Display_DdcPopup"
+                            Title="{x:Bind loc:AppTerms.Get('Display_Monitor')}"
+                            Margin="0,0,0,-4"
+                            PlacementMode="TitleAnchored">
+                            <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                <fhInfoPopup:SourceLink Label="GetVCPFeatureAndVCPFeatureReply" Url="https://learn.microsoft.com/en-us/windows/win32/api/lowlevelmonitorconfigurationapi/nf-lowlevelmonitorconfigurationapi-getvcpfeatureandvcpfeaturereply" />
+                            </fhInfoPopup:InfoPopupControl.SourceLinks>
+                        </fhInfoPopup:InfoPopupControl>
+
+                        <fhFacts:FactListControl Facts="{x:Bind Display.DdcFacts, Mode=OneWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!--  info panel splitter  -->
+        <!--  (a 9px band centered on the divider line; it resizes the content column before it)  -->
+        <fhControls:ClampedGridSplitter
+            x:Uid="Display_ResizeHardwareInfoSplitter"
+            Grid.Column="1"
+            Width="9"
+            Margin="-4,0,0,0"
+            Padding="0"
+            HorizontalAlignment="Left"
+            IsTabStop="False"
+            IsThumbVisible="False"
+            ManipulationCompleted="InfoPanelSplitter_ManipulationCompleted"
+            ResizeBehavior="PreviousAndCurrent"
+            ResizeDirection="Columns"
+            Visibility="{x:Bind fhPerf:PerformanceViewModel.Instance.InfoPanelVisibility, Mode=OneWay}" />
+
+    </Grid>
+</UserControl>

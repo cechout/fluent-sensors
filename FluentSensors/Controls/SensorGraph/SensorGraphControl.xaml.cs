@@ -59,6 +59,9 @@ namespace FluentSensors.Controls.SensorGraph
         // what _lineSeries points at while detached; an inert empty list, so nothing redraws off-screen
         private readonly ObservableCollection<double?> _detachedValues = new();
 
+        // the y range has 0 at the top and the series hangs from it, see ApplyYRange
+        private bool _isHangingRange;
+
         // rendering graphs across every window, for the title bar status readout; (written on the UI thread, read from
         // a timer thread, a stale read for one tick is harmless)
         private static int _activeRenderingCount;
@@ -177,6 +180,7 @@ namespace FluentSensors.Controls.SensorGraph
             if (g._isRenderingActive)
             {
                 g.AttachToBoundValues();
+                g.ApplyYRange();
                 g.ApplyStroke();
             }
         }
@@ -184,6 +188,7 @@ namespace FluentSensors.Controls.SensorGraph
         // every added or removed point (every AddDataPoint)
         private void OnValuesCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
+            if (IsAutoScaled) ApplyYRange(); // the range follows the data
             ApplyStroke();
             RebuildSections();
 
@@ -201,6 +206,11 @@ namespace FluentSensors.Controls.SensorGraph
 
         // === live rendering gate ===
 
+        public bool IsRenderingActive => _isRenderingActive;
+
+        // for the panel around the graph, which pauses its own per-tick work with it
+        public event EventHandler RenderingActiveChanged;
+
         // switches live rendering without destroying the graph:
         // off - detached from the live values, no LiveCharts work and no repaint per tick
         // on - rejoined, with one catch-up repaint
@@ -209,10 +219,12 @@ namespace FluentSensors.Controls.SensorGraph
             if (_isRenderingActive == active) return;
             _isRenderingActive = active;
             _activeRenderingCount += active ? 1 : -1;
+            RenderingActiveChanged?.Invoke(this, EventArgs.Empty);
 
             if (active)
             {
                 AttachToBoundValues();
+                ApplyYRange();
                 ForceRepaint(); // catches up on every missed tick
             }
             else
@@ -355,12 +367,12 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorGraphControl),
                 new PropertyMetadata(100.0, OnScaleChanged));
 
-        // IsAutoScaled and ManualYMax both set the y-axis maximum
+        // IsAutoScaled and ManualYMax both set the y range
         private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is SensorGraphControl g)
             {
-                g._yAxis.MaxLimit = g.IsAutoScaled ? (double?)null : g.ManualYMax;
+                g.ApplyYRange();
                 g.ApplyStroke(); // the threshold moves relative to the range
                 g.RebuildSections();
                 g.ShowThresholdLabelBriefly();

@@ -401,6 +401,9 @@ namespace FluentSensors.Controls.InfoPopup
             if (!_needsPopupPlacement || _popupHost == null) return;
             if (PopupContentBorder == null || XamlRoot?.Content == null) return;
 
+            // a popup cannot leave the window, so a long one is capped to it and scrolls inside
+            PopupContentBorder.MaxHeight = Math.Max(XamlRoot.Size.Height - 2 * PopupWindowEdgeMargin, 0);
+
             // a real size only exists after the first open; before that a Measure sees unbound, empty text and comes
             // out too small, so the first open stays flagged and SizeChanged corrects it
             bool hasRealSize = PopupContentBorder.ActualWidth > 0 && PopupContentBorder.ActualHeight > 0;

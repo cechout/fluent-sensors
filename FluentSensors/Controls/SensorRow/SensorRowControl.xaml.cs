@@ -312,7 +312,7 @@ namespace FluentSensors.Controls.SensorRow
             ThemeColorPair colors = default;
             bool hasTypeColor = ViewModel != null
                 && SettingsService.Instance.UseSensorTypeColors
-                && SensorTypeGroupInfo.TryGetColors(ViewModel.SensorType, out colors);
+                && SensorTypeGroupInfo.TryGetColors(ViewModel.SensorType, ViewModel.Name, out colors);
 
             if (hasTypeColor)
             {

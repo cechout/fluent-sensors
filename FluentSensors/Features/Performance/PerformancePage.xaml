@@ -215,6 +215,19 @@
 
                     <AppBarSeparator />
 
+                    <!--  graphs by sensor type instead of by hardware; the sensors page has the same switch in its menu  -->
+                    <AppBarToggleButton
+                        x:Uid="Performance_SensorTypeColorsButton"
+                        Width="42"
+                        IsChecked="{x:Bind ViewModel.UseSensorTypeColors, Mode=TwoWay}"
+                        LabelPosition="Collapsed">
+                        <AppBarToggleButton.Icon>
+                            <FontIcon Glyph="&#xE790;" />
+                        </AppBarToggleButton.Icon>
+                    </AppBarToggleButton>
+
+                    <AppBarSeparator />
+
                     <AppBarToggleButton
                         x:Uid="Performance_HardwareListButton"
                         Width="42"

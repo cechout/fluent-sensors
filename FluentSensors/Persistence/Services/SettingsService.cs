@@ -4,6 +4,7 @@ using Windows.UI;
 
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
+using FluentSensors.Core.StaticInfo;
 using FluentSensors.Common.Csv;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
@@ -252,6 +253,37 @@ namespace FluentSensors.Persistence.Services
                     _useHardwareIconColors = value;
                     HardwareColorMode.UseIconColors = value;
                     HardwareIconColorsChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // the source icon behind a sensor name, per source; mirrored onto SensorSourceIcon, which updates every icon
+        private bool _showLhmSourceIcon = Defaults.ShowLhmSourceIcon;
+        public bool ShowLhmSourceIcon
+        {
+            get => _showLhmSourceIcon;
+            set
+            {
+                if (_showLhmSourceIcon != value)
+                {
+                    _showLhmSourceIcon = value;
+                    SensorSourceIcon.SetVisibility(_showLhmSourceIcon, _showWindowsSourceIcon);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _showWindowsSourceIcon = Defaults.ShowWindowsSourceIcon;
+        public bool ShowWindowsSourceIcon
+        {
+            get => _showWindowsSourceIcon;
+            set
+            {
+                if (_showWindowsSourceIcon != value)
+                {
+                    _showWindowsSourceIcon = value;
+                    SensorSourceIcon.SetVisibility(_showLhmSourceIcon, _showWindowsSourceIcon);
                     SaveDebounced();
                 }
             }
@@ -720,6 +752,76 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // --- engine ---
+
+        // LHM hardware the engine does not read, by payload name; lives on HardwareMonitorService at runtime like the
+        // update interval, this is the persisted copy
+        private readonly HashSet<string> _disabledLhmHardware = new();
+
+        public bool IsLhmHardwareEnabled(string hardwareName) => !_disabledLhmHardware.Contains(hardwareName);
+
+        public IReadOnlyCollection<string> DisabledLhmHardware => _disabledLhmHardware;
+
+        // applies at runtime; the hardware leaves or rejoins every page with the next tick
+        public void SetLhmHardwareEnabled(string hardwareName, bool isEnabled)
+        {
+            bool changed = isEnabled ? _disabledLhmHardware.Remove(hardwareName) : _disabledLhmHardware.Add(hardwareName);
+            if (!changed) return;
+
+            HardwareMonitorService.Instance.SetHardwareEnabled(hardwareName, isEnabled);
+            SaveDebounced();
+        }
+
+        // the drive temperature of Windows instead of the LHM one and the used space of every drive in bytes; mirrored
+        // onto the Windows source
+        private bool _winStorageSensorsEnabled = Defaults.WinStorageSensorsEnabled;
+        public bool WinStorageSensorsEnabled
+        {
+            get => _winStorageSensorsEnabled;
+            set
+            {
+                if (_winStorageSensorsEnabled != value)
+                {
+                    _winStorageSensorsEnabled = value;
+                    HardwareMonitorService.Instance.WindowsSource.IsStorageEnabled = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // Wi-Fi signal strength, RSSI and link rates as sensors of the adapter; mirrored like above
+        private bool _winWlanSensorsEnabled = Defaults.WinWlanSensorsEnabled;
+        public bool WinWlanSensorsEnabled
+        {
+            get => _winWlanSensorsEnabled;
+            set
+            {
+                if (_winWlanSensorsEnabled != value)
+                {
+                    _winWlanSensorsEnabled = value;
+                    HardwareMonitorService.Instance.WindowsSource.IsWlanEnabled = value;
+                    _ = WinStaticInfoService.Instance.RefreshNetworkAdaptersAsync(); // the Wi-Fi facts of the info panels follow the switch
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // the displays as hardware, with brightness and refresh rate; mirrored like above
+        private bool _winDisplayEnabled = Defaults.WinDisplayEnabled;
+        public bool WinDisplayEnabled
+        {
+            get => _winDisplayEnabled;
+            set
+            {
+                if (_winDisplayEnabled != value)
+                {
+                    _winDisplayEnabled = value;
+                    HardwareMonitorService.Instance.WindowsSource.IsDisplayEnabled = value;
+                    SaveDebounced();
+                }
+            }
+        }
+
         // --- startup settings ---
 
         // none of the four raises a change event: they are read at startup, and the autostart pair goes
@@ -1136,6 +1238,9 @@ namespace FluentSensors.Persistence.Services
             _useHardwareIconColors = data.UseHardwareIconColors;
             HardwareColorMode.UseIconColors = _useHardwareIconColors;
             _useSensorTypeColors = data.UseSensorTypeColors;
+            _showLhmSourceIcon = data.ShowLhmSourceIcon;
+            _showWindowsSourceIcon = data.ShowWindowsSourceIcon;
+            SensorSourceIcon.SetVisibility(_showLhmSourceIcon, _showWindowsSourceIcon);
             _dataSizeUnitBasis = data.DataSizeUnitBasis;
             _dataSpeedUnitBasis = data.DataSpeedUnitBasis;
             SensorUnitFormatter.DataSizeBasis = _dataSizeUnitBasis;
@@ -1191,6 +1296,20 @@ namespace FluentSensors.Persistence.Services
 
             // lives on HardwareMonitorService at runtime, shares this file
             HardwareMonitorService.Instance.UpdateIntervalMs = data.UpdateIntervalMs;
+
+            // the engine switches, handed to the monitor and its Windows source before the loop starts
+            _disabledLhmHardware.Clear();
+            foreach (string hardwareName in data.DisabledLhmHardware ?? new List<string>())
+            {
+                _disabledLhmHardware.Add(hardwareName);
+            }
+            HardwareMonitorService.Instance.SetDisabledHardware(_disabledLhmHardware);
+            _winStorageSensorsEnabled = data.WinStorageSensorsEnabled;
+            _winWlanSensorsEnabled = data.WinWlanSensorsEnabled;
+            HardwareMonitorService.Instance.WindowsSource.IsStorageEnabled = _winStorageSensorsEnabled;
+            HardwareMonitorService.Instance.WindowsSource.IsWlanEnabled = _winWlanSensorsEnabled;
+            _winDisplayEnabled = data.WinDisplayEnabled;
+            HardwareMonitorService.Instance.WindowsSource.IsDisplayEnabled = _winDisplayEnabled;
         }
 
         // the live values as a serializable snapshot
@@ -1213,6 +1332,8 @@ namespace FluentSensors.Persistence.Services
                 GraphFillFade = _graphFillFade,
                 UseHardwareIconColors = _useHardwareIconColors,
                 UseSensorTypeColors = _useSensorTypeColors,
+                ShowLhmSourceIcon = _showLhmSourceIcon,
+                ShowWindowsSourceIcon = _showWindowsSourceIcon,
                 DataSizeUnitBasis = _dataSizeUnitBasis,
                 DataSpeedUnitBasis = _dataSpeedUnitBasis,
                 PerformanceGraphTimeSpanSeconds = _performanceGraphTimeSpanSeconds,
@@ -1258,7 +1379,11 @@ namespace FluentSensors.Persistence.Services
                 CsvCustomTintColor = _csvCustomTintColor,
                 LastSensorProfile = _lastSensorProfile,
                 LastWidgetWindowIndex = _lastWidgetWindowIndex,
-                UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs
+                UpdateIntervalMs = HardwareMonitorService.Instance.UpdateIntervalMs,
+                DisabledLhmHardware = new List<string>(_disabledLhmHardware),
+                WinStorageSensorsEnabled = _winStorageSensorsEnabled,
+                WinWlanSensorsEnabled = _winWlanSensorsEnabled,
+                WinDisplayEnabled = _winDisplayEnabled
             };
         }
 

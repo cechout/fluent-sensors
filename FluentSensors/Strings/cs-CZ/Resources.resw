@@ -107,7 +107,8 @@ Dotaz (aktuální/cílový) - naměřená obnovovací frekvence oproti frekvenci
   </data>
   <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
     <value>Využití CPU - vlastní čas CPU této aplikace vzhledem k celkové kapacitě všech jader
-Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovní sada)</value>
+Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovní sada)
+Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží, jako ve Správci úloh</value>
   </data>
   <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -154,6 +155,9 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   </data>
   <data name="Main_LoadingControllers" xml:space="preserve">
     <value>Zjišťování řadičů...</value>
+  </data>
+  <data name="Main_LoadingPower" xml:space="preserve">
+    <value>Zjišťování baterie a napájení...</value>
   </data>
   <data name="Main_LoadingNetwork" xml:space="preserve">
     <value>Zjišťování síťových adaptérů...</value>
@@ -213,12 +217,6 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   </data>
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Barvy ikon hardwaru</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Header" xml:space="preserve">
-    <value>Barvy typů senzorů</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
-    <value>Stránka Grafy a seznam senzorů</value>
   </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Grafy</value>
@@ -317,6 +315,51 @@ Využití RAM - fyzická paměť aktuálně namapovaná touto aplikací (pracovn
   </data>
   <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
     <value>Interval aktualizace</value>
+  </data>
+  <data name="Settings_EngineText.Text" xml:space="preserve">
+    <value>Engine</value>
+  </data>
+  <data name="Settings_EngineLhmExpander.Header" xml:space="preserve">
+    <value>LibreHardwareMonitor</value>
+  </data>
+  <data name="Settings_EngineLhmExpander.Description" xml:space="preserve">
+    <value>Hardware, který čte LibreHardwareMonitor</value>
+  </data>
+  <data name="Settings_EngineWindowsExpander.Header" xml:space="preserve">
+    <value>Windows</value>
+  </data>
+  <data name="Settings_EngineWindowsExpander.Description" xml:space="preserve">
+    <value>Senzory, které rozhraní Windows API doplní nebo nahradí</value>
+  </data>
+  <data name="Settings_ShowSourceIconCard.Header" xml:space="preserve">
+    <value>Zobrazit ikonu zdroje</value>
+  </data>
+  <data name="Settings_WinStorageSensorsCard.Header" xml:space="preserve">
+    <value>Úložiště</value>
+  </data>
+  <data name="Settings_WinStorageSensorsCard.Description" xml:space="preserve">
+    <value>Doplní a nahradí senzory hardwaru úložiště</value>
+  </data>
+  <data name="Settings_WinWlanSensorsCard.Header" xml:space="preserve">
+    <value>Wi-Fi</value>
+  </data>
+  <data name="Settings_WinWlanSensorsCard.Description" xml:space="preserve">
+    <value>Doplní senzory hardwaru Wi-Fi</value>
+  </data>
+  <data name="Settings_WinWlanSensorsPopup.Description" xml:space="preserve">
+    <value>Od Windows 11 24H2 vyžaduje přístup k poloze
+Bez něj Windows aplikaci nedá žádná data o Wi-Fi a všechny čtyři senzory chybí
+Také standard Wi-Fi, pásmo, kanál a zabezpečení v informačním panelu
+Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování polohy a Povolit desktopovým aplikacím přístup k poloze</value>
+  </data>
+  <data name="Settings_WinWlanSensorsPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Settings_WinDisplayCard.Header" xml:space="preserve">
+    <value>Displej</value>
+  </data>
+  <data name="Settings_WinDisplayCard.Description" xml:space="preserve">
+    <value>Přidá hardware displeje</value>
   </data>
   <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
     <value>Časový rozsah</value>
@@ -1082,6 +1125,9 @@ V nastavení grafiky Windows zvolte pro FluentSensors úsporný režim a aplikac
   <data name="Performance_HardwareOverviewButton.Label" xml:space="preserve">
     <value>Přehled hardwaru</value>
   </data>
+  <data name="Performance_SensorTypeColorsButton.Label" xml:space="preserve">
+    <value>Barvy typů senzorů</value>
+  </data>
   <data name="Performance_HardwareListButton.Label" xml:space="preserve">
     <value>Seznam hardwaru</value>
   </data>
@@ -1100,7 +1146,10 @@ V nastavení grafiky Windows zvolte pro FluentSensors úsporný režim a aplikac
   <data name="Cpu_GeneralPopup.Description" xml:space="preserve">
     <value>Fyzická jádra - skutečné výpočetní jednotky na čipu
 Logické procesory - celkový počet vláken (SMT/Hyper-Threading zdvojnásobuje na jádro)
-Topologie jader - rozdělení na výkonná a úsporná jádra u hybridních CPU</value>
+Topologie jader - rozdělení na výkonná a úsporná jádra u hybridních CPU
+Rodina / Model / Stepping - určuje přesný návrh CPU a jeho revizi, jak je hlásí Windows
+Mikrokód - revize interního firmwaru CPU; aktualizuje ho BIOS nebo Windows, opravuje chyby a bezpečnostní problémy
+Instrukční sady - volitelná rozšíření CPU, která může software vyžadovat (AVX2, AVX-512, ...); výběr, jak je rozpozná běhové prostředí .NET</value>
   </data>
   <data name="Cpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1139,17 +1188,47 @@ Firmware - aktuálně zapnuto nebo ne (nespolehlivé)</value>
   <data name="Gpu_ShowExtendedButton.Label" xml:space="preserve">
     <value>Rozšířené</value>
   </data>
+  <data name="Network_ShowOverallButton.Label" xml:space="preserve">
+    <value>Celkově</value>
+  </data>
+  <data name="Network_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Rozšířené</value>
+  </data>
+  <data name="Storage_ShowOverallButton.Label" xml:space="preserve">
+    <value>Celkově</value>
+  </data>
+  <data name="Storage_ShowExtendedButton.Label" xml:space="preserve">
+    <value>Rozšířené</value>
+  </data>
+  <data name="Gpu_OtherGroupTitle.Text" xml:space="preserve">
+    <value>Další senzory</value>
+    <comment>group title above the gpu sensors that have no group of their own</comment>
+  </data>
   <data name="Gpu_GeneralPopup.Title" xml:space="preserve">
     <value>Obecné</value>
   </data>
   <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Verze ovladače - interní číslo ovladače Windows, liší se od schématu verzí výrobce
+    <value>Typ - dedikovaná (vlastní čip a VRAM) nebo integrovaná (v CPU, využívá systémovou RAM)
+Výrobce karty - výrobce karty nebo notebooku, z ID subsystému zařízení
 Displej - displeje, které tato GPU ovládá, nebo u hybridního notebooku GPU, přes kterou jde její obraz</value>
   </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
   </data>
+  <data name="Gpu_DriverPopup.Description" xml:space="preserve">
+    <value>Verze ovladače - interní číslo ovladače Windows, liší se od schématu verzí výrobce
+Datum ovladače - datum vydání, které ovladač hlásí</value>
+  </data>
+  <data name="Gpu_DriverPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
   <data name="Gpu_NameText.Text" xml:space="preserve">
+    <value>Název</value>
+  </data>
+  <data name="Cpu_NameText.Text" xml:space="preserve">
+    <value>Název</value>
+  </data>
+  <data name="Battery_NameText.Text" xml:space="preserve">
     <value>Název</value>
   </data>
   <data name="Gpu_MemoryPopup.Description" xml:space="preserve">
@@ -1179,7 +1258,17 @@ Rychlost RAM - nastavená (aktivní) oproti jmenovité (specifikace)
 Napětí - provozní napětí; XMP/EXPO ho může zvýšit
 Banka - fyzická skupina bank/slotů na základní desce, do které modul patří
 Rank - počet nezávislých sad čipů na samotném modulu (nespolehlivé)
-Šířka - data (využitelné bity) oproti celkem (včetně bitů ECC)</value>
+Šířka - data (využitelné bity) oproti celkem (včetně bitů ECC)
+Thermal Sensor Limit - teplotní prahy uložené v modulu
+Časování - hlavní zpoždění, pro která je modul určen, v nanosekundách, přečtená z jeho čipu SPD; ne hodnoty, které BIOS skutečně nastavil. Seznam senzorů má všechna časování
+tAA - latence CAS, od adresy sloupce k datům
+tRCD - zpoždění RAS až CAS, od otevření řádku k adrese sloupce
+tRP - přednabití řádku, zavření řádku
+tRAS - nejkratší doba, po kterou zůstává řádek otevřený
+tRC - od jedné aktivace řádku k další nebo k obnovení
+tRFC1 - zotavení po obnovení
+tWR - zotavení po zápisu, od posledních zapsaných dat k zavření řádku
+Tyto hodnoty hlásí jen modul s čitelným čipem SPD; připájená paměť zobrazí -</value>
   </data>
   <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1200,7 +1289,9 @@ Rank - počet nezávislých sad čipů na samotném modulu (nespolehlivé)
     <value>Obecné</value>
   </data>
   <data name="Storage_GeneralPopup.Description" xml:space="preserve">
-    <value>Typ sběrnice - rozhraní připojení (NVMe, SATA, USB, ...), omezuje reálnou maximální rychlost disku; čte se z moderního Storage API, protože starší API Windows hlásí disky NVMe chybně jako SCSI</value>
+    <value>Typ sběrnice - rozhraní připojení (NVMe, SATA, USB, ...), omezuje reálnou maximální rychlost disku; čte se z moderního Storage API, protože starší API Windows hlásí disky NVMe chybně jako SCSI
+Typ média - SSD nebo HDD (s otáčkami)
+Stav - hodnocení Windows podle předpovědi selhání disku</value>
   </data>
   <data name="Storage_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1226,17 +1317,6 @@ Rank - počet nezávislých sad čipů na samotném modulu (nespolehlivé)
   <data name="Storage_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Změnit velikost informací o hardwaru</value>
   </data>
-  <data name="Network_ConnectionPopup.Title" xml:space="preserve">
-    <value>Připojení</value>
-  </data>
-  <data name="Network_ConnectionPopup.Description" xml:space="preserve">
-    <value>Představuje jedno aktivní připojení, ne všechna možná připojení adaptéru. Více aktivních připojení (např. Wi-Fi + Ethernet) má každé vlastní položku.
-Hardware - fyzický adaptér za tímto připojením
-Typ - jeho médium (Wi-Fi, Ethernet, ...)</value>
-  </data>
-  <data name="Network_ConnectionPopup.SourceIntro" xml:space="preserve">
-    <value>Zdroj:</value>
-  </data>
   <data name="Network_HardwareText.Text" xml:space="preserve">
     <value>Hardware</value>
   </data>
@@ -1246,7 +1326,11 @@ Typ - jeho médium (Wi-Fi, Ethernet, ...)</value>
   <data name="Network_IPAddressesPopup.Description" xml:space="preserve">
     <value>IPv4 a IPv6 jsou nezávislé systémy adres, oba aktivní současně.
 IPv4 - obvykle jedna adresa
-IPv6 - často několik současně (stabilní a střídající se adresy pro ochranu soukromí)</value>
+IPv6 - často několik současně (stabilní a střídající se adresy pro ochranu soukromí)
+Brána - směrovač, kterému toto připojení posílá data pro jiné sítě
+Server(y) DNS - překládají názvy na adresy
+DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo nastavena staticky; vlastnost tohoto připojení, ne nastavení celé sítě
+Server DHCP - přidělil adresu tohoto připojení</value>
   </data>
   <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
@@ -1255,11 +1339,18 @@ IPv6 - často několik současně (stabilní a střídající se adresy pro ochr
     <value>Obecné</value>
   </data>
   <data name="Network_GeneralPopup.Description" xml:space="preserve">
-    <value>Rychlost linky - vyjednaná rychlost právě tohoto připojení, ne maximální jmenovitá rychlost adaptéru; může být nižší a u Wi-Fi se mění podle podmínek signálu
-DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo nastavena staticky; vlastnost tohoto připojení, ne nastavení celé sítě</value>
+    <value>Představuje jedno aktivní připojení, ne všechna možná připojení adaptéru. Více aktivních připojení (např. Wi-Fi + Ethernet) má každé vlastní položku.
+Hardware - fyzický adaptér za tímto připojením
+Typ - jeho médium (Wi-Fi, Ethernet, ...)</value>
   </data>
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Zdroj:</value>
+  </data>
+  <data name="Battery_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
+  </data>
+  <data name="Display_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Změnit velikost informací o hardwaru</value>
   </data>
   <data name="Network_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Změnit velikost informací o hardwaru</value>
@@ -1499,6 +1590,9 @@ DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo 
   <data name="Sensors_ShowHiddenSensorsButton.Label" xml:space="preserve">
     <value>Skryté senzory</value>
   </data>
+  <data name="Sensors_SensorTypeColorsButton.Label" xml:space="preserve">
+    <value>Barvy typů senzorů</value>
+  </data>
   <data name="Sensors_NoSensorsInfoBar.Title" xml:space="preserve">
     <value>Nejsou vybrány žádné senzory</value>
   </data>
@@ -1664,5 +1758,140 @@ DHCP zapnuto - zda byla adresa tohoto připojení přidělena automaticky, nebo 
   </data>
   <data name="Settings_TechnicalTermsCard.Header" xml:space="preserve">
     <value>Technické pojmy v angličtině</value>
+  </data>
+  <data name="Info_Volume" xml:space="preserve">
+    <value>{0} {1}, {2} ({3} volných)</value>
+    <comment>one volume of a drive; {0} the drive letter like C:, {1} the file system like NTFS, {2} the size, {3} the free space</comment>
+  </data>
+  <data name="Gpu_PciPopup.Description" xml:space="preserve">
+    <value>Linka (aktuální / maximální) - generace PCIe a počet linek; aktuální je to, co GPU vyjednala se slotem, maximální to, co GPU sama podporuje
+Nižší aktuální hodnota znamená, že omezuje slot, riser nebo zapojení notebooku, nebo linka právě šetří energii</value>
+  </data>
+  <data name="Gpu_PciPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Memory_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Memory_GeneralPopup.Description" xml:space="preserve">
+    <value>Sloty celkem - paměťové sloty, které uvádí firmware základní desky; připájená paměť se počítá jako slot
+Maximální kapacita - nejvíce paměti, kolik deska podle firmwaru přijme
+Oprava chyb - zda paměť rozpozná a opraví bitové chyby (ECC); vyžaduje odpovídající moduly, desku a CPU</value>
+  </data>
+  <data name="Memory_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Storage_PartitionsPopup.Description" xml:space="preserve">
+    <value>Styl oddílů - GPT (moderní, nutný pro spuštění UEFI) nebo MBR (starší)
+Počet - všechny oddíly včetně skrytých (EFI, obnovení)
+Role - Boot obsahuje běžící Windows, Systém zavaděč
+Svazky - oddíly s písmenem jednotky: systém souborů, velikost a volné místo</value>
+  </data>
+  <data name="Storage_PartitionsPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Storage_PciPopup.Description" xml:space="preserve">
+    <value>Linka (aktuální / maximální) - generace PCIe a počet linek; aktuální je to, co vyjednal řadič disku, maximální to, co disk podporuje
+Nižší aktuální hodnota znamená, že omezuje slot</value>
+  </data>
+  <data name="Storage_PciPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Storage_TemperatureLimitsPopup.Description" xml:space="preserve">
+    <value>Warning Temperature - práh, od kterého disk hlásí přehřátí
+Critical Temperature - práh, od kterého disk silně omezí výkon nebo se pro ochranu vypne
+Uloženo v disku výrobcem</value>
+    <comment>Warning Temperature and Critical Temperature are sensor names and stay English</comment>
+  </data>
+  <data name="Storage_TemperatureLimitsPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Network_WiFiPopup.Description" xml:space="preserve">
+    <value>Standard - generace Wi-Fi aktuálního připojení, nižší z toho, co podporuje adaptér a přístupový bod
+Pásmo - frekvenční rozsah (2,4, 5 nebo 6 GHz); vyšší je rychlejší, ale má kratší dosah
+Kanál - část pásma, na které přístupový bod vysílá
+Zabezpečení - jak je připojení ověřeno a šifrováno</value>
+  </data>
+  <data name="Network_WiFiPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Network_DriverPopup.Description" xml:space="preserve">
+    <value>Verze, Datum, Poskytovatel - ovladač, který Windows pro tento adaptér načetl</value>
+  </data>
+  <data name="Network_DriverPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Battery_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Battery_GeneralPopup.Description" xml:space="preserve">
+    <value>Chemie - technologie článků, kterou baterie hlásí</value>
+    <comment>Designed Capacity, Fully-Charged Capacity and Degradation Level are sensor names and stay English</comment>
+  </data>
+  <data name="Battery_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Display_GeneralPopup.Title" xml:space="preserve">
+    <value>Obecné</value>
+  </data>
+  <data name="Display_GeneralPopup.Description" xml:space="preserve">
+    <value>Název - název, který monitor hlásí, nebo náš vlastní, když žádný nehlásí (většina panelů notebooků)
+Výrobce - třípísmenný kód výrobce panelu z EDID (AUO, BOE, DEL, SAM ...)
+Datum výroby - rok a týden
+Velikost - úhlopříčka a viditelná plocha podle EDID
+Nativní rozlišení - režim, který panel sám preferuje
+Hustota pixelů - z nativního rozlišení a viditelné plochy</value>
+  </data>
+  <data name="Display_GeneralPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Display_ModePopup.Description" xml:space="preserve">
+    <value>Rozlišení - rozlišení plochy, se kterým Windows displej řídí
+Měřítko - jak moc Windows na tomto displeji zvětšuje text a aplikace
+Obnovovací frekvence - aktuální hodnota a doba jednoho snímku; mění se s dynamickou obnovovací frekvencí
+Konektor - USB-C a Thunderbolt se zobrazí jako DisplayPort, panel notebooku jako Interní nebo eDP
+GPU - adaptér, který obraz vysílá; u hybridního notebooku obvykle integrovaný</value>
+  </data>
+  <data name="Display_ModePopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Display_SignalPopup.Description" xml:space="preserve">
+    <value>Pixely - šířka x výška rozlišení
+Bity na pixel - tři barevné kanály v dané barevné hloubce
+Velikost snímku - jeden nekomprimovaný snímek: pixely x bity na pixel
+Datový tok - velikost snímku x obnovovací frekvence, při aktuální frekvenci a při 60 Hz
+Pouze viditelné pixely: bez zatemňovacího intervalu, bez komprese (DSC), bez podvzorkování barev</value>
+  </data>
+  <data name="Display_ColorPopup.Description" xml:space="preserve">
+    <value>Barevná hloubka - bity na barevný kanál signálu
+HDR - zda ho displej podporuje a zda ho má Windows zapnuté
+Úroveň bílé SDR - jas běžného obsahu, když je HDR zapnuté
+Špičkový jas, Minimální jas - co displej o sobě hlásí; když nehlásí nic, Windows doplní výchozí hodnotu
+Gama - přenosová křivka podle EDID</value>
+  </data>
+  <data name="Display_ColorPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Display_DdcPopup.Description" xml:space="preserve">
+    <value>Čteno přímo z monitoru přes kabel displeje (nespolehlivé): monitor odpoví jen na část nebo na nic a dok, adaptér nebo přepínač KVM to může blokovat.
+Režim napájení - zapnuto, pohotovostní nebo vypnuto, jak se vidí monitor sám; svůj příkon monitor nehlásí
+Vstupní zdroj - vstup, který zobrazuje; vstup specifický pro výrobce se zobrazí jako číslo
+Doba provozu - hodiny, po které byl panel zapnutý
+Verze MCCS - verze sady řídicích příkazů, kterou monitor používá</value>
+  </data>
+  <data name="Display_DdcPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
+  </data>
+  <data name="Display_NameText.Text" xml:space="preserve">
+    <value>Název</value>
+  </data>
+  <data name="Battery_HealthPopup.Description" xml:space="preserve">
+    <value>Designed Capacity - energie, kterou baterie pojala jako nová
+Fully-Charged Capacity - energie, kterou pojme dnes při 100 %
+Degradation Level - ztracený podíl původní kapacity
+Počet cyklů - plné nabíjecí cykly počítané elektronikou baterie</value>
+  </data>
+  <data name="Battery_HealthPopup.SourceIntro" xml:space="preserve">
+    <value>Zdroj:</value>
   </data>
 </root>
