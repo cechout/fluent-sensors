@@ -220,9 +220,6 @@
   <data name="Network_IPv6Addresses" xml:space="preserve">
     <value>IPv6 adresi / adresleri</value>
   </data>
-  <data name="Network_LinkSpeed" xml:space="preserve">
-    <value>Bağlantı hızı</value>
-  </data>
   <data name="Network_MACAddress" xml:space="preserve">
     <value>MAC adresi</value>
   </data>
