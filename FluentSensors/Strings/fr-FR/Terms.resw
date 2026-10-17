@@ -220,9 +220,6 @@
   <data name="Network_IPv6Addresses" xml:space="preserve">
     <value>Adresse(s) IPv6</value>
   </data>
-  <data name="Network_LinkSpeed" xml:space="preserve">
-    <value>Vitesse de liaison</value>
-  </data>
   <data name="Network_MACAddress" xml:space="preserve">
     <value>Adresse MAC</value>
   </data>
