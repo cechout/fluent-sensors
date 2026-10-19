@@ -288,7 +288,7 @@
                             Margin="{StaticResource FlyoutResourcesPanelMargin}"
                             VerticalAlignment="Bottom"
                             Spacing="8">
-                            <!--  lhm status; (the app resources below are parked, swap the two blocks to bring them back)  -->
+                            <!--  lhm status  -->
                             <fhInfoPopup:InfoPopupControl
                                 x:Uid="TaskbarFlyout_LhmPopup"
                                 Title="LibreHardwareMonitor"
@@ -334,6 +334,7 @@
                                 </StackPanel>
                             </controls:WrapPanel>
 
+                            <!--  revisit: parked app resources; swapped out for the lhm status, bring it back by swapping the two blocks  -->
                             <!--
                             <fhInfoPopup:InfoPopupControl
                                 x:Uid="TaskbarFlyout_AppResourcesPopup"

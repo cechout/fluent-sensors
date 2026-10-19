@@ -9,16 +9,22 @@ using FluentSensors.Core;
 
 namespace FluentSensors.Features.TaskbarWidget
 {
-    // the app resources of the flyout drawer:
-    // cpu, ram and gpu usage of this app as the start page shows them, from AppStatusService and an own
+    // the values of the flyout drawer:
+    // the lhm status and the parked app resources as the start page shows them, from AppStatusService and an own
     // WinAppGpuMonitor; live only between Start and Stop, so a closed drawer costs nothing
     public class FlyoutAppResourcesViewModel : INotifyPropertyChanged
     {
         // === fields ===
 
         private readonly DispatcherQueue _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+        private bool _isLive;
         private WinAppGpuMonitor? _gpuMonitor;
         private bool _isGpuReadRunning;
+
+        // --- revisit: parked app resources ---
+        // the gpu usage only feeds the parked app resources block, and a read walks every gpu engine of every
+        // process; off until that block comes back
+        private static readonly bool IsGpuUsageShown = false;
 
         private string _cpuValue = "-";
         private string _ramValue = "-";
@@ -72,19 +78,24 @@ namespace FluentSensors.Features.TaskbarWidget
         // idempotent, like Stop
         public void Start()
         {
-            if (_gpuMonitor != null) return;
+            if (_isLive) return;
+            _isLive = true;
 
-            _gpuMonitor = new WinAppGpuMonitor();
             AppStatusService.Instance.StatusUpdated += OnStatusUpdated;
-            ReadGpu();
+            if (IsGpuUsageShown)
+            {
+                _gpuMonitor = new WinAppGpuMonitor();
+                ReadGpu();
+            }
         }
 
         public void Stop()
         {
-            if (_gpuMonitor == null) return;
+            if (!_isLive) return;
+            _isLive = false;
 
             AppStatusService.Instance.StatusUpdated -= OnStatusUpdated;
-            _gpuMonitor.Dispose();
+            _gpuMonitor?.Dispose();
             _gpuMonitor = null;
         }
 
