@@ -9,6 +9,7 @@
     xmlns:fhCommon="using:FluentSensors.Common.Sensors"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
     xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -280,71 +281,57 @@
                         x:Name="ResourcesDrawerHost"
                         Grid.Row="4"
                         Height="0">
-                        <Grid
+                        <!--  (title and info button as on the start page, the values packed like a hardware view info panel)  -->
+                        <StackPanel
                             x:Name="ResourcesPanel"
                             Margin="{StaticResource FlyoutResourcesPanelMargin}"
                             VerticalAlignment="Bottom"
-                            ColumnSpacing="12"
-                            RowSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <Grid.Resources>
-                                <Style
-                                    x:Key="ResourceLabelTextStyle"
-                                    BasedOn="{StaticResource CaptionTextBlockStyle}"
-                                    TargetType="TextBlock">
-                                    <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-                                    <Setter Property="TextWrapping" Value="NoWrap" />
-                                </Style>
-                                <Style
-                                    x:Key="ResourceValueTextStyle"
-                                    BasedOn="{StaticResource BodyTextBlockStyle}"
-                                    TargetType="TextBlock">
-                                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-                                    <Setter Property="TextWrapping" Value="NoWrap" />
-                                    <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
-                                </Style>
-                            </Grid.Resources>
+                            Spacing="8">
+                            <fhInfoPopup:InfoPopupControl
+                                x:Uid="TaskbarFlyout_AppResourcesPopup"
+                                PlacementMode="Above"
+                                TitleTextTrimming="CharacterEllipsis">
+                                <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                    <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
+                                    <fhInfoPopup:SourceLink Label="Windows GPU performance counters" Url="https://devblogs.microsoft.com/directx/gpus-in-the-task-manager/" />
+                                </fhInfoPopup:InfoPopupControl.SourceLinks>
+                            </fhInfoPopup:InfoPopupControl>
 
-                            <TextBlock
-                                x:Uid="TaskbarFlyout_AppResourcesText"
-                                Grid.ColumnSpan="3"
-                                Style="{StaticResource BodyStrongTextBlockStyle}"
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="NoWrap" />
+                            <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_CPUUsageText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.CpuValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
 
-                            <StackPanel
-                                Grid.Row="1"
-                                Grid.Column="0"
-                                Spacing="2">
-                                <TextBlock x:Uid="Start_CPUUsageText" Style="{StaticResource ResourceLabelTextStyle}" />
-                                <TextBlock Style="{StaticResource ResourceValueTextStyle}" Text="{x:Bind ResourcesViewModel.CpuValue, Mode=OneWay}" />
-                            </StackPanel>
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_RAMUsageText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.RamValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
 
-                            <StackPanel
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                Spacing="2">
-                                <TextBlock x:Uid="Start_RAMUsageText" Style="{StaticResource ResourceLabelTextStyle}" />
-                                <TextBlock Style="{StaticResource ResourceValueTextStyle}" Text="{x:Bind ResourcesViewModel.RamValue, Mode=OneWay}" />
-                            </StackPanel>
-
-                            <StackPanel
-                                Grid.Row="1"
-                                Grid.Column="2"
-                                Spacing="2">
-                                <TextBlock x:Uid="Start_GpuUsageText" Style="{StaticResource ResourceLabelTextStyle}" />
-                                <TextBlock Style="{StaticResource ResourceValueTextStyle}" Text="{x:Bind ResourcesViewModel.GpuUsageValue, Mode=OneWay}" />
-                            </StackPanel>
-                        </Grid>
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_GpuUsageText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.GpuUsageValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+                            </controls:WrapPanel>
+                        </StackPanel>
                     </Grid>
                 </Grid>
 
