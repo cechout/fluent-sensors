@@ -872,7 +872,7 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
     <value>App Status</value>
   </data>
   <data name="Start_LhmPopup.Description" xml:space="preserve">
-    <value>Found Sensors - every sensor LibreHardwareMonitor reports on this machine
+    <value>Total Sensors - every sensor this app reads, from LibreHardwareMonitor and Windows
 Rendering Sensors - how many of them are actively drawn right now
 Update interval - measured against the configured polling interval
 Read time - how long one full read of all sensors takes
@@ -885,7 +885,7 @@ PawnIO driver - kernel access for CPU, mainboard and memory sensors</value>
     <value>LibreHardwareMonitor on GitHub</value>
   </data>
   <data name="Start_FoundSensorsText.Text" xml:space="preserve">
-    <value>Found Sensors</value>
+    <value>Total Sensors</value>
   </data>
   <data name="Start_RenderingSensorsText.Text" xml:space="preserve">
     <value>Rendering Sensors</value>
@@ -1748,7 +1748,7 @@ GPU usage - this app's share of its busiest GPU engine (like Task Manager)</valu
   <data name="TaskbarFlyout_LhmPopup.Description" xml:space="preserve">
     <value>Update interval - measured against the configured polling interval
 Read time - how long one full read of all sensors takes
-Found Sensors - every sensor LibreHardwareMonitor reports on this machine</value>
+Total Sensors - every sensor this app reads, from LibreHardwareMonitor and Windows</value>
   </data>
   <data name="TaskbarFlyout_LhmPopup.SourceIntro" xml:space="preserve">
     <value>This App is powered by the open source LibreHardwareMonitor project:</value>
