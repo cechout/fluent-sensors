@@ -65,7 +65,7 @@
                 <Thickness x:Key="FlyoutTimeRangeSeparatorMargin">0,8,0,0</Thickness>
 
                 <!--  app resources drawer; (its height is measured, not a resource)  -->
-                <Thickness x:Key="FlyoutResourcesPanelMargin">13,2,13,12</Thickness>
+                <Thickness x:Key="FlyoutResourcesPanelMargin">14,2,14,12</Thickness>
             </Border.Resources>
 
             <Grid x:Name="RootGrid" Background="Transparent">
