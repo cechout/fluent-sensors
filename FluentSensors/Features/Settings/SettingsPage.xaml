@@ -612,6 +612,23 @@
                     IsExpanded="False">
 
                     <controls:SettingsExpander.Items>
+                        <controls:SettingsCard x:Uid="Settings_GraphColorSourceCard">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ComboBox
+                                    x:Name="WidgetBoardGraphColorSourceComboBox"
+                                    x:Uid="Settings_GraphColorSourceComboBox"
+                                    Width="160"
+                                    SelectionChanged="WidgetBoardGraphColorSourceComboBox_SelectionChanged">
+                                    <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Accent" Tag="Accent" />
+                                    <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Custom" Tag="Custom" />
+                                    <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Hardware" Tag="Hardware" />
+                                    <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_SensorType" Tag="SensorType" />
+                                </ComboBox>
+
+                                <controls:ColorPickerButton x:Name="WidgetBoardGraphColorPicker" x:Uid="Settings_GraphColorPicker" />
+                            </StackPanel>
+                        </controls:SettingsCard>
+
                         <controls:SettingsCard x:Uid="Settings_TimeRangeCard">
                             <ComboBox
                                 x:Name="WidgetBoardGraphTimeSpanComboBox"

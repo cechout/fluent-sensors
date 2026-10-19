@@ -32,10 +32,12 @@ namespace FluentSensors.Features.WidgetBoard
         private const float TextRowSpacing = 4; // the small spacing above the time and above the links
         private const float BottomSpacer = 8; // lifts the links off the card edge
 
-        // one inset for every text row: status rows, time and links; a column keeps the default spacing of the board
-        // to the one before it unless it says none, so the column after the inset and the inset at the end do
-        private const string InsetColumn = "{\"type\":\"Column\",\"width\":\"1px\"}";
-        private const string EndInsetColumn = "{\"type\":\"Column\",\"width\":\"1px\",\"spacing\":\"none\"}";
+        // --- text gaps ---
+        // in px (dip); spacer columns, every other column of a row says spacing none, the board would put its own
+        // default spacing (8) in front of it otherwise
+        private const int TextInset = 2; // every text row from the card edge: status rows, time, links
+        private const int YMaxValueGap = 10; // y-max to current value
+        private const int LinkGap = 12; // between the two links
 
 
         // === public api ===
@@ -67,11 +69,12 @@ namespace FluentSensors.Features.WidgetBoard
 
             for (int i = 0; i < count; i++)
             {
-                string statusRow = "{\"type\":\"ColumnSet\",\"columns\":[" + InsetColumn + "," +
+                string statusRow = "{\"type\":\"ColumnSet\",\"columns\":[" + Gap(TextInset) + "," +
                     $"{{\"type\":\"Column\",\"width\":\"stretch\",\"spacing\":\"none\",\"items\":[{{\"type\":\"TextBlock\",\"text\":\"${{n{i}}}\",\"size\":\"small\",\"wrap\":false}}]}}," +
-                    $"{{\"type\":\"Column\",\"width\":\"auto\",\"items\":[{{\"type\":\"TextBlock\",\"text\":\"${{y{i}}}\",\"size\":\"small\",\"isSubtle\":true,\"wrap\":false}}]}}," +
-                    $"{{\"type\":\"Column\",\"width\":\"auto\",\"items\":[{{\"type\":\"TextBlock\",\"text\":\"${{v{i}}}\",\"size\":\"small\",\"wrap\":false}}]}}," +
-                    EndInsetColumn + "]}";
+                    $"{{\"type\":\"Column\",\"width\":\"auto\",\"spacing\":\"none\",\"items\":[{{\"type\":\"TextBlock\",\"text\":\"${{y{i}}}\",\"size\":\"small\",\"isSubtle\":true,\"wrap\":false}}]}}," +
+                    Gap(YMaxValueGap) + "," +
+                    $"{{\"type\":\"Column\",\"width\":\"auto\",\"spacing\":\"none\",\"items\":[{{\"type\":\"TextBlock\",\"text\":\"${{v{i}}}\",\"size\":\"small\",\"wrap\":false}}]}}," +
+                    Gap(TextInset) + "]}";
                 string gap = $"{{\"type\":\"Container\",\"minHeight\":\"{StatusRowGap:0}px\",\"spacing\":\"none\"}}";
 
                 // a theme switch swaps the whole sensor, the image url cannot carry a condition
@@ -87,14 +90,15 @@ namespace FluentSensors.Features.WidgetBoard
                 }
             }
 
-            body.Add("{\"type\":\"ColumnSet\",\"spacing\":\"small\",\"columns\":[" + InsetColumn + "," +
+            body.Add("{\"type\":\"ColumnSet\",\"spacing\":\"small\",\"columns\":[" + Gap(TextInset) + "," +
                 "{\"type\":\"Column\",\"width\":\"stretch\",\"spacing\":\"none\",\"items\":[{\"type\":\"TextBlock\",\"text\":\"${time}\",\"size\":\"small\",\"isSubtle\":true,\"wrap\":false}]}]}");
 
             // plain accent text as buttons, side by side: the select action of an auto column, so only the text
             // takes the click
-            body.Add("{\"type\":\"ColumnSet\",\"spacing\":\"small\",\"columns\":[" + InsetColumn + "," +
-                LinkColumn("sensorsLink", WidgetBoardProtocol.OpenSensorsVerb, "none") + "," +
-                LinkColumn("settingsLink", WidgetBoardProtocol.OpenSettingsVerb, "default") + "]}");
+            body.Add("{\"type\":\"ColumnSet\",\"spacing\":\"small\",\"columns\":[" + Gap(TextInset) + "," +
+                LinkColumn("sensorsLink", WidgetBoardProtocol.OpenSensorsVerb) + "," +
+                Gap(LinkGap) + "," +
+                LinkColumn("settingsLink", WidgetBoardProtocol.OpenSettingsVerb) + "]}");
             body.Add($"{{\"type\":\"Container\",\"minHeight\":\"{BottomSpacer:0}px\",\"spacing\":\"none\"}}");
 
             return "{\"type\":\"AdaptiveCard\",\"version\":\"1.5\",\"body\":[" + string.Join(",", body) + "]}";
@@ -137,8 +141,10 @@ namespace FluentSensors.Features.WidgetBoard
 
         // === private helpers ===
 
-        private static string LinkColumn(string textKey, string verb, string spacing) =>
-            $"{{\"type\":\"Column\",\"width\":\"auto\",\"spacing\":\"{spacing}\"," +
+        private static string Gap(int px) => $"{{\"type\":\"Column\",\"width\":\"{px}px\",\"spacing\":\"none\"}}";
+
+        private static string LinkColumn(string textKey, string verb) =>
+            "{\"type\":\"Column\",\"width\":\"auto\",\"spacing\":\"none\"," +
             $"\"selectAction\":{{\"type\":\"Action.Execute\",\"verb\":\"{verb}\"}}," +
             $"\"items\":[{{\"type\":\"TextBlock\",\"text\":\"${{{textKey}}}\",\"size\":\"small\",\"color\":\"accent\",\"wrap\":false}}]}}";
     }

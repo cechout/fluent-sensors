@@ -84,6 +84,8 @@ namespace FluentSensors.Features.Settings
             WidgetBoardSection.Visibility = AppDistribution.IsPackaged ? Visibility.Visible : Visibility.Collapsed;
             WidgetBoardYAxisExpander.ItemsSource = WidgetBoardService.Instance.Graphs;
             SelectTimeSpanItem(WidgetBoardGraphTimeSpanComboBox, SettingsService.Instance.WidgetBoardGraphTimeSpanSeconds);
+            SelectByTag(WidgetBoardGraphColorSourceComboBox, SettingsService.Instance.WidgetBoardGraphColorSource.ToString());
+            WidgetBoardGraphColorPicker.SelectedColor = SettingsService.Instance.WidgetBoardGraphCustomColor;
 
             RestoreTaskbarBackgroundMaterialSettings();
             RestoreTaskbarGraphColorSettings();
@@ -111,6 +113,10 @@ namespace FluentSensors.Features.Settings
             GraphColorPicker.RegisterPropertyChangedCallback(
                 CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
                 GraphColorPicker_SelectedColorChanged);
+
+            WidgetBoardGraphColorPicker.RegisterPropertyChangedCallback(
+                CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
+                WidgetBoardGraphColorPicker_SelectedColorChanged);
 
             TaskbarBackgroundColorPicker.RegisterPropertyChangedCallback(
                 CommunityToolkit.WinUI.Controls.ColorPickerButton.SelectedColorProperty,
@@ -981,6 +987,7 @@ namespace FluentSensors.Features.Settings
         private void UpdateGraphColorPickerStates()
         {
             GraphColorPicker.IsEnabled = SettingsService.Instance.GraphColorSource == GraphColorSource.Custom;
+            WidgetBoardGraphColorPicker.IsEnabled = SettingsService.Instance.WidgetBoardGraphColorSource == GraphColorSource.Custom;
             TaskbarGraphColorPicker.IsEnabled = SettingsService.Instance.TaskbarGraphColorSource == GraphColorSource.Custom;
         }
         private void GraphColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
@@ -1276,6 +1283,30 @@ namespace FluentSensors.Features.Settings
         }
 
         // widgets board graphs
+        private void WidgetBoardGraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (WidgetBoardGraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
+                && Enum.TryParse(tag, out GraphColorSource source))
+            {
+                SettingsService.Instance.WidgetBoardGraphColorSource = source;
+            }
+
+            UpdateGraphColorPickerStates();
+        }
+
+        private void WidgetBoardGraphColorPicker_SelectedColorChanged(DependencyObject sender, DependencyProperty dp)
+        {
+            if (_isLoading) return;
+
+            if (sender is CommunityToolkit.WinUI.Controls.ColorPickerButton colorPicker)
+            {
+                SettingsService.Instance.WidgetBoardGraphColorSource = GraphColorSource.Custom;
+                SelectByTag(WidgetBoardGraphColorSourceComboBox, nameof(GraphColorSource.Custom));
+                SettingsService.Instance.WidgetBoardGraphCustomColor = colorPicker.SelectedColor;
+                UpdateGraphColorPickerStates();
+            }
+        }
+
         private void WidgetBoardGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;

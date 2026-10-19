@@ -388,7 +388,7 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
     <comment>section heading for the graphs of the widget on the Windows Widgets board</comment>
   </data>
   <data name="Settings_WidgetBoardGraphExpander.Description" xml:space="preserve">
-    <value>Time range</value>
+    <value>Graph color and time range</value>
   </data>
   <data name="Settings_WidgetBoardYAxisExpander.Header" xml:space="preserve">
     <value>Y-Axis</value>

@@ -224,6 +224,37 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // the graph line colour of the Widgets board
+        private GraphColorSource _widgetBoardGraphColorSource = Defaults.WidgetBoardGraphColorSource;
+        public GraphColorSource WidgetBoardGraphColorSource
+        {
+            get => _widgetBoardGraphColorSource;
+            set
+            {
+                if (_widgetBoardGraphColorSource != value)
+                {
+                    _widgetBoardGraphColorSource = value;
+                    WidgetBoardGraphColorChanged?.Invoke(_widgetBoardGraphColorSource, _widgetBoardGraphCustomColor);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private Windows.UI.Color _widgetBoardGraphCustomColor = Defaults.WidgetBoardGraphCustomColor;
+        public Windows.UI.Color WidgetBoardGraphCustomColor
+        {
+            get => _widgetBoardGraphCustomColor;
+            set
+            {
+                if (_widgetBoardGraphCustomColor != value)
+                {
+                    _widgetBoardGraphCustomColor = value;
+                    WidgetBoardGraphColorChanged?.Invoke(_widgetBoardGraphColorSource, _widgetBoardGraphCustomColor);
+                    SaveDebounced();
+                }
+            }
+        }
+
         // stepline or smooth; global, every scope
         private GraphLineStyle _graphLineStyle = Defaults.GraphLineStyle;
         public GraphLineStyle GraphLineStyle
@@ -1250,6 +1281,8 @@ namespace FluentSensors.Persistence.Services
             _graphCustomColor = data.GraphCustomColor;
             _graphTimeSpanSeconds = data.GraphTimeSpanSeconds;
             _widgetBoardGraphTimeSpanSeconds = data.WidgetBoardGraphTimeSpanSeconds;
+            _widgetBoardGraphColorSource = data.WidgetBoardGraphColorSource;
+            _widgetBoardGraphCustomColor = data.WidgetBoardGraphCustomColor;
             _graphLineStyle = data.GraphLineStyle;
             _graphFillFade = data.GraphFillFade;
             _useHardwareIconColors = data.UseHardwareIconColors;
@@ -1346,6 +1379,8 @@ namespace FluentSensors.Persistence.Services
                 GraphCustomColor = _graphCustomColor,
                 GraphTimeSpanSeconds = _graphTimeSpanSeconds,
                 WidgetBoardGraphTimeSpanSeconds = _widgetBoardGraphTimeSpanSeconds,
+                WidgetBoardGraphColorSource = _widgetBoardGraphColorSource,
+                WidgetBoardGraphCustomColor = _widgetBoardGraphCustomColor,
                 GraphLineStyle = _graphLineStyle,
                 GraphFillFade = _graphFillFade,
                 UseHardwareIconColors = _useHardwareIconColors,
@@ -1431,6 +1466,7 @@ namespace FluentSensors.Persistence.Services
         public event Action<GraphColorSource, Windows.UI.Color> GraphColorChanged;
         public event Action<double> GraphTimeSpanChanged;
         public event Action<double> WidgetBoardGraphTimeSpanChanged;
+        public event Action<GraphColorSource, Windows.UI.Color> WidgetBoardGraphColorChanged;
         public event Action<GraphLineStyle> GraphLineStyleChanged;
         public event Action<bool> GraphFillFadeChanged;
 

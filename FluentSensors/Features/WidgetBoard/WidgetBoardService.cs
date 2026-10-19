@@ -82,6 +82,15 @@ namespace FluentSensors.Features.WidgetBoard
 
         public IReadOnlyList<string> PinnedSensorIds => Graphs.Select(g => g.SensorId).ToList();
 
+        // against the settings and the live SystemAccentColor, with the other windows on an accent change
+        public void RefreshGraphColors()
+        {
+            foreach (var graph in Graphs)
+            {
+                graph.RefreshGraphColor();
+            }
+        }
+
         // the update button of the sensors page; the board follows at once, not on the next tick
         public void ApplySensors(List<SensorRowViewModel> sensors)
         {

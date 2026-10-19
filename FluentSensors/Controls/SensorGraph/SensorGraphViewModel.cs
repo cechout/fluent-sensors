@@ -78,6 +78,11 @@ namespace FluentSensors.Controls.SensorGraph
                 // the taskbar and its flyout are two graphs on one y-axis state
                 SensorStateService.Instance.StateChanged += OnSensorStateChanged;
             }
+            else if (Scope == SensorGraphScope.WidgetBoard)
+            {
+                GraphColor = ResolveGraphColor(SettingsService.Instance.WidgetBoardGraphColorSource, SettingsService.Instance.WidgetBoardGraphCustomColor);
+                SettingsService.Instance.WidgetBoardGraphColorChanged += OnGraphColorChanged;
+            }
             else
             {
                 GraphColor = ResolveGraphColor(SettingsService.Instance.GraphColorSource, SettingsService.Instance.GraphCustomColor);
@@ -412,7 +417,9 @@ namespace FluentSensors.Controls.SensorGraph
         {
             GraphColor = IsTaskbarScope
                 ? ResolveGraphColor(SettingsService.Instance.TaskbarGraphColorSource, SettingsService.Instance.TaskbarGraphCustomColor)
-                : ResolveGraphColor(SettingsService.Instance.GraphColorSource, SettingsService.Instance.GraphCustomColor);
+                : Scope == SensorGraphScope.WidgetBoard
+                    ? ResolveGraphColor(SettingsService.Instance.WidgetBoardGraphColorSource, SettingsService.Instance.WidgetBoardGraphCustomColor)
+                    : ResolveGraphColor(SettingsService.Instance.GraphColorSource, SettingsService.Instance.GraphCustomColor);
         }
 
         // unsubscribes everything, or a removed row keeps reacting
@@ -423,6 +430,10 @@ namespace FluentSensors.Controls.SensorGraph
                 SettingsService.Instance.TaskbarGraphColorChanged -= OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged -= OnGraphBackgroundChanged;
                 SensorStateService.Instance.StateChanged -= OnSensorStateChanged;
+            }
+            else if (Scope == SensorGraphScope.WidgetBoard)
+            {
+                SettingsService.Instance.WidgetBoardGraphColorChanged -= OnGraphColorChanged;
             }
             else
             {

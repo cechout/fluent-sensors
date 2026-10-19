@@ -109,6 +109,8 @@ namespace FluentSensors.Persistence.Models
 
         // the store build only
         public double WidgetBoardGraphTimeSpanSeconds { get; set; } = 60;
+        public GraphColorSource WidgetBoardGraphColorSource { get; set; } = Common.Sensors.GraphColorSource.Hardware;
+        public Windows.UI.Color WidgetBoardGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
 
 
         // --- taskbar widget & flyout appearance ---
