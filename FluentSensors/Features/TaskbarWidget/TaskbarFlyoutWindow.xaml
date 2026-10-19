@@ -321,6 +321,17 @@
                                         Text="{x:Bind ResourcesViewModel.ReadTimeValue, Mode=OneWay}"
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_FoundSensorsText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.SensorsFoundValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
                             </controls:WrapPanel>
 
                             <!--

@@ -1747,7 +1747,8 @@ GPU usage - this app's share of its busiest GPU engine (like Task Manager)</valu
   </data>
   <data name="TaskbarFlyout_LhmPopup.Description" xml:space="preserve">
     <value>Update interval - measured against the configured polling interval
-Read time - how long one full read of all sensors takes</value>
+Read time - how long one full read of all sensors takes
+Found Sensors - every sensor LibreHardwareMonitor reports on this machine</value>
   </data>
   <data name="TaskbarFlyout_LhmPopup.SourceIntro" xml:space="preserve">
     <value>This App is powered by the open source LibreHardwareMonitor project:</value>

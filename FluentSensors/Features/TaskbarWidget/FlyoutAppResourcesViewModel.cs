@@ -25,6 +25,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private string _gpuUsageValue = "-";
         private string _updateIntervalValue = "-";
         private string _readTimeValue = "-";
+        private string _sensorsFoundValue = "-";
 
 
         // === bindable properties ===
@@ -59,6 +60,12 @@ namespace FluentSensors.Features.TaskbarWidget
             private set { _readTimeValue = value; OnPropertyChanged(); }
         }
 
+        public string SensorsFoundValue
+        {
+            get => _sensorsFoundValue;
+            private set { _sensorsFoundValue = value; OnPropertyChanged(); }
+        }
+
 
         // === live updates ===
 
@@ -88,6 +95,7 @@ namespace FluentSensors.Features.TaskbarWidget
             RamValue = $"{data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
             UpdateIntervalValue = AppStrings.Format("Start_UpdateIntervalValue", data.ActualUpdateIntervalMs, data.AimedUpdateIntervalMs);
             ReadTimeValue = $"{data.ReadDurationMs:0} ms";
+            SensorsFoundValue = data.SensorsFound.ToString();
 
             ReadGpu();
         }
