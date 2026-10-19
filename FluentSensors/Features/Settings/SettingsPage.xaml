@@ -593,6 +593,33 @@
             </controls:SettingsExpander>
 
 
+            <!--  widgets board settings  -->
+            <!--  (store build only, collapsed from code; the board needs the package identity)  -->
+            <StackPanel x:Name="WidgetBoardSection" Visibility="Collapsed">
+                <TextBlock
+                    x:Uid="Settings_WidgetBoardText"
+                    Margin="4,20,0,6"
+                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                <!--  graph appearance  -->
+                <controls:SettingsExpander
+                    x:Uid="Settings_WidgetBoardGraphExpander"
+                    fhUi:FocusGroup.IsEnabled="True"
+                    HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
+                    IsExpanded="False">
+
+                    <controls:SettingsExpander.Items>
+                        <controls:SettingsCard x:Uid="Settings_TimeRangeCard">
+                            <ComboBox
+                                x:Name="WidgetBoardGraphTimeSpanComboBox"
+                                Width="40"
+                                DisplayMemberPath="DisplayName"
+                                SelectionChanged="WidgetBoardGraphTimeSpanComboBox_SelectionChanged" />
+                        </controls:SettingsCard>
+                    </controls:SettingsExpander.Items>
+                </controls:SettingsExpander>
+            </StackPanel>
+
             <!--  csv logging settings  -->
             <TextBlock
                 x:Uid="Settings_CSVLoggingText"

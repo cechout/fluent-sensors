@@ -24,6 +24,7 @@ using FluentSensors.Features.Start;
 using FluentSensors.Features.Settings;
 using FluentSensors.Features.Update;
 using FluentSensors.Features.Widget;
+using FluentSensors.Features.WidgetBoard;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.Localization;
@@ -387,6 +388,7 @@ namespace FluentSensors
 
             TryRestoreWidgetWindows();
             TryRestoreTaskbarWidgetWindow();
+            WidgetBoardService.Instance.Start();
 
             // from here they follow hardware that leaves or comes back
             SensorsViewModel.Instance.SensorAvailabilityChanged += WidgetWindow.RefreshAvailability;

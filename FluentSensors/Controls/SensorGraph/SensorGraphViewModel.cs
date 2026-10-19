@@ -88,6 +88,7 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 case SensorGraphScope.Taskbar: SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnGraphTimeSpanChanged; break;
                 case SensorGraphScope.TaskbarFlyout: SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged += OnGraphTimeSpanChanged; break;
+                case SensorGraphScope.WidgetBoard: SettingsService.Instance.WidgetBoardGraphTimeSpanChanged += OnGraphTimeSpanChanged; break;
                 default: SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged; break;
             }
 
@@ -415,6 +416,7 @@ namespace FluentSensors.Controls.SensorGraph
 
             SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+            SettingsService.Instance.WidgetBoardGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
             SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
 
             HardwareMonitorService.Instance.UpdateIntervalChanged -= OnUpdateIntervalChanged;
@@ -572,6 +574,7 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 SensorGraphScope.Taskbar => SettingsService.Instance.TaskbarGraphTimeSpanSeconds,
                 SensorGraphScope.TaskbarFlyout => SettingsService.Instance.TaskbarFlyoutGraphTimeSpanSeconds,
+                SensorGraphScope.WidgetBoard => SettingsService.Instance.WidgetBoardGraphTimeSpanSeconds,
                 _ => SettingsService.Instance.GraphTimeSpanSeconds
             };
         }

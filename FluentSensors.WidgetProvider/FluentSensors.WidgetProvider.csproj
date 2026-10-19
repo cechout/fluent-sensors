@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    the widget provider of the Widgets board: a COM server the board starts at medium integrity, which the
+    requireAdministrator app cannot be; it shows what the running app sends over the pipe
+    NativeAOT, so the package carries no second .NET runtime; only the packaged build of the app includes it
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <RootNamespace>FluentSensors.WidgetProvider</RootNamespace>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\FluentSensors\Features\WidgetBoard\WidgetBoardProtocol.cs" Link="WidgetBoardProtocol.cs" />
+  </ItemGroup>
+
+  <!--
+    the Widgets component of the Windows App SDK, without its package graph: a package reference would bring the
+    bootstrapper targets of its Base dependency; the projection is referenced, the native dll and its winmd go
+    into the package next to the app (see the app csproj)
+  -->
+  <ItemGroup>
+    <PackageDownload Include="Microsoft.WindowsAppSDK.Widgets" Version="[2.0.5]" />
+    <Reference Include="Microsoft.Windows.Widgets.Projection">
+      <HintPath>$(NuGetPackageRoot)microsoft.windowsappsdk.widgets\2.0.5\lib\net6.0-windows10.0.17763.0\Microsoft.Windows.Widgets.Projection.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

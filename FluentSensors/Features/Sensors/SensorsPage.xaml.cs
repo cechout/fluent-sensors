@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
 
+using FluentSensors.Common;
 using FluentSensors.Common.Localization;
 using FluentSensors.Features.Widget;
 using FluentSensors.Features.TaskbarWidget;
@@ -69,6 +70,14 @@ namespace FluentSensors.Features.Sensors
             // back on the last profile; still under the loading guard, SensorListCommandBar_Loaded builds the bar from
             // ActiveProfile a moment later
             var lastProfile = SettingsService.Instance.LastSensorProfile;
+
+            // the widgets board needs the package identity of the store build
+            if (!AppDistribution.IsPackaged)
+            {
+                SelectionProfileComboBox.Items.Remove(WidgetBoardProfileItem);
+                if (lastProfile == SensorSelectionProfile.WidgetBoard) lastProfile = SensorSelectionProfile.WidgetWindow;
+            }
+
             ViewModel.ActiveWidgetIndex = SettingsService.Instance.LastWidgetWindowIndex;
             ViewModel.ActiveProfile = lastProfile;
             SelectProfile(lastProfile);
@@ -611,6 +620,9 @@ namespace FluentSensors.Features.Sensors
                     break;
                 case SensorSelectionProfile.Taskbar:
                     order.Add(PinToTaskbarButton);
+                    break;
+                case SensorSelectionProfile.WidgetBoard:
+                    // nothing to commit, the board follows every checkbox right away
                     break;
                 default:
                     order.Add(PinToWidgetButton);

@@ -71,6 +71,11 @@
                             <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_WidgetWindow" Tag="WidgetWindow" />
                             <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_Csv" Tag="Csv" />
                             <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_Taskbar" Tag="Taskbar" />
+                            <!--  (store build only, removed from code otherwise)  -->
+                            <ComboBoxItem
+                                x:Name="WidgetBoardProfileItem"
+                                x:Uid="Sensors_SelectionProfileComboBox_WidgetBoard"
+                                Tag="WidgetBoard" />
                         </ComboBox>
 
                         <!--  the widget window of the widget profile  -->

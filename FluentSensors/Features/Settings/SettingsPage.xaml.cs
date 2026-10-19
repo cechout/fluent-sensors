@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
 
+using FluentSensors.Common;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Core;
@@ -69,10 +70,15 @@ namespace FluentSensors.Features.Settings
             // the time range lists the pickers share; from code, the restores below run before x:Bind would
             TaskbarGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
             TaskbarFlyoutGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Taskbar;
+            WidgetBoardGraphTimeSpanComboBox.ItemsSource = GraphTimeRanges.Widget;
 
             RestoreBackgroundMaterialSettings();
             RestoreCsvBackgroundMaterialSettings();
             RestoreGraphColorSettings();
+
+            // the board needs the package identity of the store build
+            WidgetBoardSection.Visibility = AppDistribution.IsPackaged ? Visibility.Visible : Visibility.Collapsed;
+            SelectTimeSpanItem(WidgetBoardGraphTimeSpanComboBox, SettingsService.Instance.WidgetBoardGraphTimeSpanSeconds);
 
             RestoreTaskbarBackgroundMaterialSettings();
             RestoreTaskbarGraphColorSettings();
@@ -1247,6 +1253,17 @@ namespace FluentSensors.Features.Settings
                     TaskbarFlyoutAlignmentComboBox.SelectedItem = item;
                     break;
                 }
+            }
+        }
+
+        // widgets board graphs
+        private void WidgetBoardGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is GraphTimeRange option)
+            {
+                SettingsService.Instance.WidgetBoardGraphTimeSpanSeconds = option.Seconds;
             }
         }
 

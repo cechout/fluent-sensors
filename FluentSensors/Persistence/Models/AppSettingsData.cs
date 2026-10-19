@@ -105,6 +105,12 @@ namespace FluentSensors.Persistence.Models
         public double GraphTimeSpanSeconds { get; set; } = 60;
 
 
+        // --- widgets board ---
+
+        // the store build only
+        public double WidgetBoardGraphTimeSpanSeconds { get; set; } = 60;
+
+
         // --- taskbar widget & flyout appearance ---
 
         // no dragging the taskbar widget along the taskbar
