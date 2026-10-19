@@ -872,7 +872,7 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
     <value>App Status</value>
   </data>
   <data name="Start_LhmPopup.Description" xml:space="preserve">
-    <value>Found Sensors - every sensor LibreHardwareMonitor reports on this machine
+    <value>Total Sensors - every sensor this app reads, from LibreHardwareMonitor and Windows
 Rendering Sensors - how many of them are actively drawn right now
 Update interval - measured against the configured polling interval
 Read time - how long one full read of all sensors takes
@@ -885,7 +885,7 @@ PawnIO driver - kernel access for CPU, mainboard and memory sensors</value>
     <value>LibreHardwareMonitor on GitHub</value>
   </data>
   <data name="Start_FoundSensorsText.Text" xml:space="preserve">
-    <value>Found Sensors</value>
+    <value>Total Sensors</value>
   </data>
   <data name="Start_RenderingSensorsText.Text" xml:space="preserve">
     <value>Rendering Sensors</value>
@@ -1733,6 +1733,37 @@ Type - its medium (Wi-Fi, Ethernet, ...)</value>
   <data name="TaskbarFlyout_TaskbarTimeRangePicker.Label" xml:space="preserve">
     <value>Taskbar</value>
     <comment>label of the time range picker for the taskbar graphs, keep it short</comment>
+  </data>
+  <data name="TaskbarFlyout_AppResourcesPopup.Title" xml:space="preserve">
+    <value>App Resources</value>
+  </data>
+  <data name="TaskbarFlyout_AppResourcesPopup.Description" xml:space="preserve">
+    <value>CPU usage - this app's own CPU time relative to total capacity across all cores
+RAM usage - physical memory currently mapped by this app (working set)
+GPU usage - this app's share of its busiest GPU engine (like Task Manager)</value>
+  </data>
+  <data name="TaskbarFlyout_AppResourcesPopup.SourceIntro" xml:space="preserve">
+    <value>Sources:</value>
+  </data>
+  <data name="TaskbarFlyout_LhmPopup.Description" xml:space="preserve">
+    <value>Update interval - measured against the configured polling interval
+Read time - how long one full read of all sensors takes
+Total Sensors - every sensor this app reads, from LibreHardwareMonitor and Windows</value>
+  </data>
+  <data name="TaskbarFlyout_LhmPopup.SourceIntro" xml:space="preserve">
+    <value>This App is powered by the open source LibreHardwareMonitor project:</value>
+  </data>
+  <data name="TaskbarFlyout_ShowLhmStatus" xml:space="preserve">
+    <value>Show LibreHardwareMonitor Status</value>
+  </data>
+  <data name="TaskbarFlyout_HideLhmStatus" xml:space="preserve">
+    <value>Hide LibreHardwareMonitor Status</value>
+  </data>
+  <data name="TaskbarFlyout_ShowAppResources" xml:space="preserve">
+    <value>Show App Resources</value>
+  </data>
+  <data name="TaskbarFlyout_HideAppResources" xml:space="preserve">
+    <value>Hide App Resources</value>
   </data>
   <data name="TaskbarFlyout_BackToDashboardButton.Content" xml:space="preserve">
     <value>Manage Taskbar Sensors</value>

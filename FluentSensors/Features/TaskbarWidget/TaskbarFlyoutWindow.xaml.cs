@@ -61,6 +61,12 @@ namespace FluentSensors.Features.TaskbarWidget
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr FindWindow(string lpClassName, string? lpWindowName);
 
+        [DllImport("user32.dll")]
+        private static extern int SetWindowRgn(IntPtr hWnd, IntPtr hRgn, bool bRedraw);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateRectRgn(int x1, int y1, int x2, int y2);
+
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
@@ -166,6 +172,9 @@ namespace FluentSensors.Features.TaskbarWidget
         // keeps the graphs rendering while hidden, so they are current the moment the flyout opens
         public const bool KeepFlyoutGraphsActiveInBackground = true;
 
+        // app resources drawer: ease-out cubic like the open, the window grows with it frame by frame
+        public const int ResourcesDrawerDurationMs = 250;
+
 
         // === fields ===
 
@@ -202,12 +211,14 @@ namespace FluentSensors.Features.TaskbarWidget
         private double FlyoutBottomBarSeparatorDip => LayoutResource<Thickness>("FlyoutBottomBarSeparatorThickness").Top;
         private Thickness FlyoutTimeRangeRowPadding => LayoutResource<Thickness>("FlyoutTimeRangeRowPadding");
         private double FlyoutTimeRangePickerHeightDip => LayoutResource<double>("FlyoutTimeRangePickerHeight");
+        private Thickness FlyoutTimeRangeSeparatorMargin => LayoutResource<Thickness>("FlyoutTimeRangeSeparatorMargin");
 
-        // the rows in the height math
+        // the rows in the height math; (the time range row with the 1 px separator above it)
         private double FlyoutTitleRowHeightDip =>
             FlyoutTitleRowPadding.Top + FlyoutBarButtonHeightDip + FlyoutTitleRowPadding.Bottom;
         private double FlyoutTimeRangeRowHeightDip =>
-            FlyoutTimeRangeRowPadding.Top + FlyoutTimeRangePickerHeightDip + FlyoutTimeRangeRowPadding.Bottom;
+            FlyoutTimeRangeSeparatorMargin.Top + 1 + FlyoutTimeRangeSeparatorMargin.Bottom
+            + FlyoutTimeRangeRowPadding.Top + FlyoutTimeRangePickerHeightDip + FlyoutTimeRangeRowPadding.Bottom;
         private double FlyoutBottomBarHeightDip =>
             FlyoutBottomBarSeparatorDip + FlyoutBottomBarPadding.Top + FlyoutBarButtonHeightDip + FlyoutBottomBarPadding.Bottom;
 
@@ -239,7 +250,21 @@ namespace FluentSensors.Features.TaskbarWidget
         private CompositionScopedBatch? _exitBatch;
         private bool _isSlideTurningAround;
 
+        // --- app resources drawer ---
+        // progress runs from 0, closed, to 1, open; the px values are set in PositionNextToTaskbar
+        private bool _isResourcesExpanded;
+        private double _resourcesProgress;
+        private double _resourcesFromProgress;
+        private bool _isResourcesAnimating;
+        private readonly Stopwatch _resourcesAnimationClock = new();
+        private int _resourcesDrawerPx; // the drawer row when open
+        private int _resourcesReservePx; // how far the card grows; less than the drawer under the height cap
+        private int _closedCardHeightPx;
+        private bool _isResourcesGrowingUp; // away from the taskbar; down only under a top taskbar
+        private RectInt32 _openCardRectPx; // in window px
+
         public TaskbarWidgetViewModel ViewModel { get; }
+        public FlyoutAppResourcesViewModel ResourcesViewModel { get; } = new();
         public static TaskbarFlyoutWindow? CurrentInstance { get; private set; }
         private static TaskbarFlyoutWindow? _retainedInstance;
 
@@ -345,6 +370,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             // a rebuilt window takes over a running snapshot with the view model
             ApplyPauseState();
+            ApplyResourcesButtonState();
 
             FlyoutShortcutRegistration.RegistrationChanged += OnShortcutRegistrationChanged;
             ApplyShortcutHint();
@@ -655,6 +681,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 _isHiding = false;
                 SetGraphsRenderingActive(false);
+                ResourcesViewModel.Stop();
                 SaveWindowState();
                 _appWindow.Hide();
                 TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
@@ -829,6 +856,7 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 CancelSlideOut();
                 SetGraphsRenderingActive(false);
+                ResourcesViewModel.Stop();
                 _appWindow.Hide();
             }
 
@@ -860,6 +888,8 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(true);
             CancelSlideOut();
+
+            if (_isResourcesExpanded) ResourcesViewModel.Start();
 
             var compositor = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot).Compositor;
             var easing = compositor.CreateCubicBezierEasingFunction(new Vector2(1f / 3f, 1f), new Vector2(2f / 3f, 1f));
@@ -994,12 +1024,23 @@ namespace FluentSensors.Features.TaskbarWidget
             };
             int maxHeightPx = Math.Max(CalculateFlyoutDefaultHeight(1, scale), availableHeightPx);
 
-            int desiredHeightPx = CalculateFlyoutDefaultHeight(sensorCount, scale);
-            bool isScrolling = desiredHeightPx > maxHeightPx;
-            if (isScrolling)
-            {
-                desiredHeightPx = maxHeightPx;
-            }
+            // the drawer adds its measured height to the card, under the same cap
+            _resourcesDrawerPx = (int)Math.Round(MeasureResourcesPanelHeight() * scale);
+            int closedHeightPx = CalculateFlyoutDefaultHeight(sensorCount, scale);
+            int openHeightPx = closedHeightPx + _resourcesDrawerPx;
+            bool isScrolling = (_isResourcesExpanded ? openHeightPx : closedHeightPx) > maxHeightPx;
+            closedHeightPx = Math.Min(closedHeightPx, maxHeightPx);
+            openHeightPx = Math.Min(openHeightPx, maxHeightPx);
+
+            // the card window is placed for the open card and the card grows inside it, so the drawer never moves the
+            // window; the window level construction has no room around the card and takes the current height
+            _isCardWindow = UsesCardWindow;
+            _resourcesReservePx = _isCardWindow ? openHeightPx - closedHeightPx : 0;
+            int desiredHeightPx = _isCardWindow
+                ? openHeightPx
+                : closedHeightPx + (int)Math.Round((openHeightPx - closedHeightPx) * _resourcesProgress);
+            _closedCardHeightPx = _isCardWindow ? closedHeightPx : desiredHeightPx;
+            _isResourcesGrowingUp = edge != ScreenEdge.Top;
 
             // a capped window stops growing, so the slide scaling stops too
             _animationSensorCount = isScrolling ? CountFittingGraphSlots(maxHeightPx, scale) : sensorCount;
@@ -1047,7 +1088,6 @@ namespace FluentSensors.Features.TaskbarWidget
 
             // everything above placed the card; the card window grows around it by the shadow margin, the larger one
             // at the bottom unless the taskbar sits there and cuts the shadow at its edge
-            _isCardWindow = UsesCardWindow;
             int shadowPx = _isCardWindow ? (int)Math.Round(FlyoutShadowMarginDip * scale) : 0;
             int shadowBottomPx = !_isCardWindow ? 0 : (int)Math.Round(
                 (edge == ScreenEdge.Bottom ? FlyoutShadowMarginDip : FlyoutShadowFalloffMarginDip) * scale);
@@ -1057,14 +1097,11 @@ namespace FluentSensors.Features.TaskbarWidget
             int windowWidthPx = desiredWidthPx + (2 * shadowPx);
             int windowHeightPx = desiredHeightPx + shadowPx + shadowBottomPx;
 
-            // the same pixels as XAML margin, so the card lands on exactly the rect computed above
-            var cardMargin = new Thickness(shadowPx / scale, shadowPx / scale, shadowPx / scale, shadowBottomPx / scale);
-            FlyoutRootBorder.Margin = cardMargin;
-            FlyoutBackdropHost.Margin = cardMargin;
-
+            // the card inside it, as XAML margins in the same pixels, with its shadow and the window region
             _shadowWindowSizePx = new SizeInt32(windowWidthPx, windowHeightPx);
-            _shadowCardRectPx = new RectInt32(shadowPx, shadowPx, desiredWidthPx, desiredHeightPx);
+            _openCardRectPx = new RectInt32(shadowPx, shadowPx, desiredWidthPx, desiredHeightPx);
             _shadowScale = scale;
+            ApplyResourcesProgress();
 
             // the card slides toward the taskbar edge, where the window edge clips it
             _slideDirection = edge switch
@@ -1081,7 +1118,6 @@ namespace FluentSensors.Features.TaskbarWidget
             _isAdjustingPosition = false;
 
             UpdateShadowPolicy();
-            RenderCardShadow();
         }
 
         private double GetScaleFactor()
@@ -1107,7 +1143,7 @@ namespace FluentSensors.Features.TaskbarWidget
             return Math.Max(1, slots);
         }
 
-        // the title row, the time range row and the bar strip, everything but the graphs
+        // the title row, the time range row and the bar strip, everything but the graphs and the drawer
         private double FlyoutRowsHeightDip =>
             FlyoutTitleRowHeightDip + FlyoutTimeRangeRowHeightDip + FlyoutBottomBarHeightDip;
 
@@ -1312,6 +1348,148 @@ namespace FluentSensors.Features.TaskbarWidget
             PauseButtonIcon.Glyph = ViewModel.IsFlyoutPaused ? "\uE768" : "\uE769";
             ToolTipService.SetToolTip(PauseButton, label);
             AutomationProperties.SetName(PauseButton, label);
+        }
+
+        // the drawer arrow; a second click while it runs turns it around from where it is
+        private void ResourcesButton_Click(object sender, RoutedEventArgs e)
+        {
+            _isResourcesExpanded = !_isResourcesExpanded;
+            ApplyResourcesButtonState();
+            if (_isResourcesExpanded) ResourcesViewModel.Start();
+
+            // the window level construction has to resize the window, so it jumps
+            if (!_isCardWindow)
+            {
+                _resourcesProgress = _isResourcesExpanded ? 1 : 0;
+                if (!_isResourcesExpanded) ResourcesViewModel.Stop();
+                ResetGeometry();
+                return;
+            }
+
+            _resourcesFromProgress = _resourcesProgress;
+            _resourcesAnimationClock.Restart();
+
+            if (!_isResourcesAnimating)
+            {
+                _isResourcesAnimating = true;
+                SetCardWindowRegion(null);
+                Microsoft.UI.Xaml.Media.CompositionTarget.Rendering += OnResourcesDrawerFrame;
+            }
+        }
+
+        // name and tooltip follow the state, like the pause button
+        private void ApplyResourcesButtonState()
+        {
+            // (TaskbarFlyout_HideAppResources and TaskbarFlyout_ShowAppResources go with the parked app resources)
+            string label = AppStrings.Get(_isResourcesExpanded ? "TaskbarFlyout_HideLhmStatus" : "TaskbarFlyout_ShowLhmStatus");
+            ToolTipService.SetToolTip(ResourcesButton, label);
+            AutomationProperties.SetName(ResourcesButton, label);
+        }
+
+        // one step per rendered frame, ease-out cubic; the last one also ends the live values of a closed drawer
+        private void OnResourcesDrawerFrame(object? sender, object e)
+        {
+            double t = Math.Min(1.0, _resourcesAnimationClock.Elapsed.TotalMilliseconds / ResourcesDrawerDurationMs);
+            double eased = 1.0 - Math.Pow(1.0 - t, 3);
+            double target = _isResourcesExpanded ? 1.0 : 0.0;
+
+            if (t >= 1.0)
+            {
+                Microsoft.UI.Xaml.Media.CompositionTarget.Rendering -= OnResourcesDrawerFrame;
+                _isResourcesAnimating = false;
+                if (!_isResourcesExpanded) ResourcesViewModel.Stop();
+            }
+
+            _resourcesProgress = _resourcesFromProgress + ((target - _resourcesFromProgress) * eased);
+            ApplyResourcesProgress();
+        }
+
+        // the card at the current progress inside the still window: the closed card on the taskbar side of the open
+        // one, grown away from it; whole pixels, so the rows move without resampling
+        private void ApplyResourcesProgress()
+        {
+            if (_shadowScale <= 0) return;
+            double scale = _shadowScale;
+
+            int growthPx = (int)Math.Round(_resourcesReservePx * _resourcesProgress);
+            int cardHeightPx = _closedCardHeightPx + growthPx;
+            int cardY = _isResourcesGrowingUp
+                ? _openCardRectPx.Y + _openCardRectPx.Height - cardHeightPx
+                : _openCardRectPx.Y;
+            var card = new RectInt32(_openCardRectPx.X, cardY, _openCardRectPx.Width, cardHeightPx);
+
+            var cardMargin = new Thickness(
+                card.X / scale,
+                card.Y / scale,
+                (_shadowWindowSizePx.Width - card.X - card.Width) / scale,
+                (_shadowWindowSizePx.Height - card.Y - card.Height) / scale);
+            FlyoutRootBorder.Margin = cardMargin;
+            FlyoutBackdropHost.Margin = cardMargin;
+
+            // the drawer takes the growth, so the graphs keep their height; under the cap it takes more and they shrink
+            int squeezePx = (int)Math.Round((_resourcesDrawerPx - _resourcesReservePx) * _resourcesProgress);
+            ResourcesDrawerHost.Height = (growthPx + squeezePx) / scale;
+            ResourcesButtonIconRotation.Angle = 180 * _resourcesProgress;
+            AnchorGrain(card);
+
+            _shadowCardRectPx = card;
+            if (_isResourcesAnimating)
+            {
+                StretchCardShadow();
+            }
+            else
+            {
+                Canvas.SetTop(FlyoutShadowImage, 0);
+                FlyoutShadowImage.NineGrid = new Thickness(0);
+                FlyoutShadowImage.Height = _shadowWindowSizePx.Height;
+                RenderCardShadow();
+                SetCardWindowRegion(_isCardWindow && _resourcesReservePx > 0 ? card : null);
+            }
+        }
+
+        // during the drawer the last shadow bitmap follows the card edges, a render per frame is too slow; a nine grid
+        // keeps the shadow above and below the card with its corners unscaled and stretches only the sides between
+        // (all in bitmap pixels, the image is sized in them)
+        private void StretchCardShadow()
+        {
+            var rendered = _shadowRenderedFor.Card;
+            if (FlyoutShadowImage.Source == null || rendered.Height <= 0) return;
+
+            int capPx = (int)Math.Ceiling(CardCornerRadiusDip * _shadowScale) + 2;
+            FlyoutShadowImage.NineGrid = new Thickness(
+                0, rendered.Y + capPx, 0, _shadowWindowSizePx.Height - (rendered.Y + rendered.Height) + capPx);
+
+            int topDeltaPx = _shadowCardRectPx.Y - rendered.Y;
+            int bottomDeltaPx = (_shadowCardRectPx.Y + _shadowCardRectPx.Height) - (rendered.Y + rendered.Height);
+            Canvas.SetTop(FlyoutShadowImage, topDeltaPx / _shadowScale);
+            FlyoutShadowImage.Height = _shadowWindowSizePx.Height - topDeltaPx + bottomDeltaPx;
+        }
+
+        // clips the window to the card and its shadow margin, so the room kept for the open drawer lets clicks through
+        // to the desktop; null lifts it while the card grows into that room
+        private void SetCardWindowRegion(RectInt32? card)
+        {
+            if (card is not RectInt32 rect)
+            {
+                SetWindowRgn(_hwnd, IntPtr.Zero, true);
+                return;
+            }
+
+            int shadowPx = _openCardRectPx.X;
+            int top = _isResourcesGrowingUp ? Math.Max(0, rect.Y - shadowPx) : 0;
+            int bottom = _isResourcesGrowingUp
+                ? _shadowWindowSizePx.Height
+                : Math.Min(_shadowWindowSizePx.Height, rect.Y + rect.Height + shadowPx);
+
+            // the window owns the region from here on
+            SetWindowRgn(_hwnd, CreateRectRgn(0, top, _shadowWindowSizePx.Width, bottom), true);
+        }
+
+        // the drawer content at the card width, before the drawer has any height to lay it out in
+        private double MeasureResourcesPanelHeight()
+        {
+            ResourcesPanel.Measure(new Windows.Foundation.Size(FlyoutDefaultWidthDip - (2 * CardBorderDip), double.PositiveInfinity));
+            return ResourcesPanel.DesiredSize.Height;
         }
 
         // [Ctrl]+[Alt]+[S]: a bordered key per part, a plain plus between them
@@ -1677,9 +1855,11 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             bitmap.Invalidate();
 
-            // one bitmap pixel per physical pixel
-            FlyoutShadowImage.Width = width / _shadowScale;
-            FlyoutShadowImage.Height = height / _shadowScale;
+            // one bitmap pixel per physical pixel: sized in pixels and scaled down, like the acrylic grain, so a nine grid
+            // over it counts in pixels too
+            FlyoutShadowImage.Width = width;
+            FlyoutShadowImage.Height = height;
+            FlyoutShadowImage.RenderTransform = new Microsoft.UI.Xaml.Media.ScaleTransform { ScaleX = 1.0 / _shadowScale, ScaleY = 1.0 / _shadowScale };
             FlyoutShadowImage.Source = bitmap;
             _shadowRenderedFor = renderFor;
         }
@@ -1728,11 +1908,26 @@ namespace FluentSensors.Features.TaskbarWidget
         private AcrylicGrain? _grain;
         private AcrylicGrain Grain => _grain ??= new AcrylicGrain(FlyoutNoiseHost, FlyoutNoiseOverlay, FlyoutRootBorder);
 
+        // sized for the open card at once, so the drawer does not grow a new bitmap on every frame
         private void FlyoutRootBorder_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (!Grain.IsVisible) return;
 
-            Grain.Ensure(e.NewSize.Width, e.NewSize.Height);
+            double openHeightDip = _shadowScale > 0 ? _openCardRectPx.Height / _shadowScale : 0;
+            Grain.Ensure(e.NewSize.Width, Math.Max(e.NewSize.Height, openHeightDip));
+            AnchorGrain(_shadowCardRectPx);
+        }
+
+        // the grain sits on the card edge at the taskbar, the one the drawer never moves, so it stands still while the
+        // card grows; (the bitmap is larger than the card, the rounded card clips it)
+        private void AnchorGrain(RectInt32 card)
+        {
+            if (_shadowScale <= 0 || double.IsNaN(FlyoutNoiseOverlay.Height)) return;
+
+            double top = _isResourcesGrowingUp
+                ? ((card.Height - FlyoutNoiseOverlay.Height) / _shadowScale) - (2 * CardBorderDip)
+                : 0;
+            Canvas.SetTop(FlyoutNoiseOverlay, top);
         }
 
         // applies the backdrop for the material and the Windows transparency state; without transparency no controller,

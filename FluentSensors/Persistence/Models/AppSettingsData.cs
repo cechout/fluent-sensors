@@ -197,9 +197,9 @@ namespace FluentSensors.Persistence.Models
         // csv logger window; the width only, the height follows the content (minimum 225 wide)
         public const double CsvLoggerWindowDefaultWidthDip = 225;
 
-        // taskbar flyout; fixed width, the height follows the pinned sensors and TaskbarFlyoutGraphHeightDip (not
-        // resizable)
-        public const double TaskbarFlyoutWidthDip = 280;
+        // taskbar flyout; fixed width, the one of the Windows notification center (Win+N), the height follows the
+        // pinned sensors and TaskbarFlyoutGraphHeightDip (not resizable)
+        public const double TaskbarFlyoutWidthDip = 336;
 
 
         // --- legacy, read once on load and never written back ---

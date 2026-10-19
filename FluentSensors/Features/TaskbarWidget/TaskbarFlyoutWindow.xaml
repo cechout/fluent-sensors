@@ -9,6 +9,7 @@
     xmlns:fhCommon="using:FluentSensors.Common.Sensors"
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
+    xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
     xmlns:fhTimeRange="using:FluentSensors.Controls.TimeRange"
     xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -23,13 +24,14 @@
     <Grid x:Name="FlyoutWindowRoot" Background="Transparent">
 
         <!--  the shadow: a bitmap over the whole window, computed in RenderCardShadow  -->
-        <Image
-            x:Name="FlyoutShadowImage"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            IsHitTestVisible="False"
-            Stretch="Fill"
-            Visibility="Collapsed" />
+        <!--  (in physical pixels and scaled down from code, so the canvas keeps the layout from clipping it)  -->
+        <Canvas IsHitTestVisible="False">
+            <Image
+                x:Name="FlyoutShadowImage"
+                IsHitTestVisible="False"
+                Stretch="Fill"
+                Visibility="Collapsed" />
+        </Canvas>
 
         <!--  the material: the backdrop link visual hangs here, behind the card, sized and clipped to it in code  -->
         <Grid x:Name="FlyoutBackdropHost" IsHitTestVisible="False" />
@@ -59,6 +61,11 @@
                 <!--  time range row  -->
                 <Thickness x:Key="FlyoutTimeRangeRowPadding">4,7,4,7</Thickness>
                 <x:Double x:Key="FlyoutTimeRangePickerHeight">22</x:Double>
+
+                <Thickness x:Key="FlyoutTimeRangeSeparatorMargin">0,8,0,0</Thickness>
+
+                <!--  app resources drawer; (its height is measured, not a resource)  -->
+                <Thickness x:Key="FlyoutResourcesPanelMargin">14,2,14,12</Thickness>
             </Border.Resources>
 
             <Grid x:Name="RootGrid" Background="Transparent">
@@ -83,8 +90,8 @@
                 </Canvas>
 
 
-                <!--  title row, vertical list of sensor graphs, time range row  -->
-                <!--  (one surface for all three; title and time ranges stay put, only the graphs scroll)  -->
+                <!--  title row, vertical list of sensor graphs, time range row, app resources drawer  -->
+                <!--  (one surface for all of them; only the graphs scroll)  -->
                 <Grid
                     x:Name="GraphsContentGrid"
                     Grid.Row="0"
@@ -93,6 +100,8 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
@@ -204,17 +213,30 @@
                         </ItemsControl>
                     </ScrollViewer>
 
-                    <!--  time range row: flyout graphs first, then the taskbar graphs  -->
-                    <StackPanel
-                        x:Name="TimeRangeRowPanel"
+                    <!--  separator above the time range row, edge to edge  -->
+                    <Border
                         Grid.Row="2"
+                        Height="1"
+                        Margin="{StaticResource FlyoutTimeRangeSeparatorMargin}"
+                        Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                    <!--  time range row: flyout graphs first, then the taskbar graphs; the drawer arrow at the end  -->
+                    <Grid
+                        x:Name="TimeRangeRowPanel"
+                        Grid.Row="3"
                         Padding="{StaticResource FlyoutTimeRangeRowPadding}"
-                        fhUi:FocusGroup.IsEnabled="True"
-                        Orientation="Horizontal">
+                        fhUi:FocusGroup.IsEnabled="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
                         <fhTimeRange:TimeRangePickerControl
                             x:Name="FlyoutTimeRangePicker"
                             x:Uid="TaskbarFlyout_FlyoutTimeRangePicker"
+                            Grid.Column="0"
                             Height="{StaticResource FlyoutTimeRangePickerHeight}"
                             Padding="9,0,9,0"
                             Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
@@ -223,11 +245,144 @@
                         <fhTimeRange:TimeRangePickerControl
                             x:Name="TaskbarTimeRangePicker"
                             x:Uid="TaskbarFlyout_TaskbarTimeRangePicker"
+                            Grid.Column="1"
                             Height="{StaticResource FlyoutTimeRangePickerHeight}"
                             Padding="9,0,9,0"
                             Options="{x:Bind fhCommon:GraphTimeRanges.Taskbar}"
                             TextForeground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    </StackPanel>
+
+                        <!--  drawer arrow; (turns over with the drawer; name and tooltip in ApplyResourcesButtonState)  -->
+                        <Button
+                            x:Name="ResourcesButton"
+                            Grid.Column="3"
+                            Width="30"
+                            Height="{StaticResource FlyoutTimeRangePickerHeight}"
+                            Padding="0"
+                            Click="ResourcesButton_Click"
+                            Style="{StaticResource SubtleBarButtonStyle}">
+                            <FontIcon
+                                x:Name="ResourcesButtonIcon"
+                                FontSize="10"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Glyph="&#xE70E;"
+                                RenderTransformOrigin="0.5,0.5">
+                                <FontIcon.RenderTransform>
+                                    <RotateTransform x:Name="ResourcesButtonIconRotation" />
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
+                        </Button>
+                    </Grid>
+
+                    <!--  status drawer: the lhm status, opened by the arrow above  -->
+                    <!--
+                        (the card grows by it inside the still window, see ApplyResourcesProgress; the panel sits on the
+                        bottom, so the rows above slide up off it)
+                    -->
+                    <Grid
+                        x:Name="ResourcesDrawerHost"
+                        Grid.Row="4"
+                        Height="0">
+                        <!--  (title and info button as on the start page, the values packed like a hardware view info panel)  -->
+                        <StackPanel
+                            x:Name="ResourcesPanel"
+                            Margin="{StaticResource FlyoutResourcesPanelMargin}"
+                            VerticalAlignment="Bottom"
+                            Spacing="8">
+                            <!--  lhm status  -->
+                            <fhInfoPopup:InfoPopupControl
+                                x:Uid="TaskbarFlyout_LhmPopup"
+                                Title="LibreHardwareMonitor"
+                                PlacementMode="Above"
+                                TitleTextTrimming="CharacterEllipsis">
+                                <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                    <fhInfoPopup:SourceLink x:Uid="Start_LhmGitHubSource" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
+                                </fhInfoPopup:InfoPopupControl.SourceLinks>
+                            </fhInfoPopup:InfoPopupControl>
+
+                            <controls:WrapPanel HorizontalSpacing="20" VerticalSpacing="12">
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_UpdateIntervalText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.UpdateIntervalValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_ReadTimeText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.ReadTimeValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_FoundSensorsText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.SensorsFoundValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+                            </controls:WrapPanel>
+
+                            <!--  revisit: parked app resources; swapped out for the lhm status, bring it back by swapping the two blocks  -->
+                            <!--
+                            <fhInfoPopup:InfoPopupControl
+                                x:Uid="TaskbarFlyout_AppResourcesPopup"
+                                PlacementMode="Above"
+                                TitleTextTrimming="CharacterEllipsis">
+                                <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                    <fhInfoPopup:SourceLink Label="Windows Process API" Url="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process" />
+                                    <fhInfoPopup:SourceLink Label="Windows GPU performance counters" Url="https://devblogs.microsoft.com/directx/gpus-in-the-task-manager/" />
+                                </fhInfoPopup:InfoPopupControl.SourceLinks>
+                            </fhInfoPopup:InfoPopupControl>
+
+                            <controls:WrapPanel HorizontalSpacing="20" VerticalSpacing="12">
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_CPUUsageText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.CpuValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_RAMUsageText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.RamValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_GpuUsageText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.GpuUsageValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+                            </controls:WrapPanel>
+                            -->
+                        </StackPanel>
+                    </Grid>
                 </Grid>
 
 
