@@ -390,7 +390,7 @@
                                 </fhInfoPopup:InfoPopupControl.SourceLinks>
                             </fhInfoPopup:InfoPopupControl>
 
-                            <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
+                            <controls:WrapPanel HorizontalSpacing="20" VerticalSpacing="8">
                                 <StackPanel Spacing="2">
                                     <TextBlock
                                         x:Uid="Start_FoundSensorsText"
@@ -466,7 +466,7 @@
                                 </fhInfoPopup:InfoPopupControl.SourceLinks>
                             </fhInfoPopup:InfoPopupControl>
 
-                            <controls:WrapPanel HorizontalSpacing="24" VerticalSpacing="8">
+                            <controls:WrapPanel HorizontalSpacing="20" VerticalSpacing="8">
                                 <StackPanel Spacing="2">
                                     <TextBlock
                                         x:Uid="Start_CPUUsageText"
@@ -592,7 +592,7 @@
                             <!--  (the top margin makes the gap to the line above the 8 of the wrapped rows)  -->
                             <controls:WrapPanel
                                 Margin="0,2,0,0"
-                                HorizontalSpacing="24"
+                                HorizontalSpacing="20"
                                 VerticalSpacing="8">
                                 <StackPanel Spacing="2">
                                     <TextBlock

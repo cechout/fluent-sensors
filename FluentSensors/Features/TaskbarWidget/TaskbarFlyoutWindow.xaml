@@ -299,7 +299,7 @@
                                 </fhInfoPopup:InfoPopupControl.SourceLinks>
                             </fhInfoPopup:InfoPopupControl>
 
-                            <controls:WrapPanel HorizontalSpacing="16" VerticalSpacing="12">
+                            <controls:WrapPanel HorizontalSpacing="20" VerticalSpacing="12">
                                 <StackPanel Spacing="2">
                                     <TextBlock
                                         x:Uid="Start_UpdateIntervalText"
@@ -345,7 +345,7 @@
                                 </fhInfoPopup:InfoPopupControl.SourceLinks>
                             </fhInfoPopup:InfoPopupControl>
 
-                            <controls:WrapPanel HorizontalSpacing="16" VerticalSpacing="12">
+                            <controls:WrapPanel HorizontalSpacing="20" VerticalSpacing="12">
                                 <StackPanel Spacing="2">
                                     <TextBlock
                                         x:Uid="Start_CPUUsageText"
