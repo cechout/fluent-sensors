@@ -1,5 +1,5 @@
 # on a version tag: the win-x64 installer, the portable zip and a draft GitHub release, then the msix for
-# the store (see the store job)
+# the store as an artifact, which store-submission.yml submits
 # the csproj Version is the one source, Inno Setup gets it as a define
 name: release
 
@@ -116,41 +116,3 @@ jobs:
         with:
           name: FluentSensors_Store
           path: Setup/MsixOutput/*.msixupload
-
-  # uploads the msix into a draft submission in partner center with its notes cleared; store-release-notes.yml adds them
-  # once the github text is final, submitting stays a click
-  # runs while the STORE_SUBMISSION variable is draft; a job of its own, so a failed upload re-runs
-  # without a second github draft
-  store:
-    needs: build
-    if: vars.STORE_SUBMISSION == 'draft'
-    runs-on: windows-latest
-    timeout-minutes: 30
-    permissions:
-      contents: read
-    steps:
-      - name: checkout
-        uses: actions/checkout@v7
-
-      - name: download msix artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: FluentSensors_Store
-          path: Setup/MsixOutput
-
-      # pinned; v0.4.3 is the first to read payloads from a file and keep the base price on publish
-      - name: setup msstore cli
-        uses: microsoft/microsoft-store-apppublisher@v1
-        with:
-          version: v0.4.3
-
-      - name: sign in to partner center
-        env:
-          TENANT_ID: ${{ secrets.PARTNER_CENTER_TENANT_ID }}
-          SELLER_ID: ${{ secrets.PARTNER_CENTER_SELLER_ID }}
-          CLIENT_ID: ${{ secrets.PARTNER_CENTER_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.PARTNER_CENTER_CLIENT_SECRET }}
-        run: msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
-
-      - name: upload a store draft
-        run: ./Setup/submit-store.ps1 -Tag "${{ github.ref_name }}" -Upload

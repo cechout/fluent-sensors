@@ -1,0 +1,69 @@
+# submits the msix of release.yml with the intro and changelog of the github release to the microsoft store; it
+# goes into certification and waits there, going live stays a click on publish now in partner center
+# runs on publish; by hand (actions, run workflow) on a draft release it gets the submission into certification
+# before the release goes public, and the publish afterwards finds it submitted and leaves it alone
+name: store submission
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. v1.7.0"
+        required: true
+
+# a run by hand and the publish right after it must not upload twice
+concurrency:
+  group: store-submission
+
+jobs:
+  submit:
+    # a tag with a suffix (v1.7.0-signtest) is a pipeline test and a prerelease, never a store version
+    if: vars.STORE_SUBMISSION == 'on' && !github.event.release.prerelease && !contains(inputs.tag, '-')
+    runs-on: windows-latest
+    timeout-minutes: 30
+    # contents write, since a draft release is visible only with push access; actions read for the artifact of
+    # the release run
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7
+
+      - name: find the release run of the tag
+        id: release-run
+        run: |
+          $runId = gh run list --workflow release.yml --branch $env:TAG --event push --status success --limit 1 --json databaseId --jq '.[0].databaseId'
+          if (-not $runId) { throw "no successful release run for $env:TAG" }
+          "id=$runId" >> $env:GITHUB_OUTPUT
+
+      - name: download msix artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: FluentSensors_Store
+          path: Setup/MsixOutput
+          run-id: ${{ steps.release-run.outputs.id }}
+          github-token: ${{ github.token }}
+
+      # pinned; v0.4.3 is the first to read payloads from a file and keep the base price on publish
+      - name: setup msstore cli
+        uses: microsoft/microsoft-store-apppublisher@v1
+        with:
+          version: v0.4.3
+
+      - name: sign in to partner center
+        env:
+          TENANT_ID: ${{ secrets.PARTNER_CENTER_TENANT_ID }}
+          SELLER_ID: ${{ secrets.PARTNER_CENTER_SELLER_ID }}
+          CLIENT_ID: ${{ secrets.PARTNER_CENTER_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.PARTNER_CENTER_CLIENT_SECRET }}
+        run: msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+
+      - name: submit to the store
+        run: ./Setup/submit-store.ps1 -Tag $env:TAG -Submit

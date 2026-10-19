@@ -1,22 +1,18 @@
-# hands a release to the microsoft store as a draft submission in two steps; submitting stays a click in partner center
-# -Upload, on the tag push: the upload package into a new draft with the notes cleared, so the old text cannot go out
-# -ReleaseNotes, once the github text is final: its intro and changelog into that draft
-# neither: prints the notes the github release would give, a local preview
+# hands a release to the microsoft store: package, release notes and the commit into certification in one go
+# -Submit, once the github text is final: a new submission with the upload package and the intro and changelog of the
+# github release, committed with a manual publish mode, so going live stays a click on publish now in partner center
+# without it: prints the notes the github release would give, a local preview
 #   .\Setup\submit-store.ps1 -Tag v1.7.0
-# expects the msstore cli signed in (msstore reconfigure) and gh signed in; the workflows do both
+# expects the msstore cli signed in (msstore reconfigure) and gh signed in; the workflow does both
 # https://learn.microsoft.com/en-us/windows/apps/publish/msstore-dev-cli/commands
 
-[CmdletBinding(DefaultParameterSetName = 'Preview')]
+[CmdletBinding()]
 param(
     # the version tag of the github release and the package
     [Parameter(Mandatory)]
     [string]$Tag,
 
-    [Parameter(ParameterSetName = 'Upload')]
-    [switch]$Upload,
-
-    [Parameter(ParameterSetName = 'ReleaseNotes')]
-    [switch]$ReleaseNotes
+    [switch]$Submit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -64,9 +60,9 @@ function Get-ReleaseNotes {
     $lines = @($intro) + @('', $heading, '') + @($changelog)
     $notes = (($lines | ForEach-Object { ConvertTo-PlainText $_ }) -join "`n").Trim()
 
-    # handwritten text is not cut silently; it gets shortened by hand in partner center
+    # handwritten text is not cut silently; it gets shortened in the github release, before anything is uploaded
     if ($notes.Length -gt $releaseNotesLimit) {
-        throw "the release notes of $Tag are $($notes.Length) characters, partner center takes $releaseNotesLimit; shorten them in the draft by hand"
+        throw "the release notes of $Tag are $($notes.Length) characters, partner center takes $releaseNotesLimit; shorten the github release text"
     }
 
     return $notes
@@ -128,65 +124,67 @@ function Write-Summary {
 
 # === steps ===
 
-if ($Upload) {
-    $packages = @(Get-ChildItem -LiteralPath $packageDir -Filter '*.msixupload')
-    if ($packages.Count -ne 1) { throw "expected exactly one .msixupload in $packageDir, found $($packages.Count)" }
-
-    # a new submission copies the last published one and publish replaces a pending draft, so the package
-    # goes first, the listing after
-    msstore publish $packages[0].FullName --appId $productId --noCommit
-    if ($LASTEXITCODE -ne 0) { throw 'uploading the package failed' }
-
-    $submission = Get-Submission
-    Set-ReleaseNotes $submission ''
-    $submission['TargetPublishMode'] = [System.Text.Json.Nodes.JsonValue]::Create('Manual')
-
-    # the copy would inherit an earlier gradual rollout
-    $rollout = $submission['PackageDeliveryOptions']?['PackageRollout']
-    if ($rollout) { $rollout['IsPackageRollout'] = [System.Text.Json.Nodes.JsonValue]::Create($false) }
-
-    Save-Submission $submission
-
-    Write-Summary @(
-        '## Microsoft Store'
-        ''
-        "Uploaded $Tag as a draft in Partner Center, release notes still empty. They are filled in when the GitHub release is published, or earlier by running the store release notes workflow by hand."
-    )
-    return
-}
-
 $notes = Get-ReleaseNotes -Tag $Tag
 
-if (-not $ReleaseNotes) {
+if (-not $Submit) {
     Write-Host $notes
     Write-Host ''
     Write-Host "$($notes.Length) of $releaseNotesLimit characters"
     return
 }
 
-# the draft of this tag; once submitted the notes are no longer editable, the normal case after a run by hand
-# before the release went public
-$submission = Get-Submission
+# a run by hand before the release went public already submitted this tag; the publish afterwards leaves it alone
+# a draft left over from a failed run is replaced, like any other draft
 $version = $Tag.TrimStart('v')
+$submission = Get-Submission
 $status = [string]$submission['Status']
 $packageNames = @($submission['ApplicationPackages']?.AsArray() | ForEach-Object { [string]$_['FileName'] })
 
-if (-not ($packageNames | Where-Object { $_ -like "*_$version.0_*" })) {
-    throw "the latest submission in partner center ($status) holds no package for $Tag"
-}
-
-if ($status -ne 'PendingCommit') {
-    Write-Summary @('## Microsoft Store', '', "The submission for $Tag is no longer a draft ($status), release notes left as they are.")
+if (($packageNames | Where-Object { $_ -like "*_$version.0_*" }) -and $status -notin 'PendingCommit', 'CommitFailed') {
+    Write-Summary @('## Microsoft Store', '', "$Tag is already submitted ($status), nothing uploaded.")
     return
 }
 
+$packages = @(Get-ChildItem -LiteralPath $packageDir -Filter '*.msixupload')
+if ($packages.Count -ne 1) { throw "expected exactly one .msixupload in $packageDir, found $($packages.Count)" }
+
+# a new submission copies the last published one and publish replaces a pending draft, so the package goes
+# first, the listing after
+msstore publish $packages[0].FullName --appId $productId --noCommit
+if ($LASTEXITCODE -ne 0) { throw 'uploading the package failed' }
+
+$submission = Get-Submission
 Set-ReleaseNotes $submission $notes
+$submission['TargetPublishMode'] = [System.Text.Json.Nodes.JsonValue]::Create('Manual')
+
+# the copy would inherit an earlier gradual rollout
+$rollout = $submission['PackageDeliveryOptions']?['PackageRollout']
+if ($rollout) { $rollout['IsPackageRollout'] = [System.Text.Json.Nodes.JsonValue]::Create($false) }
+
 Save-Submission $submission
+
+# the commit; partner center reads the uploaded package only now, a draft submitted from the dashboard instead
+# never gets it
+msstore submission publish $productId
+if ($LASTEXITCODE -ne 0) { throw 'committing the submission failed' }
+
+# the commit runs on the server; wait until it is accepted or refused, certification takes days and is not awaited
+for ($attempt = 0; $attempt -lt 40; $attempt++) {
+    $submission = Get-Submission
+    $status = [string]$submission['Status']
+    if ($status -notin 'PendingCommit', 'CommitStarted') { break }
+    Start-Sleep -Seconds 15
+}
+
+if ($status -in 'PendingCommit', 'CommitStarted', 'CommitFailed', 'PreProcessingFailed') {
+    $details = $submission['StatusDetails']?.ToJsonString()
+    throw "the submission for $Tag did not get through the commit ($status): $details"
+}
 
 Write-Summary @(
     '## Microsoft Store'
     ''
-    "Release notes copied into the draft for $Tag. Review it in Partner Center and submit it from there."
+    "Submitted $Tag for certification ($status). Once it passes, publish it in Partner Center with Publish now."
     ''
     '```text'
     $notes
