@@ -113,10 +113,6 @@ Okuma - sensörlerin tam bir tur okunma süresi, sorgulama hızına yakın olmas
   <data name="Main_LhmGitHubSource.Label" xml:space="preserve">
     <value>GitHub'da LibreHardwareMonitor</value>
   </data>
-  <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
-    <value>CPU kullanımı - bu uygulamanın tüm çekirdekler arasındaki toplam kapasiteye kıyasla harcadığı işlemci süresi
-RAM kullanımı - bu uygulama tarafından kullanılan fiziksel bellek (çalışma kümesi)</value>
-  </data>
   <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
     <value>Kaynak:</value>
   </data>
@@ -225,12 +221,6 @@ RAM kullanımı - bu uygulama tarafından kullanılan fiziksel bellek (çalışm
   </data>
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Donanım simge renkleri</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Header" xml:space="preserve">
-    <value>Sensör türü renkleri</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
-    <value>Grafikler sayfası ve sensör listesi</value>
   </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Grafikler</value>
@@ -828,21 +818,11 @@ RAM kullanımı - bu uygulama tarafından kullanılan fiziksel bellek (çalışm
   <data name="Start_AppStatusText.Text" xml:space="preserve">
     <value>Uygulama durumu</value>
   </data>
-  <data name="Start_LhmPopup.Description" xml:space="preserve">
-    <value>Bulunan Sensörler - LibreHardwareMonitor'ın bu bilgisayarda bildirdiği tüm sensörler
-Çizilen Sensörler - şu anda aktif olarak kaç tanesinin çizildiği
-Güncelleme aralığı - yapılandırılan sorgulama aralığına göre ölçülen süre
-Okuma süresi - tüm sensörlerin tek bir tam tur okunmasının ne kadar sürdüğü
-PawnIO sürücüsü - CPU, anakart ve bellek sensörleri için çekirdek düzeyinde erişim</value>
-  </data>
   <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
     <value>Bu uygulama, açık kaynaklı LibreHardwareMonitor projesiyle çalışmaktadır:</value>
   </data>
   <data name="Start_LhmGitHubSource.Label" xml:space="preserve">
     <value>GitHub'da LibreHardwareMonitor</value>
-  </data>
-  <data name="Start_FoundSensorsText.Text" xml:space="preserve">
-    <value>Bulunan sensörler</value>
   </data>
   <data name="Start_RenderingSensorsText.Text" xml:space="preserve">
     <value>Çizilen sensörler</value>
@@ -1164,11 +1144,6 @@ Windows grafik ayarlarından FluentSensors için Güç tasarrufu seçeneğini be
   <data name="Cpu_GeneralPopup.Title" xml:space="preserve">
     <value>Genel</value>
   </data>
-  <data name="Cpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Fiziksel Çekirdekler - yonga üzerindeki gerçek işlem birimleri
-Mantıksal İşlemciler - toplam yürütme iş parçacıkları (SMT/Hyper-Threading çekirdek başına iki katına çıkarır)
-Çekirdek Topolojisi - hibrit işlemcilerde Performans ve Verimlilik çekirdeği ayrımı</value>
-  </data>
   <data name="Cpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Kaynak:</value>
   </data>
@@ -1209,10 +1184,6 @@ L3 - en büyük, tüm çekirdekler arasında paylaşılan; birleşik</value>
   <data name="Gpu_GeneralPopup.Title" xml:space="preserve">
     <value>Genel</value>
   </data>
-  <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Sürücü Sürümü - üreticinin kendi sürüm şemasından farklı olan dahili Windows sürücü numarası
-Ekran - bu GPU'nun çalıştırdığı ekranlar veya hibrit bir dizüstü bilgisayarda görüntünün aktarıldığı GPU</value>
-  </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Kaynak:</value>
   </data>
@@ -1239,15 +1210,6 @@ PnP Aygıt Kimliği - Windows'un bu aygıt için kullandığı örnek tanımlay�
   <data name="Memory_MemoryUsedVirtualTile.InfoMessage" xml:space="preserve">
     <value>Görev Yöneticisi'ndeki "İşlenen" değerine karşılık gelir; genellikle kesindir ancak ara sıra sapma gösterebilir.</value>
   </data>
-  <data name="Memory_RamInfoPopup.Description" xml:space="preserve">
-    <value>Tür - DDR nesli (DDR4, DDR5, ...)
-Biçim Faktörü - DIMM (masaüstü) veya SO-DIMM (dizüstü)
-RAM Hızı - Yapılandırılan (etkin) ve Nominal (teknik özellik)
-Voltaj - çalışma voltajı; XMP/EXPO bunu artırabilir
-Bank - bu modülün ait olduğu anakart üzerindeki fiziksel bank/yuva grubu
-Rank - modülün kendi üzerindeki bağımsız çip setlerinin sayısı (güvenilmez)
-Genişlik - Veri (kullanılabilir bitler) ve Toplam (ECC bitlerini içerir)</value>
-  </data>
   <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
     <value>Kaynak:</value>
   </data>
@@ -1265,9 +1227,6 @@ Genişlik - Veri (kullanılabilir bitler) ve Toplam (ECC bitlerini içerir)</val
   </data>
   <data name="Storage_GeneralPopup.Title" xml:space="preserve">
     <value>Genel</value>
-  </data>
-  <data name="Storage_GeneralPopup.Description" xml:space="preserve">
-    <value>Veri Yolu Türü - bağlantı arabirimi (NVMe, SATA, USB, ...), sürücünün gerçekçi maksimum hızını sınırlar; eski Windows API'si NVMe sürücülerini SCSI olarak yanlış bildirdiği için modern Storage API'sinden okunur</value>
   </data>
   <data name="Storage_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Kaynak:</value>
@@ -1293,37 +1252,17 @@ Genişlik - Veri (kullanılabilir bitler) ve Toplam (ECC bitlerini içerir)</val
   <data name="Storage_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Donanım bilgisini yeniden boyutlandır</value>
   </data>
-  <data name="Network_ConnectionPopup.Title" xml:space="preserve">
-    <value>Bağlantı</value>
-  </data>
-  <data name="Network_ConnectionPopup.Description" xml:space="preserve">
-    <value>Bağdaştırıcının olası tüm bağlantı aralığını değil, tek bir etkin bağlantıyı temsil eder. Birden fazla etkin bağlantı (örn. Wi-Fi + Ethernet) ayrı birer girdi alır.
-Donanım - bu bağlantının arkasındaki fiziksel bağdaştırıcı
-Tür - bağlantı ortamı (Wi-Fi, Ethernet, ...)</value>
-  </data>
-  <data name="Network_ConnectionPopup.SourceIntro" xml:space="preserve">
-    <value>Kaynak:</value>
-  </data>
   <data name="Network_HardwareText.Text" xml:space="preserve">
     <value>Donanım</value>
   </data>
   <data name="Network_TypeText.Text" xml:space="preserve">
     <value>Tür</value>
   </data>
-  <data name="Network_IPAddressesPopup.Description" xml:space="preserve">
-    <value>IPv4 ve IPv6, ikisi de aynı anda etkin olan bağımsız adresleme sistemleridir.
-IPv4 - genellikle tek bir adres
-IPv6 - sıklıkla aynı anda birkaç tane (sabit + değişen gizlilik adresleri)</value>
-  </data>
   <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
     <value>Kaynak:</value>
   </data>
   <data name="Network_GeneralPopup.Title" xml:space="preserve">
     <value>Genel</value>
-  </data>
-  <data name="Network_GeneralPopup.Description" xml:space="preserve">
-    <value>Bağlantı Hızı - bağdaştırıcının maksimum nominal hızı değil, bu belirli bağlantının anlaşılan hızıdır; sinyal koşulları değiştikçe Wi-Fi'da zamanla değişebilir ve daha düşük olabilir
-DHCP Etkin - bu bağlantının kendi adresinin otomatik olarak atanıp atanmadığı veya statik olarak ayarlanıp ayarlanmadığı; genel bir ağ ayarı değil, bu bağlantının bir özelliğidir</value>
   </data>
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Kaynak:</value>
