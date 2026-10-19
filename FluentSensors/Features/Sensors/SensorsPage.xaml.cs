@@ -15,6 +15,7 @@ using FluentSensors.Common;
 using FluentSensors.Common.Localization;
 using FluentSensors.Features.Widget;
 using FluentSensors.Features.TaskbarWidget;
+using FluentSensors.Features.WidgetBoard;
 using FluentSensors.Features.CsvLogging;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
@@ -181,6 +182,34 @@ namespace FluentSensors.Features.Sensors
 
             // reuses an open or hidden logger window (see CsvLoggerWindow._retainedInstance)
             CsvLoggerWindow.ShowWithSensors(selectedSensors);
+        }
+
+        // hands the checked sensors to the widget on the Widgets board
+        private async void UpdateWidgetBoard_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedSensors = ViewModel.HardwareGroups
+                .SelectMany(group => group.Sensors)
+                .Where(sensor => sensor.IsSelected)
+                .ToList();
+
+            // nothing selected: the info bar
+            if (selectedSensors.Count == 0)
+            {
+                _infoBarTicket++;
+                int currentTicket = _infoBarTicket;
+
+                AnimateInfoBar(-40, true);
+
+                await Task.Delay(2000);
+
+                if (currentTicket == _infoBarTicket)
+                {
+                    AnimateInfoBar(100, false);
+                }
+                return;
+            }
+
+            WidgetBoardService.Instance.ApplySensors(selectedSensors);
         }
 
         private async void PinToTaskbar_Click(object sender, RoutedEventArgs e)
@@ -622,7 +651,7 @@ namespace FluentSensors.Features.Sensors
                     order.Add(PinToTaskbarButton);
                     break;
                 case SensorSelectionProfile.WidgetBoard:
-                    // nothing to commit, the board follows every checkbox right away
+                    order.Add(WidgetBoardUpdateButton);
                     break;
                 default:
                     order.Add(PinToWidgetButton);

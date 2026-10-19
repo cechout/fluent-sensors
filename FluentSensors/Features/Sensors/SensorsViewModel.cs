@@ -18,6 +18,7 @@ using FluentSensors.Common.Sensors;
 using FluentSensors.Core.Lhm;
 using FluentSensors.Features.CsvLogging;
 using FluentSensors.Features.TaskbarWidget;
+using FluentSensors.Features.WidgetBoard;
 
 
 namespace FluentSensors.Features.Sensors
@@ -146,6 +147,7 @@ namespace FluentSensors.Features.Sensors
         {
             SensorSelectionProfile.WidgetWindow => WidgetWindow.GetOpenInstance(ActiveWidgetIndex) != null,
             SensorSelectionProfile.Taskbar => TaskbarWidgetWindow.CurrentInstance != null && TaskbarWidgetWindow.CurrentInstance.IsEmbedded,
+            SensorSelectionProfile.WidgetBoard => WidgetBoardService.Instance.PinnedSensorIds.Count > 0,
             _ => false
         };
 
@@ -503,7 +505,8 @@ namespace FluentSensors.Features.Sensors
             }
         }
 
-        // checks exactly the sensors pinned to the active widget or taskbar widget, every other visible one goes off
+        // checks exactly the sensors pinned to the active widget, taskbar widget or widgets board, every other visible
+        // one goes off
         public void SelectPinnedSensors()
         {
             HashSet<string> pinnedIds = null;
@@ -519,6 +522,10 @@ namespace FluentSensors.Features.Sensors
                 var widgetViewModel = WidgetWindow.GetOpenInstance(ActiveWidgetIndex)?.ViewModel;
                 if (widgetViewModel == null) return;
                 pinnedIds = new HashSet<string>(widgetViewModel.PinnedSensors.Select(s => s.SensorId));
+            }
+            else if (ActiveProfile == SensorSelectionProfile.WidgetBoard)
+            {
+                pinnedIds = new HashSet<string>(WidgetBoardService.Instance.PinnedSensorIds);
             }
             else
             {

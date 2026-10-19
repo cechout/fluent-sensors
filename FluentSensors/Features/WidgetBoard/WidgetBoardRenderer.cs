@@ -37,7 +37,6 @@ namespace FluentSensors.Features.WidgetBoard
         // === public api ===
 
         // values oldest first; yBottom and yTop the range SensorGraphControl.ApplyYRange would set
-        // topInsetDip leaves a transparent strip above the card, which the board crops instead of the card corners
         public static byte[] Render(
             IReadOnlyList<double?> values,
             double yBottom,
@@ -48,18 +47,16 @@ namespace FluentSensors.Features.WidgetBoard
             bool isLight,
             float widthDip,
             float heightDip,
-            float topInsetDip,
             float scale)
         {
             int width = Math.Max(1, (int)Math.Round(widthDip * scale));
-            int height = Math.Max(1, (int)Math.Round((heightDip + topInsetDip) * scale));
-            float inset = topInsetDip * scale;
+            int height = Math.Max(1, (int)Math.Round(heightDip * scale));
 
             using var bitmap = new SKBitmap(new SKImageInfo(width, height, SKColorType.Rgba8888, SKAlphaType.Premul));
             using var canvas = new SKCanvas(bitmap);
             canvas.Clear(SKColors.Transparent);
 
-            var card = new SKRoundRect(new SKRect(0, inset, width, height), CornerRadius * scale);
+            var card = new SKRoundRect(new SKRect(0, 0, width, height), CornerRadius * scale);
             using (var cardPaint = new SKPaint { Color = isLight ? CardFillLight : CardFillDark, IsAntialias = true })
             {
                 canvas.DrawRoundRect(card, cardPaint);
@@ -67,7 +64,7 @@ namespace FluentSensors.Features.WidgetBoard
 
             canvas.ClipRoundRect(card, SKClipOperation.Intersect, antialias: true);
 
-            var chart = new SKRect(-ChartOverhangSide * scale, inset, width + ChartOverhangSide * scale, height + ChartOverhangBottom * scale);
+            var chart = new SKRect(-ChartOverhangSide * scale, 0, width + ChartOverhangSide * scale, height + ChartOverhangBottom * scale);
             DrawSeries(canvas, chart, values, yBottom, yTop, color, fillFade, lineStyle, scale);
 
             using var image = SKImage.FromBitmap(bitmap);

@@ -10,8 +10,8 @@ namespace FluentSensors.Features.WidgetBoard
     public sealed record WidgetBoardCardSensor(string Name, string Value, byte[] DarkGraph, byte[] LightGraph);
 
     // the adaptive card of one widget size:
-    // one container per sensor sharing the height, the graph as its background and name and value as text on top
-    // (like the overlay of SensorGraphControl), the time range under all graphs
+    // one container per sensor sharing the height, name and value in a row over the graph like the status row of
+    // SensorPanelControl, the time range under all graphs
     public static class WidgetBoardCard
     {
         // === fields ===
@@ -24,16 +24,14 @@ namespace FluentSensors.Features.WidgetBoard
 
         // in dip; what sits between and under the sensors
         private const float Spacing = 8; // the default spacing of the board between two containers
-        private const float TimeRowHeight = 16; // one small text line
-        private const float TimeRowSpacing = 4; // the small spacing above it
+        private const float TextRowHeight = 16; // one small text line; the status row and the time
+        private const float StatusRowGap = 3; // status row to graph, the row spacing of SensorPanelControl
+        private const float TimeRowSpacing = 4; // the small spacing above the time
         private const float BottomSpacer = 8; // lifts the time off the card edge
 
-        // the board crops a graph that is a hair wider than its box at the right edge; drawn this much taller, with
-        // a transparent strip on top, the overhang goes to the strip
-        public const float TopInsetShare = 0.02f;
-
-        // the edge columns inset the name and the value inside the graph card
-        private const string EdgeColumn = "{\"type\":\"Column\",\"width\":\"6px\"}";
+        // the insets of the name and the value in the status row of SensorPanelControl
+        private const string NameInsetColumn = "{\"type\":\"Column\",\"width\":\"4px\"}";
+        private const string ValueInsetColumn = "{\"type\":\"Column\",\"width\":\"7px\"}";
 
 
         // === public api ===
@@ -55,8 +53,8 @@ namespace FluentSensors.Features.WidgetBoard
                 _ => ContentHeightLarge
             };
 
-            float graphs = content - TimeRowSpacing - TimeRowHeight - BottomSpacer - Spacing * (count - 1);
-            return (ContentWidth, graphs / Math.Max(1, count));
+            float sensors = content - TimeRowSpacing - TextRowHeight - BottomSpacer - Spacing * (count - 1);
+            return (ContentWidth, sensors / Math.Max(1, count) - TextRowHeight - StatusRowGap);
         }
 
         public static string BuildTemplate(int count)
@@ -65,21 +63,22 @@ namespace FluentSensors.Features.WidgetBoard
 
             for (int i = 0; i < count; i++)
             {
-                string labels = "{\"type\":\"ColumnSet\",\"columns\":[" + EdgeColumn + "," +
-                    $"{{\"type\":\"Column\",\"width\":\"stretch\",\"items\":[{{\"type\":\"TextBlock\",\"text\":\"${{n{i}}}\",\"size\":\"small\",\"isSubtle\":true,\"wrap\":false}}]}}," +
+                string statusRow = "{\"type\":\"ColumnSet\",\"columns\":[" + NameInsetColumn + "," +
+                    $"{{\"type\":\"Column\",\"width\":\"stretch\",\"items\":[{{\"type\":\"TextBlock\",\"text\":\"${{n{i}}}\",\"size\":\"small\",\"wrap\":false}}]}}," +
                     $"{{\"type\":\"Column\",\"width\":\"auto\",\"items\":[{{\"type\":\"TextBlock\",\"text\":\"${{v{i}}}\",\"size\":\"small\",\"wrap\":false}}]}}," +
-                    EdgeColumn + "]}";
+                    ValueInsetColumn + "]}";
+                string gap = $"{{\"type\":\"Container\",\"minHeight\":\"{StatusRowGap:0}px\",\"spacing\":\"none\"}}";
 
-                // a theme switch swaps the whole container, the background url cannot carry a condition
+                // a theme switch swaps the whole sensor, the image url cannot carry a condition
                 foreach (bool isLight in new[] { false, true })
                 {
                     string spacing = i == 0 ? "" : ",\"spacing\":\"default\"";
                     string when = isLight ? "${$host.isLightTheme}" : "${!$host.isLightTheme}";
                     string image = $"${{{(isLight ? "l" : "d")}{i}}}";
+                    string graph = $"{{\"type\":\"Image\",\"url\":\"{image}\",\"height\":\"stretch\",\"spacing\":\"none\",\"horizontalAlignment\":\"center\"}}";
 
                     body.Add($"{{\"type\":\"Container\",\"height\":\"stretch\"{spacing},\"$when\":\"{when}\"," +
-                        $"\"backgroundImage\":{{\"url\":\"{image}\",\"fillMode\":\"cover\",\"verticalAlignment\":\"bottom\"}}," +
-                        $"\"items\":[{{\"type\":\"Container\",\"minHeight\":\"2px\"}},{labels}]}}");
+                        $"\"items\":[{statusRow},{gap},{graph}]}}");
                 }
             }
 

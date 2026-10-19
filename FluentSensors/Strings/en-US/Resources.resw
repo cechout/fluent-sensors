@@ -1646,6 +1646,10 @@ Type - its medium (Wi-Fi, Ethernet, ...)</value>
   <data name="Sensors_PinToTaskbarButton.Label" xml:space="preserve">
     <value>Pin to Taskbar</value>
   </data>
+  <data name="Sensors_WidgetBoardUpdateButton.Label" xml:space="preserve">
+    <value>Update</value>
+    <comment>verb; applies the selected sensors to the widget on the Windows Widgets board</comment>
+  </data>
   <data name="Sensors_TaskbarUpdateButton.Label" xml:space="preserve">
     <value>Update</value>
     <comment>verb; applies the selected sensors to the open taskbar widget</comment>

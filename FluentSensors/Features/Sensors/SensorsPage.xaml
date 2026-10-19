@@ -158,6 +158,16 @@
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
+                            <!--  update the widgets board widget (shown for the WidgetsBoard profile)  -->
+                            <AppBarButton
+                                x:Name="WidgetBoardUpdateButton"
+                                x:Uid="Sensors_WidgetBoardUpdateButton"
+                                Click="UpdateWidgetBoard_Click">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xE895;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
+
                             <AppBarButton
                                 x:Name="TaskbarCloseButton"
                                 x:Uid="Sensors_TaskbarCloseButton"

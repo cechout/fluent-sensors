@@ -28,12 +28,6 @@ namespace FluentSensors.Persistence.Services
         private SensorSelectionService() { }
 
 
-        // === events ===
-
-        // after every membership change; for a consumer that follows the selection live (the widgets board)
-        public event Action<SensorSelectionProfile, int>? SelectionChanged;
-
-
         // === public api ===
 
         // the live list; read only, changes go through SetMembership so they persist
@@ -60,7 +54,6 @@ namespace FluentSensors.Persistence.Services
             }
 
             Persist();
-            SelectionChanged?.Invoke(profile, widgetIndex);
         }
 
         // one-time migration from the widget pin list (WindowState "Widget" PinnedSensorIds); after

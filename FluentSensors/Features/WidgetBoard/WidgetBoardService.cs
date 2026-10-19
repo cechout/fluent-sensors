@@ -22,8 +22,10 @@ using FluentSensors.Persistence.Services;
 namespace FluentSensors.Features.WidgetBoard
 {
     // the widget on the Windows Widgets board, store build only:
-    // keeps the graphs of the board selection, as the taskbar widget keeps its own, and on every tick renders the card
+    // keeps the graphs of the pinned sensors, as the taskbar widget keeps its own, and on every tick renders the card
     // of each size the board shows and hands it to FluentSensors.WidgetProvider.exe through the pipe
+    // the sensors change on the update button of the sensors page; at start they are the saved board selection, like
+    // the restored widget windows
     // nothing is rendered while the board shows no widget of this app
     public sealed partial class WidgetBoardService
     {
@@ -64,12 +66,23 @@ namespace FluentSensors.Features.WidgetBoard
             _notRunningText = AppStrings.Get("WidgetBoard_NotRunning");
             _noSensorsText = AppStrings.Get("WidgetBoard_NoSensors");
 
-            RebuildGraphs();
+            RebuildGraphs(ResolveSensors(SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetBoard)));
             HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
-            SensorSelectionService.Instance.SelectionChanged += OnSelectionChanged;
-            SensorsViewModel.Instance.SensorAvailabilityChanged += RebuildGraphs;
+            SensorsViewModel.Instance.SensorAvailabilityChanged += OnSensorAvailabilityChanged;
 
             new Thread(ConnectLoop) { IsBackground = true, Name = "widgets board pipe" }.Start();
+        }
+
+        // the ids on the board right now, in order
+        public IReadOnlyList<string> PinnedSensorIds => _graphs.Select(g => g.SensorId).ToList();
+
+        // the update button of the sensors page; the board follows at once, not on the next tick
+        public void ApplySensors(List<SensorRowViewModel> sensors)
+        {
+            if (_dispatcherQueue == null) return;
+
+            RebuildGraphs(sensors);
+            SendCards();
         }
 
 
@@ -92,21 +105,22 @@ namespace FluentSensors.Features.WidgetBoard
             });
         }
 
-        private void OnSelectionChanged(SensorSelectionProfile profile, int widgetIndex)
+        // hardware that left drops out, hardware that came back returns
+        private void OnSensorAvailabilityChanged()
         {
-            if (profile != SensorSelectionProfile.WidgetBoard) return;
+            var sensors = ResolveSensors(SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetBoard));
+            if (sensors.Count == 0) return;
+            if (sensors.Select(s => s.Id).SequenceEqual(_graphs.Select(g => g.SensorId))) return;
 
-            RebuildGraphs();
-            SendCards(); // the board follows the checkbox at once, not on the next tick
+            RebuildGraphs(sensors);
         }
 
 
         // === graphs ===
 
-        // removes, adds and reorders the graphs to match the selection; a kept sensor keeps its history
-        private void RebuildGraphs()
+        // removes, adds and reorders the graphs to match rows; a kept sensor keeps its history
+        private void RebuildGraphs(List<SensorRowViewModel> rows)
         {
-            var rows = ResolveSensors(SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetBoard));
             var wanted = rows.Select(r => r.Id).ToHashSet();
 
             for (int i = _graphs.Count - 1; i >= 0; i--)
@@ -171,13 +185,12 @@ namespace FluentSensors.Features.WidgetBoard
                         }
 
                         var (width, height) = WidgetBoardCard.GraphBox(size, count);
-                        float inset = height * WidgetBoardCard.TopInsetShare;
 
                         var sensors = snapshot.Take(count).Select(s => new WidgetBoardCardSensor(
                             s.Name,
                             s.Value,
-                            WidgetBoardRenderer.Render(s.Values, s.YBottom, s.YTop, s.Dark, fillFade, lineStyle, false, width, height, inset, scale),
-                            WidgetBoardRenderer.Render(s.Values, s.YBottom, s.YTop, s.Light, fillFade, lineStyle, true, width, height, inset, scale)))
+                            WidgetBoardRenderer.Render(s.Values, s.YBottom, s.YTop, s.Dark, fillFade, lineStyle, false, width, height, scale),
+                            WidgetBoardRenderer.Render(s.Values, s.YBottom, s.YTop, s.Light, fillFade, lineStyle, true, width, height, scale)))
                             .ToList();
 
                         WriteCard(size, WidgetBoardCard.BuildTemplate(count), WidgetBoardCard.BuildData(sensors, timeText));
