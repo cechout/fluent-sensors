@@ -113,10 +113,6 @@ Odczyt - czas jednego pełnego przebiegu odczytu czujników, zbliżenie się do 
   <data name="Main_LhmGitHubSource.Label" xml:space="preserve">
     <value>LibreHardwareMonitor na GitHubie</value>
   </data>
-  <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
-    <value>Użycie procesora - czas procesora samej aplikacji w stosunku do łącznej pojemności wszystkich rdzeni
-Użycie pamięci RAM - pamięć fizyczna aktualnie przypisana do tej aplikacji (zestaw roboczy)</value>
-  </data>
   <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
     <value>Źródło:</value>
   </data>
@@ -225,12 +221,6 @@ Użycie pamięci RAM - pamięć fizyczna aktualnie przypisana do tej aplikacji (
   </data>
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Kolory ikon sprzętu</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Header" xml:space="preserve">
-    <value>Kolory typów czujników</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
-    <value>Strona wykresów i lista czujników</value>
   </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Wykresy</value>
@@ -828,21 +818,11 @@ Użycie pamięci RAM - pamięć fizyczna aktualnie przypisana do tej aplikacji (
   <data name="Start_AppStatusText.Text" xml:space="preserve">
     <value>Stan aplikacji</value>
   </data>
-  <data name="Start_LhmPopup.Description" xml:space="preserve">
-    <value>Wykryte czujniki - wszystkie czujniki zgłoszone przez LibreHardwareMonitor na tym komputerze
-Wyświetlane czujniki - ile z nich jest obecnie aktywnie rysowanych
-Interwał odświeżania - zmierzony względem skonfigurowanego interwału odpytywania
-Czas odczytu - jak długo trwa jeden pełny odczyt wszystkich czujników
-Sterownik PawnIO - dostęp na poziomie jądra dla czujników procesora, płyty głównej i pamięci RAM</value>
-  </data>
   <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
     <value>Ta aplikacja korzysta z projektu open source LibreHardwareMonitor:</value>
   </data>
   <data name="Start_LhmGitHubSource.Label" xml:space="preserve">
     <value>LibreHardwareMonitor na GitHubie</value>
-  </data>
-  <data name="Start_FoundSensorsText.Text" xml:space="preserve">
-    <value>Wykryte czujniki</value>
   </data>
   <data name="Start_RenderingSensorsText.Text" xml:space="preserve">
     <value>Wyświetlane czujniki</value>
@@ -1164,11 +1144,6 @@ Wybierz opcję Oszczędzanie energii dla FluentSensors w ustawieniach grafiki sy
   <data name="Cpu_GeneralPopup.Title" xml:space="preserve">
     <value>Ogólne</value>
   </data>
-  <data name="Cpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Rdzenie fizyczne - rzeczywiste jednostki obliczeniowe w układzie scalonym
-Procesory logiczne - łączna liczba wątków wykonawczych (SMT/Hyper-Threading podwaja liczbę na rdzeń)
-Topologia rdzeni - podział na rdzenie wydajnościowe i energooszczędne w hybrydowych procesorach</value>
-  </data>
   <data name="Cpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Źródło:</value>
   </data>
@@ -1209,10 +1184,6 @@ Oprogramowanie układowe - aktualnie włączone lub nie (niepewne)</value>
   <data name="Gpu_GeneralPopup.Title" xml:space="preserve">
     <value>Ogólne</value>
   </data>
-  <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Wersja sterownika - wewnętrzny numer sterownika Windows, różni się od schematu wersji producenta
-Ekran - ekrany obsługiwane przez ten procesor graficzny lub karta graficzna, przez którą przesyłany jest obraz w laptopie hybrydowym</value>
-  </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Źródło:</value>
   </data>
@@ -1239,15 +1210,6 @@ Identyfikator urządzenia PnP - identyfikator instancji systemu Windows dla tego
   <data name="Memory_MemoryUsedVirtualTile.InfoMessage" xml:space="preserve">
     <value>Odpowiada wartości „Zadeklarowana” w Menedżerze zadań; zwykle dokładna, ale sporadycznie może się różnić.</value>
   </data>
-  <data name="Memory_RamInfoPopup.Description" xml:space="preserve">
-    <value>Typ - generacja DDR (DDR4, DDR5, ...)
-Format - DIMM (stacjonarny) lub SO-DIMM (laptop)
-Taktowanie RAM - skonfigurowane (aktywne) a znamionowe (specyfikacja)
-Napięcie - napięcie robocze; profile XMP/EXPO mogą je podnieść
-Bank - fizyczne zgrupowanie banków/gniazd na płycie głównej, do którego należy moduł
-Ranga - liczba niezależnych zestawów układów na samym module (niepewne)
-Szerokość - Dane (użyteczne bity) a Łączna (zawiera bity ECC)</value>
-  </data>
   <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
     <value>Źródło:</value>
   </data>
@@ -1265,9 +1227,6 @@ Szerokość - Dane (użyteczne bity) a Łączna (zawiera bity ECC)</value>
   </data>
   <data name="Storage_GeneralPopup.Title" xml:space="preserve">
     <value>Ogólne</value>
-  </data>
-  <data name="Storage_GeneralPopup.Description" xml:space="preserve">
-    <value>Typ magistrali - interfejs połączenia (NVMe, SATA, USB, ...), ogranicza realistyczną maksymalną prędkość dysku; odczytywany z nowoczesnego interfejsu API Storage, ponieważ starsze API systemu Windows błędnie raportuje dyski NVMe jako SCSI</value>
   </data>
   <data name="Storage_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Źródło:</value>
@@ -1293,37 +1252,17 @@ Szerokość - Dane (użyteczne bity) a Łączna (zawiera bity ECC)</value>
   <data name="Storage_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Zmień rozmiar informacji o sprzęcie</value>
   </data>
-  <data name="Network_ConnectionPopup.Title" xml:space="preserve">
-    <value>Połączenie</value>
-  </data>
-  <data name="Network_ConnectionPopup.Description" xml:space="preserve">
-    <value>Reprezentuje jedno aktywne połączenie, a nie pełny zakres możliwych połączeń karty. Wiele aktywnych połączeń (np. Wi-Fi + Ethernet) otrzymuje osobny wpis.
-Sprzęt - fizyczna karta sieciowa stojąca za tym połączeniem
-Typ - nośnik połączenia (Wi-Fi, Ethernet, ...)</value>
-  </data>
-  <data name="Network_ConnectionPopup.SourceIntro" xml:space="preserve">
-    <value>Źródło:</value>
-  </data>
   <data name="Network_HardwareText.Text" xml:space="preserve">
     <value>Sprzęt</value>
   </data>
   <data name="Network_TypeText.Text" xml:space="preserve">
     <value>Typ</value>
   </data>
-  <data name="Network_IPAddressesPopup.Description" xml:space="preserve">
-    <value>IPv4 i IPv6 to niezależne systemy adresowania, oba aktywne jednocześnie.
-IPv4 - zwykle jeden adres
-IPv6 - często kilka naraz (adresy stałe + rotacyjne adresy prywatności)</value>
-  </data>
   <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
     <value>Źródło:</value>
   </data>
   <data name="Network_GeneralPopup.Title" xml:space="preserve">
     <value>Ogólne</value>
-  </data>
-  <data name="Network_GeneralPopup.Description" xml:space="preserve">
-    <value>Szybkość połączenia - wynegocjowana prędkość tego konkretnego połączenia, a nie maksymalna prędkość znamionowa karty; może być niższa i zmieniać się w czasie w przypadku Wi-Fi w zależności od warunków sygnału
-DHCP włączone - czy adres tego połączenia został przydzielony automatycznie, czy ustawiony statycznie; właściwość tego połączenia, a nie ogólne ustawienie sieciowe</value>
   </data>
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Źródło:</value>
