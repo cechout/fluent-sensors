@@ -23,6 +23,7 @@ namespace FluentSensors.Persistence.Models
         public SensorYAxisState PerformanceYAxis { get; set; } = new SensorYAxisState();
         public SensorYAxisState WidgetYAxis { get; set; } = new SensorYAxisState();
         public SensorYAxisState TaskbarYAxis { get; set; } = new SensorYAxisState();
+        public SensorYAxisState WidgetBoardYAxis { get; set; } = new SensorYAxisState();
 
         // legacy, for older saved settings
         public bool IsAutoScaled
@@ -42,6 +43,7 @@ namespace FluentSensors.Persistence.Models
             SensorGraphScope.Performance => PerformanceYAxis,
             SensorGraphScope.Widget => WidgetYAxis,
             SensorGraphScope.Taskbar or SensorGraphScope.TaskbarFlyout => TaskbarYAxis,
+            SensorGraphScope.WidgetBoard => WidgetBoardYAxis,
             _ => WidgetYAxis
         };
     }

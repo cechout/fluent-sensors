@@ -2,6 +2,7 @@ using Microsoft.UI.Dispatching;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
@@ -34,7 +35,6 @@ namespace FluentSensors.Features.WidgetBoard
         private const int ReconnectDelayMs = 2000; // between two tries while the provider is not running
 
         private DispatcherQueue? _dispatcherQueue;
-        private readonly List<SensorGraphViewModel> _graphs = new();
 
         // the pipe belongs to the connect thread; a write takes the lock, a failed write closes it
         private readonly object _pipeGate = new();
@@ -46,6 +46,7 @@ namespace FluentSensors.Features.WidgetBoard
         // read on the UI thread, the pipe thread sends them
         private string _notRunningText = "";
         private string _noSensorsText = "";
+        private string _linkText = "";
 
 
         // === singleton instance ===
@@ -65,6 +66,7 @@ namespace FluentSensors.Features.WidgetBoard
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
             _notRunningText = AppStrings.Get("WidgetBoard_NotRunning");
             _noSensorsText = AppStrings.Get("WidgetBoard_NoSensors");
+            _linkText = AppStrings.Get("WidgetBoard_SettingsLink");
 
             RebuildGraphs(ResolveSensors(SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetBoard)));
             HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
@@ -73,8 +75,10 @@ namespace FluentSensors.Features.WidgetBoard
             new Thread(ConnectLoop) { IsBackground = true, Name = "widgets board pipe" }.Start();
         }
 
-        // the ids on the board right now, in order
-        public IReadOnlyList<string> PinnedSensorIds => _graphs.Select(g => g.SensorId).ToList();
+        // the graphs on the board, in order; the settings page lists them with their y-axis buttons
+        public ObservableCollection<SensorGraphViewModel> Graphs { get; } = new();
+
+        public IReadOnlyList<string> PinnedSensorIds => Graphs.Select(g => g.SensorId).ToList();
 
         // the update button of the sensors page; the board follows at once, not on the next tick
         public void ApplySensors(List<SensorRowViewModel> sensors)
@@ -92,7 +96,7 @@ namespace FluentSensors.Features.WidgetBoard
         {
             _dispatcherQueue?.TryEnqueue(() =>
             {
-                foreach (var graph in _graphs)
+                foreach (var graph in Graphs)
                 {
                     var sensor = payload.FirstOrDefault(s => s.Id == graph.SensorId);
                     if (sensor != null)
@@ -110,7 +114,7 @@ namespace FluentSensors.Features.WidgetBoard
         {
             var sensors = ResolveSensors(SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetBoard));
             if (sensors.Count == 0) return;
-            if (sensors.Select(s => s.Id).SequenceEqual(_graphs.Select(g => g.SensorId))) return;
+            if (sensors.Select(s => s.Id).SequenceEqual(Graphs.Select(g => g.SensorId))) return;
 
             RebuildGraphs(sensors);
         }
@@ -123,18 +127,18 @@ namespace FluentSensors.Features.WidgetBoard
         {
             var wanted = rows.Select(r => r.Id).ToHashSet();
 
-            for (int i = _graphs.Count - 1; i >= 0; i--)
+            for (int i = Graphs.Count - 1; i >= 0; i--)
             {
-                if (wanted.Contains(_graphs[i].SensorId)) continue;
-                _graphs[i].Cleanup();
-                _graphs.RemoveAt(i);
+                if (wanted.Contains(Graphs[i].SensorId)) continue;
+                Graphs[i].Cleanup();
+                Graphs.RemoveAt(i);
             }
 
-            var kept = _graphs.ToDictionary(g => g.SensorId);
-            _graphs.Clear();
+            var kept = Graphs.ToDictionary(g => g.SensorId);
+            Graphs.Clear();
             foreach (var row in rows)
             {
-                _graphs.Add(kept.TryGetValue(row.Id, out var graph)
+                Graphs.Add(kept.TryGetValue(row.Id, out var graph)
                     ? graph
                     : new SensorGraphViewModel(row.Id, row.Name, row.SensorType, scope: SensorGraphScope.WidgetBoard, hardwareKind: row.HardwareKind));
             }
@@ -162,11 +166,12 @@ namespace FluentSensors.Features.WidgetBoard
             if (sizes.Length == 0 || _pipe == null) return;
             if (Interlocked.CompareExchange(ref _isSending, 1, 0) != 0) return;
 
-            var snapshot = _graphs.Select(TakeSnapshot).ToList();
+            var snapshot = Graphs.Select(TakeSnapshot).ToList();
             bool fillFade = SettingsService.Instance.GraphFillFade;
             var lineStyle = SettingsService.Instance.GraphLineStyle;
             string timeText = AppStrings.Format("TimeRange_Last", SettingsService.Instance.WidgetBoardGraphTimeSpanSeconds);
             string noSensorsText = _noSensorsText;
+            string linkText = _linkText;
 
             Task.Run(() =>
             {
@@ -193,7 +198,7 @@ namespace FluentSensors.Features.WidgetBoard
                             WidgetBoardRenderer.Render(s.Values, s.YBottom, s.YTop, s.Light, fillFade, lineStyle, true, width, height, scale)))
                             .ToList();
 
-                        WriteCard(size, WidgetBoardCard.BuildTemplate(count), WidgetBoardCard.BuildData(sensors, timeText));
+                        WriteCard(size, WidgetBoardCard.BuildTemplate(count), WidgetBoardCard.BuildData(sensors, timeText, linkText));
                     }
                 }
                 finally
@@ -270,10 +275,23 @@ namespace FluentSensors.Features.WidgetBoard
                     var reader = new BinaryReader(pipe);
                     while (true)
                     {
-                        if (reader.ReadByte() != WidgetBoardProtocol.ActiveSizes) throw new InvalidDataException("unknown message from the provider");
+                        switch (reader.ReadByte())
+                        {
+                            case WidgetBoardProtocol.ActiveSizes:
+                                _activeSizes = reader.ReadBytes(reader.ReadByte());
+                                _dispatcherQueue?.TryEnqueue(SendCards); // a widget that just appeared fills at once
+                                break;
 
-                        _activeSizes = reader.ReadBytes(reader.ReadByte());
-                        _dispatcherQueue?.TryEnqueue(SendCards); // a widget that just appeared fills at once
+                            case WidgetBoardProtocol.ActionInvoked:
+                                if (reader.ReadString() == WidgetBoardProtocol.OpenSettingsVerb)
+                                {
+                                    _dispatcherQueue?.TryEnqueue(OpenSettings);
+                                }
+                                break;
+
+                            default:
+                                throw new InvalidDataException("unknown message from the provider");
+                        }
                     }
                 }
                 catch
@@ -291,6 +309,21 @@ namespace FluentSensors.Features.WidgetBoard
                 }
 
                 Thread.Sleep(ReconnectDelayMs);
+            }
+        }
+
+        // the settings link of the card: the widgets board section, a closed main window opens again
+        private static void OpenSettings()
+        {
+            if (MainWindow.CurrentInstance != null)
+            {
+                MainWindow.CurrentInstance.OpenWidgetBoardSettings();
+            }
+            else
+            {
+                var mainWindow = new MainWindow();
+                mainWindow.Activate();
+                mainWindow.OpenWidgetBoardSettings();
             }
         }
 

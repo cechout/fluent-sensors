@@ -73,7 +73,7 @@ namespace FluentSensors.WidgetProvider
             ReportActiveSizes();
         }
 
-        public void OnActionInvoked(WidgetActionInvokedArgs actionInvokedArgs) { }
+        public void OnActionInvoked(WidgetActionInvokedArgs actionInvokedArgs) => AppPipe.SendAction(actionInvokedArgs.Verb);
 
         public void OnWidgetContextChanged(WidgetContextChangedArgs contextChangedArgs)
         {

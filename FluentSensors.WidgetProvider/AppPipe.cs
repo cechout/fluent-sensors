@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.IO.Pipes;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 using FluentSensors.Features.WidgetBoard;
@@ -11,7 +12,7 @@ namespace FluentSensors.WidgetProvider
     // the pipe server the running app connects to; one app at a time
     // a write never waits on the app: a provider that hangs once is avoided by the board until its widget service
     // restarts, so every write is small, buffered and dropped on failure
-    public static class AppPipe
+    public static partial class AppPipe
     {
         // === fields ===
 
@@ -42,6 +43,32 @@ namespace FluentSensors.WidgetProvider
             catch (Exception ex)
             {
                 Log.Write("sending the sizes failed " + ex.Message);
+            }
+        }
+
+
+        // a click on the card, for the app; any process may take the foreground from here, so the app can bring its
+        // window to the front
+        public static void SendAction(string verb)
+        {
+            var pipe = _pipe;
+            if (pipe == null) return;
+
+            AllowSetForegroundWindow(AllowAnyProcess);
+
+            try
+            {
+                lock (_writeGate)
+                {
+                    var writer = new BinaryWriter(pipe);
+                    writer.Write(WidgetBoardProtocol.ActionInvoked);
+                    writer.Write(verb);
+                    writer.Flush();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Write("sending the action failed " + ex.Message);
             }
         }
 
@@ -108,5 +135,14 @@ namespace FluentSensors.WidgetProvider
                 }
             }
         }
+
+
+        // === win32 api imports ===
+
+        private const int AllowAnyProcess = -1; // ASFW_ANY
+
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool AllowSetForegroundWindow(int processId);
     }
 }

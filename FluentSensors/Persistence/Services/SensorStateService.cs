@@ -66,6 +66,7 @@ namespace FluentSensors.Persistence.Services
             state.PerformanceYAxis.ManualYMax = null;
             state.WidgetYAxis.ManualYMax = null;
             state.TaskbarYAxis.ManualYMax = null;
+            state.WidgetBoardYAxis.ManualYMax = null;
             SetState(sensorId, state);
         }
 

@@ -11,7 +11,7 @@ namespace FluentSensors.Features.WidgetBoard
 
     // the adaptive card of one widget size:
     // one container per sensor sharing the height, name and value in a row over the graph like the status row of
-    // SensorPanelControl, the time range under all graphs
+    // SensorPanelControl, under all graphs the time range and the settings link
     public static class WidgetBoardCard
     {
         // === fields ===
@@ -26,8 +26,8 @@ namespace FluentSensors.Features.WidgetBoard
         private const float Spacing = 8; // the default spacing of the board between two containers
         private const float TextRowHeight = 16; // one small text line; the status row and the time
         private const float StatusRowGap = 3; // status row to graph, the row spacing of SensorPanelControl
-        private const float TimeRowSpacing = 4; // the small spacing above the time
-        private const float BottomSpacer = 8; // lifts the time off the card edge
+        private const float TextRowSpacing = 4; // the small spacing above the time and above the link
+        private const float BottomSpacer = 8; // lifts the link off the card edge
 
         // the insets of the name and the value in the status row of SensorPanelControl
         private const string NameInsetColumn = "{\"type\":\"Column\",\"width\":\"4px\"}";
@@ -53,7 +53,7 @@ namespace FluentSensors.Features.WidgetBoard
                 _ => ContentHeightLarge
             };
 
-            float sensors = content - TimeRowSpacing - TextRowHeight - BottomSpacer - Spacing * (count - 1);
+            float sensors = content - 2 * (TextRowSpacing + TextRowHeight) - BottomSpacer - Spacing * (count - 1);
             return (ContentWidth, sensors / Math.Max(1, count) - TextRowHeight - StatusRowGap);
         }
 
@@ -83,12 +83,17 @@ namespace FluentSensors.Features.WidgetBoard
             }
 
             body.Add("{\"type\":\"TextBlock\",\"text\":\"${time}\",\"size\":\"small\",\"isSubtle\":true,\"spacing\":\"small\",\"wrap\":false}");
+
+            // plain accent text as the button: the select action of an auto column, so only the text takes the click
+            body.Add("{\"type\":\"ColumnSet\",\"spacing\":\"small\",\"columns\":[{\"type\":\"Column\",\"width\":\"auto\"," +
+                $"\"selectAction\":{{\"type\":\"Action.Execute\",\"verb\":\"{WidgetBoardProtocol.OpenSettingsVerb}\"}}," +
+                "\"items\":[{\"type\":\"TextBlock\",\"text\":\"${link}\",\"size\":\"small\",\"color\":\"accent\",\"wrap\":false}]}]}");
             body.Add($"{{\"type\":\"Container\",\"minHeight\":\"{BottomSpacer:0}px\",\"spacing\":\"none\"}}");
 
             return "{\"type\":\"AdaptiveCard\",\"version\":\"1.5\",\"body\":[" + string.Join(",", body) + "]}";
         }
 
-        public static string BuildData(IReadOnlyList<WidgetBoardCardSensor> sensors, string timeText)
+        public static string BuildData(IReadOnlyList<WidgetBoardCardSensor> sensors, string timeText, string linkText)
         {
             var data = new StringBuilder("{");
 
@@ -101,7 +106,8 @@ namespace FluentSensors.Features.WidgetBoard
                 data.Append($"\"l{i}\":\"data:image/png;base64,{Convert.ToBase64String(sensor.LightGraph)}\",");
             }
 
-            data.Append($"\"time\":\"{JsonEncodedText.Encode(timeText)}\"}}");
+            data.Append($"\"time\":\"{JsonEncodedText.Encode(timeText)}\",");
+            data.Append($"\"link\":\"{JsonEncodedText.Encode(linkText)}\"}}");
             return data.ToString();
         }
 

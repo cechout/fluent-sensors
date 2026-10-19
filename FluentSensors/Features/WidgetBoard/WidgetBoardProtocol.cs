@@ -20,6 +20,10 @@ namespace FluentSensors.Features.WidgetBoard
         public const byte ActiveSizes = 1; // provider to app: one byte per size shown on the board right now
         public const byte Card = 2; // app to provider: size, template, data
         public const byte NotRunningText = 3; // app to provider: the note shown while the app is closed
+        public const byte ActionInvoked = 4; // provider to app: the verb of a card action
+
+        // --- card actions ---
+        public const string OpenSettingsVerb = "openSettings"; // the link under the graphs
 
         // --- sizes ---
         // the values of Microsoft.Windows.Widgets.WidgetSize, which the app does not reference

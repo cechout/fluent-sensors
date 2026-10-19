@@ -22,6 +22,7 @@ using FluentSensors.Common.Localization;
 using FluentSensors.Common.Sensors;
 using FluentSensors.Common.UI;
 using FluentSensors.Features.TaskbarWidget;
+using FluentSensors.Features.WidgetBoard;
 
 
 namespace FluentSensors.Features.Settings
@@ -36,6 +37,9 @@ namespace FluentSensors.Features.Settings
 
         // the gear button of the taskbar flyout asked for the taskbar section before the page was loaded
         private bool _isTaskbarSectionScrollPending;
+
+        // the same for the widgets board section, from the link on the board widget
+        private bool _isWidgetBoardSectionScrollPending;
 
         // the hardware names the LHM expander lists right now, in order; see RebuildEngineHardwareCards
         private List<string> _engineHardwareNames = new();
@@ -78,6 +82,7 @@ namespace FluentSensors.Features.Settings
 
             // the board needs the package identity of the store build
             WidgetBoardSection.Visibility = AppDistribution.IsPackaged ? Visibility.Visible : Visibility.Collapsed;
+            WidgetBoardYAxisExpander.ItemsSource = WidgetBoardService.Instance.Graphs;
             SelectTimeSpanItem(WidgetBoardGraphTimeSpanComboBox, SettingsService.Instance.WidgetBoardGraphTimeSpanSeconds);
 
             RestoreTaskbarBackgroundMaterialSettings();
@@ -151,6 +156,12 @@ namespace FluentSensors.Features.Settings
                 _isTaskbarSectionScrollPending = false;
                 QueueScrollToTaskbarSection();
             }
+
+            if (_isWidgetBoardSectionScrollPending)
+            {
+                _isWidgetBoardSectionScrollPending = false;
+                QueueScrollToSection(WidgetBoardSectionHeader);
+            }
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -198,16 +209,24 @@ namespace FluentSensors.Features.Settings
             else _isTaskbarSectionScrollPending = true;
         }
 
+        public void ScrollToWidgetBoardSection()
+        {
+            if (IsLoaded) QueueScrollToSection(WidgetBoardSectionHeader);
+            else _isWidgetBoardSectionScrollPending = true;
+        }
+
+        private void QueueScrollToTaskbarSection() => QueueScrollToSection(TaskbarSectionHeader);
+
         // at Low priority, after the layout pass; the target reaches up over the header margin, so the gap above the
         // heading stays in view
-        private void QueueScrollToTaskbarSection()
+        private void QueueScrollToSection(FrameworkElement header)
         {
             DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
             {
-                double gap = TaskbarSectionHeader.Margin.Top;
-                TaskbarSectionHeader.StartBringIntoView(new BringIntoViewOptions
+                double gap = header.Margin.Top;
+                header.StartBringIntoView(new BringIntoViewOptions
                 {
-                    TargetRect = new Rect(0, -gap, TaskbarSectionHeader.ActualWidth, TaskbarSectionHeader.ActualHeight + gap),
+                    TargetRect = new Rect(0, -gap, header.ActualWidth, header.ActualHeight + gap),
                     VerticalAlignmentRatio = 0,
                     AnimationDesired = true
                 });
