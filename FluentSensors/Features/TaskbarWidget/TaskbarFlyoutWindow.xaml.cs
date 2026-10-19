@@ -1430,6 +1430,7 @@ namespace FluentSensors.Features.TaskbarWidget
             int squeezePx = (int)Math.Round((_resourcesDrawerPx - _resourcesReservePx) * _resourcesProgress);
             ResourcesDrawerHost.Height = (growthPx + squeezePx) / scale;
             ResourcesButtonIconRotation.Angle = 180 * _resourcesProgress;
+            AnchorGrain(card);
 
             _shadowCardRectPx = card;
             if (_isResourcesAnimating)
@@ -1438,22 +1439,30 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             else
             {
-                FlyoutShadowImage.Margin = new Thickness(0);
+                Canvas.SetTop(FlyoutShadowImage, 0);
+                FlyoutShadowImage.NineGrid = new Thickness(0);
+                FlyoutShadowImage.Height = _shadowWindowSizePx.Height;
                 RenderCardShadow();
                 SetCardWindowRegion(_isCardWindow && _resourcesReservePx > 0 ? card : null);
             }
         }
 
-        // during the drawer the last shadow bitmap follows the card edges stretched; a render per frame is too slow
+        // during the drawer the last shadow bitmap follows the card edges, a render per frame is too slow; a nine grid
+        // keeps the shadow above and below the card with its corners unscaled and stretches only the sides between
+        // (all in bitmap pixels, the image is sized in them)
         private void StretchCardShadow()
         {
             var rendered = _shadowRenderedFor.Card;
             if (FlyoutShadowImage.Source == null || rendered.Height <= 0) return;
 
+            int capPx = (int)Math.Ceiling(CardCornerRadiusDip * _shadowScale) + 2;
+            FlyoutShadowImage.NineGrid = new Thickness(
+                0, rendered.Y + capPx, 0, _shadowWindowSizePx.Height - (rendered.Y + rendered.Height) + capPx);
+
             int topDeltaPx = _shadowCardRectPx.Y - rendered.Y;
             int bottomDeltaPx = (_shadowCardRectPx.Y + _shadowCardRectPx.Height) - (rendered.Y + rendered.Height);
-            FlyoutShadowImage.Margin = new Thickness(0, topDeltaPx / _shadowScale, 0, 0);
-            FlyoutShadowImage.Height = (_shadowWindowSizePx.Height - topDeltaPx + bottomDeltaPx) / _shadowScale;
+            Canvas.SetTop(FlyoutShadowImage, topDeltaPx / _shadowScale);
+            FlyoutShadowImage.Height = _shadowWindowSizePx.Height - topDeltaPx + bottomDeltaPx;
         }
 
         // clips the window to the card and its shadow margin, so the room kept for the open drawer lets clicks through
@@ -1846,9 +1855,11 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             bitmap.Invalidate();
 
-            // one bitmap pixel per physical pixel
-            FlyoutShadowImage.Width = width / _shadowScale;
-            FlyoutShadowImage.Height = height / _shadowScale;
+            // one bitmap pixel per physical pixel: sized in pixels and scaled down, like the acrylic grain, so a nine grid
+            // over it counts in pixels too
+            FlyoutShadowImage.Width = width;
+            FlyoutShadowImage.Height = height;
+            FlyoutShadowImage.RenderTransform = new Microsoft.UI.Xaml.Media.ScaleTransform { ScaleX = 1.0 / _shadowScale, ScaleY = 1.0 / _shadowScale };
             FlyoutShadowImage.Source = bitmap;
             _shadowRenderedFor = renderFor;
         }
@@ -1897,11 +1908,26 @@ namespace FluentSensors.Features.TaskbarWidget
         private AcrylicGrain? _grain;
         private AcrylicGrain Grain => _grain ??= new AcrylicGrain(FlyoutNoiseHost, FlyoutNoiseOverlay, FlyoutRootBorder);
 
+        // sized for the open card at once, so the drawer does not grow a new bitmap on every frame
         private void FlyoutRootBorder_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (!Grain.IsVisible) return;
 
-            Grain.Ensure(e.NewSize.Width, e.NewSize.Height);
+            double openHeightDip = _shadowScale > 0 ? _openCardRectPx.Height / _shadowScale : 0;
+            Grain.Ensure(e.NewSize.Width, Math.Max(e.NewSize.Height, openHeightDip));
+            AnchorGrain(_shadowCardRectPx);
+        }
+
+        // the grain sits on the card edge at the taskbar, the one the drawer never moves, so it stands still while the
+        // card grows; (the bitmap is larger than the card, the rounded card clips it)
+        private void AnchorGrain(RectInt32 card)
+        {
+            if (_shadowScale <= 0 || double.IsNaN(FlyoutNoiseOverlay.Height)) return;
+
+            double top = _isResourcesGrowingUp
+                ? ((card.Height - FlyoutNoiseOverlay.Height) / _shadowScale) - (2 * CardBorderDip)
+                : 0;
+            Canvas.SetTop(FlyoutNoiseOverlay, top);
         }
 
         // applies the backdrop for the material and the Windows transparency state; without transparency no controller,

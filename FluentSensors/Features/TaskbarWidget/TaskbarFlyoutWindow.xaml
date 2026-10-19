@@ -24,13 +24,14 @@
     <Grid x:Name="FlyoutWindowRoot" Background="Transparent">
 
         <!--  the shadow: a bitmap over the whole window, computed in RenderCardShadow  -->
-        <Image
-            x:Name="FlyoutShadowImage"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            IsHitTestVisible="False"
-            Stretch="Fill"
-            Visibility="Collapsed" />
+        <!--  (in physical pixels and scaled down from code, so the canvas keeps the layout from clipping it)  -->
+        <Canvas IsHitTestVisible="False">
+            <Image
+                x:Name="FlyoutShadowImage"
+                IsHitTestVisible="False"
+                Stretch="Fill"
+                Visibility="Collapsed" />
+        </Canvas>
 
         <!--  the material: the backdrop link visual hangs here, behind the card, sized and clipped to it in code  -->
         <Grid x:Name="FlyoutBackdropHost" IsHitTestVisible="False" />
