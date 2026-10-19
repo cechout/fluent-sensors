@@ -262,6 +262,21 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+        // the unit of ActualYMaxText, scaled with it (GHz, GB); the widgets board shows both
+        private string _actualYMaxUnit = "";
+        public string ActualYMaxUnit
+        {
+            get => _actualYMaxUnit;
+            private set
+            {
+                if (_actualYMaxUnit != value)
+                {
+                    _actualYMaxUnit = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private Brush _currentValueColor;
         private Windows.UI.Color _currentValueThresholdColor; // the threshold color behind CurrentValueColor, see RecalculateColor
         public Brush CurrentValueColor
@@ -634,8 +649,9 @@ namespace FluentSensors.Controls.SensorGraph
                 // the highest point, 0 while empty; the lowest for a series below zero, the end of its range
                 double currentHighestPoint = SensorData.Max() ?? 0;
                 if (currentHighestPoint <= 0) currentHighestPoint = Math.Min(SensorData.Min() ?? 0, 0);
-                var (scaledValue, _) = SensorUnitFormatter.Scale(currentHighestPoint, SensorType);
+                var (scaledValue, unit) = SensorUnitFormatter.Scale(currentHighestPoint, SensorType);
                 ActualYMaxText = $"{scaledValue:0.0}";
+                ActualYMaxUnit = unit;
             }
             else
             {
@@ -644,6 +660,7 @@ namespace FluentSensors.Controls.SensorGraph
                 ActualYMaxText = unit == SensorUnitFormatter.GetUnit(SensorType)
                     ? scaledValue.ToString("0")
                     : $"{scaledValue:0.0}";
+                ActualYMaxUnit = unit;
             }
         }
 

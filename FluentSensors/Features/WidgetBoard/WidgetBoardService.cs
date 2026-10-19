@@ -46,7 +46,8 @@ namespace FluentSensors.Features.WidgetBoard
         // read on the UI thread, the pipe thread sends them
         private string _notRunningText = "";
         private string _noSensorsText = "";
-        private string _linkText = "";
+        private string _sensorsLinkText = "";
+        private string _settingsLinkText = "";
 
 
         // === singleton instance ===
@@ -66,7 +67,8 @@ namespace FluentSensors.Features.WidgetBoard
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
             _notRunningText = AppStrings.Get("WidgetBoard_NotRunning");
             _noSensorsText = AppStrings.Get("WidgetBoard_NoSensors");
-            _linkText = AppStrings.Get("WidgetBoard_SettingsLink");
+            _sensorsLinkText = AppStrings.Get("WidgetBoard_SensorsLink");
+            _settingsLinkText = AppStrings.Get("WidgetBoard_SettingsLink");
 
             RebuildGraphs(ResolveSensors(SensorSelectionService.Instance.GetSelection(SensorSelectionProfile.WidgetBoard)));
             HardwareMonitorService.Instance.HardwareDataUpdated += OnHardwareDataUpdated;
@@ -171,7 +173,8 @@ namespace FluentSensors.Features.WidgetBoard
             var lineStyle = SettingsService.Instance.GraphLineStyle;
             string timeText = AppStrings.Format("TimeRange_Last", SettingsService.Instance.WidgetBoardGraphTimeSpanSeconds);
             string noSensorsText = _noSensorsText;
-            string linkText = _linkText;
+            string sensorsLinkText = _sensorsLinkText;
+            string settingsLinkText = _settingsLinkText;
 
             Task.Run(() =>
             {
@@ -193,12 +196,13 @@ namespace FluentSensors.Features.WidgetBoard
 
                         var sensors = snapshot.Take(count).Select(s => new WidgetBoardCardSensor(
                             s.Name,
+                            s.YMax,
                             s.Value,
                             WidgetBoardRenderer.Render(s.Values, s.YBottom, s.YTop, s.Dark, fillFade, lineStyle, false, width, height, scale),
                             WidgetBoardRenderer.Render(s.Values, s.YBottom, s.YTop, s.Light, fillFade, lineStyle, true, width, height, scale)))
                             .ToList();
 
-                        WriteCard(size, WidgetBoardCard.BuildTemplate(count), WidgetBoardCard.BuildData(sensors, timeText, linkText));
+                        WriteCard(size, WidgetBoardCard.BuildTemplate(count), WidgetBoardCard.BuildData(sensors, timeText, sensorsLinkText, settingsLinkText));
                     }
                 }
                 finally
@@ -208,7 +212,7 @@ namespace FluentSensors.Features.WidgetBoard
             });
         }
 
-        private sealed record GraphSnapshot(string Name, string Value, double?[] Values, double YBottom, double YTop, SKColor Dark, SKColor Light);
+        private sealed record GraphSnapshot(string Name, string YMax, string Value, double?[] Values, double YBottom, double YTop, SKColor Dark, SKColor Light);
 
         private static GraphSnapshot TakeSnapshot(SensorGraphViewModel graph)
         {
@@ -219,6 +223,7 @@ namespace FluentSensors.Features.WidgetBoard
 
             return new GraphSnapshot(
                 graph.SensorName,
+                WidgetBoardCard.FormatYMax(graph.ActualYMaxText, graph.ActualYMaxUnit),
                 graph.CurrentValueText,
                 values,
                 bottom,
@@ -283,10 +288,9 @@ namespace FluentSensors.Features.WidgetBoard
                                 break;
 
                             case WidgetBoardProtocol.ActionInvoked:
-                                if (reader.ReadString() == WidgetBoardProtocol.OpenSettingsVerb)
-                                {
-                                    _dispatcherQueue?.TryEnqueue(OpenSettings);
-                                }
+                                string verb = reader.ReadString();
+                                if (verb == WidgetBoardProtocol.OpenSettingsVerb) _dispatcherQueue?.TryEnqueue(OpenSettings);
+                                else if (verb == WidgetBoardProtocol.OpenSensorsVerb) _dispatcherQueue?.TryEnqueue(OpenSensors);
                                 break;
 
                             default:
@@ -312,7 +316,22 @@ namespace FluentSensors.Features.WidgetBoard
             }
         }
 
-        // the settings link of the card: the widgets board section, a closed main window opens again
+        // the links of the card: the sensors page on the widgets board profile, or the widgets board section of the
+        // settings; a closed main window opens again
+        private static void OpenSensors()
+        {
+            if (MainWindow.CurrentInstance != null)
+            {
+                MainWindow.CurrentInstance.OpenSensorsForProfile(SensorSelectionProfile.WidgetBoard);
+            }
+            else
+            {
+                var mainWindow = new MainWindow();
+                mainWindow.Activate();
+                mainWindow.OpenSensorsForProfile(SensorSelectionProfile.WidgetBoard);
+            }
+        }
+
         private static void OpenSettings()
         {
             if (MainWindow.CurrentInstance != null)

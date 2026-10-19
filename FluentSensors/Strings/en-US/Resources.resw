@@ -2061,9 +2061,17 @@ Cycle Count - full charge cycles counted by the electronics of the battery</valu
     <value>Fluent Sensors is not running</value>
     <comment>shown on the Windows Widgets board while the app is closed</comment>
   </data>
+  <data name="WidgetBoard_SensorsLink" xml:space="preserve">
+    <value>Manage Sensors</value>
+    <comment>link on the widget on the Windows Widgets board; opens the sensors page on its selection profile</comment>
+  </data>
   <data name="WidgetBoard_SettingsLink" xml:space="preserve">
-    <value>Settings</value>
+    <value>Widget Settings</value>
     <comment>link on the widget on the Windows Widgets board; opens its section in the app settings</comment>
+  </data>
+  <data name="WidgetBoard_YMax" xml:space="preserve">
+    <value>max: {0}</value>
+    <comment>the top of a graph y-axis on the Windows Widgets board; {0} value and unit, like 47,8 %</comment>
   </data>
   <data name="WidgetBoard_NoSensors" xml:space="preserve">
     <value>No sensors selected</value>

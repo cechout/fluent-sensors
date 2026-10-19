@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
+    xmlns:fhWidgetBoard="using:FluentSensors.Features.WidgetBoard"
     xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
@@ -637,6 +638,14 @@
                         <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
                             <controls:SettingsCard Header="{x:Bind SensorName, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <!--  the shown top of the y-axis, as on the board  -->
+                                    <TextBlock
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="{x:Bind fhWidgetBoard:WidgetBoardCard.FormatYMax(ActualYMaxText, ActualYMaxUnit), Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+
                                     <RepeatButton
                                         x:Uid="SensorPanel_IncreaseYAxisButton"
                                         Width="32"
