@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
+using FluentSensors.Common.Localization;
 using FluentSensors.Core;
 
 
@@ -22,6 +23,8 @@ namespace FluentSensors.Features.TaskbarWidget
         private string _cpuValue = "-";
         private string _ramValue = "-";
         private string _gpuUsageValue = "-";
+        private string _updateIntervalValue = "-";
+        private string _readTimeValue = "-";
 
 
         // === bindable properties ===
@@ -42,6 +45,18 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             get => _gpuUsageValue;
             private set { _gpuUsageValue = value; OnPropertyChanged(); }
+        }
+
+        public string UpdateIntervalValue
+        {
+            get => _updateIntervalValue;
+            private set { _updateIntervalValue = value; OnPropertyChanged(); }
+        }
+
+        public string ReadTimeValue
+        {
+            get => _readTimeValue;
+            private set { _readTimeValue = value; OnPropertyChanged(); }
         }
 
 
@@ -71,6 +86,8 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             CpuValue = $"{data.CpuUsagePercent:0.0} %";
             RamValue = $"{data.RamUsageBytes / 1024.0 / 1024.0:0} MB";
+            UpdateIntervalValue = AppStrings.Format("Start_UpdateIntervalValue", data.ActualUpdateIntervalMs, data.AimedUpdateIntervalMs);
+            ReadTimeValue = $"{data.ReadDurationMs:0} ms";
 
             ReadGpu();
         }

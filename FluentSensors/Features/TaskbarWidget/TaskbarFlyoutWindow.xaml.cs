@@ -1380,7 +1380,8 @@ namespace FluentSensors.Features.TaskbarWidget
         // name and tooltip follow the state, like the pause button
         private void ApplyResourcesButtonState()
         {
-            string label = AppStrings.Get(_isResourcesExpanded ? "TaskbarFlyout_HideAppResources" : "TaskbarFlyout_ShowAppResources");
+            // (TaskbarFlyout_HideAppResources and TaskbarFlyout_ShowAppResources go with the parked app resources)
+            string label = AppStrings.Get(_isResourcesExpanded ? "TaskbarFlyout_HideLhmStatus" : "TaskbarFlyout_ShowLhmStatus");
             ToolTipService.SetToolTip(ResourcesButton, label);
             AutomationProperties.SetName(ResourcesButton, label);
         }

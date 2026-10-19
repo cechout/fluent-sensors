@@ -272,7 +272,7 @@
                         </Button>
                     </Grid>
 
-                    <!--  app resources drawer: this apps usage, opened by the arrow above  -->
+                    <!--  status drawer: the lhm status, opened by the arrow above  -->
                     <!--
                         (the card grows by it inside the still window, see ApplyResourcesProgress; the panel sits on the
                         bottom, so the rows above slide up off it)
@@ -287,6 +287,42 @@
                             Margin="{StaticResource FlyoutResourcesPanelMargin}"
                             VerticalAlignment="Bottom"
                             Spacing="8">
+                            <!--  lhm status; (the app resources below are parked, swap the two blocks to bring them back)  -->
+                            <fhInfoPopup:InfoPopupControl
+                                x:Uid="TaskbarFlyout_LhmPopup"
+                                Title="LibreHardwareMonitor"
+                                PlacementMode="Above"
+                                TitleTextTrimming="CharacterEllipsis">
+                                <fhInfoPopup:InfoPopupControl.SourceLinks>
+                                    <fhInfoPopup:SourceLink x:Uid="Start_LhmGitHubSource" Url="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor" />
+                                </fhInfoPopup:InfoPopupControl.SourceLinks>
+                            </fhInfoPopup:InfoPopupControl>
+
+                            <controls:WrapPanel HorizontalSpacing="16" VerticalSpacing="12">
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_UpdateIntervalText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.UpdateIntervalValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        x:Uid="Start_ReadTimeText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <TextBlock
+                                        Style="{ThemeResource BodyTextBlockStyle}"
+                                        Text="{x:Bind ResourcesViewModel.ReadTimeValue, Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+                                </StackPanel>
+                            </controls:WrapPanel>
+
+                            <!--
                             <fhInfoPopup:InfoPopupControl
                                 x:Uid="TaskbarFlyout_AppResourcesPopup"
                                 PlacementMode="Above"
@@ -297,7 +333,7 @@
                                 </fhInfoPopup:InfoPopupControl.SourceLinks>
                             </fhInfoPopup:InfoPopupControl>
 
-                            <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="12">
+                            <controls:WrapPanel HorizontalSpacing="16" VerticalSpacing="12">
                                 <StackPanel Spacing="2">
                                     <TextBlock
                                         x:Uid="Start_CPUUsageText"
@@ -331,6 +367,7 @@
                                         Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
                             </controls:WrapPanel>
+                            -->
                         </StackPanel>
                     </Grid>
                 </Grid>
