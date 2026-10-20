@@ -9,9 +9,10 @@ using FluentSensors.Common.UI;
 namespace FluentSensors.Persistence.Models
 {
     // the persisted settings:
-    // a plain serializable snapshot of SettingsService, which keeps the live state (events, validation);
-    // The initializers are the defaults for a fresh install, a missing key and every reset; SettingsService seeds its
+    // A plain serializable snapshot of SettingsService, which keeps the live state (events, validation);
+    // the initializers are the defaults for a fresh install, a missing key and every reset; SettingsService seeds its
     // fields from here, so a default only changes here
+    //
     // the sections and their entries follow the settings page top to bottom
     public class AppSettingsData
     {

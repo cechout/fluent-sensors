@@ -9,11 +9,11 @@ namespace FluentSensors.Core.Startup
 {
     // the graphics preference of this exe, as the windows graphics settings page stores it:
     // on a hybrid laptop the screen hangs on the integrated gpu, which also runs the desktop compositor; an app that
-    // renders on the discrete gpu has every frame copied across, and the composition animations of the flyout then miss
-    // every second or third refresh (12 to 36 ms steps instead of 6 at 165 Hz, worse under a debugger)
-    // power saving is only written while no gpu is chosen (no value, or let windows decide), so a choice of a gpu
-    // always wins; it is taken back when the screens no longer hang on the power saving gpu (a monitor on the
-    // discrete card)
+    // renders on the discrete gpu has every frame copied across, and the flyout animations miss every second or third
+    // refresh
+    // power saving is only written while no gpu is chosen, so a choice of a gpu always wins; it is taken back once a
+    // screen hangs on the discrete card
+    //
     // not in the store build: its HKCU writes land in a private hive, and any value there (a delete leaves a REG_NONE
     // marker) hides the real one for good, so a later choice on the settings page would never reach DirectX
     public static class WinGpuPreference
@@ -61,8 +61,8 @@ namespace FluentSensors.Core.Startup
 
         // === private helpers ===
 
-        // the value is a list of name=value; entries, other settings of the page (windowed game optimizations) can sit
-        // beside the gpu; let windows decide is stored as 0
+        // the value is a list of "name=value;" entries, where other settings of the page (windowed game optimizations)
+        // can sit beside the gpu; let windows decide is stored as 0
         private static bool IsUnchosen(string? value)
         {
             if (value == null) return true;

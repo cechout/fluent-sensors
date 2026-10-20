@@ -12,6 +12,7 @@ namespace FluentSensors.Common.UI
     // problem: Application.Current.Resources[...] from C# returns the light theme value, ignores a window
     // RequestedTheme (it resolves against the OS theme) and never follows a runtime switch:
     // https://github.com/microsoft/microsoft-ui-xaml/issues/7663
+    //
     // the same cause broke walking ThemeDictionaries (KeyNotFoundException through every MergedDictionary) and the
     // Style Setter fallback via DependencyProperty.UnsetValue (no switch inside a DataTemplate)
     // fix: no lookup; the two Fluent 2 token values of TextFillColorPrimary, picked by the theme, untouched by OS

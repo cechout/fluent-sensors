@@ -9,6 +9,7 @@ namespace FluentSensors.Core.StaticInfo
     // physical cores, SMT and the EfficiencyClass of Intel hybrid CPUs from
     // GetLogicalProcessorInformationEx, the source of the Windows scheduler and Task Manager; works without
     // SMT too (Arrow Lake has none); AMD hybrid is untested
+    //
     // the buffer is a run of variable-length records (a union with a trailing array), which struct marshaling handles
     // poorly, so it is read as raw bytes at the documented offsets:
     // https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-system_logical_processor_information_ex

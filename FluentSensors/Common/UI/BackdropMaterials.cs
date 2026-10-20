@@ -11,10 +11,12 @@ namespace FluentSensors.Common.UI
         // --- system acrylic preset (BackdropMaterial.SystemAcrylic with Windows transparency on) ---
         // over a flat backdrop the controller resolves to lerp(backdrop, tint, luminosity); the native shell flyouts
         // measure as 4 percent backdrop transmission in dark and 9.4 in light (their bottom bar, the bare material)
+        //
         // TintOpacity: the tint blend carries hue and saturation only, so a gray tint leaves every gray value alone
         // and only takes the color out of what shows through; the native flyouts pass far less color than the
         // default does (the source names its BlendEffectMode swapped, the tint layer reads as Luminosity there):
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.cpp
+        //
         // tints are the Fluent acrylic base tones, AcrylicBackgroundFillColorBaseBrush, not pre-compensated (the
         // render shift applies once to the finished composite):
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush_19h1_themeresources.xaml

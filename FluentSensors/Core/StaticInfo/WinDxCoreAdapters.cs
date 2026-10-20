@@ -5,7 +5,8 @@ using System.Runtime.InteropServices;
 
 namespace FluentSensors.Core.StaticInfo
 {
-    // one hardware adapter as DXCore lists it; the pci ids tell it apart
+    // one hardware adapter as DXCore lists it;
+    // the pci ids tell it apart
     public record WinDxCoreAdapter(uint VendorId, uint DeviceId, bool IsIntegrated);
 
     // integrated or discrete, per adapter:

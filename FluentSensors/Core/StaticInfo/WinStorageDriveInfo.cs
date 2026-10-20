@@ -36,8 +36,7 @@ namespace FluentSensors.Core.StaticInfo
 
         // from MSFT_StorageReliabilityCounter (GetRelated on the matching MSFT_PhysicalDisk), the Storport view
         // of SMART across vendor quirks
-        // not from LHM, which misreads some of these on certain Samsung NVMe drives (issue
-        // #455), worse behind Intel VMD
+        // not from LHM, which misreads some of these on certain Samsung NVMe drives (issue #455), worse behind Intel VMD
         // null when the disk has no counter object (some controllers and drivers expose none)
         uint? TemperatureCelsius,
         uint? TemperatureMaxCelsius,

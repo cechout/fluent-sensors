@@ -3,8 +3,8 @@
 
 namespace FluentSensors.Core.StaticInfo
 {
-    // one physical core from GetLogicalProcessorInformationEx; no P or E label, the UI interprets EfficiencyClass (see
-    // LhmCpuInstanceViewModel.FormatCoreTopology)
+    // one physical core from GetLogicalProcessorInformationEx;
+    // no P or E label, the UI interprets EfficiencyClass (see LhmCpuInstanceViewModel.FormatCoreTopology)
     public record WinCpuCoreTopologyEntry(
         int CoreIndex, // 0-based, in Windows order
         byte EfficiencyClass, // higher means more performance; the scale is per vendor
