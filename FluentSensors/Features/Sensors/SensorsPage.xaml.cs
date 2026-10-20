@@ -508,7 +508,7 @@ namespace FluentSensors.Features.Sensors
         }
 
         // profile picker width
-        private const double ComboBoxChromeWidth = 52; // left padding 12, chevron column 38, border 2
+        private const double ComboBoxChromeWidth = 52; // ~ left padding 12, chevron column 38, border 2
 
         // sized to its content the picker narrows to the selected entry while open and the controls to its right
         // follow; one width for the widest entry in the current language keeps them in place

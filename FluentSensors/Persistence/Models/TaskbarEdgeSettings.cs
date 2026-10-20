@@ -14,7 +14,7 @@ namespace FluentSensors.Persistence.Models
         public int SideTitleLines { get; set; } = 1; // 1 or 2
 
         // over the widget: "Center", "Left" or "Right" (top and bottom on a side taskbar)
-        public string FlyoutAlignment { get; set; } = "Center";
+        public string FlyoutAlignment { get; set; } = "Left";
 
         public TaskbarEdgeSettings Clone() => (TaskbarEdgeSettings)MemberwiseClone();
     }
