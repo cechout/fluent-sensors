@@ -78,6 +78,7 @@ namespace FluentSensors.Features.Sensors
                 SelectionProfileComboBox.Items.Remove(WidgetBoardProfileItem);
                 if (lastProfile == SensorSelectionProfile.WidgetBoard) lastProfile = SensorSelectionProfile.WidgetWindow;
             }
+            FitSelectionProfileWidth();
 
             ViewModel.ActiveWidgetIndex = SettingsService.Instance.LastWidgetWindowIndex;
             ViewModel.ActiveProfile = lastProfile;
@@ -504,6 +505,29 @@ namespace FluentSensors.Features.Sensors
             {
                 Rect = new Rect(0, 0, InfoBarHost.ActualWidth, visibleHeight)
             };
+        }
+
+        // profile picker width
+        private const double ComboBoxChromeWidth = 52; // left padding 12, chevron column 38, border 2
+
+        // sized to its content the picker narrows to the selected entry while open and the controls to its right
+        // follow; one width for the widest entry in the current language keeps them in place
+        private void FitSelectionProfileWidth()
+        {
+            double widest = 0;
+            foreach (var item in SelectionProfileComboBox.Items.OfType<ComboBoxItem>())
+            {
+                var text = new TextBlock
+                {
+                    Text = item.Content as string ?? string.Empty,
+                    FontFamily = SelectionProfileComboBox.FontFamily,
+                    FontSize = SelectionProfileComboBox.FontSize
+                };
+                text.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                widest = Math.Max(widest, text.DesiredSize.Width);
+            }
+
+            SelectionProfileComboBox.Width = Math.Ceiling(widest) + ComboBoxChromeWidth;
         }
 
 
