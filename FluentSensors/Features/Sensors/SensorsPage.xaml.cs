@@ -43,7 +43,7 @@ namespace FluentSensors.Features.Sensors
         private const double IconOnlyButtonWidth = 42;
         private bool _commandBarWidthsCached = false;
         private const double OverflowButtonReservedWidth = 48;
-        private const double LeftSectionMinWidth = 300; // from SensorListTitleText
+        private const double TitlePanelGap = 20; // at least between the last element right of the title and the bar
         private int _commandBarOverflowStartIndex = -1;
 
         // command bar entrance after a profile switch or a pin; hidden at once, then slid in from the right
@@ -695,7 +695,7 @@ namespace FluentSensors.Features.Sensors
             return order.ToArray();
         }
 
-        // the overflow split follows the header size
+        // the overflow split follows the header size, and the title panel, which grows with the widget window picker
         private void SensorListHeaderGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (_commandBarWidthsCached)
@@ -724,7 +724,7 @@ namespace FluentSensors.Features.Sensors
         {
             if (SensorListHeaderGrid.ActualWidth <= 0) return;
 
-            double leftSectionWidth = Math.Max(LeftSectionMinWidth, SensorListTitlePanel.ActualWidth);
+            double leftSectionWidth = SensorListTitlePanel.ActualWidth + TitlePanelGap;
             double availableWidth = Math.Max(0, SensorListHeaderGrid.ActualWidth - leftSectionWidth);
 
             // only elements not pinned to overflow, in units, so a separator never dangles alone
