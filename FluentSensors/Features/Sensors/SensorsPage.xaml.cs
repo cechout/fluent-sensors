@@ -720,13 +720,12 @@ namespace FluentSensors.Features.Sensors
 
         // fills the bar in priority order, the first unit that does not fit and everything after it overflows; only a
         // changed split rebuilds (or every resize tick would flicker the labels)
-        // the first unit stays in the bar even when it does not fit, so the bar never shows only the overflow button
         private void UpdateCommandBarOverflow()
         {
-            double leftSectionWidth = Math.Max(LeftSectionMinWidth, SensorListTitlePanel.ActualWidth);
-            double availableWidth = SensorListHeaderGrid.ActualWidth - leftSectionWidth;
+            if (SensorListHeaderGrid.ActualWidth <= 0) return;
 
-            if (availableWidth <= 0) return;
+            double leftSectionWidth = Math.Max(LeftSectionMinWidth, SensorListTitlePanel.ActualWidth);
+            double availableWidth = Math.Max(0, SensorListHeaderGrid.ActualWidth - leftSectionWidth);
 
             // only elements not pinned to overflow, in units, so a separator never dangles alone
             var fittableUnits = GroupIntoOverflowUnits(
@@ -747,7 +746,7 @@ namespace FluentSensors.Features.Sensors
             {
                 double unitWidth = fittableUnits[i].Sum(element => _commandBarButtonWidths.GetValueOrDefault(element, 40));
 
-                if (i > 0 && runningWidth + unitWidth > budget)
+                if (runningWidth + unitWidth > budget)
                 {
                     fittableOverflowStartUnitIndex = i;
                     break;
