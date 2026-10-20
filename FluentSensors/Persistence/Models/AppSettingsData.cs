@@ -173,10 +173,11 @@ namespace FluentSensors.Persistence.Models
         public SensorSelectionProfile LastSensorProfile { get; set; } = SensorSelectionProfile.WidgetWindow;
         public int LastWidgetWindowIndex { get; set; } = 0;
 
-        // sensor type colors; the graphs of the performance page and the check boxes of the sensors page, instead of
+        // sensor type colors; the check boxes of the sensors page and the graphs of the performance page, instead of
         // the hardware color (the widget and the taskbar have SensorType in their own GraphColorSource)
-        // switched on the two pages themselves, not on the settings page
-        public bool UseSensorTypeColors { get; set; } = false;
+        // switched on each page itself, not on the settings page
+        public bool SensorsUseSensorTypeColors { get; set; } = false;
+        public bool PerformanceUseSensorTypeColors { get; set; } = false;
 
         // performance page graph; Standard for the overview blocks, CpuExtended and GpuExtended for the dense grids
         // (cpu all-threads, gpu extended)
@@ -230,6 +231,9 @@ namespace FluentSensors.Persistence.Models
 
         // the shared extended range the cpu and gpu ranges replaced; SettingsService copies it onto both once
         public double? PerformanceExtendedGraphTimeSpanSeconds { get; set; } = null;
+
+        // the one switch both pages shared before each had its own; SettingsService copies it onto both once
+        public bool? UseSensorTypeColors { get; set; } = null;
 
         // the three material tags ("Mica", "Acrylic", "None") the four BackdropMaterial values replaced; a new key
         // instead of new tags, so an older version reading this file never misreads one

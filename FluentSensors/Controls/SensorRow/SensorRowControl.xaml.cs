@@ -146,8 +146,8 @@ namespace FluentSensors.Controls.SensorRow
             UpdateVisualState(useTransitions: false);
             UpdateDisplayState();
 
-            SettingsService.Instance.SensorTypeColorsChanged -= UpdateCheckBoxColor;
-            SettingsService.Instance.SensorTypeColorsChanged += UpdateCheckBoxColor;
+            SettingsService.Instance.SensorsSensorTypeColorsChanged -= UpdateCheckBoxColor;
+            SettingsService.Instance.SensorsSensorTypeColorsChanged += UpdateCheckBoxColor;
             UpdateCheckBoxColor();
         }
 
@@ -167,7 +167,7 @@ namespace FluentSensors.Controls.SensorRow
             }
             this.Bindings.StopTracking();
 
-            SettingsService.Instance.SensorTypeColorsChanged -= UpdateCheckBoxColor;
+            SettingsService.Instance.SensorsSensorTypeColorsChanged -= UpdateCheckBoxColor;
         }
 
 
@@ -311,7 +311,7 @@ namespace FluentSensors.Controls.SensorRow
         {
             ThemeColorPair colors = default;
             bool hasTypeColor = ViewModel != null
-                && SettingsService.Instance.UseSensorTypeColors
+                && SettingsService.Instance.SensorsUseSensorTypeColors
                 && SensorTypeGroupInfo.TryGetColors(ViewModel.SensorType, ViewModel.Name, out colors);
 
             if (hasTypeColor)

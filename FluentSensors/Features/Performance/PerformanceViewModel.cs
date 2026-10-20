@@ -47,9 +47,6 @@ namespace FluentSensors.Features.Performance
             // detached, this lives for the session
             SettingsService.Instance.HardwareIconColorsChanged += RefreshNavItemIconBrushes;
 
-            // toggled on the sensors page too
-            SettingsService.Instance.SensorTypeColorsChanged += () => OnPropertyChanged(nameof(UseSensorTypeColors));
-
             // no value, any range; all pickers re-read
             SettingsService.Instance.PerformanceGraphTimeSpanChanged += () =>
             {
@@ -176,12 +173,11 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // graphs and check boxes by what a sensor measures instead of by hardware; one setting, toggled here and on the
-        // sensors page
+        // the graphs by what a sensor measures instead of by hardware; the sensors page has its own switch
         public bool UseSensorTypeColors
         {
-            get => SettingsService.Instance.UseSensorTypeColors;
-            set => SettingsService.Instance.UseSensorTypeColors = value;
+            get => SettingsService.Instance.PerformanceUseSensorTypeColors;
+            set => SettingsService.Instance.PerformanceUseSensorTypeColors = value;
         }
 
         // info panel
