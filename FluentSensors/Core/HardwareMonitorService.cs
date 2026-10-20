@@ -492,7 +492,7 @@ namespace FluentSensors.Core
 
                         // --- workaround: two sensors with one identifier ---
                         // problem: LHM 0.9.6 gives the NVIDIA "GPU Memory" load the index 3 of the "GPU Bus" load, so
-                        // both report /gpu-nvidia/0/load/3 and the later one overwrote the first for every consumer
+                        // both report /gpu-nvidia/0/load/3 and the later one overwrites the first for every consumer
                         // keyed by id; reproduced on an RTX 3080 Ti, and upstream counts the load indices after 0.9.6
                         // fix: the later sensor gets a suffix; decided before any skip, so it holds from tick to tick
                         if (!payloadIds.Add(id))
@@ -746,7 +746,7 @@ namespace FluentSensors.Core
                         nic.GetIPProperties().UnicastAddresses.Count > 0)
                     .Select(nic => nic.Name));
 
-            // an adapter that went down (wi-fi off, cable out) leaves the pages like an unplugged one; LHM keeps it
+            // an adapter that went down (Wi-Fi off, cable out) leaves the pages like an unplugged one; LHM keeps it
             var wentDown = _activeNetworkAdapters.Where(name => !upAdapters.Contains(name)).ToList();
             if (wentDown.Count > 0)
             {
@@ -920,8 +920,7 @@ namespace FluentSensors.Core
         // the name a piece of hardware goes by in the payload
         private static string GetHardwareName(IHardware hardware)
         {
-            // some NVMe names are padded with control characters, which
-            // IsNullOrWhiteSpace does not catch
+            // some NVMe names are padded with control characters, which IsNullOrWhiteSpace does not catch
             string cleanedName = new string(hardware.Name.Where(c => !char.IsControl(c)).ToArray()).Trim();
 
             // hardware type and LHM identifier, so a group name is never blank

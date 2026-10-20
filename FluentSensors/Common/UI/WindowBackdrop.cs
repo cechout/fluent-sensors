@@ -184,8 +184,8 @@ namespace FluentSensors.Common.UI
         }
 
         // transparent, so the material shows; system acrylic with Windows transparency on takes the lift of the flyout
-        // graphs area (FlyoutGraphsBackground), the surface its preset is matched to the Windows flyouts under
-        // the grain is part of that look too, so it shows in the same case only, like on the taskbar flyout
+        // graphs area (FlyoutGraphsBackground), the surface its preset was matched on
+        // the grain belongs to that look, so it shows in the same case only
         private void UpdateGlassSurface()
         {
             if (_isDisposed) return;

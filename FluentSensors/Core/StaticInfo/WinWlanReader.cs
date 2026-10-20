@@ -5,7 +5,8 @@ using System.Runtime.InteropServices;
 
 namespace FluentSensors.Core.StaticInfo
 {
-    // the connection of one Wi-Fi adapter; the network name is left out on purpose, it would end up on screenshots
+    // the connection of one Wi-Fi adapter;
+    // the network name is left out on purpose, it would end up on screenshots
     public record WinWlanConnection(
         Guid InterfaceId, // NetworkInterface.Id of the adapter
         uint PhyType, // DOT11_PHY_TYPE, see HardwareInfoFormatter.FormatWlanStandard

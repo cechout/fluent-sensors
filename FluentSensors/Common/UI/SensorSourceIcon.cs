@@ -12,13 +12,18 @@ using FluentSensors.Common.Sensors;
 namespace FluentSensors.Common.UI
 {
     // the source icon:
-    // a small mark behind a sensor title that says who measured the value, LibreHardwareMonitor or Windows
-    // vector data for a Path, so it takes the text colour of its place, follows the theme and stays sharp at any scale;
+    // A small icon behind a sensor title that says who measured the value, LibreHardwareMonitor or Windows
+    // Vector data for a Path, so it takes the text colour of its place, follows the theme and stays sharp at any scale;
     // neither system icon font has a glyph for either
     public static class SensorSourceIcon
     {
-        // both drawn on a 16 x 16 grid and filling 1 to 15, so they come out the same size
+        // both drawn by hand on a 16 x 16 grid and filling 1 to 15, so they come out the same size
+        // the path syntax (M, H, V, A, Z, F0 for even-odd):
+        // https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/move-draw-commands-syntax
+        // the same commands in SVG, with pictures; the easiest way into the arc:
+        // https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorials/SVG_from_scratch/Paths
 
+        // windows icon
         // four panes; only the four outer corners of the logo are rounded, by about half a pixel at the drawn size
         private const string WindowsData =
             "M1.7,1H7.5V7.5H1V1.7A0.7,0.7 0 0 1 1.7,1Z " +
@@ -26,8 +31,10 @@ namespace FluentSensors.Common.UI
             "M1,8.5H7.5V15H1.7A0.7,0.7 0 0 1 1,14.3Z " +
             "M8.5,8.5H15V14.3A0.7,0.7 0 0 1 14.3,15H8.5Z";
 
+        // lhm icon
         // a chip seen from above: the package as a frame, the die in its middle, the pin 1 corner bottom left and two
-        // contacts on the right; even-odd, so the inner square of the frame is a hole the other parts sit in
+        // contacts on the right; even-odd, so the inner square of the frame is a hole the other parts sit in:
+        // https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Attribute/fill-rule
         private const string LhmData =
             "F0 M2.6,1H13.4A1.6,1.6 0 0 1 15,2.6V13.4A1.6,1.6 0 0 1 13.4,15H2.6A1.6,1.6 0 0 1 1,13.4V2.6A1.6,1.6 0 0 1 2.6,1Z " +
             "M3.1,2.5H12.9A0.6,0.6 0 0 1 13.5,3.1V12.9A0.6,0.6 0 0 1 12.9,13.5H3.1A0.6,0.6 0 0 1 2.5,12.9V3.1A0.6,0.6 0 0 1 3.1,2.5Z " +
@@ -48,7 +55,8 @@ namespace FluentSensors.Common.UI
         // === settings mirror ===
 
         // whether the icon shows for the sensors of each source; SettingsService persists them and mirrors them in
-        // here, like SensorUnitFormatter.DataSizeBasis
+        // here
+        // (like SensorUnitFormatter.DataSizeBasis)
         public static bool IsLhmIconVisible { get; private set; } = true;
         public static bool IsWindowsIconVisible { get; private set; } = true;
 
@@ -80,8 +88,8 @@ namespace FluentSensors.Common.UI
         // === attached properties ===
 
         // on a Path: the sensor whose source it draws; the Path gets a geometry of its own, and collapses without a
-        // sensor or while the icon of its source is switched off (the panel around it drops the gap then)
-        // not a binding on Path.Data: x:Bind evaluates one expression once for all its targets, and a geometry that
+        // sensor or while the icon of its source is switched off (the panel around it drops the gap then);
+        // Not a binding on Path.Data: x:Bind evaluates one expression once for all its targets, and a geometry that
         // sits in one Path already makes the next Path throw (E_INVALIDARG)
         public static readonly DependencyProperty SensorIdProperty =
             DependencyProperty.RegisterAttached(

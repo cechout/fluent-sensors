@@ -5,7 +5,8 @@ using System.Runtime.InteropServices;
 
 namespace FluentSensors.Core.StaticInfo
 {
-    // one active display: the adapter that scans it out, its monitor name and refresh rate
+    // one active display;
+    // the adapter that scans it out, its monitor name and refresh rate
     public record WinDisplay(
         long AdapterLuid,
         string FriendlyName, // the EDID name ("DELL U2720Q"); "" when the monitor reports none
@@ -24,6 +25,7 @@ namespace FluentSensors.Core.StaticInfo
     // which gpu drives which display:
     // the display config names the adapter that scans each display out; DXGI is no help here, it hands the outputs of
     // a hybrid laptop to whichever gpu it prefers for the asking process
+    //
     // cheap (well below a millisecond), and it reads no gpu preference, so it is safe before WinUI starts
     public static partial class WinDisplayTopology
     {

@@ -694,6 +694,7 @@ namespace FluentSensors.Core.StaticInfo
 
             // the wlan api counts as a location access on Windows 11 24H2 and newer, so the Wi-Fi facts come only with the
             // Wi-Fi switch of the Windows engine; off, the app never touches it
+            // https://learn.microsoft.com/en-us/windows/win32/nativewifi/wi-fi-access-location-changes
             bool isWlanAllowed = HardwareMonitorService.Instance.WindowsSource.IsWlanEnabled;
 
             foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())

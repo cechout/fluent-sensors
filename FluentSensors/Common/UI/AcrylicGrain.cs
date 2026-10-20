@@ -13,7 +13,7 @@ namespace FluentSensors.Common.UI
     // window each own one
     //
     // the acrylic recipe ends with a 2 percent noise layer (sc_noiseOpacity) that the backdrop controller does
-    // not draw; painted here by hand, one random grayscale bitmap under every surface fill:
+    // not draw; painted here by hand as one random grayscale bitmap:
     // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.h
     public sealed class AcrylicGrain
     {
@@ -21,9 +21,8 @@ namespace FluentSensors.Common.UI
 
         private const int NoiseSeed = 0x5EED;
 
-        // opacity stays the recipe constant, the strength is the standard deviation around a mean of 128, in screen
-        // levels (so tuning the grain never moves the calibrated colors); a bell like the native grain, about six
-        // levels wide, sd 1.03 on the dark surfaces
+        // the opacity stays the recipe constant, the strength is the standard deviation around 128 in screen levels,
+        // so tuning the grain never moves the calibrated colors; (the native grain measures about 1 on dark surfaces)
         private const double NoiseLayerOpacity = 0.02;
         private const double NoiseDeviationLevels = 1.0;
 
