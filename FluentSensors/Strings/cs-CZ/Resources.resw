@@ -1529,18 +1529,6 @@ Typ - jeho médium (Wi-Fi, Ethernet, ...)</value>
   <data name="Sensors_SelectionProfileComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Profil výběru</value>
   </data>
-  <data name="Sensors_SelectionProfileComboBox_WidgetWindow.Content" xml:space="preserve">
-    <value>Widget</value>
-    <comment>sensor selection profile; the sensors picked for the widget window</comment>
-  </data>
-  <data name="Sensors_SelectionProfileComboBox_Csv.Content" xml:space="preserve">
-    <value>Záznam</value>
-    <comment>sensor selection profile; the sensors picked for CSV logging</comment>
-  </data>
-  <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
-    <value>Hlavní panel</value>
-    <comment>sensor selection profile; the sensors picked for the taskbar widget</comment>
-  </data>
   <data name="Sensors_PinToWidgetButton.Label" xml:space="preserve">
     <value>Připnout do widgetu</value>
   </data>
