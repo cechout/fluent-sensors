@@ -336,17 +336,33 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        // the performance page graphs and the sensors page check boxes by sensor type instead of by hardware
-        private bool _useSensorTypeColors = Defaults.UseSensorTypeColors;
-        public bool UseSensorTypeColors
+        // the sensors page check boxes by sensor type instead of by hardware
+        private bool _sensorsUseSensorTypeColors = Defaults.SensorsUseSensorTypeColors;
+        public bool SensorsUseSensorTypeColors
         {
-            get => _useSensorTypeColors;
+            get => _sensorsUseSensorTypeColors;
             set
             {
-                if (_useSensorTypeColors != value)
+                if (_sensorsUseSensorTypeColors != value)
                 {
-                    _useSensorTypeColors = value;
-                    SensorTypeColorsChanged?.Invoke();
+                    _sensorsUseSensorTypeColors = value;
+                    SensorsSensorTypeColorsChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // the performance page graphs by sensor type instead of by hardware
+        private bool _performanceUseSensorTypeColors = Defaults.PerformanceUseSensorTypeColors;
+        public bool PerformanceUseSensorTypeColors
+        {
+            get => _performanceUseSensorTypeColors;
+            set
+            {
+                if (_performanceUseSensorTypeColors != value)
+                {
+                    _performanceUseSensorTypeColors = value;
+                    PerformanceSensorTypeColorsChanged?.Invoke();
                     SaveDebounced();
                 }
             }
@@ -1287,7 +1303,8 @@ namespace FluentSensors.Persistence.Services
             _graphFillFade = data.GraphFillFade;
             _useHardwareIconColors = data.UseHardwareIconColors;
             HardwareColorMode.UseIconColors = _useHardwareIconColors;
-            _useSensorTypeColors = data.UseSensorTypeColors;
+            _sensorsUseSensorTypeColors = data.UseSensorTypeColors ?? data.SensorsUseSensorTypeColors;
+            _performanceUseSensorTypeColors = data.UseSensorTypeColors ?? data.PerformanceUseSensorTypeColors;
             _showLhmSourceIcon = data.ShowLhmSourceIcon;
             _showWindowsSourceIcon = data.ShowWindowsSourceIcon;
             SensorSourceIcon.SetVisibility(_showLhmSourceIcon, _showWindowsSourceIcon);
@@ -1384,7 +1401,8 @@ namespace FluentSensors.Persistence.Services
                 GraphLineStyle = _graphLineStyle,
                 GraphFillFade = _graphFillFade,
                 UseHardwareIconColors = _useHardwareIconColors,
-                UseSensorTypeColors = _useSensorTypeColors,
+                SensorsUseSensorTypeColors = _sensorsUseSensorTypeColors,
+                PerformanceUseSensorTypeColors = _performanceUseSensorTypeColors,
                 ShowLhmSourceIcon = _showLhmSourceIcon,
                 ShowWindowsSourceIcon = _showWindowsSourceIcon,
                 DataSizeUnitBasis = _dataSizeUnitBasis,
@@ -1472,7 +1490,8 @@ namespace FluentSensors.Persistence.Services
 
         // no value; consumers re-read the switch
         public event Action HardwareIconColorsChanged;
-        public event Action SensorTypeColorsChanged;
+        public event Action SensorsSensorTypeColorsChanged;
+        public event Action PerformanceSensorTypeColorsChanged;
 
         // no value; both unit settings raise it, consumers re-read from SensorUnitFormatter
         public event Action DataUnitBasisChanged;

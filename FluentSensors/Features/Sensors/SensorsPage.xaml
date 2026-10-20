@@ -41,8 +41,7 @@
 
                 <Grid x:Name="SensorListHeaderGrid" SizeChanged="SensorListHeaderGrid_SizeChanged">
                     <Grid.ColumnDefinitions>
-                        <!--  column 0 reserves a minimum width from SensorListTitleText  -->
-                        <ColumnDefinition Width="Auto" MinWidth="260" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
@@ -50,7 +49,8 @@
                         x:Name="SensorListTitlePanel"
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Orientation="Horizontal">
+                        Orientation="Horizontal"
+                        SizeChanged="SensorListHeaderGrid_SizeChanged">
                         <TextBlock
                             x:Name="SensorListTitleText"
                             x:Uid="Sensors_SensorListTitleText"
@@ -88,7 +88,7 @@
                             Visibility="{x:Bind ViewModel.IsWidgetProfileActive, Mode=OneWay}" />
                     </StackPanel>
 
-                    <!--  command bar in column 1, after the minimum of column 0  -->
+                    <!--  command bar in column 1, after the title panel  -->
                     <CommandBar
                         x:Name="SensorListCommandBar"
                         Grid.Column="1"

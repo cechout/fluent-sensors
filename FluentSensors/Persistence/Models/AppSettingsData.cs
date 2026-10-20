@@ -9,47 +9,31 @@ using FluentSensors.Common.UI;
 namespace FluentSensors.Persistence.Models
 {
     // the persisted settings:
-    // a plain serializable snapshot of SettingsService, which keeps the live state (events, validation)
-    // the initializers are the defaults for a fresh install, a missing key and every reset; SettingsService seeds its
+    // a plain serializable snapshot of SettingsService, which keeps the live state (events, validation);
+    // The initializers are the defaults for a fresh install, a missing key and every reset; SettingsService seeds its
     // fields from here, so a default only changes here
+    // the sections and their entries follow the settings page top to bottom
     public class AppSettingsData
     {
         // --- general settings ---
 
         // app theme
         public string AppTheme { get; set; } = "Default";
-
-        // app language; a tag from AppLanguage.Supported, or Default for the Windows display language
-        public string AppLanguage { get; set; } = "en-US";
-        // the technical terms (AppTerms) in english whatever the app language
-        public bool TechnicalTermsInEnglish { get; set; } = false;
-
-        // hardware icon colors; the category icons on the start, sensors and performance pages, read through
-        // HardwareColorMode (graph colors are per surface, see GraphColorSource)
         public bool UseHardwareIconColors { get; set; } = false;
 
-        // sensor type colors; the graphs of the performance page and the check boxes of the sensors page, instead of
-        // the hardware color (the widget and the taskbar have SensorType in their own GraphColorSource)
-        // switched on the two pages themselves, not on the settings page
-        public bool UseSensorTypeColors { get; set; } = false;
-
-        // the source icon behind a sensor name, per source (see SensorSourceIcon)
-        public bool ShowLhmSourceIcon { get; set; } = true;
-        public bool ShowWindowsSourceIcon { get; set; } = true;
-
-        // graph; global, every graph in the app
-        public GraphLineStyle GraphLineStyle { get; set; } = GraphLineStyle.Stepline;
-        // the area under the line fades towards the bottom instead of one flat tone
+        public GraphLineStyle GraphLineStyle { get; set; } = GraphLineStyle.Stepline; // graph; global, every graph in the app
         public bool GraphFillFade { get; set; } = false;
 
-        // data units; bytes or bits, separately for sizes (SmallData, Data) and speeds (Throughput); every displayed
-        // value, never the csv recording
+        public string AppLanguage { get; set; } = "en-US"; // a tag from AppLanguage.Supported, or Default for the Windows display language
+        public bool TechnicalTermsInEnglish { get; set; } = false;
+
+        // data units; bytes or bits, separately for sizes (SmallData, Data) and speeds (Throughput)
+        // (only displayed values, never the csv recording)
         public DataUnitBasis DataSizeUnitBasis { get; set; } = DataUnitBasis.Byte;
         public DataUnitBasis DataSpeedUnitBasis { get; set; } = DataUnitBasis.Byte;
 
         // title bar status
         public bool StatusReadoutEnabled { get; set; } = true;
-        // the two groups and their order
         public bool StatusLhmGroupEnabled { get; set; } = false;
         public bool StatusWindowsGroupEnabled { get; set; } = true;
         public StatusGroupOrder StatusGroupOrder { get; set; } = StatusGroupOrder.LhmFirst;
@@ -61,29 +45,24 @@ namespace FluentSensors.Persistence.Models
         public bool RunOnStartup { get; set; } = false;
         public bool DelayStartup { get; set; } = false;
         public bool StartMinimizedToTray { get; set; } = true;
-        // the landing page; read once at startup
-        public StartupPage StartupPage { get; set; } = StartupPage.Start;
+        public StartupPage StartupPage { get; set; } = StartupPage.Start; // the landing page; read once at startup
         public bool CheckUpdatesOnStartup { get; set; } = true;
+
+
+        // --- engine settings ---
 
         // update interval; (lives on HardwareMonitorService at runtime)
         public int UpdateIntervalMs { get; set; } = 500;
 
-        // engine; LHM hardware that is not read, by the name the payload gives it
+        // LibreHardwareMonitor
+        public bool ShowLhmSourceIcon { get; set; } = false; // the source icon behind a sensor name (see SensorSourceIcon)
         public List<string> DisabledLhmHardware { get; set; } = new();
-        // what Windows adds to or replaces in LHM hardware; all off until asked for
+
+        // Windows
+        public bool ShowWindowsSourceIcon { get; set; } = true; // the source icon behind a sensor name
         public bool WinStorageSensorsEnabled { get; set; } = false;
         public bool WinWlanSensorsEnabled { get; set; } = false;
-        // hardware only Windows has
         public bool WinDisplayEnabled { get; set; } = false;
-
-
-        // --- performance page appearance ---
-
-        // graph; Standard for the overview blocks, CpuExtended and GpuExtended for the dense grids (cpu all-threads,
-        // gpu extended)
-        public double PerformanceGraphTimeSpanSeconds { get; set; } = 90;
-        public double PerformanceCpuExtendedGraphTimeSpanSeconds { get; set; } = 45;
-        public double PerformanceGpuExtendedGraphTimeSpanSeconds { get; set; } = 60;
 
 
         // --- widget window appearance ---
@@ -102,21 +81,35 @@ namespace FluentSensors.Persistence.Models
         public const GraphColorSource DefaultGraphColorSource = Common.Sensors.GraphColorSource.Hardware;
         public GraphColorSource? GraphColorSource { get; set; } = null;
         public Windows.UI.Color GraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
+        // no card; the time range of a widget window without a saved one
         public double GraphTimeSpanSeconds { get; set; } = 60;
 
 
         // --- widgets board ---
+        // (store build only)
 
-        // the store build only
-        public double WidgetBoardGraphTimeSpanSeconds { get; set; } = 60;
         public GraphColorSource WidgetBoardGraphColorSource { get; set; } = Common.Sensors.GraphColorSource.Hardware;
         public Windows.UI.Color WidgetBoardGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
+        public double WidgetBoardGraphTimeSpanSeconds { get; set; } = 60;
+
+
+        // --- csv logging ---
+
+        // csv logger window background material; all null in a file from before it had its own, LoadFromData then
+        // takes the widget values, which the logger shared until then
+        public BackdropMaterial? CsvBackgroundMaterial { get; set; } = null;
+        public float? CsvTintOpacity { get; set; } = null;
+        public float? CsvLuminosityOpacity { get; set; } = null;
+        public bool? CsvUseAccentColor { get; set; } = null;
+        public Color? CsvCustomTintColor { get; set; } = null;
+
+        public CsvNumberFormat CsvNumberFormat { get; set; } = CsvNumberFormat.Local; // csv format; Local by default
+        public int CsvDecimalPlaces { get; set; } = 3; // 3 keeps an older settings file at the precision it recorded with
+        public bool CsvIncludeUnits { get; set; } = false; // a value with a unit is text and no longer charts (the header has the unit anyway)
+        public CsvPauseSeam CsvPauseSeam { get; set; } = CsvPauseSeam.Gap;
 
 
         // --- taskbar widget & flyout appearance ---
-
-        // no dragging the taskbar widget along the taskbar
-        public bool TaskbarWidgetPositionLocked { get; set; } = false;
 
         // graph; the color source default works like the widget one
         public const GraphColorSource DefaultTaskbarGraphColorSource = Common.Sensors.GraphColorSource.Hardware;
@@ -133,9 +126,6 @@ namespace FluentSensors.Persistence.Models
         public double TaskbarFlyoutGraphTimeSpanSeconds { get; set; } = 90;
         public double TaskbarFlyoutGraphHeightDip { get; set; } = 100; // one graph slot
 
-        // the global shortcut that opens the flyout; none by default, so no key combination is taken from other apps
-        public KeyboardShortcut? TaskbarFlyoutShortcut { get; set; } = null;
-
         // flyout background material; the default works like the widget one
         public const BackdropMaterial DefaultTaskbarBackgroundMaterial = BackdropMaterial.SystemAcrylic;
         public BackdropMaterial? TaskbarBackgroundMaterial { get; set; } = null;
@@ -145,43 +135,35 @@ namespace FluentSensors.Persistence.Models
         public Color TaskbarCustomTintColor { get; set; } = Color.FromArgb(255, 25, 25, 25);
 
 
-        // --- csv logging ---
+        // --- taskbar widget & flyout behavior ---
 
-        // csv format; Local by default, a recording mostly opens in a local spreadsheet app, which
-        // misreads an invariant decimal point
-        public CsvNumberFormat CsvNumberFormat { get; set; } = CsvNumberFormat.Local;
-        // 3 keeps an older settings file at the precision it recorded with
-        public int CsvDecimalPlaces { get; set; } = 3;
-        // off by default; a value with a unit is text and no longer charts (the header has the unit anyway)
-        public bool CsvIncludeUnits { get; set; } = false;
-        public CsvPauseSeam CsvPauseSeam { get; set; } = CsvPauseSeam.Gap;
-
-        // csv logger window background material; all null in a file from before it had its own, LoadFromData then
-        // takes the widget values, which the logger shared until then
-        public BackdropMaterial? CsvBackgroundMaterial { get; set; } = null;
-        public float? CsvTintOpacity { get; set; } = null;
-        public float? CsvLuminosityOpacity { get; set; } = null;
-        public bool? CsvUseAccentColor { get; set; } = null;
-        public Color? CsvCustomTintColor { get; set; } = null;
+        public bool TaskbarWidgetPositionLocked { get; set; } = false; // no dragging the taskbar widget along the taskbar
+        public KeyboardShortcut? TaskbarFlyoutShortcut { get; set; } = null; // the global shortcut that opens the flyout
 
 
         // --- set outside the settings page ---
 
-        // title bar; the toggle button only hides the readout, StatusReadoutEnabled switches it off with the button
-        public bool StatusReadoutCollapsed { get; set; } = true;
-
-        // start page and update dialog; the skipped version, e.g. "1.4.0", empty = none (the start
-        // page button is the way back)
+        public bool StatusReadoutCollapsed { get; set; } = true; // title bar; the toggle button only hides the readout
         public string SkippedUpdateVersion { get; set; } = "";
 
         // sensors page; the profile it opens on, and the widget window (0 based) of the widget profile
         public SensorSelectionProfile LastSensorProfile { get; set; } = SensorSelectionProfile.WidgetWindow;
         public int LastWidgetWindowIndex { get; set; } = 0;
 
+        // sensor type colors; the check boxes of the sensors page and the graphs of the performance page
+        public bool SensorsUseSensorTypeColors { get; set; } = true;
+        public bool PerformanceUseSensorTypeColors { get; set; } = false;
+
+        // performance page graph; Standard for the overview blocks, CpuExtended and GpuExtended for the dense grids
+        // (cpu all-threads, gpu extended)
+        public double PerformanceGraphTimeSpanSeconds { get; set; } = 90;
+        public double PerformanceCpuExtendedGraphTimeSpanSeconds { get; set; } = 45;
+        public double PerformanceGpuExtendedGraphTimeSpanSeconds { get; set; } = 60;
+
         // csv logger window; the recording folder, empty = Documents\FluentSensors
         public string CsvLogFolder { get; set; } = "";
 
-        // no switch in the ui
+        // (currently no switch in the ui)
         public bool HideSensorsCompletely { get; set; } = true;
 
 
@@ -191,7 +173,7 @@ namespace FluentSensors.Persistence.Models
         // (the minimum sizes stay in each window)
 
         // main window; (minimum 600 x 400)
-        public const double MainWindowDefaultWidthDip = 600;
+        public const double MainWindowDefaultWidthDip = 640;
         public const double MainWindowDefaultHeightDip = 770;
 
         // hidden sensors window; (minimum 280 x 200)
@@ -205,9 +187,9 @@ namespace FluentSensors.Persistence.Models
         // csv logger window; the width only, the height follows the content (minimum 225 wide)
         public const double CsvLoggerWindowDefaultWidthDip = 225;
 
-        // taskbar flyout; fixed width, the one of the Windows notification center (Win+N), the height follows the
-        // pinned sensors and TaskbarFlyoutGraphHeightDip (not resizable)
-        public const double TaskbarFlyoutWidthDip = 336;
+        // taskbar flyout; fixed width, the height follows the pinned sensors
+        // - windows notification center (Win+N) width: 336 dip
+        public const double TaskbarFlyoutWidthDip = 300;
 
 
         // --- legacy, read once on load and never written back ---
@@ -224,6 +206,9 @@ namespace FluentSensors.Persistence.Models
 
         // the shared extended range the cpu and gpu ranges replaced; SettingsService copies it onto both once
         public double? PerformanceExtendedGraphTimeSpanSeconds { get; set; } = null;
+
+        // the one switch both pages shared before each had its own; SettingsService copies it onto both once
+        public bool? UseSensorTypeColors { get; set; } = null;
 
         // the three material tags ("Mica", "Acrylic", "None") the four BackdropMaterial values replaced; a new key
         // instead of new tags, so an older version reading this file never misreads one

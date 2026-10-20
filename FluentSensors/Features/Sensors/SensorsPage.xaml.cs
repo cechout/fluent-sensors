@@ -43,7 +43,7 @@ namespace FluentSensors.Features.Sensors
         private const double IconOnlyButtonWidth = 42;
         private bool _commandBarWidthsCached = false;
         private const double OverflowButtonReservedWidth = 48;
-        private const double LeftSectionMinWidth = 300; // from SensorListTitleText
+        private const double TitlePanelGap = 20; // at least between the last element right of the title and the bar
         private int _commandBarOverflowStartIndex = -1;
 
         // command bar entrance after a profile switch or a pin; hidden at once, then slid in from the right
@@ -508,7 +508,7 @@ namespace FluentSensors.Features.Sensors
         }
 
         // profile picker width
-        private const double ComboBoxChromeWidth = 52; // left padding 12, chevron column 38, border 2
+        private const double ComboBoxChromeWidth = 52; // ~ left padding 12, chevron column 38, border 2
 
         // sized to its content the picker narrows to the selected entry while open and the controls to its right
         // follow; one width for the widest entry in the current language keeps them in place
@@ -695,7 +695,7 @@ namespace FluentSensors.Features.Sensors
             return order.ToArray();
         }
 
-        // the overflow split follows the header size
+        // the overflow split follows the header size, and the title panel, which grows with the widget window picker
         private void SensorListHeaderGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (_commandBarWidthsCached)
@@ -720,13 +720,12 @@ namespace FluentSensors.Features.Sensors
 
         // fills the bar in priority order, the first unit that does not fit and everything after it overflows; only a
         // changed split rebuilds (or every resize tick would flicker the labels)
-        // the first unit stays in the bar even when it does not fit, so the bar never shows only the overflow button
         private void UpdateCommandBarOverflow()
         {
-            double leftSectionWidth = Math.Max(LeftSectionMinWidth, SensorListTitlePanel.ActualWidth);
-            double availableWidth = SensorListHeaderGrid.ActualWidth - leftSectionWidth;
+            if (SensorListHeaderGrid.ActualWidth <= 0) return;
 
-            if (availableWidth <= 0) return;
+            double leftSectionWidth = SensorListTitlePanel.ActualWidth + TitlePanelGap;
+            double availableWidth = Math.Max(0, SensorListHeaderGrid.ActualWidth - leftSectionWidth);
 
             // only elements not pinned to overflow, in units, so a separator never dangles alone
             var fittableUnits = GroupIntoOverflowUnits(
@@ -747,7 +746,7 @@ namespace FluentSensors.Features.Sensors
             {
                 double unitWidth = fittableUnits[i].Sum(element => _commandBarButtonWidths.GetValueOrDefault(element, 40));
 
-                if (i > 0 && runningWidth + unitWidth > budget)
+                if (runningWidth + unitWidth > budget)
                 {
                     fittableOverflowStartUnitIndex = i;
                     break;

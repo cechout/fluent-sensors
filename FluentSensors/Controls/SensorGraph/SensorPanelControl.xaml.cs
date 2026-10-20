@@ -53,14 +53,14 @@ namespace FluentSensors.Controls.SensorGraph
             // change while off screen)
             Loaded += (s, e) =>
             {
-                SettingsService.Instance.SensorTypeColorsChanged -= OnSensorTypeColorsChanged;
-                SettingsService.Instance.SensorTypeColorsChanged += OnSensorTypeColorsChanged;
+                SettingsService.Instance.PerformanceSensorTypeColorsChanged -= OnSensorTypeColorsChanged;
+                SettingsService.Instance.PerformanceSensorTypeColorsChanged += OnSensorTypeColorsChanged;
                 SubscribeToViewModel(ViewModel);
                 Bindings.Update();
             };
             Unloaded += (s, e) =>
             {
-                SettingsService.Instance.SensorTypeColorsChanged -= OnSensorTypeColorsChanged;
+                SettingsService.Instance.PerformanceSensorTypeColorsChanged -= OnSensorTypeColorsChanged;
                 UnsubscribeFromViewModel();
             };
 
@@ -652,7 +652,7 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 SensorTypeColorRule.Always => true,
                 SensorTypeColorRule.Never => false,
-                _ => SettingsService.Instance.UseSensorTypeColors
+                _ => SettingsService.Instance.PerformanceUseSensorTypeColors
             };
 
             // a type without a group color keeps the hardware one

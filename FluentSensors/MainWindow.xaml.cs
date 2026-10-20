@@ -176,7 +176,7 @@ namespace FluentSensors
             else
             {
                 this.SetWindowSize(AppSettingsData.MainWindowDefaultWidthDip, AppSettingsData.MainWindowDefaultHeightDip);
-                this.CenterOnScreen();
+                //this.CenterOnScreen();
             }
 
             // a launch straight to the tray is set up before anything is on screen: Activate() is what loads the
