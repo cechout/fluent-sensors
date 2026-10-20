@@ -8,13 +8,13 @@ namespace FluentSensors.Persistence.Models
         public double GraphTimeSpanSeconds { get; set; } = 35;
         public int GraphWidthDip { get; set; } = 100; // along the taskbar, the height on a side one
 
-        // over the widget: "Center", "Left" or "Right" (top and bottom on a side taskbar)
-        public string FlyoutAlignment { get; set; } = "Center";
-
         // left and right edge only: "RightToLeft" (as horizontal), "TopToBottom" or "BottomToTop", the way values run
         // ("TopToBottom" enters at the top)
         public string SideGraphDirection { get; set; } = "RightToLeft";
         public int SideTitleLines { get; set; } = 1; // 1 or 2
+
+        // over the widget: "Center", "Left" or "Right" (top and bottom on a side taskbar)
+        public string FlyoutAlignment { get; set; } = "Center";
 
         public TaskbarEdgeSettings Clone() => (TaskbarEdgeSettings)MemberwiseClone();
     }

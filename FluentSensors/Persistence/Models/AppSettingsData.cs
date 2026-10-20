@@ -12,6 +12,7 @@ namespace FluentSensors.Persistence.Models
     // a plain serializable snapshot of SettingsService, which keeps the live state (events, validation)
     // the initializers are the defaults for a fresh install, a missing key and every reset; SettingsService seeds its
     // fields from here, so a default only changes here
+    // the sections and their entries follow the settings page top to bottom
     public class AppSettingsData
     {
         // --- general settings ---
@@ -19,28 +20,19 @@ namespace FluentSensors.Persistence.Models
         // app theme
         public string AppTheme { get; set; } = "Default";
 
-        // app language; a tag from AppLanguage.Supported, or Default for the Windows display language
-        public string AppLanguage { get; set; } = "en-US";
-        // the technical terms (AppTerms) in english whatever the app language
-        public bool TechnicalTermsInEnglish { get; set; } = false;
-
         // hardware icon colors; the category icons on the start, sensors and performance pages, read through
         // HardwareColorMode (graph colors are per surface, see GraphColorSource)
         public bool UseHardwareIconColors { get; set; } = false;
-
-        // sensor type colors; the graphs of the performance page and the check boxes of the sensors page, instead of
-        // the hardware color (the widget and the taskbar have SensorType in their own GraphColorSource)
-        // switched on the two pages themselves, not on the settings page
-        public bool UseSensorTypeColors { get; set; } = false;
-
-        // the source icon behind a sensor name, per source (see SensorSourceIcon)
-        public bool ShowLhmSourceIcon { get; set; } = true;
-        public bool ShowWindowsSourceIcon { get; set; } = true;
 
         // graph; global, every graph in the app
         public GraphLineStyle GraphLineStyle { get; set; } = GraphLineStyle.Stepline;
         // the area under the line fades towards the bottom instead of one flat tone
         public bool GraphFillFade { get; set; } = false;
+
+        // app language; a tag from AppLanguage.Supported, or Default for the Windows display language
+        public string AppLanguage { get; set; } = "en-US";
+        // the technical terms (AppTerms) in english whatever the app language
+        public bool TechnicalTermsInEnglish { get; set; } = false;
 
         // data units; bytes or bits, separately for sizes (SmallData, Data) and speeds (Throughput); every displayed
         // value, never the csv recording
@@ -65,25 +57,24 @@ namespace FluentSensors.Persistence.Models
         public StartupPage StartupPage { get; set; } = StartupPage.Start;
         public bool CheckUpdatesOnStartup { get; set; } = true;
 
+
+        // --- engine settings ---
+
         // update interval; (lives on HardwareMonitorService at runtime)
         public int UpdateIntervalMs { get; set; } = 500;
 
-        // engine; LHM hardware that is not read, by the name the payload gives it
+        // LibreHardwareMonitor; the source icon behind a sensor name (see SensorSourceIcon)
+        public bool ShowLhmSourceIcon { get; set; } = true;
+        // LHM hardware that is not read, by the name the payload gives it
         public List<string> DisabledLhmHardware { get; set; } = new();
+
+        // Windows; the source icon behind a sensor name
+        public bool ShowWindowsSourceIcon { get; set; } = true;
         // what Windows adds to or replaces in LHM hardware; all off until asked for
         public bool WinStorageSensorsEnabled { get; set; } = false;
         public bool WinWlanSensorsEnabled { get; set; } = false;
         // hardware only Windows has
         public bool WinDisplayEnabled { get; set; } = false;
-
-
-        // --- performance page appearance ---
-
-        // graph; Standard for the overview blocks, CpuExtended and GpuExtended for the dense grids (cpu all-threads,
-        // gpu extended)
-        public double PerformanceGraphTimeSpanSeconds { get; set; } = 90;
-        public double PerformanceCpuExtendedGraphTimeSpanSeconds { get; set; } = 45;
-        public double PerformanceGpuExtendedGraphTimeSpanSeconds { get; set; } = 60;
 
 
         // --- widget window appearance ---
@@ -102,21 +93,39 @@ namespace FluentSensors.Persistence.Models
         public const GraphColorSource DefaultGraphColorSource = Common.Sensors.GraphColorSource.Hardware;
         public GraphColorSource? GraphColorSource { get; set; } = null;
         public Windows.UI.Color GraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
+        // no card; the time range of a widget window without a saved one
         public double GraphTimeSpanSeconds { get; set; } = 60;
 
 
         // --- widgets board ---
 
         // the store build only
-        public double WidgetBoardGraphTimeSpanSeconds { get; set; } = 60;
         public GraphColorSource WidgetBoardGraphColorSource { get; set; } = Common.Sensors.GraphColorSource.Hardware;
         public Windows.UI.Color WidgetBoardGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
+        public double WidgetBoardGraphTimeSpanSeconds { get; set; } = 60;
+
+
+        // --- csv logging ---
+
+        // csv logger window background material; all null in a file from before it had its own, LoadFromData then
+        // takes the widget values, which the logger shared until then
+        public BackdropMaterial? CsvBackgroundMaterial { get; set; } = null;
+        public float? CsvTintOpacity { get; set; } = null;
+        public float? CsvLuminosityOpacity { get; set; } = null;
+        public bool? CsvUseAccentColor { get; set; } = null;
+        public Color? CsvCustomTintColor { get; set; } = null;
+
+        // csv format; Local by default, a recording mostly opens in a local spreadsheet app, which
+        // misreads an invariant decimal point
+        public CsvNumberFormat CsvNumberFormat { get; set; } = CsvNumberFormat.Local;
+        // 3 keeps an older settings file at the precision it recorded with
+        public int CsvDecimalPlaces { get; set; } = 3;
+        // off by default; a value with a unit is text and no longer charts (the header has the unit anyway)
+        public bool CsvIncludeUnits { get; set; } = false;
+        public CsvPauseSeam CsvPauseSeam { get; set; } = CsvPauseSeam.Gap;
 
 
         // --- taskbar widget & flyout appearance ---
-
-        // no dragging the taskbar widget along the taskbar
-        public bool TaskbarWidgetPositionLocked { get; set; } = false;
 
         // graph; the color source default works like the widget one
         public const GraphColorSource DefaultTaskbarGraphColorSource = Common.Sensors.GraphColorSource.Hardware;
@@ -133,9 +142,6 @@ namespace FluentSensors.Persistence.Models
         public double TaskbarFlyoutGraphTimeSpanSeconds { get; set; } = 90;
         public double TaskbarFlyoutGraphHeightDip { get; set; } = 100; // one graph slot
 
-        // the global shortcut that opens the flyout; none by default, so no key combination is taken from other apps
-        public KeyboardShortcut? TaskbarFlyoutShortcut { get; set; } = null;
-
         // flyout background material; the default works like the widget one
         public const BackdropMaterial DefaultTaskbarBackgroundMaterial = BackdropMaterial.SystemAcrylic;
         public BackdropMaterial? TaskbarBackgroundMaterial { get; set; } = null;
@@ -145,24 +151,13 @@ namespace FluentSensors.Persistence.Models
         public Color TaskbarCustomTintColor { get; set; } = Color.FromArgb(255, 25, 25, 25);
 
 
-        // --- csv logging ---
+        // --- taskbar widget & flyout behavior ---
 
-        // csv format; Local by default, a recording mostly opens in a local spreadsheet app, which
-        // misreads an invariant decimal point
-        public CsvNumberFormat CsvNumberFormat { get; set; } = CsvNumberFormat.Local;
-        // 3 keeps an older settings file at the precision it recorded with
-        public int CsvDecimalPlaces { get; set; } = 3;
-        // off by default; a value with a unit is text and no longer charts (the header has the unit anyway)
-        public bool CsvIncludeUnits { get; set; } = false;
-        public CsvPauseSeam CsvPauseSeam { get; set; } = CsvPauseSeam.Gap;
+        // no dragging the taskbar widget along the taskbar
+        public bool TaskbarWidgetPositionLocked { get; set; } = false;
 
-        // csv logger window background material; all null in a file from before it had its own, LoadFromData then
-        // takes the widget values, which the logger shared until then
-        public BackdropMaterial? CsvBackgroundMaterial { get; set; } = null;
-        public float? CsvTintOpacity { get; set; } = null;
-        public float? CsvLuminosityOpacity { get; set; } = null;
-        public bool? CsvUseAccentColor { get; set; } = null;
-        public Color? CsvCustomTintColor { get; set; } = null;
+        // the global shortcut that opens the flyout; none by default, so no key combination is taken from other apps
+        public KeyboardShortcut? TaskbarFlyoutShortcut { get; set; } = null;
 
 
         // --- set outside the settings page ---
@@ -177,6 +172,17 @@ namespace FluentSensors.Persistence.Models
         // sensors page; the profile it opens on, and the widget window (0 based) of the widget profile
         public SensorSelectionProfile LastSensorProfile { get; set; } = SensorSelectionProfile.WidgetWindow;
         public int LastWidgetWindowIndex { get; set; } = 0;
+
+        // sensor type colors; the graphs of the performance page and the check boxes of the sensors page, instead of
+        // the hardware color (the widget and the taskbar have SensorType in their own GraphColorSource)
+        // switched on the two pages themselves, not on the settings page
+        public bool UseSensorTypeColors { get; set; } = false;
+
+        // performance page graph; Standard for the overview blocks, CpuExtended and GpuExtended for the dense grids
+        // (cpu all-threads, gpu extended)
+        public double PerformanceGraphTimeSpanSeconds { get; set; } = 90;
+        public double PerformanceCpuExtendedGraphTimeSpanSeconds { get; set; } = 45;
+        public double PerformanceGpuExtendedGraphTimeSpanSeconds { get; set; } = 60;
 
         // csv logger window; the recording folder, empty = Documents\FluentSensors
         public string CsvLogFolder { get; set; } = "";
