@@ -1454,21 +1454,9 @@ PnP Aygıt Kimliği - Windows'un bu aygıt için kullandığı örnek tanımlay�
   <data name="Sensors_SelectionProfileComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Seçim profili</value>
   </data>
-  <data name="Sensors_SelectionProfileComboBox_WidgetWindow.Content" xml:space="preserve">
-    <value>Araç takımı</value>
-    <comment>sensor selection profile; the sensors picked for the widget window</comment>
-  </data>
-  <data name="Sensors_SelectionProfileComboBox_Csv.Content" xml:space="preserve">
-    <value>Günlük kaydı</value>
-    <comment>sensor selection profile; the sensors picked for CSV logging</comment>
-  </data>
   <data name="Sensors_WidgetWindowComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Araç takımı penceresi</value>
     <comment>the second picker next to the selection profile; which of the widget windows, 1 to 5</comment>
-  </data>
-  <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
-    <value>Görev çubuğu</value>
-    <comment>sensor selection profile; the sensors picked for the taskbar widget</comment>
   </data>
   <data name="Sensors_PinToWidgetButton.Label" xml:space="preserve">
     <value>Araç takımına sabitle</value>
