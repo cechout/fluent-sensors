@@ -5,7 +5,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
+    xmlns:fhWidgetBoard="using:FluentSensors.Features.WidgetBoard"
     xmlns:fhUi="using:FluentSensors.Common.UI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
@@ -592,6 +594,108 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
+
+            <!--  widgets board settings  -->
+            <!--  (store build only, collapsed from code; the board needs the package identity)  -->
+            <StackPanel x:Name="WidgetBoardSection" Visibility="Collapsed">
+                <TextBlock
+                    x:Name="WidgetBoardSectionHeader"
+                    x:Uid="Settings_WidgetBoardText"
+                    Margin="4,20,0,6"
+                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                <!--  graph appearance  -->
+                <controls:SettingsExpander
+                    x:Uid="Settings_WidgetBoardGraphExpander"
+                    fhUi:FocusGroup.IsEnabled="True"
+                    HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
+                    IsExpanded="False">
+
+                    <controls:SettingsExpander.Items>
+                        <controls:SettingsCard x:Uid="Settings_GraphColorSourceCard">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ComboBox
+                                    x:Name="WidgetBoardGraphColorSourceComboBox"
+                                    x:Uid="Settings_GraphColorSourceComboBox"
+                                    Width="160"
+                                    SelectionChanged="WidgetBoardGraphColorSourceComboBox_SelectionChanged">
+                                    <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Accent" Tag="Accent" />
+                                    <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Custom" Tag="Custom" />
+                                    <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_Hardware" Tag="Hardware" />
+                                    <ComboBoxItem x:Uid="Settings_GraphColorSourceComboBox_SensorType" Tag="SensorType" />
+                                </ComboBox>
+
+                                <controls:ColorPickerButton x:Name="WidgetBoardGraphColorPicker" x:Uid="Settings_GraphColorPicker" />
+                            </StackPanel>
+                        </controls:SettingsCard>
+
+                        <controls:SettingsCard x:Uid="Settings_TimeRangeCard">
+                            <ComboBox
+                                x:Name="WidgetBoardGraphTimeSpanComboBox"
+                                Width="40"
+                                DisplayMemberPath="DisplayName"
+                                SelectionChanged="WidgetBoardGraphTimeSpanComboBox_SelectionChanged" />
+                        </controls:SettingsCard>
+                    </controls:SettingsExpander.Items>
+                </controls:SettingsExpander>
+
+                <!--  y-axis per pinned sensor  -->
+                <!--
+                    (one card per graph of WidgetBoardService.Graphs, the list follows the update button of the
+                    sensors page; the buttons of the y-axis panel of SensorPanelControl)
+                -->
+                <controls:SettingsExpander
+                    x:Name="WidgetBoardYAxisExpander"
+                    x:Uid="Settings_WidgetBoardYAxisExpander"
+                    fhUi:FocusGroup.IsEnabled="True"
+                    HeaderIcon="{toolkit:FontIcon Glyph=&#xE9E9;}"
+                    IsExpanded="False">
+
+                    <controls:SettingsExpander.ItemTemplate>
+                        <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
+                            <controls:SettingsCard Header="{x:Bind SensorName, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <!--  the shown top of the y-axis, as on the board  -->
+                                    <TextBlock
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="{x:Bind fhWidgetBoard:WidgetBoardCard.FormatYMax(ActualYMaxText, ActualYMaxUnit), Mode=OneWay}"
+                                        Typography.NumeralAlignment="Tabular" />
+
+                                    <RepeatButton
+                                        x:Uid="SensorPanel_IncreaseYAxisButton"
+                                        Width="32"
+                                        Height="32"
+                                        Padding="0"
+                                        Click="{x:Bind IncreaseYMax}">
+                                        <FontIcon FontSize="12" Glyph="&#xE70E;" />
+                                    </RepeatButton>
+
+                                    <RepeatButton
+                                        x:Uid="SensorPanel_DecreaseYAxisButton"
+                                        Width="32"
+                                        Height="32"
+                                        Padding="0"
+                                        Click="{x:Bind DecreaseYMax}">
+                                        <FontIcon FontSize="12" Glyph="&#xE70D;" />
+                                    </RepeatButton>
+
+                                    <ToggleButton
+                                        x:Uid="SensorPanel_AutoScaleButton"
+                                        Width="32"
+                                        Height="32"
+                                        Padding="0"
+                                        Content="A"
+                                        FontSize="12"
+                                        FontWeight="Normal"
+                                        IsChecked="{x:Bind IsAutoScaled, Mode=TwoWay}" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                        </DataTemplate>
+                    </controls:SettingsExpander.ItemTemplate>
+                </controls:SettingsExpander>
+            </StackPanel>
 
             <!--  csv logging settings  -->
             <TextBlock

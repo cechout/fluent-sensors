@@ -5,6 +5,7 @@
     {
         WidgetWindow,
         Csv,
-        Taskbar
+        Taskbar,
+        WidgetBoard // the store build only
     }
 }

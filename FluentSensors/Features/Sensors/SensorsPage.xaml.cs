@@ -11,9 +11,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
 
+using FluentSensors.Common;
 using FluentSensors.Common.Localization;
 using FluentSensors.Features.Widget;
 using FluentSensors.Features.TaskbarWidget;
+using FluentSensors.Features.WidgetBoard;
 using FluentSensors.Features.CsvLogging;
 using FluentSensors.Common.UI;
 using FluentSensors.Common.Sensors;
@@ -69,6 +71,15 @@ namespace FluentSensors.Features.Sensors
             // back on the last profile; still under the loading guard, SensorListCommandBar_Loaded builds the bar from
             // ActiveProfile a moment later
             var lastProfile = SettingsService.Instance.LastSensorProfile;
+
+            // the widgets board needs the package identity of the store build
+            if (!AppDistribution.IsPackaged)
+            {
+                SelectionProfileComboBox.Items.Remove(WidgetBoardProfileItem);
+                if (lastProfile == SensorSelectionProfile.WidgetBoard) lastProfile = SensorSelectionProfile.WidgetWindow;
+            }
+            FitSelectionProfileWidth();
+
             ViewModel.ActiveWidgetIndex = SettingsService.Instance.LastWidgetWindowIndex;
             ViewModel.ActiveProfile = lastProfile;
             SelectProfile(lastProfile);
@@ -172,6 +183,34 @@ namespace FluentSensors.Features.Sensors
 
             // reuses an open or hidden logger window (see CsvLoggerWindow._retainedInstance)
             CsvLoggerWindow.ShowWithSensors(selectedSensors);
+        }
+
+        // hands the checked sensors to the widget on the Widgets board
+        private async void UpdateWidgetBoard_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedSensors = ViewModel.HardwareGroups
+                .SelectMany(group => group.Sensors)
+                .Where(sensor => sensor.IsSelected)
+                .ToList();
+
+            // nothing selected: the info bar
+            if (selectedSensors.Count == 0)
+            {
+                _infoBarTicket++;
+                int currentTicket = _infoBarTicket;
+
+                AnimateInfoBar(-40, true);
+
+                await Task.Delay(2000);
+
+                if (currentTicket == _infoBarTicket)
+                {
+                    AnimateInfoBar(100, false);
+                }
+                return;
+            }
+
+            WidgetBoardService.Instance.ApplySensors(selectedSensors);
         }
 
         private async void PinToTaskbar_Click(object sender, RoutedEventArgs e)
@@ -468,6 +507,29 @@ namespace FluentSensors.Features.Sensors
             };
         }
 
+        // profile picker width
+        private const double ComboBoxChromeWidth = 52; // left padding 12, chevron column 38, border 2
+
+        // sized to its content the picker narrows to the selected entry while open and the controls to its right
+        // follow; one width for the widest entry in the current language keeps them in place
+        private void FitSelectionProfileWidth()
+        {
+            double widest = 0;
+            foreach (var item in SelectionProfileComboBox.Items.OfType<ComboBoxItem>())
+            {
+                var text = new TextBlock
+                {
+                    Text = item.Content as string ?? string.Empty,
+                    FontFamily = SelectionProfileComboBox.FontFamily,
+                    FontSize = SelectionProfileComboBox.FontSize
+                };
+                text.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                widest = Math.Max(widest, text.DesiredSize.Width);
+            }
+
+            SelectionProfileComboBox.Width = Math.Ceiling(widest) + ComboBoxChromeWidth;
+        }
+
 
         // === command bar overflow handling ===
 
@@ -611,6 +673,9 @@ namespace FluentSensors.Features.Sensors
                     break;
                 case SensorSelectionProfile.Taskbar:
                     order.Add(PinToTaskbarButton);
+                    break;
+                case SensorSelectionProfile.WidgetBoard:
+                    order.Add(WidgetBoardUpdateButton);
                     break;
                 default:
                     order.Add(PinToWidgetButton);

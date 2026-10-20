@@ -8,7 +8,7 @@ using FluentSensors.Persistence.Models;
 namespace FluentSensors.Persistence.Services
 {
     // the sensor selections:
-    // the three ordered selection profiles in memory (widget windows, csv, taskbar); knows nothing of
+    // the ordered selection profiles in memory (widget windows, csv, taskbar, widgets board); knows nothing of
     // checkboxes, view models or windows
     // widgetIndex picks the widget window (0 based) and is ignored by the other profiles
     public class SensorSelectionService
@@ -81,6 +81,7 @@ namespace FluentSensors.Persistence.Services
             SensorSelectionProfile.WidgetWindow => GetWidgetList(widgetIndex),
             SensorSelectionProfile.Csv => _state.Csv,
             SensorSelectionProfile.Taskbar => _state.Taskbar,
+            SensorSelectionProfile.WidgetBoard => _state.WidgetBoard ??= new List<string>(),
             _ => throw new ArgumentOutOfRangeException(nameof(profile))
         };
 

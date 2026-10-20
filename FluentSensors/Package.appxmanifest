@@ -2,8 +2,10 @@
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap rescap">
+  IgnorableNamespaces="uap uap3 com rescap">
 
 	<!--
 	  the identity matches partner center (app management, product identity) to the character, or the upload fails
@@ -45,6 +47,54 @@
 				<uap:SplashScreen Image="Assets\SplashScreen1.png" />
 				<uap:DefaultTile Square71x71Logo="Assets\SmallTile.png" Wide310x150Logo="Assets\WideTile.png" Square310x310Logo="Assets\LargeTile.png"/>
 			</uap:VisualElements>
+
+			<!--
+			  the widget on the Windows Widgets board: the board starts FluentSensors.WidgetProvider.exe as a COM server,
+			  at medium integrity, which the elevated app cannot be; the class id is the one in its Program.cs
+			-->
+			<Extensions>
+				<com:Extension Category="windows.comServer">
+					<com:ComServer>
+						<com:ExeServer Executable="FluentSensors.WidgetProvider.exe" Arguments="-RegisterProcessAsComServer" DisplayName="Fluent Sensors Widget Provider">
+							<com:Class Id="8F1C6E2A-3B4D-4E5F-9A7B-2C8D1E0F4A63" DisplayName="Fluent Sensors Widget Provider" />
+						</com:ExeServer>
+					</com:ComServer>
+				</com:Extension>
+
+				<uap3:Extension Category="windows.appExtension">
+					<uap3:AppExtension Name="com.microsoft.windows.widgets" DisplayName="Fluent Sensors" Id="FluentSensors">
+						<uap3:Properties>
+							<WidgetProvider>
+								<ProviderIcons>
+									<Icon Path="Assets\Square44x44Logo1.png" />
+								</ProviderIcons>
+								<Activation>
+									<CreateInstance ClassId="8F1C6E2A-3B4D-4E5F-9A7B-2C8D1E0F4A63" />
+								</Activation>
+								<Definitions>
+									<Definition Id="Sensors" DisplayName="Fluent Sensors" Description="Live sensor graphs" AllowMultiple="true" IsCustomizable="false">
+										<Capabilities>
+											<Capability><Size Name="small" /></Capability>
+											<Capability><Size Name="medium" /></Capability>
+											<Capability><Size Name="large" /></Capability>
+										</Capabilities>
+										<ThemeResources>
+											<Icons>
+												<Icon Path="Assets\Square44x44Logo1.png" />
+											</Icons>
+											<Screenshots>
+												<Screenshot Path="Assets\WideTile.png" DisplayAltText="Fluent Sensors" />
+											</Screenshots>
+											<DarkMode />
+											<LightMode />
+										</ThemeResources>
+									</Definition>
+								</Definitions>
+							</WidgetProvider>
+						</uap3:Properties>
+					</uap3:AppExtension>
+				</uap3:Extension>
+			</Extensions>
 		</Application>
 	</Applications>
 
@@ -58,4 +108,33 @@
 		<rescap:Capability Name="runFullTrust" />
 		<rescap:Capability Name="allowElevation" />
 	</Capabilities>
+
+	<!--
+	  the Widgets component of the Windows App SDK for the provider, copied from its appxfragment without the feed
+	  interfaces; the app csproj excludes the component, so its tooling writes none of this
+	  Microsoft.Windows.Widgets.winmd has to sit next to the dll: WidgetManager activates an internal class by name,
+	  which only resolves through the metadata file
+	-->
+	<Extensions>
+		<Extension Category="windows.activatableClass.proxyStub">
+			<ProxyStub ClassId="93022121-B6C9-4A22-90DB-763E24FD99E1">
+				<Path>Microsoft.Windows.Widgets.dll</Path>
+				<Interface Name="Microsoft.Windows.Widgets.Providers.IWidgetProvider2" InterfaceId="38C3A963-DD93-479D-9276-04BF84EE1816" />
+				<Interface Name="Microsoft.Windows.Widgets.Providers.IWidgetProviderAnalytics" InterfaceId="661985A5-D187-482D-9EEF-6FDA05D21845" />
+				<Interface Name="Microsoft.Windows.Widgets.Providers.IWidgetProviderErrors" InterfaceId="90C1B5F0-0D3A-4AC6-ABB7-C97B367B8FCC" />
+				<Interface Name="Microsoft.Windows.Widgets.Providers.IWidgetResourceProvider" InterfaceId="DCF328C0-012C-40F5-BB28-3A1C714D027D" />
+				<Interface Name="Microsoft.Windows.Widgets.Providers.IWidgetAnnouncementInvokedTarget" InterfaceId="2B62C81E-5947-439E-B213-7C59C13659A7" />
+				<Interface Name="Microsoft.Windows.Widgets.Providers.IWidgetProviderMessage" InterfaceId="EA4DC186-9E24-4B35-A5EF-A9F5DF72D6AC" />
+			</ProxyStub>
+		</Extension>
+		<Extension Category="windows.activatableClass.inProcessServer">
+			<InProcessServer>
+				<Path>Microsoft.Windows.Widgets.dll</Path>
+				<ActivatableClass ActivatableClassId="Microsoft.Windows.Widgets.Providers.WidgetUpdateRequestOptions" ThreadingModel="both" />
+				<ActivatableClass ActivatableClassId="Microsoft.Windows.Widgets.Providers.WidgetManager" ThreadingModel="both" />
+				<ActivatableClass ActivatableClassId="Microsoft.Windows.Widgets.Providers.WidgetResourceResponse" ThreadingModel="both" />
+				<ActivatableClass ActivatableClassId="Microsoft.Windows.Widgets.Notifications.WidgetAnnouncement" ThreadingModel="both" />
+			</InProcessServer>
+		</Extension>
+	</Extensions>
 </Package>

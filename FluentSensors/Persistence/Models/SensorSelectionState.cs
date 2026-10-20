@@ -3,7 +3,7 @@
 
 namespace FluentSensors.Persistence.Models
 {
-    // the sensor ids of the three selection profiles (widget windows, csv, taskbar); membership only, a
+    // the sensor ids of the selection profiles (widget windows, csv, taskbar, widgets board); membership only, a
     // consumer orders them by discovery
     public class SensorSelectionState
     {
@@ -12,6 +12,7 @@ namespace FluentSensors.Persistence.Models
         public List<List<string>> ExtraWidgetWindows { get; set; } = new();
         public List<string> Csv { get; set; } = new();
         public List<string> Taskbar { get; set; } = new();
+        public List<string> WidgetBoard { get; set; } = new();
 
         // guards the one-time migration from WindowState "Widget" PinnedSensorIds; stays true, even
         // for an emptied WidgetWindow

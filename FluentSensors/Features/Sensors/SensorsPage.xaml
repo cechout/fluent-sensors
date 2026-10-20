@@ -59,11 +59,10 @@
                             Style="{ThemeResource BodyStrongTextBlockStyle}" />
 
                         <!--  the profile the checkboxes reflect and commit to  -->
-                        <!--  (a fixed width; sized to its content it narrows while open)  -->
+                        <!--  (a fixed width from the widest entry, see FitSelectionProfileWidth; sized to its content it narrows while open)  -->
                         <ComboBox
                             x:Name="SelectionProfileComboBox"
                             x:Uid="Sensors_SelectionProfileComboBox"
-                            Width="120"
                             Margin="12,0,0,0"
                             VerticalAlignment="Center"
                             SelectedIndex="0"
@@ -71,6 +70,11 @@
                             <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_WidgetWindow" Tag="WidgetWindow" />
                             <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_Csv" Tag="Csv" />
                             <ComboBoxItem x:Uid="Sensors_SelectionProfileComboBox_Taskbar" Tag="Taskbar" />
+                            <!--  (store build only, removed from code otherwise)  -->
+                            <ComboBoxItem
+                                x:Name="WidgetBoardProfileItem"
+                                x:Uid="Sensors_SelectionProfileComboBox_WidgetBoard"
+                                Tag="WidgetBoard" />
                         </ComboBox>
 
                         <!--  the widget window of the widget profile  -->
@@ -148,6 +152,16 @@
                                 x:Name="TaskbarUpdateButton"
                                 x:Uid="Sensors_TaskbarUpdateButton"
                                 Click="PinToTaskbar_Click">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xE895;" />
+                                </AppBarButton.Icon>
+                            </AppBarButton>
+
+                            <!--  update the widgets board widget (shown for the WidgetsBoard profile)  -->
+                            <AppBarButton
+                                x:Name="WidgetBoardUpdateButton"
+                                x:Uid="Sensors_WidgetBoardUpdateButton"
+                                Click="UpdateWidgetBoard_Click">
                                 <AppBarButton.Icon>
                                     <FontIcon Glyph="&#xE895;" />
                                 </AppBarButton.Icon>

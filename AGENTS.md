@@ -76,11 +76,15 @@ FluentSensors/
 ├── Diagnostics/
 ├── Features/     one folder per screen or feature, view plus view model and any window it owns:
 │                 AppStatus, CsvLogging, Performance, Sensors, Settings, Start, TaskbarWidget,
-│                 Update, Widget
+│                 Update, Widget, WidgetBoard
 ├── Persistence/  Models, Services
 ├── Properties/   PublishProfiles
 └── Strings/      Resources.resw and Terms.resw per language: en-US (source), de-DE, cs-CZ
 ```
+
+`FluentSensors.WidgetProvider/` next to it is the widget provider of the Windows Widgets board: a small
+NativeAOT COM server the board starts without elevation, fed by the running app over a named pipe, and
+packed into the MSIX build only.
 
 `Setup/` holds the Inno Setup installer script, the MSIX packaging script and the Microsoft Store
 submission script. `.github/` holds the workflows, the issue and pull request templates and the public

@@ -30,6 +30,7 @@ using FluentSensors.Core.Taskbar;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Features.Widget;
+using FluentSensors.Features.WidgetBoard;
 using FluentSensors.Features.CsvLogging;
 
 
@@ -776,6 +777,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private static void ExecuteAccentRefresh()
         {
             TaskbarWidgetWindow.CurrentInstance?.ViewModel.RefreshGraphColors();
+            WidgetBoardService.Instance.RefreshGraphColors();
 
             foreach (var widget in WidgetWindow.OpenInstances)
             {

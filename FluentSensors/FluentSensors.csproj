@@ -317,6 +317,37 @@
   </Target>
 
   <!--
+    the widget provider of the Widgets board (FluentSensors.WidgetProvider), packaged builds only: published with
+    NativeAOT for the same runtime and added to the payload next to the app, with the Widgets dll and winmd this
+    project otherwise excludes; the manifest entries are in Package.appxmanifest
+    a dotnet publish of its own rather than an MSBuild task, which would hand it the publish profile and package
+    properties of this build; the linker search of NativeAOT calls vswhere from the PATH
+  -->
+  <PropertyGroup>
+    <_WidgetProviderProject>$(MSBuildProjectDirectory)\..\FluentSensors.WidgetProvider\FluentSensors.WidgetProvider.csproj</_WidgetProviderProject>
+    <_WidgetsPackageDir>$(NuGetPackageRoot)microsoft.windowsappsdk.widgets\2.0.5\</_WidgetsPackageDir>
+  </PropertyGroup>
+
+  <Target Name="IncludeWidgetProviderPayload" AfterTargets="_ComputeAppxPackagePayload" Condition="'$(WindowsPackageType)' != 'None'">
+    <!--  (in the target, IntermediateOutputPath is not set yet where the project body is read)  -->
+    <PropertyGroup>
+      <_WidgetProviderPublishDir>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)WidgetProvider</_WidgetProviderPublishDir>
+    </PropertyGroup>
+    <!--  (the environment in the command itself, EnvironmentVariables splits a PATH at its semicolons)  -->
+    <Exec Command="set &quot;PATH=%PATH%;$(MSBuildProgramFiles32)\Microsoft Visual Studio\Installer&quot;
+set MSBuildExtensionsPath=
+set MSBuildSDKsPath=
+set MSBUILD_EXE_PATH=
+dotnet publish &quot;$(_WidgetProviderProject)&quot; -c $(Configuration) -r $(RuntimeIdentifier) -o &quot;$(_WidgetProviderPublishDir)&quot; -nologo" />
+    <ItemGroup>
+      <AppxPackagePayload Include="$(_WidgetProviderPublishDir)\FluentSensors.WidgetProvider.exe" TargetPath="FluentSensors.WidgetProvider.exe" />
+      <AppxPackagePayload Include="$(_WidgetsPackageDir)runtimes-framework\$(RuntimeIdentifier)\native\Microsoft.Windows.Widgets.dll" TargetPath="Microsoft.Windows.Widgets.dll" />
+      <AppxPackagePayload Include="$(_WidgetsPackageDir)metadata\Microsoft.Windows.Widgets.winmd" TargetPath="Microsoft.Windows.Widgets.winmd" />
+    </ItemGroup>
+    <Message Importance="high" Text="added the widget provider to the msix payload" />
+  </Target>
+
+  <!--
     the store wants a four part version, stamped from the csproj at build time onto a copy in obj that
     @(AppxManifest) points at; _ValidatePresenceOfAppxManifestItems reads the source item and the file name,
     bundle version and final manifest follow it (stamping the output instead names a 1.4.0.0 payload _1.0.0.0_)

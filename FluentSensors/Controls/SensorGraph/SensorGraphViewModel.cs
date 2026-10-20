@@ -78,6 +78,11 @@ namespace FluentSensors.Controls.SensorGraph
                 // the taskbar and its flyout are two graphs on one y-axis state
                 SensorStateService.Instance.StateChanged += OnSensorStateChanged;
             }
+            else if (Scope == SensorGraphScope.WidgetBoard)
+            {
+                GraphColor = ResolveGraphColor(SettingsService.Instance.WidgetBoardGraphColorSource, SettingsService.Instance.WidgetBoardGraphCustomColor);
+                SettingsService.Instance.WidgetBoardGraphColorChanged += OnGraphColorChanged;
+            }
             else
             {
                 GraphColor = ResolveGraphColor(SettingsService.Instance.GraphColorSource, SettingsService.Instance.GraphCustomColor);
@@ -88,6 +93,7 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 case SensorGraphScope.Taskbar: SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnGraphTimeSpanChanged; break;
                 case SensorGraphScope.TaskbarFlyout: SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged += OnGraphTimeSpanChanged; break;
+                case SensorGraphScope.WidgetBoard: SettingsService.Instance.WidgetBoardGraphTimeSpanChanged += OnGraphTimeSpanChanged; break;
                 default: SettingsService.Instance.GraphTimeSpanChanged += OnGraphTimeSpanChanged; break;
             }
 
@@ -261,6 +267,21 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+        // the unit of ActualYMaxText, scaled with it (GHz, GB); the widgets board shows both
+        private string _actualYMaxUnit = "";
+        public string ActualYMaxUnit
+        {
+            get => _actualYMaxUnit;
+            private set
+            {
+                if (_actualYMaxUnit != value)
+                {
+                    _actualYMaxUnit = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private Brush _currentValueColor;
         private Windows.UI.Color _currentValueThresholdColor; // the threshold color behind CurrentValueColor, see RecalculateColor
         public Brush CurrentValueColor
@@ -396,7 +417,9 @@ namespace FluentSensors.Controls.SensorGraph
         {
             GraphColor = IsTaskbarScope
                 ? ResolveGraphColor(SettingsService.Instance.TaskbarGraphColorSource, SettingsService.Instance.TaskbarGraphCustomColor)
-                : ResolveGraphColor(SettingsService.Instance.GraphColorSource, SettingsService.Instance.GraphCustomColor);
+                : Scope == SensorGraphScope.WidgetBoard
+                    ? ResolveGraphColor(SettingsService.Instance.WidgetBoardGraphColorSource, SettingsService.Instance.WidgetBoardGraphCustomColor)
+                    : ResolveGraphColor(SettingsService.Instance.GraphColorSource, SettingsService.Instance.GraphCustomColor);
         }
 
         // unsubscribes everything, or a removed row keeps reacting
@@ -408,6 +431,10 @@ namespace FluentSensors.Controls.SensorGraph
                 SettingsService.Instance.TaskbarGraphBackgroundChanged -= OnGraphBackgroundChanged;
                 SensorStateService.Instance.StateChanged -= OnSensorStateChanged;
             }
+            else if (Scope == SensorGraphScope.WidgetBoard)
+            {
+                SettingsService.Instance.WidgetBoardGraphColorChanged -= OnGraphColorChanged;
+            }
             else
             {
                 SettingsService.Instance.GraphColorChanged -= OnGraphColorChanged;
@@ -415,6 +442,7 @@ namespace FluentSensors.Controls.SensorGraph
 
             SettingsService.Instance.TaskbarGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
+            SettingsService.Instance.WidgetBoardGraphTimeSpanChanged -= OnGraphTimeSpanChanged;
             SettingsService.Instance.GraphTimeSpanChanged -= OnGraphTimeSpanChanged;
 
             HardwareMonitorService.Instance.UpdateIntervalChanged -= OnUpdateIntervalChanged;
@@ -572,6 +600,7 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 SensorGraphScope.Taskbar => SettingsService.Instance.TaskbarGraphTimeSpanSeconds,
                 SensorGraphScope.TaskbarFlyout => SettingsService.Instance.TaskbarFlyoutGraphTimeSpanSeconds,
+                SensorGraphScope.WidgetBoard => SettingsService.Instance.WidgetBoardGraphTimeSpanSeconds,
                 _ => SettingsService.Instance.GraphTimeSpanSeconds
             };
         }
@@ -631,8 +660,9 @@ namespace FluentSensors.Controls.SensorGraph
                 // the highest point, 0 while empty; the lowest for a series below zero, the end of its range
                 double currentHighestPoint = SensorData.Max() ?? 0;
                 if (currentHighestPoint <= 0) currentHighestPoint = Math.Min(SensorData.Min() ?? 0, 0);
-                var (scaledValue, _) = SensorUnitFormatter.Scale(currentHighestPoint, SensorType);
+                var (scaledValue, unit) = SensorUnitFormatter.Scale(currentHighestPoint, SensorType);
                 ActualYMaxText = $"{scaledValue:0.0}";
+                ActualYMaxUnit = unit;
             }
             else
             {
@@ -641,6 +671,7 @@ namespace FluentSensors.Controls.SensorGraph
                 ActualYMaxText = unit == SensorUnitFormatter.GetUnit(SensorType)
                     ? scaledValue.ToString("0")
                     : $"{scaledValue:0.0}";
+                ActualYMaxUnit = unit;
             }
         }
 

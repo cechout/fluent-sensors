@@ -24,6 +24,7 @@ using FluentSensors.Features.Start;
 using FluentSensors.Features.Settings;
 using FluentSensors.Features.Update;
 using FluentSensors.Features.Widget;
+using FluentSensors.Features.WidgetBoard;
 using FluentSensors.Persistence.Models;
 using FluentSensors.Persistence.Services;
 using FluentSensors.Common.Localization;
@@ -97,6 +98,7 @@ namespace FluentSensors
 
         // and for the taskbar settings, from the gear button of the taskbar flyout
         private bool _isTaskbarSettingsPending = false;
+        private bool _isWidgetBoardSettingsPending = false;
 
         // system tray icon commands
         public XamlUICommand RestoreAppCommand { get; } = new XamlUICommand();
@@ -359,7 +361,7 @@ namespace FluentSensors
             // the page)
             _isStartupNavigation = true;
             MainNavigationView.SelectedItem = _pendingSensorProfile != null ? SensorsNavItem
-                : _isTaskbarSettingsPending ? SettingsNavItem
+                : _isTaskbarSettingsPending || _isWidgetBoardSettingsPending ? SettingsNavItem
                 : StartupNavItem();
 
             // requests from the splash; the selection above created the page
@@ -382,11 +384,18 @@ namespace FluentSensors
                 _isTaskbarSettingsPending = false;
             }
 
+            if (_isWidgetBoardSettingsPending && contentFrame.Content is SettingsPage pendingBoardSettingsPage)
+            {
+                pendingBoardSettingsPage.ScrollToWidgetBoardSection();
+                _isWidgetBoardSettingsPending = false;
+            }
+
             // read before the two restores below take the focus, see ReclaimForeground
             bool hadForeground = GetForegroundWindow() == WinRT.Interop.WindowNative.GetWindowHandle(this);
 
             TryRestoreWidgetWindows();
             TryRestoreTaskbarWidgetWindow();
+            WidgetBoardService.Instance.Start();
 
             // from here they follow hardware that leaves or comes back
             SensorsViewModel.Instance.SensorAvailabilityChanged += WidgetWindow.RefreshAvailability;
@@ -909,6 +918,26 @@ namespace FluentSensors
             else
             {
                 _isTaskbarSettingsPending = true;
+            }
+        }
+
+        // the same for the widgets board section, from the link on the board widget
+        public void OpenWidgetBoardSettings()
+        {
+            OpenDashboard();
+
+            if (!ReferenceEquals(MainNavigationView.SelectedItem, SettingsNavItem))
+            {
+                MainNavigationView.SelectedItem = SettingsNavItem;
+            }
+
+            if (contentFrame.Content is SettingsPage settingsPage)
+            {
+                settingsPage.ScrollToWidgetBoardSection();
+            }
+            else
+            {
+                _isWidgetBoardSettingsPending = true;
             }
         }
 

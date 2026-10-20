@@ -379,6 +379,24 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
   <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
     <value>Widget Window Appearance</value>
   </data>
+  <data name="Settings_WidgetBoardText.Text" xml:space="preserve">
+    <value>Widgets Board</value>
+    <comment>section heading for the widget on the Windows Widgets board (Win+W)</comment>
+  </data>
+  <data name="Settings_WidgetBoardGraphExpander.Header" xml:space="preserve">
+    <value>Graph</value>
+    <comment>section heading for the graphs of the widget on the Windows Widgets board</comment>
+  </data>
+  <data name="Settings_WidgetBoardGraphExpander.Description" xml:space="preserve">
+    <value>Graph color and time range</value>
+  </data>
+  <data name="Settings_WidgetBoardYAxisExpander.Header" xml:space="preserve">
+    <value>Y-Axis</value>
+    <comment>section heading for the y-axis of each graph on the Windows Widgets board</comment>
+  </data>
+  <data name="Settings_WidgetBoardYAxisExpander.Description" xml:space="preserve">
+    <value>Scaling per pinned sensor</value>
+  </data>
   <data name="Settings_BackgroundMaterialExpander.Description" xml:space="preserve">
     <value>Backdrop effect and color for the widget window</value>
   </data>
@@ -1607,11 +1625,11 @@ Type - its medium (Wi-Fi, Ethernet, ...)</value>
     <value>Selection Profile</value>
   </data>
   <data name="Sensors_SelectionProfileComboBox_WidgetWindow.Content" xml:space="preserve">
-    <value>Widget</value>
+    <value>Desktop Widget</value>
     <comment>sensor selection profile; the sensors picked for the widget window</comment>
   </data>
   <data name="Sensors_SelectionProfileComboBox_Csv.Content" xml:space="preserve">
-    <value>Logging</value>
+    <value>CSV Logging</value>
     <comment>sensor selection profile; the sensors picked for CSV logging</comment>
   </data>
   <data name="Sensors_WidgetWindowComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
@@ -1619,8 +1637,12 @@ Type - its medium (Wi-Fi, Ethernet, ...)</value>
     <comment>the second picker next to the selection profile; which of the widget windows, 1 to 5</comment>
   </data>
   <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
-    <value>Taskbar</value>
+    <value>Taskbar Widget</value>
     <comment>sensor selection profile; the sensors picked for the taskbar widget</comment>
+  </data>
+  <data name="Sensors_SelectionProfileComboBox_WidgetBoard.Content" xml:space="preserve">
+    <value>Widgets Board</value>
+    <comment>sensor selection profile; the sensors picked for the widget on the Windows Widgets board (Win+W)</comment>
   </data>
   <data name="Sensors_PinToWidgetButton.Label" xml:space="preserve">
     <value>Pin to Widget</value>
@@ -1630,6 +1652,10 @@ Type - its medium (Wi-Fi, Ethernet, ...)</value>
   </data>
   <data name="Sensors_PinToTaskbarButton.Label" xml:space="preserve">
     <value>Pin to Taskbar</value>
+  </data>
+  <data name="Sensors_WidgetBoardUpdateButton.Label" xml:space="preserve">
+    <value>Update</value>
+    <comment>verb; applies the selected sensors to the widget on the Windows Widgets board</comment>
   </data>
   <data name="Sensors_TaskbarUpdateButton.Label" xml:space="preserve">
     <value>Update</value>
@@ -2030,5 +2056,25 @@ Cycle Count - full charge cycles counted by the electronics of the battery</valu
   </data>
   <data name="Battery_HealthPopup.SourceIntro" xml:space="preserve">
     <value>Source:</value>
+  </data>
+  <data name="WidgetBoard_NotRunning" xml:space="preserve">
+    <value>Fluent Sensors is not running</value>
+    <comment>shown on the Windows Widgets board while the app is closed</comment>
+  </data>
+  <data name="WidgetBoard_SensorsLink" xml:space="preserve">
+    <value>Manage Sensors</value>
+    <comment>link on the widget on the Windows Widgets board; opens the sensors page on its selection profile</comment>
+  </data>
+  <data name="WidgetBoard_SettingsLink" xml:space="preserve">
+    <value>Widget Settings</value>
+    <comment>link on the widget on the Windows Widgets board; opens its section in the app settings</comment>
+  </data>
+  <data name="WidgetBoard_YMax" xml:space="preserve">
+    <value>max: {0}</value>
+    <comment>the top of a graph y-axis on the Windows Widgets board; {0} value and unit, like 47,8 %</comment>
+  </data>
+  <data name="WidgetBoard_NoSensors" xml:space="preserve">
+    <value>No sensors selected</value>
+    <comment>shown on the Windows Widgets board while its selection on the sensors page is empty</comment>
   </data>
 </root>
