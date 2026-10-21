@@ -808,21 +808,11 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
   <data name="Start_AppStatusText.Text" xml:space="preserve">
     <value>App-Status</value>
   </data>
-  <data name="Start_LhmPopup.Description" xml:space="preserve">
-    <value>Gefundene Sensoren - jeder Sensor, den LibreHardwareMonitor auf diesem Gerät meldet
-Gezeichnete Sensoren - wie viele davon gerade aktiv gezeichnet werden
-Aktualisierungsintervall - gemessen gegen das eingestellte Abfrageintervall
-Lesedauer - wie lange ein vollständiger Lesevorgang aller Sensoren dauert
-PawnIO-Treiber - Kernelzugriff für CPU-, Mainboard- und Speichersensoren</value>
-  </data>
   <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
     <value>Diese App basiert auf dem Open-Source-Projekt LibreHardwareMonitor:</value>
   </data>
   <data name="Start_LhmGitHubSource.Label" xml:space="preserve">
     <value>LibreHardwareMonitor auf GitHub</value>
-  </data>
-  <data name="Start_FoundSensorsText.Text" xml:space="preserve">
-    <value>Gefundene Sensoren</value>
   </data>
   <data name="Start_RenderingSensorsText.Text" xml:space="preserve">
     <value>Gezeichnete Sensoren</value>
@@ -1538,18 +1528,6 @@ Typ - ihr Medium (WLAN, Ethernet, ...)</value>
   </data>
   <data name="Sensors_SelectionProfileComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Auswahlprofil</value>
-  </data>
-  <data name="Sensors_SelectionProfileComboBox_WidgetWindow.Content" xml:space="preserve">
-    <value>Widget</value>
-    <comment>sensor selection profile; the sensors picked for the widget window</comment>
-  </data>
-  <data name="Sensors_SelectionProfileComboBox_Csv.Content" xml:space="preserve">
-    <value>Aufzeichnung</value>
-    <comment>sensor selection profile; the sensors picked for CSV logging</comment>
-  </data>
-  <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
-    <value>Taskleiste</value>
-    <comment>sensor selection profile; the sensors picked for the taskbar widget</comment>
   </data>
   <data name="Sensors_PinToWidgetButton.Label" xml:space="preserve">
     <value>An Widget anheften</value>

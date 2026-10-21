@@ -113,10 +113,6 @@ Lectura - duración de una pasada completa de sensores, un valor cercano a la ta
   <data name="Main_LhmGitHubSource.Label" xml:space="preserve">
     <value>LibreHardwareMonitor en GitHub</value>
   </data>
-  <data name="Main_WindowsInfoPopup.Description" xml:space="preserve">
-    <value>Uso de CPU: tiempo de procesador propio de esta app en relación con la capacidad total en todos los núcleos
-Uso de RAM: memoria física actualmente mapeada por esta app (espacio de trabajo)</value>
-  </data>
   <data name="Main_WindowsInfoPopup.SourceIntro" xml:space="preserve">
     <value>Fuente:</value>
   </data>
@@ -225,12 +221,6 @@ Uso de RAM: memoria física actualmente mapeada por esta app (espacio de trabajo
   </data>
   <data name="Settings_HardwareIconColorsCard.Header" xml:space="preserve">
     <value>Colores de iconos de hardware</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Header" xml:space="preserve">
-    <value>Colores por tipo de sensor</value>
-  </data>
-  <data name="Settings_SensorTypeColorsCard.Description" xml:space="preserve">
-    <value>Página de gráficos y lista de sensores</value>
   </data>
   <data name="Settings_GraphCard.Header" xml:space="preserve">
     <value>Gráficos</value>
@@ -828,21 +818,11 @@ Uso de RAM: memoria física actualmente mapeada por esta app (espacio de trabajo
   <data name="Start_AppStatusText.Text" xml:space="preserve">
     <value>Estado de la aplicación</value>
   </data>
-  <data name="Start_LhmPopup.Description" xml:space="preserve">
-    <value>Sensores encontrados: todos los sensores que LibreHardwareMonitor reporta en esta máquina
-Sensores dibujados: cuántos de ellos se están dibujando activamente en este momento
-Intervalo de actualización: medido frente al intervalo configurado
-Tiempo de lectura: cuánto tarda una lectura completa de todos los sensores
-Controlador PawnIO: acceso al kernel para sensores de CPU, placa base y memoria</value>
-  </data>
   <data name="Start_LhmPopup.SourceIntro" xml:space="preserve">
     <value>Esta aplicación funciona gracias al proyecto de código abierto LibreHardwareMonitor:</value>
   </data>
   <data name="Start_LhmGitHubSource.Label" xml:space="preserve">
     <value>LibreHardwareMonitor en GitHub</value>
-  </data>
-  <data name="Start_FoundSensorsText.Text" xml:space="preserve">
-    <value>Sensores encontrados</value>
   </data>
   <data name="Start_RenderingSensorsText.Text" xml:space="preserve">
     <value>Sensores dibujados</value>
@@ -1164,11 +1144,6 @@ Selecciona Ahorro de energía para FluentSensors en la configuración de gráfic
   <data name="Cpu_GeneralPopup.Title" xml:space="preserve">
     <value>General</value>
   </data>
-  <data name="Cpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Núcleos físicos: unidades de procesamiento reales en el chip
-Procesadores lógicos: subprocesos de ejecución totales (SMT/Hyper-Threading se duplica por núcleo)
-Topología de núcleos: división entre núcleos de rendimiento y de eficiencia en CPU híbridas</value>
-  </data>
   <data name="Cpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Fuente:</value>
   </data>
@@ -1209,10 +1184,6 @@ Firmware: habilitado actualmente o no (poco fiable)</value>
   <data name="Gpu_GeneralPopup.Title" xml:space="preserve">
     <value>General</value>
   </data>
-  <data name="Gpu_GeneralPopup.Description" xml:space="preserve">
-    <value>Versión del controlador: número de controlador interno de Windows, difiere del esquema de versiones del fabricante
-Pantalla: las pantallas que maneja esta GPU, o la GPU a través de la cual pasa su imagen en un portátil híbrido</value>
-  </data>
   <data name="Gpu_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Fuente:</value>
   </data>
@@ -1239,15 +1210,6 @@ Id. de dispositivo PnP: identificador de instancia de Windows para este disposit
   <data name="Memory_MemoryUsedVirtualTile.InfoMessage" xml:space="preserve">
     <value>Corresponde al valor "Confirmada" del Administrador de tareas; normalmente exacto, pero puede desviarse ocasionalmente.</value>
   </data>
-  <data name="Memory_RamInfoPopup.Description" xml:space="preserve">
-    <value>Tipo: generación DDR (DDR4, DDR5, ...)
-Factor de forma: DIMM (escritorio) o SO-DIMM (portátil)
-Velocidad de RAM: configurada (activa) frente a nominal (especificación)
-Voltaje: voltaje de funcionamiento; XMP/EXPO puede aumentarlo
-Banco: agrupación física de bancos/ranuras en la placa base a la que pertenece este módulo
-Rank: número de conjuntos de chips independientes en el propio módulo (poco fiable)
-Ancho: Datos (bits utilizables) frente a Total (incluye bits ECC)</value>
-  </data>
   <data name="Memory_RamInfoPopup.SourceIntro" xml:space="preserve">
     <value>Fuente:</value>
   </data>
@@ -1265,9 +1227,6 @@ Ancho: Datos (bits utilizables) frente a Total (incluye bits ECC)</value>
   </data>
   <data name="Storage_GeneralPopup.Title" xml:space="preserve">
     <value>General</value>
-  </data>
-  <data name="Storage_GeneralPopup.Description" xml:space="preserve">
-    <value>Tipo de bus: interfaz de conexión (NVMe, SATA, USB, ...), limita la velocidad máxima realista de la unidad; leída desde la API moderna de Storage, ya que la API heredada de Windows informa incorrectamente de las unidades NVMe como SCSI</value>
   </data>
   <data name="Storage_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Fuente:</value>
@@ -1293,37 +1252,17 @@ Ancho: Datos (bits utilizables) frente a Total (incluye bits ECC)</value>
   <data name="Storage_ResizeHardwareInfoSplitter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Redimensionar información de hardware</value>
   </data>
-  <data name="Network_ConnectionPopup.Title" xml:space="preserve">
-    <value>Conexión</value>
-  </data>
-  <data name="Network_ConnectionPopup.Description" xml:space="preserve">
-    <value>Representa una conexión activa, no la gama completa de posibles conexiones del adaptador. Múltiples conexiones activas (p. ej., Wi-Fi + Ethernet) obtienen cada una su propia entrada independiente.
-Hardware: adaptador físico detrás de esta conexión
-Tipo: su medio (Wi-Fi, Ethernet, ...)</value>
-  </data>
-  <data name="Network_ConnectionPopup.SourceIntro" xml:space="preserve">
-    <value>Fuente:</value>
-  </data>
   <data name="Network_HardwareText.Text" xml:space="preserve">
     <value>Hardware</value>
   </data>
   <data name="Network_TypeText.Text" xml:space="preserve">
     <value>Tipo</value>
   </data>
-  <data name="Network_IPAddressesPopup.Description" xml:space="preserve">
-    <value>IPv4 e IPv6 son sistemas de direccionamiento independientes, ambos activos a la vez.
-IPv4: generalmente una dirección
-IPv6: a menudo varias a la vez (direcciones estables + temporales de privacidad)</value>
-  </data>
   <data name="Network_IPAddressesPopup.SourceIntro" xml:space="preserve">
     <value>Fuente:</value>
   </data>
   <data name="Network_GeneralPopup.Title" xml:space="preserve">
     <value>General</value>
-  </data>
-  <data name="Network_GeneralPopup.Description" xml:space="preserve">
-    <value>Velocidad de vínculo: tasa negociada de esta conexión específica, no la velocidad nominal máxima del adaptador; puede ser menor y cambia con el tiempo en Wi-Fi a medida que cambian las condiciones de la señal
-DHCP habilitado: si la dirección propia de esta conexión se asignó automáticamente o se estableció de forma estática; una propiedad de esta conexión, no una configuración general de la red</value>
   </data>
   <data name="Network_GeneralPopup.SourceIntro" xml:space="preserve">
     <value>Fuente:</value>
@@ -1515,21 +1454,9 @@ DHCP habilitado: si la dirección propia de esta conexión se asignó automátic
   <data name="Sensors_SelectionProfileComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Perfil de selección</value>
   </data>
-  <data name="Sensors_SelectionProfileComboBox_WidgetWindow.Content" xml:space="preserve">
-    <value>Widget</value>
-    <comment>sensor selection profile; the sensors picked for the widget window</comment>
-  </data>
-  <data name="Sensors_SelectionProfileComboBox_Csv.Content" xml:space="preserve">
-    <value>Registro</value>
-    <comment>sensor selection profile; the sensors picked for CSV logging</comment>
-  </data>
   <data name="Sensors_WidgetWindowComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Ventana de widget</value>
     <comment>the second picker next to the selection profile; which of the widget windows, 1 to 5</comment>
-  </data>
-  <data name="Sensors_SelectionProfileComboBox_Taskbar.Content" xml:space="preserve">
-    <value>Barra de tareas</value>
-    <comment>sensor selection profile; the sensors picked for the taskbar widget</comment>
   </data>
   <data name="Sensors_PinToWidgetButton.Label" xml:space="preserve">
     <value>Anclar al widget</value>
