@@ -68,6 +68,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === private helpers ===
 
+        // the view model of new hardware: its sensors placed now, the later ones as they arrive
         private void AttachToInstance(LhmHardwareInstance instance)
         {
             var drive = new LhmStorageInstanceViewModel(instance.HardwareName);
@@ -101,6 +102,7 @@ namespace FluentSensors.Features.Performance.Lhm
             ActivateDefault(drive.HardwareName, "UsedSpace", drive.UsedSpaceOptions, () => drive.UsedSpace, drive.SetUsedSpaceWithoutPersisting);
         }
 
+        // the start graph of one category, see ApplyCategoryFallbacks
         private static void ActivateDefault(
             string hardwareName, string category, ObservableCollection<SensorSwitchCandidate> options,
             Func<SensorGraphViewModel> getActive, Action<SensorGraphViewModel> setActiveWithoutPersisting)
@@ -135,6 +137,8 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
+        // places one sensor of the drive on its tab by its name: a candidate of a switchable slot, a graph of the
+        // extended view, the total that scales the space candidates, or a fact of the info panel
         private void OnSensorDiscovered(LhmStorageInstanceViewModel drive, LhmSensorEntry entry)
         {
             switch (entry.Name)

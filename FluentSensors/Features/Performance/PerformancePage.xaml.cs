@@ -268,6 +268,8 @@ namespace FluentSensors.Features.Performance
             viewer.ChangeView(null, viewer.VerticalOffset + delta, null);
         }
 
+        // shows the view of the selected hardware, or the start view, and hides the one shown before
+        //
         // --- memory leak: hardware detail views never released after switching ---
         // problem: each SensorGraphControl wraps a native LiveChartsCore SkiaSharp surface and its events, a
         // reference cycle the GC cannot see through; rebuilding the views on every switch leaked a few MB each time

@@ -23,8 +23,7 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             HardwareName = hardwareName;
 
-            // until Detach
-            WinStaticInfoService.Instance.BatteriesChanged += OnStaticInfoChanged;
+            WinStaticInfoService.Instance.BatteriesChanged += OnStaticInfoChanged; // until Detach
 
             DetailOptions = new ObservableCollection<SensorSwitchCandidate>();
             Facts = new ObservableCollection<HardwareFact>();
@@ -42,7 +41,8 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _chargeLevel = value; OnPropertyChanged(); }
         }
 
-        // charge or discharge power; LHM reports the amount and names the direction ("Charge Rate", "Discharge Rate")
+        // charge or discharge power:
+        // LHM reports the amount and names the direction ("Charge Rate", "Discharge Rate")
         private SensorGraphViewModel _rate;
         public SensorGraphViewModel Rate
         {

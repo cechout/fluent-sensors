@@ -175,8 +175,8 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
-        // problem and fix: see GpuDetailView.SetLayoutActive; the Overall/Extended switch hides by
-        // Opacity and IsHitTestVisible too
+        // problem and fix: see GpuDetailView.SetLayoutActive; the Overall/Extended switch hides by Opacity and
+        // IsHitTestVisible too
         public double ExtendedOpacity => IsShowingExtended ? 1 : 0;
         public bool ExtendedIsHitTestVisible => IsShowingExtended;
 

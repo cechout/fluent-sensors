@@ -189,8 +189,8 @@ namespace FluentSensors.Features.Widget
             SetWindowPos(_hwnd, IntPtr.Zero, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
         }
 
-        // a click or an activation would raise the window; the change goes through, only at the bottom
-        // and the frame change of an activation is answered as if it were a deactivation
+        // a click or an activation would raise the window; the change goes through, only at the bottom, and the frame
+        // change of an activation is answered as if it were a deactivation
         private void OnWindowMessageReceived(object? sender, WindowMessageEventArgs e)
         {
             if (e.Message.MessageId == WM_NCACTIVATE)

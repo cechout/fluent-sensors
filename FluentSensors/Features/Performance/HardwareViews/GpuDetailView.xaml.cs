@@ -177,6 +177,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
                 ContentScrollViewer, ContentStackPanel, OverviewBlockGrid, naturalMinHeight);
         }
 
+        // shows the wide or the narrow layout of the overview and hides the other
+        //
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
         // problem: the root cause of PerformancePage.UpdateDetailView
         // fix: neither layout is ever Collapsed, they toggle Opacity and IsHitTestVisible

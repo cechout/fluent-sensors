@@ -63,6 +63,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === private helpers ===
 
+        // the view model of new hardware: its sensors placed now, the later ones as they arrive
         private void AttachToInstance(LhmHardwareInstance instance)
         {
             var battery = new LhmBatteryInstanceViewModel(instance.HardwareName);
@@ -116,6 +117,9 @@ namespace FluentSensors.Features.Performance.Lhm
             ApplyDetailFallback(battery);
         }
 
+        // places one sensor of the battery on its tab: charge level and rate as fixed graphs, the readings of the
+        // Detail switch, everything else a fact of the info panel
+        //
         // by sensor type first; LHM renames the rate and the current with the direction, so their names cannot match
         private void OnSensorDiscovered(LhmBatteryInstanceViewModel battery, LhmSensorEntry entry)
         {

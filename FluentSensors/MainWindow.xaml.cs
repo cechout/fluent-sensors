@@ -106,7 +106,7 @@ namespace FluentSensors
         public XamlUICommand OpenPerformanceCommand { get; } = new XamlUICommand(); // restore; performance page
         public XamlUICommand OpenSettingsCommand { get; } = new XamlUICommand(); // restore; settings page
         public XamlUICommand ShowCsvWindowCommand { get; } = new XamlUICommand(); // the csv logger only
-        private readonly MenuFlyoutItem[] _widgetTrayItems = new MenuFlyoutItem[WidgetWindow.MaxWidgetWindows]; // one widget only, each
+        private readonly MenuFlyoutItem[] _widgetTrayItems = new MenuFlyoutItem[WidgetWindow.MaxWidgetWindows]; // each its own widget window only
         public XamlUICommand OpenDocumentationCommand { get; } = new XamlUICommand(); // the project page in the browser
         public XamlUICommand ExitAppCommand { get; } = new XamlUICommand();
         public XamlUICommand TrayLeftClickCommand { get; } = new XamlUICommand(); // single click; open readouts
@@ -284,6 +284,8 @@ namespace FluentSensors
             await StartHardwareServiceAsync();
         }
 
+        // the startup behind the splash: LHM hardware by hardware with the progress bar, the polling loop, the reveal
+        // of the first page, then the restored widgets and the services that follow hardware; the update check last
         private async Task StartHardwareServiceAsync()
         {
             var monitor = HardwareMonitorService.Instance;
@@ -764,6 +766,8 @@ namespace FluentSensors
             performancePage.SetWindowVisibilityActive(this.AppWindow.IsVisible && !isMinimized);
         }
 
+        // minimize to tray: once the main window and every widget window are out of the way (closed, hidden or
+        // minimized), the app leaves the taskbar and lives on in the tray icon
         public void CheckAndHideToTray()
         {
             if (!SettingsService.Instance.MinimizeToTray) return;

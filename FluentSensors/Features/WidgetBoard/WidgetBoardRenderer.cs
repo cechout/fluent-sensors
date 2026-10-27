@@ -75,6 +75,7 @@ namespace FluentSensors.Features.WidgetBoard
 
         // === private helpers ===
 
+        // the fill and the line of one series into the chart rect, each run between two gaps on its own
         private static void DrawSeries(
             SKCanvas canvas,
             SKRect chart,
@@ -140,6 +141,7 @@ namespace FluentSensors.Features.WidgetBoard
             }
         }
 
+        // the indices of every stretch without a missing value; a gap breaks the line like a null point in the chart
         private static List<List<int>> SplitRuns(IReadOnlyList<double?> values)
         {
             var runs = new List<List<int>>();

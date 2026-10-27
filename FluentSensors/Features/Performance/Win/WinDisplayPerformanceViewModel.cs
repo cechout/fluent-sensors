@@ -61,6 +61,7 @@ namespace FluentSensors.Features.Performance.Win
 
         // === private helpers ===
 
+        // the view model of new hardware: its sensors placed now, the later ones as they arrive
         private void AttachToInstance(LhmHardwareInstance instance)
         {
             var display = new WinDisplayInstanceViewModel(instance.HardwareName);
@@ -93,7 +94,7 @@ namespace FluentSensors.Features.Performance.Win
             }
         }
 
-        // the names WinSensorSource gives them
+        // places brightness and refresh rate of the display on its tab, by the names WinSensorSource gives them
         private static void OnSensorDiscovered(WinDisplayInstanceViewModel display, LhmSensorEntry entry)
         {
             switch (entry.Name)

@@ -97,6 +97,8 @@ namespace FluentSensors.Features.Performance.Lhm
             return _memory;
         }
 
+        // every LHM memory group ends up in one RAM view: "Total Memory" for the Used and Available graphs,
+        // "Virtual Memory" for the commit charge, every module for its temperature and the module cards
         private void AttachPhysical(LhmHardwareInstance instance)
         {
             var memory = GetOrCreateMemory(instance.HardwareName);
@@ -321,6 +323,7 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
+        // the Used and Available graphs, and the rounded total that scales Used
         private void OnPhysicalSensorDiscovered(LhmMemoryInstanceViewModel memory, LhmSensorEntry entry, LhmHardwareInstance instance)
         {
             if (entry.Name == "Memory Used")
@@ -341,6 +344,7 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
+        // the commit charge graph; Available only adds to its total
         private void OnVirtualSensorDiscovered(LhmMemoryInstanceViewModel memory, LhmSensorEntry entry, LhmHardwareInstance instance)
         {
             if (entry.Name == "Memory Used")

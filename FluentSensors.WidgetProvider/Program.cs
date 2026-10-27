@@ -9,6 +9,9 @@ namespace FluentSensors.WidgetProvider
 {
     // the COM server the Widgets board starts with -RegisterProcessAsComServer:
     // registers the class factory under the class id of the package manifest and stays until the board ends the process
+    // https://learn.microsoft.com/en-us/windows/apps/develop/widgets/implement-widget-provider-cs
+    // COM under NativeAOT, through the ComWrappers source generator:
+    // https://learn.microsoft.com/en-us/dotnet/standard/native-interop/comwrappers-source-generation
     public static partial class Program
     {
         // === fields ===

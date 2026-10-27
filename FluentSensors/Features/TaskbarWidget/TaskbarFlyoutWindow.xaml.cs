@@ -141,9 +141,8 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // --- animation & performance settings ---
         // the card slides inside the still window as a composition translation, like the native flyouts, and the
-        // window edge on the taskbar side clips it; it reaches the full refresh rate when the app renders on the GPU
-        // that drives the display (on a hybrid laptop set to the other GPU every frame is copied across, measured
-        // 165 Hz against 30 to 80)
+        // window edge on the taskbar side clips it; it reaches the full refresh rate only when the app renders on the
+        // GPU that drives the display (see WinGpuPreference)
 
         // open: ease-out cubic over a fixed duration, only the distance grows with the pinned sensors; (the native
         // Start menu, 726 dip tall, settles in 160 ms, so a taller card must not take longer)
@@ -441,7 +440,7 @@ namespace FluentSensors.Features.TaskbarWidget
             double scale = FlyoutBackdropHost.XamlRoot?.RasterizationScale ?? 1.0;
             float inset = (float)(CardStrokePx(scale) / scale);
             // the corners 1 px tighter: clip and stroke antialias the same corner pixels, and their partial coverages
-            // left a hairline of backdrop between them; this way the material reaches under the stroke edge there
+            // would leave a hairline of backdrop between them; this way the material reaches under the stroke edge
             var radius = new Vector2(CardCornerRadiusDip - inset - (float)(1.0 / scale));
             visual.Clip = visual.Compositor.CreateRectangleClip(
                 inset, inset, width - inset, height - inset, radius, radius, radius, radius);
@@ -510,6 +509,8 @@ namespace FluentSensors.Features.TaskbarWidget
             RouteSystemVisualsChange(sender);
         }
 
+        // the DWM frame for the current transparency state: rounded corners, clipped acrylic and the native shadow
+        // with transparency on, a flat frame without them otherwise and always for the card window
         private void UpdateShadowPolicy()
         {
             if (_hwnd == IntPtr.Zero) return;
@@ -552,6 +553,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === win32 message handling ===
 
+        // a frameless window that cannot be moved: the client area takes the whole window rect, SC_MOVE is dropped
         private void OnWindowMessageReceived(object? sender, WindowMessageEventArgs e)
         {
             if (e.Message.MessageId == 0x0083) // WM_NCCALCSIZE
@@ -628,6 +630,8 @@ namespace FluentSensors.Features.TaskbarWidget
             ShowFlyout(widgetWindow);
         }
 
+        // opens the flyout next to the taskbar widget and slides it in; the open or hidden window is reused, a new one
+        // only when there is none
         public static void ShowFlyout(TaskbarWidgetWindow widgetWindow)
         {
             if (widgetWindow == null) return;
@@ -1239,6 +1243,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === user interaction & dismiss ===
 
+        // light dismiss: the flyout closes once it loses the focus, and stays behind the taskbar while it has it
         private void Window_Activated(object sender, WindowActivatedEventArgs args)
         {
             // always input active; a light-dismiss flyout is deactivated the moment focus leaves it, which would drop
@@ -1306,7 +1311,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // plays the release half of the native animation (Pressed to PointerOver, the turn) without the press half
         // (the tilt); AnimatedIcon applies a new State only on its next layout pass, so the second state waits for
-        // that pass, set in one go both collapse into Normal to PointerOver, which does not move
+        // that pass; set in one go, both collapse into Normal to PointerOver, which does not move
         private void SpinSettingsGear()
         {
             AnimatedIcon.SetState(TaskbarSettingsIcon, "Pressed");
@@ -1783,6 +1788,8 @@ namespace FluentSensors.Features.TaskbarWidget
         // what the current bitmap was rendered for, so an unchanged open does not render again
         private (SizeInt32 Window, RectInt32 Card, double Scale, bool IsLight) _shadowRenderedFor;
 
+        // draws the shadow of the card window into FlyoutShadowImage, the card window has no DWM shadow; only with
+        // transparency on, and only again when window, card, scale or theme changed
         private void RenderCardShadow()
         {
             if (FlyoutShadowImage == null) return;

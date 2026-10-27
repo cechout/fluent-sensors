@@ -702,7 +702,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         private void OnSensorTypeColorsChanged() => Bindings.Update();
 
-        // see the workaround in OnOverrideChanged
+        // refreshes the bindings of the panel when the ViewModel changes, see the workaround in OnOverrideChanged
         // every tick, several times; skipped while the graph is gated off, nobody sees the panel then
         private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
         {

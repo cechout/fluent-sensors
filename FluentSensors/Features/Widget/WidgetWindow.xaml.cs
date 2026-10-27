@@ -274,6 +274,8 @@ namespace FluentSensors.Features.Widget
 
         private bool _isClosed = false;
 
+        // closes the window for real and detaches what it subscribed; only for RecreateWindow, every other close
+        // hides it for reuse (see AppWindow_Closing), and each real close leaks the window once
         public void SafeDestroy()
         {
             if (_isClosed) return;
@@ -328,6 +330,8 @@ namespace FluentSensors.Features.Widget
             }
         }
 
+        // one widget of RecreateWindows: its open and its retained window destroyed, a new one built with its sensors
+        // only when the old one was visible
         private static void RecreateWindow(int index)
         {
             if (_isRecreating[index]) return;

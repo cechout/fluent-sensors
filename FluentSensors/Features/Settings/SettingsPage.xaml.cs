@@ -849,6 +849,7 @@ namespace FluentSensors.Features.Settings
         }
 
         // bytes or bits, separately for sizes and speeds, so a network speed reads Mbit/s while memory stays in MB
+
         private void DataSizeUnitComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;

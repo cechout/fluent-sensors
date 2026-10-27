@@ -73,6 +73,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === private helpers ===
 
+        // the view model of new hardware: its sensors placed now, the later ones as they arrive
         private void AttachToInstance(LhmHardwareInstance instance)
         {
             var cpu = new LhmCpuInstanceViewModel(instance.HardwareName);
@@ -96,6 +97,7 @@ namespace FluentSensors.Features.Performance.Lhm
             ActivateDefault(cpu.HardwareName, "Power", cpu.PackagePowerOptions, () => cpu.PackagePower, cpu.SetPackagePowerWithoutPersisting, PowerPreference);
         }
 
+        // the start graph of one category, see ApplyCategoryFallbacks
         private static void ActivateDefault(
             string hardwareName, string category, ObservableCollection<SensorSwitchCandidate> options,
             Func<SensorGraphViewModel> getActive, Action<SensorGraphViewModel> setActiveWithoutPersisting,
@@ -141,6 +143,8 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
+        // places one sensor of the cpu on its tab: a package-wide one becomes a candidate of the overview slot of its
+        // type, a per-core Load, Temperature or Clock goes to its core for the All Threads view and the group averages
         private void OnSensorDiscovered(LhmCpuInstanceViewModel cpu, LhmSensorEntry entry)
         {
             // every per-core and per-thread name carries a "#<n>" for every vendor, no package-wide one does; the

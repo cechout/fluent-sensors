@@ -61,6 +61,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === private helpers ===
 
+        // the view model of new hardware: its sensors placed now, the later ones as they arrive
         private void AttachToInstance(LhmHardwareInstance instance)
         {
             var gpu = new LhmGpuInstanceViewModel(instance.HardwareName, instance.Kind);
@@ -88,6 +89,7 @@ namespace FluentSensors.Features.Performance.Lhm
             ActivateDefault(gpu.HardwareName, "SharedMemory", gpu.SharedMemoryOptions, () => gpu.SharedMemory, gpu.SetSharedMemoryWithoutPersisting, null);
         }
 
+        // the start graph of one category, see ApplyCategoryFallbacks
         private static void ActivateDefault(
             string hardwareName, string category, ObservableCollection<SensorSwitchCandidate> options,
             Func<SensorGraphViewModel> getActive, Action<SensorGraphViewModel> setActiveWithoutPersisting,
@@ -167,6 +169,9 @@ namespace FluentSensors.Features.Performance.Lhm
             ApplyD3dEngineDefaults(gpu);
         }
 
+        // places one sensor of the gpu on its tab: a fixed graph, a candidate of a switchable slot, a total that only
+        // sets a y-axis maximum, a D3D engine or the Other group; at attach and for every sensor that arrives later
+        //
         // matches on (Name, SensorType); "GPU Core" comes as Load, Clock, Temperature and Voltage
         // a sensor that is a switch candidate has its place; the Other group only takes what no group can, which
         // includes the discrete-only places on an integrated gpu (its Extended view does not show them)
@@ -191,7 +196,7 @@ namespace FluentSensors.Features.Performance.Lhm
                     break;
 
                 // wattage and core voltage share the Power slot; switching is a unit change, the flyout names both
-                // (NVIDIA calls it "GPU Core Voltage", amd and Intel "GPU Core")
+                // (NVIDIA calls it "GPU Core Voltage", AMD and Intel "GPU Core")
                 case ("GPU Core Voltage", "Voltage"):
                 case ("GPU Core", "Voltage"):
                     RegisterPowerCandidate(gpu, entry);
@@ -219,7 +224,7 @@ namespace FluentSensors.Features.Performance.Lhm
                     entry.PropertyChanged += (s, e) => OnMemoryTotalChanged(gpu, entry, e);
                     break;
 
-                // the same where the driver reports no total (amd through D3D only)
+                // the same where the driver reports no total (AMD through D3D only)
                 case ("D3D Dedicated Memory Total", "SmallData" or "Data") when gpu.IsDiscrete:
                     if (!gpu.HasDriverMemoryTotal) gpu.MemoryTotal = entry.Value;
                     entry.PropertyChanged += (s, e) =>

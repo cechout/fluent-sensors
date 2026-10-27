@@ -10,8 +10,8 @@ using FluentSensors.Core;
 namespace FluentSensors.Features.TaskbarWidget
 {
     // the values of the flyout drawer:
-    // the lhm status and the parked app resources as the start page shows them, from AppStatusService and an own
-    // WinAppGpuMonitor; live only between Start and Stop, so a closed drawer costs nothing
+    // the lhm status and the parked app resources as the start page shows them, from AppStatusService and a
+    // WinAppGpuMonitor of its own; live only between Start and Stop, so a closed drawer costs nothing
     public class FlyoutAppResourcesViewModel : INotifyPropertyChanged
     {
         // === fields ===

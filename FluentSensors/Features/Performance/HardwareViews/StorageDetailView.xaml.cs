@@ -172,6 +172,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
 
         // === private helpers ===
 
+        // shows the wide or the narrow layout of the overview and hides the other
+        //
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
         // problem and fix: see GpuDetailView.SetLayoutActive; without a section split
         // IsHitTestVisible alone gates the render

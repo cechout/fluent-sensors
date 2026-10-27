@@ -276,7 +276,7 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
         // not charted; the y-axis maximum of SharedMemory, in the unit of its sensors
-        // the D3D total where LHM reports one (Intel, amd), else what DXGI lists for the adapter (NVIDIA)
+        // the D3D total where LHM reports one (Intel, AMD), else what DXGI lists for the adapter (NVIDIA)
         public double SharedMemoryTotal
         {
             get
