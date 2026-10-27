@@ -13,8 +13,10 @@ namespace FluentSensors.Common.UI
         // measure as 4 percent backdrop transmission in dark and 9.4 in light (their bottom bar, the bare material)
         //
         // TintOpacity: the tint blend carries hue and saturation only, so a gray tint leaves every gray value alone
-        // and only takes the color out of what shows through; the native flyouts pass far less color than the
-        // default does (the source names its BlendEffectMode swapped, the tint layer reads as Luminosity there):
+        // and only takes the color out of what shows through; set so a flat colored backdrop comes through as saturated
+        // as in the native flyouts, a small spot still shows brighter there since their blur is wider and the radius
+        // is no controller parameter (the source names its BlendEffectMode swapped, the tint layer reads as
+        // Luminosity there):
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush.cpp
         //
         // tints are the Fluent acrylic base tones, AcrylicBackgroundFillColorBaseBrush, not pre-compensated (the
@@ -22,11 +24,11 @@ namespace FluentSensors.Common.UI
         // https://github.com/microsoft/microsoft-ui-xaml/blob/6aed8d97fdecfe9b19d70c36bd1dacd9c6add7c1/dev/Materials/Acrylic/AcrylicBrush_19h1_themeresources.xaml
         public static readonly Color SystemAcrylicDarkTintColor = Color.FromArgb(255, 0x20, 0x20, 0x20);
         public const float SystemAcrylicDarkLuminosity = 0.96f;
-        public const float SystemAcrylicDarkTintOpacity = 0.8f;
+        public const float SystemAcrylicDarkTintOpacity = 0.5f;
 
         public static readonly Color SystemAcrylicLightTintColor = Color.FromArgb(255, 0xF3, 0xF3, 0xF3);
         public const float SystemAcrylicLightLuminosity = 0.902f;
-        public const float SystemAcrylicLightTintOpacity = 0.5f;
+        public const float SystemAcrylicLightTintOpacity = 0f;
 
 
         // === public methods ===
