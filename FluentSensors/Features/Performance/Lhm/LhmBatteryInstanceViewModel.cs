@@ -95,7 +95,7 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // info panel; sits with the LHM readings about the age of the pack
+        // sits with the LHM readings about the age of the pack
         public string CycleCountText => HardwareInfoFormatter.FormatCount(MatchStaticInfo()?.CycleCount);
 
 

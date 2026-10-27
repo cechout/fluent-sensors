@@ -42,8 +42,10 @@ namespace FluentSensors.Features.Performance.Lhm
 
         public string HardwareName { get; }
 
-        // the public setter persists the choice, SetXWithoutPersisting is for the default or restored graph;
-        // ReadRate and WriteRate alike
+        // --- overview categories ---
+        // the switchable graphs of the overview; the public setter persists the choice, SetXWithoutPersisting is for
+        // the default or restored graph (UsedSpace of the extended view alike)
+
         private SensorGraphViewModel _totalActivity;
         public SensorGraphViewModel TotalActivity
         {
@@ -62,14 +64,6 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             _totalActivity = value;
             OnPropertyChanged(nameof(TotalActivity));
-        }
-
-        // extended view; the plain Total Activity, the slot above without its switch
-        private SensorGraphViewModel _extendedTotalActivity;
-        public SensorGraphViewModel ExtendedTotalActivity
-        {
-            get => _extendedTotalActivity;
-            set { _extendedTotalActivity = value; OnPropertyChanged(); }
         }
 
         // not charted; the y-max of the space candidates of TotalActivity and UsedSpace, the reported total
@@ -120,8 +114,18 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(ReadRate));
         }
 
+        // --- extended view ---
+        // the second view of the tab, see StorageDetailView
 
-        // extended view; the used space in percent (LHM) or in bytes (the Windows source, while its switch is on)
+        // the plain Total Activity, the overview slot without its switch
+        private SensorGraphViewModel _extendedTotalActivity;
+        public SensorGraphViewModel ExtendedTotalActivity
+        {
+            get => _extendedTotalActivity;
+            set { _extendedTotalActivity = value; OnPropertyChanged(); }
+        }
+
+        // the used space in percent (LHM) or in bytes (the Windows source, while its switch is on)
         private SensorGraphViewModel _usedSpace;
         public SensorGraphViewModel UsedSpace
         {
@@ -142,7 +146,7 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(UsedSpace));
         }
 
-        // extended view; the cumulative totals, where the drive reports them
+        // the cumulative totals, where the drive reports them
         private SensorGraphViewModel _dataRead;
         public SensorGraphViewModel DataRead
         {
@@ -157,7 +161,6 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _dataWritten = value; OnPropertyChanged(); }
         }
 
-        // the second view of the tab, see StorageDetailView
         private bool _isShowingExtended;
         public bool IsShowingExtended
         {

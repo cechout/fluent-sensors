@@ -1268,6 +1268,8 @@ namespace FluentSensors.Features.TaskbarWidget
             return null;
         }
 
+        // --- pointer: hover, press and the drag along the taskbar ---
+
         private void TaskbarButton_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
             EnsureCompositionElements();

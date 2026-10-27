@@ -481,7 +481,8 @@ namespace FluentSensors.Features.Sensors
             RootGrid.Width = e.NewSize.Width;
         }
 
-        // info bar clipping
+        // --- info bar clipping ---
+
         private void InfoBarHost_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateInfoBarClip();
@@ -507,7 +508,7 @@ namespace FluentSensors.Features.Sensors
             };
         }
 
-        // profile picker width
+        // --- profile picker width ---
         private const double ComboBoxChromeWidth = 52; // ~ left padding 12, chevron column 38, border 2
 
         // sized to its content, the picker narrows to the selected entry while open and the controls to its right

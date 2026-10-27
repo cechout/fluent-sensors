@@ -252,7 +252,8 @@ namespace FluentSensors.Features.Settings
 
         // === general settings ===
 
-        // theme
+        // --- theme ---
+
         private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -291,7 +292,9 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        // language; saved right away, it applies on the next start
+        // --- language ---
+        // saved right away, it applies on the next start
+
         private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -316,7 +319,9 @@ namespace FluentSensors.Features.Settings
             SelectByTag(LanguageComboBox, AppLanguage.IsSupported(current) ? current : AppLanguage.SystemDefault);
         }
 
-        // technical terms in english; like the language, saved right away and applied on the next start
+        // --- technical terms in english ---
+        // like the language, saved right away and applied on the next start
+
         private void TechnicalTermsToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
@@ -366,7 +371,8 @@ namespace FluentSensors.Features.Settings
             RestartApp();
         }
 
-        // update interval
+        // --- update interval ---
+
         private void IntervalComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -396,7 +402,9 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        // engine; one card per LHM hardware, the switched off ones included (the tree no longer has those)
+        // --- engine ---
+
+        // one card per LHM hardware, the switched off ones included (the tree no longer has those)
         // only rebuilt when the list itself changed, so a switch that makes its hardware leave the tree keeps the focus
         private void RebuildEngineHardwareCards()
         {
@@ -513,7 +521,8 @@ namespace FluentSensors.Features.Settings
             WinWlanSensorsToggle.IsOn = SettingsService.Instance.WinWlanSensorsEnabled;
         }
 
-        // minimize to tray
+        // --- minimize to tray ---
+
         private void MinimizeToTrayToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
@@ -526,7 +535,7 @@ namespace FluentSensors.Features.Settings
         }
 
 
-        // startup
+        // --- startup ---
 
         // the scheduled task decides, not the setting, so a task removed by hand shows as off; the portable build has
         // no autostart (the task would outlive its folder)
@@ -629,7 +638,8 @@ namespace FluentSensors.Features.Settings
             SettingsService.Instance.CheckUpdatesOnStartup = CheckUpdatesToggle.IsOn;
         }
 
-        // title bar status readout
+        // --- title bar status readout ---
+
         private void StatusReadoutToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
@@ -721,7 +731,9 @@ namespace FluentSensors.Features.Settings
             StatusGroupOrderCard.IsEnabled = readoutEnabled && StatusLhmGroupToggle.IsOn && StatusWindowsGroupToggle.IsOn;
         }
 
-        // csv format; read only when a recording starts, so a switch never touches an open file
+        // --- csv format ---
+        // read only when a recording starts, so a switch never touches an open file
+
         private void CsvNumberFormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -806,7 +818,9 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        // graph line style, stepline or smooth; one global switch for every graph
+        // --- graph line style ---
+        // stepline or smooth; one global switch for every graph
+
         private void GraphLineStyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -832,7 +846,9 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        // area fill fade, the second global graph switch
+        // --- graph fill fade ---
+        // the area under the line, the second global graph switch
+
         private void GraphFillComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -848,6 +864,7 @@ namespace FluentSensors.Features.Settings
             SelectByTag(GraphFillComboBox, SettingsService.Instance.GraphFillFade ? "Fade" : "Solid");
         }
 
+        // --- data units ---
         // bytes or bits, separately for sizes and speeds, so a network speed reads Mbit/s while memory stays in MB
 
         private void DataSizeUnitComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -895,7 +912,8 @@ namespace FluentSensors.Features.Settings
 
         // === widget appearance settings ===
 
-        // background material
+        // --- background material ---
+
         private void BackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (BackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
@@ -972,7 +990,8 @@ namespace FluentSensors.Features.Settings
             UpdateBackgroundMaterialCardStates();
         }
 
-        // graph
+        // --- graph ---
+
         private void GraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (GraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
@@ -1017,7 +1036,9 @@ namespace FluentSensors.Features.Settings
 
         // === csv logger appearance settings ===
 
-        // background material; the same rules as the widget window, its own values
+        // --- background material ---
+        // the same rules as the widget window, its own values
+
         private void CsvBackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (CsvBackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
@@ -1092,7 +1113,8 @@ namespace FluentSensors.Features.Settings
             comboBox.SelectedItem = GraphTimeRanges.Find(comboBox.ItemsSource as IReadOnlyList<GraphTimeRange>, timeSpanSeconds);
         }
 
-        // background material
+        // --- background material ---
+
         private void TaskbarBackdropComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (TaskbarBackdropComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
@@ -1158,7 +1180,8 @@ namespace FluentSensors.Features.Settings
             UpdateTaskbarBackgroundMaterialCardStates();
         }
 
-        // graph
+        // --- graph ---
+
         private void TaskbarGraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (TaskbarGraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
@@ -1231,7 +1254,8 @@ namespace FluentSensors.Features.Settings
             TaskbarGraphWidthSlider.Value = SettingsService.Instance.TaskbarGraphWidthDip;
         }
 
-        // slot layout on a side taskbar
+        // --- slot layout on a side taskbar ---
+
         private void TaskbarSideGraphDirectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -1258,7 +1282,8 @@ namespace FluentSensors.Features.Settings
             SelectByTag(TaskbarSideTitleLinesComboBox, SettingsService.Instance.TaskbarSideTitleLines.ToString());
         }
 
-        // flyout alignment over the widget
+        // --- flyout alignment over the widget ---
+
         private void TaskbarFlyoutAlignmentComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -1283,7 +1308,8 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        // widgets board graphs
+        // --- widgets board graphs ---
+
         private void WidgetBoardGraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (WidgetBoardGraphColorSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag
@@ -1318,7 +1344,9 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        // flyout graphs; one time range and one slot height for every edge
+        // --- flyout graphs ---
+        // one time range and one slot height for every edge
+
         private void TaskbarFlyoutGraphTimeSpanComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -1341,7 +1369,9 @@ namespace FluentSensors.Features.Settings
             TaskbarFlyoutGraphHeightSlider.Value = SettingsService.Instance.TaskbarFlyoutGraphHeightDip;
         }
 
-        // flyout shortcut; the dialog records it, the registered one is suspended meanwhile or it would swallow the keys
+        // --- flyout shortcut ---
+
+        // the dialog records it, the registered one is suspended meanwhile or it would swallow the keys
         private async void FlyoutShortcutButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new FlyoutShortcutDialog(SettingsService.Instance.TaskbarFlyoutShortcut)
@@ -1378,7 +1408,8 @@ namespace FluentSensors.Features.Settings
             AutomationProperties.SetName(FlyoutShortcutButton, AppStrings.Format("Settings_FlyoutShortcutName", text));
         }
 
-        // widget drag lock
+        // --- widget drag lock ---
+
         private void LockWidgetPositionToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
@@ -1392,6 +1423,8 @@ namespace FluentSensors.Features.Settings
 
 
         // === backup and restore settings ===
+
+        // --- app data folder ---
 
         // the real path, since the folder differs per channel and the store one is hard to guess; (the markup
         // description is design time only)
@@ -1418,7 +1451,8 @@ namespace FluentSensors.Features.Settings
         }
 
 
-        // export and import
+        // --- export and import ---
+
         private async void ExportSettings_Click(object sender, RoutedEventArgs e)
         {
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(FluentSensors.MainWindow.CurrentInstance);
@@ -1484,7 +1518,8 @@ namespace FluentSensors.Features.Settings
             await dialog.ShowAsync();
         }
 
-        // reset
+        // --- reset ---
+
         private async void ResetAllSettings_Click(object sender, RoutedEventArgs e)
         {
             if (await ConfirmReset(AppStrings.Get("Settings_ResetWhatAll")))

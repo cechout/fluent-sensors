@@ -180,7 +180,7 @@ namespace FluentSensors.Features.Performance
             set => SettingsService.Instance.PerformanceUseSensorTypeColors = value;
         }
 
-        // info panel
+        // --- info panel and nav sidebar ---
         private bool _isInfoPanelVisible = false;
         public bool IsInfoPanelVisible
         {

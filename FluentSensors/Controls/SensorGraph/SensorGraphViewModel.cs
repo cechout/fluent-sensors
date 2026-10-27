@@ -144,7 +144,8 @@ namespace FluentSensors.Controls.SensorGraph
         // no notification of its own, the CurrentValueColor one carries it
         public bool IsThresholdColorActive { get; private set; }
 
-        // general
+        // --- general ---
+
         public ObservableCollection<double?> SensorData { get; private set; }
         public string SensorId { get; }
         public string SensorType { get; }
@@ -547,7 +548,8 @@ namespace FluentSensors.Controls.SensorGraph
             UpdateYMaxDisplay();
         }
 
-        // user interaction
+        // --- user interaction ---
+
         public void ToggleControlPanel()
         {
             ControlPanelVisibility = ControlPanelVisibility == Visibility.Visible

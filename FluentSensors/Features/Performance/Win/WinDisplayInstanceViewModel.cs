@@ -49,7 +49,9 @@ namespace FluentSensors.Features.Performance.Win
             set { _refreshRate = value; OnPropertyChanged(); }
         }
 
-        // info panel; the panel itself, from its EDID
+        // --- info panel ---
+
+        // the panel itself, from its EDID
         public IReadOnlyList<HardwareFact> GeneralFacts
         {
             get
@@ -70,7 +72,7 @@ namespace FluentSensors.Features.Performance.Win
             }
         }
 
-        // info panel; how Windows drives it right now: the short facts as a group, the long ones on lines of their own
+        // how Windows drives it right now: the short facts as a group, the long ones on lines of their own
         public IReadOnlyList<HardwareFact> ModeFacts
         {
             get
@@ -105,7 +107,7 @@ namespace FluentSensors.Features.Performance.Win
             }
         }
 
-        // info panel; what the mode amounts to on the cable, computed from the mode (see HardwareInfoFormatter.FrameBytes
+        // what the mode amounts to on the cable, computed from the mode (see HardwareInfoFormatter.FrameBytes
         // for what is left out); in the order of the calculation, each line built from the ones above, the data rate last
         public IReadOnlyList<HardwareFact> SignalFacts
         {
@@ -139,7 +141,7 @@ namespace FluentSensors.Features.Performance.Win
 
         private const double ReferenceRefreshRateHz = 60;
 
-        // info panel; color depth, HDR and the luminance the display reports
+        // color depth, HDR and the luminance the display reports
         public IReadOnlyList<HardwareFact> ColorFacts
         {
             get
@@ -167,7 +169,7 @@ namespace FluentSensors.Features.Performance.Win
             }
         }
 
-        // info panel; what the monitor itself answers over DDC/CI, empty when it answers nothing (most laptop panels)
+        // what the monitor itself answers over DDC/CI, empty when it answers nothing (most laptop panels)
         // KNOWN UNRELIABLE: see WinDisplayReader.QueryDdcLevels
         public IReadOnlyList<HardwareFact> DdcFacts
         {
