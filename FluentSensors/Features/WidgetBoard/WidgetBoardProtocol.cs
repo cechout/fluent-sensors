@@ -6,7 +6,8 @@ namespace FluentSensors.Features.WidgetBoard
     // the pipe between FluentSensors.exe and FluentSensors.WidgetProvider.exe:
     // one message is a type byte and its fields, strings as BinaryWriter writes them
     // the provider hosts the pipe; the elevated app is the client, since a pipe it created would carry a high
-    // integrity label and refuse the writes of the medium provider
+    // integrity label and refuse the writes of the medium provider (no-write-up):
+    // https://learn.microsoft.com/en-us/windows/win32/secauthz/mandatory-integrity-control
     // (compiled into both projects)
     public static class WidgetBoardProtocol
     {

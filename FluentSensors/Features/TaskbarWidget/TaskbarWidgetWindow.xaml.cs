@@ -165,6 +165,8 @@ namespace FluentSensors.Features.TaskbarWidget
             Initialize();
         }
 
+        // sets up a new widget window, a rebuild included:
+        // a transparent borderless presenter off screen, the theme, the pointer handlers and the queued embed into the taskbar
         private void Initialize()
         {
             try
@@ -1067,6 +1069,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        // the composition visuals of the fill and stroke layers in the button template, taken once for
+        // UpdateVisualState
         private void EnsureCompositionElements()
         {
             if (_backgroundVisual != null) return;
@@ -1125,6 +1129,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // previous engagement snapshot; the cross-state fades run only when this flips
         private bool _wasEngaged;
 
+        // the look of the button for hover, press and an open flyout, as fades between the layers of its template
         private void UpdateVisualState()
         {
             EnsureCompositionElements();
@@ -1262,6 +1267,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
             return null;
         }
+
+        // --- pointer: hover, press and the drag along the taskbar ---
 
         private void TaskbarButton_PointerEntered(object sender, PointerRoutedEventArgs e)
         {

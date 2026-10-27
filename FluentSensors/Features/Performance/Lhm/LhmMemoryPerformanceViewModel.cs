@@ -97,6 +97,8 @@ namespace FluentSensors.Features.Performance.Lhm
             return _memory;
         }
 
+        // every LHM memory group ends up in one RAM view: "Total Memory" for the Used and Available graphs,
+        // "Virtual Memory" for the commit charge, every module for its temperature and the module cards
         private void AttachPhysical(LhmHardwareInstance instance)
         {
             var memory = GetOrCreateMemory(instance.HardwareName);
@@ -248,8 +250,11 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // the timings a module is compared by, in the order they are quoted (CL, tRCD, tRP, tRAS), then the row cycle,
-        // the refresh recovery and the write recovery; LHM reads up to fifteen, the rest only bloats the card
+        // the timings a module is compared by; LHM reads up to fifteen, the rest only bloats the card:
+        // - CL, tRCD, tRP, tRAS, in the order they are quoted
+        // - the row cycle
+        // - the refresh recovery
+        // - the write recovery
         private static readonly string[] PanelTimingNames = { "tAA", "tRCD", "tRP", "tRAS", "tRC", "tRFC1", "tWR" };
 
         // "Thermal Sensor Limit (Low / High / Critical Low / Critical High)", from the sensor names; DDR4 has three
@@ -321,6 +326,7 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
+        // the Used and Available graphs, and the rounded total that scales Used
         private void OnPhysicalSensorDiscovered(LhmMemoryInstanceViewModel memory, LhmSensorEntry entry, LhmHardwareInstance instance)
         {
             if (entry.Name == "Memory Used")
@@ -341,6 +347,7 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
+        // the commit charge graph; Available only adds to its total
         private void OnVirtualSensorDiscovered(LhmMemoryInstanceViewModel memory, LhmSensorEntry entry, LhmHardwareInstance instance)
         {
             if (entry.Name == "Memory Used")

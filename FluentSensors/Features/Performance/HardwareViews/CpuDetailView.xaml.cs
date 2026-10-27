@@ -179,6 +179,8 @@ namespace FluentSensors.Features.Performance.HardwareViews
                 ContentScrollViewer, ContentStackPanel, OverviewBlockGrid, naturalMinHeight);
         }
 
+        // shows the wide or the narrow layout of the overview and hides the other
+        //
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
         // problem and fix: see GpuDetailView.SetLayoutActive, also for the conditions on the render gate
         private void SetLayoutActive(FrameworkElement wideLayout, FrameworkElement narrowLayout, bool useNarrow)

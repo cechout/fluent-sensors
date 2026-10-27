@@ -75,6 +75,8 @@ namespace FluentSensors.WidgetProvider
 
         // === private helpers ===
 
+        // the pipe server, for the life of the process: waits for the app, tells it the active sizes and reads until it
+        // goes; then every widget falls back to the not running note and the next connect is awaited
         private static void Run()
         {
             while (true)
@@ -113,6 +115,7 @@ namespace FluentSensors.WidgetProvider
             }
         }
 
+        // the messages of the app, a card per size and the not running text, until it closes the pipe
         private static void Read(BinaryReader reader)
         {
             while (true)

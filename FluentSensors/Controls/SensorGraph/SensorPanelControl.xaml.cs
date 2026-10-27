@@ -493,6 +493,10 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+        // the overrides of this panel, handed to the ViewModel as view overrides:
+        // - time range
+        // - auto scale
+        // - y-axis max
         private void ApplyOverridesToViewModel()
         {
             double? graphTimeSpanSeconds = double.IsNaN(GraphTimeSpanOverrideSeconds) ? (double?)null : GraphTimeSpanOverrideSeconds;
@@ -702,7 +706,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         private void OnSensorTypeColorsChanged() => Bindings.Update();
 
-        // see the workaround in OnOverrideChanged
+        // refreshes the bindings of the panel when the ViewModel changes, see the workaround in OnOverrideChanged
         // every tick, several times; skipped while the graph is gated off, nobody sees the panel then
         private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
         {

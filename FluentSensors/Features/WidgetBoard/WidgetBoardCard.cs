@@ -15,6 +15,9 @@ namespace FluentSensors.Features.WidgetBoard
     // the adaptive card of one widget size:
     // one container per sensor sharing the height, name and value in a row over the graph like the status row of
     // SensorPanelControl, under all graphs the time range and the links to the sensors page and the settings
+    // the template with its $host values and Action.Execute, and the ${...} and $when binding:
+    // https://learn.microsoft.com/en-us/windows/apps/develop/widgets/widgets-create-a-template
+    // https://learn.microsoft.com/en-us/adaptive-cards/templating/
     public static class WidgetBoardCard
     {
         // === fields ===
@@ -63,6 +66,8 @@ namespace FluentSensors.Features.WidgetBoard
             return (ContentWidth, sensors / Math.Max(1, count) - TextRowHeight - StatusRowGap);
         }
 
+        // the template of a card with count sensors; it changes only with the count, so the provider sends it again
+        // only then (the values travel in BuildData)
         public static string BuildTemplate(int count)
         {
             var body = new List<string>();
@@ -78,6 +83,8 @@ namespace FluentSensors.Features.WidgetBoard
                 string gap = $"{{\"type\":\"Container\",\"minHeight\":\"{StatusRowGap:0}px\",\"spacing\":\"none\"}}";
 
                 // a theme switch swaps the whole sensor, the image url cannot carry a condition
+                // $host.isLightTheme is not in the Microsoft docs, which list only $host.hostTheme; works on the native
+                // board
                 foreach (bool isLight in new[] { false, true })
                 {
                     string spacing = i == 0 ? "" : ",\"spacing\":\"default\"";
@@ -104,6 +111,10 @@ namespace FluentSensors.Features.WidgetBoard
             return "{\"type\":\"AdaptiveCard\",\"version\":\"1.5\",\"body\":[" + string.Join(",", body) + "]}";
         }
 
+        // the values of one push for BuildTemplate:
+        // - per sensor: name, y-axis max, value and both graph PNGs as data uris
+        // - the time range
+        // - the two link texts
         public static string BuildData(IReadOnlyList<WidgetBoardCardSensor> sensors, string timeText, string sensorsLinkText, string settingsLinkText)
         {
             var data = new StringBuilder("{");

@@ -127,7 +127,8 @@ namespace FluentSensors.Controls.SensorRow
 
         // === lifecycle events ===
 
-        // added to the tree, fresh or recycled
+        // resets the pointer state and re-attaches the ViewModel, whenever the row is added to the tree, fresh or
+        // recycled
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             _isHovered = false;

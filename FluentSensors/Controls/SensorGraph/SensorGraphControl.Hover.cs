@@ -18,6 +18,7 @@ namespace FluentSensors.Controls.SensorGraph
             UpdateHoverAtPointer();
         }
 
+        // the hover readout at the pointer: the marked point and its value label, hidden outside the data
         // on pointer move and on every new point under a resting pointer, so the value keeps tracking
         private void UpdateHoverAtPointer()
         {

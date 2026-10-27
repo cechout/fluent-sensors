@@ -16,6 +16,8 @@ namespace FluentSensors.WidgetProvider
     // tracks every widget with its size and whether the board shows it, and pushes the card the app sent for that
     // size, or the not running note while no app is connected
     // the board calls in on its own threads, the pipe on its thread; one lock keeps both apart
+    // https://learn.microsoft.com/en-us/windows/apps/develop/widgets/widget-providers
+    // https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.windows.widgets.providers
     //
     // without GeneratedWinRTExposedType the CsWinRT generator writes no vtable for the class under NativeAOT, and the
     // board gets E_NOINTERFACE for IWidgetProvider, which it reports as a failed add without a reason
@@ -179,6 +181,8 @@ namespace FluentSensors.WidgetProvider
             ReportActiveSizes();
         }
 
+        // hands one widget its content: the card of its size from the app, or the not running note without one; only
+        // while the widget is active, the template only when it changed
         private void Push(string widgetId)
         {
             string template, data;

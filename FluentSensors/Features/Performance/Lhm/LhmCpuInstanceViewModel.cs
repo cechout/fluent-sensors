@@ -60,8 +60,10 @@ namespace FluentSensors.Features.Performance.Lhm
 
         public string HardwareName { get; }
 
-        // the public setter persists the choice, SetXWithoutPersisting is for the default or restored graph at
-        // discovery; MaxTemperature and PackagePower alike
+        // --- overview categories ---
+        // the switchable graphs of the overview; the public setter persists the choice, SetXWithoutPersisting is for
+        // the default or restored graph at discovery
+
         private SensorGraphViewModel _totalLoad;
         public SensorGraphViewModel TotalLoad
         {
@@ -122,6 +124,8 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(PackagePower));
         }
 
+        // --- all threads view ---
+        // the second view of the tab, see CpuDetailView
         private bool _isShowingAllThreads;
         public bool IsShowingAllThreads
         {
@@ -154,7 +158,7 @@ namespace FluentSensors.Features.Performance.Lhm
         // the group titles only once there is a split to label
         public bool ShowCoreGroupTitles => HasCoresWithThreads && HasCoresWithoutThreads;
 
-        // All Threads tiles; average load, temperature and clock per core group
+        // the tiles; average load, temperature and clock per core group
         public SensorGraphViewModel AvgLoadWithThreads { get; }
         public SensorGraphViewModel AvgTemperatureWithThreads { get; }
         public SensorGraphViewModel AvgClockWithThreads { get; }
@@ -171,7 +175,8 @@ namespace FluentSensors.Features.Performance.Lhm
         public double AllThreadsOpacity => IsShowingAllThreads ? 1 : 0;
         public bool AllThreadsIsHitTestVisible => IsShowingAllThreads;
 
-        // static CPU info; computed, the cpu facts of WinStaticInfoService never change, so no notifications
+        // --- static cpu info ---
+        // computed, the cpu facts of WinStaticInfoService never change, so no notifications
         public string CpuPhysicalCoresText => WinStaticInfoService.Instance.Cpu.PhysicalCores.ToString();
         public string CpuLogicalProcessorsText => WinStaticInfoService.Instance.Cpu.LogicalProcessors.ToString();
         public string CpuL1CacheText => HardwareInfoFormatter.FormatCacheLevelTotal(WinStaticInfoService.Instance.Cpu.CacheEntries, level: 3);

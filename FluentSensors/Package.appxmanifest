@@ -51,6 +51,7 @@
 			<!--
 			  the widget on the Windows Widgets board: the board starts FluentSensors.WidgetProvider.exe as a COM server,
 			  at medium integrity, which the elevated app cannot be; the class id is the one in its Program.cs
+			  https://learn.microsoft.com/en-us/windows/apps/develop/widgets/widget-provider-manifest
 			-->
 			<Extensions>
 				<com:Extension Category="windows.comServer">

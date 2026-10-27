@@ -209,6 +209,8 @@ namespace FluentSensors.Features.CsvLogging
             CurrentInstance?.RestoreAndActivate();
         }
 
+        // closes the window for real and detaches what it subscribed; only for RecreateWindow, every other close
+        // hides it for reuse (see AppWindow_Closing), and each real close leaks the window once
         public void SafeDestroy()
         {
             if (_isClosed) return;

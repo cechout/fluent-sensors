@@ -144,7 +144,8 @@ namespace FluentSensors.Controls.SensorGraph
         // no notification of its own, the CurrentValueColor one carries it
         public bool IsThresholdColorActive { get; private set; }
 
-        // general
+        // --- general ---
+
         public ObservableCollection<double?> SensorData { get; private set; }
         public string SensorId { get; }
         public string SensorType { get; }
@@ -547,7 +548,8 @@ namespace FluentSensors.Controls.SensorGraph
             UpdateYMaxDisplay();
         }
 
-        // user interaction
+        // --- user interaction ---
+
         public void ToggleControlPanel()
         {
             ControlPanelVisibility = ControlPanelVisibility == Visibility.Visible
@@ -636,8 +638,8 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         // the value color against the threshold; a new brush only when the color changes
-        // (one per tick for every graph of the app piled up native brushes the GC collects late, and every new one made
-        // each panel showing the graph re-run all its bindings)
+        // (a brush per tick for every graph of the app piles up native brushes the GC collects late, and every new one
+        // makes each panel showing the graph re-run all its bindings)
         private void RecalculateColor(bool force = false)
         {
             bool isActive = Threshold.IsBreached(_currentRaw);
@@ -652,7 +654,8 @@ namespace FluentSensors.Controls.SensorGraph
                 : DefaultTextColor.Resolve();
         }
 
-        // the shown y-axis maximum
+        // the y-axis maximum as the text of the max label: the highest point while auto scaled, the manual limit
+        // otherwise, in the scaled unit
         private void UpdateYMaxDisplay()
         {
             if (IsAutoScaled)

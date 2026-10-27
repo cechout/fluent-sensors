@@ -47,7 +47,10 @@ namespace FluentSensors.Features.Widget
         private const int MinPanelHeight = 90;
         private const int MinWidgetWidth = 220;
 
-        // in DIP; title bar 26, graph padding 8 above and below, bottom bar 31 (divider, padding, 22 buttons)
+        // in DIP, the sum of:
+        // - title bar: 26
+        // - graph padding: 8 above and 8 below
+        // - bottom bar: 31 (divider, padding, 22 buttons)
         private const int ChromeHeight = 73;
 
         public WidgetViewModel ViewModel { get; }
@@ -274,6 +277,8 @@ namespace FluentSensors.Features.Widget
 
         private bool _isClosed = false;
 
+        // closes the window for real and detaches what it subscribed; only for RecreateWindow, every other close
+        // hides it for reuse (see AppWindow_Closing), and each real close leaks the window once
         public void SafeDestroy()
         {
             if (_isClosed) return;
@@ -328,6 +333,8 @@ namespace FluentSensors.Features.Widget
             }
         }
 
+        // one widget of RecreateWindows: its open and its retained window destroyed, a new one built with its sensors
+        // only when the old one was visible
         private static void RecreateWindow(int index)
         {
             if (_isRecreating[index]) return;
@@ -667,6 +674,10 @@ namespace FluentSensors.Features.Widget
             TaskbarFlyoutWindow.RouteSystemVisualsChange(sender);
         }
 
+        // moved, resized, minimized or restored; these follow:
+        // - the tray state
+        // - the render gate of the graphs
+        // - the saved rect
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
             // --- workaround: minimize/restore never gated, DidPresenterChange does not cover it ---

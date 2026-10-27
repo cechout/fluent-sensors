@@ -23,8 +23,7 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             HardwareName = hardwareName;
 
-            // until Detach
-            WinStaticInfoService.Instance.BatteriesChanged += OnStaticInfoChanged;
+            WinStaticInfoService.Instance.BatteriesChanged += OnStaticInfoChanged; // until Detach
 
             DetailOptions = new ObservableCollection<SensorSwitchCandidate>();
             Facts = new ObservableCollection<HardwareFact>();
@@ -42,7 +41,8 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _chargeLevel = value; OnPropertyChanged(); }
         }
 
-        // charge or discharge power; LHM reports the amount and names the direction ("Charge Rate", "Discharge Rate")
+        // charge or discharge power:
+        // LHM reports the amount and names the direction ("Charge Rate", "Discharge Rate")
         private SensorGraphViewModel _rate;
         public SensorGraphViewModel Rate
         {
@@ -71,10 +71,18 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(Detail));
         }
 
-        // info panel; the readings that only move with the age of the battery (designed and full capacity, degradation)
+        // --- info panel ---
+
+        // the readings that only move with the age of the battery:
+        // - designed capacity
+        // - full capacity
+        // - degradation
         public ObservableCollection<HardwareFact> Facts { get; }
 
-        // info panel; what the firmware says about the pack and LHM has no sensor for
+        // what the firmware says about the pack and LHM has no sensor for:
+        // - manufacturer
+        // - chemistry
+        // - manufacture date, when the firmware reports one
         public IReadOnlyList<HardwareFact> StaticFacts
         {
             get
@@ -95,7 +103,7 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // info panel; sits with the LHM readings about the age of the pack
+        // sits with the LHM readings about the age of the pack
         public string CycleCountText => HardwareInfoFormatter.FormatCount(MatchStaticInfo()?.CycleCount);
 
 

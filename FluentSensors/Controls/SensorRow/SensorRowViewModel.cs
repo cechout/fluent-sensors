@@ -112,7 +112,7 @@ namespace FluentSensors.Controls.SensorRow
         // threshold, the shared editor; null until Entry is set (see InitializeThreshold)
         public ThresholdEditorViewModel Threshold { get; private set; }
 
-        // item state
+        // --- item state ---
         private bool _isSelected;
         public bool IsSelected
         {
@@ -153,7 +153,7 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // formatted values
+        // --- formatted values ---
         private string _currentValue = "-";
         public string CurrentValue
         {
@@ -195,7 +195,7 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // text colors
+        // --- text colors ---
         private Brush _currentValueColor = DefaultTextColor.Resolve();
         public Brush CurrentValueColor
         {
@@ -291,7 +291,9 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // one tick: min, max, avg and the formatted strings
+        // one tick:
+        // - min, max and avg
+        // - the formatted strings
         private void UpdateValue(double newValue)
         {
             if (newValue < _min) _min = newValue;

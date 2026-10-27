@@ -39,6 +39,10 @@ namespace FluentSensors.Features.Performance.Lhm
 
         public string HardwareName { get; }
 
+        // --- overview categories ---
+        // the graphs of the overview; NetworkUtilization switches, its public setter persists the choice,
+        // SetNetworkUtilizationWithoutPersisting is for the default or restored graph
+
         private SensorGraphViewModel _uploadSpeed;
         public SensorGraphViewModel UploadSpeed
         {
@@ -74,8 +78,10 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(NetworkUtilization));
         }
 
+        // --- extended view ---
+        // the second view of the tab, see NetworkDetailView
 
-        // extended view; the plain utilization, the slot above without its switch
+        // the plain utilization, the overview slot without its switch
         private SensorGraphViewModel _extendedNetworkUtilization;
         public SensorGraphViewModel ExtendedNetworkUtilization
         {
@@ -83,7 +89,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _extendedNetworkUtilization = value; OnPropertyChanged(); }
         }
 
-        // extended view; the cumulative totals as graphs of their own (both are candidates of the utilization slot too)
+        // the cumulative totals as graphs of their own (both are candidates of the utilization slot too)
         private SensorGraphViewModel _dataUploaded;
         public SensorGraphViewModel DataUploaded
         {
@@ -98,7 +104,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _dataDownloaded = value; OnPropertyChanged(); }
         }
 
-        // extended view; the Wi-Fi sensors of the Windows source, null while its switch is off or the adapter is wired
+        // the Wi-Fi sensors of the Windows source, null while its switch is off or the adapter is wired
         private SensorGraphViewModel _receiveLinkRate;
         public SensorGraphViewModel ReceiveLinkRate
         {
@@ -133,7 +139,6 @@ namespace FluentSensors.Features.Performance.Lhm
                 ? Microsoft.UI.Xaml.Visibility.Visible
                 : Microsoft.UI.Xaml.Visibility.Collapsed;
 
-        // the second view of the tab, see NetworkDetailView
         private bool _isShowingExtended;
         public bool IsShowingExtended
         {
@@ -151,8 +156,8 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
         // --- workaround: SensorGraphControl permanently blank after Collapsed + Unload/Reload ---
-        // problem and fix: see GpuDetailView.SetLayoutActive; the Overall/Extended switch hides by
-        // Opacity and IsHitTestVisible too
+        // problem and fix: see GpuDetailView.SetLayoutActive; the Overall/Extended switch hides by Opacity and
+        // IsHitTestVisible too
         public double ExtendedOpacity => IsShowingExtended ? 1 : 0;
         public bool ExtendedIsHitTestVisible => IsShowingExtended;
 
@@ -185,7 +190,7 @@ namespace FluentSensors.Features.Performance.Lhm
         // HardwareName stays raw everywhere else
         public string PerformanceDisplayName => _staticInfo?.Description ?? HardwareName;
 
-        // the header and tile glyph; wi-fi for a wireless adapter, see HardwareGroupInfo.GetNetworkIconGlyph
+        // the header and tile glyph; Wi-Fi for a wireless adapter, see HardwareGroupInfo.GetNetworkIconGlyph
         public string IconGlyph => HardwareGroupInfo.GetNetworkIconGlyph(_staticInfo?.InterfaceType);
 
 

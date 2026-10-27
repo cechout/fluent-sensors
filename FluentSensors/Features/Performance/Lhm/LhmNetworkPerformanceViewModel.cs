@@ -67,6 +67,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // === private helpers ===
 
+        // the view model of new hardware: its sensors placed now, the later ones as they arrive
         private void AttachToInstance(LhmHardwareInstance instance)
         {
             var adapter = new LhmNetworkInstanceViewModel(instance.HardwareName);
@@ -97,6 +98,7 @@ namespace FluentSensors.Features.Performance.Lhm
             ActivateDefault(adapter.HardwareName, "Utilization", adapter.NetworkUtilizationOptions, () => adapter.NetworkUtilization, adapter.SetNetworkUtilizationWithoutPersisting);
         }
 
+        // the start graph of one category, see ApplyCategoryFallbacks
         private static void ActivateDefault(
             string hardwareName, string category, ObservableCollection<SensorSwitchCandidate> options,
             Func<SensorGraphViewModel> getActive, Action<SensorGraphViewModel> setActiveWithoutPersisting)
@@ -131,6 +133,8 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
+        // places one sensor of the adapter on its tab by its name: the two speed graphs, the candidates of the
+        // utilization slot, the graphs of the extended view
         private void OnSensorDiscovered(LhmNetworkInstanceViewModel adapter, LhmSensorEntry entry)
         {
             switch (entry.Name)

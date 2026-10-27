@@ -62,9 +62,11 @@ namespace FluentSensors.Features.Performance.Lhm
         public bool IsDiscrete => Kind != HardwareGroupKind.IntegratedGpu;
         public bool IsIntegrated => !IsDiscrete;
 
-        // overview categories; the public setter persists the choice, SetXWithoutPersisting is for the default or
-        // restored graph (PackagePower and MemoryUsed alike)
-        // CoreLoad switches between the core load and the D3D engines, an Intel integrated gpu has only the latter
+        // --- overview categories ---
+        // the switchable graphs of the overview; the public setter persists the choice, SetXWithoutPersisting is for
+        // the default or restored graph (the switchable slots of the extended view alike)
+
+        // between the core load and the D3D engines, an Intel integrated gpu has only the latter
         private SensorGraphViewModel _coreLoad;
         public SensorGraphViewModel CoreLoad
         {
@@ -125,6 +127,8 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(PackagePower));
         }
 
+        // --- extended view ---
+        // the second view of the tab, see GpuDetailView; its groups follow below the switch
         private bool _isShowingExtended;
         public bool IsShowingExtended
         {
@@ -152,8 +156,10 @@ namespace FluentSensors.Features.Performance.Lhm
         public double ExtendedOpacity => IsShowingExtended ? 1 : 0;
         public bool ExtendedIsHitTestVisible => IsShowingExtended;
 
-        // Extended Core group; the CoreLoad sensor with a graph of its own (a graph keeps the points of one span, the
-        // two views plot different spans)
+        // --- extended core group ---
+
+        // the CoreLoad sensor with a graph of its own (a graph keeps the points of one span, the two views plot
+        // different spans)
         private SensorGraphViewModel _extendedCoreLoad;
         public SensorGraphViewModel ExtendedCoreLoad
         {
@@ -161,7 +167,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _extendedCoreLoad = value; OnPropertyChanged(); }
         }
 
-        // Extended Core group; a Power slot with its own candidates and choice, like ExtendedCoreLoad
+        // a Power slot with its own candidates and choice
         private SensorGraphViewModel _extendedPackagePower;
         public SensorGraphViewModel ExtendedPackagePower
         {
@@ -182,7 +188,7 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(ExtendedPackagePower));
         }
 
-        // Extended Core group; a fixed anchor
+        // a fixed anchor
         private SensorGraphViewModel _coreClock;
         public SensorGraphViewModel CoreClock
         {
@@ -190,7 +196,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _coreClock = value; OnPropertyChanged(); }
         }
 
-        // Extended Core group; a Temperature slot with its own candidates and choice, like ExtendedPackagePower
+        // a Temperature slot with its own candidates and choice, like ExtendedPackagePower
         private SensorGraphViewModel _extendedTemperature;
         public SensorGraphViewModel ExtendedTemperature
         {
@@ -211,7 +217,9 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(ExtendedTemperature));
         }
 
-        // Extended Memory group; the LHM reading, the D3D figure or the free complement
+        // --- extended memory group ---
+
+        // the LHM reading, the D3D figure or the free complement
         private SensorGraphViewModel _memoryUsed;
         public SensorGraphViewModel MemoryUsed
         {
@@ -254,7 +262,7 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _memoryLoad = value; OnPropertyChanged(); }
         }
 
-        // Extended Memory group; system RAM lent to the gpu, used or its free complement
+        // system RAM lent to the gpu, used or its free complement
         private SensorGraphViewModel _sharedMemory;
         public SensorGraphViewModel SharedMemory
         {
@@ -276,7 +284,7 @@ namespace FluentSensors.Features.Performance.Lhm
         }
 
         // not charted; the y-axis maximum of SharedMemory, in the unit of its sensors
-        // the D3D total where LHM reports one (Intel, amd), else what DXGI lists for the adapter (NVIDIA)
+        // the D3D total where LHM reports one (Intel, AMD), else what DXGI lists for the adapter (NVIDIA)
         public double SharedMemoryTotal
         {
             get
@@ -314,7 +322,9 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _memoryTotal = value; OnPropertyChanged(); }
         }
 
-        // Extended PCIe and Bus group; no alternatives, no Options list
+        // --- extended pcie and bus group ---
+        // no alternatives, no Options list
+
         private SensorGraphViewModel _pcieRx;
         public SensorGraphViewModel PcieRx
         {
@@ -336,8 +346,9 @@ namespace FluentSensors.Features.Performance.Lhm
             set { _busLoad = value; OnPropertyChanged(); }
         }
 
-        // Extended Engines group; VideoEngineLoad is a fixed anchor, D3dEngineSlot1..4 switch
-        // over the D3dEngineOptions pool
+        // --- extended engines group ---
+        // VideoEngineLoad is a fixed anchor, D3dEngineSlot1..4 switch over the D3dEngineOptions pool
+
         private SensorGraphViewModel _videoEngineLoad;
         public SensorGraphViewModel VideoEngineLoad
         {
@@ -352,7 +363,9 @@ namespace FluentSensors.Features.Performance.Lhm
         public SensorGraphViewModel D3dEngineSlot3 { get => _d3dEngineSlots[2]; set => SetD3dEngineSlot(2, value); }
         public SensorGraphViewModel D3dEngineSlot4 { get => _d3dEngineSlots[3]; set => SetD3dEngineSlot(3, value); }
 
-        // Extended Other group; every sensor without a place above, whatever the vendor or the driver calls it
+        // --- extended other group ---
+        // every sensor without a place above, whatever the vendor or the driver calls it
+
         public ObservableCollection<SensorGraphViewModel> OtherSensors { get; }
         public bool HasOtherSensors => OtherSensors.Count > 0;
 
@@ -361,6 +374,9 @@ namespace FluentSensors.Features.Performance.Lhm
             OtherSensors.Add(graph);
             if (OtherSensors.Count == 1) OnPropertyChanged(nameof(HasOtherSensors));
         }
+
+        // --- d3d engine nodes ---
+        // the names of the nodes and the slots of the engines group
 
         // the display names of the D3D nodes by their sensor name, each a setter; a name that occurs more than
         // once gets a number ("D3D Copy [2]"), the first one too as soon as a second arrives

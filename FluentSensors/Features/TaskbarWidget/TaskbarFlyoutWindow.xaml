@@ -118,7 +118,7 @@
                         </Grid.ColumnDefinitions>
 
                         <!--  title  -->
-                        <!--  (row padding plus margin, so it lines up with the button texts below, which sit behind padding and a 1 px border)  -->
+                        <!--  (row padding plus margin, so it lines up with the button texts below)  -->
                         <TextBlock
                             x:Uid="TaskbarFlyout_SystemSensorsText"
                             Margin="10,-2,0,0"

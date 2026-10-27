@@ -594,7 +594,7 @@ namespace FluentSensors.Features.Start
                     ? HardwareInfoFormatter.FormatBitsPerSecond(adapter.SpeedBitsPerSecond)
                     : "";
 
-                // a connected wi-fi adapter says its standard and band, which tell more than the type the icon shows
+                // a connected Wi-Fi adapter says its standard and band, which tell more than the type the icon shows
                 string[] details = adapter.Wlan is { } wlan
                     ? new[]
                     {
@@ -604,7 +604,7 @@ namespace FluentSensors.Features.Start
                     }
                     : new[] { HardwareInfoFormatter.FormatInterfaceType(adapter.InterfaceType), speed };
 
-                // the glyph depends on the device, wi-fi for a wireless adapter
+                // the glyph depends on the device, Wi-Fi for a wireless adapter
                 rows.Add(LabelledRow(
                     HardwareGroupKind.Network,
                     HardwareGroupInfo.GetNetworkIconGlyph(adapter.InterfaceType),
