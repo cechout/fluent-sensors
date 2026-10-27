@@ -19,8 +19,11 @@ using FluentSensors.Persistence.Services;
 namespace FluentSensors.Features.Start
 {
     // the start page:
-    // update state, a snapshot of the machine, the live status of this app, and the about and licence block; (the
-    // landing page is a setting, see StartupPage)
+    // - update state
+    // - a snapshot of the machine
+    // - the live status of this app
+    // - the about and licence block
+    // (the landing page is a setting, see StartupPage)
     public sealed partial class StartPage : Page
     {
         // === fields ===

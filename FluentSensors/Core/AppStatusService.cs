@@ -10,8 +10,11 @@ using FluentSensors.Core.Lhm;
 
 namespace FluentSensors.Core
 {
-    // one self status snapshot: sensors found and rendering, the CPU, GPU, RAM, handle and GC footprint of this process,
-    // the actual and aimed cadence and the read cost
+    // one self status snapshot:
+    // - sensors found and rendering
+    // - the CPU, GPU, RAM, handle and GC footprint of this process
+    // - the actual and aimed cadence
+    // - the read cost
     public record AppStatusData(
         int SensorsFound,
         int SensorsRendered,
@@ -107,6 +110,11 @@ namespace FluentSensors.Core
             _timer?.Change(newIntervalMs, newIntervalMs);
         }
 
+        // one status snapshot per polling interval, raised as StatusUpdated on the UI thread:
+        // - the cpu share of this process since the last tick
+        // - the gpu value of the previous read
+        // - memory and handles
+        // - the sensor counts
         private void Tick()
         {
             // Process caches its values until Refresh

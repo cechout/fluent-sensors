@@ -102,7 +102,11 @@ namespace FluentSensors.Core.StaticInfo
             GpusChanged?.Invoke();
         }
 
-        // the drive list and the reliability counters (temperature, power on hours, errors, wear)
+        // the drive list and the reliability counters:
+        // - temperature
+        // - power on hours
+        // - errors
+        // - wear
         public async Task RefreshDrivesAsync()
         {
             var fresh = await QueryChangedAsync(Drives, QueryDrives);
@@ -177,7 +181,13 @@ namespace FluentSensors.Core.StaticInfo
 
         // === private helpers ===
 
-        // cpu
+        // --- cpu ---
+
+        // the processor facts (never change while the app runs):
+        // - Win32_Processor with its caches
+        // - the core topology
+        // - the microcode revision from the registry
+        // - the instruction sets the runtime found
         private static WinCpuInfo QueryCpu()
         {
             var topology = WinCpuTopologyReader.ReadCoreTopology();
@@ -460,7 +470,10 @@ namespace FluentSensors.Core.StaticInfo
             ulong? FlushLatencyMaxMs);
 
 
-        // drives
+        // every physical drive, Win32_DiskDrive as the list, joined onto it:
+        // - the name, bus type, health and reliability counters of MSFT_PhysicalDisk
+        // - the partitions and volumes of QueryDisks
+        // - the PCIe link of an NVMe drive
         private static List<WinStorageDriveInfo> QueryDrives()
         {
             var result = new List<WinStorageDriveInfo>();

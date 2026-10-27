@@ -127,8 +127,10 @@ namespace FluentSensors.Features.TaskbarWidget
         private bool _embedGaveUp;
         public bool IsEmbedded => _isEmbedded;
 
-        // only on a window a rebuild creates: carries the drag offsets, skips the startup animation,
-        // reopens an interrupted flyout
+        // only on a window a rebuild creates:
+        // - carries the drag offsets
+        // - skips the startup animation
+        // - reopens an interrupted flyout
         private bool _isRebuild;
         private bool _restoreFlyoutAfterEmbed;
 
@@ -166,7 +168,10 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // sets up a new widget window, a rebuild included:
-        // a transparent borderless presenter off screen, the theme, the pointer handlers and the queued embed into the taskbar
+        // - a transparent borderless presenter off screen
+        // - the theme
+        // - the pointer handlers
+        // - the queued embed into the taskbar
         private void Initialize()
         {
             try
@@ -627,8 +632,10 @@ namespace FluentSensors.Features.TaskbarWidget
             WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
         }
 
-        // the widget rect on the given taskbar: length from the pinned sensor count, position from the drag offset
-        // of the matching orientation, kept inside the taskbar the same way a drag is
+        // the widget rect on the given taskbar:
+        // - length from the pinned sensor count
+        // - position from the drag offset of the matching orientation
+        // - kept inside the taskbar the same way a drag is
         private RectInt32 CalculateScreenRect(WinTaskbarInfo taskbar)
         {
             double scale = taskbar.Dpi / 96.0;

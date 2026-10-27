@@ -241,8 +241,10 @@ namespace FluentSensors.Features.WidgetBoard
                 new SKColor(light.R, light.G, light.B));
         }
 
-        // the range SensorGraphControl.ApplyYRange sets: the manual limit, or 0 to the highest point (a series below
-        // zero hangs from 0), 0 to 1 while every value is 0
+        // the range SensorGraphControl.ApplyYRange sets:
+        // - manual: the limit
+        // - auto scaled: 0 to the highest point (a series below zero hangs from 0)
+        // - auto scaled with every value 0: 0 to 1
         private static (double Bottom, double Top) ResolveYRange(SensorGraphViewModel graph, double?[] values)
         {
             if (!graph.IsAutoScaled) return graph.ManualYMax < 0 ? (graph.ManualYMax, 0.0) : (0.0, graph.ManualYMax);

@@ -12,7 +12,11 @@ namespace FluentSensors.Core.StaticInfo
     // the active displays with their mode, connector, HDR state, EDID facts and what the monitor says over DDC/CI:
     // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-querydisplayconfig
     // the display config part is cheap (well below a millisecond) and is all the sensor source asks for; the details
-    // (EDID over WMI, DXGI, the mode list, DDC/CI) cost up to a few hundred milliseconds and are only asked for the facts
+    // cost up to a few hundred milliseconds and are only asked for the facts:
+    // - EDID over WMI
+    // - DXGI
+    // - the mode list
+    // - DDC/CI
     // apart from WinDisplayTopology on purpose: that one runs before WinUI starts and answers a narrower question
     public static partial class WinDisplayReader
     {
@@ -126,7 +130,12 @@ namespace FluentSensors.Core.StaticInfo
         // === public api ===
 
         // empty when the display config cannot be read
-        // includeDetails adds what is slow: the EDID facts, the luminance, the mode list, the scale and DDC/CI
+        // includeDetails adds what is slow:
+        // - the EDID facts
+        // - the luminance
+        // - the mode list
+        // - the scale
+        // - DDC/CI
         public static List<WinDisplayInfo> QueryDisplays(bool includeDetails)
         {
             var result = new List<WinDisplayInfo>();

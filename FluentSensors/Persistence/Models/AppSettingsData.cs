@@ -118,8 +118,11 @@ namespace FluentSensors.Persistence.Models
         public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public bool TaskbarUseTransparentGraphBackground { get; set; } = true;
 
-        // per taskbar edge ("Bottom", "Top", "Left", "Right"): time range, graph width, flyout alignment, side layout;
-        // defaults in TaskbarEdgeSettings
+        // per taskbar edge ("Bottom", "Top", "Left", "Right"), defaults in TaskbarEdgeSettings:
+        // - time range
+        // - graph width
+        // - flyout alignment
+        // - side layout
         // null in an older file, SettingsService seeds every edge from the legacy values below
         public Dictionary<string, TaskbarEdgeSettings>? TaskbarEdges { get; set; } = null;
 

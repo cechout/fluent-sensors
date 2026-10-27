@@ -16,8 +16,13 @@ using FluentSensors.Persistence.Models;
 namespace FluentSensors.Persistence.Services
 {
     // the persistence service:
-    // all disk I/O of the app state in five files (settings, window positions, sensor state, sensor switches, selection
-    // profiles); pure I/O, plain data in and out
+    // all disk I/O of the app state, in five files:
+    // - settings
+    // - window positions
+    // - sensor state
+    // - sensor switches
+    // - selection profiles
+    // pure I/O, plain data in and out
     public class PersistenceService
     {
         // === fields ===

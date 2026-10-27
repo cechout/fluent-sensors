@@ -3,8 +3,12 @@
 
 namespace FluentSensors.Persistence.Models
 {
-    // the sensor ids of the selection profiles (widget windows, csv, taskbar, widgets board); membership only, a
-    // consumer orders them by discovery
+    // the sensor ids of the selection profiles:
+    // - widget windows
+    // - csv
+    // - taskbar
+    // - widgets board
+    // membership only, a consumer orders them by discovery
     public class SensorSelectionState
     {
         public List<string> WidgetWindow { get; set; } = new();

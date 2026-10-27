@@ -32,8 +32,12 @@ namespace FluentSensors.Common.UI
             "M8.5,8.5H15V14.3A0.7,0.7 0 0 1 14.3,15H8.5Z";
 
         // lhm icon
-        // a chip seen from above: the package as a frame, the die in its middle, the pin 1 corner bottom left and two
-        // contacts on the right; even-odd, so the inner square of the frame is a hole the other parts sit in:
+        // a chip seen from above:
+        // - the package as a frame
+        // - the die in its middle
+        // - the pin 1 corner bottom left
+        // - two contacts on the right
+        // even-odd, so the inner square of the frame is a hole the other parts sit in:
         // https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Attribute/fill-rule
         private const string LhmData =
             "F0 M2.6,1H13.4A1.6,1.6 0 0 1 15,2.6V13.4A1.6,1.6 0 0 1 13.4,15H2.6A1.6,1.6 0 0 1 1,13.4V2.6A1.6,1.6 0 0 1 2.6,1Z " +

@@ -137,8 +137,11 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // places one sensor of the drive on its tab by its name: a candidate of a switchable slot, a graph of the
-        // extended view, the total that scales the space candidates, or a fact of the info panel
+        // places one sensor of the drive on its tab by its name, as one of:
+        // - a candidate of a switchable slot
+        // - a graph of the extended view
+        // - the total that scales the space candidates
+        // - a fact of the info panel
         private void OnSensorDiscovered(LhmStorageInstanceViewModel drive, LhmSensorEntry entry)
         {
             switch (entry.Name)

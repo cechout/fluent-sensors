@@ -7,7 +7,10 @@ using FluentSensors.Persistence.Models;
 namespace FluentSensors.Persistence.Services
 {
     // the sensor states:
-    // everything configurable per sensor, in memory: visibility, threshold and the y-axis scaling per graph scope
+    // everything configurable per sensor, in memory:
+    // - visibility
+    // - threshold
+    // - the y-axis scaling per graph scope
     public class SensorStateService
     {
         // === fields ===
