@@ -81,6 +81,7 @@ namespace FluentSensors.Core.Taskbar
 
         // === private helpers ===
 
+        // polls the taskbar windows and raises TaskbarsChanged whenever the set or the geometry of one changed
         private async Task LoopAsync(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
@@ -144,6 +145,7 @@ namespace FluentSensors.Core.Taskbar
             return result;
         }
 
+        // one taskbar window as a snapshot: rect, edge, dpi, autohide and monitor; null when the window is gone
         private static WinTaskbarInfo? BuildTaskbarInfo(IntPtr hwnd)
         {
             if (!NativeMethods.GetWindowRect(hwnd, out var rect)) return null;

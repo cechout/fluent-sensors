@@ -143,8 +143,9 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // places one sensor of the cpu on its tab: a package-wide one becomes a candidate of the overview slot of its
-        // type, a per-core Load, Temperature or Clock goes to its core for the All Threads view and the group averages
+        // places one sensor of the cpu on its tab:
+        // - a package-wide one becomes a candidate of the overview slot of its type
+        // - a per-core Load, Temperature or Clock goes to its core for the All Threads view and the group averages
         private void OnSensorDiscovered(LhmCpuInstanceViewModel cpu, LhmSensorEntry entry)
         {
             // every per-core and per-thread name carries a "#<n>" for every vendor, no package-wide one does; the

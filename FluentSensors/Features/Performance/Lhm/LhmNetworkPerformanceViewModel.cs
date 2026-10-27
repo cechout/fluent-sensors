@@ -133,8 +133,10 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // places one sensor of the adapter on its tab by its name: the two speed graphs, the candidates of the
-        // utilization slot, the graphs of the extended view
+        // places one sensor of the adapter on its tab by its name:
+        // - the two speed graphs
+        // - the candidates of the utilization slot
+        // - the graphs of the extended view
         private void OnSensorDiscovered(LhmNetworkInstanceViewModel adapter, LhmSensorEntry entry)
         {
             switch (entry.Name)

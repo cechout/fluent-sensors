@@ -150,7 +150,10 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private IEnumerable<SensorGraphViewModel> AllGraphs() => PinnedSensors.Concat(FlyoutSensors);
 
-        // matches graphs to the selection: unselected ones go, new ones join and the order follows selectedSensors
+        // matches graphs to the selection:
+        // - unselected ones go
+        // - new ones join
+        // - the order follows selectedSensors
         // a new graph joins a running snapshot frozen
         private void Reconcile(ObservableCollection<SensorGraphViewModel> graphs, List<SensorRowViewModel> selectedSensors, SensorGraphScope scope)
         {

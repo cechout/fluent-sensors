@@ -284,8 +284,12 @@ namespace FluentSensors
             await StartHardwareServiceAsync();
         }
 
-        // the startup behind the splash: LHM hardware by hardware with the progress bar, the polling loop, the reveal
-        // of the first page, then the restored widgets and the services that follow hardware; the update check last
+        // the startup behind the splash, in this order:
+        // - LHM hardware by hardware, with the progress bar
+        // - the polling loop
+        // - the reveal of the first page
+        // - the restored widgets and the services that follow hardware
+        // - the update check
         private async Task StartHardwareServiceAsync()
         {
             var monitor = HardwareMonitorService.Instance;

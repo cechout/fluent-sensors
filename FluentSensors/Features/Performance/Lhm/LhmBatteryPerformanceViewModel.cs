@@ -117,8 +117,10 @@ namespace FluentSensors.Features.Performance.Lhm
             ApplyDetailFallback(battery);
         }
 
-        // places one sensor of the battery on its tab: charge level and rate as fixed graphs, the readings of the
-        // Detail switch, everything else a fact of the info panel
+        // places one sensor of the battery on its tab:
+        // - charge level and rate as fixed graphs
+        // - the readings of the Detail switch
+        // - everything else as a fact of the info panel
         //
         // by sensor type first; LHM renames the rate and the current with the direction, so their names cannot match
         private void OnSensorDiscovered(LhmBatteryInstanceViewModel battery, LhmSensorEntry entry)

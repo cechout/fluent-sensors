@@ -97,8 +97,10 @@ namespace FluentSensors.Features.Performance.Lhm
             return _memory;
         }
 
-        // every LHM memory group ends up in one RAM view: "Total Memory" for the Used and Available graphs,
-        // "Virtual Memory" for the commit charge, every module for its temperature and the module cards
+        // every LHM memory group ends up in one RAM view:
+        // - "Total Memory" for the Used and Available graphs
+        // - "Virtual Memory" for the commit charge
+        // - every module for its temperature and the module cards
         private void AttachPhysical(LhmHardwareInstance instance)
         {
             var memory = GetOrCreateMemory(instance.HardwareName);

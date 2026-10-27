@@ -254,6 +254,8 @@ namespace FluentSensors.Core
             _windowsSource.Start();
         }
 
+        // stops the polling loop and the Windows source and detaches every LHM event; returns once the loop has
+        // ended, so no payload follows
         public void StopMonitoring()
         {
             if (_cts == null) return;

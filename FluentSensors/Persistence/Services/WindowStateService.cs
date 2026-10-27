@@ -39,7 +39,7 @@ namespace FluentSensors.Persistence.Services
             PersistenceService.Instance.SaveWindowStatesDebounced(_states);
         }
 
-        // persistence
+        // replaces the state with what PersistenceService read from disk, at startup and after a reset in the settings
         public void LoadFromDisk(Dictionary<string, WindowState> loaded)
         {
             _states.Clear();

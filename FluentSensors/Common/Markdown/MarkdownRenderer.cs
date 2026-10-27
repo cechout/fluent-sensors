@@ -190,7 +190,8 @@ namespace FluentSensors.Common.Markdown
             return string.Join("\n", kept);
         }
 
-        // replaces the target content, so re-rendering is safe
+        // renders a release body into target, block by block, in the colors of its theme; replaces the target
+        // content, so re-rendering is safe
         public static void Render(Panel target, string markdown)
         {
             if (target == null) return;

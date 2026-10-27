@@ -160,6 +160,10 @@ namespace FluentSensors.Core
             }
         }
 
+        // the read loop of the Windows source, each kind only while its switch is on:
+        // - storage on its own longer interval
+        // - Wi-Fi and displays every round
+        // with every switch off it sleeps until one turns on
         private async Task LoopAsync(CancellationToken token)
         {
             var storageReadings = new List<WinSensorReading>();

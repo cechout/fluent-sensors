@@ -37,8 +37,14 @@ namespace FluentSensors.Features.CsvLogging
 
 
     // the csv logging service:
-    // owns a running recording, its column set, open file, row counter and elapsed clock; a service and not window
-    // state, since a recording has to survive the window hiding and being rebuilt without dropping a row
+    // owns a running recording:
+    // - its column set
+    // - the open file
+    // - the row counter
+    // - the elapsed clock
+    //
+    // A service and not window state, since a recording has to survive the window hiding and being rebuilt without
+    // dropping a row
     public class CsvLoggingService
     {
         // === fields ===

@@ -10,9 +10,9 @@ using WinUIEx.Messaging;
 namespace FluentSensors.Core.StaticInfo
 {
     // decides when WinStaticInfoService asks Windows again:
-    // on an event where Windows has one (network change, device change, display change, the main window coming
-    // back), on a slow timer for what has none (link speed, the refresh rate, storage counters, battery wear);
-    // The prerequisites (PawnIO, .NET) only when the main window comes back
+    // - on an event where Windows has one: network change, device change, display change, the main window coming back
+    // - on a slow timer for what has none: link speed, the refresh rate, storage counters, battery wear
+    // - the prerequisites (PawnIO, .NET) only when the main window comes back
     //
     // lives on the UI thread of the main window and only starts the queries; the service runs them off it
     public sealed class WinStaticInfoRefresher

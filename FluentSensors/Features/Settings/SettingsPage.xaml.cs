@@ -930,8 +930,10 @@ namespace FluentSensors.Features.Settings
             UpdateBackgroundMaterialCardStates();
         }
 
-        // the material decides which rows apply: the opacity sliders are custom acrylic only, a color source only exists
-        // for custom acrylic and solid (mica and system acrylic bring their own); the picker follows its source
+        // the material decides which rows apply:
+        // - the opacity sliders are custom acrylic only
+        // - a color source only exists for custom acrylic and solid (mica and system acrylic bring their own)
+        // - the picker follows its source
         private void UpdateBackgroundMaterialCardStates()
         {
             ApplyMaterialCardStates(SettingsService.Instance.BackgroundMaterial,

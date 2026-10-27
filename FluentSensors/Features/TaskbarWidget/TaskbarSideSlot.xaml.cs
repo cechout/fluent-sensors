@@ -10,8 +10,11 @@ using FluentSensors.Core.Taskbar;
 namespace FluentSensors.Features.TaskbarWidget
 {
     // the side taskbar slot:
-    // one pinned sensor on a left or right taskbar, the name on top, value and unit bottom left, the graph behind in
-    // the picked direction; the text never turns
+    // one pinned sensor on a left or right taskbar:
+    // - the name on top
+    // - value and unit bottom left
+    // - the graph behind, in the picked direction
+    // the text never turns
     // TaskbarWidgetWindow pushes the layout through ApplyLayout on load and on every change
     public sealed partial class TaskbarSideSlot : UserControl
     {

@@ -509,8 +509,9 @@ namespace FluentSensors.Features.TaskbarWidget
             RouteSystemVisualsChange(sender);
         }
 
-        // the DWM frame for the current transparency state: rounded corners, clipped acrylic and the native shadow
-        // with transparency on, a flat frame without them otherwise and always for the card window
+        // the DWM frame for the current transparency state:
+        // - transparency on: rounded corners, clipped acrylic and the native shadow
+        // - otherwise, and always for the card window: a flat frame without them
         private void UpdateShadowPolicy()
         {
             if (_hwnd == IntPtr.Zero) return;
@@ -776,8 +777,11 @@ namespace FluentSensors.Features.TaskbarWidget
             });
         }
 
-        // refreshes the accent surfaces of every open window: graph colors (and the taskbar card tint riding on them),
-        // acrylic tint and solid background; the flyout shares the taskbar widget ViewModel, so its graphs come along
+        // refreshes the accent surfaces of every open window:
+        // - graph colors (and the taskbar card tint riding on them)
+        // - acrylic tint
+        // - solid background
+        // the flyout shares the taskbar widget ViewModel, so its graphs come along
         private static void ExecuteAccentRefresh()
         {
             TaskbarWidgetWindow.CurrentInstance?.ViewModel.RefreshGraphColors();
@@ -1002,8 +1006,10 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === window sizing and positioning ===
 
-        // places the flyout beside the taskbar widget, on the desktop side of the taskbar edge: along the taskbar per
-        // TaskbarFlyoutAlignment, FlyoutMarginToTaskbarDip off it, clamped to the primary work area
+        // places the flyout beside the taskbar widget, on the desktop side of the taskbar edge:
+        // - along the taskbar per TaskbarFlyoutAlignment
+        // - FlyoutMarginToTaskbarDip off it
+        // - clamped to the primary work area
         private void PositionNextToTaskbar(TaskbarWidgetWindow widgetWindow)
         {
             var widgetHwnd = WinRT.Interop.WindowNative.GetWindowHandle(widgetWindow);

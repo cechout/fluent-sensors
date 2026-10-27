@@ -141,8 +141,11 @@ namespace FluentSensors.Core.StaticInfo
             };
         }
 
-        // where the picture goes: the displays it drives, the integrated gpu a hybrid discrete one renders through, or
-        // none; "" when the gpu had no DXGI match and so no known adapter
+        // where the picture goes:
+        // - the displays it drives
+        // - the integrated gpu a hybrid discrete one renders through
+        // - none
+        // "" when the gpu had no DXGI match and so no known adapter
         public static string FormatGpuDisplay(WinGpuInfo gpu)
         {
             if (gpu.AdapterLuid == 0) return "";
@@ -513,7 +516,10 @@ namespace FluentSensors.Core.StaticInfo
         private const int ColorChannelCount = 3;
         private const double BytesPerMebibyte = 1_048_576.0;
 
-        // the visible pixels only: no blanking interval, no compression, no chroma subsampling
+        // the visible pixels only:
+        // - no blanking interval
+        // - no compression
+        // - no chroma subsampling
         private static double FrameBytes(int widthPixels, int heightPixels, int bitsPerColorChannel)
         {
             if (widthPixels <= 0 || heightPixels <= 0 || bitsPerColorChannel <= 0) return 0;

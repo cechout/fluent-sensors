@@ -8,8 +8,12 @@ using FluentSensors.Persistence.Models;
 namespace FluentSensors.Persistence.Services
 {
     // the sensor selections:
-    // the ordered selection profiles in memory (widget windows, csv, taskbar, widgets board); knows nothing of
-    // checkboxes, view models or windows
+    // the ordered selection profiles in memory:
+    // - widget windows
+    // - csv
+    // - taskbar
+    // - widgets board
+    // knows nothing of checkboxes, view models or windows
     // widgetIndex picks the widget window (0 based) and is ignored by the other profiles
     public class SensorSelectionService
     {
@@ -67,7 +71,7 @@ namespace FluentSensors.Persistence.Services
             Persist();
         }
 
-        // persistence
+        // replaces the selections with what PersistenceService read from disk, once at startup
         public void LoadFromDisk(SensorSelectionState loaded)
         {
             _state = loaded ?? new SensorSelectionState();

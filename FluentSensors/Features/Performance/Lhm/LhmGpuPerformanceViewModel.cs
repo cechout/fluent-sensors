@@ -169,8 +169,13 @@ namespace FluentSensors.Features.Performance.Lhm
             ApplyD3dEngineDefaults(gpu);
         }
 
-        // places one sensor of the gpu on its tab: a fixed graph, a candidate of a switchable slot, a total that only
-        // sets a y-axis maximum, a D3D engine or the Other group; at attach and for every sensor that arrives later
+        // places one sensor of the gpu on its tab, as one of:
+        // - a fixed graph
+        // - a candidate of a switchable slot
+        // - a total that only sets a y-axis maximum
+        // - a D3D engine
+        // - the Other group
+        // at attach and for every sensor that arrives later
         //
         // matches on (Name, SensorType); "GPU Core" comes as Load, Clock, Temperature and Voltage
         // a sensor that is a switch candidate has its place; the Other group only takes what no group can, which
