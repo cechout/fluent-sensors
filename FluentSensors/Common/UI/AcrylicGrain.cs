@@ -59,6 +59,8 @@ namespace FluentSensors.Common.UI
             }
         }
 
+        // makes sure the noise bitmap covers the given size at the current scale, so the grain reaches every edge
+        //
         // grows on demand, never shrinks; sized in physical pixels and scaled back down, so one noise pixel lands on
         // one physical pixel instead of being smeared into coarse grain
         public void Ensure(double widthDip, double heightDip)

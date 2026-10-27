@@ -67,7 +67,7 @@ namespace FluentSensors.Persistence.Services
             Persist();
         }
 
-        // persistence
+        // replaces the selections with what PersistenceService read from disk, once at startup
         public void LoadFromDisk(SensorSelectionState loaded)
         {
             _state = loaded ?? new SensorSelectionState();

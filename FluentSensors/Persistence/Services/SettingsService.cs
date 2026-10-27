@@ -34,7 +34,8 @@ namespace FluentSensors.Persistence.Services
 
         // === public api ===
 
-        // properties
+        // --- properties ---
+
         private string _appTheme = Defaults.AppTheme;
         public string AppTheme
         {
@@ -1278,9 +1279,10 @@ namespace FluentSensors.Persistence.Services
                 _ => fallback
             };
 
-        // persistence
-        // straight into the backing fields, no change events and no save; at startup before any listener exists, and
-        // after an import right before the restart
+        // --- persistence ---
+
+        // takes over the saved settings; straight into the backing fields, no change events and no save; at startup
+        // before any listener exists, and after an import right before the restart
         public void LoadFromData(AppSettingsData data)
         {
             _appTheme = data.AppTheme;

@@ -268,7 +268,9 @@ namespace FluentSensors.Core.StaticInfo
         }
 
 
-        // gpu
+        // --- gpu ---
+
+        // every gpu Win32_VideoController lists, with the video memory of its DXGI adapter and the displays it drives
         private static List<WinGpuInfo> QueryGpus()
         {
             var dxgiAdapters = QueryDxgiAdapters();
@@ -377,7 +379,9 @@ namespace FluentSensors.Core.StaticInfo
         }
 
 
-        // memory
+        // --- memory ---
+
+        // the memory array (slots, maximum capacity, error correction) and one entry per installed module
         private static WinMemoryInfo QueryMemory()
         {
             int totalSlots = 0;
@@ -425,6 +429,8 @@ namespace FluentSensors.Core.StaticInfo
 
             return new WinMemoryInfo(totalSlots, maxCapacityKb * 1024, errorCorrection, modules);
         }
+
+        // --- drives ---
 
         // MSFT_PhysicalDisk and its MSFT_StorageReliabilityCounter, keyed by serial and matched to Win32_DiskDrive
         // below; an intermediate step like DxgiAdapterInfo
@@ -611,6 +617,7 @@ namespace FluentSensors.Core.StaticInfo
             bool IsSystem,
             List<WinVolumeInfo> Volumes);
 
+        // the layout of every disk for QueryDrives, see DiskLayoutInfo
         private static Dictionary<int, DiskLayoutInfo> QueryDisks()
         {
             var result = new Dictionary<int, DiskLayoutInfo>();
@@ -686,7 +693,10 @@ namespace FluentSensors.Core.StaticInfo
         }
 
 
-        // network
+        // --- network ---
+
+        // every adapter that is up, from NetworkInterface: type, speed, addresses and the driver; a connected Wi-Fi
+        // adapter adds its link while the Wi-Fi switch of the engine is on
         private static List<WinNetworkAdapterInfo> QueryNetworkAdapters()
         {
             var result = new List<WinNetworkAdapterInfo>();
@@ -755,6 +765,7 @@ namespace FluentSensors.Core.StaticInfo
         // round trip each time would be wasted on facts that only move with a driver update
         private static readonly Dictionary<string, WinNetworkDriverInfo?> _networkDrivers = new(StringComparer.OrdinalIgnoreCase);
 
+        // version, date and provider of the driver of one adapter, from MSFT_NetAdapter through the cache above
         private static WinNetworkDriverInfo? QueryNetworkDriver(string adapterId)
         {
             lock (_networkDrivers)
@@ -790,7 +801,9 @@ namespace FluentSensors.Core.StaticInfo
         }
 
 
-        // motherboard
+        // --- motherboard ---
+
+        // board, BIOS, system and enclosure from WMI, with the Secure Boot state and the TPM version
         private static WinMotherboardInfo QueryMotherboard()
         {
             string manufacturer = "", product = "", version = "";
@@ -892,6 +905,8 @@ namespace FluentSensors.Core.StaticInfo
 
             return "";
         }
+
+        // --- prerequisites ---
 
         // every reading that needs ring 0 goes through PawnIO (cpu temperature and power, motherboard and SuperIO
         // sensors, memory timings); without the driver those are absent, the rest keeps working

@@ -48,6 +48,8 @@ namespace FluentSensors.Core.Lhm
 
         // === event handlers ===
 
+        // mirrors one payload into the tree on the UI thread: new hardware and sensors are added, known sensors take
+        // name, value and active state
         private void OnHardwareDataUpdated(List<SensorData> payload)
         {
             _dispatcherQueue.TryEnqueue(() =>

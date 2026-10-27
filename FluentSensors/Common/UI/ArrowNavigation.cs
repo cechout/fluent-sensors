@@ -47,6 +47,8 @@ namespace FluentSensors.Common.UI
 
         // === key handling ===
 
+        // turns an arrow key inside the list into a focus move between its controls, see the class header for the
+        // rules
         private static void List_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
         {
             if (sender is not UIElement list || list.XamlRoot == null) return;

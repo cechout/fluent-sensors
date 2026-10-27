@@ -40,7 +40,7 @@ namespace FluentSensors.Persistence.Services
             PersistenceService.Instance.SaveSensorSwitchStatesDebounced(_states);
         }
 
-        // persistence
+        // replaces the state with what PersistenceService read from disk, at startup and after a reset in the settings
         public void LoadFromDisk(Dictionary<string, SensorSwitchState> loaded)
         {
             _states.Clear();

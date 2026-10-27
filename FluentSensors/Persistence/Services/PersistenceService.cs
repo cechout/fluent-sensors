@@ -85,14 +85,18 @@ namespace FluentSensors.Persistence.Services
         // where the files live, which the settings page shows and opens; differs per channel, see ResolveRootFolder
         public string RootFolder => _rootFolder;
 
-        // load
+        // --- load ---
+        // one file each, a missing or unreadable one gives the defaults
+
         public AppSettingsData LoadSettings() => LoadFile<AppSettingsData>(SettingsPath) ?? new AppSettingsData();
         public Dictionary<string, WindowState> LoadWindowStates() => LoadFile<Dictionary<string, WindowState>>(WindowStatePath) ?? new();
         public Dictionary<string, SensorState> LoadSensorStates() => LoadFile<Dictionary<string, SensorState>>(SensorStatePath) ?? new();
         public Dictionary<string, SensorSwitchState> LoadSensorSwitchStates() => LoadFile<Dictionary<string, SensorSwitchState>>(SensorSwitchStatePath) ?? new();
         public SensorSelectionState LoadSensorSelections() => LoadFile<SensorSelectionState>(SensorSelectionsPath) ?? new SensorSelectionState();
 
-        // debounced save
+        // --- debounced save ---
+        // one timer per file, so a burst of changes writes once
+
         public void SaveSettingsDebounced(AppSettingsData data)
         {
             _pendingSettings = data;
