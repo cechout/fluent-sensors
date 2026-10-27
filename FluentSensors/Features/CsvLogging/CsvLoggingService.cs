@@ -292,6 +292,10 @@ namespace FluentSensors.Features.CsvLogging
 
         // === recording ===
 
+        // writes one row per payload:
+        // - the timestamp
+        // - the elapsed time
+        // - a field per recorded sensor
         // stays on the monitor thread; a row is file I/O and touches nothing bindable
         private void OnHardwareDataUpdated(List<SensorData> payload)
         {

@@ -111,6 +111,10 @@ namespace FluentSensors.Features.WidgetBoard
             return "{\"type\":\"AdaptiveCard\",\"version\":\"1.5\",\"body\":[" + string.Join(",", body) + "]}";
         }
 
+        // the values of one push for BuildTemplate:
+        // - per sensor: name, y-axis max, value and both graph PNGs as data uris
+        // - the time range
+        // - the two link texts
         public static string BuildData(IReadOnlyList<WidgetBoardCardSensor> sensors, string timeText, string sensorsLinkText, string settingsLinkText)
         {
             var data = new StringBuilder("{");

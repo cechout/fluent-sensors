@@ -39,13 +39,13 @@ namespace FluentSensors.Features.TaskbarWidget
     // the taskbar flyout:
     // the live graphs of the taskbar profile, anchored next to the taskbar widget; WinUI has no way to anchor a
     // borderless window to a shell window, so this combines:
-    // 1. no titlebar stripe, WM_NCCALCSIZE returning 0
-    // 2. a height capped against the work area, the graph list scrolls past it
-    // 3. Z-order directly beneath Shell_TrayWnd, so it slides out from under the taskbar
-    // 4. a composition slide of the card inside the still window plus an opacity fade of the content
-    // 5. a transparent window around the card: the material rides a backdrop link clipped to the card, the
+    // - no titlebar stripe, WM_NCCALCSIZE returning 0
+    // - a height capped against the work area, the graph list scrolls past it
+    // - Z-order directly beneath Shell_TrayWnd, so it slides out from under the taskbar
+    // - a composition slide of the card inside the still window plus an opacity fade of the content
+    // - a transparent window around the card: the material rides a backdrop link clipped to the card, the
     //    shadow is a computed bitmap in the margin; DWM corners and shadow only when the link is unavailable
-    // 6. a MicaController or DesktopAcrylicController backdrop (the materials in BackdropMaterials)
+    // - a MicaController or DesktopAcrylicController backdrop (the materials in BackdropMaterials)
     //
     // references:
     // https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.input.inputnonclientpointersource
@@ -798,8 +798,11 @@ namespace FluentSensors.Features.TaskbarWidget
         // --- workaround: window recreation on global OS theme/transparency change ---
         // problem: after a Windows theme or transparency change, DWM does not bind the DesktopAcrylicController blur
         // without a full window recreation (empirical, cause unknown)
-        // fix: destroy and rebuild every open window (WidgetWindow, TaskbarWidgetWindow, CsvLoggerWindow); the acrylic
-        // ones kick their backdrop from the constructor via KickBackdropRefresh
+        // fix: destroy and rebuild every open window:
+        // - WidgetWindow
+        // - TaskbarWidgetWindow
+        // - CsvLoggerWindow
+        // the acrylic ones kick their backdrop from the constructor via KickBackdropRefresh
         // the flyout is left out: its material binds without either, on the link and on the window, so it only applies
         // the new state (measured on build 26300, Intel and NVIDIA rendering)
         // only the Windows-level UISettings events land here; never toggle a persisted setting to force a repaint
@@ -963,9 +966,13 @@ namespace FluentSensors.Features.TaskbarWidget
             visual.StartAnimation("Opacity", opacityAnim);
         }
 
-        // the translation of the whole window content (shadow, material, card), in dip; from null as above
-        // on the handoff visual only (start value included, see PrepareSlideIn); the XAML Translation property is
-        // never set, a static value there wins against the animation and leaves the card at its start
+        // the translation of the whole window content, in dip:
+        // - shadow
+        // - material
+        // - card
+        // from null as above; on the handoff visual only (start value included, see PrepareSlideIn); the XAML
+        // Translation property is never set, a static value there wins against the animation and leaves the card at
+        // its start
         private void PlayCardSlide(Vector3? from, Vector3 to, int durationMs, CompositionEasingFunction easing)
         {
             var visual = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot);
@@ -1153,7 +1160,11 @@ namespace FluentSensors.Features.TaskbarWidget
         private double FlyoutRowsHeightDip =>
             FlyoutTitleRowHeightDip + FlyoutTimeRangeRowHeightDip + FlyoutBottomBarHeightDip;
 
-        // window height for n graph slots: the rows around them, the graphs margin, n slots and the n-1 gaps
+        // window height for n graph slots, the sum of:
+        // - the rows around them
+        // - the graphs margin
+        // - n slots
+        // - the n-1 gaps
         private double CalculateFlyoutContentHeight(int sensorCount, double graphHeightDip)
         {
             if (sensorCount <= 0) return FlyoutRowsHeightDip;

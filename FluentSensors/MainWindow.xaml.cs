@@ -527,9 +527,14 @@ namespace FluentSensors
                 LhmInfoPopup.InteractiveRegion, WindowsInfoPopup.InteractiveRegion);
         }
 
-        // the room between everything in front of the readout (icon, title, update pill, prerequisite hints, toggle)
-        // and the caption buttons, and the width each group took the last time it was shown; (all measured, the
-        // texts follow the language and text scaling)
+        // the room between the caption buttons and everything in front of the readout, and the width each group took
+        // the last time it was shown; (all measured, the texts follow the language and text scaling)
+        // in front of the readout:
+        // - icon
+        // - title
+        // - update pill
+        // - prerequisite hints
+        // - toggle
         private void UpdateReadoutRoom()
         {
             double inFront = MeasuredWidth(AppTitleIcon) + MeasuredWidth(AppTitleText) + MeasuredWidth(UpdateButton)

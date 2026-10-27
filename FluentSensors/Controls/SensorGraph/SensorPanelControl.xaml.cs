@@ -493,6 +493,10 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+        // the overrides of this panel, handed to the ViewModel as view overrides:
+        // - time range
+        // - auto scale
+        // - y-axis max
         private void ApplyOverridesToViewModel()
         {
             double? graphTimeSpanSeconds = double.IsNaN(GraphTimeSpanOverrideSeconds) ? (double?)null : GraphTimeSpanOverrideSeconds;

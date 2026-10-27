@@ -291,7 +291,9 @@ namespace FluentSensors.Controls.SensorRow
             }
         }
 
-        // one tick: min, max, avg and the formatted strings
+        // one tick:
+        // - min, max and avg
+        // - the formatted strings
         private void UpdateValue(double newValue)
         {
             if (newValue < _min) _min = newValue;

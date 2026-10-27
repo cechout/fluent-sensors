@@ -71,10 +71,18 @@ namespace FluentSensors.Features.Performance.Lhm
             OnPropertyChanged(nameof(Detail));
         }
 
-        // info panel; the readings that only move with the age of the battery (designed and full capacity, degradation)
+        // --- info panel ---
+
+        // the readings that only move with the age of the battery:
+        // - designed capacity
+        // - full capacity
+        // - degradation
         public ObservableCollection<HardwareFact> Facts { get; }
 
-        // info panel; what the firmware says about the pack and LHM has no sensor for
+        // what the firmware says about the pack and LHM has no sensor for:
+        // - manufacturer
+        // - chemistry
+        // - manufacture date, when the firmware reports one
         public IReadOnlyList<HardwareFact> StaticFacts
         {
             get

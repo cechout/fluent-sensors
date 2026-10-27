@@ -250,8 +250,11 @@ namespace FluentSensors.Features.Performance.Lhm
             }
         }
 
-        // the timings a module is compared by, in the order they are quoted (CL, tRCD, tRP, tRAS), then the row cycle,
-        // the refresh recovery and the write recovery; LHM reads up to fifteen, the rest only bloats the card
+        // the timings a module is compared by; LHM reads up to fifteen, the rest only bloats the card:
+        // - CL, tRCD, tRP, tRAS, in the order they are quoted
+        // - the row cycle
+        // - the refresh recovery
+        // - the write recovery
         private static readonly string[] PanelTimingNames = { "tAA", "tRCD", "tRP", "tRAS", "tRC", "tRFC1", "tWR" };
 
         // "Thermal Sensor Limit (Low / High / Critical Low / Critical High)", from the sensor names; DDR4 has three

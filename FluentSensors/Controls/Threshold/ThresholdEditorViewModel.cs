@@ -12,8 +12,12 @@ using FluentSensors.Common.Sensors;
 namespace FluentSensors.Controls.Threshold
 {
     // the threshold editor:
-    // one sensor threshold (enabled, value, direction, color), synced through SensorStateService, so an edit in the
-    // sensor row or a graph panel shows everywhere
+    // one sensor threshold:
+    // - enabled
+    // - value
+    // - direction
+    // - color
+    // synced through SensorStateService, so an edit in the sensor row or a graph panel shows everywhere
     public class ThresholdEditorViewModel : INotifyPropertyChanged
     {
         // === fields ===

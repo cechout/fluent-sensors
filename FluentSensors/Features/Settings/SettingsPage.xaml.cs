@@ -895,8 +895,13 @@ namespace FluentSensors.Features.Settings
             SelectByTag(DataSpeedUnitComboBox, SettingsService.Instance.DataSpeedUnitBasis.ToString());
         }
 
-        // every hardware category glyph: start page tiles, sensor list and hidden sensor group headers, hardware view
-        // headers; (graph colors have their own source per surface)
+        // --- hardware icon colors ---
+
+        // every hardware category glyph:
+        // - start page tiles
+        // - sensor list and hidden sensor group headers
+        // - hardware view headers
+        // (graph colors have their own source per surface)
         private void HardwareIconColorsToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (_isLoading) return;
