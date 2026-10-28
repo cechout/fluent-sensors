@@ -1535,11 +1535,13 @@ namespace FluentSensors.Features.TaskbarWidget
                 return;
             }
 
-            int shadowPx = _openCardRectPx.X;
-            int top = _isResourcesGrowingUp ? Math.Max(0, rect.Y - shadowPx) : 0;
+            // the margins of the window, the bottom one is the longer falloff unless the taskbar sits there
+            int topShadowPx = _openCardRectPx.Y;
+            int bottomShadowPx = _shadowWindowSizePx.Height - (_openCardRectPx.Y + _openCardRectPx.Height);
+            int top = _isResourcesGrowingUp ? Math.Max(0, rect.Y - topShadowPx) : 0;
             int bottom = _isResourcesGrowingUp
                 ? _shadowWindowSizePx.Height
-                : Math.Min(_shadowWindowSizePx.Height, rect.Y + rect.Height + shadowPx);
+                : Math.Min(_shadowWindowSizePx.Height, rect.Y + rect.Height + bottomShadowPx);
 
             // the window owns the region from here on
             SetWindowRgn(_hwnd, CreateRectRgn(0, top, _shadowWindowSizePx.Width, bottom), true);
