@@ -263,7 +263,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private bool _isResourcesGrowingUp; // away from a horizontal taskbar; beside a vertical one, away from the anchor
         private RectInt32 _openCardRectPx; // in window px
 
-        public TaskbarWidgetViewModel ViewModel { get; }
+        public TaskbarWidgetViewModel ViewModel { get; private set; } // the one of the widget it opens from, see BindViewModel
         public FlyoutAppResourcesViewModel ResourcesViewModel { get; } = new();
         public static TaskbarFlyoutWindow? CurrentInstance { get; private set; }
         private static TaskbarFlyoutWindow? _retainedInstance;
@@ -596,7 +596,15 @@ namespace FluentSensors.Features.TaskbarWidget
         public static void Preload(TaskbarWidgetWindow widgetWindow)
         {
             // assumes a retained instance is live (a destroyed one here leaves the flyout dead, see AppWindow_Closing)
-            if (widgetWindow == null || CurrentInstance != null || _retainedInstance != null) return;
+            if (widgetWindow == null) return;
+
+            // a flyout that outlived its widget takes the graphs of the new one
+            var existing = CurrentInstance ?? _retainedInstance;
+            if (existing != null)
+            {
+                existing.BindViewModel(widgetWindow.ViewModel);
+                return;
+            }
 
             var window = new TaskbarFlyoutWindow(widgetWindow.ViewModel);
             _retainedInstance = window;
@@ -1012,6 +1020,8 @@ namespace FluentSensors.Features.TaskbarWidget
         // - clamped to the primary work area
         private void PositionNextToTaskbar(TaskbarWidgetWindow widgetWindow)
         {
+            BindViewModel(widgetWindow.ViewModel);
+
             var widgetHwnd = WinRT.Interop.WindowNative.GetWindowHandle(widgetWindow);
             NativeMethods.GetWindowRect(widgetHwnd, out var widgetRect);
 
@@ -1377,6 +1387,17 @@ namespace FluentSensors.Features.TaskbarWidget
         private void PauseButton_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.SetFlyoutPaused(!ViewModel.IsFlyoutPaused);
+            ApplyPauseState();
+        }
+
+        // the flyout outlives the widget: a widget rebuilt while hidden (theme, transparency, explorer restart) comes
+        // back with a new view model and the old one is cleaned up, so the flyout follows it or shows dead graphs
+        private void BindViewModel(TaskbarWidgetViewModel viewModel)
+        {
+            if (viewModel == null || ReferenceEquals(viewModel, ViewModel)) return;
+
+            ViewModel = viewModel;
+            Bindings.Update();
             ApplyPauseState();
         }
 
