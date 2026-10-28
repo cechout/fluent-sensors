@@ -184,14 +184,23 @@ namespace FluentSensors.Features.Settings
         {
             TaskbarPositionText.Text = AppStrings.Get($"Settings_TaskbarEdge{edge}");
 
-            var sideVisibility = edge is "Left" or "Right" ? Visibility.Visible : Visibility.Collapsed;
+            bool isVertical = edge is "Left" or "Right";
+            var sideVisibility = isVertical ? Visibility.Visible : Visibility.Collapsed;
             TaskbarSideGraphDirectionCard.Visibility = sideVisibility;
             TaskbarSideTitleLinesCard.Visibility = sideVisibility;
+
+            // beside a vertical taskbar the flyout lines up with the top or bottom widget edge; the tags stay Left and
+            // Right, the stored value is the same
+            TaskbarFlyoutAlignmentLeftItem.Content = AppStrings.Get(
+                isVertical ? "Settings_TaskbarFlyoutAlignmentTop" : "Settings_TaskbarFlyoutAlignmentComboBox_Left/Content");
+            TaskbarFlyoutAlignmentRightItem.Content = AppStrings.Get(
+                isVertical ? "Settings_TaskbarFlyoutAlignmentBottom" : "Settings_TaskbarFlyoutAlignmentComboBox_Right/Content");
 
             _isLoading = true;
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarGraphWidthSelection();
             RestoreTaskbarSideSlotSelection();
+            TaskbarFlyoutAlignmentComboBox.SelectedItem = null; // a closed box keeps the old text of a renamed item
             RestoreTaskbarFlyoutAlignmentSelection();
             _isLoading = false;
         }

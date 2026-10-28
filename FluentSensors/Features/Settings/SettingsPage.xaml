@@ -960,8 +960,14 @@
                     Width="160"
                     SelectionChanged="TaskbarFlyoutAlignmentComboBox_SelectionChanged">
                     <ComboBoxItem x:Uid="Settings_TaskbarFlyoutAlignmentComboBox_Center" Tag="Center" />
-                    <ComboBoxItem x:Uid="Settings_TaskbarFlyoutAlignmentComboBox_Left" Tag="Left" />
-                    <ComboBoxItem x:Uid="Settings_TaskbarFlyoutAlignmentComboBox_Right" Tag="Right" />
+                    <ComboBoxItem
+                        x:Name="TaskbarFlyoutAlignmentLeftItem"
+                        x:Uid="Settings_TaskbarFlyoutAlignmentComboBox_Left"
+                        Tag="Left" />
+                    <ComboBoxItem
+                        x:Name="TaskbarFlyoutAlignmentRightItem"
+                        x:Uid="Settings_TaskbarFlyoutAlignmentComboBox_Right"
+                        Tag="Right" />
                 </ComboBox>
             </controls:SettingsCard>
 

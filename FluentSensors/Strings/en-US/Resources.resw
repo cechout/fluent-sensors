@@ -561,6 +561,12 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
   <data name="Settings_TaskbarFlyoutAlignmentComboBox_Right.Content" xml:space="preserve">
     <value>Right</value>
   </data>
+  <data name="Settings_TaskbarFlyoutAlignmentTop" xml:space="preserve">
+    <value>Top</value>
+  </data>
+  <data name="Settings_TaskbarFlyoutAlignmentBottom" xml:space="preserve">
+    <value>Bottom</value>
+  </data>
   <data name="Settings_FlyoutGraphExpander.Description" xml:space="preserve">
     <value>Graph time range and height</value>
   </data>
