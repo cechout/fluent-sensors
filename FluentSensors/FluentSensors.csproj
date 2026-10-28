@@ -339,10 +339,13 @@ set MSBuildExtensionsPath=
 set MSBuildSDKsPath=
 set MSBUILD_EXE_PATH=
 dotnet publish &quot;$(_WidgetProviderProject)&quot; -c $(Configuration) -r $(RuntimeIdentifier) -o &quot;$(_WidgetProviderPublishDir)&quot; -nologo" />
+    <!--  into both payloads: a StoreUpload build packs the msix inside the msixupload from the upload list  -->
     <ItemGroup>
-      <AppxPackagePayload Include="$(_WidgetProviderPublishDir)\FluentSensors.WidgetProvider.exe" TargetPath="FluentSensors.WidgetProvider.exe" />
-      <AppxPackagePayload Include="$(_WidgetsPackageDir)runtimes-framework\$(RuntimeIdentifier)\native\Microsoft.Windows.Widgets.dll" TargetPath="Microsoft.Windows.Widgets.dll" />
-      <AppxPackagePayload Include="$(_WidgetsPackageDir)metadata\Microsoft.Windows.Widgets.winmd" TargetPath="Microsoft.Windows.Widgets.winmd" />
+      <_WidgetProviderPayload Include="$(_WidgetProviderPublishDir)\FluentSensors.WidgetProvider.exe" TargetPath="FluentSensors.WidgetProvider.exe" />
+      <_WidgetProviderPayload Include="$(_WidgetsPackageDir)runtimes-framework\$(RuntimeIdentifier)\native\Microsoft.Windows.Widgets.dll" TargetPath="Microsoft.Windows.Widgets.dll" />
+      <_WidgetProviderPayload Include="$(_WidgetsPackageDir)metadata\Microsoft.Windows.Widgets.winmd" TargetPath="Microsoft.Windows.Widgets.winmd" />
+      <AppxPackagePayload Include="@(_WidgetProviderPayload)" />
+      <AppxUploadPackagePayload Include="@(_WidgetProviderPayload)" />
     </ItemGroup>
     <Message Importance="high" Text="added the widget provider to the msix payload" />
   </Target>
