@@ -62,6 +62,9 @@ namespace FluentSensors.Controls.SensorGraph
         // the y range has 0 at the top and the series hangs from it, see ApplyYRange
         private bool _isHangingRange;
 
+        // the root the chart bleed follows for its scale, see ApplyChartBleed
+        private XamlRoot _bleedRoot;
+
         // rendering graphs across every window, for the title bar status readout; (written on the UI thread, read from
         // a timer thread, a stale read for one tick is harmless)
         private static int _activeRenderingCount;
@@ -757,6 +760,7 @@ namespace FluentSensors.Controls.SensorGraph
         private void OnControlLoaded(object sender, RoutedEventArgs e)
         {
             _isInLiveTree = true;
+            AttachBleedRoot(XamlRoot);
             ForceRepaint();
         }
 
@@ -767,12 +771,39 @@ namespace FluentSensors.Controls.SensorGraph
         private void OnControlUnloaded(object sender, RoutedEventArgs e)
         {
             _isInLiveTree = false;
+            AttachBleedRoot(null);
 
             DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
             {
                 if (_isInLiveTree) return; // transient
                 SetRenderingActive(false);
             });
+        }
+
+        private void AttachBleedRoot(XamlRoot root)
+        {
+            if (_bleedRoot != null) _bleedRoot.Changed -= OnBleedRootChanged;
+            _bleedRoot = root;
+            if (_bleedRoot == null) return;
+            _bleedRoot.Changed += OnBleedRootChanged;
+            ApplyChartBleed();
+        }
+
+        private void OnBleedRootChanged(XamlRoot sender, XamlRootChangedEventArgs args) => ApplyChartBleed();
+
+        // --- workaround: skxamlcanvas pixel truncation ---
+        // SKXamlCanvas sizes its bitmap as (int)(ActualWidth * scale) and draws it unstretched from the top left; at
+        // 175 percent the product of a pixel snapped width lands a hair under the whole number, so the last pixel
+        // column of the graph stays empty:
+        // https://github.com/mono/SkiaSharp/blob/v3.119.0/source/SkiaSharp.Views/SkiaSharp.Views.WinUI/SKXamlCanvas.cs
+        // the chart reaches one physical pixel past the card on both sides, the rounded card clips it, so the lost
+        // column lies outside; the bottom bleed of 2 DIP covers the same row and hides the zero line
+        private void ApplyChartBleed()
+        {
+            double pixelDip = 1.0 / (_bleedRoot?.RasterizationScale ?? 1.0);
+            var bleed = new Thickness(-pixelDip, 0, -pixelDip, -2);
+            Chart.Margin = bleed;
+            HoverCanvas.Margin = bleed; // the hover maps chart pixels onto it, so both share one frame
         }
 
         // LiveCharts builds its draw context on the first real measure pass; UpdateStarted
