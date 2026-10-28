@@ -260,7 +260,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private int _resourcesDrawerPx; // the drawer row when open
         private int _resourcesReservePx; // how far the card grows; less than the drawer under the height cap
         private int _closedCardHeightPx;
-        private bool _isResourcesGrowingUp; // away from the taskbar; down only under a top taskbar
+        private bool _isResourcesGrowingUp; // away from a horizontal taskbar; beside a vertical one, away from the anchor
         private RectInt32 _openCardRectPx; // in window px
 
         public TaskbarWidgetViewModel ViewModel { get; }
@@ -1059,7 +1059,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 ? openHeightPx
                 : closedHeightPx + (int)Math.Round((openHeightPx - closedHeightPx) * _resourcesProgress);
             _closedCardHeightPx = _isCardWindow ? closedHeightPx : desiredHeightPx;
-            _isResourcesGrowingUp = edge != ScreenEdge.Top;
+            _isResourcesGrowingUp = edge != ScreenEdge.Top; // a vertical taskbar decides it below, from the anchor
 
             // a capped window stops growing, so the slide scaling stops too
             _animationSensorCount = isScrolling ? CountFittingGraphSlots(maxHeightPx, scale) : sensorCount;
@@ -1071,17 +1071,32 @@ namespace FluentSensors.Features.TaskbarWidget
                 _targetX = edge == ScreenEdge.Left
                     ? bar.X + bar.Width + marginPx
                     : bar.X - marginPx - desiredWidthPx;
-                _targetY = SettingsService.Instance.TaskbarFlyoutAlignment switch
+                // the closed card is anchored, the window for the open card extends from it toward the side the drawer
+                // grows into
+                string alignment = SettingsService.Instance.TaskbarFlyoutAlignment;
+                int closedCardPx = _closedCardHeightPx;
+                int closedTopY = alignment switch
                 {
                     "Left" => widgetRect.Top + offsetPx,
-                    "Right" => widgetRect.Bottom - desiredHeightPx - offsetPx,
-                    _ => ((widgetRect.Top + widgetRect.Bottom) / 2) - (desiredHeightPx / 2)
+                    "Right" => widgetRect.Bottom - closedCardPx - offsetPx,
+                    _ => ((widgetRect.Top + widgetRect.Bottom) / 2) - (closedCardPx / 2)
                 };
 
                 // clamp to the work area with edgeMarginPx; (the top edge wins when both do not fit)
-                int bottomLimitY = workArea.Y + workArea.Height - desiredHeightPx - edgeMarginPx;
                 int topLimitY = workArea.Y + edgeMarginPx;
-                _targetY = Math.Max(topLimitY, Math.Min(_targetY, bottomLimitY));
+                int bottomEdgeY = workArea.Y + workArea.Height - edgeMarginPx;
+                closedTopY = Math.Max(topLimitY, Math.Min(closedTopY, bottomEdgeY - closedCardPx));
+
+                // the drawer grows away from the anchored widget edge (up from the bottom one, down otherwise), and to
+                // the other side when the open card would leave the work area there
+                int growUpTopY = closedTopY + closedCardPx - desiredHeightPx;
+                bool fitsUp = growUpTopY >= topLimitY;
+                bool fitsDown = closedTopY + desiredHeightPx <= bottomEdgeY;
+                bool growsUp = alignment == "Right" ? fitsUp || !fitsDown : !fitsDown && fitsUp;
+
+                _isResourcesGrowingUp = growsUp;
+                _targetY = growsUp ? growUpTopY : closedTopY;
+                _targetY = Math.Max(topLimitY, Math.Min(_targetY, bottomEdgeY - desiredHeightPx));
             }
             else
             {
