@@ -1,3 +1,43 @@
+# Taskbar graph background and blur settings
+
+## Current implementation
+
+Graph Background Source offers Calculated, Transparent and Acrylic. Blur Graph
+is an independent 0.65-sigma Gaussian filter on the plotted line and fill. Text,
+values and hover/threshold overlays stay sharp. Network labels can use vector
+arrows; their display size is 8 by 10 DIP with a 1.8 DIP stroke and 12 DIP reserved
+width. Taskbar values use SemiBold. Original sensor names and data are preserved.
+
+Graph cards now use an ordinary XAML Border with the theme's
+AcrylicBackgroundFillColorDefaultBrush for Acrylic. There are no
+SystemBackdropElement instances or native backdrop controllers in graph cards.
+This is in-app Acrylic, not desktop-backdrop Acrylic: it cannot blur external
+windows/taskbar content. The flyout window's independent native background
+settings are unchanged. Windows policy can give Acrylic a solid fallback.
+
+The native graph-card host introduced earlier was implicated in repeated
+Microsoft.UI.Input.dll fail-fast crashes (0xc0000409, offset 0x9a763), first on
+background switching and then on sensor-selection Update, which rebuilds graphs.
+Keeping that host attached only avoided one teardown path. This revision removes
+the native host entirely so graph replacement uses ordinary XAML elements. The
+native crash's complete call stack has not been obtained; host teardown remains
+the suspected trigger, rather than a debugger-proven root cause.
+
+Settings migration retains old enum names for reading. Legacy Blurred/Mica becomes
+Transparent plus blur enabled. Explicit TaskbarBlurGraph wins. Tests cover material
+migration, independent blur precedence and direction mapping. Required live
+regression: repeatedly change Download to Upload and press Update with flyout
+open/closed, each background and blur on/off; repeat pin/unpin and window restart.
+Visual automation is unavailable, so native input-transition success must not be
+inferred from build/tests alone.
+
+Validation for the selection-update correction: full x64 Release build and FolderProfile publish passed, along with 19 material migration, 16 independent blur and 7 direction mapping checks, whitespace and XAML XML validation. Existing compiler and PRI263 warnings remain. The reported sensor-update interaction still needs live verification.
+
+## Historical implementation and validation
+
+The text below records earlier revisions; native graph-card backdrop code and
+its workaround have now been removed as described above.
+
 # Taskbar graph background materials
 
 Settings > Taskbar Widget & Flyout Appearance > Taskbar Graph > Graph Background

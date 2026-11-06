@@ -697,16 +697,10 @@ namespace FluentSensors.Controls.SensorGraph
         private void ApplyCardBackground()
         {
             ForceRepaint();
-            bool hasMaterial = GraphCardBackdrop.IsSupported(CardMaterial);
-            // Keep the native backdrop host attached while switching; tearing it down inside
-            // the settings input callback can fail fast in Microsoft.UI.Input.
-            CardBackdrop.Opacity = hasMaterial ? 1 : 0;
-            if (CardBackdrop.SystemBackdrop is GraphCardBackdrop existing)
-                existing.SetMaterial(CardMaterial);
+            bool hasMaterial = CardMaterial == GraphCardMaterial.Acrylic;
+            CardAcrylicSurface.Visibility = hasMaterial ? Visibility.Visible : Visibility.Collapsed;
             if (hasMaterial)
             {
-                if (CardBackdrop.SystemBackdrop is not GraphCardBackdrop)
-                    CardBackdrop.SystemBackdrop = new GraphCardBackdrop(CardMaterial);
                 CardBorder.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
             else
