@@ -1,9 +1,11 @@
 # Taskbar graph background materials
 
 Settings > Taskbar Widget & Flyout Appearance > Taskbar Graph > Graph Background
-Source offers Calculated, Transparent, Acrylic and Mica. Existing selections are
-preserved. Acrylic and Mica render within each graph card, behind its label and
-value, including horizontal and vertical taskbar graphs and flyout graph cards.
+Source offers Calculated, Transparent, Acrylic and Blurred graph. Existing selections are
+preserved. Acrylic renders behind each graph card. Blurred graph adds an in-app AcrylicBrush
+above the plotted chart and below the name/value overlay. Chart content is blurred
+while the label and value remain sharp. These apply to horizontal and vertical
+taskbar graphs and flyout graph cards.
 The separate flyout window material remains independent. The original Calculated
 and Transparent behavior is retained, including the existing flyout card fill.
 
@@ -14,7 +16,9 @@ never take focus. It copies theme and high-contrast configuration from XAML,
 uses Windows material policies, and disposes controllers on target disconnect.
 Unsupported materials use the themed card brush. Windows transparency,
 accessibility and power policies can replace effects with their solid fallback.
-Mica uses the desktop wallpaper; Acrylic blurs what is behind the surface.
+The Mica dropdown choice was replaced because it did not visibly improve graph
+readability. Saved Mica selections migrate to Blurred graph. Acrylic blurs what is
+behind the surface; Blurred graph blurs the plotted content itself.
 
 `TaskbarGraphCardMaterial` is persisted separately. When absent or an unknown
 numeric value, the previous `TaskbarUseTransparentGraphBackground` determines the
@@ -25,7 +29,7 @@ tray placement and the main widget window appearance are unchanged.
 ## Verification
 
 - `dotnet run --project tests/GraphCardMaterials`: legacy migration, explicit
-  choices taking precedence and string-enum persistence round trips (16 checks).
+  choices taking precedence and string-enum persistence round trips and saved Mica migration (19 checks).
 - Existing throughput formatting and taskbar placement checks should remain green.
 - Full x64 Release build and FolderProfile publication are required.
 - Visual checks still required: all four choices while embedded next to the tray,
@@ -78,3 +82,26 @@ then close/reopen the flyout and restart the app. Screen-control initialization 
 unavailable in this session, so these live transitions remain unverified.
 
 The correction passed the full x64 Release build, FolderProfile publish, 16 saved-setting checks, whitespace verification and git diff checks. Existing compiler and PRI263 warnings remain. Live material transitions still require verification.
+
+## Blurred graph and optional network direction icons
+
+The current dropdown replaces Mica with **Blurred graph**. Layer order is chart,
+in-app acrylic blur, then sharp name and value; hover/threshold overlays stay on
+top. This uses a regular XAML brush and does not create or tear down a native
+SystemBackdropElement when the blurred style changes. Windows transparency and
+accessibility policies can substitute a solid brush fallback.
+
+A **Network Labels** dropdown next to Graph Background Source offers Text labels
+(default) and Direction icons. Download/Download Speed becomes a down arrow;
+Upload/Upload Speed becomes an up arrow, only for Throughput sensors in taskbar
+scopes. Custom sensor names and unrelated sensor types remain unchanged. This
+changes display labels only, including side-taskbar labels; sensor identity,
+stored names, CSV names and values are untouched. The flyout status-row names
+remain descriptive text. The preference persists as TaskbarNetworkDirectionIcons.
+
+Regression checks cover saved Mica migration, all material choices, string-enum
+round trips (19 checks), and direction-label mapping including custom names and
+unrelated types (7 checks). Visual blur and rapid switching still need manual
+verification because computer-use initialization is unavailable in this session.
+
+The Blurred graph and icon update passed x64 Release build, FolderProfile publish, whitespace and XML/resource-key checks. Native visual blur and rapid switching are not verified automatically.

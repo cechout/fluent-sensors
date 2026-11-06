@@ -118,6 +118,7 @@ namespace FluentSensors.Persistence.Models
         public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public bool TaskbarUseTransparentGraphBackground { get; set; } = true;
         public GraphCardMaterial? TaskbarGraphCardMaterial { get; set; }
+        public bool TaskbarNetworkDirectionIcons { get; set; } = false;
 
         // per taskbar edge ("Bottom", "Top", "Left", "Right"), defaults in TaskbarEdgeSettings:
         // - time range

@@ -90,6 +90,7 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarBackgroundMaterialSettings();
             RestoreTaskbarGraphColorSettings();
             RestoreTaskbarGraphBackgroundSourceSelection();
+            SelectByTag(NetworkDirectionLabelsComboBox, SettingsService.Instance.TaskbarNetworkDirectionIcons ? "Icons" : "Text");
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarGraphWidthSelection();
             RestoreTaskbarSideSlotSelection();
@@ -1221,6 +1222,13 @@ namespace FluentSensors.Features.Settings
                 SettingsService.Instance.TaskbarGraphCustomColor = colorPicker.SelectedColor;
                 UpdateGraphColorPickerStates();
             }
+        }
+
+        private void NetworkDirectionLabelsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (NetworkDirectionLabelsComboBox.SelectedItem is ComboBoxItem item)
+                SettingsService.Instance.TaskbarNetworkDirectionIcons = (string)item.Tag == "Icons";
         }
 
         private void TaskbarGraphBackgroundSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

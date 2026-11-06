@@ -563,6 +563,20 @@ namespace FluentSensors.Persistence.Services
         }
 
         // the taskbar widget graphs drop their card tint
+        private bool _taskbarNetworkDirectionIcons = Defaults.TaskbarNetworkDirectionIcons;
+        public bool TaskbarNetworkDirectionIcons
+        {
+            get => _taskbarNetworkDirectionIcons;
+            set
+            {
+                if (_taskbarNetworkDirectionIcons == value) return;
+                _taskbarNetworkDirectionIcons = value;
+                TaskbarNetworkLabelsChanged?.Invoke();
+                SaveDebounced();
+            }
+        }
+        public event Action? TaskbarNetworkLabelsChanged;
+
         private GraphCardMaterial _taskbarGraphCardMaterial = GraphCardMaterial.Transparent;
         public GraphCardMaterial TaskbarGraphCardMaterial
         {
@@ -1355,6 +1369,7 @@ namespace FluentSensors.Persistence.Services
             _taskbarGraphColorSource = ResolveGraphColorSource(
                 data.TaskbarGraphColorSource, data.TaskbarUseGraphAccentColor, AppSettingsData.DefaultTaskbarGraphColorSource);
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
+            _taskbarNetworkDirectionIcons = data.TaskbarNetworkDirectionIcons;
             _taskbarGraphCardMaterial = GraphCardMaterials.ResolveSaved(data.TaskbarGraphCardMaterial, data.TaskbarUseTransparentGraphBackground);
             _taskbarUseTransparentGraphBackground = _taskbarGraphCardMaterial == GraphCardMaterial.Transparent;
             _taskbarEdges = SeedTaskbarEdges(data.TaskbarEdges, data);
@@ -1449,6 +1464,7 @@ namespace FluentSensors.Persistence.Services
                 TaskbarGraphCustomColor = _taskbarGraphCustomColor,
                 TaskbarUseTransparentGraphBackground = _taskbarUseTransparentGraphBackground,
                 TaskbarGraphCardMaterial = _taskbarGraphCardMaterial,
+                TaskbarNetworkDirectionIcons = _taskbarNetworkDirectionIcons,
                 TaskbarEdges = CloneTaskbarEdges(),
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
                 TaskbarWidgetNextToTray = _taskbarWidgetNextToTray,

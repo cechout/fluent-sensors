@@ -38,6 +38,12 @@
                 XAxes="{Binding XAxes, ElementName=Root}"
                 YAxes="{Binding YAxes, ElementName=Root}" />
 
+            <Border x:Name="GraphBlurOverlay" IsHitTestVisible="False" Visibility="Collapsed">
+                <Border.Background>
+                    <AcrylicBrush TintColor="{ThemeResource SystemChromeMediumColor}" TintOpacity="0.25" TintLuminosityOpacity="0.65" FallbackColor="{ThemeResource SystemChromeMediumColor}" />
+                </Border.Background>
+            </Border>
+
             <!--  title and value overlay in the top row  -->
             <!--  (with IsLabelVisible)  -->
             <Grid

@@ -2095,4 +2095,9 @@ Cycle Count - full charge cycles counted by the electronics of the battery</valu
   <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Mica.Content" xml:space="preserve">
     <value>Mica</value>
   </data>
+  <data name="Settings_NetworkDirectionLabelsCard.Header" xml:space="preserve"><value>Network Labels</value></data>
+  <data name="Settings_NetworkDirectionLabelsCard.Description" xml:space="preserve"><value>Show Download and Upload as text or direction icons on taskbar graphs.</value></data>
+  <data name="Settings_NetworkDirectionLabels_Text.Content" xml:space="preserve"><value>Text labels</value></data>
+  <data name="Settings_NetworkDirectionLabels_Icons.Content" xml:space="preserve"><value>Direction icons</value></data>
+  <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Blurred.Content" xml:space="preserve"><value>Blurred graph</value></data>
 </root>

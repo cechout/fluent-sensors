@@ -52,7 +52,7 @@
                     LineHeight="11"
                     LineStackingStrategy="BlockLineHeight"
                     MaxLines="1"
-                    Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
+                    Text="{x:Bind ViewModel.GraphDisplayName, Mode=OneWay}"
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="NoWrap" />
 

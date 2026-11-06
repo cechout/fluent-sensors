@@ -675,6 +675,7 @@ namespace FluentSensors.Controls.SensorGraph
         // for the constructor and the property callback
         private void ApplyCardBackground()
         {
+            GraphBlurOverlay.Visibility = CardMaterial == GraphCardMaterial.Blurred ? Visibility.Visible : Visibility.Collapsed;
             bool hasMaterial = GraphCardBackdrop.IsSupported(CardMaterial);
             // Keep the native backdrop host attached while switching; tearing it down inside
             // the settings input callback can fail fast in Microsoft.UI.Input.
@@ -689,7 +690,9 @@ namespace FluentSensors.Controls.SensorGraph
             }
             else
             {
-                if (CardMaterial is GraphCardMaterial.Acrylic or GraphCardMaterial.Mica)
+                if (CardMaterial == GraphCardMaterial.Blurred)
+                    CardBorder.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                else if (CardMaterial is GraphCardMaterial.Acrylic or GraphCardMaterial.Mica)
                     CardBorder.Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"];
                 else if (CardBackgroundOverride is Windows.UI.Color color)
                     CardBorder.Background = new SolidColorBrush(color);

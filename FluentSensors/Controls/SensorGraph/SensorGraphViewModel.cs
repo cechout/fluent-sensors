@@ -74,6 +74,7 @@ namespace FluentSensors.Controls.SensorGraph
                 _isCardBackgroundVisible = !SettingsService.Instance.TaskbarUseTransparentGraphBackground;
                 SettingsService.Instance.TaskbarGraphColorChanged += OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged += OnGraphBackgroundChanged;
+                SettingsService.Instance.TaskbarNetworkLabelsChanged += OnNetworkLabelsChanged;
 
                 // the taskbar and its flyout are two graphs on one y-axis state
                 SensorStateService.Instance.StateChanged += OnSensorStateChanged;
@@ -158,6 +159,7 @@ namespace FluentSensors.Controls.SensorGraph
                 _sensorName = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayNameWithUnit));
+                OnPropertyChanged(nameof(GraphDisplayName));
             }
         }
 
@@ -171,7 +173,16 @@ namespace FluentSensors.Controls.SensorGraph
                 _unit = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayNameWithUnit));
+                OnPropertyChanged(nameof(GraphDisplayName));
             }
+        }
+
+        public string GraphDisplayName => IsTaskbarScope && SettingsService.Instance.TaskbarNetworkDirectionIcons
+            ? NetworkDirectionLabel.Resolve(SensorName, SensorType) : SensorName;
+
+        private void OnNetworkLabelsChanged()
+        {
+            OnPropertyChanged(nameof(GraphDisplayName));
         }
 
         public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? SensorName : $"{SensorName} ({Unit})";
@@ -434,6 +445,7 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 SettingsService.Instance.TaskbarGraphColorChanged -= OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged -= OnGraphBackgroundChanged;
+                SettingsService.Instance.TaskbarNetworkLabelsChanged -= OnNetworkLabelsChanged;
                 SensorStateService.Instance.StateChanged -= OnSensorStateChanged;
             }
             else if (Scope == SensorGraphScope.WidgetBoard)
