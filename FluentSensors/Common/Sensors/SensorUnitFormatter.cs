@@ -72,6 +72,8 @@ namespace FluentSensors.Common.Sensors
                 "SmallData" when value >= ScaleThreshold => (value / ScaleThreshold, "GB"),
                 "Data" when DataSizeBasis == DataUnitBasis.Bit => (value * GibibytesToGigabits, "Gbit"),
                 "Throughput" when DataSpeedBasis == DataUnitBasis.Bit => ScaleBits(value * MebibytesToMegabits, "Mbit/s", "Gbit/s"),
+                // throughput is stored in MiB/s; keep small byte rates readable without changing raw values
+                "Throughput" when value >= 0 && value < 1 => (value * 1024, "KB/s"),
                 "Throughput" when value >= ScaleThreshold => (value / ScaleThreshold, "GB/s"),
                 "Frequency" when value >= ScaleThreshold => (value / ScaleThreshold, "kHz"),
                 "Energy" when value >= ScaleThreshold => (value / ScaleThreshold, "Wh"),

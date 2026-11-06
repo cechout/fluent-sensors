@@ -29,6 +29,8 @@ How it currently looks performance-wise:
 
 ## 📦 Download
 
+Local contribution: [automatic KB/s and MB/s throughput display](../docs/contributions/automatic-throughput-units.md).
+
 * **[Microsoft Store](https://apps.microsoft.com/detail/9PK7F87MWXKF):** installs and updates through the Store. Windows 11 only.
 * **Installer** (`FluentSensors_Installer.exe`): installs into `Program Files` with a start menu entry and an uninstaller.
 * **Portable** (`FluentSensors_Portable_<version>.zip`): unzip anywhere and run `FluentSensors.exe`. Settings stay in a `Persistence` folder next to it, so deleting the folder removes every trace.
