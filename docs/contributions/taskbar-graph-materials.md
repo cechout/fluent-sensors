@@ -3,7 +3,8 @@
 ## Current implementation
 
 Graph Background Source offers Calculated, Transparent and Acrylic. Blur Graph
-is an independent 0.65-sigma Gaussian filter on the plotted line and fill. Text,
+is an independent 0.65-sigma Gaussian filter on the embedded taskbar plot only.
+The popup/flyout graph remains sharp even when the toggle is enabled. Text,
 values and hover/threshold overlays stay sharp. Network labels can use vector
 arrows; their display size is 8 by 10 DIP with a 1.8 DIP stroke and 12 DIP reserved
 width. Taskbar values use SemiBold. Original sensor names and data are preserved.
@@ -191,3 +192,5 @@ Independent blur/vector revision: full x64 Release build, FolderProfile publicat
 Arrow size refinement: reduced both taskbar orientations from 10 by 12 to 8 by 10 DIP, with a 1.8 DIP stroke. This retains the wide vector arrowhead and reduces reserved horizontal space to 12 DIP. Visual size still requires on-screen confirmation.
 
 Taskbar value text now uses SemiBold in both horizontal graph overlays and side-taskbar value labels; numeric format, unit sizing and values remain unchanged.
+
+Taskbar-only blur correction: SensorGraphViewModel.BlurGraph explicitly requires SensorGraphScope.Taskbar; the shared taskbar/flyout predicate is retained for other appearance settings. Saved preferences, background choices and flyout rendering are otherwise unchanged.

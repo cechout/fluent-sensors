@@ -219,7 +219,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         // taskbar widget graphs can go fully transparent; only the widget template binds
         // this, the flyout keeps its card
-        public bool BlurGraph => IsTaskbarScope && SettingsService.Instance.TaskbarBlurGraph;
+        public bool BlurGraph => Scope == SensorGraphScope.Taskbar && SettingsService.Instance.TaskbarBlurGraph;
 
         public GraphCardMaterial CardMaterial => IsTaskbarScope
             ? SettingsService.Instance.TaskbarGraphCardMaterial : GraphCardMaterial.Calculated;

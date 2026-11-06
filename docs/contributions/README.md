@@ -12,7 +12,7 @@ It is an unofficial contribution, not an upstream release or guarantee of accept
 | Graph hover | Throughput hover values include the correctly scaled unit | Other sensor types retain existing formatting |
 | Tray placement | Optional Show on the Left of the System Tray below position lock; follows live tray bounds, adds a divider | Off by default; manual offsets preserved; dragging overridden while enabled |
 | Background | Calculated, Transparent or in-app Acrylic | Existing selection preserved; no native graph-card backdrop hosts |
-| Plot blur | Independent Blur Graph toggle, combinable with every background | Off by default; small equal-axis Gaussian filter on line/fill only |
+| Plot blur | Taskbar-only Blur Graph toggle, combinable with every background | Off by default; small equal-axis Gaussian filter on line/fill only |
 | Network labels | Optional Network Labels dropdown: Text labels or Direction icons | Text default; only known Download/Upload Throughput labels change |
 | Direction icons | Drawn arrows with wide heads; 8 by 10 DIP, 1.8 DIP rounded stroke | 12 DIP reserved beside values; horizontal and side taskbars |
 | Value text | SemiBold taskbar readouts | Values and unit formatting unchanged |
@@ -25,6 +25,9 @@ handles four taskbar edges and negative monitor origins, and leaves an 8 DIP gap
 after task buttons. When no reliable landmarks or insufficient room exist, the
 widget has zero along-axis length rather than covering shell buttons. Existing
 primary-taskbar behavior remains. Repositioning hides a stale anchored flyout.
+
+The Blur Graph toggle affects only the embedded taskbar graph. The popup/flyout,
+floating widget, performance graphs and widget-board graphs remain sharp.
 
 Gaussian plot filtering uses the existing LiveCharts/Skia image-filter API with
 sigma 0.65 on both axes. It does not cover the plot with a frosted/tinted overlay.
