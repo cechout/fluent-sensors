@@ -23,8 +23,8 @@ foreach (var material in Enum.GetValues<GraphCardMaterial>())
 Console.WriteLine($"Passed {checks} graph material migration and persistence checks.");
 
 foreach (var (name, type, expected) in new[] {
-    ("Download Speed", "Throughput", "\u2193"), ("Upload Speed", "Throughput", "\u2191"),
-    ("Download", "Throughput", "\u2193"), ("Upload", "Throughput", "\u2191"),
+    ("Download Speed", "Throughput", "\u2B07"), ("Upload Speed", "Throughput", "\u2B06"),
+    ("Download", "Throughput", "\u2B07"), ("Upload", "Throughput", "\u2B06"),
     ("Download Speed", "Data", "Download Speed"), ("CPU", "Load", "CPU"),
     ("Custom name", "Throughput", "Custom name") })
 {

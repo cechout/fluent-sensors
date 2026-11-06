@@ -2,8 +2,8 @@
 
 Settings > Taskbar Widget & Flyout Appearance > Taskbar Graph > Graph Background
 Source offers Calculated, Transparent, Acrylic and Blurred graph. Existing selections are
-preserved. Acrylic renders behind each graph card. Blurred graph adds an in-app AcrylicBrush
-above the plotted chart and below the name/value overlay. Chart content is blurred
+preserved. Acrylic renders behind each graph card. Blurred graph applies a small, uniform Gaussian filter to the chart line and fill.
+There is no tinted overlay. Chart content is softened
 while the label and value remain sharp. These apply to horizontal and vertical
 taskbar graphs and flyout graph cards.
 The separate flyout window material remains independent. The original Calculated
@@ -85,9 +85,9 @@ The correction passed the full x64 Release build, FolderProfile publish, 16 save
 
 ## Blurred graph and optional network direction icons
 
-The current dropdown replaces Mica with **Blurred graph**. Layer order is chart,
-in-app acrylic blur, then sharp name and value; hover/threshold overlays stay on
-top. This uses a regular XAML brush and does not create or tear down a native
+The current dropdown replaces Mica with **Blurred graph**. The graph line and fill use LiveCharts Skia Gaussian image filters with equal
+0.65 sigma in both directions. Name, value and hover/threshold overlays remain
+sharp. No frosted XAML brush obscures the graph, and this does not create or tear down a native
 SystemBackdropElement when the blurred style changes. Windows transparency and
 accessibility policies can substitute a solid brush fallback.
 
@@ -105,3 +105,19 @@ unrelated types (7 checks). Visual blur and rapid switching still need manual
 verification because computer-use initialization is unavailable in this session.
 
 The Blurred graph and icon update passed x64 Release build, FolderProfile publish, whitespace and XML/resource-key checks. Native visual blur and rapid switching are not verified automatically.
+
+## Subtle Gaussian blur correction
+
+The earlier in-app acrylic overlay hid the chart and changed appearance with
+activation. It has been removed. Gaussian filtering now happens in the Skia plot
+paints themselves; the graph retains its original colors/alpha and no activation
+policy controls this effect. Selecting another material recreates unfiltered
+paints immediately. Paint regeneration after new data, accent/threshold changes,
+style changes and rendering resume reapplies the filter. No paint/filter is
+allocated on unchanged ticks. The 0.65 sigma applies equally on both axes.
+Threshold alarm sections and interactive overlays remain sharp.
+
+Direction labels now use the heavier U+2B07/U+2B06 arrows and bold font weight on
+horizontal and vertical taskbars. Ordinary names retain their normal font weight.
+Tests verify the updated mappings. Native visual strength remains unverified by
+automation; check the result on screen at the user's display scale.

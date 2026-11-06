@@ -18,6 +18,9 @@ namespace FluentSensors.Features.TaskbarWidget
     // TaskbarWidgetWindow pushes the layout through ApplyLayout on load and on every change
     public sealed partial class TaskbarSideSlot : UserControl
     {
+        private Windows.UI.Text.FontWeight GetLabelWeight(string label) => label is "\u2B07" or "\u2B06"
+            ? Microsoft.UI.Text.FontWeights.Bold : Microsoft.UI.Text.FontWeights.Normal;
+
         public SensorGraphViewModel? ViewModel
         {
             get => (SensorGraphViewModel?)GetValue(ViewModelProperty);

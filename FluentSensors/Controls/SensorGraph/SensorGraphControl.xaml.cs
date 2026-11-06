@@ -609,6 +609,8 @@ namespace FluentSensors.Controls.SensorGraph
             if (d is not SensorGraphControl g) return;
 
             g.GraphLabelText.Text = g.LabelText ?? string.Empty;
+            g.GraphLabelText.FontWeight = g.LabelText is "\u2B07" or "\u2B06"
+                ? Microsoft.UI.Text.FontWeights.Bold : Microsoft.UI.Text.FontWeights.Normal;
             g.GraphLabelText.Visibility = g.IsLabelVisible && g.IsNameVisible && !string.IsNullOrEmpty(g.LabelText)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
@@ -675,7 +677,7 @@ namespace FluentSensors.Controls.SensorGraph
         // for the constructor and the property callback
         private void ApplyCardBackground()
         {
-            GraphBlurOverlay.Visibility = CardMaterial == GraphCardMaterial.Blurred ? Visibility.Visible : Visibility.Collapsed;
+            ForceRepaint();
             bool hasMaterial = GraphCardBackdrop.IsSupported(CardMaterial);
             // Keep the native backdrop host attached while switching; tearing it down inside
             // the settings input callback can fail fast in Microsoft.UI.Input.

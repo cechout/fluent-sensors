@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI;
+using LiveChartsCore.SkiaSharpView.Painting.ImageFilters;
 
 
 namespace FluentSensors.Controls.SensorGraph
@@ -198,6 +200,7 @@ namespace FluentSensors.Controls.SensorGraph
             if (!hasThreshold)
             {
                 line.Stroke = new SolidColorPaint(accent.WithAlpha(204)) { StrokeThickness = 1 };
+                ApplyGraphBlur(line);
                 return;
             }
 
@@ -232,6 +235,15 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 StrokeThickness = 1
             };
+            ApplyGraphBlur(line);
+        }
+
+        private void ApplyGraphBlur(IStrokedAndFilled line)
+        {
+            // A small Gaussian softens the plot without tinting it or blurring the XAML text.
+            if (CardMaterial != GraphCardMaterial.Blurred) return;
+            if (line.Stroke is SkiaPaint stroke) stroke.ImageFilter = new Blur(0.65f, 0.65f);
+            if (line.Fill is SkiaPaint fill) fill.ImageFilter = new Blur(0.65f, 0.65f);
         }
 
         // top to bottom over the full height; equal alphas give the flat tone
