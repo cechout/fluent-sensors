@@ -578,6 +578,22 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // optional tray anchoring leaves the saved manual offsets intact
+        private bool _taskbarWidgetNextToTray = Defaults.TaskbarWidgetNextToTray;
+        public bool TaskbarWidgetNextToTray
+        {
+            get => _taskbarWidgetNextToTray;
+            set
+            {
+                if (_taskbarWidgetNextToTray != value)
+                {
+                    _taskbarWidgetNextToTray = value;
+                    TaskbarWidgetNextToTrayChanged?.Invoke(value);
+                    SaveDebounced();
+                }
+            }
+        }
+
         // no dragging the taskbar widget along the taskbar
         private bool _taskbarWidgetPositionLocked = Defaults.TaskbarWidgetPositionLocked;
         public bool TaskbarWidgetPositionLocked
@@ -1333,6 +1349,7 @@ namespace FluentSensors.Persistence.Services
             _taskbarUseTransparentGraphBackground = data.TaskbarUseTransparentGraphBackground;
             _taskbarEdges = SeedTaskbarEdges(data.TaskbarEdges, data);
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
+            _taskbarWidgetNextToTray = data.TaskbarWidgetNextToTray;
             _taskbarFlyoutGraphTimeSpanSeconds = data.TaskbarFlyoutGraphTimeSpanSeconds;
             _taskbarFlyoutGraphHeightDip = data.TaskbarFlyoutGraphHeightDip;
             _taskbarFlyoutShortcut = data.TaskbarFlyoutShortcut;
@@ -1423,6 +1440,7 @@ namespace FluentSensors.Persistence.Services
                 TaskbarUseTransparentGraphBackground = _taskbarUseTransparentGraphBackground,
                 TaskbarEdges = CloneTaskbarEdges(),
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
+                TaskbarWidgetNextToTray = _taskbarWidgetNextToTray,
                 TaskbarFlyoutGraphTimeSpanSeconds = _taskbarFlyoutGraphTimeSpanSeconds,
                 TaskbarFlyoutGraphHeightDip = _taskbarFlyoutGraphHeightDip,
                 TaskbarFlyoutShortcut = _taskbarFlyoutShortcut,
@@ -1513,6 +1531,7 @@ namespace FluentSensors.Persistence.Services
         public event Action<int> TaskbarSideTitleLinesChanged;
         public event Action<string> TaskbarFlyoutAlignmentChanged;
         public event Action<bool> TaskbarWidgetPositionLockedChanged;
+        public event Action<bool> TaskbarWidgetNextToTrayChanged;
         public event Action<double> TaskbarFlyoutGraphTimeSpanChanged;
         public event Action<double> TaskbarFlyoutGraphHeightChanged;
 

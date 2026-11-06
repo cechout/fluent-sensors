@@ -637,6 +637,12 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
     <value>Lock Taskbar Widget Position</value>
   </data>
+  <data name="Settings_TaskbarWidgetNextToTrayCard.Header" xml:space="preserve">
+    <value>Show on the Left of the System Tray</value>
+  </data>
+  <data name="Settings_TaskbarWidgetNextToTrayCard.Description" xml:space="preserve">
+    <value>Automatically follow the system tray with a divider. Overrides dragging while enabled; your saved position is restored when turned off. Hides the widget if there is not enough space.</value>
+  </data>
   <data name="Settings_FlyoutShortcutCard.Description" xml:space="preserve">
     <value>Open the flyout from the keyboard while the taskbar widget is open</value>
   </data>

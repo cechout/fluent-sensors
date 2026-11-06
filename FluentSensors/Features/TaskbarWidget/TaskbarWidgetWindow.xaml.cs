@@ -214,6 +214,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 SettingsService.Instance.TaskbarGraphWidthChanged += OnTaskbarGraphWidthChanged;
                 SettingsService.Instance.TaskbarSideGraphDirectionChanged += OnTaskbarSideGraphDirectionChanged;
                 SettingsService.Instance.TaskbarSideTitleLinesChanged += OnTaskbarSideTitleLinesChanged;
+                SettingsService.Instance.TaskbarWidgetNextToTrayChanged += OnNextToTrayChanged;
                 ApplyWindowsTheme();
 
                 // with handledEventsToo, the Button handles the pointer events itself
@@ -371,6 +372,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 SettingsService.Instance.TaskbarGraphWidthChanged -= OnTaskbarGraphWidthChanged;
                 SettingsService.Instance.TaskbarSideGraphDirectionChanged -= OnTaskbarSideGraphDirectionChanged;
                 SettingsService.Instance.TaskbarSideTitleLinesChanged -= OnTaskbarSideTitleLinesChanged;
+                SettingsService.Instance.TaskbarWidgetNextToTrayChanged -= OnNextToTrayChanged;
                 StopTrackingTaskbar();
             }
             catch { }
@@ -496,6 +498,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
 
                 _taskbarHwnd = primaryTaskbar.Hwnd;
+                _trayTracker.Reset();
 
                 ApplyEdgeLayout(primaryTaskbar);
                 var screenRect = CalculateScreenRect(primaryTaskbar);
@@ -624,10 +627,15 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
             if (primaryTaskbar == null) return;
+            if (primaryTaskbar.Hwnd != _taskbarHwnd) return; // the tracking event rebuilds for a new parent
 
-            ApplyEdgeLayout(primaryTaskbar);
+            if (!SettingsService.Instance.TaskbarWidgetNextToTray || primaryTaskbar != _placedTaskbar)
+                ApplyEdgeLayout(primaryTaskbar);
             var screenRect = CalculateScreenRect(primaryTaskbar);
 
+            if (screenRect.Equals(_currentScreenRect)) return;
+            if (SettingsService.Instance.TaskbarWidgetNextToTray)
+                TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
             _currentScreenRect = screenRect;
             WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
         }
@@ -642,6 +650,14 @@ namespace FluentSensors.Features.TaskbarWidget
             int lengthPx = (int)(CalculateWidgetLengthDip(ViewModel.PinnedSensors.Count) * scale);
             int innerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactInnerMarginDip : InnerMarginDip) * scale);
             int outerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactOuterMarginDip : OuterMarginDip) * scale);
+
+            if (SettingsService.Instance.TaskbarWidgetNextToTray)
+            {
+                var landmarks = _trayTracker.Read(taskbar);
+                return TaskbarWidgetPlacement.CalculateNearTray(taskbar, landmarks.Tray, landmarks.Buttons,
+                    lengthPx + (int)Math.Round(TrayDividerLengthDip * scale), innerMarginPx, outerMarginPx,
+                    (int)Math.Round(8 * scale));
+            }
 
             return TaskbarWidgetPlacement.Calculate(
                 taskbar,
@@ -690,6 +706,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             RefreshSideSlots();
             ApplyButtonPadding(taskbar);
+            ApplyTrayDivider(taskbar);
         }
 
         // follows the graph, not the edge (unlike the margins in CalculateScreenRect):
@@ -973,6 +990,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 if (_isEmbedded && !_isOrphaned && _taskbarHwnd != IntPtr.Zero)
                 {
                     WinTaskbarEmbedder.KeepAboveShell(_hwnd, _taskbarHwnd);
+                    if (SettingsService.Instance.TaskbarWidgetNextToTray) PositionOnTaskbar();
                 }
             };
             _zOrderTimer.Start();
@@ -1312,7 +1330,8 @@ namespace FluentSensors.Features.TaskbarWidget
             _suppressClick = false;
 
             // skip all drag bookkeeping while the position is locked; press feedback and click-to-toggle stay live
-            if (!SettingsService.Instance.TaskbarWidgetPositionLocked && NativeMethods.GetCursorPos(out var cursorPos))
+            if (!SettingsService.Instance.TaskbarWidgetPositionLocked && !SettingsService.Instance.TaskbarWidgetNextToTray &&
+                NativeMethods.GetCursorPos(out var cursorPos))
             {
                 _dragTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
                 bool isVertical = _dragTaskbar?.IsVertical ?? false;

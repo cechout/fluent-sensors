@@ -1074,6 +1074,16 @@
                     Toggled="LockWidgetPositionToggle_Toggled" />
             </controls:SettingsCard>
 
+            <controls:SettingsCard
+                x:Uid="Settings_TaskbarWidgetNextToTrayCard"
+                fhUi:FocusGroup.IsEnabled="True"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE73C;}">
+                <ToggleSwitch
+                    x:Name="NextToTrayToggle"
+                    x:Uid="Common_ToggleSwitch"
+                    Toggled="NextToTrayToggle_Toggled" />
+            </controls:SettingsCard>
+
             <!--  flyout shortcut  -->
             <!--  (the keys as accent buttons and an edit pencil; a click opens FlyoutShortcutDialog, keys set from code)  -->
             <controls:SettingsCard

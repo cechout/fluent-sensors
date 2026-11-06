@@ -30,6 +30,7 @@ How it currently looks performance-wise:
 ## 📦 Download
 
 Local contribution: [automatic KB/s and MB/s throughput display](../docs/contributions/automatic-throughput-units.md).
+Optional placement contribution: [follow the system tray with a divider](../docs/contributions/tray-adjacent-widget.md).
 
 * **[Microsoft Store](https://apps.microsoft.com/detail/9PK7F87MWXKF):** installs and updates through the Store. Windows 11 only.
 * **Installer** (`FluentSensors_Installer.exe`): installs into `Program Files` with a start menu entry and an uninstaller.

@@ -78,6 +78,16 @@ jobs:
       - name: build win-x64
         run: msbuild FluentSensors/FluentSensors.csproj -p:Configuration=Release -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -p:SelfContained=true
 
+      # pure regression checks do not require Explorer or hardware sensors on the runner
+      - name: check taskbar placement and throughput formatting
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force logs | Out-Null
+          dotnet run --project tests/TaskbarPlacement/TaskbarPlacement.csproj -c Release 2>&1 | Tee-Object logs/taskbar-placement.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet run --project tests/ThroughputFormatting/ThroughputFormatting.csproj -c Release 2>&1 | Tee-Object logs/throughput-formatting.log
+          exit $LASTEXITCODE
+
       # publish makes the size real (PruneUnusedPublishPayload runs after Publish); NoBuild reuses the pass above and
       # proves the publish path before a tag depends on it
       - name: publish win-x64

@@ -97,6 +97,7 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarFlyoutGraphSelection();
             ApplyFlyoutShortcutButton();
             RestoreLockWidgetPositionSelection();
+            NextToTrayToggle.IsOn = SettingsService.Instance.TaskbarWidgetNextToTray;
 
             ShowAppDataFolderPath();
 
@@ -1435,6 +1436,12 @@ namespace FluentSensors.Features.Settings
         private void RestoreLockWidgetPositionSelection()
         {
             LockWidgetPositionToggle.IsOn = SettingsService.Instance.TaskbarWidgetPositionLocked;
+        }
+
+        private void NextToTrayToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarWidgetNextToTray = NextToTrayToggle.IsOn;
         }
 
 
