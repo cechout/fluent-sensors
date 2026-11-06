@@ -65,3 +65,5 @@ git clone https://github.com/cechout/fluent-sensors.git
 Building from the command line needs `msbuild.exe` instead of `dotnet build`, because a COM reference in the project is only supported by the full MSBuild. [AGENTS.md](../AGENTS.md) has the exact commands.
 
 And now you're good to go!
+
+- [Taskbar graph Acrylic and Mica backgrounds](../docs/contributions/taskbar-graph-materials.md)

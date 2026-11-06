@@ -1227,7 +1227,8 @@ namespace FluentSensors.Features.Settings
         {
             if (TaskbarGraphBackgroundSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
             {
-                SettingsService.Instance.TaskbarUseTransparentGraphBackground = (tag == "Transparent");
+                if (!_isLoading && Enum.TryParse<GraphCardMaterial>(tag, out var material))
+                    SettingsService.Instance.TaskbarGraphCardMaterial = material;
             }
         }
 
@@ -1251,8 +1252,7 @@ namespace FluentSensors.Features.Settings
 
         private void RestoreTaskbarGraphBackgroundSourceSelection()
         {
-            TaskbarGraphBackgroundSourceComboBox.SelectedIndex =
-                SettingsService.Instance.TaskbarUseTransparentGraphBackground ? 1 : 0;
+            SelectByTag(TaskbarGraphBackgroundSourceComboBox, SettingsService.Instance.TaskbarGraphCardMaterial.ToString());
         }
 
         private void RestoreTaskbarGraphTimeSpanSelection()

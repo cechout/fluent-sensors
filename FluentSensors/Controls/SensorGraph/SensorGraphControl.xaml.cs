@@ -13,6 +13,7 @@ using System;
 using System.Collections.ObjectModel;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI;
 using FluentSensors.Diagnostics;
 
 
@@ -661,16 +662,36 @@ namespace FluentSensors.Controls.SensorGraph
             if (d is SensorGraphControl g) g.ApplyCardBackground();
         }
 
+        public GraphCardMaterial CardMaterial
+        {
+            get => (GraphCardMaterial)GetValue(CardMaterialProperty);
+            set => SetValue(CardMaterialProperty, value);
+        }
+
+        public static readonly DependencyProperty CardMaterialProperty =
+            DependencyProperty.Register(nameof(CardMaterial), typeof(GraphCardMaterial), typeof(SensorGraphControl),
+                new PropertyMetadata(GraphCardMaterial.Calculated, OnCardBackgroundOverrideChanged));
+
         // for the constructor and the property callback
         private void ApplyCardBackground()
         {
-            if (CardBackgroundOverride is Windows.UI.Color color)
+            bool hasMaterial = GraphCardBackdrop.IsSupported(CardMaterial);
+            CardBackdrop.Visibility = hasMaterial ? Visibility.Visible : Visibility.Collapsed;
+            if (hasMaterial)
             {
-                CardBorder.Background = new SolidColorBrush(color);
+                if (CardBackdrop.SystemBackdrop is not GraphCardBackdrop backdrop || backdrop.Material != CardMaterial)
+                    CardBackdrop.SystemBackdrop = new GraphCardBackdrop(CardMaterial);
+                CardBorder.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
             else
             {
-                VisualStateManager.GoToState(this, "CardBackgroundVisible", false);
+                CardBackdrop.SystemBackdrop = null;
+                if (CardMaterial is GraphCardMaterial.Acrylic or GraphCardMaterial.Mica)
+                    CardBorder.Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"];
+                else if (CardBackgroundOverride is Windows.UI.Color color)
+                    CardBorder.Background = new SolidColorBrush(color);
+                else
+                    VisualStateManager.GoToState(this, "CardBackgroundVisible", false);
             }
         }
 
@@ -704,6 +725,7 @@ namespace FluentSensors.Controls.SensorGraph
             else
             {
                 VisualStateManager.GoToState(this, "CardBackgroundVisible", false);
+                ApplyCardBackground();
             }
         }
 

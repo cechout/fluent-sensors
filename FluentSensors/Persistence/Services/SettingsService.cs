@@ -563,18 +563,27 @@ namespace FluentSensors.Persistence.Services
         }
 
         // the taskbar widget graphs drop their card tint
+        private GraphCardMaterial _taskbarGraphCardMaterial = GraphCardMaterial.Transparent;
+        public GraphCardMaterial TaskbarGraphCardMaterial
+        {
+            get => _taskbarGraphCardMaterial;
+            set
+            {
+                if (!Enum.IsDefined(value) || _taskbarGraphCardMaterial == value) return;
+                _taskbarGraphCardMaterial = value;
+                _taskbarUseTransparentGraphBackground = value == GraphCardMaterial.Transparent;
+                TaskbarGraphBackgroundChanged?.Invoke(_taskbarUseTransparentGraphBackground);
+                SaveDebounced();
+            }
+        }
+
         private bool _taskbarUseTransparentGraphBackground = Defaults.TaskbarUseTransparentGraphBackground;
         public bool TaskbarUseTransparentGraphBackground
         {
             get => _taskbarUseTransparentGraphBackground;
             set
             {
-                if (_taskbarUseTransparentGraphBackground != value)
-                {
-                    _taskbarUseTransparentGraphBackground = value;
-                    TaskbarGraphBackgroundChanged?.Invoke(_taskbarUseTransparentGraphBackground);
-                    SaveDebounced();
-                }
+                TaskbarGraphCardMaterial = value ? GraphCardMaterial.Transparent : GraphCardMaterial.Calculated;
             }
         }
 
@@ -1346,7 +1355,8 @@ namespace FluentSensors.Persistence.Services
             _taskbarGraphColorSource = ResolveGraphColorSource(
                 data.TaskbarGraphColorSource, data.TaskbarUseGraphAccentColor, AppSettingsData.DefaultTaskbarGraphColorSource);
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
-            _taskbarUseTransparentGraphBackground = data.TaskbarUseTransparentGraphBackground;
+            _taskbarGraphCardMaterial = GraphCardMaterials.ResolveSaved(data.TaskbarGraphCardMaterial, data.TaskbarUseTransparentGraphBackground);
+            _taskbarUseTransparentGraphBackground = _taskbarGraphCardMaterial == GraphCardMaterial.Transparent;
             _taskbarEdges = SeedTaskbarEdges(data.TaskbarEdges, data);
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
             _taskbarWidgetNextToTray = data.TaskbarWidgetNextToTray;
@@ -1438,6 +1448,7 @@ namespace FluentSensors.Persistence.Services
                 TaskbarGraphColorSource = _taskbarGraphColorSource,
                 TaskbarGraphCustomColor = _taskbarGraphCustomColor,
                 TaskbarUseTransparentGraphBackground = _taskbarUseTransparentGraphBackground,
+                TaskbarGraphCardMaterial = _taskbarGraphCardMaterial,
                 TaskbarEdges = CloneTaskbarEdges(),
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
                 TaskbarWidgetNextToTray = _taskbarWidgetNextToTray,

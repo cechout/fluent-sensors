@@ -88,6 +88,12 @@ jobs:
           dotnet run --project tests/ThroughputFormatting/ThroughputFormatting.csproj -c Release 2>&1 | Tee-Object logs/throughput-formatting.log
           exit $LASTEXITCODE
 
+      - name: verify graph material settings migration
+        shell: pwsh
+        run: |
+          dotnet run --project tests/GraphCardMaterials 2>&1 | Tee-Object logs/graph-material-tests.log
+          exit $LASTEXITCODE
+
       # publish makes the size real (PruneUnusedPublishPayload runs after Publish); NoBuild reuses the pass above and
       # proves the publish path before a tag depends on it
       - name: publish win-x64

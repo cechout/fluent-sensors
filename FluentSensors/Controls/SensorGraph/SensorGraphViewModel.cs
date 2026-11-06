@@ -208,6 +208,9 @@ namespace FluentSensors.Controls.SensorGraph
 
         // taskbar widget graphs can go fully transparent; only the widget template binds
         // this, the flyout keeps its card
+        public GraphCardMaterial CardMaterial => IsTaskbarScope
+            ? SettingsService.Instance.TaskbarGraphCardMaterial : GraphCardMaterial.Calculated;
+
         private bool _isCardBackgroundVisible = true;
         public bool IsCardBackgroundVisible
         {
@@ -372,6 +375,7 @@ namespace FluentSensors.Controls.SensorGraph
         private void OnGraphBackgroundChanged(bool useTransparentBackground)
         {
             IsCardBackgroundVisible = !useTransparentBackground;
+            OnPropertyChanged(nameof(CardMaterial));
         }
 
         private void OnGraphTimeSpanChanged(double newTimeSpanSeconds)

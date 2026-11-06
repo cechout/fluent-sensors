@@ -2089,4 +2089,10 @@ Cycle Count - full charge cycles counted by the electronics of the battery</valu
     <value>No sensors selected</value>
     <comment>shown on the Windows Widgets board while its selection on the sensors page is empty</comment>
   </data>
+  <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Acrylic.Content" xml:space="preserve">
+    <value>Acrylic</value>
+  </data>
+  <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Mica.Content" xml:space="preserve">
+    <value>Mica</value>
+  </data>
 </root>

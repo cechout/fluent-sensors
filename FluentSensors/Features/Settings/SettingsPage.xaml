@@ -906,6 +906,8 @@
                             SelectionChanged="TaskbarGraphBackgroundSourceComboBox_SelectionChanged">
                             <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Calculated" Tag="Calculated" />
                             <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Transparent" Tag="Transparent" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Acrylic" Tag="Acrylic" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Mica" Tag="Mica" />
                         </ComboBox>
                     </controls:SettingsCard>
 
