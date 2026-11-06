@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <UserControl
     x:Class="FluentSensors.Controls.SensorGraph.SensorGraphControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -21,7 +21,7 @@
                 x:Name="CardBackdrop"
                 CornerRadius="3.3"
                 IsHitTestVisible="False"
-                Visibility="Collapsed" />
+                Opacity="0" />
             <!--  the margin follows the display scale, see ApplyChartBleed  -->
             <lvc:CartesianChart
                 x:Name="Chart"

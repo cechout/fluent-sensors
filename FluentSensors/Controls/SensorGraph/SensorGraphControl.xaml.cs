@@ -1,4 +1,4 @@
-using LiveChartsCore;
+﻿using LiveChartsCore;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
@@ -676,16 +676,19 @@ namespace FluentSensors.Controls.SensorGraph
         private void ApplyCardBackground()
         {
             bool hasMaterial = GraphCardBackdrop.IsSupported(CardMaterial);
-            CardBackdrop.Visibility = hasMaterial ? Visibility.Visible : Visibility.Collapsed;
+            // Keep the native backdrop host attached while switching; tearing it down inside
+            // the settings input callback can fail fast in Microsoft.UI.Input.
+            CardBackdrop.Opacity = hasMaterial ? 1 : 0;
+            if (CardBackdrop.SystemBackdrop is GraphCardBackdrop existing)
+                existing.SetMaterial(CardMaterial);
             if (hasMaterial)
             {
-                if (CardBackdrop.SystemBackdrop is not GraphCardBackdrop backdrop || backdrop.Material != CardMaterial)
+                if (CardBackdrop.SystemBackdrop is not GraphCardBackdrop)
                     CardBackdrop.SystemBackdrop = new GraphCardBackdrop(CardMaterial);
                 CardBorder.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
             else
             {
-                CardBackdrop.SystemBackdrop = null;
                 if (CardMaterial is GraphCardMaterial.Acrylic or GraphCardMaterial.Mica)
                     CardBorder.Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"];
                 else if (CardBackgroundOverride is Windows.UI.Color color)

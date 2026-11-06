@@ -19,7 +19,7 @@ Mica uses the desktop wallpaper; Acrylic blurs what is behind the surface.
 `TaskbarGraphCardMaterial` is persisted separately. When absent or an unknown
 numeric value, the previous `TaskbarUseTransparentGraphBackground` determines the
 selection. Saving retains that legacy flag for older builds. Turning the material
-off releases its controller. Graph colors, sensor values, graph dimensions,
+off releases its controller while keeping the native host attached. Graph colors, sensor values, graph dimensions,
 tray placement and the main widget window appearance are unchanged.
 
 ## Verification
@@ -55,3 +55,26 @@ exactly at the detected tray boundary. Existing settings fields and sensor state
 matched the backup after restart. Sensor selections had one additional Taskbar
 entry relative to the pre-stop snapshot; it was left intact rather than reverting
 live selection changes.
+
+## Material-switch crash correction
+
+The initial installed implementation crashed when selecting Acrylic followed by
+Transparent or Mica. Windows Application Error records identify
+`Microsoft.UI.Input.dll`, exception `0xc0000409`, offset `0x9a763`.
+Evidence is saved under `logs/graph-material-crashes-*.json`.
+
+The suspected trigger is native host teardown during the settings input callback:
+the old path collapsed `SystemBackdropElement` and cleared or replaced its
+SystemBackdrop. The corrected path keeps the host visible, uses opacity to hide
+it, and retains one GraphCardBackdrop instance. Only material controllers change;
+each target is explicitly removed before its controller is disposed. Theme and
+high-contrast configuration remain connected. No controller remains for
+Transparent or Calculated. The host lifetime ends with its graph/window.
+
+Build and settings tests cannot establish that the native input crash is resolved.
+Required live regression: repeatedly cycle Acrylic > Transparent > Mica >
+Calculated > Acrylic with the taskbar embedded and the flyout both open and closed,
+then close/reopen the flyout and restart the app. Screen-control initialization is
+unavailable in this session, so these live transitions remain unverified.
+
+The correction passed the full x64 Release build, FolderProfile publish, 16 saved-setting checks, whitespace verification and git diff checks. Existing compiler and PRI263 warnings remain. Live material transitions still require verification.

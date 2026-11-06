@@ -8,7 +8,8 @@ namespace FluentSensors.Common.UI
     // Taskbar graphs never take focus; keep the material active without changing window activation.
     public class GraphCardBackdrop : SystemBackdrop
     {
-        public GraphCardMaterial Material { get; }
+        public GraphCardMaterial Material { get; private set; }
+        private ICompositionSupportsSystemBackdrop? _target;
         private DesktopAcrylicController? _acrylic;
         private MicaController? _mica;
         private SystemBackdropConfiguration? _configuration;
@@ -30,17 +31,27 @@ namespace FluentSensors.Common.UI
             base.OnTargetConnected(target, xamlRoot);
             _configuration = new SystemBackdropConfiguration { IsInputActive = true };
             UpdateConfiguration(target, xamlRoot);
+            _target = target;
+            SetMaterial(Material);
+        }
+
+        public void SetMaterial(GraphCardMaterial material)
+        {
+            if (Material == material && (_acrylic is not null || _mica is not null)) return;
+            ReleaseControllers();
+            Material = material;
+            if (_target is null || _configuration is null) return;
             if (Material == GraphCardMaterial.Acrylic && DesktopAcrylicController.IsSupported())
             {
                 _acrylic = new DesktopAcrylicController();
                 _acrylic.SetSystemBackdropConfiguration(_configuration);
-                _acrylic.AddSystemBackdropTarget(target);
+                _acrylic.AddSystemBackdropTarget(_target);
             }
             else if (Material == GraphCardMaterial.Mica && MicaController.IsSupported())
             {
                 _mica = new MicaController();
                 _mica.SetSystemBackdropConfiguration(_configuration);
-                _mica.AddSystemBackdropTarget(target);
+                _mica.AddSystemBackdropTarget(_target);
             }
         }
 
@@ -60,12 +71,23 @@ namespace FluentSensors.Common.UI
 
         protected override void OnTargetDisconnected(ICompositionSupportsSystemBackdrop target)
         {
+            ReleaseControllers();
+            _target = null;
+            _configuration = null;
+            base.OnTargetDisconnected(target);
+        }
+
+        private void ReleaseControllers()
+        {
+            if (_target is not null)
+            {
+                _acrylic?.RemoveSystemBackdropTarget(_target);
+                _mica?.RemoveSystemBackdropTarget(_target);
+            }
             _acrylic?.Dispose();
             _acrylic = null;
             _mica?.Dispose();
             _mica = null;
-            _configuration = null;
-            base.OnTargetDisconnected(target);
         }
     }
 }
