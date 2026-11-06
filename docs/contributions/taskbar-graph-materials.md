@@ -1,7 +1,8 @@
 # Taskbar graph background materials
 
 Settings > Taskbar Widget & Flyout Appearance > Taskbar Graph > Graph Background
-Source offers Calculated, Transparent, Acrylic and Blurred graph. Existing selections are
+Source offers Calculated, Transparent and Acrylic. A separate Blur Graph toggle
+combines with any of these backgrounds. Existing selections are
 preserved. Acrylic renders behind each graph card. Blurred graph applies a small, uniform Gaussian filter to the chart line and fill.
 There is no tinted overlay. Chart content is softened
 while the label and value remain sharp. These apply to horizontal and vertical
@@ -121,3 +122,28 @@ Direction labels now use the heavier U+2B07/U+2B06 arrows and bold font weight o
 horizontal and vertical taskbars. Ordinary names retain their normal font weight.
 Tests verify the updated mappings. Native visual strength remains unverified by
 automation; check the result on screen at the user's display scale.
+
+## Independent blur and vector direction icons
+
+Blur Graph is now a separate toggle below Graph Background Source. It applies the
+same 0.65-sigma Gaussian to the plotted line and fill with Calculated, Transparent
+or Acrylic backgrounds. Changing the background never changes the blur toggle.
+Taskbar and flyout graph view models receive both settings independently; labels
+and values stay sharp. Fresh settings default blur off. The nullable persisted
+TaskbarBlurGraph property distinguishes an explicit choice from an old file:
+legacy Blurred (and the previously migrated Mica) becomes Transparent with blur on.
+An explicit saved blur setting always wins. Old enum names remain readable but
+are no longer dropdown choices. Migration and precedence have 16 dedicated checks.
+
+Direction arrows are drawn paths rather than font glyphs: a 2.2-DIP round stroke,
+10-DIP stem and 8-DIP-wide arrowhead. Horizontal graph labels reserve 14 DIP so
+the adjacent numeric value cannot collapse the arrowhead. Side-taskbar names
+switch between text and the same vector inside one layout slot, preserving the
+separate sensor-source icon. Original text labels and sensor identity are intact.
+
+Full build, publish, setting tests and manual visual checks are required for this
+update. Automated screen control remains unavailable; visual arrow clipping,
+rapid background switching and all background/blur combinations need on-screen
+verification. Existing historical validation above describes earlier revisions.
+
+Independent blur/vector revision: full x64 Release build, FolderProfile publication, 19 material migration checks, 16 independent blur checks, 7 direction mapping checks, whitespace and XML/resource validation passed. Existing compiler and PRI263 warnings remain. Native visual checks remain outstanding.

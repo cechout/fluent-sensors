@@ -914,8 +914,11 @@
                             <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Calculated" Tag="Calculated" />
                             <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Transparent" Tag="Transparent" />
                             <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Acrylic" Tag="Acrylic" />
-                            <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Blurred" Tag="Blurred" />
                         </ComboBox>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Uid="Settings_TaskbarBlurGraphCard">
+                        <ToggleSwitch x:Name="BlurGraphToggle" x:Uid="Common_OnOffToggle" Toggled="BlurGraphToggle_Toggled" />
                     </controls:SettingsCard>
 
                     <controls:SettingsCard x:Uid="Settings_TimeRangeCard">

@@ -241,7 +241,7 @@ namespace FluentSensors.Controls.SensorGraph
         private void ApplyGraphBlur(IStrokedAndFilled line)
         {
             // A small Gaussian softens the plot without tinting it or blurring the XAML text.
-            if (CardMaterial != GraphCardMaterial.Blurred) return;
+            if (!BlurGraph) return;
             if (line.Stroke is SkiaPaint stroke) stroke.ImageFilter = new Blur(0.65f, 0.65f);
             if (line.Fill is SkiaPaint fill) fill.ImageFilter = new Blur(0.65f, 0.65f);
         }

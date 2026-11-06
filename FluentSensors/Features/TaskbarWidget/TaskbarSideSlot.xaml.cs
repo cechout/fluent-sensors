@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Documents;
 using Windows.Foundation;
 
 using FluentSensors.Controls.SensorGraph;
+using FluentSensors.Common.UI;
 using FluentSensors.Core.Taskbar;
 
 
@@ -18,6 +19,10 @@ namespace FluentSensors.Features.TaskbarWidget
     // TaskbarWidgetWindow pushes the layout through ApplyLayout on load and on every change
     public sealed partial class TaskbarSideSlot : UserControl
     {
+        private Visibility GetTextLabelVisibility(string label) => NetworkDirectionIcon.IsIcon(label) ? Visibility.Collapsed : Visibility.Visible;
+        private Visibility GetIconVisibility(string label) => NetworkDirectionIcon.IsIcon(label) ? Visibility.Visible : Visibility.Collapsed;
+        private Microsoft.UI.Xaml.Media.Geometry GetDirectionGeometry(string label) => NetworkDirectionIcon.Create(label);
+
         private Windows.UI.Text.FontWeight GetLabelWeight(string label) => label is "\u2B07" or "\u2B06"
             ? Microsoft.UI.Text.FontWeights.Bold : Microsoft.UI.Text.FontWeights.Normal;
 

@@ -611,7 +611,11 @@ namespace FluentSensors.Controls.SensorGraph
             g.GraphLabelText.Text = g.LabelText ?? string.Empty;
             g.GraphLabelText.FontWeight = g.LabelText is "\u2B07" or "\u2B06"
                 ? Microsoft.UI.Text.FontWeights.Bold : Microsoft.UI.Text.FontWeights.Normal;
-            g.GraphLabelText.Visibility = g.IsLabelVisible && g.IsNameVisible && !string.IsNullOrEmpty(g.LabelText)
+            bool directionIcon = NetworkDirectionIcon.IsIcon(g.LabelText);
+            g.GraphLabelColumn.MinWidth = directionIcon ? 14 : 0;
+            g.DirectionLabelIcon.Visibility = directionIcon && g.IsLabelVisible && g.IsNameVisible ? Visibility.Visible : Visibility.Collapsed;
+            if (directionIcon) g.DirectionLabelIcon.Data = NetworkDirectionIcon.Create(g.LabelText);
+            g.GraphLabelText.Visibility = !directionIcon && g.IsLabelVisible && g.IsNameVisible && !string.IsNullOrEmpty(g.LabelText)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
 
@@ -664,6 +668,21 @@ namespace FluentSensors.Controls.SensorGraph
             if (d is SensorGraphControl g) g.ApplyCardBackground();
         }
 
+        public bool BlurGraph
+        {
+            get => (bool)GetValue(BlurGraphProperty);
+            set => SetValue(BlurGraphProperty, value);
+        }
+
+        public static readonly DependencyProperty BlurGraphProperty =
+            DependencyProperty.Register(nameof(BlurGraph), typeof(bool), typeof(SensorGraphControl),
+                new PropertyMetadata(false, OnBlurGraphChanged));
+
+        private static void OnBlurGraphChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SensorGraphControl graph) graph.ForceRepaint();
+        }
+
         public GraphCardMaterial CardMaterial
         {
             get => (GraphCardMaterial)GetValue(CardMaterialProperty);
@@ -692,9 +711,7 @@ namespace FluentSensors.Controls.SensorGraph
             }
             else
             {
-                if (CardMaterial == GraphCardMaterial.Blurred)
-                    CardBorder.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
-                else if (CardMaterial is GraphCardMaterial.Acrylic or GraphCardMaterial.Mica)
+                if (CardMaterial is GraphCardMaterial.Acrylic or GraphCardMaterial.Mica)
                     CardBorder.Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"];
                 else if (CardBackgroundOverride is Windows.UI.Color color)
                     CardBorder.Background = new SolidColorBrush(color);

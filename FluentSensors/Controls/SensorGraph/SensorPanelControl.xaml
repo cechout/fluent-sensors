@@ -447,6 +447,7 @@
                 <fhGraph:SensorGraphControl
                     x:Name="GraphControl"
                     CardMaterial="{x:Bind ViewModel.CardMaterial, Mode=OneWay}"
+                    BlurGraph="{x:Bind ViewModel.BlurGraph, Mode=OneWay}"
                     AccentColor="{x:Bind GetEffectiveGraphColor(GraphHardwareKind, SensorTypeColor, ViewModel.GraphColor), Mode=OneWay}"
                     CardBackgroundOverride="{x:Bind GetEffectiveCardBackground(ShowGraphCardBackground, UseGraphColorCardBackground, GraphHardwareKind, SensorTypeColor, ViewModel.GraphColor), Mode=OneWay}"
                     CardBorderOverride="{x:Bind BoolToCardBorderOverride(ShowGraphCardBorder), Mode=OneWay}"

@@ -45,7 +45,7 @@
                 VerticalAlignment="Top"
                 IsHitTestVisible="False">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition x:Name="GraphLabelColumn" Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
@@ -61,6 +61,11 @@
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="NoWrap"
                     Visibility="Collapsed" />
+
+                <Path x:Name="DirectionLabelIcon" Grid.Column="0" Width="10" Height="12"
+                      HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed"
+                      Stroke="{ThemeResource TextFillColorPrimaryBrush}" StrokeThickness="2.2"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
 
                 <!--  right: current value  -->
                 <TextBlock

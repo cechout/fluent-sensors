@@ -43,19 +43,29 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Spacing="3">
-                <TextBlock
-                    x:Name="NameText"
-                    Margin="4,3,0,0"
-                    VerticalAlignment="Top"
-                    FontSize="10"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    LineHeight="11"
-                    LineStackingStrategy="BlockLineHeight"
-                    MaxLines="1"
-                    Text="{x:Bind ViewModel.GraphDisplayName, Mode=OneWay}"
-                    FontWeight="{x:Bind GetLabelWeight(ViewModel.GraphDisplayName), Mode=OneWay}"
-                    TextTrimming="CharacterEllipsis"
-                    TextWrapping="NoWrap" />
+                <Grid>
+                    <TextBlock
+                        x:Name="NameText"
+                        Margin="4,3,0,0"
+                        VerticalAlignment="Top"
+                        FontSize="10"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        LineHeight="11"
+                        LineStackingStrategy="BlockLineHeight"
+                        MaxLines="1"
+                        Text="{x:Bind ViewModel.GraphDisplayName, Mode=OneWay}"
+                        FontWeight="{x:Bind GetLabelWeight(ViewModel.GraphDisplayName), Mode=OneWay}"
+                        Visibility="{x:Bind GetTextLabelVisibility(ViewModel.GraphDisplayName), Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap" />
+
+                    <Path Width="10" Height="12" Margin="4,2,0,0" VerticalAlignment="Top"
+                          Data="{x:Bind GetDirectionGeometry(ViewModel.GraphDisplayName), Mode=OneWay}"
+                          Visibility="{x:Bind GetIconVisibility(ViewModel.GraphDisplayName), Mode=OneWay}"
+                          Stroke="{ThemeResource TextFillColorPrimaryBrush}" StrokeThickness="2.2"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+
+                </Grid>
 
                 <!--  who measured it, see SensorSourceIcon  -->
                 <Path

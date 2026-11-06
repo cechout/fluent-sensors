@@ -90,6 +90,7 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarBackgroundMaterialSettings();
             RestoreTaskbarGraphColorSettings();
             RestoreTaskbarGraphBackgroundSourceSelection();
+            BlurGraphToggle.IsOn = SettingsService.Instance.TaskbarBlurGraph;
             SelectByTag(NetworkDirectionLabelsComboBox, SettingsService.Instance.TaskbarNetworkDirectionIcons ? "Icons" : "Text");
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarGraphWidthSelection();
@@ -1222,6 +1223,12 @@ namespace FluentSensors.Features.Settings
                 SettingsService.Instance.TaskbarGraphCustomColor = colorPicker.SelectedColor;
                 UpdateGraphColorPickerStates();
             }
+        }
+
+        private void BlurGraphToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarBlurGraph = BlurGraphToggle.IsOn;
         }
 
         private void NetworkDirectionLabelsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

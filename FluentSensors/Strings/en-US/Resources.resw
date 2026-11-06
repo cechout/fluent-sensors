@@ -2100,4 +2100,6 @@ Cycle Count - full charge cycles counted by the electronics of the battery</valu
   <data name="Settings_NetworkDirectionLabels_Text.Content" xml:space="preserve"><value>Text labels</value></data>
   <data name="Settings_NetworkDirectionLabels_Icons.Content" xml:space="preserve"><value>Direction icons</value></data>
   <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Blurred.Content" xml:space="preserve"><value>Blurred graph</value></data>
+  <data name="Settings_TaskbarBlurGraphCard.Header" xml:space="preserve"><value>Blur Graph</value></data>
+  <data name="Settings_TaskbarBlurGraphCard.Description" xml:space="preserve"><value>Soften the plotted graph while keeping labels and values sharp. Works with any graph background.</value></data>
 </root>
