@@ -66,4 +66,6 @@ Building from the command line needs `msbuild.exe` instead of `dotnet build`, be
 
 And now you're good to go!
 
-- [Taskbar graph Acrylic and Mica backgrounds](../docs/contributions/taskbar-graph-materials.md)
+- [Taskbar graph backgrounds and independent blur](../docs/contributions/taskbar-graph-materials.md)
+
+- [Complete contribution guide and validation limits](../docs/contributions/README.md)
