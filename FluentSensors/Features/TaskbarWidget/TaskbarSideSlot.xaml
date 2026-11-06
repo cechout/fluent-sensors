@@ -59,10 +59,10 @@
                         TextTrimming="CharacterEllipsis"
                         TextWrapping="NoWrap" />
 
-                    <Path Width="10" Height="12" Margin="4,2,0,0" VerticalAlignment="Top"
+                    <Path Width="8" Height="10" Stretch="Uniform" Margin="4,2,0,0" VerticalAlignment="Top"
                           Data="{x:Bind GetDirectionGeometry(ViewModel.GraphDisplayName), Mode=OneWay}"
                           Visibility="{x:Bind GetIconVisibility(ViewModel.GraphDisplayName), Mode=OneWay}"
-                          Stroke="{ThemeResource TextFillColorPrimaryBrush}" StrokeThickness="2.2"
+                          Stroke="{ThemeResource TextFillColorPrimaryBrush}" StrokeThickness="1.8"
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
 
                 </Grid>
@@ -87,6 +87,7 @@
         -->
         <TextBlock
             x:Name="ValueText"
+            FontWeight="SemiBold"
             Margin="4,0,4,1"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"

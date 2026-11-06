@@ -62,14 +62,15 @@
                     TextWrapping="NoWrap"
                     Visibility="Collapsed" />
 
-                <Path x:Name="DirectionLabelIcon" Grid.Column="0" Width="10" Height="12"
+                <Path x:Name="DirectionLabelIcon" Grid.Column="0" Width="8" Height="10" Stretch="Uniform"
                       HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed"
-                      Stroke="{ThemeResource TextFillColorPrimaryBrush}" StrokeThickness="2.2"
+                      Stroke="{ThemeResource TextFillColorPrimaryBrush}" StrokeThickness="1.8"
                       StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
 
                 <!--  right: current value  -->
                 <TextBlock
                     x:Name="GraphCurrentValueText"
+                    FontWeight="SemiBold"
                     Grid.Column="1"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"

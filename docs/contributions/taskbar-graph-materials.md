@@ -135,8 +135,8 @@ legacy Blurred (and the previously migrated Mica) becomes Transparent with blur 
 An explicit saved blur setting always wins. Old enum names remain readable but
 are no longer dropdown choices. Migration and precedence have 16 dedicated checks.
 
-Direction arrows are drawn paths rather than font glyphs: a 2.2-DIP round stroke,
-10-DIP stem and 8-DIP-wide arrowhead. Horizontal graph labels reserve 14 DIP so
+Direction arrows are drawn paths rather than font glyphs: an 8 by 10 DIP display box with a 1.8-DIP round stroke, scaled uniformly
+from the original stem and wide arrowhead geometry. Horizontal graph labels reserve 12 DIP so
 the adjacent numeric value cannot collapse the arrowhead. Side-taskbar names
 switch between text and the same vector inside one layout slot, preserving the
 separate sensor-source icon. Original text labels and sensor identity are intact.
@@ -147,3 +147,7 @@ rapid background switching and all background/blur combinations need on-screen
 verification. Existing historical validation above describes earlier revisions.
 
 Independent blur/vector revision: full x64 Release build, FolderProfile publication, 19 material migration checks, 16 independent blur checks, 7 direction mapping checks, whitespace and XML/resource validation passed. Existing compiler and PRI263 warnings remain. Native visual checks remain outstanding.
+
+Arrow size refinement: reduced both taskbar orientations from 10 by 12 to 8 by 10 DIP, with a 1.8 DIP stroke. This retains the wide vector arrowhead and reduces reserved horizontal space to 12 DIP. Visual size still requires on-screen confirmation.
+
+Taskbar value text now uses SemiBold in both horizontal graph overlays and side-taskbar value labels; numeric format, unit sizing and values remain unchanged.

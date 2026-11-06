@@ -612,7 +612,7 @@ namespace FluentSensors.Controls.SensorGraph
             g.GraphLabelText.FontWeight = g.LabelText is "\u2B07" or "\u2B06"
                 ? Microsoft.UI.Text.FontWeights.Bold : Microsoft.UI.Text.FontWeights.Normal;
             bool directionIcon = NetworkDirectionIcon.IsIcon(g.LabelText);
-            g.GraphLabelColumn.MinWidth = directionIcon ? 14 : 0;
+            g.GraphLabelColumn.MinWidth = directionIcon ? 12 : 0;
             g.DirectionLabelIcon.Visibility = directionIcon && g.IsLabelVisible && g.IsNameVisible ? Visibility.Visible : Visibility.Collapsed;
             if (directionIcon) g.DirectionLabelIcon.Data = NetworkDirectionIcon.Create(g.LabelText);
             g.GraphLabelText.Visibility = !directionIcon && g.IsLabelVisible && g.IsNameVisible && !string.IsNullOrEmpty(g.LabelText)
