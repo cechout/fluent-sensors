@@ -18,7 +18,7 @@ It is an unofficial contribution, not an upstream release or guarantee of accept
 | Value text | SemiBold graph readouts; upper-right taskbar overlay defaults to 10 DIP, with an optional 11-DIP Larger setting | Compact/tray text has its own sizing; values and unit formatting unchanged |
 | Individual tray sensors | Settings default plus per-sensor taskbar/tray switch beside the flyout sensor name | Taskbar remains default; multiple tray icons coexist and open System Sensors |
 | Compact taskbar cards | Per-sensor layout switch beside placement; label, value and side level instead of a graph | Optional, persisted independently; horizontal taskbars only; mixed graphs/cards supported |
-| Compact labels and sizing | CPU package uses CPU, dedicated MAX/AVG, network DOWN/UP; 8-DIP labels and 12-DIP semibold values | Degree/percentage and complete network units retained in cards; widths fit live text |
+| Compact labels and sizing | CPU package uses CPU, dedicated MAX/AVG, network DOWN/UP; 8-DIP labels and 12-DIP semibold values | Full Celsius (°C)/percentage and complete network units retained in cards; widths fit live text |
 | Level colors | Base graph color and the individual sensor's active threshold color | Alarm clears back to the selected hardware/type/accent/custom color |
 | Tray appearance | Separate numeric-only white indicators on rounded opaque gray; smaller padded glyphs | Units and full names stay in tooltips; no tray level bar; shell owns icon order/overflow |
 | Reorder mode | Move button left of Pause; isolated grab handles and up/down controls, check mark to return | Saves order across restart/reselection; graphs retain history and pause; tray order stays Windows-controlled |

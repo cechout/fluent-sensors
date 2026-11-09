@@ -180,7 +180,7 @@ namespace FluentSensors.Features.TaskbarWidget
             _value.Text = vm.CurrentValueText;
             double raw = vm.SensorData.LastOrDefault() ?? 0;
             if (vm.CurrentValueText != "-" && vm.SensorType is "Temperature" or "Load" or "Level")
-                _value.Text = raw.ToString("0", CultureInfo.CurrentCulture) + (vm.SensorType == "Temperature" ? "°" : "%");
+                _value.Text = raw.ToString("0", CultureInfo.CurrentCulture) + (vm.SensorType == "Temperature" ? "°C" : "%");
             QueueMeasure();
             if (_graph != null) _graph.ShowGraphCardBackground = vm.IsCardBackgroundVisible;
             double maximum = vm.SensorType is "Temperature" or "Load" or "Level" ? 100 : Math.Max(1, vm.SensorData.DefaultIfEmpty(1).Max() ?? 1);

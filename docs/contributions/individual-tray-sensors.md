@@ -16,7 +16,7 @@ The tray has numeric-only bold white text on opaque gray (RGB 55/58/60), rounded
 
 ## Compact taskbar cards
 
-Compact cards contain a top label, a semibold value and a right-side level bar. They use 8-DIP labels and 12-DIP values. CPU package temperature uses CPU instead of TMP; dedicated maximum/average sensors retain MAX/AVG. Network labels are DOWN/UP. Temperature cards retain the degree symbol, percentages retain %, and network cards retain the complete automatically scaled unit.
+Compact cards contain a top label, a semibold value and a right-side level bar. They use 8-DIP labels and 12-DIP values. CPU package temperature uses CPU instead of TMP; dedicated maximum/average sensors retain MAX/AVG. Network labels are DOWN/UP. Temperature cards show the full Celsius suffix (for example, 75°C), percentages retain %, and network cards retain the complete automatically scaled unit.
 
 The level fill uses the selected hardware/type/accent/custom taskbar graph color. A breached enabled threshold overrides it with that individual sensor's threshold color, matching the graph/value; clearing/disabling the alarm restores the base graph color. Tray numbers stay white independently.
 
@@ -63,3 +63,5 @@ Before merge/release validation, repeat multiple taskbar/tray switches, global d
 Personal release packaging and upstream review are covered by the [complete contribution guide](README.md). Local trial configuration is copied separately; releases must exclude personal settings, logs and hardware snapshots.
 
 The font-size preference was built and launched locally on 2026-11-09. Changed XAML/resources, unique localization keys and whitespace checks passed. The local trial was set to Default; interactive selection/restart persistence remains a manual check because the app is elevated. Personal release and PR documentation include this preference alongside the earlier presentation features.
+
+Local Celsius-label trial (2026-11-09): compact temperature cards now include C after the degree sign; full-value measurement remains in use. Release x64 compilation and `git diff --check` passed. `CelsiusCardTrial` was launched with copied previous-trial preferences. Personal release and PR notes include the Celsius suffix change; live appearance requires user verification.
