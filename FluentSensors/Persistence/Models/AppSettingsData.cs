@@ -117,6 +117,10 @@ namespace FluentSensors.Persistence.Models
         public GraphColorSource? TaskbarGraphColorSource { get; set; } = null;
         public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public bool TaskbarUseTransparentGraphBackground { get; set; } = true;
+        public GraphCardMaterial? TaskbarGraphCardMaterial { get; set; }
+        public bool? TaskbarBlurGraph { get; set; }
+        public bool TaskbarNetworkDirectionIcons { get; set; } = false;
+        public bool TaskbarUseLargerGraphValues { get; set; } = false;
 
         // per taskbar edge ("Bottom", "Top", "Left", "Right"), defaults in TaskbarEdgeSettings:
         // - time range
@@ -142,6 +146,7 @@ namespace FluentSensors.Persistence.Models
         // --- taskbar widget & flyout behavior ---
 
         public bool TaskbarWidgetPositionLocked { get; set; } = false; // no dragging the taskbar widget along the taskbar
+        public bool TaskbarWidgetNextToTray { get; set; } = false;
         public KeyboardShortcut? TaskbarFlyoutShortcut { get; set; } = null; // the global shortcut that opens the flyout
 
 

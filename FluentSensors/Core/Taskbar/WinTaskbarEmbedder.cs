@@ -43,24 +43,27 @@ namespace FluentSensors.Core.Taskbar
                 return false;
             }
 
-            Position(hwnd, taskbarHwnd, screenRect);
+            Position(hwnd, taskbarHwnd, screenRect, initialize: true);
             return true;
         }
 
         // moves an embedded window, screen to parent client coordinates; AppWindow.MoveAndResize
         // works in screen coordinates
         // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-screentoclient
-        internal static void Position(IntPtr hwnd, IntPtr taskbarHwnd, RectInt32 screenRect)
+        internal static void Position(IntPtr hwnd, IntPtr taskbarHwnd, RectInt32 screenRect, bool initialize = false)
         {
             var origin = new NativeMethods.POINT { X = screenRect.X, Y = screenRect.Y };
             NativeMethods.ScreenToClient(taskbarHwnd, ref origin);
 
+            // Live value widths must preserve activation, visibility and sibling order.
             NativeMethods.SetWindowPos(hwnd, IntPtr.Zero,
                 origin.X,
                 origin.Y,
                 screenRect.Width,
                 screenRect.Height,
-                NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_FRAMECHANGED | NativeMethods.SWP_SHOWWINDOW);
+                NativeMethods.SWP_NOACTIVATE | (initialize
+                    ? NativeMethods.SWP_FRAMECHANGED | NativeMethods.SWP_SHOWWINDOW
+                    : NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOOWNERZORDER));
         }
 
         // explorer.exe builds its taskbar XAML island after a restart, so it lands above a widget that embedded first

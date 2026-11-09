@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 
 namespace FluentSensors.Persistence.Models
@@ -16,6 +16,10 @@ namespace FluentSensors.Persistence.Models
         public List<List<string>> ExtraWidgetWindows { get; set; } = new();
         public List<string> Csv { get; set; } = new();
         public List<string> Taskbar { get; set; } = new();
+        public List<string> TaskbarSensorOrder { get; set; } = new();
+        public bool TaskbarSensorsDefaultToTray { get; set; }
+        public Dictionary<string, bool> TaskbarSensorTrayOverrides { get; set; } = new();
+        public HashSet<string> CompactTaskbarSensors { get; set; } = new();
         public List<string> WidgetBoard { get; set; } = new();
 
         // guards the one-time migration from WindowState "Widget" PinnedSensorIds; stays true, even

@@ -13,10 +13,18 @@
 
     <!--  background has to stay transparent; an opaque root paints over the backdrop  -->
     <Grid x:Name="RootGrid" Background="Transparent">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid.Resources>
             <!--  slot panels and templates, picked by the taskbar orientation in ApplyEdgeLayout  -->
             <ItemsPanelTemplate x:Key="HorizontalSlotsPanel">
-                <fhControls:HorizontalStretchPanel Spacing="6" />
+                <StackPanel Orientation="Horizontal" Spacing="8" />
             </ItemsPanelTemplate>
             <ItemsPanelTemplate x:Key="VerticalSlotsPanel">
                 <fhControls:VerticalStretchPanel Spacing="6" />
@@ -24,21 +32,7 @@
 
             <!--  slot on a horizontal taskbar: graph with name and value in its top row  -->
             <DataTemplate x:Key="HorizontalSlotTemplate" x:DataType="fhGraph:SensorGraphViewModel">
-                <fhGraph:SensorPanelControl
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    IsGraphHoverEnabled="False"
-                    IsHitTestVisible="False"
-                    ShowGraphCardBackground="{x:Bind IsCardBackgroundVisible, Mode=OneWay}"
-                    ShowGraphCardBorder="False"
-                    ShowGraphLabel="True"
-                    ShowStatusRow="False"
-                    ShowThresholdControls="False"
-                    ShowThresholdFlyoutIndicator="False"
-                    ShowYAxisControls="False"
-                    ThresholdLabelAlwaysVisible="False"
-                    UseGraphColorCardBackground="True"
-                    ViewModel="{x:Bind}" />
+                <local:TaskbarSensorSlot ViewModel="{x:Bind}" />
             </DataTemplate>
 
             <!--  slot on a side taskbar  -->
@@ -175,7 +169,18 @@
                 x:Name="SlotsItemsControl"
                 ItemTemplate="{StaticResource HorizontalSlotTemplate}"
                 ItemsPanel="{StaticResource HorizontalSlotsPanel}"
-                ItemsSource="{x:Bind ViewModel.PinnedSensors, Mode=OneWay}" />
+                ItemsSource="{x:Bind ViewModel.TaskbarSensors, Mode=OneWay}" />
         </Button>
+        <Border
+            x:Name="TrayDivider"
+            Grid.Column="1"
+            Width="1"
+            Height="20"
+            Margin="4,0,4,0"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+            IsHitTestVisible="False"
+            Visibility="Collapsed" />
     </Grid>
 </Window>

@@ -8,6 +8,8 @@
 
 # specific folders
 /Setup/Output/
+/Setup/Prerequisites/PawnIO/PawnIO_setup.exe
+*.download
 # the msix layout and package; the stock *.msix rule further down does not match .msixbundle
 /Setup/MsixOutput/
 

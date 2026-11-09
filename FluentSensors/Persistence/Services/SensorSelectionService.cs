@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using FluentSensors.Common.Sensors;
 using FluentSensors.Persistence.Models;
@@ -40,6 +41,56 @@ namespace FluentSensors.Persistence.Services
 
         public bool IsSelected(SensorSelectionProfile profile, string sensorId, int widgetIndex = 0) =>
             GetList(profile, widgetIndex).Contains(sensorId);
+
+        public bool TaskbarSensorsDefaultToTray => _state.TaskbarSensorsDefaultToTray;
+
+        public event Action TaskbarSensorPlacementChanged;
+
+        public IReadOnlyList<string> TaskbarSensorOrder => _state.TaskbarSensorOrder ??= new List<string>();
+
+        // Keep preferences for disconnected sensors without changing selection membership or placement.
+        public void SetTaskbarSensorOrder(IEnumerable<string> sensorIds)
+        {
+            var order = sensorIds.Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
+            order.AddRange(TaskbarSensorOrder.Where(id => !order.Contains(id)));
+            if (TaskbarSensorOrder.SequenceEqual(order)) return;
+            _state.TaskbarSensorOrder = order;
+            Persist();
+            TaskbarSensorPlacementChanged?.Invoke();
+        }
+
+        public bool IsCompactTaskbarSensor(string sensorId) => _state.CompactTaskbarSensors?.Contains(sensorId) == true;
+
+        public void ToggleCompactTaskbarSensor(string sensorId)
+        {
+            _state.CompactTaskbarSensors ??= new HashSet<string>();
+            if (!_state.CompactTaskbarSensors.Add(sensorId)) _state.CompactTaskbarSensors.Remove(sensorId);
+            Persist();
+            TaskbarSensorPlacementChanged?.Invoke();
+        }
+
+        public bool IsTaskbarSensorInTray(string sensorId) =>
+            _state.TaskbarSensorTrayOverrides != null && _state.TaskbarSensorTrayOverrides.TryGetValue(sensorId, out bool inTray)
+                ? inTray : _state.TaskbarSensorsDefaultToTray;
+
+        public void SetTaskbarSensorsDefaultToTray(bool inTray)
+        {
+            if (_state.TaskbarSensorsDefaultToTray == inTray) return;
+            _state.TaskbarSensorsDefaultToTray = inTray;
+            Persist();
+            TaskbarSensorPlacementChanged?.Invoke();
+        }
+
+        public void SetTaskbarSensorInTray(string sensorId, bool inTray)
+        {
+            _state.TaskbarSensorTrayOverrides ??= new Dictionary<string, bool>();
+            if (inTray == _state.TaskbarSensorsDefaultToTray)
+                _state.TaskbarSensorTrayOverrides.Remove(sensorId);
+            else
+                _state.TaskbarSensorTrayOverrides[sensorId] = inTray;
+            Persist();
+            TaskbarSensorPlacementChanged?.Invoke();
+        }
 
         // one sensor in or out, live on every checkbox toggle, so nothing waits on a commit
         // step; a new one goes to the end

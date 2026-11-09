@@ -899,6 +899,21 @@
                     </controls:SettingsCard>
 
                     <!--  transparent drops the calculated tint so the taskbar shows through the graph cards  -->
+                    <controls:SettingsCard x:Uid="Settings_NetworkDirectionLabelsCard">
+                        <ComboBox x:Name="NetworkDirectionLabelsComboBox" Width="160" SelectionChanged="NetworkDirectionLabelsComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_NetworkDirectionLabels_Text" Tag="Text" />
+                            <ComboBoxItem x:Uid="Settings_NetworkDirectionLabels_Icons" Tag="Icons" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Uid="Settings_TaskbarGraphValueSizeCard">
+                        <ComboBox x:Name="TaskbarGraphValueSizeComboBox" x:Uid="Settings_TaskbarGraphValueSizeComboBox"
+                                  Width="160" SelectionChanged="TaskbarGraphValueSizeComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_TaskbarGraphValueSize_Original" Tag="Original" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarGraphValueSize_Larger" Tag="Larger" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
                     <controls:SettingsCard x:Uid="Settings_GraphBackgroundSourceCard">
                         <ComboBox
                             x:Name="TaskbarGraphBackgroundSourceComboBox"
@@ -906,7 +921,12 @@
                             SelectionChanged="TaskbarGraphBackgroundSourceComboBox_SelectionChanged">
                             <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Calculated" Tag="Calculated" />
                             <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Transparent" Tag="Transparent" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Acrylic" Tag="Acrylic" />
                         </ComboBox>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Uid="Settings_TaskbarBlurGraphCard">
+                        <ToggleSwitch x:Name="BlurGraphToggle" x:Uid="Common_OnOffToggle" Toggled="BlurGraphToggle_Toggled" />
                     </controls:SettingsCard>
 
                     <controls:SettingsCard x:Uid="Settings_TimeRangeCard">
@@ -1063,6 +1083,10 @@
                 Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}" />
 
+            <controls:SettingsCard x:Uid="Settings_SensorTrayDefaultCard">
+                <ToggleSwitch x:Name="SensorTrayDefaultToggle" x:Uid="Common_ToggleSwitch" Toggled="SensorTrayDefaultToggle_Toggled" />
+            </controls:SettingsCard>
+
             <!--  drag lock for the widget position on the taskbar  -->
             <controls:SettingsCard
                 x:Uid="Settings_LockTaskbarWidgetPositionCard"
@@ -1072,6 +1096,16 @@
                     x:Name="LockWidgetPositionToggle"
                     x:Uid="Common_ToggleSwitch"
                     Toggled="LockWidgetPositionToggle_Toggled" />
+            </controls:SettingsCard>
+
+            <controls:SettingsCard
+                x:Uid="Settings_TaskbarWidgetNextToTrayCard"
+                fhUi:FocusGroup.IsEnabled="True"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE73C;}">
+                <ToggleSwitch
+                    x:Name="NextToTrayToggle"
+                    x:Uid="Common_ToggleSwitch"
+                    Toggled="NextToTrayToggle_Toggled" />
             </controls:SettingsCard>
 
             <!--  flyout shortcut  -->

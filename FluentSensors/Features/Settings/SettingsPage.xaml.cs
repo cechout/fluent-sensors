@@ -90,6 +90,9 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarBackgroundMaterialSettings();
             RestoreTaskbarGraphColorSettings();
             RestoreTaskbarGraphBackgroundSourceSelection();
+            BlurGraphToggle.IsOn = SettingsService.Instance.TaskbarBlurGraph;
+            SelectByTag(NetworkDirectionLabelsComboBox, SettingsService.Instance.TaskbarNetworkDirectionIcons ? "Icons" : "Text");
+            SelectByTag(TaskbarGraphValueSizeComboBox, SettingsService.Instance.TaskbarUseLargerGraphValues ? "Larger" : "Original");
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarGraphWidthSelection();
             RestoreTaskbarSideSlotSelection();
@@ -97,6 +100,8 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarFlyoutGraphSelection();
             ApplyFlyoutShortcutButton();
             RestoreLockWidgetPositionSelection();
+            NextToTrayToggle.IsOn = SettingsService.Instance.TaskbarWidgetNextToTray;
+            SensorTrayDefaultToggle.IsOn = SensorSelectionService.Instance.TaskbarSensorsDefaultToTray;
 
             ShowAppDataFolderPath();
 
@@ -1222,11 +1227,32 @@ namespace FluentSensors.Features.Settings
             }
         }
 
+        private void BlurGraphToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarBlurGraph = BlurGraphToggle.IsOn;
+        }
+
+        private void TaskbarGraphValueSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (TaskbarGraphValueSizeComboBox.SelectedItem is ComboBoxItem item)
+                SettingsService.Instance.TaskbarUseLargerGraphValues = (string)item.Tag == "Larger";
+        }
+
+        private void NetworkDirectionLabelsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (NetworkDirectionLabelsComboBox.SelectedItem is ComboBoxItem item)
+                SettingsService.Instance.TaskbarNetworkDirectionIcons = (string)item.Tag == "Icons";
+        }
+
         private void TaskbarGraphBackgroundSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (TaskbarGraphBackgroundSourceComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
             {
-                SettingsService.Instance.TaskbarUseTransparentGraphBackground = (tag == "Transparent");
+                if (!_isLoading && Enum.TryParse<GraphCardMaterial>(tag, out var material))
+                    SettingsService.Instance.TaskbarGraphCardMaterial = material;
             }
         }
 
@@ -1250,8 +1276,7 @@ namespace FluentSensors.Features.Settings
 
         private void RestoreTaskbarGraphBackgroundSourceSelection()
         {
-            TaskbarGraphBackgroundSourceComboBox.SelectedIndex =
-                SettingsService.Instance.TaskbarUseTransparentGraphBackground ? 1 : 0;
+            SelectByTag(TaskbarGraphBackgroundSourceComboBox, SettingsService.Instance.TaskbarGraphCardMaterial.ToString());
         }
 
         private void RestoreTaskbarGraphTimeSpanSelection()
@@ -1435,6 +1460,18 @@ namespace FluentSensors.Features.Settings
         private void RestoreLockWidgetPositionSelection()
         {
             LockWidgetPositionToggle.IsOn = SettingsService.Instance.TaskbarWidgetPositionLocked;
+        }
+
+        private void NextToTrayToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarWidgetNextToTray = NextToTrayToggle.IsOn;
+        }
+
+        private void SensorTrayDefaultToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SensorSelectionService.Instance.SetTaskbarSensorsDefaultToTray(SensorTrayDefaultToggle.IsOn);
         }
 
 

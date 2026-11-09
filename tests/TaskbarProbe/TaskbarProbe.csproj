@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x64</PlatformTarget>
+    <ApplicationManifest>Probe.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../FluentSensors/Core/Taskbar/WinTaskbarTrayTracker.cs" Link="WinTaskbarTrayTracker.cs" />
+    <Compile Include="../../FluentSensors/Core/Taskbar/WinTaskbarInfo.cs" Link="WinTaskbarInfo.cs" />
+    <Compile Include="../../FluentSensors/Core/Taskbar/NativeMethods.cs" Link="NativeMethods.cs" />
+    <Reference Include="Interop.UIA">
+      <HintPath>../../FluentSensors/obj/x64/Release/net10.0-windows10.0.19041.0/win-x64/Interop.UIA.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.UIAutomationClient">
+      <HintPath>../../FluentSensors/obj/x64/Release/net10.0-windows10.0.19041.0/win-x64/Interop.UIAutomationClient.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

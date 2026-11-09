@@ -1,4 +1,4 @@
-using LiveChartsCore;
+﻿using LiveChartsCore;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
@@ -13,6 +13,7 @@ using System;
 using System.Collections.ObjectModel;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI;
 using FluentSensors.Diagnostics;
 
 
@@ -528,6 +529,15 @@ namespace FluentSensors.Controls.SensorGraph
                 new PropertyMetadata(string.Empty, OnLabelChanged));
 
 
+        public double CurrentValueFontSize
+        {
+            get => (double)GetValue(CurrentValueFontSizeProperty);
+            set => SetValue(CurrentValueFontSizeProperty, value);
+        }
+        public static readonly DependencyProperty CurrentValueFontSizeProperty =
+            DependencyProperty.Register(nameof(CurrentValueFontSize), typeof(double), typeof(SensorGraphControl),
+                new PropertyMetadata(11.0, (d, e) => ((SensorGraphControl)d).GraphCurrentValueText.FontSize = (double)e.NewValue));
+
         // DependencyProperty: CurrentValueText
         public string CurrentValueText
         {
@@ -608,7 +618,13 @@ namespace FluentSensors.Controls.SensorGraph
             if (d is not SensorGraphControl g) return;
 
             g.GraphLabelText.Text = g.LabelText ?? string.Empty;
-            g.GraphLabelText.Visibility = g.IsLabelVisible && g.IsNameVisible && !string.IsNullOrEmpty(g.LabelText)
+            g.GraphLabelText.FontWeight = g.LabelText is "\u2B07" or "\u2B06"
+                ? Microsoft.UI.Text.FontWeights.Bold : Microsoft.UI.Text.FontWeights.Normal;
+            bool directionIcon = NetworkDirectionIcon.IsIcon(g.LabelText);
+            g.GraphLabelColumn.MinWidth = directionIcon ? 12 : 0;
+            g.DirectionLabelIcon.Visibility = directionIcon && g.IsLabelVisible && g.IsNameVisible ? Visibility.Visible : Visibility.Collapsed;
+            if (directionIcon) g.DirectionLabelIcon.Data = NetworkDirectionIcon.Create(g.LabelText);
+            g.GraphLabelText.Visibility = !directionIcon && g.IsLabelVisible && g.IsNameVisible && !string.IsNullOrEmpty(g.LabelText)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
 
@@ -661,16 +677,49 @@ namespace FluentSensors.Controls.SensorGraph
             if (d is SensorGraphControl g) g.ApplyCardBackground();
         }
 
+        public bool BlurGraph
+        {
+            get => (bool)GetValue(BlurGraphProperty);
+            set => SetValue(BlurGraphProperty, value);
+        }
+
+        public static readonly DependencyProperty BlurGraphProperty =
+            DependencyProperty.Register(nameof(BlurGraph), typeof(bool), typeof(SensorGraphControl),
+                new PropertyMetadata(false, OnBlurGraphChanged));
+
+        private static void OnBlurGraphChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SensorGraphControl graph) graph.ForceRepaint();
+        }
+
+        public GraphCardMaterial CardMaterial
+        {
+            get => (GraphCardMaterial)GetValue(CardMaterialProperty);
+            set => SetValue(CardMaterialProperty, value);
+        }
+
+        public static readonly DependencyProperty CardMaterialProperty =
+            DependencyProperty.Register(nameof(CardMaterial), typeof(GraphCardMaterial), typeof(SensorGraphControl),
+                new PropertyMetadata(GraphCardMaterial.Calculated, OnCardBackgroundOverrideChanged));
+
         // for the constructor and the property callback
         private void ApplyCardBackground()
         {
-            if (CardBackgroundOverride is Windows.UI.Color color)
+            ForceRepaint();
+            bool hasMaterial = CardMaterial == GraphCardMaterial.Acrylic;
+            CardAcrylicSurface.Visibility = hasMaterial ? Visibility.Visible : Visibility.Collapsed;
+            if (hasMaterial)
             {
-                CardBorder.Background = new SolidColorBrush(color);
+                CardBorder.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
             }
             else
             {
-                VisualStateManager.GoToState(this, "CardBackgroundVisible", false);
+                if (CardMaterial is GraphCardMaterial.Acrylic or GraphCardMaterial.Mica)
+                    CardBorder.Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"];
+                else if (CardBackgroundOverride is Windows.UI.Color color)
+                    CardBorder.Background = new SolidColorBrush(color);
+                else
+                    VisualStateManager.GoToState(this, "CardBackgroundVisible", false);
             }
         }
 
@@ -704,6 +753,7 @@ namespace FluentSensors.Controls.SensorGraph
             else
             {
                 VisualStateManager.GoToState(this, "CardBackgroundVisible", false);
+                ApplyCardBackground();
             }
         }
 

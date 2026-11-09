@@ -563,16 +563,82 @@ namespace FluentSensors.Persistence.Services
         }
 
         // the taskbar widget graphs drop their card tint
+        private bool _taskbarNetworkDirectionIcons = Defaults.TaskbarNetworkDirectionIcons;
+        public bool TaskbarNetworkDirectionIcons
+        {
+            get => _taskbarNetworkDirectionIcons;
+            set
+            {
+                if (_taskbarNetworkDirectionIcons == value) return;
+                _taskbarNetworkDirectionIcons = value;
+                TaskbarNetworkLabelsChanged?.Invoke();
+                SaveDebounced();
+            }
+        }
+        public event Action? TaskbarNetworkLabelsChanged;
+
+        private bool _taskbarUseLargerGraphValues = Defaults.TaskbarUseLargerGraphValues;
+        public bool TaskbarUseLargerGraphValues
+        {
+            get => _taskbarUseLargerGraphValues;
+            set
+            {
+                if (_taskbarUseLargerGraphValues == value) return;
+                _taskbarUseLargerGraphValues = value;
+                TaskbarGraphValueSizeChanged?.Invoke();
+                SaveDebounced();
+            }
+        }
+        public event Action? TaskbarGraphValueSizeChanged;
+
+        private bool _taskbarBlurGraph;
+        public bool TaskbarBlurGraph
+        {
+            get => _taskbarBlurGraph;
+            set
+            {
+                if (_taskbarBlurGraph == value) return;
+                _taskbarBlurGraph = value;
+                TaskbarGraphBackgroundChanged?.Invoke(_taskbarUseTransparentGraphBackground);
+                SaveDebounced();
+            }
+        }
+
+        private GraphCardMaterial _taskbarGraphCardMaterial = GraphCardMaterial.Transparent;
+        public GraphCardMaterial TaskbarGraphCardMaterial
+        {
+            get => _taskbarGraphCardMaterial;
+            set
+            {
+                if (!Enum.IsDefined(value) || _taskbarGraphCardMaterial == value) return;
+                _taskbarGraphCardMaterial = value;
+                _taskbarUseTransparentGraphBackground = value == GraphCardMaterial.Transparent;
+                TaskbarGraphBackgroundChanged?.Invoke(_taskbarUseTransparentGraphBackground);
+                SaveDebounced();
+            }
+        }
+
         private bool _taskbarUseTransparentGraphBackground = Defaults.TaskbarUseTransparentGraphBackground;
         public bool TaskbarUseTransparentGraphBackground
         {
             get => _taskbarUseTransparentGraphBackground;
             set
             {
-                if (_taskbarUseTransparentGraphBackground != value)
+                TaskbarGraphCardMaterial = value ? GraphCardMaterial.Transparent : GraphCardMaterial.Calculated;
+            }
+        }
+
+        // optional tray anchoring leaves the saved manual offsets intact
+        private bool _taskbarWidgetNextToTray = Defaults.TaskbarWidgetNextToTray;
+        public bool TaskbarWidgetNextToTray
+        {
+            get => _taskbarWidgetNextToTray;
+            set
+            {
+                if (_taskbarWidgetNextToTray != value)
                 {
-                    _taskbarUseTransparentGraphBackground = value;
-                    TaskbarGraphBackgroundChanged?.Invoke(_taskbarUseTransparentGraphBackground);
+                    _taskbarWidgetNextToTray = value;
+                    TaskbarWidgetNextToTrayChanged?.Invoke(value);
                     SaveDebounced();
                 }
             }
@@ -1330,9 +1396,14 @@ namespace FluentSensors.Persistence.Services
             _taskbarGraphColorSource = ResolveGraphColorSource(
                 data.TaskbarGraphColorSource, data.TaskbarUseGraphAccentColor, AppSettingsData.DefaultTaskbarGraphColorSource);
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
-            _taskbarUseTransparentGraphBackground = data.TaskbarUseTransparentGraphBackground;
+            _taskbarNetworkDirectionIcons = data.TaskbarNetworkDirectionIcons;
+            _taskbarUseLargerGraphValues = data.TaskbarUseLargerGraphValues;
+            _taskbarBlurGraph = GraphCardMaterials.ResolveBlur(data.TaskbarBlurGraph, data.TaskbarGraphCardMaterial);
+            _taskbarGraphCardMaterial = GraphCardMaterials.ResolveSaved(data.TaskbarGraphCardMaterial, data.TaskbarUseTransparentGraphBackground);
+            _taskbarUseTransparentGraphBackground = _taskbarGraphCardMaterial == GraphCardMaterial.Transparent;
             _taskbarEdges = SeedTaskbarEdges(data.TaskbarEdges, data);
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
+            _taskbarWidgetNextToTray = data.TaskbarWidgetNextToTray;
             _taskbarFlyoutGraphTimeSpanSeconds = data.TaskbarFlyoutGraphTimeSpanSeconds;
             _taskbarFlyoutGraphHeightDip = data.TaskbarFlyoutGraphHeightDip;
             _taskbarFlyoutShortcut = data.TaskbarFlyoutShortcut;
@@ -1421,8 +1492,13 @@ namespace FluentSensors.Persistence.Services
                 TaskbarGraphColorSource = _taskbarGraphColorSource,
                 TaskbarGraphCustomColor = _taskbarGraphCustomColor,
                 TaskbarUseTransparentGraphBackground = _taskbarUseTransparentGraphBackground,
+                TaskbarGraphCardMaterial = _taskbarGraphCardMaterial,
+                TaskbarBlurGraph = _taskbarBlurGraph,
+                TaskbarNetworkDirectionIcons = _taskbarNetworkDirectionIcons,
+                TaskbarUseLargerGraphValues = _taskbarUseLargerGraphValues,
                 TaskbarEdges = CloneTaskbarEdges(),
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
+                TaskbarWidgetNextToTray = _taskbarWidgetNextToTray,
                 TaskbarFlyoutGraphTimeSpanSeconds = _taskbarFlyoutGraphTimeSpanSeconds,
                 TaskbarFlyoutGraphHeightDip = _taskbarFlyoutGraphHeightDip,
                 TaskbarFlyoutShortcut = _taskbarFlyoutShortcut,
@@ -1513,6 +1589,7 @@ namespace FluentSensors.Persistence.Services
         public event Action<int> TaskbarSideTitleLinesChanged;
         public event Action<string> TaskbarFlyoutAlignmentChanged;
         public event Action<bool> TaskbarWidgetPositionLockedChanged;
+        public event Action<bool> TaskbarWidgetNextToTrayChanged;
         public event Action<double> TaskbarFlyoutGraphTimeSpanChanged;
         public event Action<double> TaskbarFlyoutGraphHeightChanged;
 

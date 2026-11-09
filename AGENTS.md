@@ -3,7 +3,8 @@
 This project is a C#/.NET 10 WinUI 3 desktop app that reads hardware sensors through
 LibreHardwareMonitorLib and shows them in a native Windows 11 interface. It ships self-contained,
 unpackaged on GitHub and as an MSIX in the Microsoft Store, and it requires administrator rights because the
-sensor library talks to the PawnIO kernel driver, which is installed separately and never shipped with the app.
+sensor library talks to the PawnIO kernel driver. The EXE installer bundles the official signed PawnIO setup;
+portable and Microsoft Store users install that prerequisite separately.
 
 - Keep the work scoped to what was asked. Avoid opportunistic refactors, formatting churn, dependency
   bumps and drive-by renames.

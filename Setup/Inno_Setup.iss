@@ -9,6 +9,11 @@
 #endif
 #define MyAppPublisher "Daniel Čech"
 #define MyAppExeName "FluentSensors.exe"
+#define PawnIOVersion "2.2.0"
+#define PawnIOHash "1f519a22e47187f70a1379a48ca604981c4fcf694f4e65b734aaa74a9fba3032"
+#if !FileExists(SourcePath + "Prerequisites\PawnIO\PawnIO_setup.exe")
+  #error Run tools/Prepare-PawnIO.ps1 before compiling the installer.
+#endif
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -50,8 +55,10 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "pawnio"; Description: "Install PawnIO {#PawnIOVersion} for CPU temperatures and power readings"; GroupDescription: "Hardware sensor support:"; Check: not IsPawnIOReady
 
 [Files]
+Source: "Prerequisites\PawnIO\PawnIO_setup.exe"; Flags: dontcopy
 Source: "..\FluentSensors\bin\x64\Release\net10.0-windows10.0.19041.0\publish\win-x64\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 ; Excludes keeps a local portable marker and its Persistence folder out, so no installed build writes
 ; into Program Files
@@ -66,11 +73,94 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 ; shellexec makes "launch now" work: postinstall defaults to runasoriginaluser, the unelevated token of
 ; whoever started Setup, which requireAdministrator fails with ERROR_ELEVATION_REQUIRED (740);
 ; ShellExecuteEx raises the UAC prompt instead
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent shellexec
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent shellexec; Check: not PawnIORestartRequired
 
 [Code]
 const
   OldAppId = '{EBF1FF82-8B01-4284-8033-2D2A6AF0E6A7}';
+  PawnIOKey = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PawnIO';
+
+var
+  PawnIOInstalledThisRun: Boolean;
+  PawnIONeedsRestart: Boolean;
+
+function IsPawnIOReady(): Boolean;
+var
+  VersionText, InstallLocation: String;
+  InstalledVersion, RequiredVersion: Int64;
+begin
+  Result := False;
+  if not RegQueryStringValue(HKLM64, PawnIOKey, 'DisplayVersion', VersionText) then
+    exit;
+  if not StrToVersion(VersionText, InstalledVersion) then
+    exit;
+  if not StrToVersion('{#PawnIOVersion}', RequiredVersion) then
+    exit;
+  if ComparePackedVersion(InstalledVersion, RequiredVersion) < 0 then
+    exit;
+  if not RegQueryStringValue(HKLM64, PawnIOKey, 'InstallLocation', InstallLocation) then
+    exit;
+  Result := FileExists(AddBackslash(InstallLocation) + 'uninstall.exe') and
+    FileExists(AddBackslash(InstallLocation) + 'PawnIOLib.dll') and
+    RegKeyExists(HKLM64, 'SYSTEM\CurrentControlSet\Services\PawnIO');
+end;
+
+function PawnIORestartRequired(): Boolean;
+begin
+  Result := PawnIONeedsRestart;
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  SetupPath: String;
+  ResultCode: Integer;
+begin
+  Result := '';
+  if PawnIOInstalledThisRun then
+    exit;
+  if IsPawnIOReady() then
+  begin
+    Log('PawnIO prerequisite skipped: complete supported installation detected.');
+    exit;
+  end;
+  if not WizardIsTaskSelected('pawnio') then
+  begin
+    Log('PawnIO prerequisite skipped: hardware sensor support was deselected.');
+    exit;
+  end;
+
+  WizardForm.PreparingLabel.Caption := 'Installing PawnIO hardware sensor support...';
+  ExtractTemporaryFile('PawnIO_setup.exe');
+  SetupPath := ExpandConstant('{tmp}\PawnIO_setup.exe');
+  if CompareText(GetSHA256OfFile(SetupPath), '{#PawnIOHash}') <> 0 then
+  begin
+    Result := 'The bundled PawnIO installer failed verification. Download a fresh Fluent Sensors installer.';
+    exit;
+  end;
+  if not Exec(SetupPath, '-install -silent', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    Result := Format('PawnIO setup could not start (Windows error %d).', [ResultCode]);
+    exit;
+  end;
+  Log(Format('PawnIO setup returned %d.', [ResultCode]));
+  if (ResultCode <> 0) and (ResultCode <> 3010) then
+  begin
+    Result := Format('PawnIO installation failed (Windows error %d). CPU temperatures require this driver. Resolve the error and retry, or deselect hardware sensor support to install Fluent Sensors without it.', [ResultCode]);
+    exit;
+  end;
+  if not IsPawnIOReady() then
+  begin
+    Result := 'PawnIO setup finished but its installation could not be verified. Retry before starting Fluent Sensors.';
+    exit;
+  end;
+  PawnIOInstalledThisRun := True;
+  PawnIONeedsRestart := ResultCode = 3010;
+end;
+
+function NeedRestart(): Boolean;
+begin
+  Result := PawnIONeedsRestart;
+end;
 
 function GetUninstallString(): String;
 var

@@ -55,6 +55,10 @@ jobs:
       - name: install inno setup
         run: choco install innosetup -y --no-progress
 
+      - name: prepare signed PawnIO prerequisite
+        shell: pwsh
+        run: ./tools/Prepare-PawnIO.ps1
+
       - name: compile installer
         shell: pwsh
         run: >

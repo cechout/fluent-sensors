@@ -74,6 +74,8 @@ namespace FluentSensors.Controls.SensorGraph
                 _isCardBackgroundVisible = !SettingsService.Instance.TaskbarUseTransparentGraphBackground;
                 SettingsService.Instance.TaskbarGraphColorChanged += OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged += OnGraphBackgroundChanged;
+                SettingsService.Instance.TaskbarNetworkLabelsChanged += OnNetworkLabelsChanged;
+                if (Scope == SensorGraphScope.Taskbar) SettingsService.Instance.TaskbarGraphValueSizeChanged += OnGraphValueSizeChanged;
 
                 // the taskbar and its flyout are two graphs on one y-axis state
                 SensorStateService.Instance.StateChanged += OnSensorStateChanged;
@@ -158,6 +160,7 @@ namespace FluentSensors.Controls.SensorGraph
                 _sensorName = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayNameWithUnit));
+                OnPropertyChanged(nameof(GraphDisplayName));
             }
         }
 
@@ -171,7 +174,16 @@ namespace FluentSensors.Controls.SensorGraph
                 _unit = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayNameWithUnit));
+                OnPropertyChanged(nameof(GraphDisplayName));
             }
+        }
+
+        public string GraphDisplayName => IsTaskbarScope && SettingsService.Instance.TaskbarNetworkDirectionIcons
+            ? NetworkDirectionLabel.Resolve(SensorName, SensorType) : SensorName;
+
+        private void OnNetworkLabelsChanged()
+        {
+            OnPropertyChanged(nameof(GraphDisplayName));
         }
 
         public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? SensorName : $"{SensorName} ({Unit})";
@@ -182,6 +194,9 @@ namespace FluentSensors.Controls.SensorGraph
             get => _currentValueText;
             set { _currentValueText = value; OnPropertyChanged(); }
         }
+        public double GraphValueFontSize => Scope == SensorGraphScope.Taskbar && !SettingsService.Instance.TaskbarUseLargerGraphValues ? 10.0 : 11.0;
+        private void OnGraphValueSizeChanged() => OnPropertyChanged(nameof(GraphValueFontSize));
+
         // both theme values; the view picks by its own theme (see SensorPanelControl.GetEffectiveGraphColor)
         private ThemeColorPair _graphColor;
         public ThemeColorPair GraphColor
@@ -208,6 +223,11 @@ namespace FluentSensors.Controls.SensorGraph
 
         // taskbar widget graphs can go fully transparent; only the widget template binds
         // this, the flyout keeps its card
+        public bool BlurGraph => Scope == SensorGraphScope.Taskbar && SettingsService.Instance.TaskbarBlurGraph;
+
+        public GraphCardMaterial CardMaterial => IsTaskbarScope
+            ? SettingsService.Instance.TaskbarGraphCardMaterial : GraphCardMaterial.Calculated;
+
         private bool _isCardBackgroundVisible = true;
         public bool IsCardBackgroundVisible
         {
@@ -372,6 +392,8 @@ namespace FluentSensors.Controls.SensorGraph
         private void OnGraphBackgroundChanged(bool useTransparentBackground)
         {
             IsCardBackgroundVisible = !useTransparentBackground;
+            OnPropertyChanged(nameof(CardMaterial));
+            OnPropertyChanged(nameof(BlurGraph));
         }
 
         private void OnGraphTimeSpanChanged(double newTimeSpanSeconds)
@@ -430,6 +452,8 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 SettingsService.Instance.TaskbarGraphColorChanged -= OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged -= OnGraphBackgroundChanged;
+                SettingsService.Instance.TaskbarNetworkLabelsChanged -= OnNetworkLabelsChanged;
+                if (Scope == SensorGraphScope.Taskbar) SettingsService.Instance.TaskbarGraphValueSizeChanged -= OnGraphValueSizeChanged;
                 SensorStateService.Instance.StateChanged -= OnSensorStateChanged;
             }
             else if (Scope == SensorGraphScope.WidgetBoard)

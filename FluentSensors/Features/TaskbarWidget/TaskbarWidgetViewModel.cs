@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Dispatching;
+using Microsoft.UI.Dispatching;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -7,6 +7,7 @@ using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Features.TaskbarWidget
@@ -22,6 +23,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
         private readonly DispatcherQueue _dispatcherQueue;
         private bool _isLiveDataActive = true;
+        private readonly SensorTrayIndicators _trayIndicators = new();
 
 
         // === constructor ===
@@ -29,6 +31,7 @@ namespace FluentSensors.Features.TaskbarWidget
         public TaskbarWidgetViewModel(List<SensorRowViewModel> selectedSensors)
         {
             PinnedSensors = new ObservableCollection<SensorGraphViewModel>();
+            TaskbarSensors = new ObservableCollection<SensorGraphViewModel>();
             FlyoutSensors = new ObservableCollection<SensorGraphViewModel>();
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
@@ -39,12 +42,15 @@ namespace FluentSensors.Features.TaskbarWidget
                 PinnedSensors.Add(CreateGraph(sensor, SensorGraphScope.Taskbar));
                 FlyoutSensors.Add(CreateGraph(sensor, SensorGraphScope.TaskbarFlyout));
             }
+            RefreshTaskbarSensors();
+            SensorSelectionService.Instance.TaskbarSensorPlacementChanged += QueuePlacementRefresh;
         }
 
 
         // === bindable properties ===
 
         public ObservableCollection<SensorGraphViewModel> PinnedSensors { get; set; }
+        public ObservableCollection<SensorGraphViewModel> TaskbarSensors { get; }
 
         // the same sensors in the same order, on the flyout time range
         public ObservableCollection<SensorGraphViewModel> FlyoutSensors { get; }
@@ -61,6 +67,7 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             Reconcile(PinnedSensors, selectedSensors, SensorGraphScope.Taskbar);
             Reconcile(FlyoutSensors, selectedSensors, SensorGraphScope.TaskbarFlyout);
+            RefreshTaskbarSensors();
         }
 
         // against the settings and the live SystemAccentColor; one call serves the widget and the flyout
@@ -94,6 +101,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 {
                     sensor.ClearHistory();
                 }
+                _trayIndicators.Dispose();
             }
         }
 
@@ -124,6 +132,7 @@ namespace FluentSensors.Features.TaskbarWidget
                         pinnedSensor.AddDataPoint(realSensor.Value, SensorUnitFormatter.Format(realSensor.Value, realSensor.SensorType));
                     }
                 }
+                RefreshTrayIndicators();
             });
         }
 
@@ -132,6 +141,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
         public void Cleanup()
         {
+            SensorSelectionService.Instance.TaskbarSensorPlacementChanged -= QueuePlacementRefresh;
+            _isCleanedUp = true;
+            _trayIndicators.Dispose();
             HardwareMonitorService.Instance.HardwareDataUpdated -= OnHardwareDataUpdated;
 
             foreach (var sensor in AllGraphs())
@@ -149,6 +161,53 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         private IEnumerable<SensorGraphViewModel> AllGraphs() => PinnedSensors.Concat(FlyoutSensors);
+
+        private bool _placementRefreshQueued;
+        private bool _isCleanedUp;
+        private void QueuePlacementRefresh()
+        {
+            if (_placementRefreshQueued || _isCleanedUp) return;
+            _placementRefreshQueued = true;
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                _placementRefreshQueued = false;
+                if (!_isCleanedUp) RefreshTaskbarSensors();
+            });
+        }
+
+        private void RefreshTaskbarSensors()
+        {
+            ApplySavedOrder(PinnedSensors);
+            ApplySavedOrder(FlyoutSensors);
+            var selected = PinnedSensors.Where(sensor => !SensorSelectionService.Instance.IsTaskbarSensorInTray(sensor.SensorId)).ToList();
+            for (int i = TaskbarSensors.Count - 1; i >= 0; i--)
+                if (!selected.Contains(TaskbarSensors[i])) TaskbarSensors.RemoveAt(i);
+            for (int i = 0; i < selected.Count; i++)
+            {
+                int current = TaskbarSensors.IndexOf(selected[i]);
+                if (current < 0) TaskbarSensors.Insert(i, selected[i]);
+                else if (current != i) TaskbarSensors.Move(current, i);
+            }
+            RefreshTrayIndicators();
+        }
+
+        private static void ApplySavedOrder(ObservableCollection<SensorGraphViewModel> sensors)
+        {
+            var order = SensorSelectionService.Instance.TaskbarSensorOrder;
+            var ranks = order.Distinct().Select((id, rank) => (id, rank)).ToDictionary(item => item.id, item => item.rank);
+            var sorted = sensors.OrderBy(sensor => ranks.TryGetValue(sensor.SensorId, out int rank) ? rank : int.MaxValue).ToList();
+            for (int i = 0; i < sorted.Count; i++)
+            {
+                int current = sensors.IndexOf(sorted[i]);
+                if (current != i) sensors.Move(current, i);
+            }
+        }
+
+        private void RefreshTrayIndicators()
+        {
+            if (_isLiveDataActive)
+                _trayIndicators.Update(PinnedSensors.Where(sensor => SensorSelectionService.Instance.IsTaskbarSensorInTray(sensor.SensorId)));
+        }
 
         // matches graphs to the selection:
         // - unselected ones go

@@ -64,7 +64,9 @@ namespace FluentSensors.Controls.SensorGraph
 
             double labelY = LabelFollowsPointer ? position.Y : valuePixels.Y;
             var (scaledValue, _) = SensorUnitFormatter.Scale(value.Value, SensorType);
-            CurrentValueLabelText.Text = scaledValue.ToString("0.0");
+            CurrentValueLabelText.Text = SensorType == "Throughput"
+                ? SensorUnitFormatter.Format(value.Value, SensorType)
+                : scaledValue.ToString("0.0");
 
             // a synchronous measure, so the flip below sees the new text width and not the last frame
             CurrentValueLabelBorder.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
