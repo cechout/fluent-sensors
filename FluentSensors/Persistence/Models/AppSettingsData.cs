@@ -120,6 +120,7 @@ namespace FluentSensors.Persistence.Models
         public GraphCardMaterial? TaskbarGraphCardMaterial { get; set; }
         public bool? TaskbarBlurGraph { get; set; }
         public bool TaskbarNetworkDirectionIcons { get; set; } = false;
+        public bool TaskbarUseLargerGraphValues { get; set; } = false;
 
         // per taskbar edge ("Bottom", "Top", "Left", "Right"), defaults in TaskbarEdgeSettings:
         // - time range

@@ -15,7 +15,7 @@ It is an unofficial contribution, not an upstream release or guarantee of accept
 | Plot blur | Taskbar-only Blur Graph toggle, combinable with every background | Off by default; small equal-axis Gaussian filter on line/fill only |
 | Network labels | Optional Network Labels dropdown: Text labels or Direction icons | Text default; only known Download/Upload Throughput labels change |
 | Direction icons | Drawn arrows with wide heads; 8 by 10 DIP, 1.8 DIP rounded stroke | 12 DIP reserved beside values; horizontal and side taskbars |
-| Value text | SemiBold graph readouts; upper-right overlay increased from 10 to 11 DIP | Compact/tray text has its own sizing; values and unit formatting unchanged |
+| Value text | SemiBold graph readouts; upper-right taskbar overlay defaults to 10 DIP, with an optional 11-DIP Larger setting | Compact/tray text has its own sizing; values and unit formatting unchanged |
 | Individual tray sensors | Settings default plus per-sensor taskbar/tray switch beside the flyout sensor name | Taskbar remains default; multiple tray icons coexist and open System Sensors |
 | Compact taskbar cards | Per-sensor layout switch beside placement; label, value and side level instead of a graph | Optional, persisted independently; horizontal taskbars only; mixed graphs/cards supported |
 | Compact labels and sizing | CPU package uses CPU, dedicated MAX/AVG, network DOWN/UP; 8-DIP labels and 12-DIP semibold values | Degree/percentage and complete network units retained in cards; widths fit live text |

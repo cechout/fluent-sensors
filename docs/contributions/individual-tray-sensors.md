@@ -22,7 +22,7 @@ The level fill uses the selected hardware/type/accent/custom taskbar graph color
 
 Cards measure the complete live text instead of ellipsizing it. The widget uses the same measured width, preserving activation, visibility and sibling order during routine resize. Width updates no longer explicitly hide the flyout. Initial embedding still shows/applies the window frame; actual taskbar edge/handle changes retain their existing relocation handling. Padding/top inset aligns mixed graph/card rows. Vertical taskbars retain their existing graph presentation. The flyout graph stays visible and sharp irrespective of compact style and taskbar-only blur.
 
-The existing graph style's upper-right semibold value increases from 10 to 11 DIP. Compact/tray sizes and flyout status-row values remain separate.
+The existing graph style's upper-right semibold value defaults to the original 10 DIP. Settings > Taskbar Widget & Flyout Appearance > Taskbar Graph > Graph Value Text Size offers Default (10 DIP) or Larger (11 DIP), applying live without recreating graphs. `TaskbarUseLargerGraphValues` defaults to false for older settings and is saved in app settings. Only the embedded taskbar graph changes; compact/tray sizes, flyout values and other graph surfaces remain separate.
 
 ## Reorder mode
 
@@ -61,3 +61,5 @@ Local renderer/native harnesses under ignored logs checked 24 numeric samples at
 Before merge/release validation, repeat multiple taskbar/tray switches, global default plus individual overrides, mixed graph/card/tray rows, close/reopen, pin/unpin, pause/resume, selection Update and restart. Check per-sensor threshold edits/breach/reset; menu and flyout focus during changing network widths; reorder first/last, cancellation, scrolling, repeated toggles and keyboard arrows; then order/placement/history after reconfiguration and restart. Check light/dark/high contrast, small taskbars, display scaling, vertical edges and Explorer restart. A passing build/harness does not establish these live checks.
 
 Personal release packaging and upstream review are covered by the [complete contribution guide](README.md). Local trial configuration is copied separately; releases must exclude personal settings, logs and hardware snapshots.
+
+The font-size preference was built and launched locally on 2026-11-09. Changed XAML/resources, unique localization keys and whitespace checks passed. The local trial was set to Default; interactive selection/restart persistence remains a manual check because the app is elevated. Personal release and PR documentation include this preference alongside the earlier presentation features.

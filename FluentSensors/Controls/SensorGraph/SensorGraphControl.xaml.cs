@@ -529,6 +529,15 @@ namespace FluentSensors.Controls.SensorGraph
                 new PropertyMetadata(string.Empty, OnLabelChanged));
 
 
+        public double CurrentValueFontSize
+        {
+            get => (double)GetValue(CurrentValueFontSizeProperty);
+            set => SetValue(CurrentValueFontSizeProperty, value);
+        }
+        public static readonly DependencyProperty CurrentValueFontSizeProperty =
+            DependencyProperty.Register(nameof(CurrentValueFontSize), typeof(double), typeof(SensorGraphControl),
+                new PropertyMetadata(11.0, (d, e) => ((SensorGraphControl)d).GraphCurrentValueText.FontSize = (double)e.NewValue));
+
         // DependencyProperty: CurrentValueText
         public string CurrentValueText
         {

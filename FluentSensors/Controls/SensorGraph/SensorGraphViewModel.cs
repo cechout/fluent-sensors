@@ -75,6 +75,7 @@ namespace FluentSensors.Controls.SensorGraph
                 SettingsService.Instance.TaskbarGraphColorChanged += OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged += OnGraphBackgroundChanged;
                 SettingsService.Instance.TaskbarNetworkLabelsChanged += OnNetworkLabelsChanged;
+                if (Scope == SensorGraphScope.Taskbar) SettingsService.Instance.TaskbarGraphValueSizeChanged += OnGraphValueSizeChanged;
 
                 // the taskbar and its flyout are two graphs on one y-axis state
                 SensorStateService.Instance.StateChanged += OnSensorStateChanged;
@@ -193,6 +194,9 @@ namespace FluentSensors.Controls.SensorGraph
             get => _currentValueText;
             set { _currentValueText = value; OnPropertyChanged(); }
         }
+        public double GraphValueFontSize => Scope == SensorGraphScope.Taskbar && !SettingsService.Instance.TaskbarUseLargerGraphValues ? 10.0 : 11.0;
+        private void OnGraphValueSizeChanged() => OnPropertyChanged(nameof(GraphValueFontSize));
+
         // both theme values; the view picks by its own theme (see SensorPanelControl.GetEffectiveGraphColor)
         private ThemeColorPair _graphColor;
         public ThemeColorPair GraphColor
@@ -449,6 +453,7 @@ namespace FluentSensors.Controls.SensorGraph
                 SettingsService.Instance.TaskbarGraphColorChanged -= OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged -= OnGraphBackgroundChanged;
                 SettingsService.Instance.TaskbarNetworkLabelsChanged -= OnNetworkLabelsChanged;
+                if (Scope == SensorGraphScope.Taskbar) SettingsService.Instance.TaskbarGraphValueSizeChanged -= OnGraphValueSizeChanged;
                 SensorStateService.Instance.StateChanged -= OnSensorStateChanged;
             }
             else if (Scope == SensorGraphScope.WidgetBoard)

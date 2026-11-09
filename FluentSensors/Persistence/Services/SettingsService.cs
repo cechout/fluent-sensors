@@ -577,6 +577,20 @@ namespace FluentSensors.Persistence.Services
         }
         public event Action? TaskbarNetworkLabelsChanged;
 
+        private bool _taskbarUseLargerGraphValues = Defaults.TaskbarUseLargerGraphValues;
+        public bool TaskbarUseLargerGraphValues
+        {
+            get => _taskbarUseLargerGraphValues;
+            set
+            {
+                if (_taskbarUseLargerGraphValues == value) return;
+                _taskbarUseLargerGraphValues = value;
+                TaskbarGraphValueSizeChanged?.Invoke();
+                SaveDebounced();
+            }
+        }
+        public event Action? TaskbarGraphValueSizeChanged;
+
         private bool _taskbarBlurGraph;
         public bool TaskbarBlurGraph
         {
@@ -1383,6 +1397,7 @@ namespace FluentSensors.Persistence.Services
                 data.TaskbarGraphColorSource, data.TaskbarUseGraphAccentColor, AppSettingsData.DefaultTaskbarGraphColorSource);
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
             _taskbarNetworkDirectionIcons = data.TaskbarNetworkDirectionIcons;
+            _taskbarUseLargerGraphValues = data.TaskbarUseLargerGraphValues;
             _taskbarBlurGraph = GraphCardMaterials.ResolveBlur(data.TaskbarBlurGraph, data.TaskbarGraphCardMaterial);
             _taskbarGraphCardMaterial = GraphCardMaterials.ResolveSaved(data.TaskbarGraphCardMaterial, data.TaskbarUseTransparentGraphBackground);
             _taskbarUseTransparentGraphBackground = _taskbarGraphCardMaterial == GraphCardMaterial.Transparent;
@@ -1480,6 +1495,7 @@ namespace FluentSensors.Persistence.Services
                 TaskbarGraphCardMaterial = _taskbarGraphCardMaterial,
                 TaskbarBlurGraph = _taskbarBlurGraph,
                 TaskbarNetworkDirectionIcons = _taskbarNetworkDirectionIcons,
+                TaskbarUseLargerGraphValues = _taskbarUseLargerGraphValues,
                 TaskbarEdges = CloneTaskbarEdges(),
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
                 TaskbarWidgetNextToTray = _taskbarWidgetNextToTray,

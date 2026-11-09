@@ -92,6 +92,7 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarGraphBackgroundSourceSelection();
             BlurGraphToggle.IsOn = SettingsService.Instance.TaskbarBlurGraph;
             SelectByTag(NetworkDirectionLabelsComboBox, SettingsService.Instance.TaskbarNetworkDirectionIcons ? "Icons" : "Text");
+            SelectByTag(TaskbarGraphValueSizeComboBox, SettingsService.Instance.TaskbarUseLargerGraphValues ? "Larger" : "Original");
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarGraphWidthSelection();
             RestoreTaskbarSideSlotSelection();
@@ -1230,6 +1231,13 @@ namespace FluentSensors.Features.Settings
         {
             if (_isLoading) return;
             SettingsService.Instance.TaskbarBlurGraph = BlurGraphToggle.IsOn;
+        }
+
+        private void TaskbarGraphValueSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (TaskbarGraphValueSizeComboBox.SelectedItem is ComboBoxItem item)
+                SettingsService.Instance.TaskbarUseLargerGraphValues = (string)item.Tag == "Larger";
         }
 
         private void NetworkDirectionLabelsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

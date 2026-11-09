@@ -2141,4 +2141,19 @@ Cycle Count - full charge cycles counted by the electronics of the battery</valu
   <data name="TaskbarFlyout_ReorderStart" xml:space="preserve">
     <value>Reorder sensors</value>
   </data>
+  <data name="Settings_TaskbarGraphValueSizeCard.Header" xml:space="preserve">
+    <value>Graph Value Text Size</value>
+  </data>
+  <data name="Settings_TaskbarGraphValueSizeCard.Description" xml:space="preserve">
+    <value>Top-right values in the default taskbar graph style</value>
+  </data>
+  <data name="Settings_TaskbarGraphValueSizeComboBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Taskbar graph value text size</value>
+  </data>
+  <data name="Settings_TaskbarGraphValueSize_Larger.Content" xml:space="preserve">
+    <value>Larger</value>
+  </data>
+  <data name="Settings_TaskbarGraphValueSize_Original.Content" xml:space="preserve">
+    <value>Default</value>
+  </data>
 </root>

@@ -466,6 +466,7 @@
                     CardBackgroundOverride="{x:Bind GetEffectiveCardBackground(ShowGraphCardBackground, UseGraphColorCardBackground, GraphHardwareKind, SensorTypeColor, ViewModel.GraphColor), Mode=OneWay}"
                     CardBorderOverride="{x:Bind BoolToCardBorderOverride(ShowGraphCardBorder), Mode=OneWay}"
                     CurrentValueText="{x:Bind ViewModel.CurrentValueText, Mode=OneWay}"
+                    CurrentValueFontSize="{x:Bind ViewModel.GraphValueFontSize, Mode=OneWay}"
                     FillFade="{x:Bind ViewModel.GraphFillFade, Mode=OneWay}"
                     IsAutoScaled="{x:Bind ViewModel.IsAutoScaled, Mode=OneWay}"
                     IsCurrentValueVisible="{x:Bind ShowGraphCurrentValue, Mode=OneWay}"
