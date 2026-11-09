@@ -24,6 +24,7 @@ It is an unofficial contribution, not an upstream release or guarantee of accept
 | Reorder mode | Move button left of Pause; isolated grab handles and up/down controls, check mark to return | Saves order across restart/reselection; graphs retain history and pause; tray order stays Windows-controlled |
 | Live resizing | Complete content widths without explicit flyout dismissal, reactivation or z-order changes | Initial embedding still shows/frames the window; real taskbar relocation can dismiss an old anchor |
 | Failure diagnostics | Unhandled managed exceptions also write a local timestamped log under the app persistence folder | Existing persistence flush retained; nothing uploaded automatically |
+| Installer prerequisite | Bundle the official signed PawnIO 2.2.0 setup, selected by default when missing or incomplete | Verify payload hash, preserve supported installations, report errors/restart needs; portable/Store users install it separately |
 
 Tray detection reads native TrayNotifyWnd bounds each second and asynchronously
 scans task buttons with UI Automation, with a single pending scan and 500 ms
@@ -138,8 +139,11 @@ sensor collection, taskbar UI or other application features are bundled.
 ## Personal release and rollback
 
 The personal build is unofficial and retains upstream application version 1.8.0.
-Its separate personal tag identifies the patched source. It does not contain the
-PawnIO driver; existing upstream prerequisites still apply. Never treat this as an
+Its separate personal tag identifies the patched source. New installer builds bundle
+the official signed PawnIO setup and offer to install it when missing or incomplete;
+portable and Store builds still require it separately. See
+[installer prerequisite details](../../Setup/Prerequisites/PawnIO/README.md).
+Never treat this as an
 official upstream update. The built-in updater continues to follow upstream;
 installing a later official release may replace local features until upstream
 incorporates them. A prerelease label communicates the outstanding manual checks.
@@ -156,6 +160,6 @@ user settings, diagnostic logs, credentials or hardware sensor snapshots.
 Personal installer packaging note: the local Inno compiler does not support the
 upstream `modern dynamic` wizard style. The personal installer was compiled from
 a temporary copy using `modern`, with absolute source/output directories; the
-tracked upstream installer script is unchanged. Binary version remains 1.8.0.
+tracked installer now also includes PawnIO prerequisite handling. Binary version remains 1.8.0.
 This changes wizard presentation only. The portable package uses the existing
 FolderProfile output with all WinUI locale folders and MIT notices intact.

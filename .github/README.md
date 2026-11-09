@@ -36,7 +36,7 @@ Optional placement contribution: [follow the system tray with a divider](../docs
 * **Installer** (`FluentSensors_Installer.exe`): installs into `Program Files` with a start menu entry and an uninstaller.
 * **Portable** (`FluentSensors_Portable_<version>.zip`): unzip anywhere and run `FluentSensors.exe`. Settings stay in a `Persistence` folder next to it, so deleting the folder removes every trace.
 
-Installer and portable are on the [releases page](https://github.com/cechout/fluent-sensors/releases), run on Windows 10 as well and update themselves from inside the app. Every build is x64 and needs administrator rights to read the hardware. CPU temperatures, motherboard sensors and RAM timings also need the [PawnIO](https://pawnio.eu) driver, which is installed separately; without it everything else still works.
+Installer and portable are on the [releases page](https://github.com/cechout/fluent-sensors/releases), run on Windows 10 as well and update themselves from inside the app. Every build is x64 and needs administrator rights to read the hardware. CPU temperatures, motherboard sensors and RAM timings also need the [PawnIO](https://pawnio.eu) driver. Installers built from this branch include the official signed PawnIO setup and offer to install it when needed; portable and Microsoft Store users install it separately. Without it everything else still works. See the [prerequisite notes](../Setup/Prerequisites/PawnIO/README.md) for build instructions and which personal releases include it.
 
 ## 🔒 Privacy
 
