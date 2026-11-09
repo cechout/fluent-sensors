@@ -585,7 +585,33 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         // the source icon behind the title; nothing while the panel shows a placeholder
-        private string GetSourceIconSensorId(SensorGraphViewModel viewModel) => viewModel?.SensorId ?? "";
+        private string GetSourceIconSensorId(SensorGraphViewModel viewModel) => viewModel?.Scope == SensorGraphScope.TaskbarFlyout ? "" : viewModel?.SensorId ?? "";
+
+        private Visibility GetPlacementVisibility(SensorGraphViewModel viewModel) =>
+            viewModel?.Scope == SensorGraphScope.TaskbarFlyout ? Visibility.Visible : Visibility.Collapsed;
+
+        private string GetPlacementTooltip(SensorGraphViewModel viewModel) => AppStrings.Get(
+            viewModel != null && SensorSelectionService.Instance.IsTaskbarSensorInTray(viewModel.SensorId)
+                ? "SensorPanel_MoveToTaskbar" : "SensorPanel_MoveToTray");
+
+        private void PlacementButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel?.Scope != SensorGraphScope.TaskbarFlyout) return;
+            var placement = SensorSelectionService.Instance;
+            placement.SetTaskbarSensorInTray(ViewModel.SensorId, !placement.IsTaskbarSensorInTray(ViewModel.SensorId));
+            Bindings.Update();
+        }
+
+        private string GetTaskbarStyleTooltip(SensorGraphViewModel viewModel) => AppStrings.Get(
+            viewModel != null && SensorSelectionService.Instance.IsCompactTaskbarSensor(viewModel.SensorId)
+                ? "SensorPanel_UseTaskbarGraph" : "SensorPanel_UseTaskbarCard");
+
+        private void TaskbarStyleButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel?.Scope != SensorGraphScope.TaskbarFlyout) return;
+            SensorSelectionService.Instance.ToggleCompactTaskbarSensor(ViewModel.SensorId);
+            Bindings.Update();
+        }
 
         private string GetSourceIconName(SensorGraphViewModel viewModel) => SensorSourceIcon.GetName(viewModel?.SensorId);
 

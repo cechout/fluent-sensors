@@ -28,7 +28,17 @@ namespace FluentSensors
             // settings write through a 1 s debounce and MainWindow flushes on its two exit routes
             // only, so a crash flushes here
             // (a debugger stop or an external kill runs nothing managed)
-            this.UnhandledException += (s, e) => PersistenceService.Instance.FlushAll();
+            this.UnhandledException += (s, e) =>
+            {
+                PersistenceService.Instance.FlushAll();
+                try
+                {
+                    string directory = System.IO.Path.Combine(PersistenceService.Instance.RootFolder, "logs");
+                    System.IO.Directory.CreateDirectory(directory);
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(directory, $"unhandled-{DateTime.UtcNow:yyyyMMdd-HHmmss-fff}.log"), e.Exception.ToString());
+                }
+                catch { }
+            };
         }
 
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)

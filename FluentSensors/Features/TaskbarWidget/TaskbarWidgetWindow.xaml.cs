@@ -179,6 +179,10 @@ namespace FluentSensors.Features.TaskbarWidget
                 this.InitializeComponent();
                 CurrentInstance = this;
 
+                ViewModel.TaskbarSensors.CollectionChanged += OnTaskbarSensorsChanged;
+                SensorSelectionService.Instance.TaskbarSensorPlacementChanged += OnSensorPlacementChanged;
+                TaskbarSensorSlot.PreferredWidthChanged += OnSensorPlacementChanged;
+
                 _appWindow = this.AppWindow;
                 _appWindow.IsShownInSwitchers = false;
                 _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -353,6 +357,21 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         private bool _isClosed = false;
+
+        private void OnTaskbarSensorsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (_sensorLayoutQueued) return;
+            _sensorLayoutQueued = true;
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                _sensorLayoutQueued = false;
+                if (_isClosed || _isOrphaned) return;
+                RootGrid.Visibility = ViewModel.TaskbarSensors.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+                if (_isEmbedded) PositionOnTaskbar();
+            });
+        }
+        private bool _sensorLayoutQueued;
+        private void OnSensorPlacementChanged() => OnTaskbarSensorsChanged(null, null!);
         private bool _isOrphaned; // the HWND died with explorer.exe; Hide and Close must not reach this window
         private static readonly List<TaskbarWidgetWindow> _orphanedInstances = new();
 
@@ -366,6 +385,9 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             if (_isClosed) return;
             _isClosed = true;
+            ViewModel.TaskbarSensors.CollectionChanged -= OnTaskbarSensorsChanged;
+            SensorSelectionService.Instance.TaskbarSensorPlacementChanged -= OnSensorPlacementChanged;
+            TaskbarSensorSlot.PreferredWidthChanged -= OnSensorPlacementChanged;
 
             try
             {
@@ -634,8 +656,6 @@ namespace FluentSensors.Features.TaskbarWidget
             var screenRect = CalculateScreenRect(primaryTaskbar);
 
             if (screenRect.Equals(_currentScreenRect)) return;
-            if (SettingsService.Instance.TaskbarWidgetNextToTray)
-                TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
             _currentScreenRect = screenRect;
             WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
         }
@@ -647,7 +667,8 @@ namespace FluentSensors.Features.TaskbarWidget
         private RectInt32 CalculateScreenRect(WinTaskbarInfo taskbar)
         {
             double scale = taskbar.Dpi / 96.0;
-            int lengthPx = (int)(CalculateWidgetLengthDip(ViewModel.PinnedSensors.Count) * scale);
+            RootGrid.Visibility = ViewModel.TaskbarSensors.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+            int lengthPx = (int)(CalculateWidgetLengthDip(ViewModel.TaskbarSensors.Count) * scale);
             int innerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactInnerMarginDip : InnerMarginDip) * scale);
             int outerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactOuterMarginDip : OuterMarginDip) * scale);
 
@@ -877,7 +898,7 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // length along the taskbar for n sensors; (on a vertical taskbar the graph width setting is the slot height)
-        private static int CalculateWidgetLengthDip(int sensorCount)
+        private int CalculateWidgetLengthDip(int sensorCount)
         {
             if (sensorCount <= 0)
             {
@@ -885,6 +906,8 @@ namespace FluentSensors.Features.TaskbarWidget
             }
 
             int slotWidth = SettingsService.Instance.TaskbarGraphWidthDip;
+            if (PlacedEdge is ScreenEdge.Top or ScreenEdge.Bottom)
+                return ViewModel.TaskbarSensors.Sum(TaskbarSensorSlot.WidthFor) + ((sensorCount - 1) * SensorSlotSpacingDip) + (int)(ButtonPaddingEndsDip * 2) + 2;
             int contentWidth = (sensorCount * slotWidth) + ((sensorCount - 1) * SensorSlotSpacingDip);
             return contentWidth + (ButtonPaddingDip * 2);
         }

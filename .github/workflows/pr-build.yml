@@ -94,6 +94,12 @@ jobs:
           dotnet run --project tests/GraphCardMaterials 2>&1 | Tee-Object logs/graph-material-tests.log
           exit $LASTEXITCODE
 
+      - name: verify taskbar sensor selection and order
+        shell: pwsh
+        run: |
+          dotnet run --project tests/TaskbarSensorPresentation -c Release 2>&1 | Tee-Object logs/taskbar-sensor-presentation.log
+          exit $LASTEXITCODE
+
       # publish makes the size real (PruneUnusedPublishPayload runs after Publish); NoBuild reuses the pass above and
       # proves the publish path before a tag depends on it
       - name: publish win-x64

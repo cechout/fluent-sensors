@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Composition;
+using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
@@ -628,6 +628,19 @@ namespace FluentSensors.Features.TaskbarWidget
 
         public static void Toggle(TaskbarWidgetWindow widgetWindow)
         {
+            _openedFromTray = false;
+            ToggleCore(widgetWindow);
+        }
+
+        private static bool _openedFromTray;
+        public static void ToggleFromTray(TaskbarWidgetWindow widgetWindow)
+        {
+            _openedFromTray = true;
+            ToggleCore(widgetWindow);
+        }
+
+        private static void ToggleCore(TaskbarWidgetWindow widgetWindow)
+        {
             if (widgetWindow == null) return;
 
             if (CurrentInstance != null && CurrentInstance._appWindow.IsVisible && !CurrentInstance._isHiding)
@@ -690,6 +703,7 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             if (_isHiding || !_appWindow.IsVisible) return;
             _isHiding = true;
+            SetReorderMode(false);
 
             SlideOut(() =>
             {
@@ -1032,6 +1046,14 @@ namespace FluentSensors.Features.TaskbarWidget
             var edge = primaryTaskbar?.Edge ?? ScreenEdge.Bottom;
             var bar = primaryTaskbar?.Rect
                 ?? new RectInt32(widgetRect.Left, widgetRect.Top, widgetRect.Right - widgetRect.Left, widgetRect.Bottom - widgetRect.Top);
+
+            if (_openedFromTray)
+            {
+                widgetRect.Left = bar.X + bar.Width - (int)(420 * scale);
+                widgetRect.Right = bar.X + bar.Width;
+                widgetRect.Top = bar.Y;
+                widgetRect.Bottom = bar.Y + bar.Height;
+            }
 
             int desiredWidthPx = (int)Math.Round(FlyoutDefaultWidthDip * scale);
 
@@ -1396,6 +1418,7 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             if (viewModel == null || ReferenceEquals(viewModel, ViewModel)) return;
 
+            SetReorderMode(false);
             ViewModel = viewModel;
             Bindings.Update();
             ApplyPauseState();

@@ -2102,4 +2102,43 @@ Cycle Count - full charge cycles counted by the electronics of the battery</valu
   <data name="Settings_TaskbarGraphBackgroundSourceComboBox_Blurred.Content" xml:space="preserve"><value>Blurred graph</value></data>
   <data name="Settings_TaskbarBlurGraphCard.Header" xml:space="preserve"><value>Blur Graph</value></data>
   <data name="Settings_TaskbarBlurGraphCard.Description" xml:space="preserve"><value>Soften only the taskbar graph while keeping labels and values sharp. The popup graph stays sharp. Works with any graph background.</value></data>
+  <data name="Settings_SensorTrayDefaultCard.Header" xml:space="preserve"><value>Show sensors in the system tray by default</value></data>
+  <data name="Settings_SensorTrayDefaultCard.Description" xml:space="preserve"><value>Off uses taskbar graphs. Individual choices in System Sensors take priority.</value></data>
+  <data name="SensorPanel_MoveToTray" xml:space="preserve"><value>Move this sensor to the system tray</value></data>
+  <data name="SensorPanel_MoveToTaskbar" xml:space="preserve"><value>Move this sensor to the taskbar</value></data>
+  <data name="SensorPanel_UseTaskbarGraph" xml:space="preserve"><value>Use the graph style on the taskbar for this sensor</value></data>
+  <data name="SensorPanel_UseTaskbarCard" xml:space="preserve"><value>Use the compact card style on the taskbar for this sensor</value></data>
+  <data name="TaskbarFlyout_ReorderButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Reorder sensors</value>
+  </data>
+  <data name="TaskbarFlyout_ReorderButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Reorder sensors</value>
+  </data>
+  <data name="TaskbarFlyout_ReorderDone" xml:space="preserve">
+    <value>Finish reordering</value>
+  </data>
+  <data name="TaskbarFlyout_ReorderHint.Text" xml:space="preserve">
+    <value>Drag a move handle or use the arrows to change sensor order. Select the check mark to return to graphs.</value>
+  </data>
+  <data name="TaskbarFlyout_ReorderHandle.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Drag to reorder</value>
+  </data>
+  <data name="TaskbarFlyout_ReorderHandle.AutomationProperties.Name" xml:space="preserve">
+    <value>Drag to reorder</value>
+  </data>
+  <data name="TaskbarFlyout_MoveSensorUp.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Move sensor up</value>
+  </data>
+  <data name="TaskbarFlyout_MoveSensorUp.AutomationProperties.Name" xml:space="preserve">
+    <value>Move sensor up</value>
+  </data>
+  <data name="TaskbarFlyout_MoveSensorDown.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Move sensor down</value>
+  </data>
+  <data name="TaskbarFlyout_MoveSensorDown.AutomationProperties.Name" xml:space="preserve">
+    <value>Move sensor down</value>
+  </data>
+  <data name="TaskbarFlyout_ReorderStart" xml:space="preserve">
+    <value>Reorder sensors</value>
+  </data>
 </root>

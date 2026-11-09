@@ -1,4 +1,4 @@
-# Contribution guide: taskbar readability, positioning and network units
+# Contribution guide: taskbar and tray sensors
 
 This guide describes the final patch against upstream commit
 `e4889379f2c7019ec2beb635fb981cbac3f57300` (application version 1.8.0).
@@ -15,7 +15,15 @@ It is an unofficial contribution, not an upstream release or guarantee of accept
 | Plot blur | Taskbar-only Blur Graph toggle, combinable with every background | Off by default; small equal-axis Gaussian filter on line/fill only |
 | Network labels | Optional Network Labels dropdown: Text labels or Direction icons | Text default; only known Download/Upload Throughput labels change |
 | Direction icons | Drawn arrows with wide heads; 8 by 10 DIP, 1.8 DIP rounded stroke | 12 DIP reserved beside values; horizontal and side taskbars |
-| Value text | SemiBold taskbar readouts | Values and unit formatting unchanged |
+| Value text | SemiBold graph readouts; upper-right overlay increased from 10 to 11 DIP | Compact/tray text has its own sizing; values and unit formatting unchanged |
+| Individual tray sensors | Settings default plus per-sensor taskbar/tray switch beside the flyout sensor name | Taskbar remains default; multiple tray icons coexist and open System Sensors |
+| Compact taskbar cards | Per-sensor layout switch beside placement; label, value and side level instead of a graph | Optional, persisted independently; horizontal taskbars only; mixed graphs/cards supported |
+| Compact labels and sizing | CPU package uses CPU, dedicated MAX/AVG, network DOWN/UP; 8-DIP labels and 12-DIP semibold values | Degree/percentage and complete network units retained in cards; widths fit live text |
+| Level colors | Base graph color and the individual sensor's active threshold color | Alarm clears back to the selected hardware/type/accent/custom color |
+| Tray appearance | Separate numeric-only white indicators on rounded opaque gray; smaller padded glyphs | Units and full names stay in tooltips; no tray level bar; shell owns icon order/overflow |
+| Reorder mode | Move button left of Pause; isolated grab handles and up/down controls, check mark to return | Saves order across restart/reselection; graphs retain history and pause; tray order stays Windows-controlled |
+| Live resizing | Complete content widths without explicit flyout dismissal, reactivation or z-order changes | Initial embedding still shows/frames the window; real taskbar relocation can dismiss an old anchor |
+| Failure diagnostics | Unhandled managed exceptions also write a local timestamped log under the app persistence folder | Existing persistence flush retained; nothing uploaded automatically |
 
 Tray detection reads native TrayNotifyWnd bounds each second and asynchronously
 scans task buttons with UI Automation, with a single pending scan and 500 ms
@@ -24,7 +32,7 @@ changes/reset. Placement uses physical screen coordinates and DPI conversion,
 handles four taskbar edges and negative monitor origins, and leaves an 8 DIP gap
 after task buttons. When no reliable landmarks or insufficient room exist, the
 widget has zero along-axis length rather than covering shell buttons. Existing
-primary-taskbar behavior remains. Repositioning hides a stale anchored flyout.
+primary-taskbar behavior remains. Actual taskbar edge/handle changes hide a stale anchored flyout. Routine live content-width changes no longer hide it.
 
 The Blur Graph toggle affects only the embedded taskbar graph. The popup/flyout,
 floating widget, performance graphs and widget-board graphs remain sharp.
@@ -49,12 +57,19 @@ stay intact. Flyout status-row names remain descriptive text.
   on/off wins; legacy Blurred or Mica backgrounds become Transparent with blur on.
   Old enum names remain readable but are not dropdown choices.
 - TaskbarNetworkDirectionIcons: false when absent; independent of color/blur.
+- TaskbarSensorsDefaultToTray defaults to false; TaskbarSensorTrayOverrides takes
+  precedence per sensor. CompactTaskbarSensors independently retains card choices.
+- TaskbarSensorOrder is a separate ordered ID preference; membership is unchanged.
+  Absent order preserves discovery order. New sensors append; disconnected and
+  deselected IDs keep their preferences. Graphs, flyout and taskbar subset reconcile
+  by moves without discarding retained histories. Tray placement changes are queued.
 - Runtime settings events refresh graph consumers; graph view models unsubscribe
   on disposal. UI mutations follow the app's existing UI-thread settings path.
 
 No dependency or application-version bump is included. PublishTrimmed=false,
 ReadyToRun, WinUI locale payloads and existing packaging conventions are preserved.
-Busy's MIT notice is copied into build and publish output.
+Busy and MicaStats attribution/MIT notices are copied into build and publish output.
+MicaStats inspired the compact visual design; its hardware-reading code is not used.
 
 ## Crash investigation and Acrylic limitation
 
@@ -71,8 +86,7 @@ produce a solid Acrylic fallback. Gaussian plot blur does not depend on Acrylic.
 
 Host teardown is the suspected trigger, not a debugger-confirmed native root cause.
 The exact sensor-selection Update reproduction has **not** been verified after
-the final correction. Computer-use initialization fails with a missing kernel
-assets path. Do not describe this contribution as fully crash-verified.
+the final correction. The latest local screenshots confirm the running app and reorder button, but Windows integrity-level restrictions block automation input to the elevated app. Do not describe this contribution as fully crash-verified.
 
 ## Validation
 
@@ -82,10 +96,12 @@ publish commands. Generated logs belong under logs/ and are not committed.
 
 | Check | Latest local evidence |
 | --- | --- |
-| Full x64 Release build + FolderProfile publish | Passed final native-host-removal revision; existing nullable/analyzer and PRI263 Network_LinkSpeed warnings remain |
+| Full x64 Release build + FolderProfile publish | Release x64 build passed on 2026-11-09 including tray/compact/order changes; FolderProfile publishing is required for release assets. Existing nullable/analyzer and PRI263 Network_LinkSpeed warnings remain |
 | tests/ThroughputFormatting | 21 boundary/raw-unit/culture checks passed |
 | tests/TaskbarPlacement | 108 geometry checks over four edges, three DPIs and negative origins passed |
 | tests/GraphCardMaterials | 19 material migration, 16 independent blur and 7 direction mapping checks passed |
+| tests/TaskbarSensorPresentation | Actual selection service/state and taskbar view model with stubbed UI/hardware/tray dependencies: legacy/default order, duplicate IDs, placement, style, restart, history/pause, reconfiguration and reconnect checks |
+| Tray renderer/native lifecycle harnesses | Local checks of 24 glyph samples at 16/24/32 pixels, rounded corners, numeric formatting and per-sensor native icon identities; not hardware or Explorer-restart proof |
 | tests/TaskbarProbe -- --verify-widget | Native tray/button discovery, cache reset/handle change and actual installed-widget adjacency passed on prior installed revisions at 144 DPI |
 | Whitespace, XML/resource uniqueness, git diff checks | Passed affected changes |
 
@@ -93,7 +109,10 @@ Before merge: repeat Download → Upload → Update with flyout open/closed, eac
 background and blur on/off; repeat pin/unpin, restart, Explorer restart, crowded
 tray expansion/contraction, horizontal/vertical taskbars, light/dark themes,
 Windows transparency off and high contrast. Confirm arrow/value clipping at
-125–200% scaling. These remain manual requirements, not completed claims.
+125–200% scaling. Check repeated taskbar/tray switching for several sensors,
+close/reopen, compact widths while menus are open, per-sensor threshold level
+colors, reorder handles/cancellation/scrolling and keyboard arrows. Confirm
+placement, selection, pause/history and order after restart. These remain manual requirements, not completed claims.
 
 ## Source, licensing and review map
 
@@ -103,6 +122,7 @@ https://github.com/aivanyuk/busy. Only tray/task-button positioning ideas/code w
 adapted. See THIRD-PARTY-NOTICES.md for full MIT attribution. No Busy executable,
 sensor collection, taskbar UI or other application features are bundled.
 
+- [Individual tray indicators, compact cards and reorder mode](individual-tray-sensors.md)
 - [Throughput details](automatic-throughput-units.md)
 - [Tray placement details](tray-adjacent-widget.md)
 - [Current graph behavior and historical investigation](taskbar-graph-materials.md)

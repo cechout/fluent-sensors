@@ -115,6 +115,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <!--  title  -->
@@ -166,11 +167,23 @@
                             </StackPanel.Resources>
                         </StackPanel>
 
+                        <Button
+                            x:Name="ReorderButton"
+                            x:Uid="TaskbarFlyout_ReorderButton"
+                            Grid.Column="2"
+                            Width="38"
+                            Height="{StaticResource FlyoutBarButtonHeight}"
+                            Padding="0"
+                            Click="ReorderButton_Click"
+                            Style="{StaticResource SubtleBarButtonStyle}">
+                            <FontIcon x:Name="ReorderButtonIcon" FontSize="14" Glyph="&#xE7C2;" />
+                        </Button>
+
                         <!--  snapshot button  -->
                         <!--  (pauses and resumes the flyout graphs; name, tooltip and glyph set in ApplyPauseState)  -->
                         <Button
                             x:Name="PauseButton"
-                            Grid.Column="2"
+                            Grid.Column="3"
                             Width="38"
                             Height="{StaticResource FlyoutBarButtonHeight}"
                             Padding="0"
@@ -212,6 +225,48 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
+
+                    <Grid x:Name="ReorderPanel" Grid.Row="1" Visibility="Collapsed" Margin="8,2,8,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Uid="TaskbarFlyout_ReorderHint" Margin="6,4,6,8"
+                                   Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="Wrap" />
+                        <ScrollViewer x:Name="ReorderScrollViewer" Grid.Row="1"
+                                      HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto"
+                                      PointerMoved="Reorder_PointerMoved" PointerReleased="Reorder_PointerReleased"
+                                      PointerCanceled="Reorder_PointerCanceled" PointerCaptureLost="Reorder_PointerCanceled">
+                            <ItemsControl x:Name="ReorderItemsControl" ItemsSource="{x:Bind ReorderSensors}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="fhGraph:SensorGraphViewModel">
+                                        <Grid Height="44" ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="36" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border x:Uid="TaskbarFlyout_ReorderHandle" Tag="{x:Bind}" Background="Transparent"
+                                                    ManipulationMode="None" PointerPressed="ReorderHandle_PointerPressed">
+                                                <FontIcon Glyph="&#xE7C2;" FontSize="16" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            </Border>
+                                            <TextBlock Grid.Column="1" Text="{x:Bind SensorName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                            <Button x:Uid="TaskbarFlyout_MoveSensorUp" Grid.Column="2" Tag="{x:Bind}" Click="MoveSensorUp_Click"
+                                                    Width="32" Height="32" Padding="0" Style="{StaticResource SubtleBarButtonStyle}">
+                                                <FontIcon Glyph="&#xE70E;" FontSize="12" />
+                                            </Button>
+                                            <Button x:Uid="TaskbarFlyout_MoveSensorDown" Grid.Column="3" Tag="{x:Bind}" Click="MoveSensorDown_Click"
+                                                    Width="32" Height="32" Padding="0" Style="{StaticResource SubtleBarButtonStyle}">
+                                                <FontIcon Glyph="&#xE70D;" FontSize="12" />
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
 
                     <!--  separator above the time range row, edge to edge  -->
                     <Border

@@ -1075,6 +1075,10 @@
                 Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}" />
 
+            <controls:SettingsCard x:Uid="Settings_SensorTrayDefaultCard">
+                <ToggleSwitch x:Name="SensorTrayDefaultToggle" x:Uid="Common_ToggleSwitch" Toggled="SensorTrayDefaultToggle_Toggled" />
+            </controls:SettingsCard>
+
             <!--  drag lock for the widget position on the taskbar  -->
             <controls:SettingsCard
                 x:Uid="Settings_LockTaskbarWidgetPositionCard"

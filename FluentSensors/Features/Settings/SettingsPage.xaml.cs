@@ -100,6 +100,7 @@ namespace FluentSensors.Features.Settings
             ApplyFlyoutShortcutButton();
             RestoreLockWidgetPositionSelection();
             NextToTrayToggle.IsOn = SettingsService.Instance.TaskbarWidgetNextToTray;
+            SensorTrayDefaultToggle.IsOn = SensorSelectionService.Instance.TaskbarSensorsDefaultToTray;
 
             ShowAppDataFolderPath();
 
@@ -1457,6 +1458,12 @@ namespace FluentSensors.Features.Settings
         {
             if (_isLoading) return;
             SettingsService.Instance.TaskbarWidgetNextToTray = NextToTrayToggle.IsOn;
+        }
+
+        private void SensorTrayDefaultToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SensorSelectionService.Instance.SetTaskbarSensorsDefaultToTray(SensorTrayDefaultToggle.IsOn);
         }
 
 
