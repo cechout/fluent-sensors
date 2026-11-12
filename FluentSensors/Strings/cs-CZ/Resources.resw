@@ -285,6 +285,24 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   <data name="Settings_UnitPrefixAuto" xml:space="preserve">
     <value>Automaticky</value>
   </data>
+  <data name="Settings_DecimalPlacesExpander.Header" xml:space="preserve">
+    <value>Desetinná místa</value>
+  </data>
+  <data name="Settings_DecimalPlacesExpander.Description" xml:space="preserve">
+    <value>Kolik desetinných míst hodnoty zobrazují na stránkách Senzory a Grafy</value>
+  </data>
+  <data name="Settings_SensorListDecimalPlacesCard.Header" xml:space="preserve">
+    <value>Stránka Senzory</value>
+  </data>
+  <data name="Settings_PerformanceDecimalPlacesCard.Header" xml:space="preserve">
+    <value>Stránka Grafy</value>
+  </data>
+  <data name="Settings_DecimalPlacesComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Desetinná místa</value>
+  </data>
+  <data name="Settings_DecimalPlacesComboBox_Auto.Content" xml:space="preserve">
+    <value>Automaticky</value>
+  </data>
   <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
     <value>Které údaje zobrazuje záhlaví okna a v jakém pořadí</value>
   </data>

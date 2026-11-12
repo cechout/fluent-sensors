@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-using FluentSensors.Common.Sensors;
 using FluentSensors.Controls.SensorRow;
 using FluentSensors.Core;
 using FluentSensors.Controls.SensorGraph;
@@ -184,7 +183,7 @@ namespace FluentSensors.Features.Widget
 
                     if (realSensor != null)
                     {
-                        pinnedSensor.AddDataPoint(realSensor.Value, SensorUnitFormatter.Format(realSensor.Value, realSensor.SensorType));
+                        pinnedSensor.AddDataPoint(realSensor.Value);
                     }
                 }
             });

@@ -457,6 +457,7 @@
                     IsLabelVisible="{x:Bind ShowGraphLabel, Mode=OneWay}"
                     IsNameVisible="{x:Bind ShowGraphName, Mode=OneWay}"
                     LabelFollowsPointer="True"
+                    LabelNumberFormat="{x:Bind ViewModel.LabelNumberFormat, Mode=OneWay}"
                     LabelText="{x:Bind ViewModel.SensorName, Mode=OneWay}"
                     LineStyle="{x:Bind ViewModel.GraphLineStyle, Mode=OneWay}"
                     ManualYMax="{x:Bind ViewModel.ManualYMax, Mode=OneWay}"

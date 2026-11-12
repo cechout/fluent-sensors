@@ -444,7 +444,7 @@ namespace FluentSensors.Features.Performance.Lhm
 
         private static void PushDataPoint(SensorGraphViewModel graph, LhmSensorEntry entry)
         {
-            graph.AddDataPoint(entry.Value, SensorUnitFormatter.Format(entry.Value, entry.SensorType));
+            graph.AddDataPoint(entry.Value);
         }
     }
 }
