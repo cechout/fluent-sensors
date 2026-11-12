@@ -241,16 +241,49 @@ GPU-Auslastung - die am stärksten ausgelastete GPU-Engine, auf der diese App l�
     <value>Volle Füllung</value>
   </data>
   <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
-    <value>Bytes oder Bits für Datengrößen und Geschwindigkeiten</value>
+    <value>Bytes oder Bits, und in welcher Einheit Werte angezeigt werden</value>
   </data>
   <data name="Settings_DataUnitsExpander.Header" xml:space="preserve">
-    <value>Dateneinheiten</value>
+    <value>Einheiten</value>
   </data>
   <data name="Settings_DataSizeCard.Header" xml:space="preserve">
     <value>Datengröße</value>
   </data>
   <data name="Settings_DataSpeedCard.Header" xml:space="preserve">
     <value>Datengeschwindigkeit</value>
+  </data>
+  <data name="Settings_DataSizeUnitComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Basis der Datengröße</value>
+  </data>
+  <data name="Settings_DataSizePrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Einheit der Datengröße</value>
+  </data>
+  <data name="Settings_DataSpeedUnitComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Basis der Datengeschwindigkeit</value>
+  </data>
+  <data name="Settings_DataSpeedPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Einheit der Datengeschwindigkeit</value>
+  </data>
+  <data name="Settings_ClockUnitCard.Header" xml:space="preserve">
+    <value>Takt</value>
+  </data>
+  <data name="Settings_ClockPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Einheit des Takts</value>
+  </data>
+  <data name="Settings_PowerUnitCard.Header" xml:space="preserve">
+    <value>Leistung</value>
+  </data>
+  <data name="Settings_PowerPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Einheit der Leistung</value>
+  </data>
+  <data name="Settings_CurrentUnitCard.Header" xml:space="preserve">
+    <value>Stromstärke</value>
+  </data>
+  <data name="Settings_CurrentPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Einheit der Stromstärke</value>
+  </data>
+  <data name="Settings_UnitPrefixAuto" xml:space="preserve">
+    <value>Automatisch</value>
   </data>
   <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
     <value>Welche Anzeigen die Titelleiste zeigt, und in welcher Reihenfolge</value>

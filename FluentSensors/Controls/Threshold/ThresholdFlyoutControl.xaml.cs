@@ -128,6 +128,7 @@ namespace FluentSensors.Controls.Threshold
 
             // the badge scales its value, so a data unit switch redraws it
             SettingsService.Instance.DataUnitBasisChanged += UpdateIndicator;
+            SettingsService.Instance.UnitPrefixChanged += UpdateIndicator;
 
             UpdateIndicator();
         }
@@ -143,6 +144,7 @@ namespace FluentSensors.Controls.Threshold
             }
 
             SettingsService.Instance.DataUnitBasisChanged -= UpdateIndicator;
+            SettingsService.Instance.UnitPrefixChanged -= UpdateIndicator;
         }
 
 
@@ -256,7 +258,7 @@ namespace FluentSensors.Controls.Threshold
             if (Threshold != null && Threshold.IsEnabled)
             {
                 var (scaledValue, _) = SensorUnitFormatter.Scale(Threshold.Value, Threshold.SensorType);
-                IndicatorText = $"{scaledValue:0}";
+                IndicatorText = $"{scaledValue:0.##}"; // 2.1 GHz, or 0.05 with a fixed GB/s
                 IndicatorBrush = Threshold.ColorBrush;
                 IndicatorBorderBrush = new SolidColorBrush(Colors.Transparent); // the semi transparent fill reaches under it
             }

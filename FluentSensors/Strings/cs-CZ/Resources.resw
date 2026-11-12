@@ -241,16 +241,49 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
     <value>Plná výplň</value>
   </data>
   <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
-    <value>Bajty nebo bity pro velikosti a rychlosti dat</value>
+    <value>Bajty nebo bity a jednotka, ve které se hodnoty zobrazují</value>
   </data>
   <data name="Settings_DataUnitsExpander.Header" xml:space="preserve">
-    <value>Datové jednotky</value>
+    <value>Jednotky</value>
   </data>
   <data name="Settings_DataSizeCard.Header" xml:space="preserve">
     <value>Velikost dat</value>
   </data>
   <data name="Settings_DataSpeedCard.Header" xml:space="preserve">
     <value>Rychlost dat</value>
+  </data>
+  <data name="Settings_DataSizeUnitComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Základ velikosti dat</value>
+  </data>
+  <data name="Settings_DataSizePrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Jednotka velikosti dat</value>
+  </data>
+  <data name="Settings_DataSpeedUnitComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Základ rychlosti dat</value>
+  </data>
+  <data name="Settings_DataSpeedPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Jednotka rychlosti dat</value>
+  </data>
+  <data name="Settings_ClockUnitCard.Header" xml:space="preserve">
+    <value>Takt</value>
+  </data>
+  <data name="Settings_ClockPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Jednotka taktu</value>
+  </data>
+  <data name="Settings_PowerUnitCard.Header" xml:space="preserve">
+    <value>Výkon</value>
+  </data>
+  <data name="Settings_PowerPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Jednotka výkonu</value>
+  </data>
+  <data name="Settings_CurrentUnitCard.Header" xml:space="preserve">
+    <value>Proud</value>
+  </data>
+  <data name="Settings_CurrentPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Jednotka proudu</value>
+  </data>
+  <data name="Settings_UnitPrefixAuto" xml:space="preserve">
+    <value>Automaticky</value>
   </data>
   <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
     <value>Které údaje zobrazuje záhlaví okna a v jakém pořadí</value>

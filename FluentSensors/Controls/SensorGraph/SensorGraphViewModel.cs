@@ -108,6 +108,7 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.GraphLineStyleChanged += OnGraphLineStyleChanged;
             SettingsService.Instance.GraphFillFadeChanged += OnGraphFillFadeChanged;
             SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
+            SettingsService.Instance.UnitPrefixChanged += UpdateYMaxDisplay;
 
             // the threshold config of this sensor; this view model only colors by it
             Threshold = new ThresholdEditorViewModel(sensorId, sensorType);
@@ -174,7 +175,15 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? SensorName : $"{SensorName} ({Unit})";
+        // in the unit of the y-axis once it has one, so the title matches the y-max number beside it
+        public string DisplayNameWithUnit
+        {
+            get
+            {
+                string unit = string.IsNullOrEmpty(ActualYMaxUnit) ? Unit : ActualYMaxUnit;
+                return string.IsNullOrEmpty(unit) ? SensorName : $"{SensorName} ({unit})";
+            }
+        }
 
         private string _currentValueText = "-";
         public string CurrentValueText
@@ -279,6 +288,7 @@ namespace FluentSensors.Controls.SensorGraph
                 {
                     _actualYMaxUnit = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(DisplayNameWithUnit));
                 }
             }
         }
@@ -451,6 +461,7 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.GraphLineStyleChanged -= OnGraphLineStyleChanged;
             SettingsService.Instance.GraphFillFadeChanged -= OnGraphFillFadeChanged;
             SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
+            SettingsService.Instance.UnitPrefixChanged -= UpdateYMaxDisplay;
             Threshold.PropertyChanged -= OnThresholdPropertyChanged;
             Threshold.Cleanup();
         }
@@ -669,9 +680,10 @@ namespace FluentSensors.Controls.SensorGraph
             }
             else
             {
-                // manual; one decimal once Clock or SmallData scaled to GHz or GB, whole otherwise
+                // manual; one decimal once scaled to a larger unit (GHz, GB), whole in the base unit or a smaller one
                 var (scaledValue, unit) = SensorUnitFormatter.Scale(ManualYMax, SensorType);
-                ActualYMaxText = unit == SensorUnitFormatter.GetUnit(SensorType)
+                double baseValue = SensorUnitFormatter.ScaleToUnit(ManualYMax, SensorType, SensorUnitFormatter.GetUnit(SensorType));
+                ActualYMaxText = Math.Abs(scaledValue) >= Math.Abs(baseValue)
                     ? scaledValue.ToString("0")
                     : $"{scaledValue:0.0}";
                 ActualYMaxUnit = unit;

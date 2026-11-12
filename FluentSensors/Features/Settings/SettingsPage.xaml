@@ -186,8 +186,11 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
-            <!--  data units  -->
-            <!--  (reaches every displayed value; csv recordings keep the byte units the raw values are stored in)  -->
+            <!--  data units: bytes or bits, and the unit per category  -->
+            <!--
+                (reaches every displayed value; csv recordings keep the byte units the raw values are stored in;
+                the unit lists are filled from SensorUnitFormatter in code)
+            -->
             <controls:SettingsExpander
                 x:Uid="Settings_DataUnitsExpander"
                 fhUi:FocusGroup.IsEnabled="True"
@@ -195,24 +198,69 @@
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
+                    <!--  data size: basis and unit  -->
                     <controls:SettingsCard x:Uid="Settings_DataSizeCard">
-                        <ComboBox
-                            x:Name="DataSizeUnitComboBox"
-                            Width="150"
-                            SelectionChanged="DataSizeUnitComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Byte" Tag="Byte" />
-                            <ComboBoxItem Content="Bit" Tag="Bit" />
-                        </ComboBox>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox
+                                x:Name="DataSizeUnitComboBox"
+                                x:Uid="Settings_DataSizeUnitComboBox"
+                                Width="150"
+                                SelectionChanged="DataSizeUnitComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Byte" Tag="Byte" />
+                                <ComboBoxItem Content="Bit" Tag="Bit" />
+                            </ComboBox>
+
+                            <ComboBox
+                                x:Name="DataSizePrefixComboBox"
+                                x:Uid="Settings_DataSizePrefixComboBox"
+                                Width="150"
+                                SelectionChanged="UnitPrefixComboBox_SelectionChanged" />
+                        </StackPanel>
                     </controls:SettingsCard>
 
+                    <!--  data speed: basis and unit  -->
                     <controls:SettingsCard x:Uid="Settings_DataSpeedCard">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox
+                                x:Name="DataSpeedUnitComboBox"
+                                x:Uid="Settings_DataSpeedUnitComboBox"
+                                Width="150"
+                                SelectionChanged="DataSpeedUnitComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Byte" Tag="Byte" />
+                                <ComboBoxItem Content="Bit" Tag="Bit" />
+                            </ComboBox>
+
+                            <ComboBox
+                                x:Name="DataSpeedPrefixComboBox"
+                                x:Uid="Settings_DataSpeedPrefixComboBox"
+                                Width="150"
+                                SelectionChanged="UnitPrefixComboBox_SelectionChanged" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                    <!--  clock, power and current units  -->
+                    <controls:SettingsCard x:Uid="Settings_ClockUnitCard">
                         <ComboBox
-                            x:Name="DataSpeedUnitComboBox"
+                            x:Name="ClockPrefixComboBox"
+                            x:Uid="Settings_ClockPrefixComboBox"
                             Width="150"
-                            SelectionChanged="DataSpeedUnitComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Byte" Tag="Byte" />
-                            <ComboBoxItem Content="Bit" Tag="Bit" />
-                        </ComboBox>
+                            SelectionChanged="UnitPrefixComboBox_SelectionChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Uid="Settings_PowerUnitCard">
+                        <ComboBox
+                            x:Name="PowerPrefixComboBox"
+                            x:Uid="Settings_PowerPrefixComboBox"
+                            Width="150"
+                            SelectionChanged="UnitPrefixComboBox_SelectionChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Uid="Settings_CurrentUnitCard">
+                        <ComboBox
+                            x:Name="CurrentPrefixComboBox"
+                            x:Uid="Settings_CurrentPrefixComboBox"
+                            Width="150"
+                            SelectionChanged="UnitPrefixComboBox_SelectionChanged" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

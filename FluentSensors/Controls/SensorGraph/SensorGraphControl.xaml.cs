@@ -384,7 +384,7 @@ namespace FluentSensors.Controls.SensorGraph
 
 
         // DependencyProperty: SensorType
-        // the raw LHM SensorType ("Clock"); only scales the threshold and hover labels to a bigger unit
+        // the raw LHM SensorType ("Clock"); only scales the threshold and hover labels into ValueUnit
         public string SensorType
         {
             get => (string)GetValue(SensorTypeProperty);
@@ -403,6 +403,23 @@ namespace FluentSensors.Controls.SensorGraph
         {
             if (d is SensorGraphControl g) g.ShowThresholdLabelBriefly();
         }
+
+
+        // DependencyProperty: ValueUnit
+        // the unit of the y-axis (SensorGraphViewModel.ActualYMaxUnit); the hover and threshold labels show their
+        // numbers in it, empty lets each value scale on its own
+        public string ValueUnit
+        {
+            get => (string)GetValue(ValueUnitProperty);
+            set => SetValue(ValueUnitProperty, value);
+        }
+
+        public static readonly DependencyProperty ValueUnitProperty =
+            DependencyProperty.Register(
+                nameof(ValueUnit),
+                typeof(string),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(string.Empty));
 
 
         // DependencyProperty: ThresholdValue
