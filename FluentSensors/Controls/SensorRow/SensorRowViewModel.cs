@@ -32,6 +32,7 @@ namespace FluentSensors.Controls.SensorRow
         {
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
             SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
+            SettingsService.Instance.UnitPrefixChanged += OnUnitPrefixChanged;
         }
 
         private void OnThemeChanged(string newTheme)
@@ -245,6 +246,7 @@ namespace FluentSensors.Controls.SensorRow
         {
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
+            SettingsService.Instance.UnitPrefixChanged -= OnUnitPrefixChanged;
             if (_entry != null) _entry.PropertyChanged -= OnEntryPropertyChanged;
             Threshold?.Cleanup();
             if (Threshold != null) Threshold.PropertyChanged -= OnThresholdPropertyChanged;
@@ -304,13 +306,23 @@ namespace FluentSensors.Controls.SensorRow
             _currentRaw = newValue;
             _avg = _sum / _count;
 
+            FormatValues();
+            RecalculateColors();
+        }
+
+        private void FormatValues()
+        {
             // each value scales on its own, Min can read MHz while Max reads GHz
-            CurrentValue = SensorUnitFormatter.Format(newValue, SensorType);
+            CurrentValue = SensorUnitFormatter.Format(_currentRaw, SensorType);
             MinimumValue = SensorUnitFormatter.Format(_min, SensorType);
             MaximumValue = SensorUnitFormatter.Format(_max, SensorType);
             AverageValue = SensorUnitFormatter.Format(_avg, SensorType);
+        }
 
-            RecalculateColors();
+        // the four values in the new unit right away, a paused list included
+        private void OnUnitPrefixChanged()
+        {
+            if (_count > 0) FormatValues();
         }
 
         private void RecalculateColors()

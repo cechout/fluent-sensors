@@ -466,6 +466,7 @@
                     ThresholdDirection="{x:Bind ViewModel.Threshold.Direction, Mode=OneWay}"
                     ThresholdLabelAlwaysVisible="{x:Bind ThresholdLabelAlwaysVisible, Mode=OneWay}"
                     ThresholdValue="{x:Bind ViewModel.Threshold.EffectiveValue, Mode=OneWay}"
+                    ValueUnit="{x:Bind ViewModel.ActualYMaxUnit, Mode=OneWay}"
                     Values="{x:Bind ViewModel.SensorData, Mode=OneWay}" />
 
                 <fhThreshold:ThresholdFlyoutControl
