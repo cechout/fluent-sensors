@@ -422,6 +422,22 @@ namespace FluentSensors.Controls.SensorGraph
                 new PropertyMetadata(string.Empty));
 
 
+        // DependencyProperty: LabelNumberFormat
+        // the number format of the hover and threshold labels (SensorGraphViewModel.LabelNumberFormat)
+        public string LabelNumberFormat
+        {
+            get => (string)GetValue(LabelNumberFormatProperty);
+            set => SetValue(LabelNumberFormatProperty, value);
+        }
+
+        public static readonly DependencyProperty LabelNumberFormatProperty =
+            DependencyProperty.Register(
+                nameof(LabelNumberFormat),
+                typeof(string),
+                typeof(SensorGraphControl),
+                new PropertyMetadata("F1"));
+
+
         // DependencyProperty: ThresholdValue
         public double? ThresholdValue
         {

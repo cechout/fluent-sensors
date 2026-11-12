@@ -11,6 +11,9 @@ namespace FluentSensors.Common.Sensors
         // the data steps (KB, MB, GB), Clock, Frequency, Energy, Power and Current scale by this
         private const double ScaleThreshold = 1000;
 
+        // a value with no decimal setting of its surface
+        public const int DefaultDecimals = 1;
+
         // TimeSpan steps from seconds to minutes to hours
         private const double SecondsPerMinute = 60;
         private const double SecondsPerHour = 3600;
@@ -191,11 +194,14 @@ namespace FluentSensors.Common.Sensors
             return Scale(value, sensorType).Value;
         }
 
-        public static string Format(double value, string sensorType)
+        // decimals null takes DefaultDecimals
+        public static string Format(double value, string sensorType, int? decimals = null)
         {
             var (scaledValue, unit) = Scale(value, sensorType);
-            return $"{scaledValue:F1} {unit}";
+            return $"{FormatNumber(scaledValue, decimals)} {unit}";
         }
+
+        public static string FormatNumber(double value, int? decimals) => value.ToString("F" + (decimals ?? DefaultDecimals));
 
         // the units a category can be fixed to, smallest first, in the active data unit; the settings page lists them
         // next to Auto

@@ -285,6 +285,24 @@ GPU-Auslastung - die am st√§rksten ausgelastete GPU-Engine, auf der diese App l√
   <data name="Settings_UnitPrefixAuto" xml:space="preserve">
     <value>Automatisch</value>
   </data>
+  <data name="Settings_DecimalPlacesExpander.Header" xml:space="preserve">
+    <value>Nachkommastellen</value>
+  </data>
+  <data name="Settings_DecimalPlacesExpander.Description" xml:space="preserve">
+    <value>Wie viele Nachkommastellen Werte auf den Seiten Sensoren und Graphen zeigen</value>
+  </data>
+  <data name="Settings_SensorListDecimalPlacesCard.Header" xml:space="preserve">
+    <value>Seite Sensoren</value>
+  </data>
+  <data name="Settings_PerformanceDecimalPlacesCard.Header" xml:space="preserve">
+    <value>Seite Graphen</value>
+  </data>
+  <data name="Settings_DecimalPlacesComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Nachkommastellen</value>
+  </data>
+  <data name="Settings_DecimalPlacesComboBox_Auto.Content" xml:space="preserve">
+    <value>Automatisch</value>
+  </data>
   <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
     <value>Welche Anzeigen die Titelleiste zeigt, und in welcher Reihenfolge</value>
   </data>

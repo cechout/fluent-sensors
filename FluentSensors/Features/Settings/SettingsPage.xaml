@@ -265,6 +265,45 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
+            <!--  decimal places: sensors page and graphs page  -->
+            <!--  (the taskbar, the flyout, the widgets and the csv recording each have their own in their section)  -->
+            <controls:SettingsExpander
+                x:Uid="Settings_DecimalPlacesExpander"
+                fhUi:FocusGroup.IsEnabled="True"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE8EF;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard x:Uid="Settings_SensorListDecimalPlacesCard">
+                        <ComboBox
+                            x:Name="SensorListDecimalPlacesComboBox"
+                            x:Uid="Settings_DecimalPlacesComboBox"
+                            Width="150"
+                            SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
+                            <ComboBoxItem Content="0" Tag="0" />
+                            <ComboBoxItem Content="1" Tag="1" />
+                            <ComboBoxItem Content="2" Tag="2" />
+                            <ComboBoxItem Content="3" Tag="3" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Uid="Settings_PerformanceDecimalPlacesCard">
+                        <ComboBox
+                            x:Name="PerformanceDecimalPlacesComboBox"
+                            x:Uid="Settings_DecimalPlacesComboBox"
+                            Width="150"
+                            SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
+                            <ComboBoxItem Content="0" Tag="0" />
+                            <ComboBoxItem Content="1" Tag="1" />
+                            <ComboBoxItem Content="2" Tag="2" />
+                            <ComboBoxItem Content="3" Tag="3" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
             <!--  title bar status readout  -->
             <controls:SettingsExpander
                 x:Uid="Settings_TitleBarStatusExpander"
@@ -639,6 +678,19 @@
                             <controls:ColorPickerButton x:Name="GraphColorPicker" x:Uid="Settings_GraphColorPicker" />
                         </StackPanel>
                     </controls:SettingsCard>
+                    <controls:SettingsCard x:Uid="Settings_DecimalPlacesCard">
+                        <ComboBox
+                            x:Name="WidgetDecimalPlacesComboBox"
+                            x:Uid="Settings_DecimalPlacesComboBox"
+                            Width="150"
+                            SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
+                            <ComboBoxItem Content="0" Tag="0" />
+                            <ComboBoxItem Content="1" Tag="1" />
+                            <ComboBoxItem Content="2" Tag="2" />
+                            <ComboBoxItem Content="3" Tag="3" />
+                        </ComboBox>
+                    </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
@@ -995,6 +1047,19 @@
                             <ComboBoxItem x:Uid="Settings_TaskbarSideTitleLinesComboBox_2" Tag="2" />
                         </ComboBox>
                     </controls:SettingsCard>
+                    <controls:SettingsCard x:Uid="Settings_DecimalPlacesCard">
+                        <ComboBox
+                            x:Name="TaskbarDecimalPlacesComboBox"
+                            x:Uid="Settings_DecimalPlacesComboBox"
+                            Width="150"
+                            SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
+                            <ComboBoxItem Content="0" Tag="0" />
+                            <ComboBoxItem Content="1" Tag="1" />
+                            <ComboBoxItem Content="2" Tag="2" />
+                            <ComboBoxItem Content="3" Tag="3" />
+                        </ComboBox>
+                    </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
@@ -1043,6 +1108,19 @@
                             StepFrequency="5"
                             TickFrequency="20"
                             ValueChanged="TaskbarFlyoutGraphHeightSlider_ValueChanged" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard x:Uid="Settings_DecimalPlacesCard">
+                        <ComboBox
+                            x:Name="TaskbarFlyoutDecimalPlacesComboBox"
+                            x:Uid="Settings_DecimalPlacesComboBox"
+                            Width="150"
+                            SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
+                            <ComboBoxItem Content="0" Tag="0" />
+                            <ComboBoxItem Content="1" Tag="1" />
+                            <ComboBoxItem Content="2" Tag="2" />
+                            <ComboBoxItem Content="3" Tag="3" />
+                        </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

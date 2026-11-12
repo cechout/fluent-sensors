@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using FluentSensors.Common.Localization;
 using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Core.StaticInfo;
-using FluentSensors.Common.Sensors;
 using FluentSensors.Persistence.Services;
 
 
@@ -241,21 +240,21 @@ namespace FluentSensors.Features.Performance.Lhm
         {
             var cores = hasThreads ? CoresWithThreads : CoresWithoutThreads;
             var target = hasThreads ? AvgLoadWithThreads : AvgLoadWithoutThreads;
-            UpdateAverage(target, "Load", cores.SelectMany(c => c.Threads));
+            UpdateAverage(target, cores.SelectMany(c => c.Threads));
         }
 
         public void RecomputeTemperatureAverage(bool hasThreads)
         {
             var cores = hasThreads ? CoresWithThreads : CoresWithoutThreads;
             var target = hasThreads ? AvgTemperatureWithThreads : AvgTemperatureWithoutThreads;
-            UpdateAverage(target, "Temperature", cores.Select(c => c.Temperature));
+            UpdateAverage(target, cores.Select(c => c.Temperature));
         }
 
         public void RecomputeClockAverage(bool hasThreads)
         {
             var cores = hasThreads ? CoresWithThreads : CoresWithoutThreads;
             var target = hasThreads ? AvgClockWithThreads : AvgClockWithoutThreads;
-            UpdateAverage(target, "Clock", cores.Select(c => c.Clock));
+            UpdateAverage(target, cores.Select(c => c.Clock));
         }
 
 
@@ -304,13 +303,13 @@ namespace FluentSensors.Features.Performance.Lhm
 
         // averages the latest values into a data point of the target; unmatched graphs (null)
         // are skipped, not counted as 0
-        private static void UpdateAverage(SensorGraphViewModel target, string sensorType, IEnumerable<SensorGraphViewModel> sourceGraphs)
+        private static void UpdateAverage(SensorGraphViewModel target, IEnumerable<SensorGraphViewModel> sourceGraphs)
         {
             var values = sourceGraphs.Where(g => g != null).Select(g => g.SensorData.LastOrDefault() ?? 0).ToList();
             if (values.Count == 0) return;
 
             double average = values.Average();
-            target.AddDataPoint(average, SensorUnitFormatter.Format(average, sensorType));
+            target.AddDataPoint(average);
         }
 
 

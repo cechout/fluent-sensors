@@ -559,7 +559,14 @@ namespace FluentSensors.Controls.SensorGraph
         // the function and leaves the target at its default (confirmed platform bug):
         // https://github.com/microsoft/microsoft-ui-xaml/issues/2166
         // fix: pass ViewModel itself and navigate null-safe inside the method
-        private string GetYMaxOrPlaceholder(SensorGraphViewModel viewModel) => GetTextOrPlaceholder(viewModel?.ActualYMaxText);
+        // with its unit, "1.5 GB/s"
+        private string GetYMaxOrPlaceholder(SensorGraphViewModel viewModel)
+        {
+            string text = viewModel?.ActualYMaxText;
+            if (string.IsNullOrEmpty(text)) return GetTextOrPlaceholder(text);
+
+            return string.IsNullOrEmpty(viewModel.ActualYMaxUnit) ? text : $"{text} {viewModel.ActualYMaxUnit}";
+        }
 
         private string GetCurrentValueOrPlaceholder(SensorGraphViewModel viewModel) => GetTextOrPlaceholder(viewModel?.CurrentValueText);
 
