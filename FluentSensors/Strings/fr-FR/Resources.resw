@@ -244,12 +244,6 @@ Lecture - durée d'une passe complète de capteurs, proche de la fréquence vis�
   <data name="Settings_GraphFillComboBox_Solid.Content" xml:space="preserve">
     <value>Remplissage uni</value>
   </data>
-  <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
-    <value>Octets ou bits pour les tailles et débits de données</value>
-  </data>
-  <data name="Settings_DataUnitsExpander.Header" xml:space="preserve">
-    <value>Unités de données</value>
-  </data>
   <data name="Settings_DataSizeCard.Header" xml:space="preserve">
     <value>Taille des données</value>
   </data>
