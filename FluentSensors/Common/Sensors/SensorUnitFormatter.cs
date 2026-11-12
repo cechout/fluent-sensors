@@ -222,7 +222,7 @@ namespace FluentSensors.Common.Sensors
         // === private helpers ===
 
         // the ladder of a type in the active data unit, and the unit chosen for its category
-        private static (UnitStep[] Ladder, UnitPrefix Prefix) GetLadder(string sensorType)
+        private static (UnitStep[]? Ladder, UnitPrefix Prefix) GetLadder(string sensorType)
         {
             return sensorType switch
             {
