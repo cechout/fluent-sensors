@@ -71,6 +71,8 @@ namespace FluentSensors.Features.Settings
             RestoreDataUnitSelection();
             RestoreUnitPrefixSelection();
             RestoreDecimalPlacesSelection();
+            RestoreYMaxPositionSelection();
+            RestoreTaskbarTextSelection();
             RestoreHardwareIconColorsSelection();
 
             // the time range lists the pickers share; from code, the restores below run before x:Bind would
@@ -191,6 +193,11 @@ namespace FluentSensors.Features.Settings
             TaskbarSideGraphDirectionCard.Visibility = sideVisibility;
             TaskbarSideTitleLinesCard.Visibility = sideVisibility;
 
+            // a side slot only stacks, so it only picks the side
+            var horizontalVisibility = isVertical ? Visibility.Collapsed : Visibility.Visible;
+            TaskbarLabelArrangementComboBox.Visibility = horizontalVisibility;
+            TaskbarLabelPositionComboBox.Visibility = horizontalVisibility;
+
             // beside a vertical taskbar the flyout lines up with the top or bottom widget edge; the tags stay Left and
             // Right, the stored value is the same
             TaskbarFlyoutAlignmentLeftItem.Content = AppStrings.Get(
@@ -202,6 +209,7 @@ namespace FluentSensors.Features.Settings
             RestoreTaskbarGraphTimeSpanSelection();
             RestoreTaskbarGraphWidthSelection();
             RestoreTaskbarSideSlotSelection();
+            RestoreTaskbarTextSelection();
             TaskbarFlyoutAlignmentComboBox.SelectedItem = null; // a closed box keeps the old text of a renamed item
             RestoreTaskbarFlyoutAlignmentSelection();
             _isLoading = false;
@@ -1346,6 +1354,105 @@ namespace FluentSensors.Features.Settings
         private void RestoreTaskbarGraphWidthSelection()
         {
             TaskbarGraphWidthSlider.Value = SettingsService.Instance.TaskbarGraphWidthDip;
+        }
+
+        // --- taskbar text ---
+        // size and SemiBold value on every edge; arrangement, position and side of the active edge
+
+        private void TaskbarLabelFontSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarLabelFontSizeComboBox.SelectedItem is ComboBoxItem item && double.TryParse(item.Tag?.ToString(), out double size))
+            {
+                SettingsService.Instance.TaskbarLabelFontSize = size;
+            }
+        }
+
+        private void TaskbarValueSemiBoldToggle_Click(object sender, RoutedEventArgs e)
+        {
+            SettingsService.Instance.TaskbarValueSemiBold = TaskbarValueSemiBoldToggle.IsChecked == true;
+        }
+
+        private void TaskbarLabelArrangementComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarLabelArrangementComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarLabelArrangement = tag;
+                UpdateTaskbarLabelAlignmentVisibility();
+            }
+        }
+
+        private void TaskbarLabelPositionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarLabelPositionComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarLabelPosition = tag;
+            }
+        }
+
+        private void TaskbarLabelAlignmentComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarLabelAlignmentComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarLabelAlignment = tag;
+            }
+        }
+
+        private void RestoreTaskbarTextSelection()
+        {
+            var settings = SettingsService.Instance;
+            SelectByTag(TaskbarLabelFontSizeComboBox, settings.TaskbarLabelFontSize.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            TaskbarValueSemiBoldToggle.IsChecked = settings.TaskbarValueSemiBold;
+            SelectByTag(TaskbarLabelArrangementComboBox, settings.TaskbarLabelArrangement);
+            SelectByTag(TaskbarLabelPositionComboBox, settings.TaskbarLabelPosition);
+            SelectByTag(TaskbarLabelAlignmentComboBox, settings.TaskbarLabelAlignment);
+            TaskbarGraphBlurToggle.IsOn = settings.TaskbarGraphBlur;
+            UpdateTaskbarLabelAlignmentVisibility();
+        }
+
+        // the side only matters for stacked text, and always on a side edge
+        private void UpdateTaskbarLabelAlignmentVisibility()
+        {
+            bool isVertical = SettingsService.Instance.ActiveTaskbarEdge is "Left" or "Right";
+            bool isStacked = SettingsService.Instance.TaskbarLabelArrangement == "Stacked";
+            TaskbarLabelAlignmentComboBox.Visibility = isVertical || isStacked ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void TaskbarGraphBlurToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarGraphBlur = TaskbarGraphBlurToggle.IsOn;
+        }
+
+        // --- y-axis maximum per surface ---
+        // beside the title (Title) or beside the value (Value) in the status row of a graph
+
+        private void YMaxPositionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (sender is not ComboBox comboBox || comboBox.SelectedItem is not ComboBoxItem item || item.Tag is not string tag) return;
+            bool besideValue = tag == "Value";
+
+            var settings = SettingsService.Instance;
+            if (comboBox == PerformanceYMaxPositionComboBox) settings.PerformanceYMaxBesideValue = besideValue;
+            else if (comboBox == TaskbarFlyoutYMaxPositionComboBox) settings.TaskbarFlyoutYMaxBesideValue = besideValue;
+            else if (comboBox == WidgetYMaxPositionComboBox) settings.WidgetYMaxBesideValue = besideValue;
+        }
+
+        private void RestoreYMaxPositionSelection()
+        {
+            var settings = SettingsService.Instance;
+            SelectByTag(PerformanceYMaxPositionComboBox, settings.PerformanceYMaxBesideValue ? "Value" : "Title");
+            SelectByTag(TaskbarFlyoutYMaxPositionComboBox, settings.TaskbarFlyoutYMaxBesideValue ? "Value" : "Title");
+            SelectByTag(WidgetYMaxPositionComboBox, settings.WidgetYMaxBesideValue ? "Value" : "Title");
         }
 
         // --- slot layout on a side taskbar ---

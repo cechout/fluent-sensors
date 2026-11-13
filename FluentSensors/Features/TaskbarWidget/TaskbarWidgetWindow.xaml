@@ -44,7 +44,10 @@
             <!--  slot on a side taskbar  -->
             <!--  (layout pushed from code once loaded, see TaskbarWidgetWindow.ApplySideSlotLayout)  -->
             <DataTemplate x:Key="SideSlotTemplate" x:DataType="fhGraph:SensorGraphViewModel">
-                <local:TaskbarSideSlot Loaded="SideSlot_Loaded" ViewModel="{x:Bind}" />
+                <local:TaskbarSideSlot
+                    Loaded="SideSlot_Loaded"
+                    TextLayout="{x:Bind LabelLayout, Mode=OneWay}"
+                    ViewModel="{x:Bind}" />
             </DataTemplate>
         </Grid.Resources>
 

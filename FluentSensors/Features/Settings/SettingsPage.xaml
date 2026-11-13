@@ -265,7 +265,7 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
-            <!--  decimal places: sensors page and graphs page  -->
+            <!--  sensors and graphs pages: decimal places of both, y-axis maximum of the graphs  -->
             <!--  (the taskbar, the flyout, the widgets and the csv recording each have their own in their section)  -->
             <controls:SettingsExpander
                 x:Uid="Settings_DecimalPlacesExpander"
@@ -299,6 +299,16 @@
                             <ComboBoxItem Content="1" Tag="1" />
                             <ComboBoxItem Content="2" Tag="2" />
                             <ComboBoxItem Content="3" Tag="3" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard x:Uid="Settings_YMaxPositionCard">
+                        <ComboBox
+                            x:Name="PerformanceYMaxPositionComboBox"
+                            x:Uid="Settings_YMaxPositionComboBox"
+                            Width="150"
+                            SelectionChanged="YMaxPositionComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_YMaxPositionComboBox_Title" Tag="Title" />
+                            <ComboBoxItem x:Uid="Settings_YMaxPositionComboBox_Value" Tag="Value" />
                         </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
@@ -691,6 +701,16 @@
                             <ComboBoxItem Content="3" Tag="3" />
                         </ComboBox>
                     </controls:SettingsCard>
+                    <controls:SettingsCard x:Uid="Settings_YMaxPositionCard">
+                        <ComboBox
+                            x:Name="WidgetYMaxPositionComboBox"
+                            x:Uid="Settings_YMaxPositionComboBox"
+                            Width="150"
+                            SelectionChanged="YMaxPositionComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_YMaxPositionComboBox_Title" Tag="Title" />
+                            <ComboBoxItem x:Uid="Settings_YMaxPositionComboBox_Value" Tag="Value" />
+                        </ComboBox>
+                    </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
@@ -1060,6 +1080,70 @@
                             <ComboBoxItem Content="3" Tag="3" />
                         </ComboBox>
                     </controls:SettingsCard>
+                    <!--  name and value text: size, SemiBold value, arrangement  -->
+                    <!--
+                        (size and weight on every edge; arrangement and position per edge, a side edge only picks
+                        the side, see OnActiveTaskbarEdgeChanged)
+                    -->
+                    <controls:SettingsCard x:Uid="Settings_TaskbarTextSizeCard">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox
+                                x:Name="TaskbarLabelFontSizeComboBox"
+                                x:Uid="Settings_TaskbarLabelFontSizeComboBox"
+                                Width="70"
+                                SelectionChanged="TaskbarLabelFontSizeComboBox_SelectionChanged">
+                                <ComboBoxItem Content="9" Tag="9" />
+                                <ComboBoxItem Content="10" Tag="10" />
+                                <ComboBoxItem Content="11" Tag="11" />
+                                <ComboBoxItem Content="12" Tag="12" />
+                            </ComboBox>
+
+                            <ToggleButton
+                                x:Name="TaskbarValueSemiBoldToggle"
+                                x:Uid="Settings_TaskbarValueSemiBoldToggle"
+                                Click="TaskbarValueSemiBoldToggle_Click">
+                                <FontIcon FontSize="14" Glyph="&#xE8DD;" />
+                            </ToggleButton>
+                        </StackPanel>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard x:Uid="Settings_TaskbarTextLayoutCard">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox
+                                x:Name="TaskbarLabelArrangementComboBox"
+                                x:Uid="Settings_TaskbarLabelArrangementComboBox"
+                                Width="150"
+                                SelectionChanged="TaskbarLabelArrangementComboBox_SelectionChanged">
+                                <ComboBoxItem x:Uid="Settings_TaskbarLabelArrangementComboBox_SideBySide" Tag="SideBySide" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarLabelArrangementComboBox_Stacked" Tag="Stacked" />
+                            </ComboBox>
+
+                            <ComboBox
+                                x:Name="TaskbarLabelPositionComboBox"
+                                x:Uid="Settings_TaskbarLabelPositionComboBox"
+                                Width="110"
+                                SelectionChanged="TaskbarLabelPositionComboBox_SelectionChanged">
+                                <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Top" Tag="Top" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Bottom" Tag="Bottom" />
+                            </ComboBox>
+
+                            <ComboBox
+                                x:Name="TaskbarLabelAlignmentComboBox"
+                                x:Uid="Settings_TaskbarLabelAlignmentComboBox"
+                                Width="110"
+                                SelectionChanged="TaskbarLabelAlignmentComboBox_SelectionChanged">
+                                <ComboBoxItem x:Uid="Settings_TaskbarLabelAlignmentComboBox_Left" Tag="Left" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarLabelAlignmentComboBox_Right" Tag="Right" />
+                            </ComboBox>
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                    <!--  blur on line and fill, the taskbar graph only  -->
+                    <controls:SettingsCard x:Uid="Settings_TaskbarGraphBlurCard">
+                        <ToggleSwitch
+                            x:Name="TaskbarGraphBlurToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="TaskbarGraphBlurToggle_Toggled" />
+                    </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
@@ -1120,6 +1204,16 @@
                             <ComboBoxItem Content="1" Tag="1" />
                             <ComboBoxItem Content="2" Tag="2" />
                             <ComboBoxItem Content="3" Tag="3" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard x:Uid="Settings_YMaxPositionCard">
+                        <ComboBox
+                            x:Name="TaskbarFlyoutYMaxPositionComboBox"
+                            x:Uid="Settings_YMaxPositionComboBox"
+                            Width="150"
+                            SelectionChanged="YMaxPositionComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_YMaxPositionComboBox_Title" Tag="Title" />
+                            <ComboBoxItem x:Uid="Settings_YMaxPositionComboBox_Value" Tag="Value" />
                         </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
