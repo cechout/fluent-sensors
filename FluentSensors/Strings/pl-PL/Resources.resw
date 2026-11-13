@@ -244,12 +244,6 @@ Odczyt - czas jednego pełnego przebiegu odczytu czujników, zbliżenie się do 
   <data name="Settings_GraphFillComboBox_Solid.Content" xml:space="preserve">
     <value>Jednolite</value>
   </data>
-  <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
-    <value>Bajty lub bity dla rozmiarów danych i prędkości</value>
-  </data>
-  <data name="Settings_DataUnitsExpander.Header" xml:space="preserve">
-    <value>Jednostki danych</value>
-  </data>
   <data name="Settings_DataSizeCard.Header" xml:space="preserve">
     <value>Rozmiar danych</value>
   </data>

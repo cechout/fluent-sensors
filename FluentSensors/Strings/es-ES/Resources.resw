@@ -244,12 +244,6 @@ Lectura - duración de una pasada completa de sensores, un valor cercano a la ta
   <data name="Settings_GraphFillComboBox_Solid.Content" xml:space="preserve">
     <value>Relleno sólido</value>
   </data>
-  <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
-    <value>Bytes o bits para tamaños y velocidades de datos</value>
-  </data>
-  <data name="Settings_DataUnitsExpander.Header" xml:space="preserve">
-    <value>Unidades de datos</value>
-  </data>
   <data name="Settings_DataSizeCard.Header" xml:space="preserve">
     <value>Tamaño de datos</value>
   </data>

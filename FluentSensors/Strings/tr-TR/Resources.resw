@@ -244,12 +244,6 @@ Okuma - sensörlerin tam bir tur okunma süresi, sorgulama hızına yakın olmas
   <data name="Settings_GraphFillComboBox_Solid.Content" xml:space="preserve">
     <value>Düz dolgu</value>
   </data>
-  <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
-    <value>Veri boyutları ve hızları için bayt veya bit</value>
-  </data>
-  <data name="Settings_DataUnitsExpander.Header" xml:space="preserve">
-    <value>Veri birimleri</value>
-  </data>
   <data name="Settings_DataSizeCard.Header" xml:space="preserve">
     <value>Veri boyutu</value>
   </data>

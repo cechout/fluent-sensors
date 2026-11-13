@@ -266,24 +266,28 @@ GPU-Auslastung - die am stärksten ausgelastete GPU-Engine, auf der diese App l�
   </data>
   <data name="Settings_ClockUnitCard.Header" xml:space="preserve">
     <value>Takt</value>
+    <comment>the clock speed of a processor or graphics card (MHz, GHz)</comment>
   </data>
   <data name="Settings_ClockPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Einheit des Takts</value>
   </data>
   <data name="Settings_PowerUnitCard.Header" xml:space="preserve">
     <value>Leistung</value>
+    <comment>electrical power in watts</comment>
   </data>
   <data name="Settings_PowerPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Einheit der Leistung</value>
   </data>
   <data name="Settings_CurrentUnitCard.Header" xml:space="preserve">
     <value>Stromstärke</value>
+    <comment>electrical current in amperes, not "present"</comment>
   </data>
   <data name="Settings_CurrentPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Einheit der Stromstärke</value>
   </data>
   <data name="Settings_UnitPrefixAuto" xml:space="preserve">
     <value>Automatisch</value>
+    <comment>first item of each unit list; picks the unit per value by its size</comment>
   </data>
   <data name="Settings_DecimalPlacesExpander.Header" xml:space="preserve">
     <value>Nachkommastellen</value>
@@ -293,15 +297,18 @@ GPU-Auslastung - die am stärksten ausgelastete GPU-Engine, auf der diese App l�
   </data>
   <data name="Settings_SensorListDecimalPlacesCard.Header" xml:space="preserve">
     <value>Seite Sensoren</value>
+    <comment>the Sensors page of the app</comment>
   </data>
   <data name="Settings_PerformanceDecimalPlacesCard.Header" xml:space="preserve">
     <value>Seite Graphen</value>
+    <comment>the Graphs page of the app</comment>
   </data>
   <data name="Settings_DecimalPlacesComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Nachkommastellen</value>
   </data>
   <data name="Settings_DecimalPlacesComboBox_Auto.Content" xml:space="preserve">
     <value>Automatisch</value>
+    <comment>first item of each decimal places list; one decimal, the y-axis picks its own</comment>
   </data>
   <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
     <value>Welche Anzeigen die Titelleiste zeigt, und in welcher Reihenfolge</value>
