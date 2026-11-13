@@ -253,16 +253,74 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
     <value>Solid Fill</value>
   </data>
   <data name="Settings_DataUnitsExpander.Description" xml:space="preserve">
-    <value>Bytes or bits for data sizes and speeds</value>
+    <value>Bytes or bits, and the unit each value is shown in</value>
   </data>
   <data name="Settings_DataUnitsExpander.Header" xml:space="preserve">
-    <value>Data Units</value>
+    <value>Units</value>
   </data>
   <data name="Settings_DataSizeCard.Header" xml:space="preserve">
     <value>Data Size</value>
   </data>
   <data name="Settings_DataSpeedCard.Header" xml:space="preserve">
     <value>Data Speed</value>
+  </data>
+  <data name="Settings_DataSizeUnitComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Data size basis</value>
+  </data>
+  <data name="Settings_DataSizePrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Data size unit</value>
+  </data>
+  <data name="Settings_DataSpeedUnitComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Data speed basis</value>
+  </data>
+  <data name="Settings_DataSpeedPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Data speed unit</value>
+  </data>
+  <data name="Settings_ClockUnitCard.Header" xml:space="preserve">
+    <value>Clock</value>
+    <comment>the clock speed of a processor or graphics card (MHz, GHz)</comment>
+  </data>
+  <data name="Settings_ClockPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Clock unit</value>
+  </data>
+  <data name="Settings_PowerUnitCard.Header" xml:space="preserve">
+    <value>Power</value>
+    <comment>electrical power in watts</comment>
+  </data>
+  <data name="Settings_PowerPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Power unit</value>
+  </data>
+  <data name="Settings_CurrentUnitCard.Header" xml:space="preserve">
+    <value>Current</value>
+    <comment>electrical current in amperes, not "present"</comment>
+  </data>
+  <data name="Settings_CurrentPrefixComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Current unit</value>
+  </data>
+  <data name="Settings_UnitPrefixAuto" xml:space="preserve">
+    <value>Automatic</value>
+    <comment>first item of each unit list; picks the unit per value by its size</comment>
+  </data>
+  <data name="Settings_DecimalPlacesExpander.Header" xml:space="preserve">
+    <value>Decimal Places</value>
+  </data>
+  <data name="Settings_DecimalPlacesExpander.Description" xml:space="preserve">
+    <value>How many decimals values show on the Sensors and Graphs pages</value>
+  </data>
+  <data name="Settings_SensorListDecimalPlacesCard.Header" xml:space="preserve">
+    <value>Sensors Page</value>
+    <comment>the Sensors page of the app</comment>
+  </data>
+  <data name="Settings_PerformanceDecimalPlacesCard.Header" xml:space="preserve">
+    <value>Graphs Page</value>
+    <comment>the Graphs page of the app</comment>
+  </data>
+  <data name="Settings_DecimalPlacesComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Decimal places</value>
+  </data>
+  <data name="Settings_DecimalPlacesComboBox_Auto.Content" xml:space="preserve">
+    <value>Automatic</value>
+    <comment>first item of each decimal places list; one decimal, the y-axis picks its own</comment>
   </data>
   <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
     <value>Which readouts the title bar shows, and in which order</value>

@@ -69,6 +69,8 @@ namespace FluentSensors.Features.Settings
             RestoreGraphLineStyleSelection();
             RestoreGraphFillFadeSelection();
             RestoreDataUnitSelection();
+            RestoreUnitPrefixSelection();
+            RestoreDecimalPlacesSelection();
             RestoreHardwareIconColorsSelection();
 
             // the time range lists the pickers share; from code, the restores below run before x:Bind would
@@ -884,6 +886,7 @@ namespace FluentSensors.Features.Settings
                 && Enum.TryParse(tag, out DataUnitBasis basis))
             {
                 SettingsService.Instance.DataSizeUnitBasis = basis;
+                FillPrefixComboBox(DataSizePrefixComboBox, "SmallData", SettingsService.Instance.DataSizeUnitPrefix);
             }
         }
 
@@ -895,6 +898,7 @@ namespace FluentSensors.Features.Settings
                 && Enum.TryParse(tag, out DataUnitBasis basis))
             {
                 SettingsService.Instance.DataSpeedUnitBasis = basis;
+                FillPrefixComboBox(DataSpeedPrefixComboBox, "Throughput", SettingsService.Instance.DataSpeedUnitPrefix);
             }
         }
 
@@ -902,6 +906,80 @@ namespace FluentSensors.Features.Settings
         {
             SelectByTag(DataSizeUnitComboBox, SettingsService.Instance.DataSizeUnitBasis.ToString());
             SelectByTag(DataSpeedUnitComboBox, SettingsService.Instance.DataSpeedUnitBasis.ToString());
+        }
+
+        // --- decimal places per surface ---
+        // Auto (null) or a fixed count; the csv recording keeps its own card and handler
+
+        private void DecimalPlacesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (sender is not ComboBox comboBox || comboBox.SelectedItem is not ComboBoxItem item || item.Tag is not string tag) return;
+            int? decimals = int.TryParse(tag, out int places) ? places : null;
+
+            var settings = SettingsService.Instance;
+            if (comboBox == SensorListDecimalPlacesComboBox) settings.SensorListDecimalPlaces = decimals;
+            else if (comboBox == PerformanceDecimalPlacesComboBox) settings.PerformanceDecimalPlaces = decimals;
+            else if (comboBox == TaskbarDecimalPlacesComboBox) settings.TaskbarDecimalPlaces = decimals;
+            else if (comboBox == TaskbarFlyoutDecimalPlacesComboBox) settings.TaskbarFlyoutDecimalPlaces = decimals;
+            else if (comboBox == WidgetDecimalPlacesComboBox) settings.WidgetDecimalPlaces = decimals;
+        }
+
+        private void RestoreDecimalPlacesSelection()
+        {
+            var settings = SettingsService.Instance;
+            SelectByTag(SensorListDecimalPlacesComboBox, settings.SensorListDecimalPlaces?.ToString() ?? "Auto");
+            SelectByTag(PerformanceDecimalPlacesComboBox, settings.PerformanceDecimalPlaces?.ToString() ?? "Auto");
+            SelectByTag(TaskbarDecimalPlacesComboBox, settings.TaskbarDecimalPlaces?.ToString() ?? "Auto");
+            SelectByTag(TaskbarFlyoutDecimalPlacesComboBox, settings.TaskbarFlyoutDecimalPlaces?.ToString() ?? "Auto");
+            SelectByTag(WidgetDecimalPlacesComboBox, settings.WidgetDecimalPlaces?.ToString() ?? "Auto");
+        }
+
+        // --- unit per category ---
+        // Automatic plus the units of the category in the active data unit (KB or kbit); one sensor type stands for
+        // each category, the tag is the UnitPrefix
+
+        private void UnitPrefixComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (sender is not ComboBox comboBox || comboBox.SelectedItem is not ComboBoxItem item
+                || item.Tag is not string tag || !Enum.TryParse(tag, out UnitPrefix prefix)) return;
+
+            var settings = SettingsService.Instance;
+            if (comboBox == DataSizePrefixComboBox) settings.DataSizeUnitPrefix = prefix;
+            else if (comboBox == DataSpeedPrefixComboBox) settings.DataSpeedUnitPrefix = prefix;
+            else if (comboBox == ClockPrefixComboBox) settings.ClockUnitPrefix = prefix;
+            else if (comboBox == PowerPrefixComboBox) settings.PowerUnitPrefix = prefix;
+            else if (comboBox == CurrentPrefixComboBox) settings.CurrentUnitPrefix = prefix;
+        }
+
+        private void RestoreUnitPrefixSelection()
+        {
+            var settings = SettingsService.Instance;
+            FillPrefixComboBox(DataSizePrefixComboBox, "SmallData", settings.DataSizeUnitPrefix);
+            FillPrefixComboBox(DataSpeedPrefixComboBox, "Throughput", settings.DataSpeedUnitPrefix);
+            FillPrefixComboBox(ClockPrefixComboBox, "Clock", settings.ClockUnitPrefix);
+            FillPrefixComboBox(PowerPrefixComboBox, "Power", settings.PowerUnitPrefix);
+            FillPrefixComboBox(CurrentPrefixComboBox, "Current", settings.CurrentUnitPrefix);
+        }
+
+        // also on a byte / bit switch, which renames the units
+        private void FillPrefixComboBox(ComboBox comboBox, string sensorType, UnitPrefix selected)
+        {
+            bool wasLoading = _isLoading;
+            _isLoading = true; // clearing and selecting raise SelectionChanged
+
+            comboBox.Items.Clear();
+            comboBox.Items.Add(new ComboBoxItem { Content = AppStrings.Get("Settings_UnitPrefixAuto"), Tag = nameof(UnitPrefix.Auto) });
+            foreach (var (prefix, unit) in SensorUnitFormatter.GetSelectableUnits(sensorType))
+            {
+                comboBox.Items.Add(new ComboBoxItem { Content = unit, Tag = prefix.ToString() });
+            }
+            SelectByTag(comboBox, selected.ToString());
+
+            _isLoading = wasLoading;
         }
 
         // --- hardware icon colors ---

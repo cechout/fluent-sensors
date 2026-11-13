@@ -36,10 +36,9 @@ namespace FluentSensors.Controls.SensorGraph
         // the UI thread of this graph, for a y-axis change from another window (see OnSensorStateChanged)
         private readonly DispatcherQueue _dispatcherQueue;
 
-        // snapshot (see SetFrozen); the values that arrive meanwhile, at most one graph full, and the latest text
+        // snapshot (see SetFrozen); the values that arrive meanwhile, at most one graph full
         private bool _isFrozen;
         private readonly Queue<double> _pendingValues = new();
-        private string? _pendingValueText;
 
 
         // === constructor ===
@@ -108,6 +107,8 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.GraphLineStyleChanged += OnGraphLineStyleChanged;
             SettingsService.Instance.GraphFillFadeChanged += OnGraphFillFadeChanged;
             SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
+            SettingsService.Instance.UnitPrefixChanged += UpdateYMaxDisplay;
+            SettingsService.Instance.DecimalPlacesChanged += OnDecimalPlacesChanged;
 
             // the threshold config of this sensor; this view model only colors by it
             Threshold = new ThresholdEditorViewModel(sensorId, sensorType);
@@ -174,7 +175,23 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
-        public string DisplayNameWithUnit => string.IsNullOrEmpty(Unit) ? SensorName : $"{SensorName} ({Unit})";
+        // in the unit of the y-axis once it has one, so the title matches the y-max number beside it
+        public string DisplayNameWithUnit
+        {
+            get
+            {
+                string unit = string.IsNullOrEmpty(ActualYMaxUnit) ? Unit : ActualYMaxUnit;
+                return string.IsNullOrEmpty(unit) ? SensorName : $"{SensorName} ({unit})";
+            }
+        }
+
+        // the decimal setting of the surface this scope belongs to, null for automatic
+        private int? Decimals => SettingsService.Instance.GetDecimalPlaces(Scope);
+
+        // the number format of the hover and threshold labels in the graph
+        public string LabelNumberFormat => "F" + (Decimals ?? SensorUnitFormatter.DefaultDecimals);
+
+        private string FormatValue(double value) => SensorUnitFormatter.Format(value, SensorType, Decimals);
 
         private string _currentValueText = "-";
         public string CurrentValueText
@@ -279,6 +296,7 @@ namespace FluentSensors.Controls.SensorGraph
                 {
                     _actualYMaxUnit = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(DisplayNameWithUnit));
                 }
             }
         }
@@ -369,6 +387,14 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+        // the value and y-max text right away, a paused graph included
+        private void OnDecimalPlacesChanged()
+        {
+            if (CurrentValueText != "-") CurrentValueText = FormatValue(_currentRaw); // "-" until the first value
+            UpdateYMaxDisplay();
+            OnPropertyChanged(nameof(LabelNumberFormat));
+        }
+
         private void OnGraphBackgroundChanged(bool useTransparentBackground)
         {
             IsCardBackgroundVisible = !useTransparentBackground;
@@ -451,23 +477,25 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.GraphLineStyleChanged -= OnGraphLineStyleChanged;
             SettingsService.Instance.GraphFillFadeChanged -= OnGraphFillFadeChanged;
             SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
+            SettingsService.Instance.UnitPrefixChanged -= UpdateYMaxDisplay;
+            SettingsService.Instance.DecimalPlacesChanged -= OnDecimalPlacesChanged;
             Threshold.PropertyChanged -= OnThresholdPropertyChanged;
             Threshold.Cleanup();
         }
 
-        public void AddDataPoint(double newValue, string formattedValueText)
+        // one tick; the value text in the decimals of this scope
+        public void AddDataPoint(double newValue)
         {
             if (_isFrozen)
             {
                 _pendingValues.Enqueue(newValue);
                 if (_pendingValues.Count > SensorData.Count) _pendingValues.Dequeue();
-                _pendingValueText = formattedValueText;
                 return;
             }
 
             _currentRaw = newValue;
 
-            CurrentValueText = formattedValueText;
+            CurrentValueText = FormatValue(newValue);
 
             // shifts the graph one tick
             SensorData.RemoveAt(0);
@@ -514,9 +542,8 @@ namespace FluentSensors.Controls.SensorGraph
             OnPropertyChanged(nameof(SensorData));
 
             _currentRaw = _pendingValues.Last();
-            CurrentValueText = _pendingValueText ?? CurrentValueText;
+            CurrentValueText = FormatValue(_currentRaw);
             _pendingValues.Clear();
-            _pendingValueText = null;
 
             UpdateYMaxDisplay();
             RecalculateColor();
@@ -664,15 +691,17 @@ namespace FluentSensors.Controls.SensorGraph
                 double currentHighestPoint = SensorData.Max() ?? 0;
                 if (currentHighestPoint <= 0) currentHighestPoint = Math.Min(SensorData.Min() ?? 0, 0);
                 var (scaledValue, unit) = SensorUnitFormatter.Scale(currentHighestPoint, SensorType);
-                ActualYMaxText = $"{scaledValue:0.0}";
+                ActualYMaxText = Decimals.HasValue ? SensorUnitFormatter.FormatNumber(scaledValue, Decimals) : $"{scaledValue:0.0}";
                 ActualYMaxUnit = unit;
             }
             else
             {
-                // manual; one decimal once Clock or SmallData scaled to GHz or GB, whole otherwise
+                // manual; the decimals of the scope, or automatic: one decimal once scaled to a larger unit (GHz,
+                // GB), whole in the base unit or a smaller one
                 var (scaledValue, unit) = SensorUnitFormatter.Scale(ManualYMax, SensorType);
-                ActualYMaxText = unit == SensorUnitFormatter.GetUnit(SensorType)
-                    ? scaledValue.ToString("0")
+                double baseValue = SensorUnitFormatter.ScaleToUnit(ManualYMax, SensorType, SensorUnitFormatter.GetUnit(SensorType));
+                ActualYMaxText = Decimals.HasValue ? SensorUnitFormatter.FormatNumber(scaledValue, Decimals)
+                    : Math.Abs(scaledValue) >= Math.Abs(baseValue) ? scaledValue.ToString("0")
                     : $"{scaledValue:0.0}";
                 ActualYMaxUnit = unit;
             }

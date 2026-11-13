@@ -121,7 +121,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
                     if (realSensor != null)
                     {
-                        pinnedSensor.AddDataPoint(realSensor.Value, SensorUnitFormatter.Format(realSensor.Value, realSensor.SensorType));
+                        pinnedSensor.AddDataPoint(realSensor.Value);
                     }
                 }
             });

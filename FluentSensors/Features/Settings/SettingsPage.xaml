@@ -186,8 +186,11 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
-            <!--  data units  -->
-            <!--  (reaches every displayed value; csv recordings keep the byte units the raw values are stored in)  -->
+            <!--  data units: bytes or bits, and the unit per category  -->
+            <!--
+                (reaches every displayed value; csv recordings keep the byte units the raw values are stored in;
+                the unit lists are filled from SensorUnitFormatter in code)
+            -->
             <controls:SettingsExpander
                 x:Uid="Settings_DataUnitsExpander"
                 fhUi:FocusGroup.IsEnabled="True"
@@ -195,23 +198,107 @@
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
+                    <!--  data size: basis and unit  -->
                     <controls:SettingsCard x:Uid="Settings_DataSizeCard">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox
+                                x:Name="DataSizeUnitComboBox"
+                                x:Uid="Settings_DataSizeUnitComboBox"
+                                Width="150"
+                                SelectionChanged="DataSizeUnitComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Byte" Tag="Byte" />
+                                <ComboBoxItem Content="Bit" Tag="Bit" />
+                            </ComboBox>
+
+                            <ComboBox
+                                x:Name="DataSizePrefixComboBox"
+                                x:Uid="Settings_DataSizePrefixComboBox"
+                                Width="150"
+                                SelectionChanged="UnitPrefixComboBox_SelectionChanged" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                    <!--  data speed: basis and unit  -->
+                    <controls:SettingsCard x:Uid="Settings_DataSpeedCard">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox
+                                x:Name="DataSpeedUnitComboBox"
+                                x:Uid="Settings_DataSpeedUnitComboBox"
+                                Width="150"
+                                SelectionChanged="DataSpeedUnitComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Byte" Tag="Byte" />
+                                <ComboBoxItem Content="Bit" Tag="Bit" />
+                            </ComboBox>
+
+                            <ComboBox
+                                x:Name="DataSpeedPrefixComboBox"
+                                x:Uid="Settings_DataSpeedPrefixComboBox"
+                                Width="150"
+                                SelectionChanged="UnitPrefixComboBox_SelectionChanged" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                    <!--  clock, power and current units  -->
+                    <controls:SettingsCard x:Uid="Settings_ClockUnitCard">
                         <ComboBox
-                            x:Name="DataSizeUnitComboBox"
+                            x:Name="ClockPrefixComboBox"
+                            x:Uid="Settings_ClockPrefixComboBox"
                             Width="150"
-                            SelectionChanged="DataSizeUnitComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Byte" Tag="Byte" />
-                            <ComboBoxItem Content="Bit" Tag="Bit" />
+                            SelectionChanged="UnitPrefixComboBox_SelectionChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Uid="Settings_PowerUnitCard">
+                        <ComboBox
+                            x:Name="PowerPrefixComboBox"
+                            x:Uid="Settings_PowerPrefixComboBox"
+                            Width="150"
+                            SelectionChanged="UnitPrefixComboBox_SelectionChanged" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard x:Uid="Settings_CurrentUnitCard">
+                        <ComboBox
+                            x:Name="CurrentPrefixComboBox"
+                            x:Uid="Settings_CurrentPrefixComboBox"
+                            Width="150"
+                            SelectionChanged="UnitPrefixComboBox_SelectionChanged" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+            <!--  decimal places: sensors page and graphs page  -->
+            <!--  (the taskbar, the flyout, the widgets and the csv recording each have their own in their section)  -->
+            <controls:SettingsExpander
+                x:Uid="Settings_DecimalPlacesExpander"
+                fhUi:FocusGroup.IsEnabled="True"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE8EF;}"
+                IsExpanded="False">
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard x:Uid="Settings_SensorListDecimalPlacesCard">
+                        <ComboBox
+                            x:Name="SensorListDecimalPlacesComboBox"
+                            x:Uid="Settings_DecimalPlacesComboBox"
+                            Width="150"
+                            SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
+                            <ComboBoxItem Content="0" Tag="0" />
+                            <ComboBoxItem Content="1" Tag="1" />
+                            <ComboBoxItem Content="2" Tag="2" />
+                            <ComboBoxItem Content="3" Tag="3" />
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard x:Uid="Settings_DataSpeedCard">
+                    <controls:SettingsCard x:Uid="Settings_PerformanceDecimalPlacesCard">
                         <ComboBox
-                            x:Name="DataSpeedUnitComboBox"
+                            x:Name="PerformanceDecimalPlacesComboBox"
+                            x:Uid="Settings_DecimalPlacesComboBox"
                             Width="150"
-                            SelectionChanged="DataSpeedUnitComboBox_SelectionChanged">
-                            <ComboBoxItem Content="Byte" Tag="Byte" />
-                            <ComboBoxItem Content="Bit" Tag="Bit" />
+                            SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
+                            <ComboBoxItem Content="0" Tag="0" />
+                            <ComboBoxItem Content="1" Tag="1" />
+                            <ComboBoxItem Content="2" Tag="2" />
+                            <ComboBoxItem Content="3" Tag="3" />
                         </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
@@ -591,6 +678,19 @@
                             <controls:ColorPickerButton x:Name="GraphColorPicker" x:Uid="Settings_GraphColorPicker" />
                         </StackPanel>
                     </controls:SettingsCard>
+                    <controls:SettingsCard x:Uid="Settings_DecimalPlacesCard">
+                        <ComboBox
+                            x:Name="WidgetDecimalPlacesComboBox"
+                            x:Uid="Settings_DecimalPlacesComboBox"
+                            Width="150"
+                            SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
+                            <ComboBoxItem Content="0" Tag="0" />
+                            <ComboBoxItem Content="1" Tag="1" />
+                            <ComboBoxItem Content="2" Tag="2" />
+                            <ComboBoxItem Content="3" Tag="3" />
+                        </ComboBox>
+                    </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
@@ -947,6 +1047,19 @@
                             <ComboBoxItem x:Uid="Settings_TaskbarSideTitleLinesComboBox_2" Tag="2" />
                         </ComboBox>
                     </controls:SettingsCard>
+                    <controls:SettingsCard x:Uid="Settings_DecimalPlacesCard">
+                        <ComboBox
+                            x:Name="TaskbarDecimalPlacesComboBox"
+                            x:Uid="Settings_DecimalPlacesComboBox"
+                            Width="150"
+                            SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
+                            <ComboBoxItem Content="0" Tag="0" />
+                            <ComboBoxItem Content="1" Tag="1" />
+                            <ComboBoxItem Content="2" Tag="2" />
+                            <ComboBoxItem Content="3" Tag="3" />
+                        </ComboBox>
+                    </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
@@ -995,6 +1108,19 @@
                             StepFrequency="5"
                             TickFrequency="20"
                             ValueChanged="TaskbarFlyoutGraphHeightSlider_ValueChanged" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard x:Uid="Settings_DecimalPlacesCard">
+                        <ComboBox
+                            x:Name="TaskbarFlyoutDecimalPlacesComboBox"
+                            x:Uid="Settings_DecimalPlacesComboBox"
+                            Width="150"
+                            SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
+                            <ComboBoxItem Content="0" Tag="0" />
+                            <ComboBoxItem Content="1" Tag="1" />
+                            <ComboBoxItem Content="2" Tag="2" />
+                            <ComboBoxItem Content="3" Tag="3" />
+                        </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

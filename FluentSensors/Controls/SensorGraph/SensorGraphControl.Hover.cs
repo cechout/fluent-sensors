@@ -63,8 +63,7 @@ namespace FluentSensors.Controls.SensorGraph
             Canvas.SetTop(HoverCircle, valuePixels.Y - HoverCircle.Height / 2);
 
             double labelY = LabelFollowsPointer ? position.Y : valuePixels.Y;
-            var (scaledValue, _) = SensorUnitFormatter.Scale(value.Value, SensorType);
-            CurrentValueLabelText.Text = scaledValue.ToString("0.0");
+            CurrentValueLabelText.Text = SensorUnitFormatter.ScaleToUnit(value.Value, SensorType, ValueUnit).ToString(LabelNumberFormat);
 
             // a synchronous measure, so the flip below sees the new text width and not the last frame
             CurrentValueLabelBorder.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));

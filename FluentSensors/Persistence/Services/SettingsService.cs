@@ -403,6 +403,175 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // the unit per category (sizes, speeds, Clock, Power, Current); mirrored onto SensorUnitFormatter as well
+        private UnitPrefix _dataSizeUnitPrefix = Defaults.DataSizeUnitPrefix;
+        public UnitPrefix DataSizeUnitPrefix
+        {
+            get => _dataSizeUnitPrefix;
+            set
+            {
+                if (_dataSizeUnitPrefix != value)
+                {
+                    _dataSizeUnitPrefix = value;
+                    SensorUnitFormatter.DataSizePrefix = value;
+                    UnitPrefixChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private UnitPrefix _dataSpeedUnitPrefix = Defaults.DataSpeedUnitPrefix;
+        public UnitPrefix DataSpeedUnitPrefix
+        {
+            get => _dataSpeedUnitPrefix;
+            set
+            {
+                if (_dataSpeedUnitPrefix != value)
+                {
+                    _dataSpeedUnitPrefix = value;
+                    SensorUnitFormatter.DataSpeedPrefix = value;
+                    UnitPrefixChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private UnitPrefix _clockUnitPrefix = Defaults.ClockUnitPrefix;
+        public UnitPrefix ClockUnitPrefix
+        {
+            get => _clockUnitPrefix;
+            set
+            {
+                if (_clockUnitPrefix != value)
+                {
+                    _clockUnitPrefix = value;
+                    SensorUnitFormatter.ClockPrefix = value;
+                    UnitPrefixChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private UnitPrefix _powerUnitPrefix = Defaults.PowerUnitPrefix;
+        public UnitPrefix PowerUnitPrefix
+        {
+            get => _powerUnitPrefix;
+            set
+            {
+                if (_powerUnitPrefix != value)
+                {
+                    _powerUnitPrefix = value;
+                    SensorUnitFormatter.PowerPrefix = value;
+                    UnitPrefixChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private UnitPrefix _currentUnitPrefix = Defaults.CurrentUnitPrefix;
+        public UnitPrefix CurrentUnitPrefix
+        {
+            get => _currentUnitPrefix;
+            set
+            {
+                if (_currentUnitPrefix != value)
+                {
+                    _currentUnitPrefix = value;
+                    SensorUnitFormatter.CurrentPrefix = value;
+                    UnitPrefixChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // decimals per surface, null for automatic (SensorUnitFormatter.DefaultDecimals)
+        private int? _sensorListDecimalPlaces = Defaults.SensorListDecimalPlaces;
+        public int? SensorListDecimalPlaces
+        {
+            get => _sensorListDecimalPlaces;
+            set
+            {
+                if (_sensorListDecimalPlaces != value)
+                {
+                    _sensorListDecimalPlaces = value;
+                    DecimalPlacesChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private int? _performanceDecimalPlaces = Defaults.PerformanceDecimalPlaces;
+        public int? PerformanceDecimalPlaces
+        {
+            get => _performanceDecimalPlaces;
+            set
+            {
+                if (_performanceDecimalPlaces != value)
+                {
+                    _performanceDecimalPlaces = value;
+                    DecimalPlacesChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private int? _taskbarDecimalPlaces = Defaults.TaskbarDecimalPlaces;
+        public int? TaskbarDecimalPlaces
+        {
+            get => _taskbarDecimalPlaces;
+            set
+            {
+                if (_taskbarDecimalPlaces != value)
+                {
+                    _taskbarDecimalPlaces = value;
+                    DecimalPlacesChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private int? _taskbarFlyoutDecimalPlaces = Defaults.TaskbarFlyoutDecimalPlaces;
+        public int? TaskbarFlyoutDecimalPlaces
+        {
+            get => _taskbarFlyoutDecimalPlaces;
+            set
+            {
+                if (_taskbarFlyoutDecimalPlaces != value)
+                {
+                    _taskbarFlyoutDecimalPlaces = value;
+                    DecimalPlacesChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private int? _widgetDecimalPlaces = Defaults.WidgetDecimalPlaces;
+        public int? WidgetDecimalPlaces
+        {
+            get => _widgetDecimalPlaces;
+            set
+            {
+                if (_widgetDecimalPlaces != value)
+                {
+                    _widgetDecimalPlaces = value;
+                    DecimalPlacesChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // the decimals of the surface a graph sits on
+        public int? GetDecimalPlaces(SensorGraphScope scope)
+        {
+            return scope switch
+            {
+                SensorGraphScope.Performance => _performanceDecimalPlaces,
+                SensorGraphScope.Taskbar => _taskbarDecimalPlaces,
+                SensorGraphScope.TaskbarFlyout => _taskbarFlyoutDecimalPlaces,
+                _ => _widgetDecimalPlaces // Widget and WidgetBoard
+            };
+        }
+
 
         // --- performance page graphs ---
 
@@ -1314,6 +1483,21 @@ namespace FluentSensors.Persistence.Services
             _dataSpeedUnitBasis = data.DataSpeedUnitBasis;
             SensorUnitFormatter.DataSizeBasis = _dataSizeUnitBasis;
             SensorUnitFormatter.DataSpeedBasis = _dataSpeedUnitBasis;
+            _dataSizeUnitPrefix = data.DataSizeUnitPrefix;
+            SensorUnitFormatter.DataSizePrefix = _dataSizeUnitPrefix;
+            _dataSpeedUnitPrefix = data.DataSpeedUnitPrefix;
+            SensorUnitFormatter.DataSpeedPrefix = _dataSpeedUnitPrefix;
+            _clockUnitPrefix = data.ClockUnitPrefix;
+            SensorUnitFormatter.ClockPrefix = _clockUnitPrefix;
+            _powerUnitPrefix = data.PowerUnitPrefix;
+            SensorUnitFormatter.PowerPrefix = _powerUnitPrefix;
+            _currentUnitPrefix = data.CurrentUnitPrefix;
+            SensorUnitFormatter.CurrentPrefix = _currentUnitPrefix;
+            _sensorListDecimalPlaces = data.SensorListDecimalPlaces;
+            _performanceDecimalPlaces = data.PerformanceDecimalPlaces;
+            _taskbarDecimalPlaces = data.TaskbarDecimalPlaces;
+            _taskbarFlyoutDecimalPlaces = data.TaskbarFlyoutDecimalPlaces;
+            _widgetDecimalPlaces = data.WidgetDecimalPlaces;
             _performanceGraphTimeSpanSeconds = data.PerformanceGraphTimeSpanSeconds;
             _performanceCpuExtendedGraphTimeSpanSeconds =
                 data.PerformanceExtendedGraphTimeSpanSeconds ?? data.PerformanceCpuExtendedGraphTimeSpanSeconds;
@@ -1409,6 +1593,16 @@ namespace FluentSensors.Persistence.Services
                 ShowWindowsSourceIcon = _showWindowsSourceIcon,
                 DataSizeUnitBasis = _dataSizeUnitBasis,
                 DataSpeedUnitBasis = _dataSpeedUnitBasis,
+                DataSizeUnitPrefix = _dataSizeUnitPrefix,
+                DataSpeedUnitPrefix = _dataSpeedUnitPrefix,
+                ClockUnitPrefix = _clockUnitPrefix,
+                PowerUnitPrefix = _powerUnitPrefix,
+                CurrentUnitPrefix = _currentUnitPrefix,
+                SensorListDecimalPlaces = _sensorListDecimalPlaces,
+                PerformanceDecimalPlaces = _performanceDecimalPlaces,
+                TaskbarDecimalPlaces = _taskbarDecimalPlaces,
+                TaskbarFlyoutDecimalPlaces = _taskbarFlyoutDecimalPlaces,
+                WidgetDecimalPlaces = _widgetDecimalPlaces,
                 PerformanceGraphTimeSpanSeconds = _performanceGraphTimeSpanSeconds,
                 PerformanceCpuExtendedGraphTimeSpanSeconds = _performanceCpuExtendedGraphTimeSpanSeconds,
                 PerformanceGpuExtendedGraphTimeSpanSeconds = _performanceGpuExtendedGraphTimeSpanSeconds,
@@ -1497,6 +1691,12 @@ namespace FluentSensors.Persistence.Services
 
         // no value; both unit settings raise it, consumers re-read from SensorUnitFormatter
         public event Action DataUnitBasisChanged;
+
+        // no value; every unit prefix setting raises it, consumers re-read from SensorUnitFormatter
+        public event Action UnitPrefixChanged;
+
+        // no value; every per surface decimal setting raises it, consumers re-read through GetDecimalPlaces
+        public event Action DecimalPlacesChanged;
 
         // no value; both performance time spans raise it
         public event Action PerformanceGraphTimeSpanChanged;

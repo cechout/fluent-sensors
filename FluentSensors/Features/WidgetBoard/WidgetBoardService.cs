@@ -112,7 +112,7 @@ namespace FluentSensors.Features.WidgetBoard
                     var sensor = payload.FirstOrDefault(s => s.Id == graph.SensorId);
                     if (sensor != null)
                     {
-                        graph.AddDataPoint(sensor.Value, SensorUnitFormatter.Format(sensor.Value, sensor.SensorType));
+                        graph.AddDataPoint(sensor.Value);
                     }
                 }
 

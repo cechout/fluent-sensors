@@ -33,6 +33,20 @@ namespace FluentSensors.Persistence.Models
         public DataUnitBasis DataSizeUnitBasis { get; set; } = DataUnitBasis.Byte;
         public DataUnitBasis DataSpeedUnitBasis { get; set; } = DataUnitBasis.Byte;
 
+        // the unit each category is shown in, Auto picks it per value (same scope as above)
+        public UnitPrefix DataSizeUnitPrefix { get; set; } = UnitPrefix.Auto;
+        public UnitPrefix DataSpeedUnitPrefix { get; set; } = UnitPrefix.Auto;
+        public UnitPrefix ClockUnitPrefix { get; set; } = UnitPrefix.Auto;
+        public UnitPrefix PowerUnitPrefix { get; set; } = UnitPrefix.Auto;
+        public UnitPrefix CurrentUnitPrefix { get; set; } = UnitPrefix.Auto;
+
+        // decimals per surface, null for automatic; the widgets board follows the widget, csv has its own below
+        public int? SensorListDecimalPlaces { get; set; }
+        public int? PerformanceDecimalPlaces { get; set; }
+        public int? TaskbarDecimalPlaces { get; set; }
+        public int? TaskbarFlyoutDecimalPlaces { get; set; }
+        public int? WidgetDecimalPlaces { get; set; }
+
         // title bar status
         public bool StatusReadoutEnabled { get; set; } = true;
         public bool StatusLhmGroupEnabled { get; set; } = false;

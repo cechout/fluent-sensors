@@ -32,6 +32,8 @@ namespace FluentSensors.Controls.SensorRow
         {
             SettingsService.Instance.ThemeChanged += OnThemeChanged;
             SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
+            SettingsService.Instance.UnitPrefixChanged += OnFormatChanged;
+            SettingsService.Instance.DecimalPlacesChanged += OnFormatChanged;
         }
 
         private void OnThemeChanged(string newTheme)
@@ -245,6 +247,8 @@ namespace FluentSensors.Controls.SensorRow
         {
             SettingsService.Instance.ThemeChanged -= OnThemeChanged;
             SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
+            SettingsService.Instance.UnitPrefixChanged -= OnFormatChanged;
+            SettingsService.Instance.DecimalPlacesChanged -= OnFormatChanged;
             if (_entry != null) _entry.PropertyChanged -= OnEntryPropertyChanged;
             Threshold?.Cleanup();
             if (Threshold != null) Threshold.PropertyChanged -= OnThresholdPropertyChanged;
@@ -304,13 +308,24 @@ namespace FluentSensors.Controls.SensorRow
             _currentRaw = newValue;
             _avg = _sum / _count;
 
-            // each value scales on its own, Min can read MHz while Max reads GHz
-            CurrentValue = SensorUnitFormatter.Format(newValue, SensorType);
-            MinimumValue = SensorUnitFormatter.Format(_min, SensorType);
-            MaximumValue = SensorUnitFormatter.Format(_max, SensorType);
-            AverageValue = SensorUnitFormatter.Format(_avg, SensorType);
-
+            FormatValues();
             RecalculateColors();
+        }
+
+        private void FormatValues()
+        {
+            // each value scales on its own, Min can read MHz while Max reads GHz
+            int? decimals = SettingsService.Instance.SensorListDecimalPlaces;
+            CurrentValue = SensorUnitFormatter.Format(_currentRaw, SensorType, decimals);
+            MinimumValue = SensorUnitFormatter.Format(_min, SensorType, decimals);
+            MaximumValue = SensorUnitFormatter.Format(_max, SensorType, decimals);
+            AverageValue = SensorUnitFormatter.Format(_avg, SensorType, decimals);
+        }
+
+        // the four values in the new unit or decimals right away, a paused list included
+        private void OnFormatChanged()
+        {
+            if (_count > 0) FormatValues();
         }
 
         private void RecalculateColors()

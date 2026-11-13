@@ -28,6 +28,7 @@ namespace FluentSensors.Features.Performance.Win
 
             // the data rate is written in the data speed unit
             SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
+            SettingsService.Instance.UnitPrefixChanged += OnDataUnitBasisChanged;
         }
 
 
@@ -202,6 +203,7 @@ namespace FluentSensors.Features.Performance.Win
             WinStaticInfoService.Instance.DisplaysChanged -= OnStaticInfoChanged;
             WinStaticInfoService.Instance.GpusChanged -= OnStaticInfoChanged;
             SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
+            SettingsService.Instance.UnitPrefixChanged -= OnDataUnitBasisChanged;
         }
 
 

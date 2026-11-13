@@ -94,7 +94,7 @@
       dependency graph, so this one is named on its own
     -->
     <PackageReference Include="Microsoft.Windows.AI.MachineLearning" Version="2.1.70" ExcludeAssets="all" />
-    <PackageReference Include="System.Management" Version="10.0.10" />
+    <PackageReference Include="System.Management" Version="11.0.0" />
     <PackageReference Include="Vortice.DXGI" Version="3.8.3" />
     <PackageReference Include="WinUIEx" Version="2.9.2" />
   </ItemGroup>
