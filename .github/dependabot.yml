@@ -5,17 +5,15 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    # the windows app sdk is bumped by hand on a branch: the csproj excludes .AI, .ML, .Search, .Widgets and
+    # Microsoft.Windows.AI.MachineLearning, whose fragments still feed the regfree WinRT manifest, the Widgets version
+    # is pinned again in the widget provider and the msix payload, and a new component has to be excluded too;
+    # a bump pull request can do none of that
+    ignore:
+      - dependency-name: "Microsoft.WindowsAppSDK"
+      - dependency-name: "Microsoft.WindowsAppSDK.*"
+      - dependency-name: "Microsoft.Windows.AI.MachineLearning"
     groups:
-      # the windows app sdk components move with the metapackage in one pull request
-      # the csproj excludes .AI, .ML, .Widgets and Microsoft.Windows.AI.MachineLearning, whose fragments still feed
-      # the regfree WinRT manifest; one bumped alone declares classes in missing binaries ("side-by-side
-      # configuration is incorrect")
-      # first on purpose, dependabot takes the first matching group and minor-and-patch would swallow the minor bumps
-      windows-app-sdk:
-        patterns:
-          - "Microsoft.WindowsAppSDK"
-          - "Microsoft.WindowsAppSDK.*"
-          - "Microsoft.Windows.AI.MachineLearning"
       minor-and-patch:
         update-types:
           - "minor"
