@@ -76,6 +76,15 @@ namespace FluentSensors.Controls.SensorGraph
 
                 // the taskbar and its flyout are two graphs on one y-axis state
                 SensorStateService.Instance.StateChanged += OnSensorStateChanged;
+
+                // text and blur of the graph in the taskbar itself, not of the flyout
+                if (Scope == SensorGraphScope.Taskbar)
+                {
+                    _labelLayout = ReadTaskbarLabelLayout();
+                    _isGraphBlurred = SettingsService.Instance.TaskbarGraphBlur;
+                    SettingsService.Instance.TaskbarLabelLayoutChanged += OnTaskbarLabelLayoutChanged;
+                    SettingsService.Instance.TaskbarGraphBlurChanged += OnTaskbarGraphBlurChanged;
+                }
             }
             else if (Scope == SensorGraphScope.WidgetBoard)
             {
@@ -109,6 +118,7 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.DataUnitBasisChanged += OnDataUnitBasisChanged;
             SettingsService.Instance.UnitPrefixChanged += UpdateYMaxDisplay;
             SettingsService.Instance.DecimalPlacesChanged += OnDecimalPlacesChanged;
+            SettingsService.Instance.YMaxPositionChanged += OnYMaxPositionChanged;
 
             // the threshold config of this sensor; this view model only colors by it
             Threshold = new ThresholdEditorViewModel(sensorId, sensorType);
@@ -236,6 +246,35 @@ namespace FluentSensors.Controls.SensorGraph
                 OnPropertyChanged();
             }
         }
+
+        // name and value over the graph in the taskbar; the default everywhere else, where no overlay or another one shows
+        private GraphLabelLayout _labelLayout = GraphLabelLayout.Default;
+        public GraphLabelLayout LabelLayout
+        {
+            get => _labelLayout;
+            private set
+            {
+                if (_labelLayout == value) return;
+                _labelLayout = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // the taskbar graph only
+        private bool _isGraphBlurred;
+        public bool IsGraphBlurred
+        {
+            get => _isGraphBlurred;
+            private set
+            {
+                if (_isGraphBlurred == value) return;
+                _isGraphBlurred = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // the y-max in the status row beside the value instead of the title, per surface
+        public bool IsYMaxBesideValue => SettingsService.Instance.IsYMaxBesideValue(Scope);
 
         // threshold; the shared editor, for bindings like Threshold.Value
         public ThresholdEditorViewModel Threshold { get; }
@@ -400,6 +439,24 @@ namespace FluentSensors.Controls.SensorGraph
             IsCardBackgroundVisible = !useTransparentBackground;
         }
 
+        private void OnTaskbarLabelLayoutChanged() => LabelLayout = ReadTaskbarLabelLayout();
+
+        private void OnTaskbarGraphBlurChanged(bool isBlurred) => IsGraphBlurred = isBlurred;
+
+        private void OnYMaxPositionChanged() => OnPropertyChanged(nameof(IsYMaxBesideValue));
+
+        // the arrangement of the active taskbar edge
+        private static GraphLabelLayout ReadTaskbarLabelLayout()
+        {
+            var settings = SettingsService.Instance;
+            return new GraphLabelLayout(
+                settings.TaskbarLabelFontSize,
+                settings.TaskbarValueSemiBold,
+                IsStacked: settings.TaskbarLabelArrangement == "Stacked",
+                IsAtBottom: settings.TaskbarLabelPosition == "Bottom",
+                IsRightAligned: settings.TaskbarLabelAlignment == "Right");
+        }
+
         private void OnGraphTimeSpanChanged(double newTimeSpanSeconds)
         {
             // a fixed override never follows the setting
@@ -457,6 +514,8 @@ namespace FluentSensors.Controls.SensorGraph
                 SettingsService.Instance.TaskbarGraphColorChanged -= OnGraphColorChanged;
                 SettingsService.Instance.TaskbarGraphBackgroundChanged -= OnGraphBackgroundChanged;
                 SensorStateService.Instance.StateChanged -= OnSensorStateChanged;
+                SettingsService.Instance.TaskbarLabelLayoutChanged -= OnTaskbarLabelLayoutChanged;
+                SettingsService.Instance.TaskbarGraphBlurChanged -= OnTaskbarGraphBlurChanged;
             }
             else if (Scope == SensorGraphScope.WidgetBoard)
             {
@@ -479,6 +538,7 @@ namespace FluentSensors.Controls.SensorGraph
             SettingsService.Instance.DataUnitBasisChanged -= OnDataUnitBasisChanged;
             SettingsService.Instance.UnitPrefixChanged -= UpdateYMaxDisplay;
             SettingsService.Instance.DecimalPlacesChanged -= OnDecimalPlacesChanged;
+            SettingsService.Instance.YMaxPositionChanged -= OnYMaxPositionChanged;
             Threshold.PropertyChanged -= OnThresholdPropertyChanged;
             Threshold.Cleanup();
         }

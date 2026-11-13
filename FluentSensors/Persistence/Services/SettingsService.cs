@@ -560,6 +560,63 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // the y-axis maximum beside the title (false) or beside the value, per surface
+        private bool _performanceYMaxBesideValue = Defaults.PerformanceYMaxBesideValue;
+        public bool PerformanceYMaxBesideValue
+        {
+            get => _performanceYMaxBesideValue;
+            set
+            {
+                if (_performanceYMaxBesideValue != value)
+                {
+                    _performanceYMaxBesideValue = value;
+                    YMaxPositionChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _taskbarFlyoutYMaxBesideValue = Defaults.TaskbarFlyoutYMaxBesideValue;
+        public bool TaskbarFlyoutYMaxBesideValue
+        {
+            get => _taskbarFlyoutYMaxBesideValue;
+            set
+            {
+                if (_taskbarFlyoutYMaxBesideValue != value)
+                {
+                    _taskbarFlyoutYMaxBesideValue = value;
+                    YMaxPositionChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _widgetYMaxBesideValue = Defaults.WidgetYMaxBesideValue;
+        public bool WidgetYMaxBesideValue
+        {
+            get => _widgetYMaxBesideValue;
+            set
+            {
+                if (_widgetYMaxBesideValue != value)
+                {
+                    _widgetYMaxBesideValue = value;
+                    YMaxPositionChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        public bool IsYMaxBesideValue(SensorGraphScope scope)
+        {
+            return scope switch
+            {
+                SensorGraphScope.Performance => _performanceYMaxBesideValue,
+                SensorGraphScope.TaskbarFlyout => _taskbarFlyoutYMaxBesideValue,
+                SensorGraphScope.Widget => _widgetYMaxBesideValue,
+                _ => false
+            };
+        }
+
         // the decimals of the surface a graph sits on
         public int? GetDecimalPlaces(SensorGraphScope scope)
         {
@@ -747,6 +804,53 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // a slight blur on the taskbar graph, line and fill
+        private bool _taskbarGraphBlur = Defaults.TaskbarGraphBlur;
+        public bool TaskbarGraphBlur
+        {
+            get => _taskbarGraphBlur;
+            set
+            {
+                if (_taskbarGraphBlur != value)
+                {
+                    _taskbarGraphBlur = value;
+                    TaskbarGraphBlurChanged?.Invoke(value);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // 9 to 12 DIP, name and value alike
+        private double _taskbarLabelFontSize = Defaults.TaskbarLabelFontSize;
+        public double TaskbarLabelFontSize
+        {
+            get => _taskbarLabelFontSize;
+            set
+            {
+                if (_taskbarLabelFontSize != value)
+                {
+                    _taskbarLabelFontSize = value;
+                    TaskbarLabelLayoutChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        private bool _taskbarValueSemiBold = Defaults.TaskbarValueSemiBold;
+        public bool TaskbarValueSemiBold
+        {
+            get => _taskbarValueSemiBold;
+            set
+            {
+                if (_taskbarValueSemiBold != value)
+                {
+                    _taskbarValueSemiBold = value;
+                    TaskbarLabelLayoutChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
         // no dragging the taskbar widget along the taskbar
         private bool _taskbarWidgetPositionLocked = Defaults.TaskbarWidgetPositionLocked;
         public bool TaskbarWidgetPositionLocked
@@ -814,7 +918,7 @@ namespace FluentSensors.Persistence.Services
 
         // --- per taskbar position ---
 
-        // time range, graph width, flyout alignment and side layout per taskbar edge (TaskbarEdgeSettings); the
+        // time range, graph width, flyout alignment, side layout and text arrangement per taskbar edge (TaskbarEdgeSettings); the
         // properties below go through ActiveTaskbarEdge, so consumers follow a taskbar move
         private Dictionary<string, TaskbarEdgeSettings> _taskbarEdges = SeedTaskbarEdges(null, Defaults);
         private string _activeTaskbarEdge = "Bottom";
@@ -855,6 +959,11 @@ namespace FluentSensors.Persistence.Services
                 if (previous.SideTitleLines != current.SideTitleLines)
                 {
                     TaskbarSideTitleLinesChanged?.Invoke(current.SideTitleLines);
+                }
+                if (previous.LabelArrangement != current.LabelArrangement || previous.LabelPosition != current.LabelPosition
+                    || previous.LabelAlignment != current.LabelAlignment)
+                {
+                    TaskbarLabelLayoutChanged?.Invoke();
                 }
             }
         }
@@ -927,6 +1036,51 @@ namespace FluentSensors.Persistence.Services
                 {
                     ActiveEdge.SideTitleLines = value;
                     TaskbarSideTitleLinesChanged?.Invoke(value);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // "SideBySide" or "Stacked"
+        public string TaskbarLabelArrangement
+        {
+            get => ActiveEdge.LabelArrangement;
+            set
+            {
+                if (ActiveEdge.LabelArrangement != value)
+                {
+                    ActiveEdge.LabelArrangement = value;
+                    TaskbarLabelLayoutChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // "Top" or "Bottom"
+        public string TaskbarLabelPosition
+        {
+            get => ActiveEdge.LabelPosition;
+            set
+            {
+                if (ActiveEdge.LabelPosition != value)
+                {
+                    ActiveEdge.LabelPosition = value;
+                    TaskbarLabelLayoutChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // "Left" or "Right"
+        public string TaskbarLabelAlignment
+        {
+            get => ActiveEdge.LabelAlignment;
+            set
+            {
+                if (ActiveEdge.LabelAlignment != value)
+                {
+                    ActiveEdge.LabelAlignment = value;
+                    TaskbarLabelLayoutChanged?.Invoke();
                     SaveDebounced();
                 }
             }
@@ -1515,6 +1669,12 @@ namespace FluentSensors.Persistence.Services
                 data.TaskbarGraphColorSource, data.TaskbarUseGraphAccentColor, AppSettingsData.DefaultTaskbarGraphColorSource);
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
             _taskbarUseTransparentGraphBackground = data.TaskbarUseTransparentGraphBackground;
+            _taskbarGraphBlur = data.TaskbarGraphBlur;
+            _taskbarLabelFontSize = data.TaskbarLabelFontSize;
+            _taskbarValueSemiBold = data.TaskbarValueSemiBold;
+            _performanceYMaxBesideValue = data.PerformanceYMaxBesideValue;
+            _taskbarFlyoutYMaxBesideValue = data.TaskbarFlyoutYMaxBesideValue;
+            _widgetYMaxBesideValue = data.WidgetYMaxBesideValue;
             _taskbarEdges = SeedTaskbarEdges(data.TaskbarEdges, data);
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
             _taskbarFlyoutGraphTimeSpanSeconds = data.TaskbarFlyoutGraphTimeSpanSeconds;
@@ -1615,6 +1775,12 @@ namespace FluentSensors.Persistence.Services
                 TaskbarGraphColorSource = _taskbarGraphColorSource,
                 TaskbarGraphCustomColor = _taskbarGraphCustomColor,
                 TaskbarUseTransparentGraphBackground = _taskbarUseTransparentGraphBackground,
+                TaskbarGraphBlur = _taskbarGraphBlur,
+                TaskbarLabelFontSize = _taskbarLabelFontSize,
+                TaskbarValueSemiBold = _taskbarValueSemiBold,
+                PerformanceYMaxBesideValue = _performanceYMaxBesideValue,
+                TaskbarFlyoutYMaxBesideValue = _taskbarFlyoutYMaxBesideValue,
+                WidgetYMaxBesideValue = _widgetYMaxBesideValue,
                 TaskbarEdges = CloneTaskbarEdges(),
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
                 TaskbarFlyoutGraphTimeSpanSeconds = _taskbarFlyoutGraphTimeSpanSeconds,
@@ -1711,6 +1877,13 @@ namespace FluentSensors.Persistence.Services
         public event Action<string> ActiveTaskbarEdgeChanged;
         public event Action<string> TaskbarSideGraphDirectionChanged;
         public event Action<int> TaskbarSideTitleLinesChanged;
+
+        // no value; font size, SemiBold value and the arrangement of the active edge, consumers re-read them
+        public event Action TaskbarLabelLayoutChanged;
+        public event Action<bool> TaskbarGraphBlurChanged;
+
+        // no value; any of the three y-max positions, consumers re-read through IsYMaxBesideValue
+        public event Action YMaxPositionChanged;
         public event Action<string> TaskbarFlyoutAlignmentChanged;
         public event Action<bool> TaskbarWidgetPositionLockedChanged;
         public event Action<double> TaskbarFlyoutGraphTimeSpanChanged;

@@ -302,17 +302,17 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
     <comment>first item of each unit list; picks the unit per value by its size</comment>
   </data>
   <data name="Settings_DecimalPlacesExpander.Header" xml:space="preserve">
-    <value>Decimal Places</value>
+    <value>Sensors &amp; Graphs Pages</value>
   </data>
   <data name="Settings_DecimalPlacesExpander.Description" xml:space="preserve">
-    <value>How many decimals values show on the Sensors and Graphs pages</value>
+    <value>Decimal places of both, and the y-axis maximum of the graphs</value>
   </data>
   <data name="Settings_SensorListDecimalPlacesCard.Header" xml:space="preserve">
-    <value>Sensors Page</value>
+    <value>Decimal Places on the Sensors Page</value>
     <comment>the Sensors page of the app</comment>
   </data>
   <data name="Settings_PerformanceDecimalPlacesCard.Header" xml:space="preserve">
-    <value>Graphs Page</value>
+    <value>Decimal Places on the Graphs Page</value>
     <comment>the Graphs page of the app</comment>
   </data>
   <data name="Settings_DecimalPlacesComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
@@ -321,6 +321,71 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
   <data name="Settings_DecimalPlacesComboBox_Auto.Content" xml:space="preserve">
     <value>Automatic</value>
     <comment>first item of each decimal places list; one decimal, the y-axis picks its own</comment>
+  </data>
+  <data name="Settings_YMaxPositionCard.Header" xml:space="preserve">
+    <value>Y-Axis Maximum</value>
+  </data>
+  <data name="Settings_YMaxPositionComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Y-axis maximum position</value>
+  </data>
+  <data name="Settings_YMaxPositionComboBox_Title.Content" xml:space="preserve">
+    <value>Beside the Title</value>
+    <comment>the y-axis maximum of a graph sits beside the sensor title</comment>
+  </data>
+  <data name="Settings_YMaxPositionComboBox_Value.Content" xml:space="preserve">
+    <value>Beside the Value</value>
+    <comment>the y-axis maximum of a graph sits beside the current value</comment>
+  </data>
+  <data name="Settings_TaskbarTextSizeCard.Header" xml:space="preserve">
+    <value>Text Size</value>
+    <comment>name and value text on the taskbar</comment>
+  </data>
+  <data name="Settings_TaskbarLabelFontSizeComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Text size</value>
+  </data>
+  <data name="Settings_TaskbarValueSemiBoldToggle.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Semibold value</value>
+  </data>
+  <data name="Settings_TaskbarValueSemiBoldToggle.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Semibold value</value>
+  </data>
+  <data name="Settings_TaskbarTextLayoutCard.Header" xml:space="preserve">
+    <value>Text Layout</value>
+  </data>
+  <data name="Settings_TaskbarLabelArrangementComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Text arrangement</value>
+  </data>
+  <data name="Settings_TaskbarLabelArrangementComboBox_SideBySide.Content" xml:space="preserve">
+    <value>Side by Side</value>
+    <comment>name left, value right in one row</comment>
+  </data>
+  <data name="Settings_TaskbarLabelArrangementComboBox_Stacked.Content" xml:space="preserve">
+    <value>Stacked</value>
+    <comment>the value under the name</comment>
+  </data>
+  <data name="Settings_TaskbarLabelPositionComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Text position</value>
+  </data>
+  <data name="Settings_TaskbarLabelPositionComboBox_Top.Content" xml:space="preserve">
+    <value>Top</value>
+  </data>
+  <data name="Settings_TaskbarLabelPositionComboBox_Bottom.Content" xml:space="preserve">
+    <value>Bottom</value>
+  </data>
+  <data name="Settings_TaskbarLabelAlignmentComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Text alignment</value>
+  </data>
+  <data name="Settings_TaskbarLabelAlignmentComboBox_Left.Content" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="Settings_TaskbarLabelAlignmentComboBox_Right.Content" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="Settings_TaskbarGraphBlurCard.Header" xml:space="preserve">
+    <value>Soft Graph</value>
+  </data>
+  <data name="Settings_TaskbarGraphBlurCard.Description" xml:space="preserve">
+    <value>A slight blur on line and fill</value>
   </data>
   <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
     <value>Which readouts the title bar shows, and in which order</value>

@@ -33,13 +33,14 @@
 
         <!--  sensor name  -->
         <!--
-            one or two lines (ApplyLayout);
+            one or two lines (ApplyLayout), size and side from TextLayout;
             LineHeight sets the gap, the top Margin counts from the top of the graph card, where NameHost moves
             the name down to
         -->
         <Grid x:Name="NameHost" VerticalAlignment="Top">
             <!--  (the name trims or wraps, the source icon stays on its first line)  -->
             <fhControls:TrailingContentPanel
+                x:Name="NameRow"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Spacing="3">
@@ -58,6 +59,7 @@
 
                 <!--  who measured it, see SensorSourceIcon  -->
                 <Path
+                    x:Name="SourceIcon"
                     Width="7.5"
                     Height="7.5"
                     Margin="0,5,4,0"
@@ -83,7 +85,7 @@
             Foreground="{ThemeResource TextFillColorPrimaryBrush}"
             LineHeight="13"
             LineStackingStrategy="BlockLineHeight"
-            Text="{x:Bind FitValueText(ViewModel.CurrentValueText, SlotWidth), Mode=OneWay}"
+            Text="{x:Bind FitValueText(ViewModel.CurrentValueText, SlotWidth, TextLayout), Mode=OneWay}"
             TextWrapping="NoWrap"
             Typography.NumeralAlignment="Tabular" />
     </Grid>

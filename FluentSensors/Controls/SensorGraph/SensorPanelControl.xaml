@@ -88,6 +88,7 @@
                 </Button>
 
                 <!--  y-max  -->
+                <!--  (beside the title; the other place is beside the value, per surface)  -->
                 <TextBlock
                     Grid.Column="1"
                     Margin="1,0,6,0"
@@ -96,7 +97,8 @@
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
-                    Typography.NumeralAlignment="Tabular" />
+                    Typography.NumeralAlignment="Tabular"
+                    Visibility="{x:Bind GetYMaxBesideTitleVisibility(ViewModel), Mode=OneWay}" />
 
                 <!--  name (and unit with ShowUnitInStatusRow)  -->
                 <!--  (when switchable a subtle button with a chevron that opens the hidden combobox in one click)  -->
@@ -167,16 +169,28 @@
                         ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}" />
                 </StackPanel>
 
-                <!--  current value  -->
-                <TextBlock
+                <!--  y-max beside the value, then the current value  -->
+                <StackPanel
                     Grid.Column="2"
-                    Padding="0,0,7.4,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetCurrentValueOrPlaceholder(ViewModel), Mode=OneWay}"
-                    Typography.NumeralAlignment="Tabular" />
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
+                        Typography.NumeralAlignment="Tabular"
+                        Visibility="{x:Bind GetYMaxBesideValueVisibility(ViewModel), Mode=OneWay}" />
+
+                    <TextBlock
+                        Padding="0,0,7.4,0"
+                        VerticalAlignment="Center"
+                        Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind GetCurrentValueOrPlaceholder(ViewModel), Mode=OneWay}"
+                        Typography.NumeralAlignment="Tabular" />
+                </StackPanel>
             </Grid>
 
 
@@ -197,6 +211,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!--  y-max  -->
+                <!--  (beside the title; the other place is beside the value, per surface)  -->
                 <TextBlock
                     Grid.Column="0"
                     Margin="4,0,0,0"
@@ -204,7 +219,8 @@
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
-                    Typography.NumeralAlignment="Tabular" />
+                    Typography.NumeralAlignment="Tabular"
+                    Visibility="{x:Bind GetYMaxBesideTitleVisibility(ViewModel), Mode=OneWay}" />
 
                 <!--  name (and unit with ShowUnitInStatusRow), then the source icon  -->
                 <fhControls:TrailingContentPanel
@@ -229,16 +245,28 @@
                         ToolTipService.ToolTip="{x:Bind GetSourceIconName(ViewModel), Mode=OneWay}" />
                 </fhControls:TrailingContentPanel>
 
-                <!--  current value  -->
-                <TextBlock
+                <!--  y-max beside the value, then the current value  -->
+                <StackPanel
                     Grid.Column="2"
-                    Padding="0,0,7.4,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind GetCurrentValueOrPlaceholder(ViewModel), Mode=OneWay}"
-                    Typography.NumeralAlignment="Tabular" />
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
+                        Typography.NumeralAlignment="Tabular"
+                        Visibility="{x:Bind GetYMaxBesideValueVisibility(ViewModel), Mode=OneWay}" />
+
+                    <TextBlock
+                        Padding="0,0,7.4,0"
+                        VerticalAlignment="Center"
+                        Foreground="{x:Bind GetCurrentValueColorOrDefault(ViewModel), Mode=OneWay}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind GetCurrentValueOrPlaceholder(ViewModel), Mode=OneWay}"
+                        Typography.NumeralAlignment="Tabular" />
+                </StackPanel>
             </Grid>
         </Grid>
 
@@ -453,10 +481,12 @@
                     FillFade="{x:Bind ViewModel.GraphFillFade, Mode=OneWay}"
                     IsAutoScaled="{x:Bind ViewModel.IsAutoScaled, Mode=OneWay}"
                     IsCurrentValueVisible="{x:Bind ShowGraphCurrentValue, Mode=OneWay}"
+                    IsGraphBlurred="{x:Bind ViewModel.IsGraphBlurred, Mode=OneWay}"
                     IsHoverEnabled="{x:Bind IsGraphHoverEnabled, Mode=OneWay}"
                     IsLabelVisible="{x:Bind ShowGraphLabel, Mode=OneWay}"
                     IsNameVisible="{x:Bind ShowGraphName, Mode=OneWay}"
                     LabelFollowsPointer="True"
+                    LabelLayout="{x:Bind ViewModel.LabelLayout, Mode=OneWay}"
                     LabelNumberFormat="{x:Bind ViewModel.LabelNumberFormat, Mode=OneWay}"
                     LabelText="{x:Bind ViewModel.SensorName, Mode=OneWay}"
                     LineStyle="{x:Bind ViewModel.GraphLineStyle, Mode=OneWay}"
