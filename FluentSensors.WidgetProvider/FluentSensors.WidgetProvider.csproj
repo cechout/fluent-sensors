@@ -29,9 +29,9 @@
     into the package next to the app (see the app csproj)
   -->
   <ItemGroup>
-    <PackageDownload Include="Microsoft.WindowsAppSDK.Widgets" Version="[2.0.5]" />
+    <PackageDownload Include="Microsoft.WindowsAppSDK.Widgets" Version="[2.6.5]" />
     <Reference Include="Microsoft.Windows.Widgets.Projection">
-      <HintPath>$(NuGetPackageRoot)microsoft.windowsappsdk.widgets\2.0.5\lib\net6.0-windows10.0.17763.0\Microsoft.Windows.Widgets.Projection.dll</HintPath>
+      <HintPath>$(NuGetPackageRoot)microsoft.windowsappsdk.widgets\2.6.5\lib\net6.0-windows10.0.17763.0\Microsoft.Windows.Widgets.Projection.dll</HintPath>
     </Reference>
   </ItemGroup>
 

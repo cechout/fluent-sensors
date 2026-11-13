@@ -79,24 +79,25 @@
     <PackageReference Include="H.NotifyIcon.WinUI" Version="2.4.1" />
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
     <PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.5" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2957" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.5" />
     <!--
-      the metapackage drags in AI, ML and widgets, none of which the app calls; each declares regfree WinRT
+      the metapackage drags in AI, ML, search and widgets, none of which the app calls; each declares regfree WinRT
       classes into the app manifest through its appxfragment, so deleting only the binaries can fail the start
       excluding all assets keeps the props out, payload and manifest entries drop together
     -->
-    <PackageReference Include="Microsoft.WindowsAppSDK.AI" Version="2.2.3" ExcludeAssets="all" />
-    <PackageReference Include="Microsoft.WindowsAppSDK.ML" Version="2.1.70" ExcludeAssets="all" />
-    <PackageReference Include="Microsoft.WindowsAppSDK.Widgets" Version="2.0.5" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.AI" Version="2.6.5" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.ML" Version="2.6.5" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Search" Version="2.6.5" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Widgets" Version="2.6.5" ExcludeAssets="all" />
     <!--
       onnxruntime and DirectML come in through the ML component, and an excluded package keeps its
       dependency graph, so this one is named on its own
     -->
-    <PackageReference Include="Microsoft.Windows.AI.MachineLearning" Version="2.1.70" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.Windows.AI.MachineLearning" Version="2.5.96" ExcludeAssets="all" />
     <PackageReference Include="System.Management" Version="11.0.0" />
     <PackageReference Include="Vortice.DXGI" Version="3.8.3" />
-    <PackageReference Include="WinUIEx" Version="2.9.2" />
+    <PackageReference Include="WinUIEx" Version="2.9.3" />
   </ItemGroup>
   
   <!--
@@ -325,7 +326,7 @@
   -->
   <PropertyGroup>
     <_WidgetProviderProject>$(MSBuildProjectDirectory)\..\FluentSensors.WidgetProvider\FluentSensors.WidgetProvider.csproj</_WidgetProviderProject>
-    <_WidgetsPackageDir>$(NuGetPackageRoot)microsoft.windowsappsdk.widgets\2.0.5\</_WidgetsPackageDir>
+    <_WidgetsPackageDir>$(NuGetPackageRoot)microsoft.windowsappsdk.widgets\2.6.5\</_WidgetsPackageDir>
   </PropertyGroup>
 
   <Target Name="IncludeWidgetProviderPayload" AfterTargets="_ComputeAppxPackagePayload" Condition="'$(WindowsPackageType)' != 'None'">
