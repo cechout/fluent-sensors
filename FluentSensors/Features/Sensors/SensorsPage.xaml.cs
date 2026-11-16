@@ -539,6 +539,7 @@ namespace FluentSensors.Features.Sensors
         {
             _forcedOverflowElements = new HashSet<ICommandBarElement>
             {
+                DecimalPlacesButton,
                 ShowHiddenSensorsButton
             };
 
@@ -686,14 +687,13 @@ namespace FluentSensors.Features.Sensors
             order.Add(HideSensorsButton);
             order.Add(ButtonSeparator);
             order.Add(ResetValuesButton);
-            order.Add(ViewOptionsButton);
             order.Add(SensorTypeColorsButton);
             order.Add(SensorTypeColorsSeparator);
+            order.Add(DecimalPlacesButton);
             order.Add(ShowHiddenSensorsButton);
 
             // every element starts in the bar, so its width is cached icon only
             ApplySensorTypeColorsButtonPlacement(isInBar: true);
-            ApplyViewOptionsButtonPlacement(isInBar: true);
 
             return order.ToArray();
         }
@@ -791,7 +791,6 @@ namespace FluentSensors.Features.Sensors
             }
 
             ApplySensorTypeColorsButtonPlacement(SensorListCommandBar.PrimaryCommands.Contains(SensorTypeColorsButton));
-            ApplyViewOptionsButtonPlacement(SensorListCommandBar.PrimaryCommands.Contains(ViewOptionsButton));
         }
 
         // in the bar only its icon, like on the graphs page; in the menu an entry with its label
@@ -801,21 +800,13 @@ namespace FluentSensors.Features.Sensors
             SensorTypeColorsButton.Width = isInBar ? IconOnlyButtonWidth : double.NaN;
         }
 
-        private void ApplyViewOptionsButtonPlacement(bool isInBar)
-        {
-            ViewOptionsButton.LabelPosition = isInBar ? CommandBarLabelPosition.Collapsed : CommandBarLabelPosition.Default;
-            ViewOptionsButton.Width = isInBar ? IconOnlyButtonWidth : double.NaN;
-        }
-
-        // the view menu, rebuilt on every open so its marks follow the saved values
-        private void ViewOptionsFlyout_Opening(object sender, object e)
+        // the decimal places submenu, refilled on every open so its mark follows the saved value
+        private void DecimalPlacesFlyout_Opening(object sender, object e)
         {
             if (sender is not MenuFlyout flyout) return;
 
-            flyout.Items.Clear();
-            flyout.Items.Add(ViewOptionsMenu.CreateDecimalPlacesItem(
-                SettingsService.Instance.SensorListDecimalPlaces,
-                places => SettingsService.Instance.SensorListDecimalPlaces = places));
+            ViewOptionsMenu.FillDecimalPlaces(flyout, SettingsService.Instance.SensorListDecimalPlaces,
+                places => SettingsService.Instance.SensorListDecimalPlaces = places);
         }
 
         // a separator joins the unit of the element before it, so the fit never cuts between them

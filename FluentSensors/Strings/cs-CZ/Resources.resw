@@ -292,19 +292,16 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   <data name="Settings_DecimalPlacesComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Desetinná místa</value>
   </data>
-  <data name="Sensors_ViewOptionsButton.Label" xml:space="preserve">
-    <value>Zobrazení</value>
+  <data name="Sensors_DecimalPlacesButton.Label" xml:space="preserve">
+    <value>Desetinná místa</value>
   </data>
-  <data name="Performance_ViewOptionsButton.Label" xml:space="preserve">
-    <value>Zobrazení</value>
-  </data>
-  <data name="ViewMenu_DecimalPlaces" xml:space="preserve">
+  <data name="Performance_DecimalPlacesButton.Label" xml:space="preserve">
     <value>Desetinná místa</value>
   </data>
   <data name="ViewMenu_DecimalPlacesAuto" xml:space="preserve">
     <value>Automaticky</value>
   </data>
-  <data name="ViewMenu_YMaxPosition" xml:space="preserve">
+  <data name="Performance_YMaxPositionButton.Label" xml:space="preserve">
     <value>Maximum osy Y</value>
   </data>
   <data name="ViewMenu_YMaxBesideTitle" xml:space="preserve">

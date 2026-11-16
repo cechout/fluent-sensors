@@ -143,19 +143,23 @@ namespace FluentSensors.Features.Performance
             }
         }
 
-        // the view menu, rebuilt on every open so its marks follow the saved values
-        private void ViewOptionsFlyout_Opening(object sender, object e)
+        // --- overflow submenus ---
+        // refilled on every open so their marks follow the saved values
+
+        private void DecimalPlacesFlyout_Opening(object sender, object e)
         {
             if (sender is not MenuFlyout flyout) return;
 
-            var settings = SettingsService.Instance;
-            flyout.Items.Clear();
-            flyout.Items.Add(ViewOptionsMenu.CreateDecimalPlacesItem(
-                settings.PerformanceDecimalPlaces,
-                places => settings.PerformanceDecimalPlaces = places));
-            flyout.Items.Add(ViewOptionsMenu.CreateYMaxPositionItem(
-                settings.PerformanceYMaxBesideValue,
-                besideValue => settings.PerformanceYMaxBesideValue = besideValue));
+            ViewOptionsMenu.FillDecimalPlaces(flyout, SettingsService.Instance.PerformanceDecimalPlaces,
+                places => SettingsService.Instance.PerformanceDecimalPlaces = places);
+        }
+
+        private void YMaxPositionFlyout_Opening(object sender, object e)
+        {
+            if (sender is not MenuFlyout flyout) return;
+
+            ViewOptionsMenu.FillYMaxPosition(flyout, SettingsService.Instance.PerformanceYMaxBesideValue,
+                besideValue => SettingsService.Instance.PerformanceYMaxBesideValue = besideValue);
         }
 
         // the start page; (no hardware selected)

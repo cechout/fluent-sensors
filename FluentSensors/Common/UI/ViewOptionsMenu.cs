@@ -5,37 +5,33 @@ using FluentSensors.Common.Localization;
 
 namespace FluentSensors.Common.UI
 {
-    // the view menu of the sensors and graphs pages:
-    // submenus of radio items for settings that belong to one page; the pages rebuild them on every Opening, so the
-    // marks always show the saved value
+    // the view options in the overflow menu of the sensors and graphs pages:
+    // radio items for the flyout of one overflow entry (the entry shows its own submenu chevron); the pages refill the
+    // flyout on every Opening, so the mark always shows the saved value
     public static class ViewOptionsMenu
     {
         // Automatic (null) or 0 to 3 decimals
-        public static MenuFlyoutSubItem CreateDecimalPlacesItem(int? current, Action<int?> apply)
+        public static void FillDecimalPlaces(MenuFlyout flyout, int? current, Action<int?> apply)
         {
-            var subItem = new MenuFlyoutSubItem { Text = AppStrings.Get("ViewMenu_DecimalPlaces") };
             const string group = "DecimalPlaces";
 
-            subItem.Items.Add(CreateRadioItem(AppStrings.Get("ViewMenu_DecimalPlacesAuto"), group, current == null, () => apply(null)));
+            flyout.Items.Clear();
+            flyout.Items.Add(CreateRadioItem(AppStrings.Get("ViewMenu_DecimalPlacesAuto"), group, current == null, () => apply(null)));
             for (int places = 0; places <= 3; places++)
             {
                 int value = places;
-                subItem.Items.Add(CreateRadioItem(value.ToString(), group, current == value, () => apply(value)));
+                flyout.Items.Add(CreateRadioItem(value.ToString(), group, current == value, () => apply(value)));
             }
-
-            return subItem;
         }
 
         // the y-axis maximum beside the title or beside the value
-        public static MenuFlyoutSubItem CreateYMaxPositionItem(bool besideValue, Action<bool> apply)
+        public static void FillYMaxPosition(MenuFlyout flyout, bool besideValue, Action<bool> apply)
         {
-            var subItem = new MenuFlyoutSubItem { Text = AppStrings.Get("ViewMenu_YMaxPosition") };
             const string group = "YMaxPosition";
 
-            subItem.Items.Add(CreateRadioItem(AppStrings.Get("ViewMenu_YMaxBesideTitle"), group, !besideValue, () => apply(false)));
-            subItem.Items.Add(CreateRadioItem(AppStrings.Get("ViewMenu_YMaxBesideValue"), group, besideValue, () => apply(true)));
-
-            return subItem;
+            flyout.Items.Clear();
+            flyout.Items.Add(CreateRadioItem(AppStrings.Get("ViewMenu_YMaxBesideTitle"), group, !besideValue, () => apply(false)));
+            flyout.Items.Add(CreateRadioItem(AppStrings.Get("ViewMenu_YMaxBesideValue"), group, besideValue, () => apply(true)));
         }
 
         private static RadioMenuFlyoutItem CreateRadioItem(string text, string group, bool isChecked, Action onClick)

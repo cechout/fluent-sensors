@@ -215,19 +215,6 @@
 
                     <AppBarSeparator />
 
-                    <!--  view menu: decimal places and the y-axis maximum place of the graphs on this page  -->
-                    <AppBarButton
-                        x:Uid="Performance_ViewOptionsButton"
-                        Width="42"
-                        LabelPosition="Collapsed">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE890;" />
-                        </AppBarButton.Icon>
-                        <AppBarButton.Flyout>
-                            <MenuFlyout Opening="ViewOptionsFlyout_Opening" />
-                        </AppBarButton.Flyout>
-                    </AppBarButton>
-
                     <!--  graphs by sensor type instead of by hardware; the sensors page has the same switch in its menu  -->
                     <AppBarToggleButton
                         x:Uid="Performance_SensorTypeColorsButton"
@@ -262,6 +249,26 @@
                         </AppBarToggleButton.Icon>
                     </AppBarToggleButton>
 
+                    <!--  decimal places and y-axis maximum place of the graphs here; submenus of radio items (ViewOptionsMenu)  -->
+                    <CommandBar.SecondaryCommands>
+                        <AppBarButton x:Uid="Performance_DecimalPlacesButton">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE8EF;" />
+                            </AppBarButton.Icon>
+                            <AppBarButton.Flyout>
+                                <MenuFlyout Opening="DecimalPlacesFlyout_Opening" />
+                            </AppBarButton.Flyout>
+                        </AppBarButton>
+
+                        <AppBarButton x:Uid="Performance_YMaxPositionButton">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE9D2;" />
+                            </AppBarButton.Icon>
+                            <AppBarButton.Flyout>
+                                <MenuFlyout Opening="YMaxPositionFlyout_Opening" />
+                            </AppBarButton.Flyout>
+                        </AppBarButton>
+                    </CommandBar.SecondaryCommands>
                 </CommandBar>
 
             </Grid>
