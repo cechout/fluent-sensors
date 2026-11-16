@@ -301,19 +301,16 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
     <value>Automatic</value>
     <comment>first item of each unit list; picks the unit per value by its size</comment>
   </data>
-  <data name="Settings_DecimalPlacesExpander.Header" xml:space="preserve">
-    <value>Sensors &amp; Graphs Pages</value>
+  <data name="Settings_GraphsPageExpander.Header" xml:space="preserve">
+    <value>Graphs Page</value>
+    <comment>the Graphs page of the app</comment>
   </data>
-  <data name="Settings_DecimalPlacesExpander.Description" xml:space="preserve">
-    <value>Decimal places of both, and the y-axis maximum of the graphs</value>
+  <data name="Settings_GraphsPageExpander.Description" xml:space="preserve">
+    <value>Decimal places and the y-axis maximum of the hardware graphs</value>
   </data>
   <data name="Settings_SensorListDecimalPlacesCard.Header" xml:space="preserve">
-    <value>Decimal Places on the Sensors Page</value>
+    <value>Sensors Page Decimal Places</value>
     <comment>the Sensors page of the app</comment>
-  </data>
-  <data name="Settings_PerformanceDecimalPlacesCard.Header" xml:space="preserve">
-    <value>Decimal Places on the Graphs Page</value>
-    <comment>the Graphs page of the app</comment>
   </data>
   <data name="Settings_DecimalPlacesComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Decimal places</value>

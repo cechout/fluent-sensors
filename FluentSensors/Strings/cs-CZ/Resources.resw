@@ -289,19 +289,15 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
     <value>Automaticky</value>
     <comment>first item of each unit list; picks the unit per value by its size</comment>
   </data>
-  <data name="Settings_DecimalPlacesExpander.Header" xml:space="preserve">
-    <value>Stránky Senzory a Grafy</value>
+  <data name="Settings_GraphsPageExpander.Header" xml:space="preserve">
+    <value>Stránka Grafy</value>
   </data>
-  <data name="Settings_DecimalPlacesExpander.Description" xml:space="preserve">
-    <value>Desetinná místa obou stránek a maximum osy Y grafů</value>
+  <data name="Settings_GraphsPageExpander.Description" xml:space="preserve">
+    <value>Desetinná místa a maximum osy Y grafů hardwaru</value>
   </data>
   <data name="Settings_SensorListDecimalPlacesCard.Header" xml:space="preserve">
-    <value>Desetinná místa na stránce Senzory</value>
+    <value>Desetinná místa stránky Senzory</value>
     <comment>the Sensors page of the app</comment>
-  </data>
-  <data name="Settings_PerformanceDecimalPlacesCard.Header" xml:space="preserve">
-    <value>Desetinná místa na stránce Grafy</value>
-    <comment>the Graphs page of the app</comment>
   </data>
   <data name="Settings_DecimalPlacesComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Desetinná místa</value>

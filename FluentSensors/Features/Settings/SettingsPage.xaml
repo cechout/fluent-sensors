@@ -265,30 +265,35 @@
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
-            <!--  sensors and graphs pages: decimal places of both, y-axis maximum of the graphs  -->
-            <!--  (the taskbar, the flyout, the widgets and the csv recording each have their own in their section)  -->
-            <controls:SettingsExpander
-                x:Uid="Settings_DecimalPlacesExpander"
+            <!--  sensors page decimal places  -->
+            <!--  (the graphs page, the taskbar, the flyout, the widgets and the csv recording have their own)  -->
+            <controls:SettingsCard
+                x:Uid="Settings_SensorListDecimalPlacesCard"
                 fhUi:FocusGroup.IsEnabled="True"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE8EF;}"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE8FD;}">
+                <ComboBox
+                    x:Name="SensorListDecimalPlacesComboBox"
+                    x:Uid="Settings_DecimalPlacesComboBox"
+                    Width="150"
+                    SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
+                    <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
+                    <ComboBoxItem Content="0" Tag="0" />
+                    <ComboBoxItem Content="1" Tag="1" />
+                    <ComboBoxItem Content="2" Tag="2" />
+                    <ComboBoxItem Content="3" Tag="3" />
+                </ComboBox>
+            </controls:SettingsCard>
+
+            <!--  graphs page: decimal places, y-axis maximum  -->
+            <!--  (the same two as in the graph sections of the widget and the flyout)  -->
+            <controls:SettingsExpander
+                x:Uid="Settings_GraphsPageExpander"
+                fhUi:FocusGroup.IsEnabled="True"
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard x:Uid="Settings_SensorListDecimalPlacesCard">
-                        <ComboBox
-                            x:Name="SensorListDecimalPlacesComboBox"
-                            x:Uid="Settings_DecimalPlacesComboBox"
-                            Width="150"
-                            SelectionChanged="DecimalPlacesComboBox_SelectionChanged">
-                            <ComboBoxItem x:Uid="Settings_DecimalPlacesComboBox_Auto" Tag="Auto" />
-                            <ComboBoxItem Content="0" Tag="0" />
-                            <ComboBoxItem Content="1" Tag="1" />
-                            <ComboBoxItem Content="2" Tag="2" />
-                            <ComboBoxItem Content="3" Tag="3" />
-                        </ComboBox>
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard x:Uid="Settings_PerformanceDecimalPlacesCard">
+                    <controls:SettingsCard x:Uid="Settings_DecimalPlacesCard">
                         <ComboBox
                             x:Name="PerformanceDecimalPlacesComboBox"
                             x:Uid="Settings_DecimalPlacesComboBox"
