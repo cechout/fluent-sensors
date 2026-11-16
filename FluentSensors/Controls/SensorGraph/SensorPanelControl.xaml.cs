@@ -295,6 +295,19 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(SensorPanelControl),
                 new PropertyMetadata(false));
 
+        // the text height a host centers over a compact card, see SensorGraphControl.LevelBarTextHeight
+        public double LevelBarTextHeight
+        {
+            get => (double)GetValue(LevelBarTextHeightProperty);
+            set => SetValue(LevelBarTextHeightProperty, value);
+        }
+        public static readonly DependencyProperty LevelBarTextHeightProperty =
+            DependencyProperty.Register(
+                nameof(LevelBarTextHeight),
+                typeof(double),
+                typeof(SensorPanelControl),
+                new PropertyMetadata(double.NaN));
+
         // the sensor name in the graph header overlay
         public bool ShowGraphName
         {

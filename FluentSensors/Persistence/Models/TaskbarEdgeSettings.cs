@@ -23,7 +23,7 @@ namespace FluentSensors.Persistence.Models
         public string LabelArrangement { get; set; } = "SideBySide";
         public string LabelPosition { get; set; } = "Top";
         public string LabelAlignment { get; set; } = "Left";
-        public string SideLabelPosition { get; set; } = "Spread"; // side edge only: "Spread" (name top, value bottom), "Top" or "Bottom"
+        public string SideLabelPosition { get; set; } = "Spread"; // side edge only: "Spread" (name top, value bottom), "Top", "Center" or "Bottom"
 
         // over the widget: "Center", "Left" or "Right" (top and bottom on a side taskbar)
         public string FlyoutAlignment { get; set; } = "Left";

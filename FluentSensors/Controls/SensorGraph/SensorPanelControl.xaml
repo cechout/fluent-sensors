@@ -498,6 +498,7 @@
                     LabelLayout="{x:Bind ViewModel.LabelLayout, Mode=OneWay}"
                     LabelNumberFormat="{x:Bind ViewModel.LabelNumberFormat, Mode=OneWay}"
                     LabelText="{x:Bind ViewModel.SensorName, Mode=OneWay}"
+                    LevelBarTextHeight="{x:Bind LevelBarTextHeight, Mode=OneWay}"
                     LineStyle="{x:Bind ViewModel.GraphLineStyle, Mode=OneWay}"
                     ManualYMax="{x:Bind ViewModel.ManualYMax, Mode=OneWay}"
                     SensorType="{x:Bind ViewModel.SensorType, Mode=OneWay}"

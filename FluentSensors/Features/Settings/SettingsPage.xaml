@@ -1036,6 +1036,11 @@
                     </controls:SettingsCard>
                     <controls:SettingsCard x:Uid="Settings_TaskbarTextLayoutCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">
+                            <!--  (narrower than the 64 DIP the combo box template sets as its least width)  -->
+                            <StackPanel.Resources>
+                                <x:Double x:Key="ComboBoxThemeMinWidth">0</x:Double>
+                            </StackPanel.Resources>
+
                             <ComboBox
                                 x:Name="TaskbarLabelArrangementComboBox"
                                 x:Uid="Settings_TaskbarLabelArrangementComboBox"
@@ -1048,7 +1053,7 @@
                             <ComboBox
                                 x:Name="TaskbarLabelPositionComboBox"
                                 x:Uid="Settings_TaskbarLabelPositionComboBox"
-                                Width="90"
+                                Width="100"
                                 SelectionChanged="TaskbarLabelPositionComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Top" Tag="Top" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Center" Tag="Center" />
@@ -1062,13 +1067,14 @@
                                 SelectionChanged="TaskbarSideLabelPositionComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarSideLabelPositionComboBox_Spread" Tag="Spread" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarSideLabelPositionComboBox_Top" Tag="Top" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarSideLabelPositionComboBox_Center" Tag="Center" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarSideLabelPositionComboBox_Bottom" Tag="Bottom" />
                             </ComboBox>
 
                             <ComboBox
                                 x:Name="TaskbarLabelAlignmentComboBox"
                                 x:Uid="Settings_TaskbarLabelAlignmentComboBox"
-                                Width="90"
+                                Width="80"
                                 SelectionChanged="TaskbarLabelAlignmentComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelAlignmentComboBox_Left" Tag="Left" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelAlignmentComboBox_Right" Tag="Right" />

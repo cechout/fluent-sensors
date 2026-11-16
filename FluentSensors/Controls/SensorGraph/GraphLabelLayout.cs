@@ -26,11 +26,12 @@ namespace FluentSensors.Controls.SensorGraph
 
     // name and value on a side taskbar:
     // - name at the top and value at the bottom
-    // - or both stacked at one end
+    // - or both stacked at one end or in the middle
     public enum SideLabelPosition
     {
         Spread,
         Top,
+        Center,
         Bottom
     }
 }

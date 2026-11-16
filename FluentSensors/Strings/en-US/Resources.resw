@@ -393,6 +393,9 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
     <value>Top</value>
     <comment>name and value stacked at the top</comment>
   </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox_Center.Content" xml:space="preserve">
+    <value>Center</value>
+  </data>
   <data name="Settings_TaskbarSideLabelPositionComboBox_Bottom.Content" xml:space="preserve">
     <value>Bottom</value>
     <comment>name and value stacked at the bottom</comment>

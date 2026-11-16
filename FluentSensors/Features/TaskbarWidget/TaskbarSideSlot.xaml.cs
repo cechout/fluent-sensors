@@ -12,9 +12,10 @@ namespace FluentSensors.Features.TaskbarWidget
 {
     // the side taskbar slot:
     // one pinned sensor on a left or right taskbar:
-    // - the name on top, value and unit at the bottom; or both stacked at the top or the bottom
+    // - the name on top, value and unit at the bottom; or both stacked at the top, in the middle or at the bottom
     // - on the left or the right, in the size and weight of TextLayout
-    // - the graph behind, in the picked direction; or a compact card with its level bar across the foot, under the text
+    // - the graph behind, in the picked direction; or a compact card with its level bar across the foot, or below
+    //   the centered text
     // (the text never turns)
     // TaskbarWidgetWindow pushes the layout through ApplyLayout on load and on every change
     public sealed partial class TaskbarSideSlot : UserControl
@@ -60,6 +61,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 typeof(TaskbarSideSlot),
                 new PropertyMetadata(false, (d, e) => ((TaskbarSideSlot)d).ApplyGraphTurn()));
 
+        private bool IsTextCentered => (TextLayout ?? GraphLabelLayout.Default).SidePosition == SideLabelPosition.Center;
+
         // a dependency property, so FitValueText reruns on a change
         private double SlotWidth
         {
@@ -80,8 +83,11 @@ namespace FluentSensors.Features.TaskbarWidget
         // SensorPanelControl keeps this gap above its graph card for the label row it hides here (its RowSpacing)
         private const double PanelLabelRowGapDip = 3;
 
-        // the room the level bar of a compact card takes at the foot (SensorGraphControl: inset 3, bar 3, gap 2)
-        private const double CompactLevelBarRoomDip = 8;
+        // the room the level bar of a compact card takes at the foot: its inset and the bar, and a 2 DIP gap
+        private const double CompactLevelBarRoomDip = SensorGraphControl.LevelBarFootInset + SensorGraphControl.LevelBarThickness + 2;
+
+        // the room the level bar of a compact card takes below centered text: the bar and its gap
+        private const double CompactCenteredLevelBarRoomDip = SensorGraphControl.LevelBarThickness + SensorGraphControl.LevelBarCenterGap;
 
         // the last layout from ApplyLayout, for a compact switch in between
         private ScreenEdge _edge = ScreenEdge.Left;
@@ -135,12 +141,41 @@ namespace FluentSensors.Features.TaskbarWidget
                     break;
             }
 
+            ApplyTextPlacement();
+        }
+
+        // where the text block sits:
+        // - spread or at one end: the full slot, a compact card keeps its foot free for the level bar
+        // - centered: on the graph card, a compact card centers it together with the level bar below
+        private void ApplyTextPlacement()
+        {
             // the name margin counts from the top of the graph card: an unturned card starts PanelLabelRowGapDip below
             // the slot top, a turned one has that gap on its side and fills the slot along the taskbar
-            NameHost.Padding = new Thickness(0, GraphRotation.QuarterTurns == 0 ? PanelLabelRowGapDip : 0, 0, 0);
+            double cardTop = GraphRotation.QuarterTurns == 0 ? PanelLabelRowGapDip : 0;
 
-            TextHost.Margin = new Thickness(0, 0, 0, IsCompact ? CompactLevelBarRoomDip : 0);
+            if (IsTextCentered)
+            {
+                NameHost.Padding = new Thickness(0);
+                TextHost.VerticalAlignment = VerticalAlignment.Center;
+                TextHost.Margin = new Thickness(0, cardTop, 0, IsCompact ? CompactCenteredLevelBarRoomDip : 0);
+            }
+            else
+            {
+                NameHost.Padding = new Thickness(0, cardTop, 0, 0);
+                TextHost.VerticalAlignment = VerticalAlignment.Stretch;
+                TextHost.Margin = new Thickness(0, 0, 0, IsCompact ? CompactLevelBarRoomDip : 0);
+            }
+
+            UpdateLevelBarTextHeight();
         }
+
+        // the graph card puts its level bar below centered text by its height
+        private void UpdateLevelBarTextHeight()
+        {
+            Panel.LevelBarTextHeight = IsCompact && IsTextCentered ? TextHost.ActualHeight : double.NaN;
+        }
+
+        private void TextHost_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateLevelBarTextHeight();
 
 
         // === text layout ===
@@ -165,6 +200,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             // - spread: name in the top row, value in the bottom row
             // - stacked: both next to each other at one end
+            // - centered: as spread, in a text block that sizes to them (ApplyTextPlacement), so the gap row is empty
             (int nameRow, int valueRow) = layout.SidePosition switch
             {
                 SideLabelPosition.Top => (0, 1),
@@ -175,6 +211,8 @@ namespace FluentSensors.Features.TaskbarWidget
             Grid.SetRow(ValueText, valueRow);
             NameHost.VerticalAlignment = nameRow == 1 ? VerticalAlignment.Bottom : VerticalAlignment.Top;
             ValueText.VerticalAlignment = valueRow == 1 ? VerticalAlignment.Top : VerticalAlignment.Bottom;
+
+            ApplyTextPlacement();
 
             _measureText = null; // measures with the new font next time
         }

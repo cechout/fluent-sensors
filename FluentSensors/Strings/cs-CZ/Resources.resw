@@ -371,6 +371,9 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   <data name="Settings_TaskbarSideLabelPositionComboBox_Top.Content" xml:space="preserve">
     <value>Nahoře</value>
   </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox_Center.Content" xml:space="preserve">
+    <value>Uprostřed</value>
+  </data>
   <data name="Settings_TaskbarSideLabelPositionComboBox_Bottom.Content" xml:space="preserve">
     <value>Dole</value>
   </data>
