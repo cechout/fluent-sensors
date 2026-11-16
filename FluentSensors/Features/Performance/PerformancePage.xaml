@@ -215,19 +215,6 @@
 
                     <AppBarSeparator />
 
-                    <!--  graphs by sensor type instead of by hardware; the sensors page has the same switch in its menu  -->
-                    <AppBarToggleButton
-                        x:Uid="Performance_SensorTypeColorsButton"
-                        Width="42"
-                        IsChecked="{x:Bind ViewModel.UseSensorTypeColors, Mode=TwoWay}"
-                        LabelPosition="Collapsed">
-                        <AppBarToggleButton.Icon>
-                            <FontIcon Glyph="&#xE790;" />
-                        </AppBarToggleButton.Icon>
-                    </AppBarToggleButton>
-
-                    <AppBarSeparator />
-
                     <AppBarToggleButton
                         x:Uid="Performance_HardwareListButton"
                         Width="42"
@@ -249,9 +236,22 @@
                         </AppBarToggleButton.Icon>
                     </AppBarToggleButton>
 
-                    <!--  decimal places and y-axis maximum place of the graphs here; submenus of radio items (ViewOptionsMenu)  -->
+                    <!--  overflow: sensor type colors, then decimal places and y-axis maximum place as submenus (ViewOptionsMenu)  -->
+                    <!--  (the CommandBar template collapses AppBarButtonHasFlyoutChevronVisibility; set back here, the button finds it first)  -->
                     <CommandBar.SecondaryCommands>
+                        <!--  graphs by sensor type instead of by hardware; the sensors page has the same switch  -->
+                        <AppBarToggleButton x:Uid="Performance_SensorTypeColorsButton" IsChecked="{x:Bind ViewModel.UseSensorTypeColors, Mode=TwoWay}">
+                            <AppBarToggleButton.Icon>
+                                <FontIcon Glyph="&#xE790;" />
+                            </AppBarToggleButton.Icon>
+                        </AppBarToggleButton>
+
+                        <AppBarSeparator />
+
                         <AppBarButton x:Uid="Performance_DecimalPlacesButton">
+                            <AppBarButton.Resources>
+                                <Visibility x:Key="AppBarButtonHasFlyoutChevronVisibility">Visible</Visibility>
+                            </AppBarButton.Resources>
                             <AppBarButton.Icon>
                                 <FontIcon Glyph="&#xE8EF;" />
                             </AppBarButton.Icon>
@@ -261,6 +261,9 @@
                         </AppBarButton>
 
                         <AppBarButton x:Uid="Performance_YMaxPositionButton">
+                            <AppBarButton.Resources>
+                                <Visibility x:Key="AppBarButtonHasFlyoutChevronVisibility">Visible</Visibility>
+                            </AppBarButton.Resources>
                             <AppBarButton.Icon>
                                 <FontIcon Glyph="&#xE9D2;" />
                             </AppBarButton.Icon>

@@ -305,7 +305,11 @@
 
                         <CommandBar.SecondaryCommands>
                             <!--  decimal places of the list; a submenu of radio items (ViewOptionsMenu)  -->
+                            <!--  (the CommandBar template collapses AppBarButtonHasFlyoutChevronVisibility; set back here, the button finds it first)  -->
                             <AppBarButton x:Name="DecimalPlacesButton" x:Uid="Sensors_DecimalPlacesButton">
+                                <AppBarButton.Resources>
+                                    <Visibility x:Key="AppBarButtonHasFlyoutChevronVisibility">Visible</Visibility>
+                                </AppBarButton.Resources>
                                 <AppBarButton.Icon>
                                     <FontIcon Glyph="&#xE8EF;" />
                                 </AppBarButton.Icon>
