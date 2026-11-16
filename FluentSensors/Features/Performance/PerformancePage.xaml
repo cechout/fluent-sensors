@@ -204,7 +204,15 @@
                     Grid.Column="1"
                     HorizontalAlignment="Right"
                     fhUi:FocusGroup.IsEnabled="True"
+                    Background="Transparent"
                     DefaultLabelPosition="Right">
+
+                    <!--  (no fill or border while the overflow menu is open, like the sensors page bar)  -->
+                    <CommandBar.Resources>
+                        <SolidColorBrush x:Key="CommandBarBackground" Color="Transparent" />
+                        <SolidColorBrush x:Key="CommandBarBackgroundOpen" Color="Transparent" />
+                        <SolidColorBrush x:Key="CommandBarBorderBrushOpen" Color="Transparent" />
+                    </CommandBar.Resources>
 
                     <AppBarButton x:Uid="Performance_HardwareOverviewButton" Click="StartPageButton_Click">
                         <AppBarButton.Icon>
@@ -236,11 +244,23 @@
                         </AppBarToggleButton.Icon>
                     </AppBarToggleButton>
 
+                    <!--  sets the overflow button apart  -->
+                    <AppBarSeparator />
+
                     <!--  overflow: sensor type colors, then decimal places and y-axis maximum place as submenus (ViewOptionsMenu)  -->
                     <!--  (the CommandBar template collapses AppBarButtonHasFlyoutChevronVisibility; set back here, the button finds it first)  -->
                     <CommandBar.SecondaryCommands>
                         <!--  graphs by sensor type instead of by hardware; the sensors page has the same switch  -->
+                        <!--
+                            workaround: checked toggle border in the overflow menu
+                            the stock OverflowChecked state draws the accent elevation border (light top, dark bottom) around
+                            the item; AppBarToggleButtonBorderBrushChecked set transparent, the check mark shows the state
+                        -->
                         <AppBarToggleButton x:Uid="Performance_SensorTypeColorsButton" IsChecked="{x:Bind ViewModel.UseSensorTypeColors, Mode=TwoWay}">
+                            <AppBarToggleButton.Resources>
+                                <SolidColorBrush x:Key="AppBarToggleButtonBorderBrushChecked" Color="Transparent" />
+                                <SolidColorBrush x:Key="AppBarToggleButtonBorderBrushCheckedPointerOver" Color="Transparent" />
+                            </AppBarToggleButton.Resources>
                             <AppBarToggleButton.Icon>
                                 <FontIcon Glyph="&#xE790;" />
                             </AppBarToggleButton.Icon>

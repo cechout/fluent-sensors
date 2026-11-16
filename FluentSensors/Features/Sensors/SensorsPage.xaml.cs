@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.WinUI.Controls;
+using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -798,6 +799,16 @@ namespace FluentSensors.Features.Sensors
         {
             SensorTypeColorsButton.LabelPosition = isInBar ? CommandBarLabelPosition.Collapsed : CommandBarLabelPosition.Default;
             SensorTypeColorsButton.Width = isInBar ? IconOnlyButtonWidth : double.NaN;
+
+            // --- workaround: checked toggle border in the overflow menu ---
+            // problem: the OverflowChecked state of the stock AppBarToggleButton template draws
+            // AppBarToggleButtonBorderBrushChecked, the accent elevation border (light top, dark bottom), around a menu item
+            // fix: transparent while in the overflow, the check mark shows the state; the bar keeps the stock border
+            foreach (var key in new[] { "AppBarToggleButtonBorderBrushChecked", "AppBarToggleButtonBorderBrushCheckedPointerOver" })
+            {
+                if (isInBar) SensorTypeColorsButton.Resources.Remove(key);
+                else SensorTypeColorsButton.Resources[key] = new SolidColorBrush(Colors.Transparent);
+            }
         }
 
         // the decimal places submenu, refilled on every open so its mark follows the saved value
