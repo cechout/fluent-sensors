@@ -1,53 +1,21 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
 
 using FluentSensors.Common.Sensors;
+using FluentSensors.Common.UI.Icons;
 
 
 namespace FluentSensors.Common.UI
 {
     // the source icon:
     // A small icon behind a sensor title that says who measured the value, LibreHardwareMonitor or Windows
-    // Vector data for a Path, so it takes the text colour of its place, follows the theme and stays sharp at any scale;
-    // neither system icon font has a glyph for either
+    // the two marks are drawn in AppIcons
     public static class SensorSourceIcon
     {
-        // both drawn by hand on a 16 x 16 grid and filling 1 to 15, so they come out the same size
-        // the path syntax (M, H, V, A, Z, F0 for even-odd):
-        // https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/move-draw-commands-syntax
-        // the same commands in SVG, with pictures; the easiest way into the arc:
-        // https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorials/SVG_from_scratch/Paths
-
-        // windows icon
-        // four panes; only the four outer corners of the logo are rounded, by about half a pixel at the drawn size
-        private const string WindowsData =
-            "M1.7,1H7.5V7.5H1V1.7A0.7,0.7 0 0 1 1.7,1Z " +
-            "M8.5,1H14.3A0.7,0.7 0 0 1 15,1.7V7.5H8.5Z " +
-            "M1,8.5H7.5V15H1.7A0.7,0.7 0 0 1 1,14.3Z " +
-            "M8.5,8.5H15V14.3A0.7,0.7 0 0 1 14.3,15H8.5Z";
-
-        // lhm icon
-        // a chip seen from above:
-        // - the package as a frame
-        // - the die in its middle
-        // - the pin 1 corner bottom left
-        // - two contacts on the right
-        // even-odd, so the inner square of the frame is a hole the other parts sit in:
-        // https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Attribute/fill-rule
-        private const string LhmData =
-            "F0 M2.6,1H13.4A1.6,1.6 0 0 1 15,2.6V13.4A1.6,1.6 0 0 1 13.4,15H2.6A1.6,1.6 0 0 1 1,13.4V2.6A1.6,1.6 0 0 1 2.6,1Z " +
-            "M3.1,2.5H12.9A0.6,0.6 0 0 1 13.5,3.1V12.9A0.6,0.6 0 0 1 12.9,13.5H3.1A0.6,0.6 0 0 1 2.5,12.9V3.1A0.6,0.6 0 0 1 3.1,2.5Z " +
-            "M6.1,5.5H9.9A0.6,0.6 0 0 1 10.5,6.1V9.9A0.6,0.6 0 0 1 9.9,10.5H6.1A0.6,0.6 0 0 1 5.5,9.9V6.1A0.6,0.6 0 0 1 6.1,5.5Z " +
-            "M3.5,12.5V9.5L6.5,12.5Z " +
-            "M11.35,3.5H12.15A0.35,0.35 0 0 1 12.5,3.85V4.65A0.35,0.35 0 0 1 12.15,5H11.35A0.35,0.35 0 0 1 11,4.65V3.85A0.35,0.35 0 0 1 11.35,3.5Z " +
-            "M11.35,11H12.15A0.35,0.35 0 0 1 12.5,11.35V12.15A0.35,0.35 0 0 1 12.15,12.5H11.35A0.35,0.35 0 0 1 11,12.15V11.35A0.35,0.35 0 0 1 11.35,11Z";
-
-
         // every Path that got a sensor, so a switched setting reaches the ones on screen; weak, panels come and go,
         // and from every window thread
         private static readonly List<WeakReference<Path>> _paths = new();
@@ -129,7 +97,7 @@ namespace FluentSensors.Common.UI
         // the same mark as an icon element, for a place that names the source itself (a settings header)
         public static PathIcon CreateIcon(bool isWindows)
         {
-            return new PathIcon { Data = ParseGeometry(isWindows ? WindowsData : LhmData) };
+            return AppIcons.CreateIcon(isWindows ? AppIconKind.Windows : AppIconKind.Lhm);
         }
 
 
@@ -159,8 +127,6 @@ namespace FluentSensors.Common.UI
 
         // a new geometry per call
         private static Geometry CreateGeometry(string sensorId) =>
-            ParseGeometry(SensorSourceMarker.IsWindowsSensor(sensorId) ? WindowsData : LhmData);
-
-        private static Geometry ParseGeometry(string data) => (Geometry)XamlBindingHelper.ConvertValue(typeof(Geometry), data);
+            AppIcons.CreateGeometry(SensorSourceMarker.IsWindowsSensor(sensorId) ? AppIconKind.Windows : AppIconKind.Lhm);
     }
 }

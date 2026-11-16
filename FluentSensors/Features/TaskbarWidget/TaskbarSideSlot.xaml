@@ -31,60 +31,73 @@
                 ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
         </fhControls:RotatedContentPanel>
 
-        <!--  sensor name  -->
-        <!--
-            one or two lines (ApplyLayout);
-            LineHeight sets the gap, the top Margin counts from the top of the graph card, where NameHost moves
-            the name down to
-        -->
-        <Grid x:Name="NameHost" VerticalAlignment="Top">
-            <!--  (the name trims or wraps, the source icon stays on its first line)  -->
-            <fhControls:TrailingContentPanel
+        <!--  name and value  -->
+        <!--  (rows: name, gap, value; spread or stacked at one end by TextLayout, see ApplyTextLayout)  -->
+        <Grid x:Name="TextHost">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!--  sensor name  -->
+            <!--
+                one or two lines (ApplyLayout), size and side from TextLayout;
+                LineHeight sets the gap, the top Margin counts from the top of the graph card, where NameHost moves
+                the name down to
+            -->
+            <Grid x:Name="NameHost" VerticalAlignment="Top">
+                <!--  (the name trims or wraps, the source icon stays on its first line)  -->
+                <fhControls:TrailingContentPanel
+                    x:Name="NameRow"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Spacing="3">
+                    <TextBlock
+                        x:Name="NameText"
+                        Margin="4,3,0,0"
+                        VerticalAlignment="Top"
+                        FontSize="10"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        LineHeight="11"
+                        LineStackingStrategy="BlockLineHeight"
+                        MaxLines="1"
+                        Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap" />
+
+                    <!--  who measured it, see SensorSourceIcon  -->
+                    <Path
+                        x:Name="SourceIcon"
+                        Width="7.5"
+                        Height="7.5"
+                        Margin="0,5,4,0"
+                        VerticalAlignment="Top"
+                        fhUi:SensorSourceIcon.SensorId="{x:Bind ViewModel.SensorId, Mode=OneWay}"
+                        Fill="{ThemeResource TextFillColorSecondaryBrush}"
+                        Stretch="Uniform" />
+                </fhControls:TrailingContentPanel>
+            </Grid>
+
+            <!--  value and unit  -->
+            <!--
+                the unit dropped when both do not fit (FitValueText);
+                LineHeight sets the line box, the bottom Margin counts from the bottom of the graph card, also the
+                bottom of the slot
+            -->
+            <TextBlock
+                x:Name="ValueText"
+                Grid.Row="2"
+                Margin="4,0,4,1"
                 HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Spacing="3">
-                <TextBlock
-                    x:Name="NameText"
-                    Margin="4,3,0,0"
-                    VerticalAlignment="Top"
-                    FontSize="10"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    LineHeight="11"
-                    LineStackingStrategy="BlockLineHeight"
-                    MaxLines="1"
-                    Text="{x:Bind ViewModel.SensorName, Mode=OneWay}"
-                    TextTrimming="CharacterEllipsis"
-                    TextWrapping="NoWrap" />
-
-                <!--  who measured it, see SensorSourceIcon  -->
-                <Path
-                    Width="7.5"
-                    Height="7.5"
-                    Margin="0,5,4,0"
-                    VerticalAlignment="Top"
-                    fhUi:SensorSourceIcon.SensorId="{x:Bind ViewModel.SensorId, Mode=OneWay}"
-                    Fill="{ThemeResource TextFillColorSecondaryBrush}"
-                    Stretch="Uniform" />
-            </fhControls:TrailingContentPanel>
+                VerticalAlignment="Bottom"
+                FontSize="10"
+                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                LineHeight="13"
+                LineStackingStrategy="BlockLineHeight"
+                Text="{x:Bind FitValueText(ViewModel.CurrentValueText, SlotWidth, TextLayout), Mode=OneWay}"
+                TextWrapping="NoWrap"
+                Typography.NumeralAlignment="Tabular" />
         </Grid>
-
-        <!--  value and unit  -->
-        <!--
-            the unit dropped when both do not fit (FitValueText);
-            LineHeight sets the line box, the bottom Margin counts from the bottom of the graph card, also the
-            bottom of the slot
-        -->
-        <TextBlock
-            x:Name="ValueText"
-            Margin="4,0,4,1"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Bottom"
-            FontSize="10"
-            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-            LineHeight="13"
-            LineStackingStrategy="BlockLineHeight"
-            Text="{x:Bind FitValueText(ViewModel.CurrentValueText, SlotWidth), Mode=OneWay}"
-            TextWrapping="NoWrap"
-            Typography.NumeralAlignment="Tabular" />
     </Grid>
 </UserControl>

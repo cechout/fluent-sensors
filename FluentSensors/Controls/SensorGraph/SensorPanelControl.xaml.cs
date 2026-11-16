@@ -568,6 +568,13 @@ namespace FluentSensors.Controls.SensorGraph
             return string.IsNullOrEmpty(viewModel.ActualYMaxUnit) ? text : $"{text} {viewModel.ActualYMaxUnit}";
         }
 
+        // one of the two y-max places, by the surface setting; beside the title without a view model
+        private Visibility GetYMaxBesideTitleVisibility(SensorGraphViewModel viewModel) =>
+            viewModel?.IsYMaxBesideValue == true ? Visibility.Collapsed : Visibility.Visible;
+
+        private Visibility GetYMaxBesideValueVisibility(SensorGraphViewModel viewModel) =>
+            viewModel?.IsYMaxBesideValue == true ? Visibility.Visible : Visibility.Collapsed;
+
         private string GetCurrentValueOrPlaceholder(SensorGraphViewModel viewModel) => GetTextOrPlaceholder(viewModel?.CurrentValueText);
 
         // the plain value color follows this controls ActualTheme, since the taskbar widget (Windows theme)

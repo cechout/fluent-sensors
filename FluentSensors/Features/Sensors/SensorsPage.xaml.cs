@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.WinUI.Controls;
+using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -539,6 +540,7 @@ namespace FluentSensors.Features.Sensors
         {
             _forcedOverflowElements = new HashSet<ICommandBarElement>
             {
+                DecimalPlacesButton,
                 ShowHiddenSensorsButton
             };
 
@@ -688,6 +690,7 @@ namespace FluentSensors.Features.Sensors
             order.Add(ResetValuesButton);
             order.Add(SensorTypeColorsButton);
             order.Add(SensorTypeColorsSeparator);
+            order.Add(DecimalPlacesButton);
             order.Add(ShowHiddenSensorsButton);
 
             // every element starts in the bar, so its width is cached icon only
@@ -796,6 +799,25 @@ namespace FluentSensors.Features.Sensors
         {
             SensorTypeColorsButton.LabelPosition = isInBar ? CommandBarLabelPosition.Collapsed : CommandBarLabelPosition.Default;
             SensorTypeColorsButton.Width = isInBar ? IconOnlyButtonWidth : double.NaN;
+
+            // --- workaround: checked toggle border in the overflow menu ---
+            // problem: the OverflowChecked state of the stock AppBarToggleButton template draws
+            // AppBarToggleButtonBorderBrushChecked, the accent elevation border (light top, dark bottom), around a menu item
+            // fix: transparent while in the overflow, the check mark shows the state; the bar keeps the stock border
+            foreach (var key in new[] { "AppBarToggleButtonBorderBrushChecked", "AppBarToggleButtonBorderBrushCheckedPointerOver" })
+            {
+                if (isInBar) SensorTypeColorsButton.Resources.Remove(key);
+                else SensorTypeColorsButton.Resources[key] = new SolidColorBrush(Colors.Transparent);
+            }
+        }
+
+        // the decimal places submenu, refilled on every open so its mark follows the saved value
+        private void DecimalPlacesFlyout_Opening(object sender, object e)
+        {
+            if (sender is not MenuFlyout flyout) return;
+
+            ViewOptionsMenu.FillDecimalPlaces(flyout, SettingsService.Instance.SensorListDecimalPlaces,
+                places => SettingsService.Instance.SensorListDecimalPlaces = places);
         }
 
         // a separator joins the unit of the element before it, so the fit never cuts between them

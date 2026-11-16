@@ -47,6 +47,12 @@ namespace FluentSensors.Persistence.Models
         public int? TaskbarFlyoutDecimalPlaces { get; set; }
         public int? WidgetDecimalPlaces { get; set; }
 
+        // the y-axis maximum in the status row of a graph, beside the title (false) or beside the value; per surface,
+        // the widgets board has no status row
+        public bool PerformanceYMaxBesideValue { get; set; } = false;
+        public bool TaskbarFlyoutYMaxBesideValue { get; set; } = false;
+        public bool WidgetYMaxBesideValue { get; set; } = false;
+
         // title bar status
         public bool StatusReadoutEnabled { get; set; } = true;
         public bool StatusLhmGroupEnabled { get; set; } = false;
@@ -131,12 +137,18 @@ namespace FluentSensors.Persistence.Models
         public GraphColorSource? TaskbarGraphColorSource { get; set; } = null;
         public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public bool TaskbarUseTransparentGraphBackground { get; set; } = true;
+        public bool TaskbarGraphBlur { get; set; } = false; // a slight blur on line and fill, the taskbar graph only
+
+        // name and value text on every edge; the arrangement is per edge, see TaskbarEdgeSettings
+        public double TaskbarLabelFontSize { get; set; } = 10; // in DIP; 9 to 12
+        public bool TaskbarValueSemiBold { get; set; } = false;
 
         // per taskbar edge ("Bottom", "Top", "Left", "Right"), defaults in TaskbarEdgeSettings:
         // - time range
         // - graph width
         // - flyout alignment
         // - side layout
+        // - name and value arrangement
         // null in an older file, SettingsService seeds every edge from the legacy values below
         public Dictionary<string, TaskbarEdgeSettings>? TaskbarEdges { get; set; } = null;
 

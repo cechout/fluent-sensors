@@ -2,6 +2,7 @@
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
+using LiveChartsCore.SkiaSharpView.Painting.ImageFilters;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -42,9 +43,13 @@ namespace FluentSensors.Controls.SensorGraph
             double YTop,
             bool IsHangingRange,
             bool HasAnyRun,
-            bool FillFade);
+            bool FillFade,
+            bool IsGraphBlurred);
 
         private StrokeSignature? _lastStrokeSignature;
+
+        // the blur of IsGraphBlurred, in px
+        private const float GraphBlurSigma = 0.65f;
 
         // the same for RebuildSections, without AccentColor (no effect on the sections)
         private readonly record struct SectionsSignature(
@@ -178,7 +183,7 @@ namespace FluentSensors.Controls.SensorGraph
             // only the flat fill follows the alarm runs, so only it repaints per tick while one is on screen
             bool hasAnyRun = !FillFade && hasThreshold && ComputeHasAnyRun();
 
-            var signature = new StrokeSignature(AccentColor, ThresholdValue, ThresholdDirection, ThresholdColor, yBottom, yTop, _isHangingRange, hasAnyRun, FillFade);
+            var signature = new StrokeSignature(AccentColor, ThresholdValue, ThresholdDirection, ThresholdColor, yBottom, yTop, _isHangingRange, hasAnyRun, FillFade, IsGraphBlurred);
             if (!hasAnyRun && _lastStrokeSignature == signature) return;
             _lastStrokeSignature = signature;
 
@@ -197,6 +202,7 @@ namespace FluentSensors.Controls.SensorGraph
             if (!hasThreshold)
             {
                 line.Stroke = new SolidColorPaint(accent.WithAlpha(204)) { StrokeThickness = 1 };
+                ApplyGraphBlur(line);
                 return;
             }
 
@@ -231,6 +237,16 @@ namespace FluentSensors.Controls.SensorGraph
             {
                 StrokeThickness = 1
             };
+            ApplyGraphBlur(line);
+        }
+
+        // softens line and fill of the fresh paints; the alarm boxes and the text stay sharp
+        private void ApplyGraphBlur(IStrokedAndFilled line)
+        {
+            if (!IsGraphBlurred) return;
+
+            if (line.Stroke is SkiaPaint stroke) stroke.ImageFilter = new Blur(GraphBlurSigma, GraphBlurSigma);
+            if (line.Fill is SkiaPaint fill) fill.ImageFilter = new Blur(GraphBlurSigma, GraphBlurSigma);
         }
 
         // top to bottom over the full height; equal alphas give the flat tone

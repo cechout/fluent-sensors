@@ -21,6 +21,7 @@ using FluentSensors.Controls.SensorGraph;
 using FluentSensors.Features.Performance.HardwareViews;
 using FluentSensors.Features.Performance.Lhm;
 using FluentSensors.Features.Performance.Win;
+using FluentSensors.Persistence.Services;
 
 
 namespace FluentSensors.Features.Performance
@@ -140,6 +141,25 @@ namespace FluentSensors.Features.Performance
                 ViewModel.SelectedItem = item;
                 toggle.IsChecked = true;
             }
+        }
+
+        // --- overflow submenus ---
+        // refilled on every open so their marks follow the saved values
+
+        private void DecimalPlacesFlyout_Opening(object sender, object e)
+        {
+            if (sender is not MenuFlyout flyout) return;
+
+            ViewOptionsMenu.FillDecimalPlaces(flyout, SettingsService.Instance.PerformanceDecimalPlaces,
+                places => SettingsService.Instance.PerformanceDecimalPlaces = places);
+        }
+
+        private void YMaxPositionFlyout_Opening(object sender, object e)
+        {
+            if (sender is not MenuFlyout flyout) return;
+
+            ViewOptionsMenu.FillYMaxPosition(flyout, SettingsService.Instance.PerformanceYMaxBesideValue,
+                besideValue => SettingsService.Instance.PerformanceYMaxBesideValue = besideValue);
         }
 
         // the start page; (no hardware selected)

@@ -5,6 +5,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.Painting.Effects;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -589,6 +590,95 @@ namespace FluentSensors.Controls.SensorGraph
                 typeof(Microsoft.UI.Xaml.Media.Brush),
                 typeof(SensorGraphControl),
                 new PropertyMetadata(null, OnCurrentValueColorChanged));
+
+
+        // DependencyProperty: LabelLayout
+        // size, weight and arrangement of the name and value overlay (SensorGraphViewModel.LabelLayout)
+        public GraphLabelLayout LabelLayout
+        {
+            get => (GraphLabelLayout)GetValue(LabelLayoutProperty);
+            set => SetValue(LabelLayoutProperty, value);
+        }
+
+        public static readonly DependencyProperty LabelLayoutProperty =
+            DependencyProperty.Register(
+                nameof(LabelLayout),
+                typeof(GraphLabelLayout),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(GraphLabelLayout.Default, OnLabelLayoutChanged));
+
+        private static void OnLabelLayoutChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SensorGraphControl g) g.ApplyLabelLayout();
+        }
+
+        // label layout
+        // - side by side: name left and value right in one row
+        // - stacked: the value under the name, both on one side
+        private void ApplyLabelLayout()
+        {
+            var layout = LabelLayout ?? GraphLabelLayout.Default;
+
+            GraphLabelText.FontSize = layout.FontSize;
+            GraphCurrentValueText.FontSize = layout.FontSize;
+            GraphCurrentValueText.FontWeight = layout.IsValueSemiBold ? FontWeights.SemiBold : FontWeights.Normal;
+
+            LabelOverlay.VerticalAlignment = layout.IsAtBottom ? VerticalAlignment.Bottom : VerticalAlignment.Top;
+
+            // stacked: two lines in tight line boxes flush with the card edge, so the block stays above the middle at
+            // the top and off the very foot at the bottom; one row keeps the natural line box and its 1 DIP inset
+            double stackedLineHeight = layout.IsStacked ? layout.FontSize + 2 : 0;
+            foreach (var text in new[] { GraphLabelText, GraphCurrentValueText })
+            {
+                text.LineHeight = stackedLineHeight;
+                text.LineStackingStrategy = layout.IsStacked ? LineStackingStrategy.BlockLineHeight : LineStackingStrategy.MaxHeight;
+            }
+
+            LabelOverlay.Margin = (layout.IsStacked, layout.IsAtBottom) switch
+            {
+                (true, false) => new Thickness(4, 0, 4, 0),
+                (true, true) => new Thickness(4, 0, 4, 2),
+                (false, true) => new Thickness(4, 0, 4, 1),
+                _ => new Thickness(4, 1, 4, 0)
+            };
+
+            if (layout.IsStacked)
+            {
+                var side = layout.IsRightAligned ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+                PlaceLabelPart(GraphLabelText, row: 0, column: 0, columnSpan: 2, side, new Thickness(0));
+                PlaceLabelPart(GraphCurrentValueText, row: 1, column: 0, columnSpan: 2, side, new Thickness(0));
+            }
+            else
+            {
+                PlaceLabelPart(GraphLabelText, row: 0, column: 0, columnSpan: 1, HorizontalAlignment.Left, new Thickness(0, 0, 4, 0));
+                PlaceLabelPart(GraphCurrentValueText, row: 0, column: 1, columnSpan: 1, HorizontalAlignment.Right, new Thickness(0));
+            }
+        }
+
+        private static void PlaceLabelPart(TextBlock text, int row, int column, int columnSpan, HorizontalAlignment alignment, Thickness margin)
+        {
+            Grid.SetRow(text, row);
+            Grid.SetColumn(text, column);
+            Grid.SetColumnSpan(text, columnSpan);
+            text.HorizontalAlignment = alignment;
+            text.Margin = margin;
+        }
+
+
+        // DependencyProperty: IsGraphBlurred
+        // a slight blur on line and fill (the taskbar graph)
+        public bool IsGraphBlurred
+        {
+            get => (bool)GetValue(IsGraphBlurredProperty);
+            set => SetValue(IsGraphBlurredProperty, value);
+        }
+
+        public static readonly DependencyProperty IsGraphBlurredProperty =
+            DependencyProperty.Register(
+                nameof(IsGraphBlurred),
+                typeof(bool),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(false, (d, e) => ((SensorGraphControl)d).ApplyStroke()));
 
 
         // DependencyProperty: IsLabelVisible

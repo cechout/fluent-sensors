@@ -289,26 +289,99 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
     <value>Automaticky</value>
     <comment>first item of each unit list; picks the unit per value by its size</comment>
   </data>
-  <data name="Settings_DecimalPlacesExpander.Header" xml:space="preserve">
-    <value>Desetinná místa</value>
-  </data>
-  <data name="Settings_DecimalPlacesExpander.Description" xml:space="preserve">
-    <value>Kolik desetinných míst hodnoty zobrazují na stránkách Senzory a Grafy</value>
-  </data>
-  <data name="Settings_SensorListDecimalPlacesCard.Header" xml:space="preserve">
-    <value>Stránka Senzory</value>
-    <comment>the Sensors page of the app</comment>
-  </data>
-  <data name="Settings_PerformanceDecimalPlacesCard.Header" xml:space="preserve">
-    <value>Stránka Grafy</value>
-    <comment>the Graphs page of the app</comment>
-  </data>
   <data name="Settings_DecimalPlacesComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Desetinná místa</value>
+  </data>
+  <data name="Sensors_DecimalPlacesButton.Label" xml:space="preserve">
+    <value>Desetinná místa</value>
+  </data>
+  <data name="Performance_DecimalPlacesButton.Label" xml:space="preserve">
+    <value>Desetinná místa</value>
+  </data>
+  <data name="ViewMenu_DecimalPlacesAuto" xml:space="preserve">
+    <value>Automaticky</value>
+  </data>
+  <data name="Performance_YMaxPositionButton.Label" xml:space="preserve">
+    <value>Maximum osy Y</value>
+  </data>
+  <data name="ViewMenu_YMaxBesideTitle" xml:space="preserve">
+    <value>Vedle názvu</value>
+  </data>
+  <data name="ViewMenu_YMaxBesideValue" xml:space="preserve">
+    <value>Vedle hodnoty</value>
   </data>
   <data name="Settings_DecimalPlacesComboBox_Auto.Content" xml:space="preserve">
     <value>Automaticky</value>
     <comment>first item of each decimal places list; one decimal, the y-axis picks its own</comment>
+  </data>
+  <data name="Settings_YMaxPositionCard.Header" xml:space="preserve">
+    <value>Maximum osy Y</value>
+  </data>
+  <data name="Settings_YMaxPositionComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Pozice maxima osy Y</value>
+  </data>
+  <data name="Settings_YMaxPositionComboBox_Title.Content" xml:space="preserve">
+    <value>Vedle názvu</value>
+  </data>
+  <data name="Settings_YMaxPositionComboBox_Value.Content" xml:space="preserve">
+    <value>Vedle hodnoty</value>
+  </data>
+  <data name="Settings_TaskbarTextSizeCard.Header" xml:space="preserve">
+    <value>Velikost textu</value>
+  </data>
+  <data name="Settings_TaskbarLabelFontSizeComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Velikost textu</value>
+  </data>
+  <data name="Settings_TaskbarValueSemiBoldToggle.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Polotučná hodnota</value>
+  </data>
+  <data name="Settings_TaskbarValueSemiBoldToggle.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Polotučná hodnota</value>
+  </data>
+  <data name="Settings_TaskbarTextLayoutCard.Header" xml:space="preserve">
+    <value>Rozložení textu</value>
+  </data>
+  <data name="Settings_TaskbarLabelArrangementComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Uspořádání textu</value>
+  </data>
+  <data name="Settings_TaskbarLabelArrangementComboBox_SideBySide.Content" xml:space="preserve">
+    <value>Vedle sebe</value>
+  </data>
+  <data name="Settings_TaskbarLabelArrangementComboBox_Stacked.Content" xml:space="preserve">
+    <value>Pod sebou</value>
+  </data>
+  <data name="Settings_TaskbarLabelPositionComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Pozice textu</value>
+  </data>
+  <data name="Settings_TaskbarLabelPositionComboBox_Top.Content" xml:space="preserve">
+    <value>Nahoře</value>
+  </data>
+  <data name="Settings_TaskbarLabelPositionComboBox_Bottom.Content" xml:space="preserve">
+    <value>Dole</value>
+  </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Pozice textu na boční liště</value>
+  </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox_Spread.Content" xml:space="preserve">
+    <value>Rozložené</value>
+  </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox_Top.Content" xml:space="preserve">
+    <value>Nahoře</value>
+  </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox_Bottom.Content" xml:space="preserve">
+    <value>Dole</value>
+  </data>
+  <data name="Settings_TaskbarLabelAlignmentComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Zarovnání textu</value>
+  </data>
+  <data name="Settings_TaskbarLabelAlignmentComboBox_Left.Content" xml:space="preserve">
+    <value>Vlevo</value>
+  </data>
+  <data name="Settings_TaskbarLabelAlignmentComboBox_Right.Content" xml:space="preserve">
+    <value>Vpravo</value>
+  </data>
+  <data name="Settings_TaskbarGraphBlurCard.Header" xml:space="preserve">
+    <value>Rozostření grafu</value>
   </data>
   <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
     <value>Které údaje zobrazuje záhlaví okna a v jakém pořadí</value>
@@ -420,7 +493,7 @@ Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování po
     <value>Přidá hardware displeje</value>
   </data>
   <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
-    <value>Časový rozsah</value>
+    <value>Časový rozsah grafu</value>
   </data>
   <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
     <value>Vzhled okna widgetu</value>

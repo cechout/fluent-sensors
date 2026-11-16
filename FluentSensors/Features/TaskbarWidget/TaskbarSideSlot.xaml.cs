@@ -1,3 +1,4 @@
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
@@ -11,10 +12,10 @@ namespace FluentSensors.Features.TaskbarWidget
 {
     // the side taskbar slot:
     // one pinned sensor on a left or right taskbar:
-    // - the name on top
-    // - value and unit bottom left
+    // - the name on top, value and unit at the bottom; or both stacked at the top or the bottom
+    // - on the left or the right, in the size and weight of TextLayout
     // - the graph behind, in the picked direction
-    // the text never turns
+    // (the text never turns)
     // TaskbarWidgetWindow pushes the layout through ApplyLayout on load and on every change
     public sealed partial class TaskbarSideSlot : UserControl
     {
@@ -30,6 +31,20 @@ namespace FluentSensors.Features.TaskbarWidget
                 typeof(SensorGraphViewModel),
                 typeof(TaskbarSideSlot),
                 new PropertyMetadata(null));
+
+        // the taskbar text settings (SensorGraphViewModel.LabelLayout); a side slot reads size, weight and side
+        public GraphLabelLayout TextLayout
+        {
+            get => (GraphLabelLayout)GetValue(TextLayoutProperty);
+            set => SetValue(TextLayoutProperty, value);
+        }
+
+        public static readonly DependencyProperty TextLayoutProperty =
+            DependencyProperty.Register(
+                nameof(TextLayout),
+                typeof(GraphLabelLayout),
+                typeof(TaskbarSideSlot),
+                new PropertyMetadata(GraphLabelLayout.Default, (d, e) => ((TaskbarSideSlot)d).ApplyTextLayout()));
 
         // a dependency property, so FitValueText reruns on a change
         private double SlotWidth
@@ -64,10 +79,10 @@ namespace FluentSensors.Features.TaskbarWidget
         // === public methods ===
 
         // turns the graph so its values run in the picked direction, with the graph baseline on the screen edge side:
-        // RightToLeft - not turned, the same graph as on a horizontal taskbar
-        // TopToBottom - counterclockwise, newest value at the top, baseline on the right
-        // BottomToTop - clockwise, newest value at the bottom, baseline on the left
-        // the mirror moves the baseline over wherever the turn left it on the desktop side
+        // - RightToLeft: not turned, the same graph as on a horizontal taskbar
+        // - TopToBottom: counterclockwise, newest value at the top, baseline on the right
+        // - BottomToTop: clockwise, newest value at the bottom, baseline on the left
+        // (the mirror moves the baseline over wherever the turn left it on the desktop side)
         public void ApplyLayout(ScreenEdge edge, string graphDirection, int nameLines)
         {
             switch (graphDirection)
@@ -98,12 +113,50 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
 
+        // === text layout ===
+
+        // size, weight and side of name and value; the line heights keep the gaps of the 10 DIP layout:
+        // - name: one more than the size, the gap between its two lines
+        // - value: three more, its line box against the bottom
+        private void ApplyTextLayout()
+        {
+            var layout = TextLayout ?? GraphLabelLayout.Default;
+            var side = layout.IsRightAligned ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+
+            NameText.FontSize = layout.FontSize;
+            NameText.LineHeight = layout.FontSize + 1;
+            NameRow.HorizontalAlignment = side;
+            SourceIcon.Margin = new Thickness(0, 5 + (layout.FontSize - GraphLabelLayout.Default.FontSize) / 2, 4, 0); // on the first line
+
+            ValueText.FontSize = layout.FontSize;
+            ValueText.LineHeight = layout.FontSize + 3;
+            ValueText.FontWeight = layout.IsValueSemiBold ? FontWeights.SemiBold : FontWeights.Normal;
+            ValueText.HorizontalAlignment = side;
+
+            // - spread: name in the top row, value in the bottom row
+            // - stacked: both next to each other at one end
+            (int nameRow, int valueRow) = layout.SidePosition switch
+            {
+                SideLabelPosition.Top => (0, 1),
+                SideLabelPosition.Bottom => (1, 2),
+                _ => (0, 2)
+            };
+            Grid.SetRow(NameHost, nameRow);
+            Grid.SetRow(ValueText, valueRow);
+            NameHost.VerticalAlignment = nameRow == 1 ? VerticalAlignment.Bottom : VerticalAlignment.Top;
+            ValueText.VerticalAlignment = valueRow == 1 ? VerticalAlignment.Top : VerticalAlignment.Bottom;
+
+            _measureText = null; // measures with the new font next time
+        }
+
+
         // === value text ===
 
         // value and unit when both fit, else the bare value; a cut unit reads worse than none, and
         // it never changes per sensor
         // the unit is everything after the space SensorUnitFormatter puts before it
-        private string FitValueText(string? text, double slotWidth)
+        // (textLayout only reruns this after a size or weight change)
+        private string FitValueText(string? text, double slotWidth, GraphLabelLayout textLayout)
         {
             if (string.IsNullOrEmpty(text)) return string.Empty;
 

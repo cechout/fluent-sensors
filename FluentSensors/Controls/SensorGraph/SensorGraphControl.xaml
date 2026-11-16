@@ -33,18 +33,23 @@
                 XAxes="{Binding XAxes, ElementName=Root}"
                 YAxes="{Binding YAxes, ElementName=Root}" />
 
-            <!--  title and value overlay in the top row  -->
-            <!--  (with IsLabelVisible)  -->
+            <!--  title and value overlay  -->
+            <!--  (with IsLabelVisible; one row or stacked, at the top or the bottom, see ApplyLabelLayout)  -->
             <Grid
+                x:Name="LabelOverlay"
                 Margin="4,1,4,0"
                 VerticalAlignment="Top"
                 IsHitTestVisible="False">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!--  left: name and unit  -->
+                <!--  name and unit  -->
                 <TextBlock
                     x:Name="GraphLabelText"
                     Grid.Column="0"
@@ -57,7 +62,7 @@
                     TextWrapping="NoWrap"
                     Visibility="Collapsed" />
 
-                <!--  right: current value  -->
+                <!--  current value  -->
                 <TextBlock
                     x:Name="GraphCurrentValueText"
                     Grid.Column="1"
