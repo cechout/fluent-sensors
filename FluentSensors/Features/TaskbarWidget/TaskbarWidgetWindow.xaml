@@ -45,6 +45,7 @@
             <!--  (layout pushed from code once loaded, see TaskbarWidgetWindow.ApplySideSlotLayout)  -->
             <DataTemplate x:Key="SideSlotTemplate" x:DataType="fhGraph:SensorGraphViewModel">
                 <local:TaskbarSideSlot
+                    IsCompact="{x:Bind IsCompactCard, Mode=OneWay}"
                     Loaded="SideSlot_Loaded"
                     TextLayout="{x:Bind LabelLayout, Mode=OneWay}"
                     ViewModel="{x:Bind}" />

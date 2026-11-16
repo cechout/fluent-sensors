@@ -948,7 +948,14 @@
                 IsExpanded="False">
 
                 <controls:SettingsExpander.Items>
-                    <!--  graph: color, background, blur, time range, width  -->
+                    <!--  graph: compact cards, color, background, blur, time range, width  -->
+                    <!--  (compact cards show a level bar of the current value in place of the graph)  -->
+                    <controls:SettingsCard x:Uid="Settings_TaskbarCompactCardsCard">
+                        <ToggleSwitch
+                            x:Name="TaskbarCompactCardsToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="TaskbarCompactCardsToggle_Toggled" />
+                    </controls:SettingsCard>
                     <controls:SettingsCard x:Uid="Settings_TaskbarGraphColorSourceCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox

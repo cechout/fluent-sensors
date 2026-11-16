@@ -403,6 +403,9 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
   <data name="Settings_TaskbarLabelAlignmentComboBox_Right.Content" xml:space="preserve">
     <value>Right</value>
   </data>
+  <data name="Settings_TaskbarCompactCardsCard.Header" xml:space="preserve">
+    <value>Compact Cards</value>
+  </data>
   <data name="Settings_TaskbarGraphBlurCard.Header" xml:space="preserve">
     <value>Graph Blur</value>
   </data>

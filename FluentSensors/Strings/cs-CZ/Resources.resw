@@ -380,6 +380,9 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   <data name="Settings_TaskbarLabelAlignmentComboBox_Right.Content" xml:space="preserve">
     <value>Vpravo</value>
   </data>
+  <data name="Settings_TaskbarCompactCardsCard.Header" xml:space="preserve">
+    <value>Kompaktní karty</value>
+  </data>
   <data name="Settings_TaskbarGraphBlurCard.Header" xml:space="preserve">
     <value>Rozostření grafu</value>
   </data>

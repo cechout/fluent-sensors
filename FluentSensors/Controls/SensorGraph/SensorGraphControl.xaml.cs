@@ -66,6 +66,15 @@ namespace FluentSensors.Controls.SensorGraph
         // the root the chart bleed follows for its scale, see ApplyChartBleed
         private XamlRoot _bleedRoot;
 
+        // level bar of a compact card (IsCompact), in DIP; the track is the bar color at LevelBarTrackAlpha
+        private const double LevelBarThickness = 3;
+        private const double LevelBarTextGap = 3; // between the text and the bar
+        private const double LevelBarEdgeInset = 3; // a bar along the foot, from the card edge
+        private const byte LevelBarTrackAlpha = 70;
+        private readonly SolidColorBrush _levelBarFillBrush = new();
+        private readonly SolidColorBrush _levelBarTrackBrush = new();
+        private bool _isLevelBarVertical;
+
         // rendering graphs across every window, for the title bar status readout; (written on the UI thread, read from
         // a timer thread, a stale read for one tick is harmless)
         private static int _activeRenderingCount;
@@ -134,6 +143,9 @@ namespace FluentSensors.Controls.SensorGraph
             Chart.UpdateStarted += Chart_UpdateStarted;
             Loaded += OnControlLoaded;
             Unloaded += OnControlUnloaded;
+
+            LevelBarFill.Background = _levelBarFillBrush;
+            LevelBarTrack.Background = _levelBarTrackBrush;
 
             // initial visuals and threshold state
             ApplyStroke();
@@ -241,7 +253,7 @@ namespace FluentSensors.Controls.SensorGraph
         private void AttachToBoundValues()
         {
             _boundValues ??= new ObservableCollection<double?>();
-            _lineSeries.Values = _boundValues;
+            _lineSeries.Values = IsCompact ? _detachedValues : _boundValues; // a compact card only reads the newest value
 
             if (!_isValuesSubscribed)
             {
@@ -269,7 +281,7 @@ namespace FluentSensors.Controls.SensorGraph
             if (ReferenceEquals(target, _lineSeries)) return;
 
             _lineSeries = target;
-            _lineSeries.Values = _isValuesSubscribed && _boundValues != null ? _boundValues : _detachedValues;
+            _lineSeries.Values = _isValuesSubscribed && _boundValues != null && !IsCompact ? _boundValues : _detachedValues;
 
             // set once by the xaml binding, driven from code after that (like Chart.Sections in RebuildSections)
             Chart.Series = new ISeries[] { _lineSeries };
@@ -613,17 +625,19 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         // label layout
-        // - side by side: name left and value right in one row
-        // - stacked: the value under the name, both on one side
+        // - side by side: name left and value right in one row; a compact card puts its level bar below
+        // - stacked: the value under the name, both on one side; a compact card puts its level bar on the other side
+        // - no label (the side taskbar slot draws its own text): the level bar alone along the foot of the card
         private void ApplyLabelLayout()
         {
             var layout = LabelLayout ?? GraphLabelLayout.Default;
+            bool isBarOnly = IsCompact && !IsLabelVisible;
 
             GraphLabelText.FontSize = layout.FontSize;
             GraphCurrentValueText.FontSize = layout.FontSize;
             GraphCurrentValueText.FontWeight = layout.IsValueSemiBold ? FontWeights.SemiBold : FontWeights.Normal;
 
-            LabelOverlay.VerticalAlignment = layout.IsAtBottom ? VerticalAlignment.Bottom : VerticalAlignment.Top;
+            LabelOverlay.VerticalAlignment = layout.IsAtBottom || isBarOnly ? VerticalAlignment.Bottom : VerticalAlignment.Top;
 
             // stacked: two lines in tight line boxes flush with the card edge, so the block stays above the middle at
             // the top and off the very foot at the bottom; one row keeps the natural line box and its 1 DIP inset
@@ -634,34 +648,112 @@ namespace FluentSensors.Controls.SensorGraph
                 text.LineStackingStrategy = layout.IsStacked ? LineStackingStrategy.BlockLineHeight : LineStackingStrategy.MaxHeight;
             }
 
+            // (a bar under one row sits off the foot like a bar alone)
             LabelOverlay.Margin = (layout.IsStacked, layout.IsAtBottom) switch
             {
+                _ when isBarOnly => new Thickness(4, 0, 4, LevelBarEdgeInset),
                 (true, false) => new Thickness(4, 0, 4, 0),
                 (true, true) => new Thickness(4, 0, 4, 2),
-                (false, true) => new Thickness(4, 0, 4, 1),
+                (false, true) => new Thickness(4, 0, 4, IsCompact ? LevelBarEdgeInset : 1),
                 _ => new Thickness(4, 1, 4, 0)
             };
 
+            // text in the middle columns, the outer ones are for a bar beside stacked text
             if (layout.IsStacked)
             {
                 var side = layout.IsRightAligned ? HorizontalAlignment.Right : HorizontalAlignment.Left;
-                PlaceLabelPart(GraphLabelText, row: 0, column: 0, columnSpan: 2, side, new Thickness(0));
-                PlaceLabelPart(GraphCurrentValueText, row: 1, column: 0, columnSpan: 2, side, new Thickness(0));
+                PlaceLabelPart(GraphLabelText, row: 0, rowSpan: 1, column: 1, columnSpan: 2, side, new Thickness(0));
+                PlaceLabelPart(GraphCurrentValueText, row: 1, rowSpan: 1, column: 1, columnSpan: 2, side, new Thickness(0));
             }
             else
             {
-                PlaceLabelPart(GraphLabelText, row: 0, column: 0, columnSpan: 1, HorizontalAlignment.Left, new Thickness(0, 0, 4, 0));
-                PlaceLabelPart(GraphCurrentValueText, row: 0, column: 1, columnSpan: 1, HorizontalAlignment.Right, new Thickness(0));
+                PlaceLabelPart(GraphLabelText, row: 0, rowSpan: 1, column: 1, columnSpan: 1, HorizontalAlignment.Left, new Thickness(0, 0, 4, 0));
+                PlaceLabelPart(GraphCurrentValueText, row: 0, rowSpan: 1, column: 2, columnSpan: 1, HorizontalAlignment.Right, new Thickness(0));
             }
+
+            LevelBar.Visibility = IsCompact ? Visibility.Visible : Visibility.Collapsed;
+            if (!IsCompact) return;
+
+            _isLevelBarVertical = layout.IsStacked && !isBarOnly;
+            if (_isLevelBarVertical)
+            {
+                // beside the two lines, on the side the text leaves free
+                bool isBarLeft = layout.IsRightAligned;
+                PlaceLabelPart(LevelBar, row: 0, rowSpan: 2, column: isBarLeft ? 0 : 3, columnSpan: 1, HorizontalAlignment.Left,
+                    isBarLeft ? new Thickness(0, 0, LevelBarTextGap, 0) : new Thickness(LevelBarTextGap, 0, 0, 0));
+                LevelBar.Width = LevelBarThickness;
+                LevelBar.Height = double.NaN;
+                LevelBar.VerticalAlignment = VerticalAlignment.Stretch;
+            }
+            else
+            {
+                // across the card, below the row or alone
+                PlaceLabelPart(LevelBar, row: isBarOnly ? 0 : 1, rowSpan: 1, column: 0, columnSpan: 4, HorizontalAlignment.Stretch,
+                    new Thickness(0, isBarOnly ? 0 : LevelBarTextGap, 0, 0));
+                LevelBar.Width = double.NaN;
+                LevelBar.Height = LevelBarThickness;
+                LevelBar.VerticalAlignment = VerticalAlignment.Top;
+            }
+
+            ApplyLevelBar();
         }
 
-        private static void PlaceLabelPart(TextBlock text, int row, int column, int columnSpan, HorizontalAlignment alignment, Thickness margin)
+        private static void PlaceLabelPart(FrameworkElement part, int row, int rowSpan, int column, int columnSpan, HorizontalAlignment alignment, Thickness margin)
         {
-            Grid.SetRow(text, row);
-            Grid.SetColumn(text, column);
-            Grid.SetColumnSpan(text, columnSpan);
-            text.HorizontalAlignment = alignment;
-            text.Margin = margin;
+            Grid.SetRow(part, row);
+            Grid.SetRowSpan(part, rowSpan);
+            Grid.SetColumn(part, column);
+            Grid.SetColumnSpan(part, columnSpan);
+            part.HorizontalAlignment = alignment;
+            part.Margin = margin;
+        }
+
+        // the fill of the level bar: the newest value as a share of the y range the graph would show, in the threshold
+        // color while it breaches; from ApplyStroke, so on every value, color, threshold and scale change
+        private void ApplyLevelBar()
+        {
+            if (!IsCompact) return;
+
+            double? newest = Values is { Count: > 0 } values ? values[^1] : null;
+            var (bottom, top) = ComputeCurrentYRange();
+            double extent = top != 0 ? top : bottom; // a hanging range fills towards its negative end
+            double share = newest is double value && extent != 0 ? Math.Clamp(value / extent, 0, 1) : 0;
+
+            bool isAlarm = newest is double current && ThresholdValue is double threshold
+                && (ThresholdDirection == ThresholdDirection.Above ? current > threshold : current < threshold);
+            var color = isAlarm ? ThresholdColor : AccentColor;
+
+            _levelBarFillBrush.Color = color;
+            _levelBarTrackBrush.Color = Windows.UI.Color.FromArgb(LevelBarTrackAlpha, color.R, color.G, color.B);
+            LevelBarScale.ScaleX = _isLevelBarVertical ? 1 : share;
+            LevelBarScale.ScaleY = _isLevelBarVertical ? share : 1;
+        }
+
+
+        // DependencyProperty: IsCompact
+        // a compact card: the level bar of ApplyLevelBar in place of the chart, which then gets no live values
+        public bool IsCompact
+        {
+            get => (bool)GetValue(IsCompactProperty);
+            set => SetValue(IsCompactProperty, value);
+        }
+
+        public static readonly DependencyProperty IsCompactProperty =
+            DependencyProperty.Register(
+                nameof(IsCompact),
+                typeof(bool),
+                typeof(SensorGraphControl),
+                new PropertyMetadata(false, (d, e) => ((SensorGraphControl)d).ApplyCompact()));
+
+        private void ApplyCompact()
+        {
+            var chartVisibility = IsCompact ? Visibility.Collapsed : Visibility.Visible;
+            Chart.Visibility = chartVisibility;
+            HoverCanvas.Visibility = chartVisibility;
+
+            if (_isRenderingActive) AttachToBoundValues(); // hands the live values to the chart or takes them back
+            ApplyLabelLayout();
+            if (!IsCompact) ForceRepaint(); // the chart missed every value while compact
         }
 
 
@@ -693,7 +785,14 @@ namespace FluentSensors.Controls.SensorGraph
                 nameof(IsLabelVisible),
                 typeof(bool),
                 typeof(SensorGraphControl),
-                new PropertyMetadata(false, OnLabelChanged));
+                new PropertyMetadata(false, OnIsLabelVisibleChanged));
+
+        // a compact card without a label puts its bar along the foot
+        private static void OnIsLabelVisibleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            OnLabelChanged(d, e);
+            if (d is SensorGraphControl g && g.IsCompact) g.ApplyLabelLayout();
+        }
 
 
         // DependencyProperty: IsNameVisible

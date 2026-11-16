@@ -1424,6 +1424,7 @@ namespace FluentSensors.Features.Settings
             SelectByTag(TaskbarSideLabelPositionComboBox, settings.TaskbarSideLabelPosition);
             SelectByTag(TaskbarLabelAlignmentComboBox, settings.TaskbarLabelAlignment);
             TaskbarGraphBlurToggle.IsOn = settings.TaskbarGraphBlur;
+            TaskbarCompactCardsToggle.IsOn = settings.TaskbarCompactCards;
             UpdateTaskbarLabelAlignmentVisibility();
         }
 
@@ -1439,6 +1440,12 @@ namespace FluentSensors.Features.Settings
         {
             if (_isLoading) return;
             SettingsService.Instance.TaskbarGraphBlur = TaskbarGraphBlurToggle.IsOn;
+        }
+
+        private void TaskbarCompactCardsToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarCompactCards = TaskbarCompactCardsToggle.IsOn;
         }
 
         // --- y-axis maximum per surface ---

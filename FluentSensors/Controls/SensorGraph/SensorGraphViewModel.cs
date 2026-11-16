@@ -77,13 +77,15 @@ namespace FluentSensors.Controls.SensorGraph
                 // the taskbar and its flyout are two graphs on one y-axis state
                 SensorStateService.Instance.StateChanged += OnSensorStateChanged;
 
-                // text and blur of the graph in the taskbar itself, not of the flyout
+                // text, blur and card look of the graph in the taskbar itself, not of the flyout
                 if (Scope == SensorGraphScope.Taskbar)
                 {
                     _labelLayout = ReadTaskbarLabelLayout();
                     _isGraphBlurred = SettingsService.Instance.TaskbarGraphBlur;
+                    _isCompactCard = SettingsService.Instance.TaskbarCompactCards;
                     SettingsService.Instance.TaskbarLabelLayoutChanged += OnTaskbarLabelLayoutChanged;
                     SettingsService.Instance.TaskbarGraphBlurChanged += OnTaskbarGraphBlurChanged;
+                    SettingsService.Instance.TaskbarCompactCardsChanged += OnTaskbarCompactCardsChanged;
                 }
             }
             else if (Scope == SensorGraphScope.WidgetBoard)
@@ -273,6 +275,19 @@ namespace FluentSensors.Controls.SensorGraph
             }
         }
 
+        // a level bar of the current value in place of the graph; the taskbar graph only
+        private bool _isCompactCard;
+        public bool IsCompactCard
+        {
+            get => _isCompactCard;
+            private set
+            {
+                if (_isCompactCard == value) return;
+                _isCompactCard = value;
+                OnPropertyChanged();
+            }
+        }
+
         // the y-max in the status row beside the value instead of the title, per surface
         public bool IsYMaxBesideValue => SettingsService.Instance.IsYMaxBesideValue(Scope);
 
@@ -443,6 +458,8 @@ namespace FluentSensors.Controls.SensorGraph
 
         private void OnTaskbarGraphBlurChanged(bool isBlurred) => IsGraphBlurred = isBlurred;
 
+        private void OnTaskbarCompactCardsChanged(bool isCompact) => IsCompactCard = isCompact;
+
         private void OnYMaxPositionChanged() => OnPropertyChanged(nameof(IsYMaxBesideValue));
 
         // the arrangement of the active taskbar edge
@@ -517,6 +534,7 @@ namespace FluentSensors.Controls.SensorGraph
                 SensorStateService.Instance.StateChanged -= OnSensorStateChanged;
                 SettingsService.Instance.TaskbarLabelLayoutChanged -= OnTaskbarLabelLayoutChanged;
                 SettingsService.Instance.TaskbarGraphBlurChanged -= OnTaskbarGraphBlurChanged;
+                SettingsService.Instance.TaskbarCompactCardsChanged -= OnTaskbarCompactCardsChanged;
             }
             else if (Scope == SensorGraphScope.WidgetBoard)
             {

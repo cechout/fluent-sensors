@@ -174,6 +174,13 @@ namespace FluentSensors.Controls.SensorGraph
         {
             if (_lineSeries == null) return; // before the constructor finished
 
+            // a compact card paints its level bar instead
+            if (IsCompact)
+            {
+                ApplyLevelBar();
+                return;
+            }
+
             // the surface both series types share
             var line = (IStrokedAndFilled)_lineSeries;
 
@@ -312,6 +319,8 @@ namespace FluentSensors.Controls.SensorGraph
         // the threshold line plus one full-height box per alarm zone; guarded like ApplyStroke
         private void RebuildSections()
         {
+            if (IsCompact) return; // no chart; leaving compact repaints in full
+
             bool hasThreshold = ThresholdValue is not null;
             bool hasAnyRun = hasThreshold && ComputeHasAnyRun();
 

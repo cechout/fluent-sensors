@@ -138,6 +138,7 @@ namespace FluentSensors.Persistence.Models
         public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
         public bool TaskbarUseTransparentGraphBackground { get; set; } = true;
         public bool TaskbarGraphBlur { get; set; } = false; // a slight blur on line and fill, the taskbar graph only
+        public bool TaskbarCompactCards { get; set; } = false; // a level bar of the current value in place of the graph
 
         // name and value text on every edge; the arrangement is per edge, see TaskbarEdgeSettings
         public double TaskbarLabelFontSize { get; set; } = 10; // in DIP; 9 to 12

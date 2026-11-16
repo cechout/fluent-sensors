@@ -820,6 +820,22 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // compact cards: the taskbar shows a level bar of the current value in place of the graph
+        private bool _taskbarCompactCards = Defaults.TaskbarCompactCards;
+        public bool TaskbarCompactCards
+        {
+            get => _taskbarCompactCards;
+            set
+            {
+                if (_taskbarCompactCards != value)
+                {
+                    _taskbarCompactCards = value;
+                    TaskbarCompactCardsChanged?.Invoke(value);
+                    SaveDebounced();
+                }
+            }
+        }
+
         // 9 to 12 DIP, name and value alike
         private double _taskbarLabelFontSize = Defaults.TaskbarLabelFontSize;
         public double TaskbarLabelFontSize
@@ -1685,6 +1701,7 @@ namespace FluentSensors.Persistence.Services
             _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
             _taskbarUseTransparentGraphBackground = data.TaskbarUseTransparentGraphBackground;
             _taskbarGraphBlur = data.TaskbarGraphBlur;
+            _taskbarCompactCards = data.TaskbarCompactCards;
             _taskbarLabelFontSize = data.TaskbarLabelFontSize;
             _taskbarValueSemiBold = data.TaskbarValueSemiBold;
             _performanceYMaxBesideValue = data.PerformanceYMaxBesideValue;
@@ -1791,6 +1808,7 @@ namespace FluentSensors.Persistence.Services
                 TaskbarGraphCustomColor = _taskbarGraphCustomColor,
                 TaskbarUseTransparentGraphBackground = _taskbarUseTransparentGraphBackground,
                 TaskbarGraphBlur = _taskbarGraphBlur,
+                TaskbarCompactCards = _taskbarCompactCards,
                 TaskbarLabelFontSize = _taskbarLabelFontSize,
                 TaskbarValueSemiBold = _taskbarValueSemiBold,
                 PerformanceYMaxBesideValue = _performanceYMaxBesideValue,
@@ -1896,6 +1914,7 @@ namespace FluentSensors.Persistence.Services
         // no value; font size, SemiBold value and the arrangement of the active edge, consumers re-read them
         public event Action TaskbarLabelLayoutChanged;
         public event Action<bool> TaskbarGraphBlurChanged;
+        public event Action<bool> TaskbarCompactCardsChanged;
 
         // no value; any of the three y-max positions, consumers re-read through IsYMaxBesideValue
         public event Action YMaxPositionChanged;

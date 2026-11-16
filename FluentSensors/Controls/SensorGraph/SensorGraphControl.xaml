@@ -33,8 +33,11 @@
                 XAxes="{Binding XAxes, ElementName=Root}"
                 YAxes="{Binding YAxes, ElementName=Root}" />
 
-            <!--  title and value overlay  -->
-            <!--  (with IsLabelVisible; one row or stacked, at the top or the bottom, see ApplyLabelLayout)  -->
+            <!--  title and value overlay, with the level bar of a compact card  -->
+            <!--
+                (with IsLabelVisible; one row or stacked, at the top or the bottom, see ApplyLabelLayout; the outer
+                columns hold the bar beside stacked text)
+            -->
             <Grid
                 x:Name="LabelOverlay"
                 Margin="4,1,4,0"
@@ -45,14 +48,29 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
+
+                <!--  level bar: the current value against the y range, in place of the chart (IsCompact, see ApplyLevelBar)  -->
+                <Grid
+                    x:Name="LevelBar"
+                    CornerRadius="1.5"
+                    Visibility="Collapsed">
+                    <Border x:Name="LevelBarTrack" />
+                    <Border x:Name="LevelBarFill" RenderTransformOrigin="0,1">
+                        <Border.RenderTransform>
+                            <ScaleTransform x:Name="LevelBarScale" />
+                        </Border.RenderTransform>
+                    </Border>
+                </Grid>
 
                 <!--  name and unit  -->
                 <TextBlock
                     x:Name="GraphLabelText"
-                    Grid.Column="0"
+                    Grid.Column="1"
                     Margin="0,0,4,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
@@ -65,7 +83,7 @@
                 <!--  current value  -->
                 <TextBlock
                     x:Name="GraphCurrentValueText"
-                    Grid.Column="1"
+                    Grid.Column="2"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
                     FontSize="10"
