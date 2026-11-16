@@ -10,8 +10,9 @@ namespace FluentSensors.Common.UI.Icons
     // sharp at any scale; every icon of the app that is not a font glyph lives here
     public static class AppIcons
     {
-        // all drawn by hand on a 16 x 16 grid and filling 1 to 15, so they come out the same size; a one pixel stroke on
-        // whole pixels, like the 16 px glyphs of Segoe Fluent Icons, stays crisp at 100 percent
+        // all drawn by hand on a 16 x 16 grid and filling 1 to 15, so they come out the same size; the stroke follows the
+        // place: one pixel on whole pixels for the small marks beside a title and in a settings header, heavier for a
+        // menu, where the glyphs around it are drawn bolder
         // the path syntax (M, H, V, A, Z, F0 for even-odd):
         // https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/move-draw-commands-syntax
         // the same commands in SVG, with pictures; the easiest way into the arc:
@@ -43,16 +44,14 @@ namespace FluentSensors.Common.UI.Icons
             "M11.35,11H12.15A0.35,0.35 0 0 1 12.5,11.35V12.15A0.35,0.35 0 0 1 12.15,12.5H11.35A0.35,0.35 0 0 1 11,12.15V11.35A0.35,0.35 0 0 1 11.35,11Z";
 
         // decimal places icon
-        // ".00" on the baseline of the zeros:
-        // - the point, 2 px round, x 1 to 3
-        // - two zeros, 5 x 10 px with fully round ends, x 4 to 9 and 10 to 15, a one pixel ring
-        // even-odd, so the inner outline of each zero is a hole
+        // ".0" for the overflow menus, in their heavier stroke of 1.5:
+        // - the point, 2.5 px round, on the baseline of the zero
+        // - the zero, 7 x 12 px with fully round ends
+        // even-odd, so the inner outline of the zero is a hole
         private const string DecimalPlacesData =
-            "F0 M2,11A1,1 0 0 1 3,12A1,1 0 0 1 2,13A1,1 0 0 1 1,12A1,1 0 0 1 2,11Z " +
-            "M6.5,3A2.5,2.5 0 0 1 9,5.5V10.5A2.5,2.5 0 0 1 6.5,13A2.5,2.5 0 0 1 4,10.5V5.5A2.5,2.5 0 0 1 6.5,3Z " +
-            "M6.5,4A1.5,1.5 0 0 1 8,5.5V10.5A1.5,1.5 0 0 1 6.5,12A1.5,1.5 0 0 1 5,10.5V5.5A1.5,1.5 0 0 1 6.5,4Z " +
-            "M12.5,3A2.5,2.5 0 0 1 15,5.5V10.5A2.5,2.5 0 0 1 12.5,13A2.5,2.5 0 0 1 10,10.5V5.5A2.5,2.5 0 0 1 12.5,3Z " +
-            "M12.5,4A1.5,1.5 0 0 1 14,5.5V10.5A1.5,1.5 0 0 1 12.5,12A1.5,1.5 0 0 1 11,10.5V5.5A1.5,1.5 0 0 1 12.5,4Z";
+            "F0 M3.5,11.5A1.25,1.25 0 0 1 4.75,12.75A1.25,1.25 0 0 1 3.5,14A1.25,1.25 0 0 1 2.25,12.75A1.25,1.25 0 0 1 3.5,11.5Z " +
+            "M10,2A3.5,3.5 0 0 1 13.5,5.5V10.5A3.5,3.5 0 0 1 10,14A3.5,3.5 0 0 1 6.5,10.5V5.5A3.5,3.5 0 0 1 10,2Z " +
+            "M10,3.5A2,2 0 0 1 12,5.5V10.5A2,2 0 0 1 10,12.5A2,2 0 0 1 8,10.5V5.5A2,2 0 0 1 10,3.5Z";
 
 
         // === public api ===
