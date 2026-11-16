@@ -919,7 +919,8 @@ namespace FluentSensors.Features.Settings
         }
 
         // --- decimal places per surface ---
-        // Auto (null) or a fixed count; the csv recording keeps its own card and handler
+        // Auto (null) or a fixed count; the csv recording keeps its own card and handler, the sensors and graphs pages
+        // set theirs in their view menu (ViewOptionsMenu)
 
         private void DecimalPlacesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -929,9 +930,7 @@ namespace FluentSensors.Features.Settings
             int? decimals = int.TryParse(tag, out int places) ? places : null;
 
             var settings = SettingsService.Instance;
-            if (comboBox == SensorListDecimalPlacesComboBox) settings.SensorListDecimalPlaces = decimals;
-            else if (comboBox == PerformanceDecimalPlacesComboBox) settings.PerformanceDecimalPlaces = decimals;
-            else if (comboBox == TaskbarDecimalPlacesComboBox) settings.TaskbarDecimalPlaces = decimals;
+            if (comboBox == TaskbarDecimalPlacesComboBox) settings.TaskbarDecimalPlaces = decimals;
             else if (comboBox == TaskbarFlyoutDecimalPlacesComboBox) settings.TaskbarFlyoutDecimalPlaces = decimals;
             else if (comboBox == WidgetDecimalPlacesComboBox) settings.WidgetDecimalPlaces = decimals;
         }
@@ -939,8 +938,6 @@ namespace FluentSensors.Features.Settings
         private void RestoreDecimalPlacesSelection()
         {
             var settings = SettingsService.Instance;
-            SelectByTag(SensorListDecimalPlacesComboBox, settings.SensorListDecimalPlaces?.ToString() ?? "Auto");
-            SelectByTag(PerformanceDecimalPlacesComboBox, settings.PerformanceDecimalPlaces?.ToString() ?? "Auto");
             SelectByTag(TaskbarDecimalPlacesComboBox, settings.TaskbarDecimalPlaces?.ToString() ?? "Auto");
             SelectByTag(TaskbarFlyoutDecimalPlacesComboBox, settings.TaskbarFlyoutDecimalPlaces?.ToString() ?? "Auto");
             SelectByTag(WidgetDecimalPlacesComboBox, settings.WidgetDecimalPlaces?.ToString() ?? "Auto");
@@ -1445,7 +1442,8 @@ namespace FluentSensors.Features.Settings
         }
 
         // --- y-axis maximum per surface ---
-        // beside the title (Title) or beside the value (Value) in the status row of a graph
+        // beside the title (Title) or beside the value (Value) in the status row of a graph; the graphs page sets its
+        // own in its view menu
 
         private void YMaxPositionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -1455,15 +1453,13 @@ namespace FluentSensors.Features.Settings
             bool besideValue = tag == "Value";
 
             var settings = SettingsService.Instance;
-            if (comboBox == PerformanceYMaxPositionComboBox) settings.PerformanceYMaxBesideValue = besideValue;
-            else if (comboBox == TaskbarFlyoutYMaxPositionComboBox) settings.TaskbarFlyoutYMaxBesideValue = besideValue;
+            if (comboBox == TaskbarFlyoutYMaxPositionComboBox) settings.TaskbarFlyoutYMaxBesideValue = besideValue;
             else if (comboBox == WidgetYMaxPositionComboBox) settings.WidgetYMaxBesideValue = besideValue;
         }
 
         private void RestoreYMaxPositionSelection()
         {
             var settings = SettingsService.Instance;
-            SelectByTag(PerformanceYMaxPositionComboBox, settings.PerformanceYMaxBesideValue ? "Value" : "Title");
             SelectByTag(TaskbarFlyoutYMaxPositionComboBox, settings.TaskbarFlyoutYMaxBesideValue ? "Value" : "Title");
             SelectByTag(WidgetYMaxPositionComboBox, settings.WidgetYMaxBesideValue ? "Value" : "Title");
         }

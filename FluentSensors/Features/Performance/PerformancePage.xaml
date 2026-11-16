@@ -215,6 +215,19 @@
 
                     <AppBarSeparator />
 
+                    <!--  view menu: decimal places and the y-axis maximum place of the graphs on this page  -->
+                    <AppBarButton
+                        x:Uid="Performance_ViewOptionsButton"
+                        Width="42"
+                        LabelPosition="Collapsed">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE890;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <MenuFlyout Opening="ViewOptionsFlyout_Opening" />
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
                     <!--  graphs by sensor type instead of by hardware; the sensors page has the same switch in its menu  -->
                     <AppBarToggleButton
                         x:Uid="Performance_SensorTypeColorsButton"

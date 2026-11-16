@@ -289,18 +289,29 @@ GPU-Auslastung - die am st√§rksten ausgelastete GPU-Engine, auf der diese App l√
     <value>Automatisch</value>
     <comment>first item of each unit list; picks the unit per value by its size</comment>
   </data>
-  <data name="Settings_GraphsPageExpander.Header" xml:space="preserve">
-    <value>Seite Graphen</value>
-  </data>
-  <data name="Settings_GraphsPageExpander.Description" xml:space="preserve">
-    <value>Nachkommastellen und Y-Achsen-Maximum der Hardware-Graphen</value>
-  </data>
-  <data name="Settings_SensorListDecimalPlacesCard.Header" xml:space="preserve">
-    <value>Nachkommastellen der Seite Sensoren</value>
-    <comment>the Sensors page of the app</comment>
-  </data>
   <data name="Settings_DecimalPlacesComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Nachkommastellen</value>
+  </data>
+  <data name="Sensors_ViewOptionsButton.Label" xml:space="preserve">
+    <value>Ansicht</value>
+  </data>
+  <data name="Performance_ViewOptionsButton.Label" xml:space="preserve">
+    <value>Ansicht</value>
+  </data>
+  <data name="ViewMenu_DecimalPlaces" xml:space="preserve">
+    <value>Nachkommastellen</value>
+  </data>
+  <data name="ViewMenu_DecimalPlacesAuto" xml:space="preserve">
+    <value>Automatisch</value>
+  </data>
+  <data name="ViewMenu_YMaxPosition" xml:space="preserve">
+    <value>Y-Achsen-Maximum</value>
+  </data>
+  <data name="ViewMenu_YMaxBesideTitle" xml:space="preserve">
+    <value>Neben dem Titel</value>
+  </data>
+  <data name="ViewMenu_YMaxBesideValue" xml:space="preserve">
+    <value>Neben dem Wert</value>
   </data>
   <data name="Settings_DecimalPlacesComboBox_Auto.Content" xml:space="preserve">
     <value>Automatisch</value>

@@ -289,18 +289,29 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
     <value>Automaticky</value>
     <comment>first item of each unit list; picks the unit per value by its size</comment>
   </data>
-  <data name="Settings_GraphsPageExpander.Header" xml:space="preserve">
-    <value>Stránka Grafy</value>
-  </data>
-  <data name="Settings_GraphsPageExpander.Description" xml:space="preserve">
-    <value>Desetinná místa a maximum osy Y grafů hardwaru</value>
-  </data>
-  <data name="Settings_SensorListDecimalPlacesCard.Header" xml:space="preserve">
-    <value>Desetinná místa stránky Senzory</value>
-    <comment>the Sensors page of the app</comment>
-  </data>
   <data name="Settings_DecimalPlacesComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Desetinná místa</value>
+  </data>
+  <data name="Sensors_ViewOptionsButton.Label" xml:space="preserve">
+    <value>Zobrazení</value>
+  </data>
+  <data name="Performance_ViewOptionsButton.Label" xml:space="preserve">
+    <value>Zobrazení</value>
+  </data>
+  <data name="ViewMenu_DecimalPlaces" xml:space="preserve">
+    <value>Desetinná místa</value>
+  </data>
+  <data name="ViewMenu_DecimalPlacesAuto" xml:space="preserve">
+    <value>Automaticky</value>
+  </data>
+  <data name="ViewMenu_YMaxPosition" xml:space="preserve">
+    <value>Maximum osy Y</value>
+  </data>
+  <data name="ViewMenu_YMaxBesideTitle" xml:space="preserve">
+    <value>Vedle názvu</value>
+  </data>
+  <data name="ViewMenu_YMaxBesideValue" xml:space="preserve">
+    <value>Vedle hodnoty</value>
   </data>
   <data name="Settings_DecimalPlacesComboBox_Auto.Content" xml:space="preserve">
     <value>Automaticky</value>

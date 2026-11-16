@@ -289,6 +289,16 @@
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
+                            <!--  view menu: decimal places of the list; in the bar only its icon  -->
+                            <AppBarButton x:Name="ViewOptionsButton" x:Uid="Sensors_ViewOptionsButton">
+                                <AppBarButton.Icon>
+                                    <FontIcon Glyph="&#xE890;" />
+                                </AppBarButton.Icon>
+                                <AppBarButton.Flyout>
+                                    <MenuFlyout Opening="ViewOptionsFlyout_Opening" />
+                                </AppBarButton.Flyout>
+                            </AppBarButton>
+
                             <!--  check boxes by sensor type instead of by hardware; in the bar only its icon, like on the graphs page  -->
                             <AppBarToggleButton
                                 x:Name="SensorTypeColorsButton"
