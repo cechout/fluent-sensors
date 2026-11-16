@@ -622,7 +622,23 @@ namespace FluentSensors.Controls.SensorGraph
             GraphCurrentValueText.FontWeight = layout.IsValueSemiBold ? FontWeights.SemiBold : FontWeights.Normal;
 
             LabelOverlay.VerticalAlignment = layout.IsAtBottom ? VerticalAlignment.Bottom : VerticalAlignment.Top;
-            LabelOverlay.Margin = layout.IsAtBottom ? new Thickness(4, 0, 4, 1) : new Thickness(4, 1, 4, 0);
+
+            // stacked: two lines in tight line boxes flush with the card edge, so the block stays above the middle at
+            // the top and off the very foot at the bottom; one row keeps the natural line box and its 1 DIP inset
+            double stackedLineHeight = layout.IsStacked ? layout.FontSize + 2 : 0;
+            foreach (var text in new[] { GraphLabelText, GraphCurrentValueText })
+            {
+                text.LineHeight = stackedLineHeight;
+                text.LineStackingStrategy = layout.IsStacked ? LineStackingStrategy.BlockLineHeight : LineStackingStrategy.MaxHeight;
+            }
+
+            LabelOverlay.Margin = (layout.IsStacked, layout.IsAtBottom) switch
+            {
+                (true, false) => new Thickness(4, 0, 4, 0),
+                (true, true) => new Thickness(4, 0, 4, 2),
+                (false, true) => new Thickness(4, 0, 4, 1),
+                _ => new Thickness(4, 1, 4, 0)
+            };
 
             if (layout.IsStacked)
             {

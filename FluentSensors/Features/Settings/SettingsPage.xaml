@@ -204,7 +204,7 @@
                             <ComboBox
                                 x:Name="DataSizeUnitComboBox"
                                 x:Uid="Settings_DataSizeUnitComboBox"
-                                Width="150"
+                                Width="80"
                                 SelectionChanged="DataSizeUnitComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Byte" Tag="Byte" />
                                 <ComboBoxItem Content="Bit" Tag="Bit" />
@@ -224,7 +224,7 @@
                             <ComboBox
                                 x:Name="DataSpeedUnitComboBox"
                                 x:Uid="Settings_DataSpeedUnitComboBox"
-                                Width="150"
+                                Width="80"
                                 SelectionChanged="DataSpeedUnitComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Byte" Tag="Byte" />
                                 <ComboBoxItem Content="Bit" Tag="Bit" />
@@ -1090,7 +1090,7 @@
                             <ComboBox
                                 x:Name="TaskbarLabelArrangementComboBox"
                                 x:Uid="Settings_TaskbarLabelArrangementComboBox"
-                                Width="150"
+                                Width="120"
                                 SelectionChanged="TaskbarLabelArrangementComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelArrangementComboBox_SideBySide" Tag="SideBySide" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelArrangementComboBox_Stacked" Tag="Stacked" />
@@ -1099,7 +1099,7 @@
                             <ComboBox
                                 x:Name="TaskbarLabelPositionComboBox"
                                 x:Uid="Settings_TaskbarLabelPositionComboBox"
-                                Width="110"
+                                Width="90"
                                 SelectionChanged="TaskbarLabelPositionComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Top" Tag="Top" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Bottom" Tag="Bottom" />
@@ -1108,7 +1108,7 @@
                             <ComboBox
                                 x:Name="TaskbarSideLabelPositionComboBox"
                                 x:Uid="Settings_TaskbarSideLabelPositionComboBox"
-                                Width="130"
+                                Width="100"
                                 SelectionChanged="TaskbarSideLabelPositionComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarSideLabelPositionComboBox_Spread" Tag="Spread" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarSideLabelPositionComboBox_Top" Tag="Top" />
@@ -1118,7 +1118,7 @@
                             <ComboBox
                                 x:Name="TaskbarLabelAlignmentComboBox"
                                 x:Uid="Settings_TaskbarLabelAlignmentComboBox"
-                                Width="110"
+                                Width="90"
                                 SelectionChanged="TaskbarLabelAlignmentComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelAlignmentComboBox_Left" Tag="Left" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelAlignmentComboBox_Right" Tag="Right" />
