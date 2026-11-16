@@ -9,6 +9,7 @@
     xmlns:fhControls="using:FluentSensors.Controls.SensorRow"
     xmlns:fhSensors="using:FluentSensors.Features.Sensors"
     xmlns:fhUi="using:FluentSensors.Common.UI"
+    xmlns:icons="using:FluentSensors.Common.UI.Icons"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     NavigationCacheMode="Required"
     mc:Ignorable="d">
@@ -306,13 +307,13 @@
                         <CommandBar.SecondaryCommands>
                             <!--  decimal places of the list; a submenu of radio items (ViewOptionsMenu)  -->
                             <!--  (the CommandBar template collapses AppBarButtonHasFlyoutChevronVisibility; set back here, the button finds it first)  -->
-                            <AppBarButton x:Name="DecimalPlacesButton" x:Uid="Sensors_DecimalPlacesButton">
+                            <AppBarButton
+                                x:Name="DecimalPlacesButton"
+                                x:Uid="Sensors_DecimalPlacesButton"
+                                Icon="{icons:AppIcon Kind=DecimalPlaces}">
                                 <AppBarButton.Resources>
                                     <Visibility x:Key="AppBarButtonHasFlyoutChevronVisibility">Visible</Visibility>
                                 </AppBarButton.Resources>
-                                <AppBarButton.Icon>
-                                    <FontIcon Glyph="&#xE8EF;" />
-                                </AppBarButton.Icon>
                                 <AppBarButton.Flyout>
                                     <MenuFlyout Opening="DecimalPlacesFlyout_Opening" />
                                 </AppBarButton.Flyout>

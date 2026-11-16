@@ -7,6 +7,7 @@
     xmlns:fhControls="using:FluentSensors.Controls"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhUi="using:FluentSensors.Common.UI"
+    xmlns:icons="using:FluentSensors.Common.UI.Icons"
     xmlns:local="using:FluentSensors.Features.Performance"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:xaml="using:Microsoft.UI.Xaml"
@@ -268,13 +269,10 @@
 
                         <AppBarSeparator />
 
-                        <AppBarButton x:Uid="Performance_DecimalPlacesButton">
+                        <AppBarButton x:Uid="Performance_DecimalPlacesButton" Icon="{icons:AppIcon Kind=DecimalPlaces}">
                             <AppBarButton.Resources>
                                 <Visibility x:Key="AppBarButtonHasFlyoutChevronVisibility">Visible</Visibility>
                             </AppBarButton.Resources>
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE8EF;" />
-                            </AppBarButton.Icon>
                             <AppBarButton.Flyout>
                                 <MenuFlyout Opening="DecimalPlacesFlyout_Opening" />
                             </AppBarButton.Flyout>
