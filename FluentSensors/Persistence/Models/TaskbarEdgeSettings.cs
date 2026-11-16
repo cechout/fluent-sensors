@@ -17,9 +17,11 @@ namespace FluentSensors.Persistence.Models
         // arrangement and position - top and bottom edge only: "SideBySide" (name left, value right) or "Stacked",
         // at the "Top" or "Bottom" of the graph
         // alignment - "Left" or "Right"; stacked text on a top or bottom edge, always on a side edge
+        // side position - where name and value sit on a side edge
         public string LabelArrangement { get; set; } = "SideBySide";
         public string LabelPosition { get; set; } = "Top";
         public string LabelAlignment { get; set; } = "Left";
+        public string SideLabelPosition { get; set; } = "Spread"; // side edge only: "Spread" (name top, value bottom), "Top" or "Bottom"
 
         // over the widget: "Center", "Left" or "Right" (top and bottom on a side taskbar)
         public string FlyoutAlignment { get; set; } = "Left";

@@ -961,7 +961,7 @@ namespace FluentSensors.Persistence.Services
                     TaskbarSideTitleLinesChanged?.Invoke(current.SideTitleLines);
                 }
                 if (previous.LabelArrangement != current.LabelArrangement || previous.LabelPosition != current.LabelPosition
-                    || previous.LabelAlignment != current.LabelAlignment)
+                    || previous.LabelAlignment != current.LabelAlignment || previous.SideLabelPosition != current.SideLabelPosition)
                 {
                     TaskbarLabelLayoutChanged?.Invoke();
                 }
@@ -1065,6 +1065,21 @@ namespace FluentSensors.Persistence.Services
                 if (ActiveEdge.LabelPosition != value)
                 {
                     ActiveEdge.LabelPosition = value;
+                    TaskbarLabelLayoutChanged?.Invoke();
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // "Spread", "Top" or "Bottom"; a side edge only
+        public string TaskbarSideLabelPosition
+        {
+            get => ActiveEdge.SideLabelPosition;
+            set
+            {
+                if (ActiveEdge.SideLabelPosition != value)
+                {
+                    ActiveEdge.SideLabelPosition = value;
                     TaskbarLabelLayoutChanged?.Invoke();
                     SaveDebounced();
                 }

@@ -88,13 +88,15 @@
                 </Button>
 
                 <!--  y-max  -->
-                <!--  (beside the title; the other place is beside the value, per surface)  -->
+                <!--  (beside the title, secondary so it never reads as the value; the other place is beside the value)  -->
                 <TextBlock
                     Grid.Column="1"
                     Margin="1,0,6,0"
                     Padding="0,0,0,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
                     Typography.NumeralAlignment="Tabular"
@@ -178,6 +180,8 @@
                     Spacing="8">
                     <TextBlock
                         VerticalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
                         Typography.NumeralAlignment="Tabular"
@@ -211,12 +215,14 @@
                 </Grid.ColumnDefinitions>
 
                 <!--  y-max  -->
-                <!--  (beside the title; the other place is beside the value, per surface)  -->
+                <!--  (beside the title, secondary so it never reads as the value; the other place is beside the value)  -->
                 <TextBlock
                     Grid.Column="0"
                     Margin="4,0,0,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
                     Typography.NumeralAlignment="Tabular"
@@ -254,6 +260,8 @@
                     Spacing="8">
                     <TextBlock
                         VerticalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Text="{x:Bind GetYMaxOrPlaceholder(ViewModel), Mode=OneWay}"
                         Typography.NumeralAlignment="Tabular"

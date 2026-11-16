@@ -355,6 +355,18 @@ GPU-Auslastung - die am stärksten ausgelastete GPU-Engine, auf der diese App l�
   <data name="Settings_TaskbarLabelPositionComboBox_Bottom.Content" xml:space="preserve">
     <value>Unten</value>
   </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Position des Texts auf einer seitlichen Taskleiste</value>
+  </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox_Spread.Content" xml:space="preserve">
+    <value>Verteilt</value>
+  </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox_Top.Content" xml:space="preserve">
+    <value>Oben</value>
+  </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox_Bottom.Content" xml:space="preserve">
+    <value>Unten</value>
+  </data>
   <data name="Settings_TaskbarLabelAlignmentComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Ausrichtung des Texts</value>
   </data>
@@ -365,10 +377,7 @@ GPU-Auslastung - die am stärksten ausgelastete GPU-Engine, auf der diese App l�
     <value>Rechts</value>
   </data>
   <data name="Settings_TaskbarGraphBlurCard.Header" xml:space="preserve">
-    <value>Weicher Graph</value>
-  </data>
-  <data name="Settings_TaskbarGraphBlurCard.Description" xml:space="preserve">
-    <value>Leichte Unschärfe auf Linie und Fläche</value>
+    <value>Graph-Unschärfe</value>
   </data>
   <data name="Settings_TitleBarStatusExpander.Description" xml:space="preserve">
     <value>Welche Anzeigen die Titelleiste zeigt, und in welcher Reihenfolge</value>
@@ -480,7 +489,7 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
     <value>Ergänzt Display-Hardware</value>
   </data>
   <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
-    <value>Zeitraum</value>
+    <value>Graph-Zeitraum</value>
   </data>
   <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
     <value>Darstellung des Widget-Fensters</value>

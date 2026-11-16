@@ -193,10 +193,12 @@ namespace FluentSensors.Features.Settings
             TaskbarSideGraphDirectionCard.Visibility = sideVisibility;
             TaskbarSideTitleLinesCard.Visibility = sideVisibility;
 
-            // a side slot only stacks, so it only picks the side
+            // a top or bottom edge picks arrangement and position, a side edge its own position; the side under
+            // UpdateTaskbarLabelAlignmentVisibility
             var horizontalVisibility = isVertical ? Visibility.Collapsed : Visibility.Visible;
             TaskbarLabelArrangementComboBox.Visibility = horizontalVisibility;
             TaskbarLabelPositionComboBox.Visibility = horizontalVisibility;
+            TaskbarSideLabelPositionComboBox.Visibility = sideVisibility;
 
             // beside a vertical taskbar the flyout lines up with the top or bottom widget edge; the tags stay Left and
             // Right, the stored value is the same
@@ -1395,6 +1397,16 @@ namespace FluentSensors.Features.Settings
             }
         }
 
+        private void TaskbarSideLabelPositionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarSideLabelPositionComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarSideLabelPosition = tag;
+            }
+        }
+
         private void TaskbarLabelAlignmentComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isLoading) return;
@@ -1412,6 +1424,7 @@ namespace FluentSensors.Features.Settings
             TaskbarValueSemiBoldToggle.IsChecked = settings.TaskbarValueSemiBold;
             SelectByTag(TaskbarLabelArrangementComboBox, settings.TaskbarLabelArrangement);
             SelectByTag(TaskbarLabelPositionComboBox, settings.TaskbarLabelPosition);
+            SelectByTag(TaskbarSideLabelPositionComboBox, settings.TaskbarSideLabelPosition);
             SelectByTag(TaskbarLabelAlignmentComboBox, settings.TaskbarLabelAlignment);
             TaskbarGraphBlurToggle.IsOn = settings.TaskbarGraphBlur;
             UpdateTaskbarLabelAlignmentVisibility();

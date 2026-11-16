@@ -12,9 +12,8 @@ namespace FluentSensors.Features.TaskbarWidget
 {
     // the side taskbar slot:
     // one pinned sensor on a left or right taskbar:
-    // - the name on top
-    // - value and unit at the bottom
-    // both on the left or the right, in the size and weight of TextLayout
+    // - the name on top, value and unit at the bottom; or both stacked at the top or the bottom
+    // - on the left or the right, in the size and weight of TextLayout
     // - the graph behind, in the picked direction
     // the text never turns
     // TaskbarWidgetWindow pushes the layout through ApplyLayout on load and on every change
@@ -133,6 +132,18 @@ namespace FluentSensors.Features.TaskbarWidget
             ValueText.LineHeight = layout.FontSize + 3;
             ValueText.FontWeight = layout.IsValueSemiBold ? FontWeights.SemiBold : FontWeights.Normal;
             ValueText.HorizontalAlignment = side;
+
+            // spread: name in the top row, value in the bottom row; stacked: both next to each other at one end
+            (int nameRow, int valueRow) = layout.SidePosition switch
+            {
+                SideLabelPosition.Top => (0, 1),
+                SideLabelPosition.Bottom => (1, 2),
+                _ => (0, 2)
+            };
+            Grid.SetRow(NameHost, nameRow);
+            Grid.SetRow(ValueText, valueRow);
+            NameHost.VerticalAlignment = nameRow == 1 ? VerticalAlignment.Bottom : VerticalAlignment.Top;
+            ValueText.VerticalAlignment = valueRow == 1 ? VerticalAlignment.Top : VerticalAlignment.Bottom;
 
             _measureText = null; // measures with the new font next time
         }
