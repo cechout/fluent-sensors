@@ -11,8 +11,9 @@ namespace FluentSensors.Common.UI.Icons
     public static class AppIcons
     {
         // all drawn by hand on a 16 x 16 grid and filling 1 to 15, so they come out the same size; the stroke follows the
-        // place: one pixel on whole pixels for the small marks beside a title and in a settings header, heavier for a
-        // menu, where the glyphs around it are drawn bolder
+        // place: 1 for the small marks beside a title and in a settings header, 1.25 for a menu
+        // (Segoe Fluent Icons draws a stroke of 1/16 em, 1 DIP in the 16 DIP menu box, but its text rendering snaps that
+        // to whole pixels with more contrast; a geometric 1.25 matches it best at 175 percent, measured 2026-11-16)
         // the path syntax (M, H, V, A, Z, F0 for even-odd):
         // https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/move-draw-commands-syntax
         // the same commands in SVG, with pictures; the easiest way into the arc:
@@ -44,14 +45,14 @@ namespace FluentSensors.Common.UI.Icons
             "M11.35,11H12.15A0.35,0.35 0 0 1 12.5,11.35V12.15A0.35,0.35 0 0 1 12.15,12.5H11.35A0.35,0.35 0 0 1 11,12.15V11.35A0.35,0.35 0 0 1 11.35,11Z";
 
         // decimal places icon
-        // ".0" for the overflow menus, in their heavier stroke of 1.5:
+        // ".0" for the overflow menus, in their stroke of 1.25:
         // - the point, 2.5 px round, on the baseline of the zero
         // - the zero, 7 x 12 px with fully round ends
         // even-odd, so the inner outline of the zero is a hole
         private const string DecimalPlacesData =
             "F0 M3.5,11.5A1.25,1.25 0 0 1 4.75,12.75A1.25,1.25 0 0 1 3.5,14A1.25,1.25 0 0 1 2.25,12.75A1.25,1.25 0 0 1 3.5,11.5Z " +
             "M10,2A3.5,3.5 0 0 1 13.5,5.5V10.5A3.5,3.5 0 0 1 10,14A3.5,3.5 0 0 1 6.5,10.5V5.5A3.5,3.5 0 0 1 10,2Z " +
-            "M10,3.5A2,2 0 0 1 12,5.5V10.5A2,2 0 0 1 10,12.5A2,2 0 0 1 8,10.5V5.5A2,2 0 0 1 10,3.5Z";
+            "M10,3.25A2.25,2.25 0 0 1 12.25,5.5V10.5A2.25,2.25 0 0 1 10,12.75A2.25,2.25 0 0 1 7.75,10.5V5.5A2.25,2.25 0 0 1 10,3.25Z";
 
 
         // === public api ===
