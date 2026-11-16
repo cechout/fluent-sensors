@@ -386,8 +386,14 @@ GPU-Auslastung - die am stärksten ausgelastete GPU-Engine, auf der diese App l�
   <data name="Settings_TaskbarLabelAlignmentComboBox_Right.Content" xml:space="preserve">
     <value>Rechts</value>
   </data>
-  <data name="Settings_TaskbarCompactCardsCard.Header" xml:space="preserve">
-    <value>Kompakte Karten</value>
+  <data name="Settings_TaskbarCardKindComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Taskleistenkarte</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox_Compact.Content" xml:space="preserve">
+    <value>Balken</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox_Graph.Content" xml:space="preserve">
+    <value>Graph</value>
   </data>
   <data name="Settings_TaskbarGraphBlurCard.Header" xml:space="preserve">
     <value>Graph-Unschärfe</value>

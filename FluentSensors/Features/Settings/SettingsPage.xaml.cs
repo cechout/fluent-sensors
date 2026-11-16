@@ -190,7 +190,6 @@ namespace FluentSensors.Features.Settings
 
             bool isVertical = edge is "Left" or "Right";
             var sideVisibility = isVertical ? Visibility.Visible : Visibility.Collapsed;
-            TaskbarSideGraphDirectionCard.Visibility = sideVisibility;
             TaskbarSideTitleLinesCard.Visibility = sideVisibility;
 
             // a top or bottom edge picks arrangement and position, a side edge its own position; the side under
@@ -208,10 +207,7 @@ namespace FluentSensors.Features.Settings
                 isVertical ? "Settings_TaskbarFlyoutAlignmentBottom" : "Settings_TaskbarFlyoutAlignmentComboBox_Right/Content");
 
             _isLoading = true;
-            RestoreTaskbarGraphTimeSpanSelection();
-            RestoreTaskbarGraphWidthSelection();
-            RestoreTaskbarSideSlotSelection();
-            RestoreTaskbarTextSelection();
+            RestoreTaskbarCardSelection();
             TaskbarFlyoutAlignmentComboBox.SelectedItem = null; // a closed box keeps the old text of a renamed item
             RestoreTaskbarFlyoutAlignmentSelection();
             _isLoading = false;
@@ -1281,6 +1277,43 @@ namespace FluentSensors.Features.Settings
             UpdateTaskbarBackgroundMaterialCardStates();
         }
 
+        // --- card ---
+        // graph or compact card per edge; every setting in the taskbar graph expander belongs to the picked card
+
+        private void TaskbarCardKindComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+
+            if (TaskbarCardKindComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                SettingsService.Instance.TaskbarCompactCards = tag == "Compact";
+
+                _isLoading = true;
+                RestoreTaskbarCardSelection();
+                _isLoading = false;
+            }
+        }
+
+        // the values of the active card on the active edge; blur and graph direction only for the graph
+        private void RestoreTaskbarCardSelection()
+        {
+            var settings = SettingsService.Instance;
+            bool isCompact = settings.TaskbarCompactCards;
+            bool isVertical = settings.ActiveTaskbarEdge is "Left" or "Right";
+
+            SelectByTag(TaskbarCardKindComboBox, isCompact ? "Compact" : "Graph");
+            TaskbarGraphBlurCard.Visibility = isCompact ? Visibility.Collapsed : Visibility.Visible;
+            TaskbarSideGraphDirectionCard.Visibility = isVertical && !isCompact ? Visibility.Visible : Visibility.Collapsed;
+
+            RestoreTaskbarGraphColorSettings();
+            RestoreTaskbarGraphBackgroundSourceSelection();
+            RestoreTaskbarGraphTimeSpanSelection();
+            RestoreTaskbarGraphWidthSelection();
+            RestoreTaskbarSideSlotSelection();
+            RestoreTaskbarTextSelection();
+            SelectByTag(TaskbarDecimalPlacesComboBox, settings.TaskbarDecimalPlaces?.ToString() ?? "Auto");
+        }
+
         // --- graph ---
 
         private void TaskbarGraphColorSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1356,7 +1389,7 @@ namespace FluentSensors.Features.Settings
         }
 
         // --- taskbar text ---
-        // size and SemiBold value on every edge; arrangement, position and side of the active edge
+        // size, SemiBold value, arrangement, position and side of the active card
 
         private void TaskbarLabelFontSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -1424,7 +1457,6 @@ namespace FluentSensors.Features.Settings
             SelectByTag(TaskbarSideLabelPositionComboBox, settings.TaskbarSideLabelPosition);
             SelectByTag(TaskbarLabelAlignmentComboBox, settings.TaskbarLabelAlignment);
             TaskbarGraphBlurToggle.IsOn = settings.TaskbarGraphBlur;
-            TaskbarCompactCardsToggle.IsOn = settings.TaskbarCompactCards;
             UpdateTaskbarLabelAlignmentVisibility();
         }
 
@@ -1440,12 +1472,6 @@ namespace FluentSensors.Features.Settings
         {
             if (_isLoading) return;
             SettingsService.Instance.TaskbarGraphBlur = TaskbarGraphBlurToggle.IsOn;
-        }
-
-        private void TaskbarCompactCardsToggle_Toggled(object sender, RoutedEventArgs e)
-        {
-            if (_isLoading) return;
-            SettingsService.Instance.TaskbarCompactCards = TaskbarCompactCardsToggle.IsOn;
         }
 
         // --- y-axis maximum per surface ---

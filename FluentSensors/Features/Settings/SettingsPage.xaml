@@ -941,21 +941,28 @@
             </controls:SettingsCard>
 
             <!--  taskbar graph appearance  -->
+            <!--
+                the card the active edge shows, the graph or a compact card with a level bar of the current value;
+                every setting inside belongs to that card on that edge, see RestoreTaskbarCardSelection
+            -->
             <controls:SettingsExpander
                 x:Uid="Settings_TaskbarGraphExpander"
                 fhUi:FocusGroup.IsEnabled="True"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
+                <controls:SettingsExpander.Content>
+                    <ComboBox
+                        x:Name="TaskbarCardKindComboBox"
+                        x:Uid="Settings_TaskbarCardKindComboBox"
+                        Width="120"
+                        SelectionChanged="TaskbarCardKindComboBox_SelectionChanged">
+                        <ComboBoxItem x:Uid="Settings_TaskbarCardKindComboBox_Graph" Tag="Graph" />
+                        <ComboBoxItem x:Uid="Settings_TaskbarCardKindComboBox_Compact" Tag="Compact" />
+                    </ComboBox>
+                </controls:SettingsExpander.Content>
 
                 <controls:SettingsExpander.Items>
-                    <!--  graph: compact cards, color, background, blur, time range, width  -->
-                    <!--  (compact cards show a level bar of the current value in place of the graph)  -->
-                    <controls:SettingsCard x:Uid="Settings_TaskbarCompactCardsCard">
-                        <ToggleSwitch
-                            x:Name="TaskbarCompactCardsToggle"
-                            x:Uid="Common_ToggleSwitch"
-                            Toggled="TaskbarCompactCardsToggle_Toggled" />
-                    </controls:SettingsCard>
+                    <!--  graph: color, background, blur (graph only), time range, width  -->
                     <controls:SettingsCard x:Uid="Settings_TaskbarGraphColorSourceCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
@@ -983,7 +990,7 @@
                             <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Transparent" Tag="Transparent" />
                         </ComboBox>
                     </controls:SettingsCard>
-                    <controls:SettingsCard x:Uid="Settings_TaskbarGraphBlurCard">
+                    <controls:SettingsCard x:Name="TaskbarGraphBlurCard" x:Uid="Settings_TaskbarGraphBlurCard">
                         <ToggleSwitch
                             x:Name="TaskbarGraphBlurToggle"
                             x:Uid="Common_ToggleSwitch"
@@ -1009,8 +1016,8 @@
 
                     <!--  text: size and SemiBold value, layout, decimals  -->
                     <!--
-                        (size and weight on every edge; layout per edge: arrangement and position on a top or bottom
-                        edge, position and side on a side edge, see OnActiveTaskbarEdgeChanged)
+                        (layout: arrangement and position on a top or bottom edge, position and side on a side edge,
+                        see OnActiveTaskbarEdgeChanged)
                     -->
                     <controls:SettingsCard x:Uid="Settings_TaskbarTextSizeCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">

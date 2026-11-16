@@ -386,8 +386,14 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   <data name="Settings_TaskbarLabelAlignmentComboBox_Right.Content" xml:space="preserve">
     <value>Vpravo</value>
   </data>
-  <data name="Settings_TaskbarCompactCardsCard.Header" xml:space="preserve">
-    <value>Kompaktní karty</value>
+  <data name="Settings_TaskbarCardKindComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Karta na hlavním panelu</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox_Compact.Content" xml:space="preserve">
+    <value>Pruh</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox_Graph.Content" xml:space="preserve">
+    <value>Graf</value>
   </data>
   <data name="Settings_TaskbarGraphBlurCard.Header" xml:space="preserve">
     <value>Rozostření grafu</value>

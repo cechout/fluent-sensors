@@ -43,7 +43,6 @@ namespace FluentSensors.Persistence.Models
         // decimals per surface, null for automatic; the widgets board follows the widget, csv has its own below
         public int? SensorListDecimalPlaces { get; set; }
         public int? PerformanceDecimalPlaces { get; set; }
-        public int? TaskbarDecimalPlaces { get; set; }
         public int? TaskbarFlyoutDecimalPlaces { get; set; }
         public int? WidgetDecimalPlaces { get; set; }
 
@@ -132,24 +131,13 @@ namespace FluentSensors.Persistence.Models
 
         // --- taskbar widget & flyout appearance ---
 
-        // graph; the color source default works like the widget one
+        // graph color source default of a taskbar card (TaskbarCardSettings), works like the widget one
         public const GraphColorSource DefaultTaskbarGraphColorSource = Common.Sensors.GraphColorSource.Hardware;
-        public GraphColorSource? TaskbarGraphColorSource { get; set; } = null;
-        public Windows.UI.Color TaskbarGraphCustomColor { get; set; } = Microsoft.UI.Colors.LightBlue;
-        public bool TaskbarUseTransparentGraphBackground { get; set; } = true;
-        public bool TaskbarGraphBlur { get; set; } = false; // a slight blur on line and fill, the taskbar graph only
-        public bool TaskbarCompactCards { get; set; } = false; // a level bar of the current value in place of the graph
-
-        // name and value text on every edge; the arrangement is per edge, see TaskbarEdgeSettings
-        public double TaskbarLabelFontSize { get; set; } = 10; // in DIP; 9 to 12
-        public bool TaskbarValueSemiBold { get; set; } = false;
 
         // per taskbar edge ("Bottom", "Top", "Left", "Right"), defaults in TaskbarEdgeSettings:
-        // - time range
-        // - graph width
+        // - the card it shows, graph or compact
+        // - the settings of both cards: graph look, time range, width, side layout, text, decimals
         // - flyout alignment
-        // - side layout
-        // - name and value arrangement
         // null in an older file, SettingsService seeds every edge from the legacy values below
         public Dictionary<string, TaskbarEdgeSettings>? TaskbarEdges { get; set; } = null;
 
@@ -234,6 +222,11 @@ namespace FluentSensors.Persistence.Models
         public double? TaskbarGraphTimeSpanSeconds { get; set; } = null;
         public int? TaskbarGraphWidthDip { get; set; } = null;
         public string? TaskbarFlyoutAlignment { get; set; } = null;
+
+        // the graph look that was the same on every taskbar edge; SettingsService copies it onto every card once
+        public GraphColorSource? TaskbarGraphColorSource { get; set; } = null;
+        public Windows.UI.Color? TaskbarGraphCustomColor { get; set; } = null;
+        public bool? TaskbarUseTransparentGraphBackground { get; set; } = null;
 
         // the shared extended range the cpu and gpu ranges replaced; SettingsService copies it onto both once
         public double? PerformanceExtendedGraphTimeSpanSeconds { get; set; } = null;
