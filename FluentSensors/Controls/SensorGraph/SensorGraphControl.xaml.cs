@@ -68,8 +68,9 @@ namespace FluentSensors.Controls.SensorGraph
 
         // level bar of a compact card (IsCompact), in DIP; the track is the bar color at LevelBarTrackAlpha
         private const double LevelBarThickness = 3;
-        private const double LevelBarTextGap = 3; // between the text and the bar
-        private const double LevelBarEdgeInset = 3; // a bar along the foot, from the card edge
+        private const double LevelBarInset = 4; // from the card edges, as far in as the text
+        private const double LevelBarTextGap = 3; // between stacked text and the bar beside it
+        private const double LevelBarFootInset = 3; // a bar alone, from the foot
         private const byte LevelBarTrackAlpha = 70;
         private readonly SolidColorBrush _levelBarFillBrush = new();
         private readonly SolidColorBrush _levelBarTrackBrush = new();
@@ -625,19 +626,24 @@ namespace FluentSensors.Controls.SensorGraph
         }
 
         // label layout
-        // - side by side: name left and value right in one row; a compact card puts its level bar below
-        // - stacked: the value under the name, both on one side; a compact card puts its level bar on the other side
-        // - no label (the side taskbar slot draws its own text): the level bar alone along the foot of the card
+        // - side by side: name left and value right in one row
+        // - stacked: the value under the name, both on one side
+        // - at the top, in the middle or at the foot of the card
+        // a compact card adds its level bar, see ApplyLevelBarLayout
         private void ApplyLabelLayout()
         {
             var layout = LabelLayout ?? GraphLabelLayout.Default;
-            bool isBarOnly = IsCompact && !IsLabelVisible;
 
             GraphLabelText.FontSize = layout.FontSize;
             GraphCurrentValueText.FontSize = layout.FontSize;
             GraphCurrentValueText.FontWeight = layout.IsValueSemiBold ? FontWeights.SemiBold : FontWeights.Normal;
 
-            LabelOverlay.VerticalAlignment = layout.IsAtBottom || isBarOnly ? VerticalAlignment.Bottom : VerticalAlignment.Top;
+            LabelOverlay.VerticalAlignment = layout.Position switch
+            {
+                GraphLabelPosition.Bottom => VerticalAlignment.Bottom,
+                GraphLabelPosition.Center => VerticalAlignment.Center,
+                _ => VerticalAlignment.Top
+            };
 
             // stacked: two lines in tight line boxes flush with the card edge, so the block stays above the middle at
             // the top and off the very foot at the bottom; one row keeps the natural line box and its 1 DIP inset
@@ -648,64 +654,80 @@ namespace FluentSensors.Controls.SensorGraph
                 text.LineStackingStrategy = layout.IsStacked ? LineStackingStrategy.BlockLineHeight : LineStackingStrategy.MaxHeight;
             }
 
-            // (a bar under one row sits off the foot like a bar alone)
-            LabelOverlay.Margin = (layout.IsStacked, layout.IsAtBottom) switch
+            var margin = (layout.IsStacked, layout.Position) switch
             {
-                _ when isBarOnly => new Thickness(4, 0, 4, LevelBarEdgeInset),
-                (true, false) => new Thickness(4, 0, 4, 0),
-                (true, true) => new Thickness(4, 0, 4, 2),
-                (false, true) => new Thickness(4, 0, 4, IsCompact ? LevelBarEdgeInset : 1),
+                (_, GraphLabelPosition.Center) => new Thickness(4, 0, 4, 0),
+                (true, GraphLabelPosition.Bottom) => new Thickness(4, 0, 4, 2),
+                (true, _) => new Thickness(4, 0, 4, 0),
+                (false, GraphLabelPosition.Bottom) => new Thickness(4, 0, 4, 1),
                 _ => new Thickness(4, 1, 4, 0)
             };
 
-            // text in the middle columns, the outer ones are for a bar beside stacked text
+            // stacked text on a compact card keeps clear of the bar on its free side
+            if (IsCompact && layout.IsStacked)
+            {
+                double barRoom = LevelBarInset + LevelBarThickness + LevelBarTextGap;
+                if (layout.IsRightAligned) margin.Left = barRoom;
+                else margin.Right = barRoom;
+            }
+
+            LabelOverlay.Margin = margin;
+
             if (layout.IsStacked)
             {
                 var side = layout.IsRightAligned ? HorizontalAlignment.Right : HorizontalAlignment.Left;
-                PlaceLabelPart(GraphLabelText, row: 0, rowSpan: 1, column: 1, columnSpan: 2, side, new Thickness(0));
-                PlaceLabelPart(GraphCurrentValueText, row: 1, rowSpan: 1, column: 1, columnSpan: 2, side, new Thickness(0));
+                PlaceLabelPart(GraphLabelText, row: 0, column: 0, columnSpan: 2, side, new Thickness(0));
+                PlaceLabelPart(GraphCurrentValueText, row: 1, column: 0, columnSpan: 2, side, new Thickness(0));
             }
             else
             {
-                PlaceLabelPart(GraphLabelText, row: 0, rowSpan: 1, column: 1, columnSpan: 1, HorizontalAlignment.Left, new Thickness(0, 0, 4, 0));
-                PlaceLabelPart(GraphCurrentValueText, row: 0, rowSpan: 1, column: 2, columnSpan: 1, HorizontalAlignment.Right, new Thickness(0));
+                PlaceLabelPart(GraphLabelText, row: 0, column: 0, columnSpan: 1, HorizontalAlignment.Left, new Thickness(0, 0, 4, 0));
+                PlaceLabelPart(GraphCurrentValueText, row: 0, column: 1, columnSpan: 1, HorizontalAlignment.Right, new Thickness(0));
             }
 
+            ApplyLevelBarLayout(layout);
+        }
+
+        private static void PlaceLabelPart(TextBlock text, int row, int column, int columnSpan, HorizontalAlignment alignment, Thickness margin)
+        {
+            Grid.SetRow(text, row);
+            Grid.SetColumn(text, column);
+            Grid.SetColumnSpan(text, columnSpan);
+            text.HorizontalAlignment = alignment;
+            text.Margin = margin;
+        }
+
+        // the level bar of a compact card, LevelBarInset off the card edges:
+        // - stacked text: top to bottom on the side the text leaves free
+        // - one row: across the card at the edge the text leaves free, the foot when the text sits in the middle
+        // - no label (the side taskbar slot draws its own text): across the foot and 1 DIP further out on each side
+        private void ApplyLevelBarLayout(GraphLabelLayout layout)
+        {
             LevelBar.Visibility = IsCompact ? Visibility.Visible : Visibility.Collapsed;
             if (!IsCompact) return;
 
-            _isLevelBarVertical = layout.IsStacked && !isBarOnly;
+            _isLevelBarVertical = IsLabelVisible && layout.IsStacked;
             if (_isLevelBarVertical)
             {
-                // beside the two lines, on the side the text leaves free
-                bool isBarLeft = layout.IsRightAligned;
-                PlaceLabelPart(LevelBar, row: 0, rowSpan: 2, column: isBarLeft ? 0 : 3, columnSpan: 1, HorizontalAlignment.Left,
-                    isBarLeft ? new Thickness(0, 0, LevelBarTextGap, 0) : new Thickness(LevelBarTextGap, 0, 0, 0));
                 LevelBar.Width = LevelBarThickness;
                 LevelBar.Height = double.NaN;
+                LevelBar.HorizontalAlignment = layout.IsRightAligned ? HorizontalAlignment.Left : HorizontalAlignment.Right;
                 LevelBar.VerticalAlignment = VerticalAlignment.Stretch;
+                LevelBar.Margin = new Thickness(LevelBarInset);
             }
             else
             {
-                // across the card, below the row or alone
-                PlaceLabelPart(LevelBar, row: isBarOnly ? 0 : 1, rowSpan: 1, column: 0, columnSpan: 4, HorizontalAlignment.Stretch,
-                    new Thickness(0, isBarOnly ? 0 : LevelBarTextGap, 0, 0));
+                bool isAtTop = IsLabelVisible && layout.Position == GraphLabelPosition.Bottom;
                 LevelBar.Width = double.NaN;
                 LevelBar.Height = LevelBarThickness;
-                LevelBar.VerticalAlignment = VerticalAlignment.Top;
+                LevelBar.HorizontalAlignment = HorizontalAlignment.Stretch;
+                LevelBar.VerticalAlignment = isAtTop ? VerticalAlignment.Top : VerticalAlignment.Bottom;
+                LevelBar.Margin = !IsLabelVisible ? new Thickness(LevelBarInset - 1, 0, LevelBarInset - 1, LevelBarFootInset)
+                    : isAtTop ? new Thickness(LevelBarInset, LevelBarInset, LevelBarInset, 0)
+                    : new Thickness(LevelBarInset, 0, LevelBarInset, LevelBarInset);
             }
 
             ApplyLevelBar();
-        }
-
-        private static void PlaceLabelPart(FrameworkElement part, int row, int rowSpan, int column, int columnSpan, HorizontalAlignment alignment, Thickness margin)
-        {
-            Grid.SetRow(part, row);
-            Grid.SetRowSpan(part, rowSpan);
-            Grid.SetColumn(part, column);
-            Grid.SetColumnSpan(part, columnSpan);
-            part.HorizontalAlignment = alignment;
-            part.Margin = margin;
         }
 
         // the fill of the level bar: the newest value as a share of the y range the graph would show, in the threshold

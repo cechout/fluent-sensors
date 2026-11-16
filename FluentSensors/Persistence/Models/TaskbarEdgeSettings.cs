@@ -17,7 +17,7 @@ namespace FluentSensors.Persistence.Models
 
         // name and value over the graph:
         // - arrangement and position (top and bottom edge only): "SideBySide" (name left, value right) or "Stacked",
-        // - at the "Top" or "Bottom" of the graph
+        // - at the "Top", in the "Center" or at the "Bottom" of the graph
         // - alignment: "Left" or "Right": stacked text on a top or bottom edge, always on a side edge
         // - side position: where name and value sit on a side edge
         public string LabelArrangement { get; set; } = "SideBySide";

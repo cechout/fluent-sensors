@@ -1051,6 +1051,7 @@
                                 Width="90"
                                 SelectionChanged="TaskbarLabelPositionComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Top" Tag="Top" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Center" Tag="Center" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Bottom" Tag="Bottom" />
                             </ComboBox>
 

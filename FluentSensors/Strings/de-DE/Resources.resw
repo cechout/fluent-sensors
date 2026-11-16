@@ -356,6 +356,9 @@ GPU-Auslastung - die am st√§rksten ausgelastete GPU-Engine, auf der diese App l√
   <data name="Settings_TaskbarLabelPositionComboBox_Top.Content" xml:space="preserve">
     <value>Oben</value>
   </data>
+  <data name="Settings_TaskbarLabelPositionComboBox_Center.Content" xml:space="preserve">
+    <value>Mitte</value>
+  </data>
   <data name="Settings_TaskbarLabelPositionComboBox_Bottom.Content" xml:space="preserve">
     <value>Unten</value>
   </data>

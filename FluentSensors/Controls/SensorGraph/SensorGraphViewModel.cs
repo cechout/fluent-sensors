@@ -470,7 +470,7 @@ namespace FluentSensors.Controls.SensorGraph
                 settings.TaskbarLabelFontSize,
                 settings.TaskbarValueSemiBold,
                 IsStacked: settings.TaskbarLabelArrangement == "Stacked",
-                IsAtBottom: settings.TaskbarLabelPosition == "Bottom",
+                Enum.TryParse(settings.TaskbarLabelPosition, out GraphLabelPosition position) ? position : GraphLabelPosition.Top,
                 IsRightAligned: settings.TaskbarLabelAlignment == "Right",
                 Enum.TryParse(settings.TaskbarSideLabelPosition, out SideLabelPosition sidePosition) ? sidePosition : SideLabelPosition.Spread);
         }
