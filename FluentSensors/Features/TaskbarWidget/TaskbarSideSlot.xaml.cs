@@ -15,7 +15,7 @@ namespace FluentSensors.Features.TaskbarWidget
     // - the name on top, value and unit at the bottom; or both stacked at the top or the bottom
     // - on the left or the right, in the size and weight of TextLayout
     // - the graph behind, in the picked direction
-    // the text never turns
+    // (the text never turns)
     // TaskbarWidgetWindow pushes the layout through ApplyLayout on load and on every change
     public sealed partial class TaskbarSideSlot : UserControl
     {
@@ -79,10 +79,10 @@ namespace FluentSensors.Features.TaskbarWidget
         // === public methods ===
 
         // turns the graph so its values run in the picked direction, with the graph baseline on the screen edge side:
-        // RightToLeft - not turned, the same graph as on a horizontal taskbar
-        // TopToBottom - counterclockwise, newest value at the top, baseline on the right
-        // BottomToTop - clockwise, newest value at the bottom, baseline on the left
-        // the mirror moves the baseline over wherever the turn left it on the desktop side
+        // - RightToLeft: not turned, the same graph as on a horizontal taskbar
+        // - TopToBottom: counterclockwise, newest value at the top, baseline on the right
+        // - BottomToTop: clockwise, newest value at the bottom, baseline on the left
+        // (the mirror moves the baseline over wherever the turn left it on the desktop side)
         public void ApplyLayout(ScreenEdge edge, string graphDirection, int nameLines)
         {
             switch (graphDirection)
@@ -116,8 +116,8 @@ namespace FluentSensors.Features.TaskbarWidget
         // === text layout ===
 
         // size, weight and side of name and value; the line heights keep the gaps of the 10 DIP layout:
-        // name - one more than the size, the gap between its two lines
-        // value - three more, its line box against the bottom
+        // - name: one more than the size, the gap between its two lines
+        // - value: three more, its line box against the bottom
         private void ApplyTextLayout()
         {
             var layout = TextLayout ?? GraphLabelLayout.Default;
@@ -133,7 +133,8 @@ namespace FluentSensors.Features.TaskbarWidget
             ValueText.FontWeight = layout.IsValueSemiBold ? FontWeights.SemiBold : FontWeights.Normal;
             ValueText.HorizontalAlignment = side;
 
-            // spread: name in the top row, value in the bottom row; stacked: both next to each other at one end
+            // - spread: name in the top row, value in the bottom row
+            // - stacked: both next to each other at one end
             (int nameRow, int valueRow) = layout.SidePosition switch
             {
                 SideLabelPosition.Top => (0, 1),

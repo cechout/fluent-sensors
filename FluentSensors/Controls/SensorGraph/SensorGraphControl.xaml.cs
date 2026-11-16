@@ -612,7 +612,9 @@ namespace FluentSensors.Controls.SensorGraph
             if (d is SensorGraphControl g) g.ApplyLabelLayout();
         }
 
-        // side by side: name left and value right in one row; stacked: the value under the name, both on one side
+        // label layout
+        // - side by side: name left and value right in one row
+        // - stacked: the value under the name, both on one side
         private void ApplyLabelLayout()
         {
             var layout = LabelLayout ?? GraphLabelLayout.Default;

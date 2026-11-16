@@ -8,16 +8,18 @@ namespace FluentSensors.Persistence.Models
         public double GraphTimeSpanSeconds { get; set; } = 35;
         public int GraphWidthDip { get; set; } = 100; // along the taskbar, the height on a side one
 
-        // left and right edge only: "RightToLeft" (as horizontal), "TopToBottom" or "BottomToTop", the way values run
-        // ("TopToBottom" enters at the top)
+        // left and right edge only:
+        // - "RightToLeft" (as horizontal)
+        // - "TopToBottom" (enters at the top)
+        // - "BottomToTop", the way values run
         public string SideGraphDirection { get; set; } = "RightToLeft";
         public int SideTitleLines { get; set; } = 1; // 1 or 2
 
         // name and value over the graph:
-        // arrangement and position - top and bottom edge only: "SideBySide" (name left, value right) or "Stacked",
-        // at the "Top" or "Bottom" of the graph
-        // alignment - "Left" or "Right"; stacked text on a top or bottom edge, always on a side edge
-        // side position - where name and value sit on a side edge
+        // - arrangement and position (top and bottom edge only): "SideBySide" (name left, value right) or "Stacked",
+        // - at the "Top" or "Bottom" of the graph
+        // - alignment: "Left" or "Right": stacked text on a top or bottom edge, always on a side edge
+        // - side position: where name and value sit on a side edge
         public string LabelArrangement { get; set; } = "SideBySide";
         public string LabelPosition { get; set; } = "Top";
         public string LabelAlignment { get; set; } = "Left";

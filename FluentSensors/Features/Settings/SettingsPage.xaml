@@ -7,8 +7,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fhGraph="using:FluentSensors.Controls.SensorGraph"
     xmlns:fhInfoPopup="using:FluentSensors.Controls.InfoPopup"
-    xmlns:fhWidgetBoard="using:FluentSensors.Features.WidgetBoard"
     xmlns:fhUi="using:FluentSensors.Common.UI"
+    xmlns:fhWidgetBoard="using:FluentSensors.Features.WidgetBoard"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI"
     Loaded="Page_Loaded"
@@ -108,10 +108,6 @@
                 IsExpanded="False">
 
                 <!--  restart hint: icon, message and restart button  -->
-                <!--
-                    (a success InfoBar built from its own theme resources; the native one stacks its button
-                    right after the message, this one puts the text on the 58 and the button on the 44 of the items)
-                -->
                 <controls:SettingsExpander.ItemsHeader>
                     <Grid
                         x:Name="LanguageRestartBar"
