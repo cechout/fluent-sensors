@@ -1051,7 +1051,7 @@
                             <ComboBox
                                 x:Name="TaskbarLabelArrangementComboBox"
                                 x:Uid="Settings_TaskbarLabelArrangementComboBox"
-                                Width="120"
+                                Width="90"
                                 SelectionChanged="TaskbarLabelArrangementComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelArrangementComboBox_SideBySide" Tag="SideBySide" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelArrangementComboBox_Stacked" Tag="Stacked" />
