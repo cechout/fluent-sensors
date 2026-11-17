@@ -83,6 +83,13 @@ namespace FluentSensors.Features.TaskbarWidget
         public const int TaskbarStartupDelayMs = 1200; // until window and charts are ready
         public const float TaskbarStartupStartOpacity = 0.0f;
 
+        // --- placement animations ---
+        // in ms; the follow slide moves the window along the startup curve (Fluent 2 decelerate), the exit plays the
+        // startup slide backwards on the mirrored curve (Fluent 2 accelerate)
+        private const int TrayFollowDurationMs = 260; // a move after the tray or the task buttons, same size only
+        private const int TaskbarExitDurationMs = 200; // on close
+        private const int RoomFadeDurationMs = 120; // out when the task buttons leave no room, in once they do again
+
         // --- drag-to-reposition settings ---
         private const string WindowKey = "TaskbarWidget";
         private const int DragThresholdPixels = 4; // physical px before a drag starts
@@ -101,6 +108,17 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // tray and task button bounds, so the widget never covers a button
         private readonly WinTaskbarTrayTracker _trayTracker = new();
+
+        // the follow slide: the window rect it started from and goes to, per frame on _moveTimer
+        private DispatcherQueueTimer _moveTimer;
+        private readonly System.Diagnostics.Stopwatch _moveClock = new();
+        private RectInt32 _moveFrom;
+        private RectInt32 _moveTo;
+        private RectInt32 _moveShown; // where the window is right now while sliding
+
+        private bool _isContentFadedOut; // no room, the button is faded out (RoomFadeDurationMs)
+        private bool _isClosingAnimated; // the exit plays, CloseWidget finishes once it is done
+        private int _contentAnimationId; // a newer content animation makes the completion of an older one a no-op
 
         // taskbar snapshot the widget was last laid out for; FollowTaskbar compares against it to skip polls that
         // only changed a secondary taskbar
@@ -298,6 +316,7 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             if (CurrentInstance != null)
             {
+                CurrentInstance.CancelAnimatedClose();
                 CurrentInstance.ReconfigureFor(selectedSensors);
                 CurrentInstance.ViewModel.SetLiveDataActive(true);
                 CurrentInstance.SetGraphsRenderingActive(true);
@@ -670,8 +689,11 @@ namespace FluentSensors.Features.TaskbarWidget
             ApplyEdgeLayout(targetTaskbar);
             var screenRect = CalculateScreenRect(targetTaskbar);
 
+            StopMoveAnimation();
             _currentScreenRect = screenRect;
             WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
+
+            if (_isContentFadedOut && HasLength(screenRect)) FadeContent(show: true, onCompleted: null);
         }
 
         // the widget rect on the given taskbar:
@@ -734,8 +756,162 @@ namespace FluentSensors.Features.TaskbarWidget
             var screenRect = CalculateScreenRect(_placedTaskbar);
             if (screenRect == _currentScreenRect) return;
 
+            var previous = _currentScreenRect;
             _currentScreenRect = screenRect;
+
+            // no room any more: fade out, then shrink to nothing
+            if (HasLength(previous) && !HasLength(screenRect))
+            {
+                StopMoveAnimation();
+                FadeContent(show: false, onCompleted: () => WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, _currentScreenRect));
+                return;
+            }
+
+            // room again: in place at once, then fade in
+            if (!HasLength(previous) && HasLength(screenRect))
+            {
+                StopMoveAnimation();
+                WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
+                FadeContent(show: true, onCompleted: null);
+                return;
+            }
+
+            // the tray or the buttons moved: slide over; a new length (or still no room) jumps
+            if (HasLength(screenRect) && previous.Width == screenRect.Width && previous.Height == screenRect.Height)
+            {
+                AnimateMove(previous, screenRect);
+                return;
+            }
+
+            StopMoveAnimation();
             WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
+        }
+
+        private static bool HasLength(RectInt32 rect) => rect.Width > 0 && rect.Height > 0;
+
+        // the window itself moves, frame by frame, so nothing is clipped at its edge; from wherever a running slide got to
+        private void AnimateMove(RectInt32 from, RectInt32 target)
+        {
+            if (_moveTimer?.IsRunning != true) _moveShown = from;
+            _moveFrom = _moveShown;
+            _moveTo = target;
+            _moveClock.Restart();
+
+            if (_moveTimer == null)
+            {
+                _moveTimer = DispatcherQueue.CreateTimer();
+                _moveTimer.Interval = TimeSpan.FromMilliseconds(16);
+                _moveTimer.Tick += (s, e) => StepMoveAnimation();
+            }
+            _moveTimer.Start();
+        }
+
+        // cubic-bezier(0, 0, 0, 1): x = t^3 and y = 3t^2 - 2t^3, so the eased value of progress p is y(cbrt(p))
+        private void StepMoveAnimation()
+        {
+            if (_isClosed || _isOrphaned || !_isEmbedded || _taskbarHwnd == IntPtr.Zero)
+            {
+                StopMoveAnimation();
+                return;
+            }
+
+            double progress = Math.Clamp(_moveClock.Elapsed.TotalMilliseconds / TrayFollowDurationMs, 0.0, 1.0);
+            double t = Math.Cbrt(progress);
+            double eased = (3 * t * t) - (2 * t * t * t);
+
+            _moveShown = new RectInt32(
+                _moveFrom.X + (int)Math.Round((_moveTo.X - _moveFrom.X) * eased),
+                _moveFrom.Y + (int)Math.Round((_moveTo.Y - _moveFrom.Y) * eased),
+                _moveTo.Width,
+                _moveTo.Height);
+            WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, _moveShown);
+
+            if (progress >= 1.0) StopMoveAnimation();
+        }
+
+        private void StopMoveAnimation()
+        {
+            _moveTimer?.Stop();
+        }
+
+        // the button fades out or back in, on its own visual (the one the startup slide moves)
+        private void FadeContent(bool show, Action? onCompleted)
+        {
+            _isContentFadedOut = !show;
+
+            var visual = TaskbarButton != null ? ElementCompositionPreview.GetElementVisual(TaskbarButton) : null;
+            if (visual == null)
+            {
+                onCompleted?.Invoke();
+                return;
+            }
+
+            var compositor = visual.Compositor;
+            var fade = compositor.CreateScalarKeyFrameAnimation();
+            if (show) fade.InsertKeyFrame(0.0f, 0.0f);
+            fade.InsertKeyFrame(1.0f, show ? 1.0f : 0.0f);
+            fade.Duration = TimeSpan.FromMilliseconds(RoomFadeDurationMs);
+
+            RunContentAnimation(visual, () => visual.StartAnimation("Opacity", fade), onCompleted);
+        }
+
+        // the startup slide backwards: towards the screen edge and out
+        private void PlayExitAnimation(Action? onCompleted)
+        {
+            var visual = TaskbarButton != null ? ElementCompositionPreview.GetElementVisual(TaskbarButton) : null;
+            if (visual == null || _placedTaskbar == null)
+            {
+                onCompleted?.Invoke();
+                return;
+            }
+
+            var compositor = visual.Compositor;
+
+            // Fluent 2 accelerate, cubic-bezier(1, 0, 1, 1), the mirror of the startup decelerate
+            var easeIn = compositor.CreateCubicBezierEasingFunction(new Vector2(1.0f, 0.0f), new Vector2(1.0f, 1.0f));
+
+            var slide = compositor.CreateVector3KeyFrameAnimation();
+            slide.InsertKeyFrame(1.0f, GetStartupSlideOffset(_placedTaskbar), easeIn);
+            slide.Duration = TimeSpan.FromMilliseconds(TaskbarExitDurationMs);
+
+            var fade = compositor.CreateScalarKeyFrameAnimation();
+            fade.InsertKeyFrame(1.0f, TaskbarStartupStartOpacity, easeIn);
+            fade.Duration = TimeSpan.FromMilliseconds(TaskbarExitDurationMs);
+
+            RunContentAnimation(visual, () =>
+            {
+                visual.StartAnimation("Offset", slide);
+                visual.StartAnimation("Opacity", fade);
+            }, onCompleted);
+        }
+
+        // one scoped batch per animation; only the newest one completes
+        private void RunContentAnimation(Visual visual, Action start, Action? onCompleted)
+        {
+            int id = ++_contentAnimationId;
+            var batch = visual.Compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+            start();
+            batch.End();
+            batch.Completed += (s, e) =>
+            {
+                if (id == _contentAnimationId && !_isClosed) onCompleted?.Invoke();
+            };
+        }
+
+        // the button back in place and opaque, for a window that is hidden now and shown again later
+        private void ResetContentVisual()
+        {
+            _contentAnimationId++;
+            _isContentFadedOut = false;
+            StopMoveAnimation();
+
+            var visual = TaskbarButton != null ? ElementCompositionPreview.GetElementVisual(TaskbarButton) : null;
+            if (visual == null) return;
+
+            visual.StopAnimation("Offset");
+            visual.StopAnimation("Opacity");
+            visual.Offset = Vector3.Zero;
+            visual.Opacity = 1.0f;
         }
 
         // on: no dragging, the widget moves to the tray; off: back to the saved drag offset
@@ -857,6 +1033,7 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // hides widget and flyout and detaches from the taskbar; (the instance is retained)
+        // plays the exit first while the widget is on screen; the followers leave with it
         public void CloseWidget()
         {
             if (_isFollower)
@@ -865,6 +1042,45 @@ namespace FluentSensors.Features.TaskbarWidget
                 return;
             }
 
+            if (_isClosingAnimated) return;
+
+            if (_isEmbedded && !_isOrphaned && HasLength(_currentScreenRect) && !_isContentFadedOut)
+            {
+                _isClosingAnimated = true;
+                TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
+
+                foreach (var follower in _followers)
+                {
+                    follower.PlayExitAnimation(onCompleted: null);
+                }
+
+                PlayExitAnimation(() =>
+                {
+                    if (!_isClosingAnimated) return;
+                    _isClosingAnimated = false;
+                    CloseWidgetNow();
+                });
+                return;
+            }
+
+            CloseWidgetNow();
+        }
+
+        // a show while the exit plays keeps the widget where it is
+        private void CancelAnimatedClose()
+        {
+            if (!_isClosingAnimated) return;
+            _isClosingAnimated = false;
+
+            ResetContentVisual();
+            foreach (var follower in _followers)
+            {
+                follower.ResetContentVisual();
+            }
+        }
+
+        private void CloseWidgetNow()
+        {
             TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
 
             // hidden while explorer.exe is down: a dead window cannot be hidden or reused, so it is dropped
@@ -899,6 +1115,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             SaveWindowState(wasOpen: false);
             _appWindow.Hide();
+            ResetContentVisual();
             WidgetStateChanged?.Invoke();
         }
 
@@ -1305,6 +1522,7 @@ namespace FluentSensors.Features.TaskbarWidget
             }
 
             follower._appWindow.Hide();
+            follower.ResetContentVisual();
             _spareFollowers.Add(follower);
         }
 
