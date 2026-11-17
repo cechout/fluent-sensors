@@ -12,6 +12,9 @@ namespace FluentSensors.Controls.SensorGraph
     // a circle and value label at the pointer position
     public sealed partial class SensorGraphControl
     {
+        private bool IsChartScaled() =>
+            Chart.CoreChart is LiveChartsCore.CartesianChartEngine { XAxes.Length: > 0, YAxes.Length: > 0 };
+
         private void OnChartPointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
             _lastPointerPosition = e.GetCurrentPoint(Chart).Position;
@@ -22,7 +25,8 @@ namespace FluentSensors.Controls.SensorGraph
         // on pointer move and on every new point under a resting pointer, so the value keeps tracking
         private void UpdateHoverAtPointer()
         {
-            if (Values is null || Values.Count == 0)
+            // before its first measure the chart has no axes to scale with and throws; a flyout can open under the pointer
+            if (Values is null || Values.Count == 0 || !IsChartScaled())
             {
                 HideHoverElements();
                 return;

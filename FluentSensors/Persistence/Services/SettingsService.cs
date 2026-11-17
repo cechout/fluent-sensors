@@ -515,15 +515,15 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private int? _taskbarDecimalPlaces = Defaults.TaskbarDecimalPlaces;
+        // the active taskbar card, see ActiveCard
         public int? TaskbarDecimalPlaces
         {
-            get => _taskbarDecimalPlaces;
+            get => ActiveCard.DecimalPlaces;
             set
             {
-                if (_taskbarDecimalPlaces != value)
+                if (ActiveCard.DecimalPlaces != value)
                 {
-                    _taskbarDecimalPlaces = value;
+                    ActiveCard.DecimalPlaces = value;
                     DecimalPlacesChanged?.Invoke();
                     SaveDebounced();
                 }
@@ -623,7 +623,7 @@ namespace FluentSensors.Persistence.Services
             return scope switch
             {
                 SensorGraphScope.Performance => _performanceDecimalPlaces,
-                SensorGraphScope.Taskbar => _taskbarDecimalPlaces,
+                SensorGraphScope.Taskbar => ActiveCard.DecimalPlaces,
                 SensorGraphScope.TaskbarFlyout => _taskbarFlyoutDecimalPlaces,
                 _ => _widgetDecimalPlaces // Widget and WidgetBoard
             };
@@ -758,62 +758,59 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
-        private GraphColorSource _taskbarGraphColorSource = AppSettingsData.DefaultTaskbarGraphColorSource;
+        // the active taskbar card, see ActiveCard; the color also reaches the flyout graphs
         public GraphColorSource TaskbarGraphColorSource
         {
-            get => _taskbarGraphColorSource;
+            get => ActiveCard.ColorSource;
             set
             {
-                if (_taskbarGraphColorSource != value)
+                if (ActiveCard.ColorSource != value)
                 {
-                    _taskbarGraphColorSource = value;
-                    TaskbarGraphColorChanged?.Invoke(_taskbarGraphColorSource, _taskbarGraphCustomColor);
+                    ActiveCard.ColorSource = value;
+                    TaskbarGraphColorChanged?.Invoke(value, ActiveCard.CustomColor);
                     SaveDebounced();
                 }
             }
         }
 
-        private Windows.UI.Color _taskbarGraphCustomColor = Defaults.TaskbarGraphCustomColor;
         public Windows.UI.Color TaskbarGraphCustomColor
         {
-            get => _taskbarGraphCustomColor;
+            get => ActiveCard.CustomColor;
             set
             {
-                if (_taskbarGraphCustomColor != value)
+                if (ActiveCard.CustomColor != value)
                 {
-                    _taskbarGraphCustomColor = value;
-                    TaskbarGraphColorChanged?.Invoke(_taskbarGraphColorSource, _taskbarGraphCustomColor);
+                    ActiveCard.CustomColor = value;
+                    TaskbarGraphColorChanged?.Invoke(ActiveCard.ColorSource, value);
                     SaveDebounced();
                 }
             }
         }
 
         // the taskbar widget graphs drop their card tint
-        private bool _taskbarUseTransparentGraphBackground = Defaults.TaskbarUseTransparentGraphBackground;
         public bool TaskbarUseTransparentGraphBackground
         {
-            get => _taskbarUseTransparentGraphBackground;
+            get => ActiveCard.UseTransparentBackground;
             set
             {
-                if (_taskbarUseTransparentGraphBackground != value)
+                if (ActiveCard.UseTransparentBackground != value)
                 {
-                    _taskbarUseTransparentGraphBackground = value;
-                    TaskbarGraphBackgroundChanged?.Invoke(_taskbarUseTransparentGraphBackground);
+                    ActiveCard.UseTransparentBackground = value;
+                    TaskbarGraphBackgroundChanged?.Invoke(value);
                     SaveDebounced();
                 }
             }
         }
 
         // a slight blur on the taskbar graph, line and fill
-        private bool _taskbarGraphBlur = Defaults.TaskbarGraphBlur;
         public bool TaskbarGraphBlur
         {
-            get => _taskbarGraphBlur;
+            get => ActiveCard.GraphBlur;
             set
             {
-                if (_taskbarGraphBlur != value)
+                if (ActiveCard.GraphBlur != value)
                 {
-                    _taskbarGraphBlur = value;
+                    ActiveCard.GraphBlur = value;
                     TaskbarGraphBlurChanged?.Invoke(value);
                     SaveDebounced();
                 }
@@ -821,30 +818,28 @@ namespace FluentSensors.Persistence.Services
         }
 
         // 9 to 12 DIP, name and value alike
-        private double _taskbarLabelFontSize = Defaults.TaskbarLabelFontSize;
         public double TaskbarLabelFontSize
         {
-            get => _taskbarLabelFontSize;
+            get => ActiveCard.LabelFontSize;
             set
             {
-                if (_taskbarLabelFontSize != value)
+                if (ActiveCard.LabelFontSize != value)
                 {
-                    _taskbarLabelFontSize = value;
+                    ActiveCard.LabelFontSize = value;
                     TaskbarLabelLayoutChanged?.Invoke();
                     SaveDebounced();
                 }
             }
         }
 
-        private bool _taskbarValueSemiBold = Defaults.TaskbarValueSemiBold;
         public bool TaskbarValueSemiBold
         {
-            get => _taskbarValueSemiBold;
+            get => ActiveCard.ValueSemiBold;
             set
             {
-                if (_taskbarValueSemiBold != value)
+                if (ActiveCard.ValueSemiBold != value)
                 {
-                    _taskbarValueSemiBold = value;
+                    ActiveCard.ValueSemiBold = value;
                     TaskbarLabelLayoutChanged?.Invoke();
                     SaveDebounced();
                 }
@@ -918,12 +913,15 @@ namespace FluentSensors.Persistence.Services
 
         // --- per taskbar position ---
 
-        // time range, graph width, flyout alignment, side layout and text arrangement per taskbar edge (TaskbarEdgeSettings); the
-        // properties below go through ActiveTaskbarEdge, so consumers follow a taskbar move
+        // the card, its settings and the flyout alignment per taskbar edge (TaskbarEdgeSettings); the properties go
+        // through ActiveTaskbarEdge and TaskbarCompactCards, so consumers follow a taskbar move and a card switch
         private Dictionary<string, TaskbarEdgeSettings> _taskbarEdges = SeedTaskbarEdges(null, Defaults);
         private string _activeTaskbarEdge = "Bottom";
 
         private TaskbarEdgeSettings ActiveEdge => _taskbarEdges[_activeTaskbarEdge];
+
+        // the settings of the card the active edge shows; SeedTaskbarEdges fills both
+        private TaskbarCardSettings ActiveCard => (ActiveEdge.CompactCards ? ActiveEdge.Compact : ActiveEdge.Graph)!;
 
         // the current taskbar edge, a ScreenEdge name; set by the taskbar widget and the settings page, never persisted
         // a switch raises the change event of every value that differs between the two edges, like an edit would
@@ -934,48 +932,92 @@ namespace FluentSensors.Persistence.Services
             {
                 if (_activeTaskbarEdge == value || !_taskbarEdges.ContainsKey(value)) return;
 
-                var previous = ActiveEdge;
+                var previousEdge = ActiveEdge;
+                var previousCard = ActiveCard;
                 _activeTaskbarEdge = value;
-                var current = ActiveEdge;
 
                 ActiveTaskbarEdgeChanged?.Invoke(_activeTaskbarEdge);
 
-                if (previous.GraphTimeSpanSeconds != current.GraphTimeSpanSeconds)
+                if (previousEdge.CompactCards != ActiveEdge.CompactCards)
                 {
-                    TaskbarGraphTimeSpanChanged?.Invoke(current.GraphTimeSpanSeconds);
+                    TaskbarCompactCardsChanged?.Invoke(ActiveEdge.CompactCards);
                 }
-                if (previous.GraphWidthDip != current.GraphWidthDip)
+                if (previousEdge.FlyoutAlignment != ActiveEdge.FlyoutAlignment)
                 {
-                    TaskbarGraphWidthChanged?.Invoke(current.GraphWidthDip);
+                    TaskbarFlyoutAlignmentChanged?.Invoke(ActiveEdge.FlyoutAlignment);
                 }
-                if (previous.FlyoutAlignment != current.FlyoutAlignment)
-                {
-                    TaskbarFlyoutAlignmentChanged?.Invoke(current.FlyoutAlignment);
-                }
-                if (previous.SideGraphDirection != current.SideGraphDirection)
-                {
-                    TaskbarSideGraphDirectionChanged?.Invoke(current.SideGraphDirection);
-                }
-                if (previous.SideTitleLines != current.SideTitleLines)
-                {
-                    TaskbarSideTitleLinesChanged?.Invoke(current.SideTitleLines);
-                }
-                if (previous.LabelArrangement != current.LabelArrangement || previous.LabelPosition != current.LabelPosition
-                    || previous.LabelAlignment != current.LabelAlignment || previous.SideLabelPosition != current.SideLabelPosition)
-                {
-                    TaskbarLabelLayoutChanged?.Invoke();
-                }
+                RaiseTaskbarCardChanges(previousCard, ActiveCard);
+            }
+        }
+
+        // compact cards on the active edge: a level bar of the current value in place of the graph
+        // a switch raises the change event of every card value that differs between the two cards, like an edit would
+        public bool TaskbarCompactCards
+        {
+            get => ActiveEdge.CompactCards;
+            set
+            {
+                if (ActiveEdge.CompactCards == value) return;
+
+                var previousCard = ActiveCard;
+                ActiveEdge.CompactCards = value;
+
+                TaskbarCompactCardsChanged?.Invoke(value);
+                RaiseTaskbarCardChanges(previousCard, ActiveCard);
+                SaveDebounced();
+            }
+        }
+
+        private void RaiseTaskbarCardChanges(TaskbarCardSettings previous, TaskbarCardSettings current)
+        {
+            if (previous.GraphTimeSpanSeconds != current.GraphTimeSpanSeconds)
+            {
+                TaskbarGraphTimeSpanChanged?.Invoke(current.GraphTimeSpanSeconds);
+            }
+            if (previous.GraphWidthDip != current.GraphWidthDip)
+            {
+                TaskbarGraphWidthChanged?.Invoke(current.GraphWidthDip);
+            }
+            if (previous.SideGraphDirection != current.SideGraphDirection)
+            {
+                TaskbarSideGraphDirectionChanged?.Invoke(current.SideGraphDirection);
+            }
+            if (previous.SideTitleLines != current.SideTitleLines)
+            {
+                TaskbarSideTitleLinesChanged?.Invoke(current.SideTitleLines);
+            }
+            if (previous.ColorSource != current.ColorSource || previous.CustomColor != current.CustomColor)
+            {
+                TaskbarGraphColorChanged?.Invoke(current.ColorSource, current.CustomColor);
+            }
+            if (previous.UseTransparentBackground != current.UseTransparentBackground)
+            {
+                TaskbarGraphBackgroundChanged?.Invoke(current.UseTransparentBackground);
+            }
+            if (previous.GraphBlur != current.GraphBlur)
+            {
+                TaskbarGraphBlurChanged?.Invoke(current.GraphBlur);
+            }
+            if (previous.LabelFontSize != current.LabelFontSize || previous.ValueSemiBold != current.ValueSemiBold
+                || previous.LabelArrangement != current.LabelArrangement || previous.LabelPosition != current.LabelPosition
+                || previous.LabelAlignment != current.LabelAlignment || previous.SideLabelPosition != current.SideLabelPosition)
+            {
+                TaskbarLabelLayoutChanged?.Invoke();
+            }
+            if (previous.DecimalPlaces != current.DecimalPlaces)
+            {
+                DecimalPlacesChanged?.Invoke();
             }
         }
 
         public double TaskbarGraphTimeSpanSeconds
         {
-            get => ActiveEdge.GraphTimeSpanSeconds;
+            get => ActiveCard.GraphTimeSpanSeconds;
             set
             {
-                if (ActiveEdge.GraphTimeSpanSeconds != value)
+                if (ActiveCard.GraphTimeSpanSeconds != value)
                 {
-                    ActiveEdge.GraphTimeSpanSeconds = value;
+                    ActiveCard.GraphTimeSpanSeconds = value;
                     TaskbarGraphTimeSpanChanged?.Invoke(value);
                     SaveDebounced();
                 }
@@ -984,12 +1026,12 @@ namespace FluentSensors.Persistence.Services
 
         public int TaskbarGraphWidthDip
         {
-            get => ActiveEdge.GraphWidthDip;
+            get => ActiveCard.GraphWidthDip;
             set
             {
-                if (ActiveEdge.GraphWidthDip != value)
+                if (ActiveCard.GraphWidthDip != value)
                 {
-                    ActiveEdge.GraphWidthDip = value;
+                    ActiveCard.GraphWidthDip = value;
                     TaskbarGraphWidthChanged?.Invoke(value);
                     SaveDebounced();
                 }
@@ -1014,12 +1056,12 @@ namespace FluentSensors.Persistence.Services
         // "RightToLeft", "TopToBottom" or "BottomToTop"
         public string TaskbarSideGraphDirection
         {
-            get => ActiveEdge.SideGraphDirection;
+            get => ActiveCard.SideGraphDirection;
             set
             {
-                if (ActiveEdge.SideGraphDirection != value)
+                if (ActiveCard.SideGraphDirection != value)
                 {
-                    ActiveEdge.SideGraphDirection = value;
+                    ActiveCard.SideGraphDirection = value;
                     TaskbarSideGraphDirectionChanged?.Invoke(value);
                     SaveDebounced();
                 }
@@ -1029,12 +1071,12 @@ namespace FluentSensors.Persistence.Services
         // lines for the sensor name in a side slot, 1 or 2
         public int TaskbarSideTitleLines
         {
-            get => ActiveEdge.SideTitleLines;
+            get => ActiveCard.SideTitleLines;
             set
             {
-                if (ActiveEdge.SideTitleLines != value)
+                if (ActiveCard.SideTitleLines != value)
                 {
-                    ActiveEdge.SideTitleLines = value;
+                    ActiveCard.SideTitleLines = value;
                     TaskbarSideTitleLinesChanged?.Invoke(value);
                     SaveDebounced();
                 }
@@ -1044,42 +1086,42 @@ namespace FluentSensors.Persistence.Services
         // "SideBySide" or "Stacked"
         public string TaskbarLabelArrangement
         {
-            get => ActiveEdge.LabelArrangement;
+            get => ActiveCard.LabelArrangement;
             set
             {
-                if (ActiveEdge.LabelArrangement != value)
+                if (ActiveCard.LabelArrangement != value)
                 {
-                    ActiveEdge.LabelArrangement = value;
+                    ActiveCard.LabelArrangement = value;
                     TaskbarLabelLayoutChanged?.Invoke();
                     SaveDebounced();
                 }
             }
         }
 
-        // "Top" or "Bottom"
+        // "Top", "Center" or "Bottom"
         public string TaskbarLabelPosition
         {
-            get => ActiveEdge.LabelPosition;
+            get => ActiveCard.LabelPosition;
             set
             {
-                if (ActiveEdge.LabelPosition != value)
+                if (ActiveCard.LabelPosition != value)
                 {
-                    ActiveEdge.LabelPosition = value;
+                    ActiveCard.LabelPosition = value;
                     TaskbarLabelLayoutChanged?.Invoke();
                     SaveDebounced();
                 }
             }
         }
 
-        // "Spread", "Top" or "Bottom"; a side edge only
+        // "Spread", "Top", "Center" or "Bottom"; a side edge only
         public string TaskbarSideLabelPosition
         {
-            get => ActiveEdge.SideLabelPosition;
+            get => ActiveCard.SideLabelPosition;
             set
             {
-                if (ActiveEdge.SideLabelPosition != value)
+                if (ActiveCard.SideLabelPosition != value)
                 {
-                    ActiveEdge.SideLabelPosition = value;
+                    ActiveCard.SideLabelPosition = value;
                     TaskbarLabelLayoutChanged?.Invoke();
                     SaveDebounced();
                 }
@@ -1089,19 +1131,19 @@ namespace FluentSensors.Persistence.Services
         // "Left" or "Right"
         public string TaskbarLabelAlignment
         {
-            get => ActiveEdge.LabelAlignment;
+            get => ActiveCard.LabelAlignment;
             set
             {
-                if (ActiveEdge.LabelAlignment != value)
+                if (ActiveCard.LabelAlignment != value)
                 {
-                    ActiveEdge.LabelAlignment = value;
+                    ActiveCard.LabelAlignment = value;
                     TaskbarLabelLayoutChanged?.Invoke();
                     SaveDebounced();
                 }
             }
         }
 
-        // every edge from the saved dictionary, or from the legacy single values in an older file
+        // every edge from the saved dictionary, or from the legacy values in an older file; both cards always set
         private static Dictionary<string, TaskbarEdgeSettings> SeedTaskbarEdges(
             Dictionary<string, TaskbarEdgeSettings>? saved, AppSettingsData data)
         {
@@ -1109,20 +1151,37 @@ namespace FluentSensors.Persistence.Services
 
             foreach (var name in TaskbarEdgeNames)
             {
-                if (saved != null && saved.TryGetValue(name, out var savedEdge) && savedEdge != null)
+                TaskbarEdgeSettings? savedEdge = null;
+                saved?.TryGetValue(name, out savedEdge);
+
+                var edge = savedEdge?.Clone() ?? new TaskbarEdgeSettings();
+                if (savedEdge == null)
                 {
-                    edges[name] = savedEdge.Clone();
-                    continue;
+                    edge.FlyoutAlignment = data.TaskbarFlyoutAlignment ?? edge.FlyoutAlignment;
                 }
 
-                var seeded = new TaskbarEdgeSettings();
-                seeded.GraphTimeSpanSeconds = data.TaskbarGraphTimeSpanSeconds ?? seeded.GraphTimeSpanSeconds;
-                seeded.GraphWidthDip = data.TaskbarGraphWidthDip ?? seeded.GraphWidthDip;
-                seeded.FlyoutAlignment = data.TaskbarFlyoutAlignment ?? seeded.FlyoutAlignment;
-                edges[name] = seeded;
+                edge.Graph ??= SeedTaskbarCard(savedEdge, data);
+                edge.Compact ??= edge.Graph.Clone(); // a new compact card starts as the graph is set up
+                edges[name] = edge;
             }
 
             return edges;
+        }
+
+        // a card from the values before the cards: the flat values of a saved edge, else the single values from
+        // before the edges, and the graph look that was the same on every edge
+        private static TaskbarCardSettings SeedTaskbarCard(TaskbarEdgeSettings? savedEdge, AppSettingsData data)
+        {
+            var card = new TaskbarCardSettings();
+            card.GraphTimeSpanSeconds = savedEdge?.GraphTimeSpanSeconds ?? data.TaskbarGraphTimeSpanSeconds ?? card.GraphTimeSpanSeconds;
+            card.GraphWidthDip = savedEdge?.GraphWidthDip ?? data.TaskbarGraphWidthDip ?? card.GraphWidthDip;
+            card.SideGraphDirection = savedEdge?.SideGraphDirection ?? card.SideGraphDirection;
+            card.SideTitleLines = savedEdge?.SideTitleLines ?? card.SideTitleLines;
+            card.ColorSource = ResolveGraphColorSource(
+                data.TaskbarGraphColorSource, data.TaskbarUseGraphAccentColor, AppSettingsData.DefaultTaskbarGraphColorSource);
+            card.CustomColor = data.TaskbarGraphCustomColor ?? card.CustomColor;
+            card.UseTransparentBackground = data.TaskbarUseTransparentGraphBackground ?? card.UseTransparentBackground;
+            return card;
         }
 
         // a copy for the debounced writer, which serializes on another thread
@@ -1664,7 +1723,6 @@ namespace FluentSensors.Persistence.Services
             SensorUnitFormatter.CurrentPrefix = _currentUnitPrefix;
             _sensorListDecimalPlaces = data.SensorListDecimalPlaces;
             _performanceDecimalPlaces = data.PerformanceDecimalPlaces;
-            _taskbarDecimalPlaces = data.TaskbarDecimalPlaces;
             _taskbarFlyoutDecimalPlaces = data.TaskbarFlyoutDecimalPlaces;
             _widgetDecimalPlaces = data.WidgetDecimalPlaces;
             _performanceGraphTimeSpanSeconds = data.PerformanceGraphTimeSpanSeconds;
@@ -1680,13 +1738,6 @@ namespace FluentSensors.Persistence.Services
             _taskbarLuminosityOpacity = data.TaskbarLuminosityOpacity;
             _taskbarUseAccentColor = data.TaskbarUseAccentColor;
             _taskbarCustomTintColor = data.TaskbarCustomTintColor;
-            _taskbarGraphColorSource = ResolveGraphColorSource(
-                data.TaskbarGraphColorSource, data.TaskbarUseGraphAccentColor, AppSettingsData.DefaultTaskbarGraphColorSource);
-            _taskbarGraphCustomColor = data.TaskbarGraphCustomColor;
-            _taskbarUseTransparentGraphBackground = data.TaskbarUseTransparentGraphBackground;
-            _taskbarGraphBlur = data.TaskbarGraphBlur;
-            _taskbarLabelFontSize = data.TaskbarLabelFontSize;
-            _taskbarValueSemiBold = data.TaskbarValueSemiBold;
             _performanceYMaxBesideValue = data.PerformanceYMaxBesideValue;
             _taskbarFlyoutYMaxBesideValue = data.TaskbarFlyoutYMaxBesideValue;
             _widgetYMaxBesideValue = data.WidgetYMaxBesideValue;
@@ -1775,7 +1826,6 @@ namespace FluentSensors.Persistence.Services
                 CurrentUnitPrefix = _currentUnitPrefix,
                 SensorListDecimalPlaces = _sensorListDecimalPlaces,
                 PerformanceDecimalPlaces = _performanceDecimalPlaces,
-                TaskbarDecimalPlaces = _taskbarDecimalPlaces,
                 TaskbarFlyoutDecimalPlaces = _taskbarFlyoutDecimalPlaces,
                 WidgetDecimalPlaces = _widgetDecimalPlaces,
                 PerformanceGraphTimeSpanSeconds = _performanceGraphTimeSpanSeconds,
@@ -1787,12 +1837,6 @@ namespace FluentSensors.Persistence.Services
                 TaskbarLuminosityOpacity = _taskbarLuminosityOpacity,
                 TaskbarUseAccentColor = _taskbarUseAccentColor,
                 TaskbarCustomTintColor = _taskbarCustomTintColor,
-                TaskbarGraphColorSource = _taskbarGraphColorSource,
-                TaskbarGraphCustomColor = _taskbarGraphCustomColor,
-                TaskbarUseTransparentGraphBackground = _taskbarUseTransparentGraphBackground,
-                TaskbarGraphBlur = _taskbarGraphBlur,
-                TaskbarLabelFontSize = _taskbarLabelFontSize,
-                TaskbarValueSemiBold = _taskbarValueSemiBold,
                 PerformanceYMaxBesideValue = _performanceYMaxBesideValue,
                 TaskbarFlyoutYMaxBesideValue = _taskbarFlyoutYMaxBesideValue,
                 WidgetYMaxBesideValue = _widgetYMaxBesideValue,
@@ -1893,9 +1937,10 @@ namespace FluentSensors.Persistence.Services
         public event Action<string> TaskbarSideGraphDirectionChanged;
         public event Action<int> TaskbarSideTitleLinesChanged;
 
-        // no value; font size, SemiBold value and the arrangement of the active edge, consumers re-read them
+        // no value; font size, SemiBold value and the arrangement of the active card, consumers re-read them
         public event Action TaskbarLabelLayoutChanged;
         public event Action<bool> TaskbarGraphBlurChanged;
+        public event Action<bool> TaskbarCompactCardsChanged;
 
         // no value; any of the three y-max positions, consumers re-read through IsYMaxBesideValue
         public event Action YMaxPositionChanged;

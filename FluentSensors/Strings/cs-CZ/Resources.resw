@@ -356,6 +356,9 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   <data name="Settings_TaskbarLabelPositionComboBox_Top.Content" xml:space="preserve">
     <value>Nahoře</value>
   </data>
+  <data name="Settings_TaskbarLabelPositionComboBox_Center.Content" xml:space="preserve">
+    <value>Uprostřed</value>
+  </data>
   <data name="Settings_TaskbarLabelPositionComboBox_Bottom.Content" xml:space="preserve">
     <value>Dole</value>
   </data>
@@ -368,6 +371,9 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   <data name="Settings_TaskbarSideLabelPositionComboBox_Top.Content" xml:space="preserve">
     <value>Nahoře</value>
   </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox_Center.Content" xml:space="preserve">
+    <value>Uprostřed</value>
+  </data>
   <data name="Settings_TaskbarSideLabelPositionComboBox_Bottom.Content" xml:space="preserve">
     <value>Dole</value>
   </data>
@@ -379,6 +385,15 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   </data>
   <data name="Settings_TaskbarLabelAlignmentComboBox_Right.Content" xml:space="preserve">
     <value>Vpravo</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Karta na hlavním panelu</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox_Compact.Content" xml:space="preserve">
+    <value>Pruh</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox_Graph.Content" xml:space="preserve">
+    <value>Graf</value>
   </data>
   <data name="Settings_TaskbarGraphBlurCard.Header" xml:space="preserve">
     <value>Rozostření grafu</value>
@@ -561,7 +576,7 @@ Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování po
     <value>Aktuální poloha hlavního panelu</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
-    <value>Barva grafu, pozadí, časový rozsah, šířka a rozložení na bočním hlavním panelu</value>
+    <value>Karta, barva, pozadí, časový rozsah, šířka a text</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
     <value>Graf na hlavním panelu</value>
@@ -603,7 +618,7 @@ Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování po
     <value>Šířka grafu</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
-    <value>Směr grafu na bočním hlavním panelu</value>
+    <value>Směr grafu</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
     <value>Zprava doleva</value>
@@ -615,7 +630,7 @@ Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování po
     <value>Zdola nahoru</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
-    <value>Řádky názvu na bočním hlavním panelu</value>
+    <value>Řádky názvu</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
     <value>Jeden řádek</value>

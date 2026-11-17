@@ -174,6 +174,13 @@ namespace FluentSensors.Controls.SensorGraph
         {
             if (_lineSeries == null) return; // before the constructor finished
 
+            // a compact card paints its level bar instead
+            if (IsCompact)
+            {
+                ApplyLevelBar();
+                return;
+            }
+
             // the surface both series types share
             var line = (IStrokedAndFilled)_lineSeries;
 
@@ -213,7 +220,9 @@ namespace FluentSensors.Controls.SensorGraph
             if (ySpan <= 0) ySpan = 1;
 
             const double strokeOffsetPixels = 0.6; // lifts the color change point
-            double chartHeight = Chart?.ActualHeight ?? 80.0;
+            // a chart just shown again after a compact card is not measured yet; its height of 0 would push the color
+            // change to the bottom and paint the whole line in the threshold color
+            double chartHeight = Chart?.ActualHeight is double height && height > 0 ? height : 80.0;
             double yRatio = ((yTop - ThresholdValue.Value) / ySpan) + (strokeOffsetPixels / chartHeight);
             yRatio = System.Math.Clamp(yRatio, 0.0, 1.0);
 
@@ -312,6 +321,8 @@ namespace FluentSensors.Controls.SensorGraph
         // the threshold line plus one full-height box per alarm zone; guarded like ApplyStroke
         private void RebuildSections()
         {
+            if (IsCompact) return; // no chart; leaving compact repaints in full
+
             bool hasThreshold = ThresholdValue is not null;
             bool hasAnyRun = hasThreshold && ComputeHasAnyRun();
 

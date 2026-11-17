@@ -941,14 +941,28 @@
             </controls:SettingsCard>
 
             <!--  taskbar graph appearance  -->
+            <!--
+                the card the active edge shows, the graph or a compact card with a level bar of the current value;
+                every setting inside belongs to that card on that edge, see RestoreTaskbarCardSelection
+            -->
             <controls:SettingsExpander
                 x:Uid="Settings_TaskbarGraphExpander"
                 fhUi:FocusGroup.IsEnabled="True"
                 HeaderIcon="{toolkit:FontIcon Glyph=&#xE9D2;}"
                 IsExpanded="False">
+                <controls:SettingsExpander.Content>
+                    <ComboBox
+                        x:Name="TaskbarCardKindComboBox"
+                        x:Uid="Settings_TaskbarCardKindComboBox"
+                        Width="120"
+                        SelectionChanged="TaskbarCardKindComboBox_SelectionChanged">
+                        <ComboBoxItem x:Uid="Settings_TaskbarCardKindComboBox_Graph" Tag="Graph" />
+                        <ComboBoxItem x:Uid="Settings_TaskbarCardKindComboBox_Compact" Tag="Compact" />
+                    </ComboBox>
+                </controls:SettingsExpander.Content>
 
                 <controls:SettingsExpander.Items>
-                    <!--  graph: color, background, blur, time range, width  -->
+                    <!--  graph: color, background, blur, time range, width, direction (blur, time range and direction graph only)  -->
                     <controls:SettingsCard x:Uid="Settings_TaskbarGraphColorSourceCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
@@ -976,13 +990,13 @@
                             <ComboBoxItem x:Uid="Settings_TaskbarGraphBackgroundSourceComboBox_Transparent" Tag="Transparent" />
                         </ComboBox>
                     </controls:SettingsCard>
-                    <controls:SettingsCard x:Uid="Settings_TaskbarGraphBlurCard">
+                    <controls:SettingsCard x:Name="TaskbarGraphBlurCard" x:Uid="Settings_TaskbarGraphBlurCard">
                         <ToggleSwitch
                             x:Name="TaskbarGraphBlurToggle"
                             x:Uid="Common_ToggleSwitch"
                             Toggled="TaskbarGraphBlurToggle_Toggled" />
                     </controls:SettingsCard>
-                    <controls:SettingsCard x:Uid="Settings_TimeRangeCard">
+                    <controls:SettingsCard x:Name="TaskbarGraphTimeRangeCard" x:Uid="Settings_TimeRangeCard">
                         <ComboBox
                             x:Name="TaskbarGraphTimeSpanComboBox"
                             Width="40"
@@ -999,11 +1013,22 @@
                             TickFrequency="20"
                             ValueChanged="TaskbarGraphWidthSlider_ValueChanged" />
                     </controls:SettingsCard>
+                    <!--  (left or right edge only)  -->
+                    <controls:SettingsCard x:Name="TaskbarSideGraphDirectionCard" x:Uid="Settings_TaskbarSideGraphDirectionCard">
+                        <ComboBox
+                            x:Name="TaskbarSideGraphDirectionComboBox"
+                            Width="160"
+                            SelectionChanged="TaskbarSideGraphDirectionComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft" Tag="RightToLeft" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarSideGraphDirectionComboBox_TopToBottom" Tag="TopToBottom" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarSideGraphDirectionComboBox_BottomToTop" Tag="BottomToTop" />
+                        </ComboBox>
+                    </controls:SettingsCard>
 
-                    <!--  text: size and SemiBold value, layout, decimals  -->
+                    <!--  text: size and SemiBold value, layout, name lines (left or right edge only), decimals  -->
                     <!--
-                        (size and weight on every edge; layout per edge: arrangement and position on a top or bottom
-                        edge, position and side on a side edge, see OnActiveTaskbarEdgeChanged)
+                        (layout: arrangement and position on a top or bottom edge, position and side on a side edge,
+                        see OnActiveTaskbarEdgeChanged)
                     -->
                     <controls:SettingsCard x:Uid="Settings_TaskbarTextSizeCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -1029,10 +1054,15 @@
                     </controls:SettingsCard>
                     <controls:SettingsCard x:Uid="Settings_TaskbarTextLayoutCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">
+                            <!--  (narrower than the 64 DIP the combo box template sets as its least width)  -->
+                            <StackPanel.Resources>
+                                <x:Double x:Key="ComboBoxThemeMinWidth">0</x:Double>
+                            </StackPanel.Resources>
+
                             <ComboBox
                                 x:Name="TaskbarLabelArrangementComboBox"
                                 x:Uid="Settings_TaskbarLabelArrangementComboBox"
-                                Width="120"
+                                Width="140"
                                 SelectionChanged="TaskbarLabelArrangementComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelArrangementComboBox_SideBySide" Tag="SideBySide" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelArrangementComboBox_Stacked" Tag="Stacked" />
@@ -1041,9 +1071,10 @@
                             <ComboBox
                                 x:Name="TaskbarLabelPositionComboBox"
                                 x:Uid="Settings_TaskbarLabelPositionComboBox"
-                                Width="90"
+                                Width="100"
                                 SelectionChanged="TaskbarLabelPositionComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Top" Tag="Top" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Center" Tag="Center" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelPositionComboBox_Bottom" Tag="Bottom" />
                             </ComboBox>
 
@@ -1054,18 +1085,28 @@
                                 SelectionChanged="TaskbarSideLabelPositionComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarSideLabelPositionComboBox_Spread" Tag="Spread" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarSideLabelPositionComboBox_Top" Tag="Top" />
+                                <ComboBoxItem x:Uid="Settings_TaskbarSideLabelPositionComboBox_Center" Tag="Center" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarSideLabelPositionComboBox_Bottom" Tag="Bottom" />
                             </ComboBox>
 
                             <ComboBox
                                 x:Name="TaskbarLabelAlignmentComboBox"
                                 x:Uid="Settings_TaskbarLabelAlignmentComboBox"
-                                Width="90"
+                                Width="80"
                                 SelectionChanged="TaskbarLabelAlignmentComboBox_SelectionChanged">
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelAlignmentComboBox_Left" Tag="Left" />
                                 <ComboBoxItem x:Uid="Settings_TaskbarLabelAlignmentComboBox_Right" Tag="Right" />
                             </ComboBox>
                         </StackPanel>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard x:Name="TaskbarSideTitleLinesCard" x:Uid="Settings_TaskbarSideTitleLinesCard">
+                        <ComboBox
+                            x:Name="TaskbarSideTitleLinesComboBox"
+                            Width="160"
+                            SelectionChanged="TaskbarSideTitleLinesComboBox_SelectionChanged">
+                            <ComboBoxItem x:Uid="Settings_TaskbarSideTitleLinesComboBox_1" Tag="1" />
+                            <ComboBoxItem x:Uid="Settings_TaskbarSideTitleLinesComboBox_2" Tag="2" />
+                        </ComboBox>
                     </controls:SettingsCard>
                     <controls:SettingsCard x:Uid="Settings_DecimalPlacesCard">
                         <ComboBox
@@ -1078,27 +1119,6 @@
                             <ComboBoxItem Content="1" Tag="1" />
                             <ComboBoxItem Content="2" Tag="2" />
                             <ComboBoxItem Content="3" Tag="3" />
-                        </ComboBox>
-                    </controls:SettingsCard>
-
-                    <!--  side taskbar: graph direction, name lines; (only with the taskbar on the left or right)  -->
-                    <controls:SettingsCard x:Name="TaskbarSideGraphDirectionCard" x:Uid="Settings_TaskbarSideGraphDirectionCard">
-                        <ComboBox
-                            x:Name="TaskbarSideGraphDirectionComboBox"
-                            Width="160"
-                            SelectionChanged="TaskbarSideGraphDirectionComboBox_SelectionChanged">
-                            <ComboBoxItem x:Uid="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft" Tag="RightToLeft" />
-                            <ComboBoxItem x:Uid="Settings_TaskbarSideGraphDirectionComboBox_TopToBottom" Tag="TopToBottom" />
-                            <ComboBoxItem x:Uid="Settings_TaskbarSideGraphDirectionComboBox_BottomToTop" Tag="BottomToTop" />
-                        </ComboBox>
-                    </controls:SettingsCard>
-                    <controls:SettingsCard x:Name="TaskbarSideTitleLinesCard" x:Uid="Settings_TaskbarSideTitleLinesCard">
-                        <ComboBox
-                            x:Name="TaskbarSideTitleLinesComboBox"
-                            Width="160"
-                            SelectionChanged="TaskbarSideTitleLinesComboBox_SelectionChanged">
-                            <ComboBoxItem x:Uid="Settings_TaskbarSideTitleLinesComboBox_1" Tag="1" />
-                            <ComboBoxItem x:Uid="Settings_TaskbarSideTitleLinesComboBox_2" Tag="2" />
                         </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>

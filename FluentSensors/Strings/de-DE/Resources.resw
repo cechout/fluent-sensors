@@ -356,6 +356,9 @@ GPU-Auslastung - die am st√§rksten ausgelastete GPU-Engine, auf der diese App l√
   <data name="Settings_TaskbarLabelPositionComboBox_Top.Content" xml:space="preserve">
     <value>Oben</value>
   </data>
+  <data name="Settings_TaskbarLabelPositionComboBox_Center.Content" xml:space="preserve">
+    <value>Mitte</value>
+  </data>
   <data name="Settings_TaskbarLabelPositionComboBox_Bottom.Content" xml:space="preserve">
     <value>Unten</value>
   </data>
@@ -368,6 +371,9 @@ GPU-Auslastung - die am st√§rksten ausgelastete GPU-Engine, auf der diese App l√
   <data name="Settings_TaskbarSideLabelPositionComboBox_Top.Content" xml:space="preserve">
     <value>Oben</value>
   </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox_Center.Content" xml:space="preserve">
+    <value>Mitte</value>
+  </data>
   <data name="Settings_TaskbarSideLabelPositionComboBox_Bottom.Content" xml:space="preserve">
     <value>Unten</value>
   </data>
@@ -379,6 +385,15 @@ GPU-Auslastung - die am st√§rksten ausgelastete GPU-Engine, auf der diese App l√
   </data>
   <data name="Settings_TaskbarLabelAlignmentComboBox_Right.Content" xml:space="preserve">
     <value>Rechts</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Taskleistenkarte</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox_Compact.Content" xml:space="preserve">
+    <value>Balken</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox_Graph.Content" xml:space="preserve">
+    <value>Graph</value>
   </data>
   <data name="Settings_TaskbarGraphBlurCard.Header" xml:space="preserve">
     <value>Graph-Unsch√§rfe</value>
@@ -561,7 +576,7 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
     <value>Aktuelle Position der Taskleiste</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
-    <value>Graphfarbe, Hintergrund, Zeitraum, Breite und Layout an seitlicher Taskleiste</value>
+    <value>Karte, Farbe, Hintergrund, Zeitraum, Breite und Text</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
     <value>Taskleisten-Graph</value>
@@ -603,7 +618,7 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
     <value>Graphbreite</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
-    <value>Graphrichtung an seitlicher Taskleiste</value>
+    <value>Graphrichtung</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
     <value>Rechts nach links</value>
@@ -615,7 +630,7 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
     <value>Unten nach oben</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
-    <value>Namenszeilen an seitlicher Taskleiste</value>
+    <value>Namenszeilen</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
     <value>Eine Zeile</value>

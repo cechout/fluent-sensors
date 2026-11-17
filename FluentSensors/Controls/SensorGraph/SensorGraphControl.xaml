@@ -33,13 +33,28 @@
                 XAxes="{Binding XAxes, ElementName=Root}"
                 YAxes="{Binding YAxes, ElementName=Root}" />
 
+            <!--  level bar: the current value against the y range, in place of the chart (IsCompact, see ApplyLevelBarLayout)  -->
+            <Grid
+                x:Name="LevelBar"
+                CornerRadius="1.5"
+                IsHitTestVisible="False"
+                Visibility="Collapsed">
+                <Border x:Name="LevelBarTrack" />
+                <Border x:Name="LevelBarFill" RenderTransformOrigin="0,1">
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="LevelBarScale" />
+                    </Border.RenderTransform>
+                </Border>
+            </Grid>
+
             <!--  title and value overlay  -->
-            <!--  (with IsLabelVisible; one row or stacked, at the top or the bottom, see ApplyLabelLayout)  -->
+            <!--  (with IsLabelVisible; one row or stacked, at the top, the middle or the bottom, see ApplyLabelLayout)  -->
             <Grid
                 x:Name="LabelOverlay"
                 Margin="4,1,4,0"
                 VerticalAlignment="Top"
-                IsHitTestVisible="False">
+                IsHitTestVisible="False"
+                SizeChanged="LabelOverlay_SizeChanged">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />

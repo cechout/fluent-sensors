@@ -368,6 +368,10 @@ namespace FluentSensors.Features.TaskbarWidget
             SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnTaskbarGraphTimeSpanChanged;
             SettingsService.Instance.TaskbarFlyoutGraphTimeSpanChanged += OnFlyoutGraphTimeSpanChanged;
 
+            // the taskbar range only for graph cards; a level bar shows the newest value only
+            ApplyTaskbarTimeRangeVisibility(SettingsService.Instance.TaskbarCompactCards);
+            SettingsService.Instance.TaskbarCompactCardsChanged += OnTaskbarCompactCardsChanged;
+
             // a rebuilt window takes over a running snapshot with the view model
             ApplyPauseState();
             ApplyResourcesButtonState();
@@ -1665,6 +1669,17 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 TaskbarTimeRangePicker.SelectedSeconds = newTimeSpanSeconds;
             });
+        }
+
+        // also on a taskbar move, the active edge has its own card
+        private void OnTaskbarCompactCardsChanged(bool isCompact)
+        {
+            this.DispatcherQueue.TryEnqueue(() => ApplyTaskbarTimeRangeVisibility(isCompact));
+        }
+
+        private void ApplyTaskbarTimeRangeVisibility(bool isCompact)
+        {
+            TaskbarTimeRangePicker.Visibility = isCompact ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private void OnFlyoutGraphTimeSpanChanged(double newTimeSpanSeconds)

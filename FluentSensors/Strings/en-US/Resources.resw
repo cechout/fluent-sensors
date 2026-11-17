@@ -376,6 +376,9 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
   <data name="Settings_TaskbarLabelPositionComboBox_Top.Content" xml:space="preserve">
     <value>Top</value>
   </data>
+  <data name="Settings_TaskbarLabelPositionComboBox_Center.Content" xml:space="preserve">
+    <value>Center</value>
+  </data>
   <data name="Settings_TaskbarLabelPositionComboBox_Bottom.Content" xml:space="preserve">
     <value>Bottom</value>
   </data>
@@ -390,6 +393,9 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
     <value>Top</value>
     <comment>name and value stacked at the top</comment>
   </data>
+  <data name="Settings_TaskbarSideLabelPositionComboBox_Center.Content" xml:space="preserve">
+    <value>Center</value>
+  </data>
   <data name="Settings_TaskbarSideLabelPositionComboBox_Bottom.Content" xml:space="preserve">
     <value>Bottom</value>
     <comment>name and value stacked at the bottom</comment>
@@ -402,6 +408,15 @@ GPU Usage - the busiest GPU engine this app runs on, like Task Manager</value>
   </data>
   <data name="Settings_TaskbarLabelAlignmentComboBox_Right.Content" xml:space="preserve">
     <value>Right</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Taskbar card</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox_Compact.Content" xml:space="preserve">
+    <value>Level Bar</value>
+  </data>
+  <data name="Settings_TaskbarCardKindComboBox_Graph.Content" xml:space="preserve">
+    <value>Graph</value>
   </data>
   <data name="Settings_TaskbarGraphBlurCard.Header" xml:space="preserve">
     <value>Graph Blur</value>
@@ -626,7 +641,7 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
     <value>Current Taskbar Position</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
-    <value>Graph color, background, time range, width and side taskbar layout</value>
+    <value>Card, color, background, time range, width and text</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
     <value>Taskbar Graph</value>
@@ -668,7 +683,7 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
     <value>Graph Width</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
-    <value>Side Taskbar Graph Direction</value>
+    <value>Graph Direction</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
     <value>Right to Left</value>
@@ -680,7 +695,7 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
     <value>Bottom to Top</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
-    <value>Side Taskbar Name Lines</value>
+    <value>Name Lines</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
     <value>One Line</value>
