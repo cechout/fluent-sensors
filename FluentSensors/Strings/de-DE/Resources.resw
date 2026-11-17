@@ -696,8 +696,23 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Verhalten von Taskleisten-Widget und Flyout</value>
   </data>
+  <data name="Settings_TaskbarWidgetMonitorsCard.Header" xml:space="preserve">
+    <value>Bildschirme</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorsCard.Description" xml:space="preserve">
+    <value>Das Widget erscheint auf der Taskleiste jedes markierten Bildschirms</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorFallbackName" xml:space="preserve">
+    <value>Bildschirm {0}</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorMain" xml:space="preserve">
+    <value>{0} (Hauptbildschirm)</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorNoTaskbar" xml:space="preserve">
+    <value>{0}, keine Taskleiste</value>
+  </data>
   <data name="Settings_TaskbarWidgetPositionExpander.Description" xml:space="preserve">
-    <value>Vor dem Infobereich oder dort, wo du es hinziehst</value>
+    <value>Bildschirme, vor dem Infobereich oder dort, wo du es hinziehst</value>
   </data>
   <data name="Settings_TaskbarWidgetPositionExpander.Header" xml:space="preserve">
     <value>Position des Taskleisten-Widgets</value>

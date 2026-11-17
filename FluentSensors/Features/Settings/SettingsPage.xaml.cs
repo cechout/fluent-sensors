@@ -151,6 +151,9 @@ namespace FluentSensors.Features.Settings
             }
             OnActiveTaskbarEdgeChanged(SettingsService.Instance.ActiveTaskbarEdge);
 
+            // monitors come and go while the page sits in the navigation cache
+            RestoreTaskbarMonitorSelection();
+
             // the time range pickers in the flyout write the same settings; (the performance page and each widget
             // window keep theirs next to the graphs)
             SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnTimeRangeChanged;
@@ -1665,6 +1668,72 @@ namespace FluentSensors.Features.Settings
             LockWidgetPositionToggle.IsOn = SettingsService.Instance.TaskbarWidgetPositionLocked;
             TaskbarWidgetBeforeTrayToggle.IsOn = SettingsService.Instance.TaskbarWidgetBeforeTray;
             UpdateLockWidgetPositionAvailability();
+        }
+
+        // --- widget monitors ---
+        // one check box per active monitor; one without a taskbar (taskbars on the main display only) cannot be
+        // picked, and the last monitor with a taskbar cannot be unchecked; a choice for a monitor that is not
+        // connected stays saved
+
+        private void RestoreTaskbarMonitorSelection()
+        {
+            var monitors = WinDisplayMonitors.GetAll();
+            var taskbarMonitors = WinTaskbarService.Instance.DiscoverNow().Select(t => t.Monitor).ToHashSet();
+            var chosen = EffectiveTaskbarMonitors(monitors);
+
+            TaskbarMonitorsPanel.Children.Clear();
+            for (int i = 0; i < monitors.Count; i++)
+            {
+                var monitor = monitors[i];
+                bool hasTaskbar = taskbarMonitors.Contains(monitor.Handle);
+
+                string name = string.IsNullOrWhiteSpace(monitor.Name)
+                    ? AppStrings.Format("Settings_TaskbarWidgetMonitorFallbackName", i + 1)
+                    : monitor.Name;
+                if (monitor.IsPrimary) name = AppStrings.Format("Settings_TaskbarWidgetMonitorMain", name);
+                if (!hasTaskbar) name = AppStrings.Format("Settings_TaskbarWidgetMonitorNoTaskbar", name);
+
+                var checkBox = new CheckBox
+                {
+                    Content = name,
+                    Tag = monitor.Key,
+                    IsChecked = hasTaskbar && chosen.Contains(monitor.Key),
+                    IsEnabled = hasTaskbar
+                };
+                checkBox.Click += TaskbarMonitorCheckBox_Click;
+                TaskbarMonitorsPanel.Children.Add(checkBox);
+            }
+        }
+
+        // the saved choice, or the main display without one
+        private static HashSet<string> EffectiveTaskbarMonitors(List<WinDisplayMonitor> monitors)
+        {
+            var saved = SettingsService.Instance.TaskbarWidgetMonitors;
+            if (saved != null && saved.Count > 0) return new HashSet<string>(saved, StringComparer.OrdinalIgnoreCase);
+
+            var main = monitors.FirstOrDefault(m => m.IsPrimary);
+            return main != null
+                ? new HashSet<string>(new[] { main.Key }, StringComparer.OrdinalIgnoreCase)
+                : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        private void TaskbarMonitorCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not CheckBox { Tag: string key } checkBox) return;
+
+            var chosen = EffectiveTaskbarMonitors(WinDisplayMonitors.GetAll());
+            if (checkBox.IsChecked == true) chosen.Add(key);
+            else chosen.Remove(key);
+
+            // at least one monitor with a taskbar stays checked
+            bool anyChecked = TaskbarMonitorsPanel.Children.OfType<CheckBox>().Any(c => c.IsEnabled && c.IsChecked == true);
+            if (!anyChecked)
+            {
+                checkBox.IsChecked = true;
+                return;
+            }
+
+            SettingsService.Instance.TaskbarWidgetMonitors = chosen.ToList();
         }
 
         // --- widget before the tray ---
