@@ -31,6 +31,10 @@ namespace FluentSensors.Controls.SensorGraph
     {
         // === fields ===
 
+        // stacked text: each line box is the font size plus this, in DIP; larger spreads name and value apart, smaller
+        // (down to about -2) pulls them together
+        private const double StackedLineSpacing = 2;
+
         // level bar of a compact card (IsCompact), in DIP; the track is the bar color at LevelBarTrackAlpha
         // (TaskbarSideSlot keeps room for the bar with the internal ones)
         internal const double LevelBarThickness = 3;
@@ -652,7 +656,7 @@ namespace FluentSensors.Controls.SensorGraph
 
             // stacked: two lines in tight line boxes flush with the card edge, so the block stays above the middle at
             // the top and off the very foot at the bottom; one row keeps the natural line box and its 1 DIP inset
-            double stackedLineHeight = layout.IsStacked ? layout.FontSize + 2 : 0;
+            double stackedLineHeight = layout.IsStacked ? layout.FontSize + StackedLineSpacing : 0;
             foreach (var text in new[] { GraphLabelText, GraphCurrentValueText })
             {
                 text.LineHeight = stackedLineHeight;
