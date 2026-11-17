@@ -59,9 +59,9 @@ namespace FluentSensors.Features.TaskbarWidget
         private const int ButtonPaddingDip = 0; // along the taskbar, in the length math
         private const int MinimumWidgetLengthDip = 60; // with no sensors pinned
 
-        // before the system tray (TaskbarWidgetBeforeTray), in DIP
-        private const int TrayGapDip = 4; // to the tray
+        // task buttons and tray, in DIP
         private const int TaskButtonGapDip = 8; // the least room to the task buttons; less hides the widget
+        private const int TrayGapDip = 4; // to the tray, before it (TaskbarWidgetBeforeTray)
 
         // button padding in the frame of the graph, not of the taskbar edge; (the graph is asymmetric by itself,
         // a 3 DIP label gap above it and the chart 2 DIP below its card); calibrated on the bottom
@@ -96,7 +96,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // when the taskbar comes back
         private readonly Dictionary<ScreenEdge, int> _offsetsDip = new();
 
-        // tray and task button bounds while the widget sits before the tray
+        // tray and task button bounds, so the widget never covers a button
         private readonly WinTaskbarTrayTracker _trayTracker = new();
 
         // taskbar snapshot the widget was last laid out for; FollowTaskbar compares against it to skip polls that
@@ -646,6 +646,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // - position from the drag offset of the matching orientation
         // - kept inside the taskbar the same way a drag is
         // - before the tray instead when that is on; a taskbar without a tray (a secondary one) keeps the drag offset
+        // - zero length, so gone, while it would cover a task button, until the buttons leave room again
         private RectInt32 CalculateScreenRect(WinTaskbarInfo taskbar)
         {
             double scale = taskbar.Dpi / 96.0;
@@ -653,30 +654,32 @@ namespace FluentSensors.Features.TaskbarWidget
             int innerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactInnerMarginDip : InnerMarginDip) * scale);
             int outerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactOuterMarginDip : OuterMarginDip) * scale);
             int offsetPx = ClampOffsetPx(taskbar, (int)(CurrentOffsetDip * scale), lengthPx);
+            int buttonGapPx = (int)Math.Round(TaskButtonGapDip * scale);
 
-            if (SettingsService.Instance.TaskbarWidgetBeforeTray)
+            var (tray, taskButtons) = _trayTracker.Read(taskbar.Hwnd);
+
+            if (SettingsService.Instance.TaskbarWidgetBeforeTray && tray is RectInt32 trayRect)
             {
-                var (tray, taskButtons) = _trayTracker.Read(taskbar.Hwnd);
-                if (tray is RectInt32 trayRect)
-                {
-                    int? beforeTray = TaskbarWidgetPlacement.CalculateBeforeTrayOffset(
-                        taskbar,
-                        trayRect,
-                        taskButtons,
-                        lengthPx,
-                        (int)Math.Round(TrayGapDip * scale),
-                        (int)Math.Round(TaskButtonGapDip * scale));
+                int? beforeTray = TaskbarWidgetPlacement.CalculateBeforeTrayOffset(
+                    taskbar,
+                    trayRect,
+                    taskButtons,
+                    lengthPx,
+                    (int)Math.Round(TrayGapDip * scale),
+                    buttonGapPx);
 
-                    // no room: zero length, gone until the buttons or the tray leave room again; it never covers them
-                    if (beforeTray is int trayOffsetPx)
-                    {
-                        offsetPx = trayOffsetPx;
-                    }
-                    else
-                    {
-                        lengthPx = 0;
-                    }
+                if (beforeTray is int trayOffsetPx)
+                {
+                    offsetPx = trayOffsetPx;
                 }
+                else
+                {
+                    lengthPx = 0;
+                }
+            }
+            else if (taskButtons is RectInt32 buttons && TaskbarWidgetPlacement.IsNearTaskButtons(taskbar, offsetPx, lengthPx, buttons, buttonGapPx))
+            {
+                lengthPx = 0;
             }
 
             return TaskbarWidgetPlacement.Calculate(
@@ -689,10 +692,10 @@ namespace FluentSensors.Features.TaskbarWidget
         }
 
         // the tray grows and shrinks and the task buttons come and go without a change to the taskbar rect, so the
-        // tracking tick asks again while the widget sits before the tray
-        private void FollowTray()
+        // tracking tick asks again; not during a drag, which places the widget itself
+        private void FollowTaskButtons()
         {
-            if (_isClosed || !_isEmbedded || _isOrphaned || _taskbarHwnd == IntPtr.Zero || _placedTaskbar == null) return;
+            if (_isClosed || !_isEmbedded || _isOrphaned || _isDragging || _taskbarHwnd == IntPtr.Zero || _placedTaskbar == null) return;
 
             var screenRect = CalculateScreenRect(_placedTaskbar);
             if (screenRect == _currentScreenRect) return;
@@ -1033,7 +1036,7 @@ namespace FluentSensors.Features.TaskbarWidget
             WinTaskbarService.Instance.StartMonitoring();
 
             // on a timer, since explorer.exe builds its taskbar island at no fixed point after a restart; the same tick
-            // follows the tray
+            // follows the task buttons and the tray
             _zOrderTimer = DispatcherQueue.CreateTimer();
             _zOrderTimer.Interval = TimeSpan.FromSeconds(1);
             _zOrderTimer.Tick += (s, e) =>
@@ -1041,7 +1044,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 if (_isEmbedded && !_isOrphaned && _taskbarHwnd != IntPtr.Zero)
                 {
                     WinTaskbarEmbedder.KeepAboveShell(_hwnd, _taskbarHwnd);
-                    if (SettingsService.Instance.TaskbarWidgetBeforeTray) FollowTray();
+                    FollowTaskButtons();
                 }
             };
             _zOrderTimer.Start();
@@ -1486,10 +1489,33 @@ namespace FluentSensors.Features.TaskbarWidget
             if (_isDragging)
             {
                 _isDragging = false;
+                RevertDropOnTaskButtons();
                 SaveWindowState(wasOpen: true);
             }
 
             _isPotentialDrag = false;
+        }
+
+        // a drop on the task buttons would hide the widget at once (CalculateScreenRect), so it goes back to where the
+        // drag started
+        private void RevertDropOnTaskButtons()
+        {
+            if (_dragTaskbar == null) return;
+
+            var (_, taskButtons) = _trayTracker.Read(_dragTaskbar.Hwnd);
+            if (taskButtons is not RectInt32 buttons) return;
+
+            bool isVertical = _dragTaskbar.IsVertical;
+            double scale = (_dragTaskbar.Dpi > 0 ? _dragTaskbar.Dpi : 96.0) / 96.0;
+            int barStart = isVertical ? _dragTaskbar.Rect.Y : _dragTaskbar.Rect.X;
+            int offsetPx = (isVertical ? _currentScreenRect.Y : _currentScreenRect.X) - barStart;
+            int lengthPx = isVertical ? _currentScreenRect.Height : _currentScreenRect.Width;
+            int gapPx = (int)Math.Round(TaskButtonGapDip * scale);
+
+            if (!TaskbarWidgetPlacement.IsNearTaskButtons(_dragTaskbar, offsetPx, lengthPx, buttons, gapPx)) return;
+
+            CurrentOffsetDip = (int)Math.Round((_dragStartWindowAlong - barStart) / scale);
+            PositionOnTaskbar();
         }
 
         private void TaskbarButton_Click(object sender, RoutedEventArgs e)

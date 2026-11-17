@@ -6,8 +6,8 @@ using Windows.Graphics;
 namespace FluentSensors.Core.Taskbar
 {
     // the taskbar tray tracker:
-    // where the notification area of a taskbar starts and where its task buttons end, so the widget can sit between
-    // them right before the tray; the approach follows busy (MIT, https://github.com/aivanyuk/busy)
+    // where the notification area of a taskbar starts and where its task buttons lie, so the widget never covers a
+    // button and can sit right before the tray; the approach follows busy (MIT, https://github.com/aivanyuk/busy)
     // - the tray is a Win32 child window (TrayNotifyWnd), read fresh on every call
     // - the task buttons only exist in UIA, read on a worker, one scan at a time; a call returns the last result
     public sealed class WinTaskbarTrayTracker
@@ -40,7 +40,7 @@ namespace FluentSensors.Core.Taskbar
                     _generation++;
                 }
 
-                if (tray != null && !_isScanPending)
+                if (!_isScanPending)
                 {
                     _isScanPending = true;
                     int generation = _generation;
