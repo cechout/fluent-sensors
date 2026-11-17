@@ -696,6 +696,12 @@ Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování po
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Chování widgetu na hlavním panelu a vysouvacího panelu</value>
   </data>
+  <data name="Settings_TaskbarWidgetPositionExpander.Description" xml:space="preserve">
+    <value>Před oznamovací oblastí nebo tam, kam ho přetáhnete</value>
+  </data>
+  <data name="Settings_TaskbarWidgetPositionExpander.Header" xml:space="preserve">
+    <value>Poloha widgetu na hlavním panelu</value>
+  </data>
   <data name="Settings_TaskbarWidgetBeforeTrayCard.Description" xml:space="preserve">
     <value>Udržuje widget hned před oznamovací oblastí a sleduje ji, když se zvětšuje nebo zmenšuje</value>
   </data>

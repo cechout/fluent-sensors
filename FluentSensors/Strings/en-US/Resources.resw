@@ -788,6 +788,12 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Taskbar Widget &amp; Flyout Behavior</value>
   </data>
+  <data name="Settings_TaskbarWidgetPositionExpander.Description" xml:space="preserve">
+    <value>Before the system tray or where you drag it</value>
+  </data>
+  <data name="Settings_TaskbarWidgetPositionExpander.Header" xml:space="preserve">
+    <value>Taskbar Widget Position</value>
+  </data>
   <data name="Settings_TaskbarWidgetBeforeTrayCard.Description" xml:space="preserve">
     <value>Keep the taskbar widget right before the system tray and follow it as it grows or shrinks</value>
   </data>

@@ -1260,28 +1260,27 @@
                 Margin="4,20,0,6"
                 Style="{StaticResource BodyStrongTextBlockStyle}" />
 
-            <!--  the widget right before the system tray, following it (no dragging while on)  -->
-            <controls:SettingsCard
-                x:Uid="Settings_TaskbarWidgetBeforeTrayCard"
+            <!--  widget position: right before the system tray, following it, or the drag lock (no dragging while before the tray)  -->
+            <controls:SettingsExpander
+                x:Uid="Settings_TaskbarWidgetPositionExpander"
                 fhUi:FocusGroup.IsEnabled="True"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE90D;}">
-                <ToggleSwitch
-                    x:Name="TaskbarWidgetBeforeTrayToggle"
-                    x:Uid="Common_ToggleSwitch"
-                    Toggled="TaskbarWidgetBeforeTrayToggle_Toggled" />
-            </controls:SettingsCard>
-
-            <!--  drag lock for the widget position on the taskbar  -->
-            <controls:SettingsCard
-                x:Name="LockTaskbarWidgetPositionCard"
-                x:Uid="Settings_LockTaskbarWidgetPositionCard"
-                fhUi:FocusGroup.IsEnabled="True"
-                HeaderIcon="{toolkit:FontIcon Glyph=&#xE72E;}">
-                <ToggleSwitch
-                    x:Name="LockWidgetPositionToggle"
-                    x:Uid="Common_ToggleSwitch"
-                    Toggled="LockWidgetPositionToggle_Toggled" />
-            </controls:SettingsCard>
+                HeaderIcon="{toolkit:FontIcon Glyph=&#xE90D;}"
+                IsExpanded="False">
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard x:Uid="Settings_TaskbarWidgetBeforeTrayCard">
+                        <ToggleSwitch
+                            x:Name="TaskbarWidgetBeforeTrayToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="TaskbarWidgetBeforeTrayToggle_Toggled" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard x:Name="LockTaskbarWidgetPositionCard" x:Uid="Settings_LockTaskbarWidgetPositionCard">
+                        <ToggleSwitch
+                            x:Name="LockWidgetPositionToggle"
+                            x:Uid="Common_ToggleSwitch"
+                            Toggled="LockWidgetPositionToggle_Toggled" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
 
             <!--  flyout shortcut  -->
             <!--  (the keys as accent buttons and an edit pencil; a click opens FlyoutShortcutDialog, keys set from code)  -->
