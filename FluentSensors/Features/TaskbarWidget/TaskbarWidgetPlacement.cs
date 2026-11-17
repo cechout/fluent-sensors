@@ -40,5 +40,30 @@ namespace FluentSensors.Features.TaskbarWidget
                 ? new RectInt32(bar.X + across, bar.Y + along, thickness, length)
                 : new RectInt32(bar.X + along, bar.Y + across, length, thickness);
         }
+
+        // the offset that ends the widget trayGapPx before the tray (above it on a side taskbar); null when the tray
+        // lies outside the taskbar or the widget would come closer than buttonGapPx to the task buttons
+        // unknown buttons (the first scan is still out) skip that check
+        public static int? CalculateBeforeTrayOffset(WinTaskbarInfo taskbar, RectInt32 tray, RectInt32? taskButtons, int length, int trayGapPx, int buttonGapPx)
+        {
+            var bar = taskbar.Rect;
+            bool isVertical = taskbar.IsVertical;
+
+            int barStart = isVertical ? bar.Y : bar.X;
+            int barLength = isVertical ? bar.Height : bar.Width;
+            int trayStart = (isVertical ? tray.Y : tray.X) - barStart;
+            if (trayStart <= 0 || trayStart > barLength) return null;
+
+            int offset = trayStart - trayGapPx - length;
+            if (offset < 0) return null;
+
+            if (taskButtons is RectInt32 buttons)
+            {
+                int buttonsEnd = (isVertical ? buttons.Y + buttons.Height : buttons.X + buttons.Width) - barStart;
+                if (buttonsEnd + buttonGapPx > offset) return null;
+            }
+
+            return offset;
+        }
     }
 }

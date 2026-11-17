@@ -862,6 +862,22 @@ namespace FluentSensors.Persistence.Services
             }
         }
 
+        // the taskbar widget right before the system tray, following it; the dragged offsets stay saved for when it is off
+        private bool _taskbarWidgetBeforeTray = Defaults.TaskbarWidgetBeforeTray;
+        public bool TaskbarWidgetBeforeTray
+        {
+            get => _taskbarWidgetBeforeTray;
+            set
+            {
+                if (_taskbarWidgetBeforeTray != value)
+                {
+                    _taskbarWidgetBeforeTray = value;
+                    TaskbarWidgetBeforeTrayChanged?.Invoke(_taskbarWidgetBeforeTray);
+                    SaveDebounced();
+                }
+            }
+        }
+
         // seconds of history on the flyout graphs; shared by every edge
         private double _taskbarFlyoutGraphTimeSpanSeconds = Defaults.TaskbarFlyoutGraphTimeSpanSeconds;
         public double TaskbarFlyoutGraphTimeSpanSeconds
@@ -1743,6 +1759,7 @@ namespace FluentSensors.Persistence.Services
             _widgetYMaxBesideValue = data.WidgetYMaxBesideValue;
             _taskbarEdges = SeedTaskbarEdges(data.TaskbarEdges, data);
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
+            _taskbarWidgetBeforeTray = data.TaskbarWidgetBeforeTray;
             _taskbarFlyoutGraphTimeSpanSeconds = data.TaskbarFlyoutGraphTimeSpanSeconds;
             _taskbarFlyoutGraphHeightDip = data.TaskbarFlyoutGraphHeightDip;
             _taskbarFlyoutShortcut = data.TaskbarFlyoutShortcut;
@@ -1842,6 +1859,7 @@ namespace FluentSensors.Persistence.Services
                 WidgetYMaxBesideValue = _widgetYMaxBesideValue,
                 TaskbarEdges = CloneTaskbarEdges(),
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
+                TaskbarWidgetBeforeTray = _taskbarWidgetBeforeTray,
                 TaskbarFlyoutGraphTimeSpanSeconds = _taskbarFlyoutGraphTimeSpanSeconds,
                 TaskbarFlyoutGraphHeightDip = _taskbarFlyoutGraphHeightDip,
                 TaskbarFlyoutShortcut = _taskbarFlyoutShortcut,
@@ -1946,6 +1964,7 @@ namespace FluentSensors.Persistence.Services
         public event Action YMaxPositionChanged;
         public event Action<string> TaskbarFlyoutAlignmentChanged;
         public event Action<bool> TaskbarWidgetPositionLockedChanged;
+        public event Action<bool> TaskbarWidgetBeforeTrayChanged;
         public event Action<double> TaskbarFlyoutGraphTimeSpanChanged;
         public event Action<double> TaskbarFlyoutGraphHeightChanged;
 

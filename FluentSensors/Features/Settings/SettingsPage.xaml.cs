@@ -1663,6 +1663,23 @@ namespace FluentSensors.Features.Settings
         private void RestoreLockWidgetPositionSelection()
         {
             LockWidgetPositionToggle.IsOn = SettingsService.Instance.TaskbarWidgetPositionLocked;
+            TaskbarWidgetBeforeTrayToggle.IsOn = SettingsService.Instance.TaskbarWidgetBeforeTray;
+            UpdateLockWidgetPositionAvailability();
+        }
+
+        // --- widget before the tray ---
+        // the tray sets the position then, so the drag lock has nothing to lock
+
+        private void TaskbarWidgetBeforeTrayToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            UpdateLockWidgetPositionAvailability();
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarWidgetBeforeTray = TaskbarWidgetBeforeTrayToggle.IsOn;
+        }
+
+        private void UpdateLockWidgetPositionAvailability()
+        {
+            LockTaskbarWidgetPositionCard.IsEnabled = !TaskbarWidgetBeforeTrayToggle.IsOn;
         }
 
 

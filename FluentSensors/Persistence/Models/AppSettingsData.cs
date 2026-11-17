@@ -157,6 +157,7 @@ namespace FluentSensors.Persistence.Models
         // --- taskbar widget & flyout behavior ---
 
         public bool TaskbarWidgetPositionLocked { get; set; } = false; // no dragging the taskbar widget along the taskbar
+        public bool TaskbarWidgetBeforeTray { get; set; } = false; // right before the system tray, following it; no dragging
         public KeyboardShortcut? TaskbarFlyoutShortcut { get; set; } = null; // the global shortcut that opens the flyout
 
 
