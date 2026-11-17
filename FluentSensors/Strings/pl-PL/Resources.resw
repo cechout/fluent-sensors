@@ -314,9 +314,6 @@ Odczyt - czas jednego pełnego przebiegu odczytu czujników, zbliżenie się do 
   <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
     <value>Interwał odświeżania</value>
   </data>
-  <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
-    <value>Zakres czasu</value>
-  </data>
   <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
     <value>Wygląd okna widżetu</value>
   </data>
@@ -406,9 +403,6 @@ Odczyt - czas jednego pełnego przebiegu odczytu czujników, zbliżenie się do 
   <data name="Settings_CurrentTaskbarPositionCard.Header" xml:space="preserve">
     <value>Bieżące położenie paska zadań</value>
   </data>
-  <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
-    <value>Kolor wykresu, tło, zakres czasu, szerokość i układ bocznego paska zadań</value>
-  </data>
   <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
     <value>Wykres paska zadań</value>
   </data>
@@ -448,9 +442,6 @@ Odczyt - czas jednego pełnego przebiegu odczytu czujników, zbliżenie się do 
   <data name="Settings_GraphWidthCard.Header" xml:space="preserve">
     <value>Szerokość wykresu</value>
   </data>
-  <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
-    <value>Kierunek wykresu na bocznym pasku zadań</value>
-  </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
     <value>Od prawej do lewej</value>
   </data>
@@ -459,9 +450,6 @@ Odczyt - czas jednego pełnego przebiegu odczytu czujników, zbliżenie się do 
   </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_BottomToTop.Content" xml:space="preserve">
     <value>Z dołu do góry</value>
-  </data>
-  <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
-    <value>Linie nazw na bocznym pasku zadań</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
     <value>Jedna linia</value>
