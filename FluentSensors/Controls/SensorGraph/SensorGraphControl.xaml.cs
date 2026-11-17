@@ -31,12 +31,10 @@ namespace FluentSensors.Controls.SensorGraph
     {
         // === fields ===
 
-        // stacked text: each line box is the font size plus this, in DIP; larger spreads name and value apart, smaller
-        // (down to about -2) pulls them together
-        private const double StackedLineSpacing = 2;
+        // stacked text
+        private const double StackedLineSpacing = 3;
 
-        // level bar of a compact card (IsCompact), in DIP; the track is the bar color at LevelBarTrackAlpha
-        // (TaskbarSideSlot keeps room for the bar with the internal ones)
+        // level bar of a compact card (IsCompact), in DIP
         internal const double LevelBarThickness = 3;
         private const double LevelBarInset = 3; // from the top or bottom card edge, and the ends of a bar beside stacked text
         private const double LevelBarSideInset = 3; // a bar across the card, from its sides
