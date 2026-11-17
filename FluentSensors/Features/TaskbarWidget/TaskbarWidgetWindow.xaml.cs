@@ -678,7 +678,8 @@ namespace FluentSensors.Features.TaskbarWidget
         // - length from the pinned sensor count
         // - position from the drag offset of the matching orientation
         // - kept inside the taskbar the same way a drag is
-        // - before the tray instead when that is on; a taskbar without a tray (a secondary one) keeps the drag offset
+        // - before the tray instead when that is on (on a secondary taskbar its clock button); while the tray is not
+        //   found yet it keeps the drag offset
         // - zero length, so gone, while it would cover a task button, until the buttons leave room again
         private RectInt32 CalculateScreenRect(WinTaskbarInfo taskbar)
         {

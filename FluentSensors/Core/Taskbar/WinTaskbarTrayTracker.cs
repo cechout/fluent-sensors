@@ -9,27 +9,31 @@ namespace FluentSensors.Core.Taskbar
     // where the notification area of a taskbar starts and where its task buttons lie, so the widget never covers a
     // button and can sit right before the tray; the approach follows busy (MIT, https://github.com/aivanyuk/busy)
     // - the tray is a Win32 child window (TrayNotifyWnd), read fresh on every call
+    // - a secondary taskbar has no such window, only the clock and notification button in UIA; its tray comes with
+    //   the scan below
     // - the task buttons only exist in UIA, read on a worker, one scan at a time; a call returns the last result
     public sealed class WinTaskbarTrayTracker
     {
         // === fields ===
 
-        private const string TrayClassName = "TrayNotifyWnd"; // only on Shell_TrayWnd, a secondary taskbar has none
+        private const string TrayClassName = "TrayNotifyWnd"; // only on Shell_TrayWnd
 
         private readonly object _lock = new();
         private IntPtr _taskbarHwnd;
         private RectInt32? _taskButtons;
+        private RectInt32? _scannedTray; // from UIA, for a taskbar without TrayNotifyWnd
         private bool _isScanPending;
         private int _generation; // drops a scan that started before a reset or a taskbar change
 
 
         // === public api ===
 
-        // the tray rect and the last known task button extent, both in physical screen pixels; the tray is null on a
-        // taskbar without one, the buttons until the first scan came back
+        // the tray rect and the last known task button extent, both in physical screen pixels; null until found
+        // (a secondary tray and the buttons until the first scan came back)
         public (RectInt32? Tray, RectInt32? TaskButtons) Read(IntPtr taskbarHwnd)
         {
             var tray = ReadTray(taskbarHwnd);
+            bool isTrayScanned = tray == null;
 
             lock (_lock)
             {
@@ -37,6 +41,7 @@ namespace FluentSensors.Core.Taskbar
                 {
                     _taskbarHwnd = taskbarHwnd;
                     _taskButtons = null;
+                    _scannedTray = null;
                     _generation++;
                 }
 
@@ -44,10 +49,10 @@ namespace FluentSensors.Core.Taskbar
                 {
                     _isScanPending = true;
                     int generation = _generation;
-                    _ = Task.Run(() => ScanTaskButtons(taskbarHwnd, generation));
+                    _ = Task.Run(() => Scan(taskbarHwnd, isTrayScanned, generation));
                 }
 
-                return (tray, _taskButtons);
+                return (tray ?? _scannedTray, _taskButtons);
             }
         }
 
@@ -58,6 +63,7 @@ namespace FluentSensors.Core.Taskbar
             {
                 _taskbarHwnd = IntPtr.Zero;
                 _taskButtons = null;
+                _scannedTray = null;
                 _generation++;
             }
         }
@@ -74,16 +80,17 @@ namespace FluentSensors.Core.Taskbar
             return new RectInt32(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
         }
 
-        // a failed scan keeps the last extent of the same taskbar; explorer.exe may be restarting
-        private void ScanTaskButtons(IntPtr taskbarHwnd, int generation)
+        // a part a scan misses keeps its last value for the same taskbar; explorer.exe may be restarting
+        private void Scan(IntPtr taskbarHwnd, bool withTray, int generation)
         {
-            var found = WinTaskbarUiaProbe.Instance.FindTaskButtons(taskbarHwnd);
+            var (taskButtons, tray) = WinTaskbarUiaProbe.Instance.FindTaskbarParts(taskbarHwnd, withTray);
 
             lock (_lock)
             {
-                if (found != null && _taskbarHwnd == taskbarHwnd && _generation == generation)
+                if (_taskbarHwnd == taskbarHwnd && _generation == generation)
                 {
-                    _taskButtons = found;
+                    if (taskButtons != null) _taskButtons = taskButtons;
+                    if (tray != null) _scannedTray = tray;
                 }
                 _isScanPending = false;
             }

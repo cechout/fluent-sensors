@@ -35,6 +35,10 @@ namespace FluentSensors.Core.Taskbar
         private const string ToggleButtonClassName = "ToggleButton";
         private const string TaskListButtonClassName = "Taskbar.TaskListButtonAutomationPeer";
 
+        // every button of the notification area, from the hidden icons arrow to show desktop; a secondary taskbar
+        // keeps at least the clock and notification button (SystemTray.OmniButton)
+        private const string SystemTrayIconAutomationId = "SystemTrayIcon";
+
         private readonly object _lock = new();
         private readonly Dictionary<IntPtr, (WinTaskbarUiaSnapshot? Snapshot, DateTime QueriedAt)> _cache = new();
 
@@ -77,48 +81,66 @@ namespace FluentSensors.Core.Taskbar
         }
 
 
-        // the extent of every button on the taskbar, in physical screen pixels; null on any failure
+        // the extent of every task button and, with withTray, of the notification area buttons, in physical screen
+        // pixels; null for a part not found or on any failure
         // synchronous and uncached, for a caller on a worker thread (WinTaskbarTrayTracker)
-        public RectInt32? FindTaskButtons(IntPtr taskbarHwnd)
+        public (RectInt32? TaskButtons, RectInt32? Tray) FindTaskbarParts(IntPtr taskbarHwnd, bool withTray)
         {
             try
             {
                 var automation = GetOrCreateAutomation();
                 var root = automation.ElementFromHandle(taskbarHwnd);
-                if (root == null) return null;
+                if (root == null) return (null, null);
 
-                var frame = FindDescendant(automation, root, UIA_PropertyIds.UIA_AutomationIdPropertyId, TaskbarFrameAutomationId);
-                if (frame == null) return null;
-
-                // one round trip for all children, with class name and bounds cached
+                // one round trip per query, with class name and bounds cached
                 var cache = automation.CreateCacheRequest();
                 cache.AddProperty(UIA_PropertyIds.UIA_ClassNamePropertyId);
                 cache.AddProperty(UIA_PropertyIds.UIA_BoundingRectanglePropertyId);
-                var children = frame.FindAllBuildCache(TreeScope.TreeScope_Children, automation.CreateTrueCondition(), cache);
-                if (children == null) return null;
 
-                int left = int.MaxValue, top = int.MaxValue, right = int.MinValue, bottom = int.MinValue;
-                for (int i = 0; i < children.Length; i++)
+                RectInt32? taskButtons = null;
+                var frame = FindDescendant(automation, root, UIA_PropertyIds.UIA_AutomationIdPropertyId, TaskbarFrameAutomationId);
+                if (frame != null)
                 {
-                    var child = children.GetElement(i);
-                    string className = child.CachedClassName;
-                    if (className != ToggleButtonClassName && className != TaskListButtonClassName) continue;
-
-                    var rect = child.CachedBoundingRectangle;
-                    if (rect.right <= rect.left || rect.bottom <= rect.top) continue;
-
-                    left = Math.Min(left, rect.left);
-                    top = Math.Min(top, rect.top);
-                    right = Math.Max(right, rect.right);
-                    bottom = Math.Max(bottom, rect.bottom);
+                    var children = frame.FindAllBuildCache(TreeScope.TreeScope_Children, automation.CreateTrueCondition(), cache);
+                    taskButtons = UnionOf(children, className => className == ToggleButtonClassName || className == TaskListButtonClassName);
                 }
 
-                return right > left ? new RectInt32(left, top, right - left, bottom - top) : null;
+                RectInt32? tray = null;
+                if (withTray)
+                {
+                    var condition = automation.CreatePropertyCondition(UIA_PropertyIds.UIA_AutomationIdPropertyId, SystemTrayIconAutomationId);
+                    tray = UnionOf(root.FindAllBuildCache(TreeScope.TreeScope_Descendants, condition, cache), _ => true);
+                }
+
+                return (taskButtons, tray);
             }
             catch (Exception)
             {
-                return null;
+                return (null, null);
             }
+        }
+
+        // the bounds around every element whose cached class name passes; empty ones are skipped
+        private static RectInt32? UnionOf(IUIAutomationElementArray? elements, Func<string, bool> isPart)
+        {
+            if (elements == null) return null;
+
+            int left = int.MaxValue, top = int.MaxValue, right = int.MinValue, bottom = int.MinValue;
+            for (int i = 0; i < elements.Length; i++)
+            {
+                var element = elements.GetElement(i);
+                if (!isPart(element.CachedClassName ?? string.Empty)) continue;
+
+                var rect = element.CachedBoundingRectangle;
+                if (rect.right <= rect.left || rect.bottom <= rect.top) continue;
+
+                left = Math.Min(left, rect.left);
+                top = Math.Min(top, rect.top);
+                right = Math.Max(right, rect.right);
+                bottom = Math.Max(bottom, rect.bottom);
+            }
+
+            return right > left ? new RectInt32(left, top, right - left, bottom - top) : null;
         }
 
 
