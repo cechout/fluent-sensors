@@ -576,7 +576,7 @@ Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování po
     <value>Aktuální poloha hlavního panelu</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
-    <value>Barva grafu, pozadí, časový rozsah, šířka a rozložení na bočním hlavním panelu</value>
+    <value>Karta, barva, pozadí, časový rozsah, šířka a text</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
     <value>Graf na hlavním panelu</value>
@@ -618,7 +618,7 @@ Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování po
     <value>Šířka grafu</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
-    <value>Směr grafu na bočním hlavním panelu</value>
+    <value>Směr grafu</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
     <value>Zprava doleva</value>
@@ -630,7 +630,7 @@ Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování po
     <value>Zdola nahoru</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
-    <value>Řádky názvu na bočním hlavním panelu</value>
+    <value>Řádky názvu</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
     <value>Jeden řádek</value>

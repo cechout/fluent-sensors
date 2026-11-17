@@ -641,7 +641,7 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
     <value>Current Taskbar Position</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
-    <value>Graph color, background, time range, width and side taskbar layout</value>
+    <value>Card, color, background, time range, width and text</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
     <value>Taskbar Graph</value>
@@ -683,7 +683,7 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
     <value>Graph Width</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
-    <value>Side Taskbar Graph Direction</value>
+    <value>Graph Direction</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
     <value>Right to Left</value>
@@ -695,7 +695,7 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
     <value>Bottom to Top</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
-    <value>Side Taskbar Name Lines</value>
+    <value>Name Lines</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
     <value>One Line</value>

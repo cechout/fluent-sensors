@@ -576,7 +576,7 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
     <value>Aktuelle Position der Taskleiste</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
-    <value>Graphfarbe, Hintergrund, Zeitraum, Breite und Layout an seitlicher Taskleiste</value>
+    <value>Karte, Farbe, Hintergrund, Zeitraum, Breite und Text</value>
   </data>
   <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
     <value>Taskleisten-Graph</value>
@@ -618,7 +618,7 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
     <value>Graphbreite</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
-    <value>Graphrichtung an seitlicher Taskleiste</value>
+    <value>Graphrichtung</value>
   </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
     <value>Rechts nach links</value>
@@ -630,7 +630,7 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
     <value>Unten nach oben</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
-    <value>Namenszeilen an seitlicher Taskleiste</value>
+    <value>Namenszeilen</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
     <value>Eine Zeile</value>
