@@ -34,11 +34,11 @@ namespace FluentSensors.Controls.SensorGraph
         // level bar of a compact card (IsCompact), in DIP; the track is the bar color at LevelBarTrackAlpha
         // (TaskbarSideSlot keeps room for the bar with the internal ones)
         internal const double LevelBarThickness = 3;
-        private const double LevelBarInset = 4; // from the top or bottom card edge, and the ends of a bar beside stacked text
+        private const double LevelBarInset = 3; // from the top or bottom card edge, and the ends of a bar beside stacked text
         private const double LevelBarSideInset = 3; // a bar across the card, from its sides
         private const double LevelBarStackedSideGap = 2; // a bar beside stacked text, further in from the side than LevelBarInset
-        private const double LevelBarTextGap = 3; // between stacked text and the bar beside it
-        internal const double LevelBarCenterGap = 3; // between centered text and the bar below it
+        private const double LevelBarTextGap = 4; // between stacked text and the bar beside it
+        internal const double LevelBarCenterGap = 6; // between centered text and the bar below it
         internal const double LevelBarFootInset = 3; // a bar alone at the foot (the side taskbar slot), from the foot
         private const byte LevelBarTrackAlpha = 70;
 
