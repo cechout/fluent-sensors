@@ -157,7 +157,8 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 NameHost.Padding = new Thickness(0);
                 TextHost.VerticalAlignment = VerticalAlignment.Center;
-                TextHost.Margin = new Thickness(0, cardTop, 0, IsCompact ? CompactCenteredLevelBarRoomDip : 0);
+                double lift = 2 * SensorGraphControl.CenteredTextLift; // the bar of a compact card moves up with it
+                TextHost.Margin = new Thickness(0, cardTop, 0, (IsCompact ? CompactCenteredLevelBarRoomDip : 0) + lift);
             }
             else
             {

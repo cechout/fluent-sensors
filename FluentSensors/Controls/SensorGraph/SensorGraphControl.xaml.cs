@@ -34,6 +34,10 @@ namespace FluentSensors.Controls.SensorGraph
         // stacked text
         private const double StackedLineSpacing = 3;
 
+        // centered text, and the bar below it on a compact card, moves up by this, in DIP; the line box keeps room for
+        // descenders below, so digits and capitals sit low when the box is centered (TaskbarSideSlot uses it too)
+        internal const double CenteredTextLift = 1;
+
         // level bar of a compact card (IsCompact), in DIP
         internal const double LevelBarThickness = 3;
         private const double LevelBarInset = 3; // from the top or bottom card edge, and the ends of a bar beside stacked text
@@ -684,6 +688,9 @@ namespace FluentSensors.Controls.SensorGraph
                 margin.Bottom = LevelBarThickness + LevelBarCenterGap;
             }
 
+            // a centered box moves up by half of what it loses at the bottom
+            if (layout.Position == GraphLabelPosition.Center) margin.Bottom += 2 * CenteredTextLift;
+
             LabelOverlay.Margin = margin;
 
             if (layout.IsStacked)
@@ -748,7 +755,7 @@ namespace FluentSensors.Controls.SensorGraph
                     // centered in the card and moved down by the text and the gap; the text moves up by the bar and
                     // the gap, so the pair is centered
                     LevelBar.VerticalAlignment = VerticalAlignment.Center;
-                    LevelBar.Margin = new Thickness(LevelBarSideInset, centeredTextHeight + LevelBarCenterGap, LevelBarSideInset, 0);
+                    LevelBar.Margin = new Thickness(LevelBarSideInset, centeredTextHeight + LevelBarCenterGap, LevelBarSideInset, 2 * CenteredTextLift);
                 }
                 else if (isAtTop)
                 {
