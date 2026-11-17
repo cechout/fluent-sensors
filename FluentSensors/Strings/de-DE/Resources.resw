@@ -696,23 +696,23 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Verhalten von Taskleisten-Widget und Flyout</value>
   </data>
-  <data name="Settings_TaskbarWidgetMonitorsCard.Header" xml:space="preserve">
-    <value>Bildschirme</value>
+  <data name="Settings_TaskbarWidgetMonitorsExpander.Header" xml:space="preserve">
+    <value>Bildschirme des Taskleisten-Widgets</value>
   </data>
-  <data name="Settings_TaskbarWidgetMonitorsCard.Description" xml:space="preserve">
-    <value>Das Widget erscheint auf der Taskleiste jedes markierten Bildschirms</value>
+  <data name="Settings_TaskbarWidgetMonitorsExpander.Description" xml:space="preserve">
+    <value>Das Taskleisten-Widget erscheint auf der Taskleiste jedes eingeschalteten Bildschirms</value>
   </data>
   <data name="Settings_TaskbarWidgetMonitorFallbackName" xml:space="preserve">
     <value>Bildschirm {0}</value>
   </data>
   <data name="Settings_TaskbarWidgetMonitorMain" xml:space="preserve">
-    <value>{0} (Hauptbildschirm)</value>
+    <value>Hauptbildschirm</value>
   </data>
   <data name="Settings_TaskbarWidgetMonitorNoTaskbar" xml:space="preserve">
-    <value>{0}, keine Taskleiste</value>
+    <value>Keine Taskleiste auf diesem Bildschirm</value>
   </data>
   <data name="Settings_TaskbarWidgetPositionExpander.Description" xml:space="preserve">
-    <value>Bildschirme, vor dem Infobereich oder dort, wo du es hinziehst</value>
+    <value>Vor dem Infobereich oder dort, wo du es hinziehst</value>
   </data>
   <data name="Settings_TaskbarWidgetPositionExpander.Header" xml:space="preserve">
     <value>Position des Taskleisten-Widgets</value>

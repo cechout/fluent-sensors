@@ -1671,9 +1671,11 @@ namespace FluentSensors.Features.Settings
         }
 
         // --- widget monitors ---
-        // one check box per active monitor; one without a taskbar (taskbars on the main display only) cannot be
-        // picked, and the last monitor with a taskbar cannot be unchecked; a choice for a monitor that is not
-        // connected stays saved
+        // one switch per active monitor; one without a taskbar (taskbars on the main display only) cannot be switched
+        // on, and the last monitor with a taskbar cannot be switched off; a choice for a monitor that is not connected
+        // stays saved
+
+        private bool _isRestoringMonitors;
 
         private void RestoreTaskbarMonitorSelection()
         {
@@ -1681,28 +1683,37 @@ namespace FluentSensors.Features.Settings
             var taskbarMonitors = WinTaskbarService.Instance.DiscoverNow().Select(t => t.Monitor).ToHashSet();
             var chosen = EffectiveTaskbarMonitors(monitors);
 
-            TaskbarMonitorsPanel.Children.Clear();
+            _isRestoringMonitors = true;
+            TaskbarWidgetMonitorsExpander.Items.Clear();
             for (int i = 0; i < monitors.Count; i++)
             {
                 var monitor = monitors[i];
                 bool hasTaskbar = taskbarMonitors.Contains(monitor.Handle);
 
-                string name = string.IsNullOrWhiteSpace(monitor.Name)
-                    ? AppStrings.Format("Settings_TaskbarWidgetMonitorFallbackName", i + 1)
-                    : monitor.Name;
-                if (monitor.IsPrimary) name = AppStrings.Format("Settings_TaskbarWidgetMonitorMain", name);
-                if (!hasTaskbar) name = AppStrings.Format("Settings_TaskbarWidgetMonitorNoTaskbar", name);
-
-                var checkBox = new CheckBox
+                var toggle = new ToggleSwitch
                 {
-                    Content = name,
-                    Tag = monitor.Key,
-                    IsChecked = hasTaskbar && chosen.Contains(monitor.Key),
+                    IsOn = hasTaskbar && chosen.Contains(monitor.Key),
+                    IsEnabled = hasTaskbar,
+                    OnContent = AppStrings.Get("Common_ToggleSwitch/OnContent"),
+                    OffContent = AppStrings.Get("Common_ToggleSwitch/OffContent"),
+                    Tag = monitor.Key
+                };
+                toggle.Toggled += TaskbarMonitorToggle_Toggled;
+
+                var card = new CommunityToolkit.WinUI.Controls.SettingsCard
+                {
+                    Header = string.IsNullOrWhiteSpace(monitor.Name)
+                        ? AppStrings.Format("Settings_TaskbarWidgetMonitorFallbackName", i + 1)
+                        : monitor.Name,
+                    Content = toggle,
                     IsEnabled = hasTaskbar
                 };
-                checkBox.Click += TaskbarMonitorCheckBox_Click;
-                TaskbarMonitorsPanel.Children.Add(checkBox);
+                if (!hasTaskbar) card.Description = AppStrings.Get("Settings_TaskbarWidgetMonitorNoTaskbar");
+                else if (monitor.IsPrimary) card.Description = AppStrings.Get("Settings_TaskbarWidgetMonitorMain");
+
+                TaskbarWidgetMonitorsExpander.Items.Add(card);
             }
+            _isRestoringMonitors = false;
         }
 
         // the saved choice, or the main display without one
@@ -1717,21 +1728,25 @@ namespace FluentSensors.Features.Settings
                 : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        private void TaskbarMonitorCheckBox_Click(object sender, RoutedEventArgs e)
+        private void TaskbarMonitorToggle_Toggled(object sender, RoutedEventArgs e)
         {
-            if (sender is not CheckBox { Tag: string key } checkBox) return;
+            if (_isRestoringMonitors || sender is not ToggleSwitch { Tag: string key } toggle) return;
 
-            var chosen = EffectiveTaskbarMonitors(WinDisplayMonitors.GetAll());
-            if (checkBox.IsChecked == true) chosen.Add(key);
-            else chosen.Remove(key);
-
-            // at least one monitor with a taskbar stays checked
-            bool anyChecked = TaskbarMonitorsPanel.Children.OfType<CheckBox>().Any(c => c.IsEnabled && c.IsChecked == true);
-            if (!anyChecked)
+            // at least one monitor with a taskbar stays on
+            bool anyOn = TaskbarWidgetMonitorsExpander.Items
+                .OfType<CommunityToolkit.WinUI.Controls.SettingsCard>()
+                .Any(card => card.Content is ToggleSwitch { IsEnabled: true, IsOn: true });
+            if (!anyOn)
             {
-                checkBox.IsChecked = true;
+                _isRestoringMonitors = true;
+                toggle.IsOn = true;
+                _isRestoringMonitors = false;
                 return;
             }
+
+            var chosen = EffectiveTaskbarMonitors(WinDisplayMonitors.GetAll());
+            if (toggle.IsOn) chosen.Add(key);
+            else chosen.Remove(key);
 
             SettingsService.Instance.TaskbarWidgetMonitors = chosen.ToList();
         }

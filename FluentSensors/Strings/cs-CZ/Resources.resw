@@ -696,23 +696,23 @@ Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování po
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Chování widgetu na hlavním panelu a vysouvacího panelu</value>
   </data>
-  <data name="Settings_TaskbarWidgetMonitorsCard.Header" xml:space="preserve">
-    <value>Monitory</value>
+  <data name="Settings_TaskbarWidgetMonitorsExpander.Header" xml:space="preserve">
+    <value>Monitory widgetu na hlavním panelu</value>
   </data>
-  <data name="Settings_TaskbarWidgetMonitorsCard.Description" xml:space="preserve">
-    <value>Widget se zobrazí na hlavním panelu každého zaškrtnutého monitoru</value>
+  <data name="Settings_TaskbarWidgetMonitorsExpander.Description" xml:space="preserve">
+    <value>Widget se zobrazí na hlavním panelu každého zapnutého monitoru</value>
   </data>
   <data name="Settings_TaskbarWidgetMonitorFallbackName" xml:space="preserve">
     <value>Displej {0}</value>
   </data>
   <data name="Settings_TaskbarWidgetMonitorMain" xml:space="preserve">
-    <value>{0} (hlavní displej)</value>
+    <value>Hlavní displej</value>
   </data>
   <data name="Settings_TaskbarWidgetMonitorNoTaskbar" xml:space="preserve">
-    <value>{0}, bez hlavního panelu</value>
+    <value>Na tomto displeji není hlavní panel</value>
   </data>
   <data name="Settings_TaskbarWidgetPositionExpander.Description" xml:space="preserve">
-    <value>Monitory, před oznamovací oblastí nebo tam, kam ho přetáhnete</value>
+    <value>Před oznamovací oblastí nebo tam, kam ho přetáhnete</value>
   </data>
   <data name="Settings_TaskbarWidgetPositionExpander.Header" xml:space="preserve">
     <value>Poloha widgetu na hlavním panelu</value>

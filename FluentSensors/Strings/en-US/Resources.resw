@@ -788,23 +788,23 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Taskbar Widget &amp; Flyout Behavior</value>
   </data>
-  <data name="Settings_TaskbarWidgetMonitorsCard.Header" xml:space="preserve">
-    <value>Monitors</value>
+  <data name="Settings_TaskbarWidgetMonitorsExpander.Header" xml:space="preserve">
+    <value>Taskbar Widget Monitors</value>
   </data>
-  <data name="Settings_TaskbarWidgetMonitorsCard.Description" xml:space="preserve">
-    <value>The widget shows on the taskbar of every checked monitor</value>
+  <data name="Settings_TaskbarWidgetMonitorsExpander.Description" xml:space="preserve">
+    <value>The taskbar widget shows on the taskbar of every monitor switched on</value>
   </data>
   <data name="Settings_TaskbarWidgetMonitorFallbackName" xml:space="preserve">
     <value>Display {0}</value>
   </data>
   <data name="Settings_TaskbarWidgetMonitorMain" xml:space="preserve">
-    <value>{0} (main display)</value>
+    <value>Main display</value>
   </data>
   <data name="Settings_TaskbarWidgetMonitorNoTaskbar" xml:space="preserve">
-    <value>{0}, no taskbar</value>
+    <value>No taskbar on this display</value>
   </data>
   <data name="Settings_TaskbarWidgetPositionExpander.Description" xml:space="preserve">
-    <value>Monitors, before the system tray or where you drag it</value>
+    <value>Before the system tray or where you drag it</value>
   </data>
   <data name="Settings_TaskbarWidgetPositionExpander.Header" xml:space="preserve">
     <value>Taskbar Widget Position</value>
