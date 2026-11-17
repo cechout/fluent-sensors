@@ -1294,7 +1294,7 @@ namespace FluentSensors.Features.Settings
             }
         }
 
-        // the values of the active card on the active edge; blur and graph direction only for the graph
+        // the values of the active card on the active edge; blur, time range and graph direction only for the graph
         private void RestoreTaskbarCardSelection()
         {
             var settings = SettingsService.Instance;
@@ -1303,6 +1303,7 @@ namespace FluentSensors.Features.Settings
 
             SelectByTag(TaskbarCardKindComboBox, isCompact ? "Compact" : "Graph");
             TaskbarGraphBlurCard.Visibility = isCompact ? Visibility.Collapsed : Visibility.Visible;
+            TaskbarGraphTimeRangeCard.Visibility = isCompact ? Visibility.Collapsed : Visibility.Visible; // a level bar shows the newest value only
             TaskbarSideGraphDirectionCard.Visibility = isVertical && !isCompact ? Visibility.Visible : Visibility.Collapsed;
 
             RestoreTaskbarGraphColorSettings();

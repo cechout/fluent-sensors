@@ -962,7 +962,7 @@
                 </controls:SettingsExpander.Content>
 
                 <controls:SettingsExpander.Items>
-                    <!--  graph: color, background, blur, time range, width, direction (blur and direction graph only)  -->
+                    <!--  graph: color, background, blur, time range, width, direction (blur, time range and direction graph only)  -->
                     <controls:SettingsCard x:Uid="Settings_TaskbarGraphColorSourceCard">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox
@@ -996,7 +996,7 @@
                             x:Uid="Common_ToggleSwitch"
                             Toggled="TaskbarGraphBlurToggle_Toggled" />
                     </controls:SettingsCard>
-                    <controls:SettingsCard x:Uid="Settings_TimeRangeCard">
+                    <controls:SettingsCard x:Name="TaskbarGraphTimeRangeCard" x:Uid="Settings_TimeRangeCard">
                         <ComboBox
                             x:Name="TaskbarGraphTimeSpanComboBox"
                             Width="40"
