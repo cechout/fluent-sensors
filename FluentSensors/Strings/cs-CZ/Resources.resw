@@ -717,17 +717,11 @@ Nastavení &gt; Soukromí a zabezpečení &gt; Poloha: Služby zjišťování po
   <data name="Settings_TaskbarWidgetPositionExpander.Header" xml:space="preserve">
     <value>Poloha widgetu na hlavním panelu</value>
   </data>
-  <data name="Settings_TaskbarWidgetBeforeTrayCard.Description" xml:space="preserve">
-    <value>Udržuje widget hned před oznamovací oblastí a sleduje ji, když se zvětšuje nebo zmenšuje</value>
-  </data>
   <data name="Settings_TaskbarWidgetBeforeTrayCard.Header" xml:space="preserve">
     <value>Umístit před oznamovací oblast</value>
   </data>
-  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
-    <value>Zabrání přetahování widgetu po hlavním panelu</value>
-  </data>
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
-    <value>Zamknout polohu widgetu na hlavním panelu</value>
+    <value>Zamknout polohu</value>
   </data>
   <data name="Settings_FlyoutShortcutCard.Description" xml:space="preserve">
     <value>Otevřít vysouvací panel z klávesnice, dokud je widget na hlavním panelu otevřený</value>

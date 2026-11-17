@@ -548,9 +548,6 @@ Okuma - sensörlerin tam bir tur okunma süresi, sorgulama hızına yakın olmas
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Görev çubuğu araç takımı ve açılır pencere davranışı</value>
   </data>
-  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
-    <value>Görev çubuğu araç takımının görev çubuğu boyunca sürüklenmesini önleyin</value>
-  </data>
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
     <value>Görev çubuğu araç takımı konumunu kilitle</value>
   </data>

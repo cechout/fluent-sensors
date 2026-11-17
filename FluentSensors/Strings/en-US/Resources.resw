@@ -809,17 +809,11 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
   <data name="Settings_TaskbarWidgetPositionExpander.Header" xml:space="preserve">
     <value>Taskbar Widget Position</value>
   </data>
-  <data name="Settings_TaskbarWidgetBeforeTrayCard.Description" xml:space="preserve">
-    <value>Keep the taskbar widget right before the system tray and follow it as it grows or shrinks</value>
-  </data>
   <data name="Settings_TaskbarWidgetBeforeTrayCard.Header" xml:space="preserve">
     <value>Place Before the System Tray</value>
   </data>
-  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
-    <value>Stop the taskbar widget from being dragged along the taskbar</value>
-  </data>
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
-    <value>Lock Taskbar Widget Position</value>
+    <value>Lock Position</value>
   </data>
   <data name="Settings_FlyoutShortcutCard.Description" xml:space="preserve">
     <value>Open the flyout from the keyboard while the taskbar widget is open</value>

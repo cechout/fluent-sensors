@@ -717,17 +717,11 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
   <data name="Settings_TaskbarWidgetPositionExpander.Header" xml:space="preserve">
     <value>Position des Taskleisten-Widgets</value>
   </data>
-  <data name="Settings_TaskbarWidgetBeforeTrayCard.Description" xml:space="preserve">
-    <value>Hält das Taskleisten-Widget direkt vor dem Infobereich und folgt ihm, wenn er wächst oder schrumpft</value>
-  </data>
   <data name="Settings_TaskbarWidgetBeforeTrayCard.Header" xml:space="preserve">
     <value>Vor dem Infobereich platzieren</value>
   </data>
-  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
-    <value>Verhindert, dass das Taskleisten-Widget entlang der Taskleiste verschoben wird</value>
-  </data>
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
-    <value>Position des Taskleisten-Widgets sperren</value>
+    <value>Position sperren</value>
   </data>
   <data name="Settings_FlyoutShortcutCard.Description" xml:space="preserve">
     <value>Das Flyout per Tastatur öffnen, solange das Taskleisten-Widget geöffnet ist</value>
