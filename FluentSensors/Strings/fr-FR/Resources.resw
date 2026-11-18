@@ -314,6 +314,9 @@ Lecture - durée d'une passe complète de capteurs, proche de la fréquence vis�
   <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
     <value>Intervalle de mise à jour</value>
   </data>
+  <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
+    <value>Plage de temps</value>
+  </data>
   <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
     <value>Apparence de la fenêtre du widget</value>
   </data>
@@ -403,6 +406,9 @@ Lecture - durée d'une passe complète de capteurs, proche de la fréquence vis�
   <data name="Settings_CurrentTaskbarPositionCard.Header" xml:space="preserve">
     <value>Position actuelle de la barre des tâches</value>
   </data>
+  <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
+    <value>Couleur du graphique, arrière-plan, plage de temps, largeur et disposition latérale</value>
+  </data>
   <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
     <value>Graphique de la barre des tâches</value>
   </data>
@@ -442,6 +448,9 @@ Lecture - durée d'une passe complète de capteurs, proche de la fréquence vis�
   <data name="Settings_GraphWidthCard.Header" xml:space="preserve">
     <value>Largeur du graphique</value>
   </data>
+  <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
+    <value>Orientation du graphique sur barre des tâches latérale</value>
+  </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
     <value>De droite à gauche</value>
   </data>
@@ -450,6 +459,9 @@ Lecture - durée d'une passe complète de capteurs, proche de la fréquence vis�
   </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_BottomToTop.Content" xml:space="preserve">
     <value>De bas en haut</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
+    <value>Lignes de nom sur barre des tâches latérale</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
     <value>Une ligne</value>
@@ -535,9 +547,6 @@ Lecture - durée d'une passe complète de capteurs, proche de la fréquence vis�
   </data>
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Comportement du widget et du volet de la barre des tâches</value>
-  </data>
-  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
-    <value>Empêcher le déplacement du widget le long de la barre des tâches</value>
   </data>
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
     <value>Verrouiller la position du widget de la barre des tâches</value>
