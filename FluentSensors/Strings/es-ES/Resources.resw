@@ -314,6 +314,9 @@ Lectura - duración de una pasada completa de sensores, un valor cercano a la ta
   <data name="Settings_UpdateIntervalCard.Header" xml:space="preserve">
     <value>Intervalo de actualización</value>
   </data>
+  <data name="Settings_TimeRangeCard.Header" xml:space="preserve">
+    <value>Intervalo de tiempo</value>
+  </data>
   <data name="Settings_WidgetWindowAppearanceText.Text" xml:space="preserve">
     <value>Apariencia de la ventana del widget</value>
   </data>
@@ -403,6 +406,9 @@ Lectura - duración de una pasada completa de sensores, un valor cercano a la ta
   <data name="Settings_CurrentTaskbarPositionCard.Header" xml:space="preserve">
     <value>Posición actual de la barra de tareas</value>
   </data>
+  <data name="Settings_TaskbarGraphExpander.Description" xml:space="preserve">
+    <value>Color del gráfico, fondo, intervalo de tiempo, ancho y diseño de la barra lateral</value>
+  </data>
   <data name="Settings_TaskbarGraphExpander.Header" xml:space="preserve">
     <value>Gráfico de la barra de tareas</value>
   </data>
@@ -442,6 +448,9 @@ Lectura - duración de una pasada completa de sensores, un valor cercano a la ta
   <data name="Settings_GraphWidthCard.Header" xml:space="preserve">
     <value>Ancho del gráfico</value>
   </data>
+  <data name="Settings_TaskbarSideGraphDirectionCard.Header" xml:space="preserve">
+    <value>Dirección del gráfico en barra de tareas lateral</value>
+  </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_RightToLeft.Content" xml:space="preserve">
     <value>De derecha a izquierda</value>
   </data>
@@ -450,6 +459,9 @@ Lectura - duración de una pasada completa de sensores, un valor cercano a la ta
   </data>
   <data name="Settings_TaskbarSideGraphDirectionComboBox_BottomToTop.Content" xml:space="preserve">
     <value>De abajo a arriba</value>
+  </data>
+  <data name="Settings_TaskbarSideTitleLinesCard.Header" xml:space="preserve">
+    <value>Líneas de nombre en barra lateral</value>
   </data>
   <data name="Settings_TaskbarSideTitleLinesComboBox_1.Content" xml:space="preserve">
     <value>Una línea</value>
@@ -535,9 +547,6 @@ Lectura - duración de una pasada completa de sensores, un valor cercano a la ta
   </data>
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Comportamiento del widget y panel flotante de la barra de tareas</value>
-  </data>
-  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
-    <value>Evitar que el widget de la barra de tareas se arrastre por la barra de tareas</value>
   </data>
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
     <value>Bloquear posición del widget de la barra de tareas</value>
