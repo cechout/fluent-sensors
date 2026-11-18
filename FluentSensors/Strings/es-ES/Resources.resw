@@ -548,9 +548,6 @@ Lectura - duración de una pasada completa de sensores, un valor cercano a la ta
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Comportamiento del widget y panel flotante de la barra de tareas</value>
   </data>
-  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
-    <value>Evitar que el widget de la barra de tareas se arrastre por la barra de tareas</value>
-  </data>
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
     <value>Bloquear posición del widget de la barra de tareas</value>
   </data>

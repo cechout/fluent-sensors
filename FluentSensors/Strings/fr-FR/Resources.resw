@@ -548,9 +548,6 @@ Lecture - durée d'une passe complète de capteurs, proche de la fréquence vis�
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Comportement du widget et du volet de la barre des tâches</value>
   </data>
-  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
-    <value>Empêcher le déplacement du widget le long de la barre des tâches</value>
-  </data>
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
     <value>Verrouiller la position du widget de la barre des tâches</value>
   </data>

@@ -696,11 +696,32 @@ Einstellungen &gt; Datenschutz und Sicherheit &gt; Standort: Ortungsdienste und 
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Verhalten von Taskleisten-Widget und Flyout</value>
   </data>
-  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
-    <value>Verhindert, dass das Taskleisten-Widget entlang der Taskleiste verschoben wird</value>
+  <data name="Settings_TaskbarWidgetMonitorsExpander.Header" xml:space="preserve">
+    <value>Bildschirme des Taskleisten-Widgets</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorsExpander.Description" xml:space="preserve">
+    <value>Das Taskleisten-Widget erscheint auf der Taskleiste jedes eingeschalteten Bildschirms</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorFallbackName" xml:space="preserve">
+    <value>Bildschirm {0}</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorMain" xml:space="preserve">
+    <value>Hauptbildschirm</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorNoTaskbar" xml:space="preserve">
+    <value>Keine Taskleiste auf diesem Bildschirm</value>
+  </data>
+  <data name="Settings_TaskbarWidgetPositionExpander.Description" xml:space="preserve">
+    <value>Vor dem Infobereich oder dort, wo du es hinziehst</value>
+  </data>
+  <data name="Settings_TaskbarWidgetPositionExpander.Header" xml:space="preserve">
+    <value>Position des Taskleisten-Widgets</value>
+  </data>
+  <data name="Settings_TaskbarWidgetBeforeTrayCard.Header" xml:space="preserve">
+    <value>Vor dem Infobereich platzieren</value>
   </data>
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
-    <value>Position des Taskleisten-Widgets sperren</value>
+    <value>Position sperren</value>
   </data>
   <data name="Settings_FlyoutShortcutCard.Description" xml:space="preserve">
     <value>Das Flyout per Tastatur öffnen, solange das Taskleisten-Widget geöffnet ist</value>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Windows.UI;
 
 using FluentSensors.Persistence.Models;
@@ -859,6 +860,39 @@ namespace FluentSensors.Persistence.Services
                     TaskbarWidgetPositionLockedChanged?.Invoke(_taskbarWidgetPositionLocked);
                     SaveDebounced();
                 }
+            }
+        }
+
+        // the taskbar widget right before the system tray, following it; the dragged offsets stay saved for when it is off
+        private bool _taskbarWidgetBeforeTray = Defaults.TaskbarWidgetBeforeTray;
+        public bool TaskbarWidgetBeforeTray
+        {
+            get => _taskbarWidgetBeforeTray;
+            set
+            {
+                if (_taskbarWidgetBeforeTray != value)
+                {
+                    _taskbarWidgetBeforeTray = value;
+                    TaskbarWidgetBeforeTrayChanged?.Invoke(_taskbarWidgetBeforeTray);
+                    SaveDebounced();
+                }
+            }
+        }
+
+        // the monitors whose taskbar shows the widget, by WinDisplayMonitor.Key; null for the main display only, a
+        // choice that matches no connected monitor falls back to it too (TaskbarWidgetWindow.ResolveTargetTaskbars)
+        private List<string>? _taskbarWidgetMonitors = null;
+        public IReadOnlyList<string>? TaskbarWidgetMonitors
+        {
+            get => _taskbarWidgetMonitors;
+            set
+            {
+                var next = value?.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                if (_taskbarWidgetMonitors == null ? next == null : next != null && _taskbarWidgetMonitors.SequenceEqual(next)) return;
+
+                _taskbarWidgetMonitors = next;
+                TaskbarWidgetMonitorsChanged?.Invoke();
+                SaveDebounced();
             }
         }
 
@@ -1743,6 +1777,8 @@ namespace FluentSensors.Persistence.Services
             _widgetYMaxBesideValue = data.WidgetYMaxBesideValue;
             _taskbarEdges = SeedTaskbarEdges(data.TaskbarEdges, data);
             _taskbarWidgetPositionLocked = data.TaskbarWidgetPositionLocked;
+            _taskbarWidgetBeforeTray = data.TaskbarWidgetBeforeTray;
+            _taskbarWidgetMonitors = data.TaskbarWidgetMonitors?.ToList();
             _taskbarFlyoutGraphTimeSpanSeconds = data.TaskbarFlyoutGraphTimeSpanSeconds;
             _taskbarFlyoutGraphHeightDip = data.TaskbarFlyoutGraphHeightDip;
             _taskbarFlyoutShortcut = data.TaskbarFlyoutShortcut;
@@ -1842,6 +1878,8 @@ namespace FluentSensors.Persistence.Services
                 WidgetYMaxBesideValue = _widgetYMaxBesideValue,
                 TaskbarEdges = CloneTaskbarEdges(),
                 TaskbarWidgetPositionLocked = _taskbarWidgetPositionLocked,
+                TaskbarWidgetBeforeTray = _taskbarWidgetBeforeTray,
+                TaskbarWidgetMonitors = _taskbarWidgetMonitors?.ToList(),
                 TaskbarFlyoutGraphTimeSpanSeconds = _taskbarFlyoutGraphTimeSpanSeconds,
                 TaskbarFlyoutGraphHeightDip = _taskbarFlyoutGraphHeightDip,
                 TaskbarFlyoutShortcut = _taskbarFlyoutShortcut,
@@ -1946,6 +1984,8 @@ namespace FluentSensors.Persistence.Services
         public event Action YMaxPositionChanged;
         public event Action<string> TaskbarFlyoutAlignmentChanged;
         public event Action<bool> TaskbarWidgetPositionLockedChanged;
+        public event Action<bool> TaskbarWidgetBeforeTrayChanged;
+        public event Action TaskbarWidgetMonitorsChanged;
         public event Action<double> TaskbarFlyoutGraphTimeSpanChanged;
         public event Action<double> TaskbarFlyoutGraphHeightChanged;
 

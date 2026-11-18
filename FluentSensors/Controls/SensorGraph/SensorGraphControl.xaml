@@ -33,7 +33,8 @@
                 XAxes="{Binding XAxes, ElementName=Root}"
                 YAxes="{Binding YAxes, ElementName=Root}" />
 
-            <!--  level bar: the current value against the y range, in place of the chart (IsCompact, see ApplyLevelBarLayout)  -->
+            <!--  level bar:  -->
+            <!--  the current value against the y range, in place of the chart (IsCompact, see ApplyLevelBarLayout)  -->
             <Grid
                 x:Name="LevelBar"
                 CornerRadius="1.5"

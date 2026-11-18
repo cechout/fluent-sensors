@@ -30,6 +30,8 @@ namespace FluentSensors.Features.TaskbarWidget
     // the taskbar widget:
     // a child of Shell_TrayWnd (WS_CHILD via SetParent) rather than a window floating above it, so there is no z-order
     // contest and no flicker; its button toggles the TaskbarFlyoutWindow next to it
+    // one window per chosen monitor (TaskbarWidgetMonitors): CurrentInstance, the lead, sits on the first chosen
+    // taskbar and owns the followers on the others, which share its ViewModel, so data, pause and sensors stay in step
     //
     // references:
     // https://devblogs.microsoft.com/oldnewthing/20130605-00/?p=4183 (cross-process child window embedding)
@@ -59,6 +61,10 @@ namespace FluentSensors.Features.TaskbarWidget
         private const int ButtonPaddingDip = 0; // along the taskbar, in the length math
         private const int MinimumWidgetLengthDip = 60; // with no sensors pinned
 
+        // task buttons and tray, in DIP
+        private const int TaskButtonGapDip = 8; // the least room to the task buttons; less hides the widget
+        private const int TrayGapDip = 4; // to the tray, before it (TaskbarWidgetBeforeTray)
+
         // button padding in the frame of the graph, not of the taskbar edge; (the graph is asymmetric by itself,
         // a 3 DIP label gap above it and the chart 2 DIP below its card); calibrated on the bottom
         // taskbar, see ApplyButtonPadding
@@ -77,6 +83,13 @@ namespace FluentSensors.Features.TaskbarWidget
         public const int TaskbarStartupDelayMs = 1200; // until window and charts are ready
         public const float TaskbarStartupStartOpacity = 0.0f;
 
+        // --- placement animations ---
+        // in ms; the follow slide moves the window along the startup curve (Fluent 2 decelerate), the exit plays the
+        // startup slide backwards on the mirrored curve (Fluent 2 accelerate)
+        private const int TrayFollowDurationMs = 260; // a move after the tray or the task buttons, same size only
+        private const int TaskbarExitDurationMs = 200; // on close
+        private const int RoomFadeDurationMs = 120; // out when the task buttons leave no room, in once they do again
+
         // --- drag-to-reposition settings ---
         private const string WindowKey = "TaskbarWidget";
         private const int DragThresholdPixels = 4; // physical px before a drag starts
@@ -89,8 +102,23 @@ namespace FluentSensors.Features.TaskbarWidget
         private RectInt32 _currentScreenRect;
 
         // drag offsets from the taskbar start, one per screen edge, so the widget is where it was left
-        // when the taskbar comes back
-        private readonly Dictionary<ScreenEdge, int> _offsetsDip = new();
+        // when the taskbar comes back; shared by every widget window, on every monitor
+        private static readonly Dictionary<ScreenEdge, int> _offsetsDip = new();
+        private static bool _areOffsetsLoaded;
+
+        // tray and task button bounds, so the widget never covers a button
+        private readonly WinTaskbarTrayTracker _trayTracker = new();
+
+        // the follow slide: the window rect it started from and goes to, per frame on _moveTimer
+        private DispatcherQueueTimer _moveTimer;
+        private readonly System.Diagnostics.Stopwatch _moveClock = new();
+        private RectInt32 _moveFrom;
+        private RectInt32 _moveTo;
+        private RectInt32 _moveShown; // where the window is right now while sliding
+
+        private bool _isContentFadedOut; // no room, the button is faded out (RoomFadeDurationMs)
+        private bool _isClosingAnimated; // the exit plays, CloseWidget finishes once it is done
+        private int _contentAnimationId; // a newer content animation makes the completion of an older one a no-op
 
         // taskbar snapshot the widget was last laid out for; FollowTaskbar compares against it to skip polls that
         // only changed a secondary taskbar
@@ -127,8 +155,7 @@ namespace FluentSensors.Features.TaskbarWidget
         private bool _embedGaveUp;
         public bool IsEmbedded => _isEmbedded;
 
-        // only on a window a rebuild creates:
-        // - carries the drag offsets
+        // only on a window a rebuild creates (and on a follower):
         // - skips the startup animation
         // - reopens an interrupted flyout
         private bool _isRebuild;
@@ -139,6 +166,16 @@ namespace FluentSensors.Features.TaskbarWidget
         public static event Action WidgetStateChanged;
 
         public TaskbarWidgetViewModel ViewModel { get; }
+
+        // the windows on the other chosen taskbars (SyncFollowers); a removed one is hidden and kept for reuse, like
+        // _retainedInstance (see the memory leak note at AppWindow_Closing)
+        private static readonly List<TaskbarWidgetWindow> _followers = new();
+        private static readonly List<TaskbarWidgetWindow> _spareFollowers = new();
+        private readonly bool _isFollower;
+        private IntPtr _followerTaskbarHwnd; // the taskbar a follower sits on
+
+        // the taskbar the widget sits on, zero while detached; the flyout opens on it
+        public IntPtr TaskbarHwnd => _taskbarHwnd;
 
 
         // === constructor ===
@@ -155,15 +192,21 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // rebuild path: takes over the ViewModel of the window it replaces, so the graphs keep their history and no
         // second HardwareDataUpdated subscription is left; (why it rebuilds: TaskbarFlyoutWindow.ScheduleRecreation)
-        private TaskbarWidgetWindow(TaskbarWidgetViewModel viewModel, Dictionary<ScreenEdge, int> offsetsDip, bool restoreFlyout)
+        private TaskbarWidgetWindow(TaskbarWidgetViewModel viewModel, bool restoreFlyout)
         {
             ViewModel = viewModel;
-            foreach (var pair in offsetsDip)
-            {
-                _offsetsDip[pair.Key] = pair.Value;
-            }
             _isRebuild = true;
             _restoreFlyoutAfterEmbed = restoreFlyout;
+            Initialize();
+        }
+
+        // a follower on another taskbar, with the ViewModel of the lead; no startup animation, it comes after the lead
+        private TaskbarWidgetWindow(TaskbarWidgetViewModel viewModel, IntPtr taskbarHwnd)
+        {
+            ViewModel = viewModel;
+            _isFollower = true;
+            _followerTaskbarHwnd = taskbarHwnd;
+            _isRebuild = true;
             Initialize();
         }
 
@@ -177,17 +220,13 @@ namespace FluentSensors.Features.TaskbarWidget
             try
             {
                 this.InitializeComponent();
-                CurrentInstance = this;
+                if (!_isFollower) CurrentInstance = this;
 
                 _appWindow = this.AppWindow;
                 _appWindow.IsShownInSwitchers = false;
                 _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-                // saved drag offsets; (a rebuild carries its predecessors)
-                if (!_isRebuild)
-                {
-                    LoadOffsets();
-                }
+                LoadOffsets();
 
                 // --- workaround: CreateForContextMenu crashes unpackaged ---
                 // problem: OverlappedPresenter.CreateForContextMenu() throws a TargetInvocationException in unpackaged
@@ -214,6 +253,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 SettingsService.Instance.TaskbarGraphWidthChanged += OnTaskbarGraphWidthChanged;
                 SettingsService.Instance.TaskbarSideGraphDirectionChanged += OnTaskbarSideGraphDirectionChanged;
                 SettingsService.Instance.TaskbarSideTitleLinesChanged += OnTaskbarSideTitleLinesChanged;
+                SettingsService.Instance.TaskbarWidgetBeforeTrayChanged += OnTaskbarWidgetBeforeTrayChanged;
+                if (!_isFollower) SettingsService.Instance.TaskbarWidgetMonitorsChanged += OnTaskbarWidgetMonitorsChanged;
                 ApplyWindowsTheme();
 
                 // with handledEventsToo, the Button handles the pointer events itself
@@ -251,10 +292,13 @@ namespace FluentSensors.Features.TaskbarWidget
                 });
 
                 // before the open state goes out, so the flyout shortcut registers with the first widget
-                FlyoutShortcutRegistration.EnsureInitialized();
+                if (!_isFollower)
+                {
+                    FlyoutShortcutRegistration.EnsureInitialized();
 
-                CurrentInstance = this;
-                WidgetStateChanged?.Invoke();
+                    CurrentInstance = this;
+                    WidgetStateChanged?.Invoke();
+                }
 
                 this.Activate();
             }
@@ -272,6 +316,7 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             if (CurrentInstance != null)
             {
+                CurrentInstance.CancelAnimatedClose();
                 CurrentInstance.ReconfigureFor(selectedSensors);
                 CurrentInstance.ViewModel.SetLiveDataActive(true);
                 CurrentInstance.SetGraphsRenderingActive(true);
@@ -347,6 +392,12 @@ namespace FluentSensors.Features.TaskbarWidget
                 PositionOnTaskbar();
             }
 
+            // the followers show the same ViewModel, only their length follows
+            foreach (var follower in _followers)
+            {
+                if (follower._isEmbedded) follower.PositionOnTaskbar();
+            }
+
             // the flyout follows the new sensor count
             TaskbarFlyoutWindow.ResetGeometry();
         }
@@ -371,6 +422,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 SettingsService.Instance.TaskbarGraphWidthChanged -= OnTaskbarGraphWidthChanged;
                 SettingsService.Instance.TaskbarSideGraphDirectionChanged -= OnTaskbarSideGraphDirectionChanged;
                 SettingsService.Instance.TaskbarSideTitleLinesChanged -= OnTaskbarSideTitleLinesChanged;
+                SettingsService.Instance.TaskbarWidgetBeforeTrayChanged -= OnTaskbarWidgetBeforeTrayChanged;
+                SettingsService.Instance.TaskbarWidgetMonitorsChanged -= OnTaskbarWidgetMonitorsChanged;
                 StopTrackingTaskbar();
             }
             catch { }
@@ -444,7 +497,9 @@ namespace FluentSensors.Features.TaskbarWidget
             {
                 var live = CurrentInstance;
                 var carriedViewModel = live?.ViewModel;
-                var carriedOffsetsDip = new Dictionary<ScreenEdge, int>(live?._offsetsDip ?? new Dictionary<ScreenEdge, int>());
+
+                // the followers are rebuilt by the new lead once it is embedded
+                DestroyFollowers();
 
                 // the carried ViewModel is not rebuilt, so its graph colors are refreshed for
                 // an accent change mid-rebuild
@@ -468,9 +523,9 @@ namespace FluentSensors.Features.TaskbarWidget
 
                 // one dispatcher hop, so the Close above drains before the replacement window is built
                 var queue = DispatcherQueue.GetForCurrentThread() ?? MainWindow.CurrentInstance?.DispatcherQueue;
-                if (queue == null || !queue.TryEnqueue(() => _ = new TaskbarWidgetWindow(carriedViewModel, carriedOffsetsDip, restoreFlyout)))
+                if (queue == null || !queue.TryEnqueue(() => _ = new TaskbarWidgetWindow(carriedViewModel, restoreFlyout)))
                 {
-                    _ = new TaskbarWidgetWindow(carriedViewModel, carriedOffsetsDip, restoreFlyout);
+                    _ = new TaskbarWidgetWindow(carriedViewModel, restoreFlyout);
                 }
             }
             finally
@@ -482,23 +537,22 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === embedding ===
 
-        // finds the primary taskbar, calculates placement, and reparents into it via SetParent
+        // finds the target taskbar (FindTargetTaskbar), calculates placement, and reparents into it via SetParent
         private void EmbedIntoTaskbar()
         {
             try
             {
-                // Shell_TrayWnd is always found before any Shell_SecondaryTrayWnd, so the first entry is the primary bar
-                var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
-                if (primaryTaskbar == null)
+                var targetTaskbar = FindTargetTaskbar(WinTaskbarService.Instance.DiscoverNow());
+                if (targetTaskbar == null)
                 {
                     RetryOrReportFailure("No taskbar found");
                     return;
                 }
 
-                _taskbarHwnd = primaryTaskbar.Hwnd;
+                _taskbarHwnd = targetTaskbar.Hwnd;
 
-                ApplyEdgeLayout(primaryTaskbar);
-                var screenRect = CalculateScreenRect(primaryTaskbar);
+                ApplyEdgeLayout(targetTaskbar);
+                var screenRect = CalculateScreenRect(targetTaskbar);
 
                 _currentScreenRect = screenRect;
 
@@ -577,7 +631,7 @@ namespace FluentSensors.Features.TaskbarWidget
                             var visual = ElementCompositionPreview.GetElementVisual(TaskbarButton);
                             if (visual != null)
                             {
-                                visual.Offset = GetStartupSlideOffset(primaryTaskbar);
+                                visual.Offset = GetStartupSlideOffset(targetTaskbar);
                                 visual.Opacity = TaskbarStartupStartOpacity;
                             }
                         }
@@ -602,7 +656,12 @@ namespace FluentSensors.Features.TaskbarWidget
                 }
 
                 // preloads the flyout; a rebuild that interrupted an open flyout reopens it here instead, once the
-                // new widget sits on the taskbar
+                // new widget sits on the taskbar; the lead then brings the followers
+                if (_isFollower)
+                {
+                    return;
+                }
+
                 if (_restoreFlyoutAfterEmbed)
                 {
                     _restoreFlyoutAfterEmbed = false;
@@ -612,6 +671,8 @@ namespace FluentSensors.Features.TaskbarWidget
                 {
                     TaskbarFlyoutWindow.Preload(this);
                 }
+
+                SyncFollowers();
             }
             catch (Exception ex)
             {
@@ -622,34 +683,253 @@ namespace FluentSensors.Features.TaskbarWidget
         // repositions the embedded widget for the current sensor count and taskbar edge
         private void PositionOnTaskbar()
         {
-            var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
-            if (primaryTaskbar == null) return;
+            var targetTaskbar = FindTargetTaskbar(WinTaskbarService.Instance.DiscoverNow());
+            if (targetTaskbar == null || targetTaskbar.Hwnd != _taskbarHwnd) return;
 
-            ApplyEdgeLayout(primaryTaskbar);
-            var screenRect = CalculateScreenRect(primaryTaskbar);
+            ApplyEdgeLayout(targetTaskbar);
+            var screenRect = CalculateScreenRect(targetTaskbar);
 
+            StopMoveAnimation();
             _currentScreenRect = screenRect;
             WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
+
+            if (_isContentFadedOut && HasLength(screenRect)) FadeContent(show: true, onCompleted: null);
         }
 
         // the widget rect on the given taskbar:
         // - length from the pinned sensor count
         // - position from the drag offset of the matching orientation
         // - kept inside the taskbar the same way a drag is
+        // - before the tray instead when that is on (on a secondary taskbar its clock button); while the tray is not
+        //   found yet it keeps the drag offset
+        // - zero length, so gone, while it would cover a task button, until the buttons leave room again
         private RectInt32 CalculateScreenRect(WinTaskbarInfo taskbar)
         {
             double scale = taskbar.Dpi / 96.0;
             int lengthPx = (int)(CalculateWidgetLengthDip(ViewModel.PinnedSensors.Count) * scale);
             int innerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactInnerMarginDip : InnerMarginDip) * scale);
             int outerMarginPx = (int)Math.Round((taskbar.IsCompact ? CompactOuterMarginDip : OuterMarginDip) * scale);
+            int offsetPx = ClampOffsetPx(taskbar, (int)(CurrentOffsetDip * scale), lengthPx);
+            int buttonGapPx = (int)Math.Round(TaskButtonGapDip * scale);
+
+            var (tray, taskButtons) = _trayTracker.Read(taskbar.Hwnd);
+
+            if (SettingsService.Instance.TaskbarWidgetBeforeTray && tray is RectInt32 trayRect)
+            {
+                int? beforeTray = TaskbarWidgetPlacement.CalculateBeforeTrayOffset(
+                    taskbar,
+                    trayRect,
+                    taskButtons,
+                    lengthPx,
+                    (int)Math.Round(TrayGapDip * scale),
+                    buttonGapPx);
+
+                if (beforeTray is int trayOffsetPx)
+                {
+                    offsetPx = trayOffsetPx;
+                }
+                else
+                {
+                    lengthPx = 0;
+                }
+            }
+            else if (taskButtons is RectInt32 buttons && TaskbarWidgetPlacement.IsNearTaskButtons(taskbar, offsetPx, lengthPx, buttons, buttonGapPx))
+            {
+                lengthPx = 0;
+            }
 
             return TaskbarWidgetPlacement.Calculate(
                 taskbar,
                 Anchor,
-                ClampOffsetPx(taskbar, (int)(CurrentOffsetDip * scale), lengthPx),
+                offsetPx,
                 lengthPx,
                 innerMarginPx,
                 outerMarginPx);
+        }
+
+        // the tray grows and shrinks and the task buttons come and go without a change to the taskbar rect, so the
+        // tracking tick asks again; not during a drag, which places the widget itself
+        private void FollowTaskButtons()
+        {
+            if (_isClosed || !_isEmbedded || _isOrphaned || _isDragging || _taskbarHwnd == IntPtr.Zero || _placedTaskbar == null) return;
+
+            var screenRect = CalculateScreenRect(_placedTaskbar);
+            if (screenRect == _currentScreenRect) return;
+
+            var previous = _currentScreenRect;
+            _currentScreenRect = screenRect;
+
+            // no room any more: fade out, then shrink to nothing
+            if (HasLength(previous) && !HasLength(screenRect))
+            {
+                StopMoveAnimation();
+                FadeContent(show: false, onCompleted: () => WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, _currentScreenRect));
+                return;
+            }
+
+            // room again: in place at once, then fade in
+            if (!HasLength(previous) && HasLength(screenRect))
+            {
+                StopMoveAnimation();
+                WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
+                FadeContent(show: true, onCompleted: null);
+                return;
+            }
+
+            // the tray or the buttons moved: slide over; a new length (or still no room) jumps
+            if (HasLength(screenRect) && previous.Width == screenRect.Width && previous.Height == screenRect.Height)
+            {
+                AnimateMove(previous, screenRect);
+                return;
+            }
+
+            StopMoveAnimation();
+            WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, screenRect);
+        }
+
+        private static bool HasLength(RectInt32 rect) => rect.Width > 0 && rect.Height > 0;
+
+        // the window itself moves, frame by frame, so nothing is clipped at its edge; from wherever a running slide got to
+        private void AnimateMove(RectInt32 from, RectInt32 target)
+        {
+            if (_moveTimer?.IsRunning != true) _moveShown = from;
+            _moveFrom = _moveShown;
+            _moveTo = target;
+            _moveClock.Restart();
+
+            if (_moveTimer == null)
+            {
+                _moveTimer = DispatcherQueue.CreateTimer();
+                _moveTimer.Interval = TimeSpan.FromMilliseconds(16);
+                _moveTimer.Tick += (s, e) => StepMoveAnimation();
+            }
+            _moveTimer.Start();
+        }
+
+        // cubic-bezier(0, 0, 0, 1): x = t^3 and y = 3t^2 - 2t^3, so the eased value of progress p is y(cbrt(p))
+        private void StepMoveAnimation()
+        {
+            if (_isClosed || _isOrphaned || !_isEmbedded || _taskbarHwnd == IntPtr.Zero)
+            {
+                StopMoveAnimation();
+                return;
+            }
+
+            double progress = Math.Clamp(_moveClock.Elapsed.TotalMilliseconds / TrayFollowDurationMs, 0.0, 1.0);
+            double t = Math.Cbrt(progress);
+            double eased = (3 * t * t) - (2 * t * t * t);
+
+            _moveShown = new RectInt32(
+                _moveFrom.X + (int)Math.Round((_moveTo.X - _moveFrom.X) * eased),
+                _moveFrom.Y + (int)Math.Round((_moveTo.Y - _moveFrom.Y) * eased),
+                _moveTo.Width,
+                _moveTo.Height);
+            WinTaskbarEmbedder.Position(_hwnd, _taskbarHwnd, _moveShown);
+
+            if (progress >= 1.0) StopMoveAnimation();
+        }
+
+        private void StopMoveAnimation()
+        {
+            _moveTimer?.Stop();
+        }
+
+        // the button fades out or back in, on its own visual (the one the startup slide moves)
+        private void FadeContent(bool show, Action? onCompleted)
+        {
+            _isContentFadedOut = !show;
+
+            var visual = TaskbarButton != null ? ElementCompositionPreview.GetElementVisual(TaskbarButton) : null;
+            if (visual == null)
+            {
+                onCompleted?.Invoke();
+                return;
+            }
+
+            var compositor = visual.Compositor;
+            var fade = compositor.CreateScalarKeyFrameAnimation();
+            if (show) fade.InsertKeyFrame(0.0f, 0.0f);
+            fade.InsertKeyFrame(1.0f, show ? 1.0f : 0.0f);
+            fade.Duration = TimeSpan.FromMilliseconds(RoomFadeDurationMs);
+
+            RunContentAnimation(visual, () => visual.StartAnimation("Opacity", fade), onCompleted);
+        }
+
+        // the startup slide backwards: towards the screen edge and out
+        private void PlayExitAnimation(Action? onCompleted)
+        {
+            var visual = TaskbarButton != null ? ElementCompositionPreview.GetElementVisual(TaskbarButton) : null;
+            if (visual == null || _placedTaskbar == null)
+            {
+                onCompleted?.Invoke();
+                return;
+            }
+
+            var compositor = visual.Compositor;
+
+            // Fluent 2 accelerate, cubic-bezier(1, 0, 1, 1), the mirror of the startup decelerate
+            var easeIn = compositor.CreateCubicBezierEasingFunction(new Vector2(1.0f, 0.0f), new Vector2(1.0f, 1.0f));
+
+            var slide = compositor.CreateVector3KeyFrameAnimation();
+            slide.InsertKeyFrame(1.0f, GetStartupSlideOffset(_placedTaskbar), easeIn);
+            slide.Duration = TimeSpan.FromMilliseconds(TaskbarExitDurationMs);
+
+            var fade = compositor.CreateScalarKeyFrameAnimation();
+            fade.InsertKeyFrame(1.0f, TaskbarStartupStartOpacity, easeIn);
+            fade.Duration = TimeSpan.FromMilliseconds(TaskbarExitDurationMs);
+
+            RunContentAnimation(visual, () =>
+            {
+                visual.StartAnimation("Offset", slide);
+                visual.StartAnimation("Opacity", fade);
+            }, onCompleted);
+        }
+
+        // one scoped batch per animation; only the newest one completes
+        private void RunContentAnimation(Visual visual, Action start, Action? onCompleted)
+        {
+            int id = ++_contentAnimationId;
+            var batch = visual.Compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+            start();
+            batch.End();
+            batch.Completed += (s, e) =>
+            {
+                if (id == _contentAnimationId && !_isClosed) onCompleted?.Invoke();
+            };
+        }
+
+        // the button back in place and opaque, for a window that is hidden now and shown again later
+        private void ResetContentVisual()
+        {
+            _contentAnimationId++;
+            _isContentFadedOut = false;
+            StopMoveAnimation();
+
+            var visual = TaskbarButton != null ? ElementCompositionPreview.GetElementVisual(TaskbarButton) : null;
+            if (visual == null) return;
+
+            visual.StopAnimation("Offset");
+            visual.StopAnimation("Opacity");
+            visual.Offset = Vector3.Zero;
+            visual.Opacity = 1.0f;
+        }
+
+        // on: no dragging, the widget moves to the tray; off: back to the saved drag offset
+        private void OnTaskbarWidgetBeforeTrayChanged(bool isBeforeTray)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_isClosed) return;
+
+                EndDrag();
+                _trayTracker.Reset();
+
+                if (_isEmbedded && _taskbarHwnd != IntPtr.Zero)
+                {
+                    TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
+                    PositionOnTaskbar();
+                }
+            });
         }
 
         // keeps an offset along the taskbar at least TaskbarEndPaddingDip away from both of its ends; the start end
@@ -745,24 +1025,78 @@ namespace FluentSensors.Features.TaskbarWidget
             else
             {
                 _embedGaveUp = true;
+                if (_isFollower) return; // the lead and its message stand for the widget
+
                 WidgetStateChanged?.Invoke();
                 ShowErrorMessage("Fluent Sensors", AppStrings.Format("TaskbarWidget_EmbedFailed", MaxEmbedAttempts, reason));
             }
         }
 
         // hides widget and flyout and detaches from the taskbar; (the instance is retained)
+        // plays the exit first while the widget is on screen; the followers leave with it
         public void CloseWidget()
+        {
+            if (_isFollower)
+            {
+                ParkFollower(this);
+                return;
+            }
+
+            if (_isClosingAnimated) return;
+
+            if (_isEmbedded && !_isOrphaned && HasLength(_currentScreenRect) && !_isContentFadedOut)
+            {
+                _isClosingAnimated = true;
+                TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
+
+                foreach (var follower in _followers)
+                {
+                    follower.PlayExitAnimation(onCompleted: null);
+                }
+
+                PlayExitAnimation(() =>
+                {
+                    if (!_isClosingAnimated) return;
+                    _isClosingAnimated = false;
+                    CloseWidgetNow();
+                });
+                return;
+            }
+
+            CloseWidgetNow();
+        }
+
+        // a show while the exit plays keeps the widget where it is
+        private void CancelAnimatedClose()
+        {
+            if (!_isClosingAnimated) return;
+            _isClosingAnimated = false;
+
+            ResetContentVisual();
+            foreach (var follower in _followers)
+            {
+                follower.ResetContentVisual();
+            }
+        }
+
+        private void CloseWidgetNow()
         {
             TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
 
             // hidden while explorer.exe is down: a dead window cannot be hidden or reused, so it is dropped
             if (_isOrphaned)
             {
+                DestroyFollowers();
                 CurrentInstance = null;
                 SafeDestroy(disposeViewModel: true);
                 SaveWindowState(wasOpen: false);
                 WidgetStateChanged?.Invoke();
                 return;
+            }
+
+            foreach (var follower in _followers.ToList())
+            {
+                ParkFollower(follower);
             }
 
             CurrentInstance = null;
@@ -781,6 +1115,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             SaveWindowState(wasOpen: false);
             _appWindow.Hide();
+            ResetContentVisual();
             WidgetStateChanged?.Invoke();
         }
 
@@ -788,9 +1123,12 @@ namespace FluentSensors.Features.TaskbarWidget
         // edge), where X carries the offset
         private void SaveWindowState(bool wasOpen = true)
         {
-            var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
-            state.WasOpen = wasOpen;
-            WindowStateService.Instance.SetState(WindowKey, state);
+            if (!_isFollower)
+            {
+                var state = WindowStateService.Instance.GetState(WindowKey) ?? new Persistence.Models.WindowState();
+                state.WasOpen = wasOpen;
+                WindowStateService.Instance.SetState(WindowKey, state);
+            }
 
             foreach (var pair in _offsetsDip)
             {
@@ -802,8 +1140,11 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // the counterpart of SaveWindowState; an edge without its own state takes the legacy shared offset, a
         // horizontal one, so only bottom and top inherit it
-        private void LoadOffsets()
+        private static void LoadOffsets()
         {
+            if (_areOffsetsLoaded) return;
+            _areOffsetsLoaded = true;
+
             var shared = WindowStateService.Instance.GetState(WindowKey);
 
             foreach (var edge in Enum.GetValues<ScreenEdge>())
@@ -962,10 +1303,15 @@ namespace FluentSensors.Features.TaskbarWidget
             if (_isTrackingTaskbar) return;
             _isTrackingTaskbar = true;
 
-            WinTaskbarService.Instance.TaskbarsChanged += OnTaskbarsChanged;
-            WinTaskbarService.Instance.StartMonitoring();
+            // the lead polls for all windows (OnTaskbarsChanged); a follower only runs its own tick
+            if (!_isFollower)
+            {
+                WinTaskbarService.Instance.TaskbarsChanged += OnTaskbarsChanged;
+                WinTaskbarService.Instance.StartMonitoring();
+            }
 
-            // on a timer, since explorer.exe builds its taskbar island at no fixed point after a restart
+            // on a timer, since explorer.exe builds its taskbar island at no fixed point after a restart; the same tick
+            // follows the task buttons and the tray
             _zOrderTimer = DispatcherQueue.CreateTimer();
             _zOrderTimer.Interval = TimeSpan.FromSeconds(1);
             _zOrderTimer.Tick += (s, e) =>
@@ -973,6 +1319,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 if (_isEmbedded && !_isOrphaned && _taskbarHwnd != IntPtr.Zero)
                 {
                     WinTaskbarEmbedder.KeepAboveShell(_hwnd, _taskbarHwnd);
+                    FollowTaskButtons();
                 }
             };
             _zOrderTimer.Start();
@@ -983,8 +1330,11 @@ namespace FluentSensors.Features.TaskbarWidget
             if (!_isTrackingTaskbar) return;
             _isTrackingTaskbar = false;
 
-            WinTaskbarService.Instance.TaskbarsChanged -= OnTaskbarsChanged;
-            WinTaskbarService.Instance.StopMonitoring();
+            if (!_isFollower)
+            {
+                WinTaskbarService.Instance.TaskbarsChanged -= OnTaskbarsChanged;
+                WinTaskbarService.Instance.StopMonitoring();
+            }
 
             _zOrderTimer?.Stop();
             _zOrderTimer = null;
@@ -993,25 +1343,199 @@ namespace FluentSensors.Features.TaskbarWidget
         // raised on the polling thread
         private void OnTaskbarsChanged(IReadOnlyList<WinTaskbarInfo> taskbars)
         {
-            this.DispatcherQueue.TryEnqueue(() => FollowTaskbar(taskbars.FirstOrDefault()));
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                FollowTaskbar(FindTargetTaskbar(taskbars));
+                if (_isClosed || CurrentInstance != this) return; // rebuilt, the new lead brings the followers
+
+                foreach (var follower in _followers.ToList())
+                {
+                    follower.FollowTaskbar(follower.FindTargetTaskbar(taskbars));
+                }
+                SyncFollowers();
+            });
         }
 
         // a new taskbar handle means explorer.exe rebuilt the taskbar, maybe with the child widget, so that case
-        // rebuilds; an empty snapshot mid restart is skipped
+        // rebuilds (a follower is replaced by SyncFollowers instead); an empty snapshot mid restart is skipped
         // an open flyout is closed, not moved; the next click opens it at the new place
-        private void FollowTaskbar(WinTaskbarInfo? primaryTaskbar)
+        private void FollowTaskbar(WinTaskbarInfo? targetTaskbar)
         {
-            if (_isClosed || !_isEmbedded || primaryTaskbar == null || primaryTaskbar == _placedTaskbar) return;
+            if (_isClosed || !_isEmbedded || targetTaskbar == null || targetTaskbar == _placedTaskbar) return;
 
-            TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
-
-            if (primaryTaskbar.Hwnd != _taskbarHwnd)
+            if (targetTaskbar.Hwnd != _taskbarHwnd)
             {
+                if (_isFollower) return;
+
+                TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
                 RecreateWindow(restoreFlyout: false);
                 return;
             }
 
+            TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
             PositionOnTaskbar();
+        }
+
+
+        // === monitors ===
+
+        // the taskbars of the chosen monitors, the main one first (WinTaskbarService finds Shell_TrayWnd first); the main
+        // taskbar alone without a choice, or when the choice matches no taskbar (a monitor unplugged, the taskbar only
+        // on the main display)
+        public static List<WinTaskbarInfo> ResolveTargetTaskbars(IReadOnlyList<WinTaskbarInfo> taskbars)
+        {
+            var result = new List<WinTaskbarInfo>();
+            var chosen = SettingsService.Instance.TaskbarWidgetMonitors;
+
+            if (chosen != null && chosen.Count > 0)
+            {
+                var keys = new Dictionary<IntPtr, string>();
+                foreach (var monitor in WinDisplayMonitors.GetAll())
+                {
+                    keys.TryAdd(monitor.Handle, monitor.Key);
+                }
+
+                foreach (var taskbar in taskbars)
+                {
+                    if (keys.TryGetValue(taskbar.Monitor, out var key) && chosen.Contains(key, StringComparer.OrdinalIgnoreCase))
+                    {
+                        result.Add(taskbar);
+                    }
+                }
+            }
+
+            if (result.Count == 0 && taskbars.Count > 0)
+            {
+                result.Add(taskbars[0]);
+            }
+
+            return result;
+        }
+
+        // the lead takes the first chosen taskbar, a follower its own
+        private WinTaskbarInfo? FindTargetTaskbar(IReadOnlyList<WinTaskbarInfo> taskbars)
+        {
+            return _isFollower
+                ? taskbars.FirstOrDefault(t => t.Hwnd == _followerTaskbarHwnd)
+                : ResolveTargetTaskbars(taskbars).FirstOrDefault();
+        }
+
+        // whether the point lies on any widget window; the flyout leaves such a click to the widget toggle
+        public static bool ContainsScreenPoint(int x, int y)
+        {
+            foreach (var widget in _followers.Prepend(CurrentInstance))
+            {
+                if (widget == null || !widget._isEmbedded) continue;
+
+                var rect = widget._currentScreenRect;
+                if (x >= rect.X && x <= rect.X + rect.Width && y >= rect.Y && y <= rect.Y + rect.Height) return true;
+            }
+
+            return false;
+        }
+
+        // a new choice of monitors: a new first taskbar rebuilds the lead there, otherwise only the followers change
+        private void OnTaskbarWidgetMonitorsChanged()
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (_isClosed || !_isEmbedded || CurrentInstance != this) return;
+
+                var targetTaskbar = FindTargetTaskbar(WinTaskbarService.Instance.DiscoverNow());
+                if (targetTaskbar != null && targetTaskbar.Hwnd != _taskbarHwnd)
+                {
+                    TaskbarFlyoutWindow.CurrentInstance?.HideFlyout();
+                    RecreateWindow(restoreFlyout: false);
+                    return;
+                }
+
+                SyncFollowers();
+            });
+        }
+
+        // one follower per chosen taskbar after the first: one whose taskbar left the choice or the screen is put away,
+        // a missing one is taken from the spares or built
+        private void SyncFollowers()
+        {
+            if (_isFollower || _isClosed || !_isEmbedded || CurrentInstance != this) return;
+
+            // spares of an earlier lead show a ViewModel that is gone
+            foreach (var spare in _spareFollowers.Where(f => f.ViewModel != ViewModel).ToList())
+            {
+                _spareFollowers.Remove(spare);
+                spare.SafeDestroy(disposeViewModel: false);
+            }
+
+            var targets = ResolveTargetTaskbars(WinTaskbarService.Instance.DiscoverNow()).Skip(1).ToList();
+
+            foreach (var follower in _followers.ToList())
+            {
+                if (follower._isOrphaned || !targets.Any(t => t.Hwnd == follower._followerTaskbarHwnd))
+                {
+                    ParkFollower(follower);
+                }
+            }
+
+            foreach (var taskbar in targets)
+            {
+                if (_followers.Any(f => f._followerTaskbarHwnd == taskbar.Hwnd)) continue;
+
+                var follower = _spareFollowers.FirstOrDefault();
+                if (follower != null)
+                {
+                    _spareFollowers.Remove(follower);
+                    follower._followerTaskbarHwnd = taskbar.Hwnd;
+                    follower._embedAttempt = 0;
+                    follower._embedGaveUp = false;
+                    follower.SetGraphsRenderingActive(true);
+                    follower._appWindow.Show(false);
+                    follower.EmbedIntoTaskbar();
+                }
+                else
+                {
+                    follower = new TaskbarWidgetWindow(ViewModel, taskbar.Hwnd);
+                }
+
+                _followers.Add(follower);
+            }
+        }
+
+        // detached and hidden for reuse; a dead one (explorer.exe took it) is dropped
+        private static void ParkFollower(TaskbarWidgetWindow follower)
+        {
+            _followers.Remove(follower);
+
+            if (follower._isOrphaned || follower._isClosed || !NativeMethods.IsWindow(follower._hwnd))
+            {
+                follower.SafeDestroy(disposeViewModel: false);
+                return;
+            }
+
+            follower.SetGraphsRenderingActive(false);
+            follower.StopTrackingTaskbar();
+
+            if (follower._taskbarHwnd != IntPtr.Zero)
+            {
+                WinTaskbarEmbedder.Detach(follower._hwnd);
+                follower._taskbarHwnd = IntPtr.Zero;
+                follower._isEmbedded = false;
+            }
+
+            follower._appWindow.Hide();
+            follower.ResetContentVisual();
+            _spareFollowers.Add(follower);
+        }
+
+        // for a rebuild, where every window is replaced
+        private static void DestroyFollowers()
+        {
+            foreach (var follower in _followers.Concat(_spareFollowers).ToList())
+            {
+                follower.SafeDestroy(disposeViewModel: false);
+            }
+
+            _followers.Clear();
+            _spareFollowers.Clear();
         }
 
 
@@ -1046,9 +1570,9 @@ namespace FluentSensors.Features.TaskbarWidget
             var compositor = visual?.Compositor;
             if (compositor == null) return;
 
-            var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
-            var startOffset = primaryTaskbar != null
-                ? GetStartupSlideOffset(primaryTaskbar)
+            var targetTaskbar = FindTargetTaskbar(WinTaskbarService.Instance.DiscoverNow());
+            var startOffset = targetTaskbar != null
+                ? GetStartupSlideOffset(targetTaskbar)
                 : new Vector3(0, TaskbarStartupSlideDistanceDip, 0);
 
             // Fluent 2 decelerate, cubic-bezier(0, 0, 0, 1)
@@ -1311,10 +1835,12 @@ namespace FluentSensors.Features.TaskbarWidget
 
             _suppressClick = false;
 
-            // skip all drag bookkeeping while the position is locked; press feedback and click-to-toggle stay live
-            if (!SettingsService.Instance.TaskbarWidgetPositionLocked && NativeMethods.GetCursorPos(out var cursorPos))
+            // skip all drag bookkeeping while the position is locked or follows the tray; press feedback and
+            // click-to-toggle stay live
+            var settings = SettingsService.Instance;
+            if (!settings.TaskbarWidgetPositionLocked && !settings.TaskbarWidgetBeforeTray && NativeMethods.GetCursorPos(out var cursorPos))
             {
-                _dragTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
+                _dragTaskbar = FindTargetTaskbar(WinTaskbarService.Instance.DiscoverNow());
                 bool isVertical = _dragTaskbar?.IsVertical ?? false;
 
                 _dragStartCursorAlong = isVertical ? cursorPos.Y : cursorPos.X;
@@ -1415,10 +1941,39 @@ namespace FluentSensors.Features.TaskbarWidget
             if (_isDragging)
             {
                 _isDragging = false;
+                RevertDropOnTaskButtons();
                 SaveWindowState(wasOpen: true);
+
+                // the offset is shared, so the widgets on the other taskbars take it too
+                foreach (var widget in _followers.Prepend(CurrentInstance))
+                {
+                    if (widget != null && widget != this && widget._isEmbedded) widget.PositionOnTaskbar();
+                }
             }
 
             _isPotentialDrag = false;
+        }
+
+        // a drop on the task buttons would hide the widget at once (CalculateScreenRect), so it goes back to where the
+        // drag started
+        private void RevertDropOnTaskButtons()
+        {
+            if (_dragTaskbar == null) return;
+
+            var (_, taskButtons) = _trayTracker.Read(_dragTaskbar.Hwnd);
+            if (taskButtons is not RectInt32 buttons) return;
+
+            bool isVertical = _dragTaskbar.IsVertical;
+            double scale = (_dragTaskbar.Dpi > 0 ? _dragTaskbar.Dpi : 96.0) / 96.0;
+            int barStart = isVertical ? _dragTaskbar.Rect.Y : _dragTaskbar.Rect.X;
+            int offsetPx = (isVertical ? _currentScreenRect.Y : _currentScreenRect.X) - barStart;
+            int lengthPx = isVertical ? _currentScreenRect.Height : _currentScreenRect.Width;
+            int gapPx = (int)Math.Round(TaskButtonGapDip * scale);
+
+            if (!TaskbarWidgetPlacement.IsNearTaskButtons(_dragTaskbar, offsetPx, lengthPx, buttons, gapPx)) return;
+
+            CurrentOffsetDip = (int)Math.Round((_dragStartWindowAlong - barStart) / scale);
+            PositionOnTaskbar();
         }
 
         private void TaskbarButton_Click(object sender, RoutedEventArgs e)

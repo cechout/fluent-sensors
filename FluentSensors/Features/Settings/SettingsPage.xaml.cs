@@ -151,6 +151,9 @@ namespace FluentSensors.Features.Settings
             }
             OnActiveTaskbarEdgeChanged(SettingsService.Instance.ActiveTaskbarEdge);
 
+            // monitors come and go while the page sits in the navigation cache
+            RestoreTaskbarMonitorSelection();
+
             // the time range pickers in the flyout write the same settings; (the performance page and each widget
             // window keep theirs next to the graphs)
             SettingsService.Instance.TaskbarGraphTimeSpanChanged += OnTimeRangeChanged;
@@ -1663,6 +1666,104 @@ namespace FluentSensors.Features.Settings
         private void RestoreLockWidgetPositionSelection()
         {
             LockWidgetPositionToggle.IsOn = SettingsService.Instance.TaskbarWidgetPositionLocked;
+            TaskbarWidgetBeforeTrayToggle.IsOn = SettingsService.Instance.TaskbarWidgetBeforeTray;
+            UpdateLockWidgetPositionAvailability();
+        }
+
+        // --- widget monitors ---
+        // one switch per active monitor; one without a taskbar (taskbars on the main display only) cannot be switched
+        // on, and the last monitor with a taskbar cannot be switched off; a choice for a monitor that is not connected
+        // stays saved
+
+        private bool _isRestoringMonitors;
+
+        private void RestoreTaskbarMonitorSelection()
+        {
+            var monitors = WinDisplayMonitors.GetAll();
+            var taskbarMonitors = WinTaskbarService.Instance.DiscoverNow().Select(t => t.Monitor).ToHashSet();
+            var chosen = EffectiveTaskbarMonitors(monitors);
+
+            _isRestoringMonitors = true;
+            TaskbarWidgetMonitorsExpander.Items.Clear();
+            for (int i = 0; i < monitors.Count; i++)
+            {
+                var monitor = monitors[i];
+                bool hasTaskbar = taskbarMonitors.Contains(monitor.Handle);
+
+                var toggle = new ToggleSwitch
+                {
+                    IsOn = hasTaskbar && chosen.Contains(monitor.Key),
+                    IsEnabled = hasTaskbar,
+                    OnContent = AppStrings.Get("Common_ToggleSwitch/OnContent"),
+                    OffContent = AppStrings.Get("Common_ToggleSwitch/OffContent"),
+                    Tag = monitor.Key
+                };
+                toggle.Toggled += TaskbarMonitorToggle_Toggled;
+
+                var card = new CommunityToolkit.WinUI.Controls.SettingsCard
+                {
+                    Header = string.IsNullOrWhiteSpace(monitor.Name)
+                        ? AppStrings.Format("Settings_TaskbarWidgetMonitorFallbackName", i + 1)
+                        : monitor.Name,
+                    Content = toggle,
+                    IsEnabled = hasTaskbar
+                };
+                if (!hasTaskbar) card.Description = AppStrings.Get("Settings_TaskbarWidgetMonitorNoTaskbar");
+                else if (monitor.IsPrimary) card.Description = AppStrings.Get("Settings_TaskbarWidgetMonitorMain");
+
+                TaskbarWidgetMonitorsExpander.Items.Add(card);
+            }
+            _isRestoringMonitors = false;
+        }
+
+        // the saved choice, or the main display without one
+        private static HashSet<string> EffectiveTaskbarMonitors(List<WinDisplayMonitor> monitors)
+        {
+            var saved = SettingsService.Instance.TaskbarWidgetMonitors;
+            if (saved != null && saved.Count > 0) return new HashSet<string>(saved, StringComparer.OrdinalIgnoreCase);
+
+            var main = monitors.FirstOrDefault(m => m.IsPrimary);
+            return main != null
+                ? new HashSet<string>(new[] { main.Key }, StringComparer.OrdinalIgnoreCase)
+                : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        private void TaskbarMonitorToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_isRestoringMonitors || sender is not ToggleSwitch { Tag: string key } toggle) return;
+
+            // at least one monitor with a taskbar stays on
+            bool anyOn = TaskbarWidgetMonitorsExpander.Items
+                .OfType<CommunityToolkit.WinUI.Controls.SettingsCard>()
+                .Any(card => card.Content is ToggleSwitch { IsEnabled: true, IsOn: true });
+            if (!anyOn)
+            {
+                _isRestoringMonitors = true;
+                toggle.IsOn = true;
+                _isRestoringMonitors = false;
+                return;
+            }
+
+            var chosen = EffectiveTaskbarMonitors(WinDisplayMonitors.GetAll());
+            if (toggle.IsOn) chosen.Add(key);
+            else chosen.Remove(key);
+
+            SettingsService.Instance.TaskbarWidgetMonitors = chosen.ToList();
+        }
+
+        // --- widget before the tray ---
+        // the tray sets the position then, so the drag lock has nothing to lock
+
+        private void TaskbarWidgetBeforeTrayToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            UpdateLockWidgetPositionAvailability();
+            if (_isLoading) return;
+            SettingsService.Instance.TaskbarWidgetBeforeTray = TaskbarWidgetBeforeTrayToggle.IsOn;
+        }
+
+        private void UpdateLockWidgetPositionAvailability()
+        {
+            LockTaskbarWidgetPositionCard.IsEnabled = !TaskbarWidgetBeforeTrayToggle.IsOn;
         }
 
 

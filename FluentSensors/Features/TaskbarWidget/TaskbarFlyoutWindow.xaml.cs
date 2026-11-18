@@ -583,16 +583,31 @@ namespace FluentSensors.Features.TaskbarWidget
 
         // === public methods ===
 
+        // the widget the flyout last opened at; with a widget on several taskbars any of them can open it, the lead
+        // stands in while that one is not embedded
+        private static TaskbarWidgetWindow? _anchorWidget;
+        private static TaskbarWidgetWindow? AnchorWidget =>
+            _anchorWidget is { IsEmbedded: true } widget ? widget : TaskbarWidgetWindow.CurrentInstance;
+
+        private static void SetAnchorWidget(TaskbarWidgetWindow widgetWindow)
+        {
+            if (_anchorWidget == widgetWindow) return;
+
+            _anchorWidget?.SetFlyoutActive(false);
+            _anchorWidget = widgetWindow;
+        }
+
         // re-places the flyout for the current pinned sensor count
         public static void ResetGeometry()
         {
-            if (CurrentInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
+            var anchor = AnchorWidget;
+            if (CurrentInstance != null && anchor != null)
             {
-                CurrentInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
+                CurrentInstance.PositionNextToTaskbar(anchor);
             }
-            else if (_retainedInstance != null && TaskbarWidgetWindow.CurrentInstance != null)
+            else if (_retainedInstance != null && anchor != null)
             {
-                _retainedInstance.PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
+                _retainedInstance.PositionNextToTaskbar(anchor);
             }
         }
 
@@ -601,6 +616,7 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             // assumes a retained instance is live (a destroyed one here leaves the flyout dead, see AppWindow_Closing)
             if (widgetWindow == null) return;
+            SetAnchorWidget(widgetWindow);
 
             // a flyout that outlived its widget takes the graphs of the new one
             var existing = CurrentInstance ?? _retainedInstance;
@@ -620,9 +636,11 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        // behind the taskbar of the widget it opened at, which may be a secondary one
         private void EnsureBehindTaskbarZOrder()
         {
-            var taskbarHwnd = FindWindow("Shell_TrayWnd", null);
+            var taskbarHwnd = AnchorWidget?.TaskbarHwnd ?? IntPtr.Zero;
+            if (taskbarHwnd == IntPtr.Zero) taskbarHwnd = FindWindow("Shell_TrayWnd", null);
             if (taskbarHwnd != IntPtr.Zero)
             {
                 // SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOOWNERZORDER
@@ -630,11 +648,13 @@ namespace FluentSensors.Features.TaskbarWidget
             }
         }
 
+        // the widget it is open at closes it, another one moves it over
         public static void Toggle(TaskbarWidgetWindow widgetWindow)
         {
             if (widgetWindow == null) return;
 
-            if (CurrentInstance != null && CurrentInstance._appWindow.IsVisible && !CurrentInstance._isHiding)
+            if (CurrentInstance != null && CurrentInstance._appWindow.IsVisible && !CurrentInstance._isHiding
+                && widgetWindow == AnchorWidget)
             {
                 CurrentInstance.HideFlyout();
                 return;
@@ -648,6 +668,7 @@ namespace FluentSensors.Features.TaskbarWidget
         public static void ShowFlyout(TaskbarWidgetWindow widgetWindow)
         {
             if (widgetWindow == null) return;
+            SetAnchorWidget(widgetWindow);
 
             if (CurrentInstance != null)
             {
@@ -702,7 +723,7 @@ namespace FluentSensors.Features.TaskbarWidget
                 ResourcesViewModel.Stop();
                 SaveWindowState();
                 _appWindow.Hide();
-                TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
+                AnchorWidget?.SetFlyoutActive(false);
             });
         }
 
@@ -911,7 +932,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // backdrop fills the window rect and would stay behind as a plate
         private void SlideIn()
         {
-            TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(true);
+            AnchorWidget?.SetFlyoutActive(true);
             CancelSlideOut();
 
             if (_isResourcesExpanded) ResourcesViewModel.Start();
@@ -931,7 +952,7 @@ namespace FluentSensors.Features.TaskbarWidget
         // hides once the batch completes
         private void SlideOut(Action onCompleted)
         {
-            TaskbarWidgetWindow.CurrentInstance?.SetFlyoutActive(false);
+            AnchorWidget?.SetFlyoutActive(false);
 
             var compositor = ElementCompositionPreview.GetElementVisual(FlyoutWindowRoot).Compositor;
             var easing = compositor.CreateCubicBezierEasingFunction(ExitEasingControlPoint1, ExitEasingControlPoint2);
@@ -1029,12 +1050,14 @@ namespace FluentSensors.Features.TaskbarWidget
             var widgetHwnd = WinRT.Interop.WindowNative.GetWindowHandle(widgetWindow);
             NativeMethods.GetWindowRect(widgetHwnd, out var widgetRect);
 
-            var primaryTaskbar = WinTaskbarService.Instance.DiscoverNow().FirstOrDefault();
-            double scale = primaryTaskbar != null ? (primaryTaskbar.Dpi / 96.0) : GetScaleFactor();
+            // the taskbar of that widget, on whichever monitor
+            var taskbars = WinTaskbarService.Instance.DiscoverNow();
+            var widgetTaskbar = taskbars.FirstOrDefault(t => t.Hwnd == widgetWindow.TaskbarHwnd) ?? taskbars.FirstOrDefault();
+            double scale = widgetTaskbar != null ? (widgetTaskbar.Dpi / 96.0) : GetScaleFactor();
 
             // without a taskbar the widget rect stands in for it, on the default bottom edge
-            var edge = primaryTaskbar?.Edge ?? ScreenEdge.Bottom;
-            var bar = primaryTaskbar?.Rect
+            var edge = widgetTaskbar?.Edge ?? ScreenEdge.Bottom;
+            var bar = widgetTaskbar?.Rect
                 ?? new RectInt32(widgetRect.Left, widgetRect.Top, widgetRect.Right - widgetRect.Left, widgetRect.Bottom - widgetRect.Top);
 
             int desiredWidthPx = (int)Math.Round(FlyoutDefaultWidthDip * scale);
@@ -1048,7 +1071,7 @@ namespace FluentSensors.Features.TaskbarWidget
 
             // height cap: the work area less the taskbar gap at both ends (horizontal taskbar) or the screen edge
             // gap at both ends (vertical), floored at one graph slot; past it the graphs scroll
-            var workArea = DisplayArea.Primary.WorkArea;
+            var workArea = DisplayArea.GetFromRect(bar, DisplayAreaFallback.Primary).WorkArea;
             int availableHeightPx = edge switch
             {
                 ScreenEdge.Top => (workArea.Y + workArea.Height - marginPx) - (bar.Y + bar.Height + marginPx),
@@ -1302,18 +1325,10 @@ namespace FluentSensors.Features.TaskbarWidget
             // light dismiss
             if (args.WindowActivationState == WindowActivationState.Deactivated)
             {
-                // a click on the taskbar widget is left to its own toggle
-                if (TaskbarWidgetWindow.CurrentInstance != null)
+                // a click on a taskbar widget is left to its own toggle
+                if (NativeMethods.GetCursorPos(out var cursorPos) && TaskbarWidgetWindow.ContainsScreenPoint(cursorPos.X, cursorPos.Y))
                 {
-                    var widgetHwnd = WinRT.Interop.WindowNative.GetWindowHandle(TaskbarWidgetWindow.CurrentInstance);
-                    NativeMethods.GetWindowRect(widgetHwnd, out var widgetRect);
-                    NativeMethods.GetCursorPos(out var cursorPos);
-
-                    if (cursorPos.X >= widgetRect.Left && cursorPos.X <= widgetRect.Right &&
-                        cursorPos.Y >= widgetRect.Top && cursorPos.Y <= widgetRect.Bottom)
-                    {
-                        return;
-                    }
+                    return;
                 }
 
                 HideFlyout();
@@ -1647,8 +1662,9 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (TaskbarWidgetWindow.CurrentInstance == null) return;
-                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
+                var anchor = AnchorWidget;
+                if (anchor == null) return;
+                PositionNextToTaskbar(anchor);
             });
         }
 
@@ -1657,8 +1673,9 @@ namespace FluentSensors.Features.TaskbarWidget
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (TaskbarWidgetWindow.CurrentInstance == null) return;
-                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
+                var anchor = AnchorWidget;
+                if (anchor == null) return;
+                PositionNextToTaskbar(anchor);
             });
         }
 
@@ -2063,9 +2080,9 @@ namespace FluentSensors.Features.TaskbarWidget
             UpdateSolidBackground();
 
             // a retired link switches the construction, which moves the window around the card
-            if (_isAnchored && _isCardWindow != UsesCardWindow && TaskbarWidgetWindow.CurrentInstance != null)
+            if (_isAnchored && _isCardWindow != UsesCardWindow && AnchorWidget != null)
             {
-                PositionNextToTaskbar(TaskbarWidgetWindow.CurrentInstance);
+                PositionNextToTaskbar(AnchorWidget);
             }
             else
             {

@@ -31,6 +31,14 @@ namespace FluentSensors.Core.Taskbar
         private const string TrayClassName = "TrayNotifyWnd";
         private const string WidgetsButtonAutomationId = "WidgetsButton";
 
+        // the children of TaskbarFrame that are buttons: start, search and task view, then one per app
+        private const string ToggleButtonClassName = "ToggleButton";
+        private const string TaskListButtonClassName = "Taskbar.TaskListButtonAutomationPeer";
+
+        // every button of the notification area, from the hidden icons arrow to show desktop; a secondary taskbar
+        // keeps at least the clock and notification button (SystemTray.OmniButton)
+        private const string SystemTrayIconAutomationId = "SystemTrayIcon";
+
         private readonly object _lock = new();
         private readonly Dictionary<IntPtr, (WinTaskbarUiaSnapshot? Snapshot, DateTime QueriedAt)> _cache = new();
 
@@ -73,6 +81,69 @@ namespace FluentSensors.Core.Taskbar
         }
 
 
+        // the extent of every task button and, with withTray, of the notification area buttons, in physical screen
+        // pixels; null for a part not found or on any failure
+        // synchronous and uncached, for a caller on a worker thread (WinTaskbarTrayTracker)
+        public (RectInt32? TaskButtons, RectInt32? Tray) FindTaskbarParts(IntPtr taskbarHwnd, bool withTray)
+        {
+            try
+            {
+                var automation = GetOrCreateAutomation();
+                var root = automation.ElementFromHandle(taskbarHwnd);
+                if (root == null) return (null, null);
+
+                // one round trip per query, with class name and bounds cached
+                var cache = automation.CreateCacheRequest();
+                cache.AddProperty(UIA_PropertyIds.UIA_ClassNamePropertyId);
+                cache.AddProperty(UIA_PropertyIds.UIA_BoundingRectanglePropertyId);
+
+                RectInt32? taskButtons = null;
+                var frame = FindDescendant(automation, root, UIA_PropertyIds.UIA_AutomationIdPropertyId, TaskbarFrameAutomationId);
+                if (frame != null)
+                {
+                    var children = frame.FindAllBuildCache(TreeScope.TreeScope_Children, automation.CreateTrueCondition(), cache);
+                    taskButtons = UnionOf(children, className => className == ToggleButtonClassName || className == TaskListButtonClassName);
+                }
+
+                RectInt32? tray = null;
+                if (withTray)
+                {
+                    var condition = automation.CreatePropertyCondition(UIA_PropertyIds.UIA_AutomationIdPropertyId, SystemTrayIconAutomationId);
+                    tray = UnionOf(root.FindAllBuildCache(TreeScope.TreeScope_Descendants, condition, cache), _ => true);
+                }
+
+                return (taskButtons, tray);
+            }
+            catch (Exception)
+            {
+                return (null, null);
+            }
+        }
+
+        // the bounds around every element whose cached class name passes; empty ones are skipped
+        private static RectInt32? UnionOf(IUIAutomationElementArray? elements, Func<string, bool> isPart)
+        {
+            if (elements == null) return null;
+
+            int left = int.MaxValue, top = int.MaxValue, right = int.MinValue, bottom = int.MinValue;
+            for (int i = 0; i < elements.Length; i++)
+            {
+                var element = elements.GetElement(i);
+                if (!isPart(element.CachedClassName ?? string.Empty)) continue;
+
+                var rect = element.CachedBoundingRectangle;
+                if (rect.right <= rect.left || rect.bottom <= rect.top) continue;
+
+                left = Math.Min(left, rect.left);
+                top = Math.Min(top, rect.top);
+                right = Math.Max(right, rect.right);
+                bottom = Math.Max(bottom, rect.bottom);
+            }
+
+            return right > left ? new RectInt32(left, top, right - left, bottom - top) : null;
+        }
+
+
         // === private helpers ===
 
         // UIA is synchronous COM without cancellation; on a hung explorer.exe the worker stays
@@ -104,17 +175,21 @@ namespace FluentSensors.Core.Taskbar
             }
         }
 
+        // the probe and the tray tracker ask from different workers
         private IUIAutomation2 GetOrCreateAutomation()
         {
-            if (_automation == null)
+            lock (_lock)
             {
-                var automation = new CUIAutomation8();
-                automation.ConnectionTimeout = (uint)QueryTimeoutMs;
-                automation.TransactionTimeout = (uint)QueryTimeoutMs;
-                _automation = automation;
-            }
+                if (_automation == null)
+                {
+                    var automation = new CUIAutomation8();
+                    automation.ConnectionTimeout = (uint)QueryTimeoutMs;
+                    automation.TransactionTimeout = (uint)QueryTimeoutMs;
+                    _automation = automation;
+                }
 
-            return _automation;
+                return _automation;
+            }
         }
 
         // the full subtree, not only direct children

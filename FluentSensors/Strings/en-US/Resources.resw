@@ -788,11 +788,32 @@ Settings &gt; Privacy &amp; security &gt; Location: Location services and Let de
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Taskbar Widget &amp; Flyout Behavior</value>
   </data>
-  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
-    <value>Stop the taskbar widget from being dragged along the taskbar</value>
+  <data name="Settings_TaskbarWidgetMonitorsExpander.Header" xml:space="preserve">
+    <value>Taskbar Widget Monitors</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorsExpander.Description" xml:space="preserve">
+    <value>The taskbar widget shows on the taskbar of every monitor switched on</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorFallbackName" xml:space="preserve">
+    <value>Display {0}</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorMain" xml:space="preserve">
+    <value>Main display</value>
+  </data>
+  <data name="Settings_TaskbarWidgetMonitorNoTaskbar" xml:space="preserve">
+    <value>No taskbar on this display</value>
+  </data>
+  <data name="Settings_TaskbarWidgetPositionExpander.Description" xml:space="preserve">
+    <value>Before the system tray or where you drag it</value>
+  </data>
+  <data name="Settings_TaskbarWidgetPositionExpander.Header" xml:space="preserve">
+    <value>Taskbar Widget Position</value>
+  </data>
+  <data name="Settings_TaskbarWidgetBeforeTrayCard.Header" xml:space="preserve">
+    <value>Place Before the System Tray</value>
   </data>
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
-    <value>Lock Taskbar Widget Position</value>
+    <value>Lock Position</value>
   </data>
   <data name="Settings_FlyoutShortcutCard.Description" xml:space="preserve">
     <value>Open the flyout from the keyboard while the taskbar widget is open</value>

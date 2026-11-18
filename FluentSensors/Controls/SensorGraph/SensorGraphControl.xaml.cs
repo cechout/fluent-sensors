@@ -24,18 +24,21 @@ namespace FluentSensors.Controls.SensorGraph
     // threshold and label properties
     //
     // split across three files:
-    // SensorGraphControl.xaml.cs - fields, constructor, bindings, every DependencyProperty
-    // SensorGraphControl.Rendering.cs - colors and sections (ApplyStroke, RebuildSections)
-    // SensorGraphControl.Hover.cs - pointer hover
+    // - SensorGraphControl.xaml.cs: fields, constructor, bindings, every DependencyProperty
+    // - SensorGraphControl.Rendering.cs: colors and sections (ApplyStroke, RebuildSections)
+    // - SensorGraphControl.Hover.cs: pointer hover
     public sealed partial class SensorGraphControl : UserControl
     {
         // === fields ===
 
+        // --- layout constants ---
+
         // stacked text
         private const double StackedLineSpacing = 3;
 
-        // centered text, and the bar below it on a compact card, moves up by this, in DIP; the line box keeps room for
-        // descenders below, so digits and capitals sit low when the box is centered (TaskbarSideSlot uses it too)
+        // centered text, and the bar below it on a compact card, moves up by this, in DIP;
+        // the line box keeps room for descenders below, so digits and capitals sit low when the box is centered
+        // (TaskbarSideSlot uses it too)
         internal const double CenteredTextLift = 1;
 
         // level bar of a compact card (IsCompact), in DIP
@@ -64,7 +67,7 @@ namespace FluentSensors.Controls.SensorGraph
 
         // live rendering gate:
         // an off-screen graph is detached from its data, so LiveCharts does no per-tick work; the values keep updating
-        // and one repaint catches up when shown again (see SetRenderingActive)
+        // and one repaint catches up when shown again (see SetRenderingActive);
         // active by default, so an ungated graph (the sidebar mini graphs) just renders
         private bool _isRenderingActive = true;
         private ObservableCollection<double?> _boundValues;

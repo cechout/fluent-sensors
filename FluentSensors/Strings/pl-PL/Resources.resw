@@ -548,9 +548,6 @@ Odczyt - czas jednego pełnego przebiegu odczytu czujników, zbliżenie się do 
   <data name="Settings_TaskbarWidgetFlyoutBehaviorText.Text" xml:space="preserve">
     <value>Zachowanie widżetu i okna wysuwanego paska zadań</value>
   </data>
-  <data name="Settings_LockTaskbarWidgetPositionCard.Description" xml:space="preserve">
-    <value>Zablokuj możliwość przeciągania widżetu wzdłuż paska zadań</value>
-  </data>
   <data name="Settings_LockTaskbarWidgetPositionCard.Header" xml:space="preserve">
     <value>Zablokuj pozycję widżetu paska zadań</value>
   </data>
