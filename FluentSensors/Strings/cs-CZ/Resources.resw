@@ -300,15 +300,18 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   </data>
   <data name="ViewMenu_DecimalPlacesAuto" xml:space="preserve">
     <value>Automaticky</value>
+    <comment>one decimal, the y-axis picks its own</comment>
   </data>
   <data name="Performance_YMaxPositionButton.Label" xml:space="preserve">
     <value>Maximum osy Y</value>
   </data>
   <data name="ViewMenu_YMaxBesideTitle" xml:space="preserve">
     <value>Vedle názvu</value>
+    <comment>the y-axis maximum of a graph sits beside the sensor title</comment>
   </data>
   <data name="ViewMenu_YMaxBesideValue" xml:space="preserve">
     <value>Vedle hodnoty</value>
+    <comment>the y-axis maximum of a graph sits beside the current value</comment>
   </data>
   <data name="Settings_DecimalPlacesComboBox_Auto.Content" xml:space="preserve">
     <value>Automaticky</value>
@@ -322,12 +325,15 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   </data>
   <data name="Settings_YMaxPositionComboBox_Title.Content" xml:space="preserve">
     <value>Vedle názvu</value>
+    <comment>the y-axis maximum of a graph sits beside the sensor title</comment>
   </data>
   <data name="Settings_YMaxPositionComboBox_Value.Content" xml:space="preserve">
     <value>Vedle hodnoty</value>
+    <comment>the y-axis maximum of a graph sits beside the current value</comment>
   </data>
   <data name="Settings_TaskbarTextSizeCard.Header" xml:space="preserve">
     <value>Velikost textu</value>
+    <comment>name and value text on the taskbar</comment>
   </data>
   <data name="Settings_TaskbarLabelFontSizeComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Velikost textu</value>
@@ -346,9 +352,11 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   </data>
   <data name="Settings_TaskbarLabelArrangementComboBox_SideBySide.Content" xml:space="preserve">
     <value>Vedle sebe</value>
+    <comment>name left, value right in one row</comment>
   </data>
   <data name="Settings_TaskbarLabelArrangementComboBox_Stacked.Content" xml:space="preserve">
     <value>Pod sebou</value>
+    <comment>the value under the name</comment>
   </data>
   <data name="Settings_TaskbarLabelPositionComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Pozice textu</value>
@@ -367,15 +375,18 @@ Využití GPU - nejvytíženější engine GPU, na kterém tato aplikace běží
   </data>
   <data name="Settings_TaskbarSideLabelPositionComboBox_Spread.Content" xml:space="preserve">
     <value>Rozložené</value>
+    <comment>name at the top of the graph, value at the bottom</comment>
   </data>
   <data name="Settings_TaskbarSideLabelPositionComboBox_Top.Content" xml:space="preserve">
     <value>Nahoře</value>
+    <comment>name and value stacked at the top</comment>
   </data>
   <data name="Settings_TaskbarSideLabelPositionComboBox_Center.Content" xml:space="preserve">
     <value>Uprostřed</value>
   </data>
   <data name="Settings_TaskbarSideLabelPositionComboBox_Bottom.Content" xml:space="preserve">
     <value>Dole</value>
+    <comment>name and value stacked at the bottom</comment>
   </data>
   <data name="Settings_TaskbarLabelAlignmentComboBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Zarovnání textu</value>

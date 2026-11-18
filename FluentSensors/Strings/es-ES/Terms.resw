@@ -111,6 +111,7 @@
   </data>
   <data name="Cpu_Extensions" xml:space="preserve">
     <value>Extensiones</value>
+    <comment>instruction set extensions, like AVX2 or SSE4.2</comment>
   </data>
   <data name="Gpu_Core" xml:space="preserve">
     <value>Núcleo</value>
@@ -123,6 +124,7 @@
   </data>
   <data name="Gpu_Engines" xml:space="preserve">
     <value>Motores</value>
+    <comment>GPU engines, like 3D, copy and video decode</comment>
   </data>
   <data name="Gpu_GPUInfo" xml:space="preserve">
     <value>Información de la GPU</value>
@@ -135,9 +137,11 @@
   </data>
   <data name="Gpu_Display" xml:space="preserve">
     <value>Pantalla</value>
+    <comment>the screens a GPU drives</comment>
   </data>
   <data name="Start_GpuDisplay" xml:space="preserve">
     <value>Pantalla: {0}</value>
+    <comment>{0} where the picture of the GPU goes: display names, "via" another GPU, or none</comment>
   </data>
   <data name="Gpu_DedicatedMemory" xml:space="preserve">
     <value>Memoria dedicada</value>
@@ -183,9 +187,11 @@
   </data>
   <data name="Memory_Bank" xml:space="preserve">
     <value>Banco</value>
+    <comment>bank label of a memory slot, as the firmware reports it</comment>
   </data>
   <data name="Memory_Rank" xml:space="preserve">
     <value>Rank</value>
+    <comment>number of ranks of a memory module</comment>
   </data>
   <data name="Memory_WidthTotalData" xml:space="preserve">
     <value>Ancho (total / datos)</value>
@@ -214,9 +220,6 @@
   <data name="Network_IPv6Addresses" xml:space="preserve">
     <value>Dirección(es) IPv6</value>
   </data>
-  <data name="Network_LinkSpeed" xml:space="preserve">
-    <value>Velocidad de vínculo</value>
-  </data>
   <data name="Network_MACAddress" xml:space="preserve">
     <value>Dirección MAC</value>
   </data>
@@ -231,18 +234,23 @@
   </data>
   <data name="SensorRowHeader_Current" xml:space="preserve">
     <value>Actual</value>
+    <comment>column header of the sensor list, narrow column; keep it as short as the English</comment>
   </data>
   <data name="SensorRowHeader_Minimum" xml:space="preserve">
     <value>Mín</value>
+    <comment>column header of the sensor list, narrow column; keep it as short as the English</comment>
   </data>
   <data name="SensorRowHeader_Maximum" xml:space="preserve">
     <value>Máx</value>
+    <comment>column header of the sensor list, narrow column; keep it as short as the English</comment>
   </data>
   <data name="SensorRowHeader_Average" xml:space="preserve">
     <value>Prom.</value>
+    <comment>column header of the sensor list, narrow column; keep it as short as the English</comment>
   </data>
   <data name="SensorRowHeader_Unit" xml:space="preserve">
     <value>Unidad</value>
+    <comment>column header of the sensor list, narrow column; keep it as short as the English</comment>
   </data>
   <data name="Cpu_TopologySymmetricSmt" xml:space="preserve">
     <value>Simétrico, Hyper-Threading habilitado</value>
@@ -252,68 +260,90 @@
   </data>
   <data name="Cpu_TopologyPerformance" xml:space="preserve">
     <value>Rendimiento</value>
+    <comment>core type of a hybrid CPU, the performance cores (P-cores); used in Cpu_TopologyGroup</comment>
   </data>
   <data name="Cpu_TopologyEfficient" xml:space="preserve">
     <value>Eficiencia</value>
+    <comment>core type of a hybrid CPU, the efficient cores (E-cores); used in Cpu_TopologyGroup</comment>
   </data>
   <data name="Cpu_TopologyClass" xml:space="preserve">
     <value>Clase {0}</value>
+    <comment>a core type between performance and efficient cores; {0} its number</comment>
   </data>
   <data name="Info_CacheInstruction" xml:space="preserve">
     <value>Instrucciones</value>
+    <comment>CPU cache type</comment>
   </data>
   <data name="Info_CacheData" xml:space="preserve">
     <value>Datos</value>
+    <comment>CPU cache type</comment>
   </data>
   <data name="Info_CacheUnified" xml:space="preserve">
     <value>Unificada</value>
+    <comment>CPU cache type</comment>
   </data>
   <data name="Info_FormChip" xml:space="preserve">
     <value>Chip</value>
+    <comment>memory form factor as the firmware reports it</comment>
   </data>
   <data name="Info_FormProprietaryCard" xml:space="preserve">
     <value>Tarjeta propietaria</value>
+    <comment>memory form factor as the firmware reports it</comment>
   </data>
   <data name="Info_FormRowOfChips" xml:space="preserve">
     <value>Fila de chips</value>
+    <comment>memory form factor as the firmware reports it</comment>
   </data>
   <data name="Info_FormDie" xml:space="preserve">
     <value>Die</value>
+    <comment>memory form factor as the firmware reports it</comment>
   </data>
   <data name="Info_Rank" xml:space="preserve">
     <value>Rank {0}</value>
+    <comment>ranks of a memory module; {0} the number of ranks</comment>
   </data>
   <data name="Start_Cores_One" xml:space="preserve">
     <value>{0} núcleo</value>
+    <comment>physical CPU cores; {0} the number; count form for exactly one</comment>
   </data>
   <data name="Start_Cores_Few" xml:space="preserve">
     <value>{0} núcleos</value>
+    <comment>physical CPU cores; {0} the number; count form for two to four; a language without a separate few form repeats the many text</comment>
   </data>
   <data name="Start_Cores_Many" xml:space="preserve">
     <value>{0} núcleos</value>
+    <comment>physical CPU cores; {0} the number; count form for everything else, zero included</comment>
   </data>
   <data name="Start_Threads_One" xml:space="preserve">
     <value>{0} subproceso</value>
+    <comment>logical processors; {0} the number; count form for exactly one</comment>
   </data>
   <data name="Start_Threads_Few" xml:space="preserve">
     <value>{0} subprocesos</value>
+    <comment>logical processors; {0} the number; count form for two to four; a language without a separate few form repeats the many text</comment>
   </data>
   <data name="Start_Threads_Many" xml:space="preserve">
     <value>{0} subprocesos</value>
+    <comment>logical processors; {0} the number; count form for everything else, zero included</comment>
   </data>
   <data name="Start_Modules_One" xml:space="preserve">
     <value>{0} módulo</value>
+    <comment>memory modules; {0} the number; count form for exactly one</comment>
   </data>
   <data name="Start_Modules_Few" xml:space="preserve">
     <value>{0} módulos</value>
+    <comment>memory modules; {0} the number; count form for two to four; a language without a separate few form repeats the many text</comment>
   </data>
   <data name="Start_Modules_Many" xml:space="preserve">
     <value>{0} módulos</value>
+    <comment>memory modules; {0} the number; count form for everything else, zero included</comment>
   </data>
   <data name="Start_SlotsUsed" xml:space="preserve">
     <value>{0} de {1} ranuras</value>
+    <comment>{0} memory slots in use, {1} all memory slots</comment>
   </data>
   <data name="Start_MemoryTotal" xml:space="preserve">
     <value>{0} en total</value>
+    <comment>{0} the memory size, like 32 GB</comment>
   </data>
 </root>
